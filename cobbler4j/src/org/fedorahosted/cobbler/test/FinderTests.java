@@ -8,20 +8,10 @@ import static org.junit.Assert.*;
 import org.fedorahosted.cobbler.autogen.*;
 import org.fedorahosted.cobbler.*;
 
-public class FinderTests {
-
-    public static final String user = "testing";
-    public static final String pass = "testing";
-    public static CobblerConnection cobblercon;
-
-    @BeforeClass 
-    public static void establishConnection() {
-        cobblercon = new CobblerConnection("http://192.168.1.1",
-                user, pass);
-    }
+public class FinderTests extends Fixture {
 
     @Test 
-    public void findSomething() {
+    public void findDistros() {
         Finder finder = Finder.getInstance();
         // TODO: Will fail if your cobbler server has no distros:
         List<Distro> d = (List<Distro>)finder.listItems(cobblercon, 
