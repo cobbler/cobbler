@@ -1,10 +1,15 @@
 package org.fedorahosted.cobbler;
 
-public class Test {
+import java.util.List;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class FinderTests {
 
   public static final String user = "testing";
   public static final String pass = "testing";
   
+  /*
   public static void main(String[] args) {
   
       if (args.length < 1) {
@@ -13,9 +18,14 @@ public class Test {
       String endPoint = args[0];
       System.out.println("Running cobbler4j tests against " + endPoint);
       CobblerConnection conn = new CobblerConnection(endPoint,user,pass);
-      CobblerDistro distro = new CobblerDistro(conn);
-      System.out.println(distro.toString());
+      List<Distro> distros = (List<Distro>)Finder.getInstance().
+										listItems(conn, ObjectType.DISTRO);
+		System.out.println(distros.get(0));
+  }
+  */
 
+  @Test public void testSomething() {
+      assertTrue(true);
   }
 
 }

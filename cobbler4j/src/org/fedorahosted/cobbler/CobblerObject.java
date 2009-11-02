@@ -34,8 +34,16 @@ import java.util.Set;
 public abstract class CobblerObject {
     
     protected String handle;
-    protected HashMap dataMap = new HashMap();
+    protected Map dataMap = new HashMap();
     protected CobblerConnection client;    
+    static final String NAME = "name";
+    static final String UID = "uid";    
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return (String)dataMap.get(NAME);
+    }
 
     /**
      * Helper method used by all cobbler objects to 
@@ -62,7 +70,7 @@ public abstract class CobblerObject {
 
     //}
 
-    protected abstract String getObjectType();
+    protected abstract ObjectType getObjectType();
 
     /**
      * look up data maps by a certain criteria
@@ -138,7 +146,36 @@ public abstract class CobblerObject {
     }
    
     public String toString() {
-        return getObjectType() + dataMap.toString();
+        return getObjectType() + "\n" + dataMap.toString();
     }
 
+    public void commit() {
+        client.invokeMethod("commit_" + getObjectType().getName()  , getHandle(), dataMap);
+    }
+
+
+    protected String getHandle() {
+        if (handle == null || handle.trim().length() == 0) {
+            handle = invokeGetHandle();
+        }
+        return handle;
+    }
+
+
+    private String invokeGetHandle() {
+        return (String)client.invokeMethod("get_"+ getObjectType().getName() + "_handle", this.getName());
+    }
+    
+    static CobblerObject load(ObjectType type, CobblerConnection client, Map<String, Object> dataMap) {
+        try 
+        {
+            CobblerObject obj = (CobblerObject) type.getObjectClass().newInstance();
+            obj.dataMap = dataMap;
+            obj.client = client;
+            return obj;
+        }
+        catch(Exception e) {
+            throw new XmlRpcException("Class instantiation expcetion.", e);
+        }
+    }
 }

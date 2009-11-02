@@ -42,26 +42,25 @@ public class CobblerConnection {
      */
     
     public CobblerConnection(String url, String user, String pass) {
-        List auth = new LinkedList();
-        auth.add(user);
-        auth.add(pass);
+
+        url += "/cobbler_api";
+
         try {
             client = new XmlRpcClient(url, false);
         }
         catch (MalformedURLException e) {
             throw new XmlRpcException(e);
         }
-        token = (String) invokeMethod("login", auth);
-    }    
-    
+        token = (String) invokeNoTokenMethod("login", user, pass);
+    }
+
     /**
      * Invoke an XMLRPC method.
      * @param method method to invoke
      * @param args args to pass to method
      * @return Object data returned.
      */
-    protected Object invokeMethod(String method, List args) {
-        args.add(token);
+    public Object invokeNoTokenMethod(String method, List args) {
         try {
             return client.invoke(method, args);
         } 
@@ -70,4 +69,38 @@ public class CobblerConnection {
         } 
     }
 
+    /**
+     * Invoke an XMLRPC method.
+     * @param method method to invoke
+     * @param params params to pass to method
+     * @return Object data returned.
+     */
+    public Object invokeNoTokenMethod(String method, Object ... params) {
+        return invokeNoTokenMethod(method, Arrays.asList(params));
+    }    
+
+
+    
+    /**
+     * Invoke an XMLRPC method.
+     * @param method method to invoke
+     * @param args args to pass to method
+     * @return Object data returned.
+     */
+    protected Object invokeMethod(String method, List params) {
+        List args = new LinkedList(params);
+        args.add(token);
+        return invokeNoTokenMethod(method, args);
+    }
+
+    /**
+     * Invoke an XMLRPC method.
+     * @param method method to invoke
+     * @param args args to pass to method
+     * @return Object data returned.
+     */
+    public Object invokeMethod(String method, Object ... params) {
+        return invokeMethod(method, Arrays.asList(params));
+    }
+    
 }

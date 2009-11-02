@@ -1,12 +1,30 @@
-<project>
+<project default = "build">
 
-    <target name="build">
+    <!-- Might be wasteful to clean everything here, but with the 
+      auto-generation in play it seems wise. -->
+    <target name="init" depends="clean">
+        <path id="class.path">
+            <pathelement location="build"/>
+            <fileset dir="lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <!-- Standard location for Fedora/RHEL junit4 package. -->
+            <fileset dir="/usr/share/java/">
+                <include name="junit4.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+    <!-- Auto-generate Cobbler classes when we can. -->
+    <target name="generateClasses" depends="init">
+        <exec executable="python">
+            <arg value="build.py"/>
+        </exec>
+    </target>
+
+    <target name="build" depends="generateClasses">
         <mkdir dir="build"/>
-        <unjar src="xmlrpc.jar" dest="build"/>
-        <javac srcdir="." destdir="build" nowarn="true">
-            <classpath>
-                <pathelement location="build"/>
-            </classpath>
+        <javac srcdir="src/" destdir="build" nowarn="true"  classpathref="class.path">
         </javac>  
         <jar destfile="cobbler4j.jar" basedir="build">
             <manifest>
@@ -15,10 +33,28 @@
         </jar>
     </target>
 
-    <target name="test">
-        <java jar="cobbler4j.jar" fork="true">
-            <arg value="http://127.0.0.1/cobbler_api"/>
+    <target name="clean">
+        <delete dir="build/" quiet="true"/>
+        <delete dir="src/org/fedorahosted/cobbler/autogen/" quiet="true"/>
+        <delete file="cobbler4j.jar" quiet="true"/>
+    </target>
+
+    <target name="test" depends="build">
+        <!--
+        <java classname="org.fedorahosted.cobbler.Test" fork="true" classpathref="class.path">
+            <arg value="http://192.168.1.1"/>
         </java>
+        -->
+        <junit printsummary="yes" haltonfailure="no">
+            <formatter type="xml"/>
+            <classpath refid="class.path"/>
+            <batchtest fork="yes" todir="build/">
+                <fileset dir="src">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
     </target>
 
 </project>

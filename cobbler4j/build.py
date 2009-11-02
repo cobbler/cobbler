@@ -7,13 +7,23 @@ Michael DeHaan <mdehaan@redhat.com>
 May Guido have mercy on your application.
 """
 
+# Force to build from the Python modules in this source checkout,
+# not what's installed on the system.
+import sys
+sys.path.insert(0, "../")
+
+import os.path
+import commands
+
 import Cheetah.Template     as Template
+
 import cobbler.item_distro  as cobbler_distro
 import cobbler.item_profile as cobbler_profile
 import cobbler.item_system  as cobbler_system
 import cobbler.item_repo    as cobbler_repo
 import cobbler.item_image   as cobbler_image
-import os.path
+
+AUTOGEN_PATH = "src/org/fedorahosted/cobbler/autogen/"
 
 # FIXME: make this also do Ruby
 # FIXME: network object handling is quasi-special
@@ -21,11 +31,11 @@ import os.path
 # Define what files we need to template out dynamically
 # FIXME: also do this for XMLPC
 OBJECT_MAP = [
-   [ "Distro",  "CobblerDistro",  cobbler_distro.FIELDS  ],
-   [ "Profile", "CobblerProfile", cobbler_profile.FIELDS ],
-   [ "System",  "CobblerSystem",  cobbler_system.FIELDS  ],
-   [ "Repo",    "CobblerRepo",    cobbler_repo.FIELDS    ],
-   [ "Image",   "CobblerImage",   cobbler_image.FIELDS   ],
+   [ "Distro",  "Distro",  cobbler_distro.FIELDS  ],
+   [ "Profile", "Profile", cobbler_profile.FIELDS ],
+   [ "System",  "SystemRecord",  cobbler_system.FIELDS  ],
+   [ "Repo",    "Repo",    cobbler_repo.FIELDS    ],
+   [ "Image",   "Image",   cobbler_image.FIELDS   ],
 ]
 
 # Define what variables to expose in all templates
@@ -95,10 +105,11 @@ def templatize_from_vars(objname, jclass, vars):
    if objname is not None:
       vars.update({
           "JavaObjectType"      : jclass,
-          "CobblerObjectType"   : objname
+          "CobblerObjectType"   : objname.upper()
       })
    filename1 = "object_base.tmpl"
-   filename2 = "%s.java" % jclass
+   filename2 = "%s%s.java" % (AUTOGEN_PATH, jclass)
+   commands.getstatusoutput("mkdir -p %s" % AUTOGEN_PATH)
    print "TEMPLATING %s to %s" % (filename1, filename2)
    template_to_disk(filename1, vars, filename2)
 
