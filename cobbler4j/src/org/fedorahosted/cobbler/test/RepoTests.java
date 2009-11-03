@@ -71,5 +71,15 @@ public class RepoTests extends Fixture {
                 ObjectType.REPO, TEST_REPO_NAME);
         assertTrue(lookedUp.getKeepUpdated());
     }
+    
+    @Test
+    public void testUnsetParamsOnNewRepo() {
+        // Testing behavior here, new objects don't have default attributes set
+        // in the java object they were created from.
+        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
+                ObjectType.REPO, TEST_REPO_NAME);
+        assertNull(testRepo.getPriority());
+        assertEquals(new Integer(99), lookedUp.getPriority());
+    }
 }
 

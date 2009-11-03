@@ -15,14 +15,9 @@
 
 package org.fedorahosted.cobbler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.lang.reflect.Constructor;
 
 
@@ -54,12 +49,7 @@ public abstract class CobblerObject {
         }
     }
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return (String)dataMap.get(NAME);
-    }
+    public abstract String getName();
 
     /**
      * Helper method used by all cobbler objects to 
@@ -165,6 +155,12 @@ public abstract class CobblerObject {
         return getObjectType() + "\n" + dataMap.toString();
     }
 
+    /**
+     * Commit this object to the cobbler server. 
+     * 
+     * If this object is new, it will be created, otherwise an edit will be 
+     * performed.
+     */
     public void commit() {
         // Old way:
         //client.invokeMethod("commit_" + getObjectType().getName(), getHandle(), 
@@ -177,7 +173,7 @@ public abstract class CobblerObject {
             newObject = false;
         }
         else {
-            client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+            client.invokeMethod("xapi_object_edit", getObjectType().getName(),
                     getName(), "edit", dataMap);
         }
     }
@@ -203,15 +199,15 @@ public abstract class CobblerObject {
                               Map<String, Object> dataMap) {
         try 
         {
-            Constructor ctor = type.getObjectClass().getConstructor(
+            Constructor<CobblerObject> ctor = type.getObjectClass().getConstructor(
                     new Class [] {CobblerConnection.class, Map.class});
 
-            CobblerObject obj = (CobblerObject) ctor.newInstance(
+            CobblerObject obj = ctor.newInstance(
                     new Object [] {client, dataMap});
             return obj;
         }
         catch(Exception e) {
-            throw new XmlRpcException("Class instantiation expcetion.", e);
+            throw new XmlRpcException("Class instantiation exception.", e);
         }
     }
 }
