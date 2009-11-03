@@ -78,8 +78,12 @@ public class RepoTests extends Fixture {
         // in the java object they were created from.
         Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
                 ObjectType.REPO, TEST_REPO_NAME);
-        assertNull(testRepo.getPriority());
-        assertEquals(new Integer(99), lookedUp.getPriority());
+        assertNotNull(testRepo.getPriority());
+        assertEquals(testRepo.getPriority(), lookedUp.getPriority());
+    }
+    
+    @Test 
+    public void testBigEdit() {
     }
 }
 

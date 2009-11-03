@@ -31,8 +31,8 @@ public class Finder {
 
     @SuppressWarnings("unchecked")
     public List<? extends CobblerObject> findItems(CobblerConnection client,
-            ObjectType type, 
-            String critera, String value) {
+            ObjectType type, String critera, String value) {
+        
         if (value == null) {
             return null;
         }

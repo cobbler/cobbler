@@ -100,29 +100,23 @@ public abstract class CobblerObject {
         //return objects;
         return null;
     }
-    
 
     /**
-     * Helper method used by all cobbler objects to 
-     * return a Map of themselves by name.
-     * @see org.cobbler.Distro.lookupByName for example usage..
-     * @param client  the Cobbler Connection
-     * @param name the name of the cobbler object
-     * @param lookupMethod the name of the xmlrpc
-     *                       method to lookup: eg get_profile for profile 
-     * @return the Cobbler Object Data Map or null
+     * Refresh the state of this object by looking up it's data map anew from 
+     * the cobbler server.
      */
-
-    // FIXME: refactor?
-    //protected static Map <String, Object> lookupDataMapByName(CobblerConnection client, 
-    //                                String name, String lookupMethod) {
-    //    Map <String, Object> map = (Map<String, Object>)client.
-    //                                    invokeMethod(lookupMethod, name);
-    //    if (map == null || map.isEmpty()) {
-    //        return null;
-    //    }
-    //    return map;
-    //}
+    private void refreshObjectState() {
+        
+        CobblerObject lookupCopy = Finder.getInstance().findItemByName(client, 
+                getObjectType(), getName());
+        
+        if (lookupCopy == null) {
+            // This is bad, object appears to have been deleted out from underneath us
+            throw new XmlRpcException("Unable to refresh object state: " + getName());
+        }
+        
+        this.dataMap = lookupCopy.dataMap;
+    }
     
     protected void modify(String key, Object value) {
         // FIXME: this should modify the datamap and then have seperate 'commit'
@@ -160,6 +154,11 @@ public abstract class CobblerObject {
      * 
      * If this object is new, it will be created, otherwise an edit will be 
      * performed.
+     * 
+     * If you are creating a new object, the internal state of this object will
+     * immediately be refreshed from the server. This is to accommodate the 
+     * defaults cobbler sets for attributes we didn't specify explicitly on our 
+     * object. 
      */
     public void commit() {
         // Old way:
@@ -171,11 +170,15 @@ public abstract class CobblerObject {
                     getName(), "add", dataMap);
             // Now that we've been created:
             newObject = false;
+            
+            // Pickup the defaults the server set for things we didn't specify:
+            refreshObjectState();
         }
         else {
             client.invokeMethod("xapi_object_edit", getObjectType().getName(),
                     getName(), "edit", dataMap);
         }
+
     }
 
     public void remove() {
@@ -210,4 +213,5 @@ public abstract class CobblerObject {
             throw new XmlRpcException("Class instantiation exception.", e);
         }
     }
+    
 }
