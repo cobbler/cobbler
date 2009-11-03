@@ -15,14 +15,9 @@
 
 package org.fedorahosted.cobbler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.lang.reflect.Constructor;
 
 
@@ -38,19 +33,23 @@ public abstract class CobblerObject {
     protected Map dataMap = new HashMap();
     protected CobblerConnection client;    
     static final String NAME = "name";
-    static final String UID = "uid";    
+    static final String UID = "uid";
+
+    // Indicates whether or not we're an "add" or an "edit" when committed.
+    protected Boolean newObject = false;
 
     public CobblerObject(CobblerConnection clientIn, Map dataMapIn) {
         client = clientIn;
         dataMap = dataMapIn;
+        
+        // If the data map we're being created with is empty, that's a very 
+        // strong indication this is a new object, not yet created:
+        if (dataMap.keySet().size() == 0) {
+            newObject = true;
+        }
     }
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return (String)dataMap.get(NAME);
-    }
+    public abstract String getName();
 
     /**
      * Helper method used by all cobbler objects to 
@@ -101,29 +100,23 @@ public abstract class CobblerObject {
         //return objects;
         return null;
     }
-    
 
     /**
-     * Helper method used by all cobbler objects to 
-     * return a Map of themselves by name.
-     * @see org.cobbler.Distro.lookupByName for example usage..
-     * @param client  the Cobbler Connection
-     * @param name the name of the cobbler object
-     * @param lookupMethod the name of the xmlrpc
-     *                       method to lookup: eg get_profile for profile 
-     * @return the Cobbler Object Data Map or null
+     * Refresh the state of this object by looking up it's data map anew from 
+     * the cobbler server.
      */
-
-    // FIXME: refactor?
-    //protected static Map <String, Object> lookupDataMapByName(CobblerConnection client, 
-    //                                String name, String lookupMethod) {
-    //    Map <String, Object> map = (Map<String, Object>)client.
-    //                                    invokeMethod(lookupMethod, name);
-    //    if (map == null || map.isEmpty()) {
-    //        return null;
-    //    }
-    //    return map;
-    //}
+    private void refreshObjectState() {
+        
+        CobblerObject lookupCopy = Finder.getInstance().findItemByName(client, 
+                getObjectType(), getName());
+        
+        if (lookupCopy == null) {
+            // This is bad, object appears to have been deleted out from underneath us
+            throw new XmlRpcException("Unable to refresh object state: " + getName());
+        }
+        
+        this.dataMap = lookupCopy.dataMap;
+    }
     
     protected void modify(String key, Object value) {
         // FIXME: this should modify the datamap and then have seperate 'commit'
@@ -156,14 +149,36 @@ public abstract class CobblerObject {
         return getObjectType() + "\n" + dataMap.toString();
     }
 
+    /**
+     * Commit this object to the cobbler server. 
+     * 
+     * If this object is new, it will be created, otherwise an edit will be 
+     * performed.
+     * 
+     * If you are creating a new object, the internal state of this object will
+     * immediately be refreshed from the server. This is to accommodate the 
+     * defaults cobbler sets for attributes we didn't specify explicitly on our 
+     * object. 
+     */
     public void commit() {
         // Old way:
         //client.invokeMethod("commit_" + getObjectType().getName(), getHandle(), 
         //        dataMap);
-        
-        // New less chatty cobbler 2.0 way:
-        client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
-                getName(), "add", dataMap);
+
+        if (newObject) {
+            client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+                    getName(), "add", dataMap);
+            // Now that we've been created:
+            newObject = false;
+            
+            // Pickup the defaults the server set for things we didn't specify:
+            refreshObjectState();
+        }
+        else {
+            client.invokeMethod("xapi_object_edit", getObjectType().getName(),
+                    getName(), "edit", dataMap);
+        }
+
     }
 
     public void remove() {
@@ -187,15 +202,16 @@ public abstract class CobblerObject {
                               Map<String, Object> dataMap) {
         try 
         {
-            Constructor ctor = type.getObjectClass().getConstructor(
+            Constructor<CobblerObject> ctor = type.getObjectClass().getConstructor(
                     new Class [] {CobblerConnection.class, Map.class});
 
-            CobblerObject obj = (CobblerObject) ctor.newInstance(
+            CobblerObject obj = ctor.newInstance(
                     new Object [] {client, dataMap});
             return obj;
         }
         catch(Exception e) {
-            throw new XmlRpcException("Class instantiation expcetion.", e);
+            throw new XmlRpcException("Class instantiation exception.", e);
         }
     }
+    
 }

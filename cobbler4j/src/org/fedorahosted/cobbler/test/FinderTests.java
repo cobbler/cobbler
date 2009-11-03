@@ -13,7 +13,7 @@ public class FinderTests extends Fixture {
     @Test 
     public void findDistros() {
         Finder finder = Finder.getInstance();
-        List<Distro> d = (List<Distro>)finder.listItems(cobblercon, 
+        List<Distro> d = (List<Distro>)finder.listItems(xmlrpc, 
                 ObjectType.DISTRO);
 
         // Ideally we'd check that some were returned, but we can't guarantee 

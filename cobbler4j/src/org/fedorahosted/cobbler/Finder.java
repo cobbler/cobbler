@@ -24,14 +24,15 @@ public class Finder {
 
     private Finder() { 
     }
-    
+
     public static Finder getInstance() {
         return INSTANCE;
     }
 
+    @SuppressWarnings("unchecked")
     public List<? extends CobblerObject> findItems(CobblerConnection client,
-                                  ObjectType type, 
-                                String critera, String value) {
+            ObjectType type, String critera, String value) {
+        
         if (value == null) {
             return null;
         }
@@ -39,12 +40,12 @@ public class Finder {
         Map<String, String> criteria  = new HashMap<String, String>();
         criteria.put(critera, value);
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
-                                client.invokeMethod(type.getName(), criteria);
+            client.invokeMethod("find_" + type.getName(), criteria);
         return maps2Objects(client, type, objects);
     }
 
     private List <? extends CobblerObject> maps2Objects(CobblerConnection client,
-                                  ObjectType type, List<Map<String, Object>> maps) {
+            ObjectType type, List<Map<String, Object>> maps) {
         List<CobblerObject> ret = new LinkedList<CobblerObject>();
         for (Map<String, Object> obj : maps) {
             ret.add(CobblerObject.load(type, client, obj));
@@ -53,12 +54,13 @@ public class Finder {
     }
 
     public CobblerObject findItemById(CobblerConnection client,
-                                  ObjectType type, 
-                                    String id) {
+            ObjectType type, 
+            String id) {
         if (id == null) {
             return null;
         }
-        List <? extends CobblerObject> items = findItems(client, type, CobblerObject.UID, id);
+        List <? extends CobblerObject> items = findItems(client, type, 
+                CobblerObject.UID, id);
         if (items.isEmpty()) {
             return null;
         }
@@ -66,20 +68,24 @@ public class Finder {
     }
 
     public CobblerObject findItemByName(CobblerConnection client,
-                                  ObjectType type, String name) {
+            ObjectType type, String name) {
         if (name == null) {
             return null;
         }
-        List <? extends CobblerObject> items = findItems(client, type, CobblerObject.NAME, name);
+
+        List <? extends CobblerObject> items = findItems(client, type, 
+                CobblerObject.NAME, name);
         if (items.isEmpty()) {
             return null;
         }
         return items.get(0);
     }
 
-    public List<? extends CobblerObject> listItems(CobblerConnection client, ObjectType type) {
+    @SuppressWarnings("unchecked")
+    public List<? extends CobblerObject> listItems(CobblerConnection client, 
+            ObjectType type) {
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
-                                client.invokeNoTokenMethod("get_" + type.getName()+ "s");
+            client.invokeNoTokenMethod("get_" + type.getName()+ "s");
         return maps2Objects(client, type, objects);
     }
 }
