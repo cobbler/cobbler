@@ -56,10 +56,20 @@ public class RepoTests extends Fixture {
         newRepo.remove();
     }
     
-    /*
     @Test 
     public void testEditRepo() {
+        testRepo.setKeepUpdated(false);
+        testRepo.commit();
+        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
+                ObjectType.REPO, TEST_REPO_NAME);
+        assertFalse(lookedUp.getKeepUpdated());
+        
+        testRepo.setKeepUpdated(true);
+        testRepo.commit();
+        
+        lookedUp = (Repo)finder.findItemByName(xmlrpc, 
+                ObjectType.REPO, TEST_REPO_NAME);
+        assertTrue(lookedUp.getKeepUpdated());
     }
-    */
 }
 

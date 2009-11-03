@@ -38,11 +38,20 @@ public abstract class CobblerObject {
     protected Map dataMap = new HashMap();
     protected CobblerConnection client;    
     static final String NAME = "name";
-    static final String UID = "uid";    
+    static final String UID = "uid";
+
+    // Indicates whether or not we're an "add" or an "edit" when committed.
+    protected Boolean newObject = false;
 
     public CobblerObject(CobblerConnection clientIn, Map dataMapIn) {
         client = clientIn;
         dataMap = dataMapIn;
+        
+        // If the data map we're being created with is empty, that's a very 
+        // strong indication this is a new object, not yet created:
+        if (dataMap.keySet().size() == 0) {
+            newObject = true;
+        }
     }
 
     /**
@@ -160,10 +169,17 @@ public abstract class CobblerObject {
         // Old way:
         //client.invokeMethod("commit_" + getObjectType().getName(), getHandle(), 
         //        dataMap);
-        
-        // New less chatty cobbler 2.0 way:
-        client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
-                getName(), "add", dataMap);
+
+        if (newObject) {
+            client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+                    getName(), "add", dataMap);
+            // Now that we've been created:
+            newObject = false;
+        }
+        else {
+            client.invokeMethod("xapi_object_edit", getObjectType().getName(), 
+                    getName(), "edit", dataMap);
+        }
     }
 
     public void remove() {
