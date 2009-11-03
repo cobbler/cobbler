@@ -39,7 +39,7 @@ public class Finder {
         Map<String, String> criteria  = new HashMap<String, String>();
         criteria.put(critera, value);
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
-            client.invokeMethod(type.getName(), criteria);
+            client.invokeMethod("find_" + type.getName(), criteria);
         return maps2Objects(client, type, objects);
     }
 

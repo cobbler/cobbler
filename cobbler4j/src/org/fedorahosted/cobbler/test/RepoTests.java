@@ -1,8 +1,6 @@
 package org.fedorahosted.cobbler.test;
 
-import java.util.List;
 import org.junit.Test;
-import org.junit.BeforeClass;
 import static org.junit.Assert.*;
 
 import org.fedorahosted.cobbler.autogen.*;
@@ -12,15 +10,24 @@ public class RepoTests extends Fixture {
 
     @Test 
     public void createRepo() {
+
+        String repoToCreate = "testrepo";
+
         Repo newRepo = new Repo(cobblercon);
-        newRepo.setName("testrepo");
+        newRepo.setName(repoToCreate);
         newRepo.setMirror("rsync://centos.arcticnetwork.ca/centos/5.4/os/i386/");
         newRepo.commit();
 
+        Repo lookedUp = (Repo)finder.findItemByName(cobblercon, 
+                ObjectType.REPO, repoToCreate);
+        assertEquals(lookedUp.getName(), repoToCreate);
+
         // Now remove it:
         newRepo.remove();
-        
-        // TODO: Make sure it's gone...
+
+        lookedUp = (Repo)finder.findItemByName(cobblercon, 
+                ObjectType.REPO, repoToCreate);
+        assertNull(lookedUp);
     }
 
 }

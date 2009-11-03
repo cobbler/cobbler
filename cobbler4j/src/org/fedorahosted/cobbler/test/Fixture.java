@@ -10,11 +10,13 @@ public class Fixture {
     public static final String user = "testing";
     public static final String pass = "testing";
     public static CobblerConnection cobblercon;
+    public static Finder finder;
 
     @BeforeClass 
     public static void establishConnection() {
         cobblercon = new CobblerConnection("http://192.168.1.1",
                 user, pass);
+        finder = Finder.getInstance();
     }
 
 }
