@@ -29,6 +29,7 @@ public class Finder {
         return INSTANCE;
     }
 
+    @SuppressWarnings("unchecked")
     public List<? extends CobblerObject> findItems(CobblerConnection client,
             ObjectType type, 
             String critera, String value) {
@@ -80,6 +81,7 @@ public class Finder {
         return items.get(0);
     }
 
+    @SuppressWarnings("unchecked")
     public List<? extends CobblerObject> listItems(CobblerConnection client, 
             ObjectType type) {
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
