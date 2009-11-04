@@ -16,20 +16,24 @@ public class DistroTests extends Fixture {
     private static final String TEST_DISTRO_NAME = "cobblertestrepo";
     private Distro testDistro;
     
-    @Before
-    public void setUp() {
-        testDistro = new Distro(xmlrpc);
-        testDistro.setName(TEST_DISTRO_NAME);
+    public static Distro createTestDistro() {
+        Distro newDistro = new Distro(xmlrpc);
+        newDistro.setName(TEST_DISTRO_NAME);
         // FIXME: This is super gross, but we need a test distro, and cobbler doesn't
         // seem to care if you pass it rubbish for the kernel/initrd.
-        testDistro.setKernel("/etc/hosts");
-        testDistro.setInitrd("/etc/hosts");
-        testDistro.commit();
+        newDistro.setKernel("/etc/hosts");
+        newDistro.setInitrd("/etc/hosts");
+        newDistro.commit();
+        return newDistro;
+    }
+    
+    @Before
+    public void setUp() {
+        testDistro = createTestDistro();
     }
     
     @After
     public void tearDown() {
-        // Now remove it:
         try {
             testDistro.remove();
         }
