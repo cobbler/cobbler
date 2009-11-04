@@ -1,5 +1,8 @@
 package org.fedorahosted.cobbler.test;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,52 +76,28 @@ public class DistroTests extends Fixture {
         newDistro.setName("nosuchrepo");
         newDistro.remove();
     }
-//    
-//    @Test 
-//    public void testEditRepo() {
-//        testRepo.setKeepUpdated(false);
-//        testRepo.commit();
-//        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
-//                ObjectType.REPO, TEST_REPO_NAME);
-//        assertFalse(lookedUp.getKeepUpdated());
-//        
-//        testRepo.setKeepUpdated(true);
-//        testRepo.commit();
-//        
-//        lookedUp = (Repo)finder.findItemByName(xmlrpc, 
-//                ObjectType.REPO, TEST_REPO_NAME);
-//        assertTrue(lookedUp.getKeepUpdated());
-//    }
-//    
-//    @Test
-//    public void testUnsetParamsOnNewRepo() {
-//        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
-//                ObjectType.REPO, TEST_REPO_NAME);
-//        assertNotNull(testRepo.getPriority());
-//        assertEquals(testRepo.getPriority(), lookedUp.getPriority());
-//    }
-//    
-//    @Test 
-//    public void testBigEdit() {
-//        String arch = "x86_64";
-//        String comment = "hello world!";
-//        
-//        testRepo.setArch(arch);
-//        testRepo.setComment(comment);
-//        testRepo.setMirrorLocally(false);
-//        testRepo.commit();
-//        
-//        assertEquals(arch, testRepo.getArch());
-//        assertEquals(comment, testRepo.getComment());
-//        assertFalse(testRepo.getMirrorLocally());
-//        
-//        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
-//                ObjectType.REPO, TEST_REPO_NAME);
-//        
-//        assertEquals(testRepo.getArch(), lookedUp.getArch());
-//        assertEquals(testRepo.getComment(), lookedUp.getComment());
-//        assertFalse(lookedUp.getMirrorLocally());
-//        
-//    }
+    
+    @Test(expected=XmlRpcException.class)
+    public void setInvalidOsVersion() {
+        testDistro.setOsVersion("alskdhals");
+        testDistro.commit();
+    }
+    
+    @Test 
+    public void testEditDistro() {
+        testDistro.setOsVersion("generic26");
+        List<String> owners = new LinkedList<String>();
+        owners.add("admin");
+        owners.add("testing");
+        owners.add("somebodyelse");
+        testDistro.setOwners(owners);
+        testDistro.commit();
+        
+        Distro lookedUp = (Distro)finder.findItemByName(xmlrpc, 
+                ObjectType.DISTRO, TEST_DISTRO_NAME);
+        assertEquals("generic26", lookedUp.getOsVersion());
+        assertEquals(3, lookedUp.getOwners().size());
+    }
+    
 }
 
