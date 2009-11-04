@@ -74,8 +74,6 @@ public class RepoTests extends Fixture {
     
     @Test
     public void testUnsetParamsOnNewRepo() {
-        // Testing behavior here, new objects don't have default attributes set
-        // in the java object they were created from.
         Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
                 ObjectType.REPO, TEST_REPO_NAME);
         assertNotNull(testRepo.getPriority());
@@ -84,6 +82,25 @@ public class RepoTests extends Fixture {
     
     @Test 
     public void testBigEdit() {
+        String arch = "x86_64";
+        String comment = "hello world!";
+        
+        testRepo.setArch(arch);
+        testRepo.setComment(comment);
+        testRepo.setMirrorLocally(false);
+        testRepo.commit();
+        
+        assertEquals(arch, testRepo.getArch());
+        assertEquals(comment, testRepo.getComment());
+        assertFalse(testRepo.getMirrorLocally());
+        
+        Repo lookedUp = (Repo)finder.findItemByName(xmlrpc, 
+                ObjectType.REPO, TEST_REPO_NAME);
+        
+        assertEquals(testRepo.getArch(), lookedUp.getArch());
+        assertEquals(testRepo.getComment(), lookedUp.getComment());
+        assertFalse(lookedUp.getMirrorLocally());
+        
     }
 }
 
