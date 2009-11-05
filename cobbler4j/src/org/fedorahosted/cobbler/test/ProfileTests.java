@@ -1,5 +1,10 @@
 package org.fedorahosted.cobbler.test;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +69,37 @@ public class ProfileTests extends Fixture {
         profile.setName("thisshouldfail");
         profile.commit();
     }
+
+    @Test
+    public void editProfile() {
+        String comment = "hello world!";
+        String kickstart = "/etc/hosts";
+
+        testProfile.setKickstart(kickstart); // more evil...
+        testProfile.setComment(comment);
+//        testProfile.setVirtAutoBoot(true);
+        testProfile.setVirtFileSize(new Double(5));
+
+        List<String> nameservers = new LinkedList<String>();
+        nameservers.add("192.168.1.1");
+        nameservers.add("192.168.1.2");
+        testProfile.setNameServers(nameservers);
+
+        Map<String, String> kernelOptions = new HashMap<String, String>();
+        testProfile.setKernelOptions(kernelOptions);
+
+        testProfile.commit();
         
+        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
+                ObjectType.PROFILE, testProfile.getName());
+        assertEquals(lookedUp.getName(), testProfile.getName());
+        assertEquals(2, lookedUp.getNameServers().size());
+        assertEquals(kickstart, lookedUp.getKickstart());
+        assertEquals(comment, lookedUp.getComment());
+//        assertTrue(lookedUp.getVirtAutoBoot());
+        assertEquals(new Double(5), lookedUp.getVirtFileSize());
+
+    }
+
 }
 
