@@ -27,9 +27,8 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 #menubar ul li { padding-left: 8px; }
 #menubar select { width: 102px; }
 
-#listactions { padding-left: 11px; width: 140px; }
-#listactions ul { padding: 0px 0px 0px 2px; margin: 0px; } 
-#listactions ul li { padding-left: 8px; }
+#listactions { padding: 5px 0px 5px 15px; width: 140px; margin-top: 5px; background-color: #CCCCCC }
+#listactions li { padding-bottom: 3px; }
 
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; }
 #listitems thead a { color: #dddddd; }

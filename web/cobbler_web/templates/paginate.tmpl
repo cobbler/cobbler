@@ -158,9 +158,9 @@
       <ul id="page_prev_next">
         <li style="float: left;">
           {% ifnotequal pageinfo.prev_page "~" %}
-          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"><span class="lpointers">&laquo;</span></a>
+          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.prev_page }}"><span class="lpointers">&lArr;</span></a>
           {% else %}
-          <span class="lpointers">&laquo;</span>
+          <span class="lpointers">&lArr;</span>
           {% endifnotequal %}
         </li>
         <li style="float: left;">
@@ -170,9 +170,9 @@
         </li>
         <li style="float: left;">
           {% ifnotequal pageinfo.next_page "~" %}
-          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"><span class="rpointers">&raquo;</span></a>
+          <a href="/cobbler_web/{{ what }}/modifylist/page/{{ pageinfo.next_page }}"><span class="rpointers">&rArr;</span></a>
           {% else %}
-          <span class="rpointers">&raquo;</span>
+          <span class="rpointers">&rArr;</span>
           {% endifnotequal %}
         </li>
       </ul>
