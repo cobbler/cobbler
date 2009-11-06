@@ -39,7 +39,10 @@ import action_power
 import action_hardlink
 import action_dlcontent
 from cexceptions import *
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import module_loader
 import kickgen
 import yumgen

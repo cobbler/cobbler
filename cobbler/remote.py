@@ -36,7 +36,10 @@ import fcntl
 import string
 import traceback
 import glob
-import sub_process as subprocess
+try:
+    import subprocess
+except:
+    import sub_process as subprocess
 from threading import Thread
 
 import api as cobbler_api
@@ -51,8 +54,6 @@ import clogger
 import utils
 #from utils import * # BAD!
 from utils import _
-
-import sub_process
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes

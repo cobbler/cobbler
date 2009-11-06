@@ -27,7 +27,10 @@ import copy
 import socket
 import glob
 import random
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import shutil
 import string
 import traceback

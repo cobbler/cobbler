@@ -35,7 +35,10 @@ import yaml # PyYAML
 import urlgrabber
 import remote
 import glob
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import api as cobbler_api
 import utils
 import os

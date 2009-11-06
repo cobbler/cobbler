@@ -30,7 +30,10 @@ import sys
 import glob
 import traceback
 import errno
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import string
 
 import utils

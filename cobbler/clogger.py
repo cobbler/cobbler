@@ -21,7 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import time
 import os
 

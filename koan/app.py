@@ -31,16 +31,22 @@ import tempfile
 
 ANCIENT_PYTHON = 0
 try:
-   import opt_parse  # importing this for backwards compat with 2.2
-   import sub_process
+    try:
+        from optparse import OptionParser
+    except:
+        from opt_parse import OptionParser # importing this for backwards compat with 2.2
+    try:
+        import subprocess as sub_process
+    except:
+        import sub_process
 except:
-   # the main "replace-self" codepath of koan must support
-   # Python 1.5.  Other sections may use 2.3 features (nothing newer)
-   # provided they are conditionally imported.  This is to support
-   # EL 2.1. -- mpd
-   ANCIENT_PYTHON = 1 
-   True = 1
-   False = 0
+    # the main "replace-self" codepath of koan must support
+    # Python 1.5.  Other sections may use 2.3 features (nothing newer)
+    # provided they are conditionally imported.  This is to support
+    # EL 2.1. -- mpd
+    ANCIENT_PYTHON = 1
+    True = 1
+    False = 0
 
 import exceptions
 import time
@@ -92,7 +98,7 @@ def main():
         print "- usage via spacewalk APIs only.  Python x>=2.3 required"
         return
 
-    p = opt_parse.OptionParser()
+    p = OptionParser()
     p.add_option("-k", "--kopts",
                  dest="kopts_override",
                  help="append additional kernel options")
@@ -578,10 +584,10 @@ class Koan:
 
             method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
 
-            url_parser = opt_parse.OptionParser()
+            url_parser = OptionParser()
             url_parser.add_option("--url", dest="url")
 
-            nfs_parser = opt_parse.OptionParser()
+            nfs_parser = OptionParser()
             nfs_parser.add_option("--dir", dest="dir")
             nfs_parser.add_option("--server", dest="server")
 

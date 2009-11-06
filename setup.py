@@ -5,7 +5,10 @@ import os.path
 from distutils.core import setup, Extension
 import string
 import yaml # PyYAML
-import cobbler.sub_process as subprocess
+try:
+    import subprocess
+except:
+    import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
 
