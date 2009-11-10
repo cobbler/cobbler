@@ -1,6 +1,7 @@
 *.pyc
 *.swp
 *.tmp
+*~
 dist
 rpm-build
 build
