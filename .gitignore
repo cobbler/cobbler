@@ -2,6 +2,7 @@
 *.swp
 *.tmp
 *.class
+*~
 dist
 rpm-build
 build
