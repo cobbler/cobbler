@@ -61,8 +61,10 @@ if lines(config) > 0 then do
 end
  
 /* Define temporary disk (VDISK) to store files */
+'set vdisk syslim infinite'
+'set vdisk userlim infinite'
 'detach ffff'                             /* detach ffff if present */
-'define vfb-512 as ffff blk 100000' /* 512 byte block size =~ 50 MB */
+'define vfb-512 as ffff blk 200000' /* 512 byte block size =~ 100 MB */
 queue '1'
 queue 'tmpdsk'
 'format ffff t'                     /* format VDISK as file mode t */
