@@ -32,7 +32,7 @@ from utils import _
 FIELDS = [
   ["name","",None,"Name",True,"Ex: F10-i386-webserver",0,"str"],
   ["uid","","","",False,"",0,"str"],
-  ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
+  ["owners","SETTINGS:default_ownership","SETTINGS:default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
   ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution",[],"str"],
   ["enable_menu","SETTINGS:enable_menu",'<<inherit>>',"Enable PXE Menu?",True,"Show this profile in the PXE menu?",0,"bool"],
   ["kickstart","SETTINGS:default_kickstart",'<<inherit>>',"Kickstart",True,"Path to kickstart template",0,"str"],
