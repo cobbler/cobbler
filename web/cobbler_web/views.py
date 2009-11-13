@@ -19,6 +19,7 @@ import cobbler.item_system  as item_system
 import cobbler.item_repo    as item_repo
 import cobbler.item_image   as item_image
 import cobbler.field_info   as field_info
+import cobbler.utils        as utils
 
 my_uri = "http://127.0.0.1/cobbler_api"
 remote = None
@@ -982,6 +983,7 @@ def generic_save(request,what):
             ifdata = {}
             for item in interface_field_list:
                 ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
+            ifdata=utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
             present  = request.POST.get("present-%s" % interface, "") 
             original = request.POST.get("original-%s" % interface, "") 
