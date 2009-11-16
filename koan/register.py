@@ -23,9 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import random
 import os
 import traceback
-import opt_parse  # importing this for backwards compat with 2.2
+try:
+    from optparse import OptionParser
+except:
+    from opt_parse import OptionParser  # importing this for backwards compat with 2.2
 import exceptions
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import time
 import errno
 import sys
@@ -44,7 +50,7 @@ def main():
     Command line stuff...
     """
 
-    p = opt_parse.OptionParser()
+    p = OptionParser()
     p.add_option("-s", "--server",
                  dest="server",
                  default=os.environ.get("COBBLER_SERVER",""),

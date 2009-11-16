@@ -204,6 +204,8 @@ class Profile(item.Item):
         Return object next highest up the tree.
         """
         if self.parent is None or self.parent == '':
+            if self.distro is None:
+                return None
             result = self.config.distros().find(name=self.distro)
         else:
             result = self.config.profiles().find(name=self.parent)

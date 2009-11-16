@@ -28,10 +28,13 @@ import tempfile
 import exceptions
 ANCIENT_PYTHON = 0
 try:
-   import sub_process
-   import urllib2	
+    try:
+        import subprocess as sub_process
+    except:
+       import sub_process
+    import urllib2
 except:
-   ANCIENT_PYTHON = 1
+    ANCIENT_PYTHON = 1
 import time
 import shutil
 import errno

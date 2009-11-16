@@ -34,7 +34,10 @@ import tempfile
 import shutil
 import virtinst
 import app as koan
-import sub_process as subprocess
+try:
+    import subprocess
+except:
+    import sub_process as subprocess
 import utils
 
 def random_mac():

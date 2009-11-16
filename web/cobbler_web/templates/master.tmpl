@@ -13,8 +13,16 @@
 <script type="text/javascript">
 $(document).ready(function()
 {
-  $("#listactions").hide();
+  $("#listactions").show();
+  $("#shadeState").html("&dArr");
   $("#listheader").click(function () {
+    if ($("#listactions").is(":hidden")) {
+        arrow = "&dArr";
+    } else {
+        arrow = "&rArr";
+    }
+
+    $("#shadeState").html(arrow);
     $("#listactions").toggle('slow');
   });
 });
