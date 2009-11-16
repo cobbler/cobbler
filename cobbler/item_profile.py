@@ -43,7 +43,7 @@ FIELDS = [
   ["comment","","","Comment",True,"Free form text description",0,"str"],
   ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
   ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer",0,"int"],
-  ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0,"float"],
+  ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0,"int"],
   ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0,"int"],
   ["depth",1,1,"",False,"",0,"int"],
   ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "vmware"],"str"],
