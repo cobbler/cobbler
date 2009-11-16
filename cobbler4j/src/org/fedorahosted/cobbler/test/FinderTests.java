@@ -15,9 +15,9 @@ public class FinderTests extends Fixture {
         List<Distro> d = (List<Distro>)finder.listItems(xmlrpc, 
                 ObjectType.DISTRO);
         
-        for(Distro x: d){
-        	System.out.println(x.getName());
-        }
+//        for(Distro x: d){
+//        	System.out.println(x.getName());
+//        }
         // Ideally we'd check that some were returned, but we can't guarantee 
         // the cobbler server we're testing against has any distro's available.
     }

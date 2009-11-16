@@ -77,8 +77,6 @@ public class ProfileTests extends Fixture {
 
         testProfile.setKickstart(kickstart); // more evil...
         testProfile.setComment(comment);
-//        testProfile.setVirtAutoBoot(true);
-        testProfile.setVirtFileSize(new Double(5));
 
         List<String> nameservers = new LinkedList<String>();
         nameservers.add("192.168.1.1");
@@ -96,9 +94,25 @@ public class ProfileTests extends Fixture {
         assertEquals(2, lookedUp.getNameServers().size());
         assertEquals(kickstart, lookedUp.getKickstart());
         assertEquals(comment, lookedUp.getComment());
-//        assertTrue(lookedUp.getVirtAutoBoot());
-        assertEquals(new Double(5), lookedUp.getVirtFileSize());
 
+    }
+    
+    @Test 
+    public void testVirtFileSize() {
+        testProfile.setVirtFileSize(new Integer(5));
+        testProfile.commit();
+        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
+                ObjectType.PROFILE, testProfile.getName());
+        assertEquals(new Integer(5), lookedUp.getVirtFileSize());
+    }
+    
+    @Test
+    public void testVirtAutoBoot() {
+        testProfile.setVirtAutoBoot(true);
+        testProfile.commit();
+        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
+                ObjectType.PROFILE, testProfile.getName());
+        assertTrue(lookedUp.getVirtAutoBoot());
     }
 
 }
