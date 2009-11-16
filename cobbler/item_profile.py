@@ -44,7 +44,7 @@ FIELDS = [
   ["ks_meta",{},'<<inherit>>',"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
   ["repos",[],'<<inherit>>',"Repos",True,"Repos to auto-assign to this profile",[],"list"],
   ["comment","","","Comment",True,"Free form text description",0,"str"],
-  ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
+  ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?","0","str"],
   ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer",0,"int"],
   ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0,"int"],
   ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0,"int"],
