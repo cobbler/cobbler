@@ -16,6 +16,9 @@ To test: ant-junit junit4
 
 Build with: "ant"
 
+To test copy user.properties.sample to user.properties and modify accordingly
+for connecting to your cobbler server.
+
 Test with: "ant test"
 
 

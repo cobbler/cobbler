@@ -26,7 +26,6 @@ public class PropertyLoader {
           parts[1] = replaceVariables(p, parts[1]);
           p.put(parts[0], parts[1]);
           System.setProperty(parts[0], parts[1]);
-          System.out.println(parts[0]+"="+parts[1]);
       }
   }
 	

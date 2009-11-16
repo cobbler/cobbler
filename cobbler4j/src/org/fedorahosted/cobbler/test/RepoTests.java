@@ -18,7 +18,7 @@ public class RepoTests extends Fixture {
         // Create a test repo we can operate on in this suite:
         testRepo = new Repo(xmlrpc);
         testRepo.setName(TEST_REPO_NAME);
-        testRepo.setMirror("rsync://"+Config.getCentosMirror());
+        testRepo.setMirror("rsync://" + Config.getCentosMirror());
         testRepo.commit();
     }
     

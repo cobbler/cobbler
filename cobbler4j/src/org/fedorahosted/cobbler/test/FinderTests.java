@@ -2,12 +2,9 @@ package org.fedorahosted.cobbler.test;
 
 import java.util.List;
 
-import org.fedorahosted.cobbler.Config;
 import org.fedorahosted.cobbler.Finder;
 import org.fedorahosted.cobbler.ObjectType;
 import org.fedorahosted.cobbler.autogen.Distro;
-import org.fedorahosted.cobbler.autogen.Repo;
-import org.junit.Before;
 import org.junit.Test;
 
 public class FinderTests extends Fixture {	
