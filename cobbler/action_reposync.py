@@ -221,7 +221,7 @@ class RepoSync:
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
+        cmd = "rsync -rltDv %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc !=0:
