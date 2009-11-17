@@ -39,6 +39,7 @@ public class Finder {
 
         Map<String, String> criteria  = new HashMap<String, String>();
         criteria.put(critera, value);
+
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
             client.invokeMethod("find_" + type.getName(), criteria);
         return maps2Objects(client, type, objects);
@@ -46,10 +47,37 @@ public class Finder {
 
     private List <? extends CobblerObject> maps2Objects(CobblerConnection client,
             ObjectType type, List<Map<String, Object>> maps) {
+        
         List<CobblerObject> ret = new LinkedList<CobblerObject>();
         for (Map<String, Object> obj : maps) {
-            ret.add(CobblerObject.load(type, client, obj));
+
+            // If we're looking for a system or a profile, call a different XMLRPC,
+            // method to get "blended" data. These objects in cobbler have a crude
+            // inheritence method where by child objects specify the field set as
+            // "<<inherit>>", indicating the value for this setting has to come
+            // from the parent object. Blending is Cobbler's process by which these
+            // fields get set. Profiles and systems are the only two objects supporting
+            // this blending.
+            
+            // This does result in two calls but I think it's the only way to get this
+            // right...
+            
+            if (type == ObjectType.PROFILE) {
+                Map<String, Object> blendedMap = (Map<String, Object>)
+                    client.invokeMethod("get_blended_data", obj.get("name"));
+                ret.add(CobblerObject.load(type, client, blendedMap));
+            }
+            else if (type == ObjectType.SYSTEM) {
+                // TODO: need a test for this
+                Map<String, Object> blendedMap = (Map<String, Object>)
+                    client.invokeMethod("get_blended_data", "", obj.get("name"));
+                ret.add(CobblerObject.load(type, client, blendedMap));
+            }
+            else {
+                ret.add(CobblerObject.load(type, client, obj));
+            }
         }
+        
         return ret;
     }
 

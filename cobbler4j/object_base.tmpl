@@ -114,8 +114,19 @@ public class $JavaObjectType extends CobblerObject {
     #else
     public ${var_type} get${up_var_name}(String interfaceName) {
     #end if
-        // FIXME: type mangling
+    #if $var_type == "Boolean"
+        // Some boolean fields come back from cobbler as integers, handle this situation:
+        Object o = access("${field_name}");
+        if (o instanceof Integer) {
+            if ((Integer)o == 0) {
+                return Boolean.FALSE;
+            }
+            return Boolean.TRUE;
+        }
         return (${var_type})access("${field_name}");
+    #else
+        return (${var_type})access("${field_name}");
+    #end if
     }
 
     #end for
