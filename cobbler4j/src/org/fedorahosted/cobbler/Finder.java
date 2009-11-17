@@ -62,20 +62,19 @@ public class Finder {
             // This does result in two calls but I think it's the only way to get this
             // right...
             
+            // Will remain null except for profiles and systems:
+            Map<String, Object> blendedDataMap = null;
             if (type == ObjectType.PROFILE) {
-                Map<String, Object> blendedMap = (Map<String, Object>)
+               blendedDataMap = (Map<String, Object>)
                     client.invokeMethod("get_blended_data", obj.get("name"));
-                ret.add(CobblerObject.load(type, client, blendedMap));
             }
             else if (type == ObjectType.SYSTEM) {
                 // TODO: need a test for this
-                Map<String, Object> blendedMap = (Map<String, Object>)
+                blendedDataMap = (Map<String, Object>)
                     client.invokeMethod("get_blended_data", "", obj.get("name"));
-                ret.add(CobblerObject.load(type, client, blendedMap));
             }
-            else {
-                ret.add(CobblerObject.load(type, client, obj));
-            }
+            
+            ret.add(CobblerObject.load(type, client, obj, blendedDataMap));
         }
         
         return ret;

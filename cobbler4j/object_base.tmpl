@@ -32,13 +32,15 @@ import org.fedorahosted.cobbler.ObjectType;
  * @version $Rev$
  */
 public class $JavaObjectType extends CobblerObject {
+
+    private static String INHERIT_STRING = "<<inherit>>";
     
-    public ${JavaObjectType}(CobblerConnection clientIn, Map dataMapIn) {
-        super(clientIn, dataMapIn);
+    public ${JavaObjectType}(CobblerConnection clientIn, Map dataMapIn, Map blendedDataMapIn) {
+        super(clientIn, dataMapIn, blendedDataMapIn);
     }
 
     public ${JavaObjectType}(CobblerConnection clientIn) {
-        super(clientIn, new HashMap());
+        super(clientIn, new HashMap(), null);
     }
 
     #for $val in $fields 
@@ -114,19 +116,24 @@ public class $JavaObjectType extends CobblerObject {
     #else
     public ${var_type} get${up_var_name}(String interfaceName) {
     #end if
+        Object o = access("${field_name}");
+        if (o instanceof String && ((String)o).equals(INHERIT_STRING)) {
+            // Object is set to inherit this setting, so fetch if from the
+            // "blended" property map if we can:
+            o = blendedAccess("${field_name}");
+            
+        }
     #if $var_type == "Boolean"
         // Some boolean fields come back from cobbler as integers, handle this situation:
-        Object o = access("${field_name}");
         if (o instanceof Integer) {
             if ((Integer)o == 0) {
                 return Boolean.FALSE;
             }
             return Boolean.TRUE;
         }
-        return (${var_type})access("${field_name}");
-    #else
-        return (${var_type})access("${field_name}");
+
     #end if
+        return (${var_type})o;
     }
 
     #end for

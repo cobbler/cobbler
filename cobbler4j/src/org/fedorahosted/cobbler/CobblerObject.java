@@ -31,6 +31,8 @@ public abstract class CobblerObject {
     
     protected String handle;
     protected Map dataMap = new HashMap();
+    protected Map blendedDataMap = new HashMap();
+    
     protected CobblerConnection client;    
     static final String NAME = "name";
     static final String UID = "uid";
@@ -38,9 +40,12 @@ public abstract class CobblerObject {
     // Indicates whether or not we're an "add" or an "edit" when committed.
     protected Boolean newObject = false;
 
-    public CobblerObject(CobblerConnection clientIn, Map dataMapIn) {
+    public CobblerObject(CobblerConnection clientIn, Map dataMapIn, 
+            Map blendedDataMapIn) {
+        
         client = clientIn;
         dataMap = dataMapIn;
+        blendedDataMap = blendedDataMapIn;
         
         // If the data map we're being created with is empty, that's a very 
         // strong indication this is a new object, not yet created:
@@ -137,6 +142,10 @@ public abstract class CobblerObject {
     protected Object access(String key) {
         return dataMap.get(key);
     }
+    
+    protected Object blendedAccess(String key) {
+        return blendedDataMap.get(key);
+    }
  
     protected Object access(String key, String interfaceName) {
         // FIXME: error handling
@@ -198,15 +207,26 @@ public abstract class CobblerObject {
                 "_handle", this.getName());
     }
     
+    /**
+     * Create a Cobbler object based on the given data map.
+     * 
+     * @param type Object type. (profile, distro, system, etc)
+     * @param client XMLRPC client.
+     * @param dataMap Object data map. (may include "<<inherit>>" strings for some types)
+     * @param blendedDataMap Blended object data map, <<inherit>>'s removed and populated 
+     * instead with the value from their parent objects.
+     * @return
+     */
     static CobblerObject load(ObjectType type, CobblerConnection client, 
-                              Map<String, Object> dataMap) {
+            Map<String, Object> dataMap, Map<String, Object> blendedDataMap) {
+        
         try 
         {
             Constructor<CobblerObject> ctor = type.getObjectClass().getConstructor(
-                    new Class [] {CobblerConnection.class, Map.class});
+                    new Class [] {CobblerConnection.class, Map.class, Map.class});
 
             CobblerObject obj = ctor.newInstance(
-                    new Object [] {client, dataMap});
+                    new Object [] {client, dataMap, blendedDataMap});
             return obj;
         }
         catch(Exception e) {
