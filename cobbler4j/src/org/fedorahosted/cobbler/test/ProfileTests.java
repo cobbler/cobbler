@@ -115,13 +115,5 @@ public class ProfileTests extends Fixture {
         assertTrue(lookedUp.getVirtAutoBoot());
     }
 
-    @Test 
-    public void testVirtFileSize2() {
-        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
-                ObjectType.PROFILE, "rhel5-client");
-        assertEquals(true, lookedUp.getVirtAutoBoot());
-        lookedUp.commit();
-    }
-    
 }
 
