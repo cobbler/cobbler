@@ -526,7 +526,7 @@ class Importer:
 
        for x in fnames:
 
-           adtl = None
+           adtls = []
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
@@ -551,15 +551,17 @@ class Importer:
 
            # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
-               adtl = self.add_entry(dirname,kernel,initrd)
-           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
-               adtl = self.add_entry(dirname,pae_kernel,pae_initrd)
-           if adtl != None:
-               distros_added.extend(adtl)
-               initrd = None
+               adtls.append(self.add_entry(dirname,kernel,initrd))
                kernel = None
-               
-   
+               initrd = None
+           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
+               adtls.append(self.add_entry(dirname,pae_kernel,pae_initrd))
+               pae_kernel = None
+               pae_initrd = None
+           for adtl in adtls:
+               distros_added.extend(adtl)
+
+
    # ========================================================================
 
    def add_entry(self,dirname,kernel,initrd):
