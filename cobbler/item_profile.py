@@ -29,9 +29,6 @@ from utils import _
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
-# TODO: Problem here with bool fields that can also be "<<inherit>>". Also
-# the virt_auto_boot appears to be stored as a string, "1" or "0", not a
-# boolean as it should be.
 FIELDS = [
   ["name","",None,"Name",True,"Ex: F10-i386-webserver",0,"str"],
   ["uid","","","",False,"",0,"str"],
