@@ -431,8 +431,7 @@ def libvirt_enable_autostart(domain_name):
    import libvirt
    try:
       conn = libvirt.open("qemu:///system")
-      print "- pausing for a few seconds to allow libvirt to register the new domain"
-      time.sleep(5)
+      conn.listDefinedDomains()
       domain = conn.lookupByName(domain_name)
       domain.setAutostart(1)
    except:
