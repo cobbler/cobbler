@@ -1,5 +1,20 @@
 Cobbler CHANGELOG
 
+- Nov 20 2009 - 2.0.2
+- (FEAT) Added support for Cobbler4j
+- (FEAT) Added method for enabling autostart on qemu domains
+- (BUGF) web ui: move sessions directory to /var
+- (BUGF) Update the vlanpattern regex to cover more common virtual interface formats
+- (BUGF) cobbler check: fix BIND detection
+- (BUGF) Fix error message creating profile without a distro
+- (BUGF) use proper HTTP error codes
+- (BUGF) Create more intuitive system for displaying actions under configuration items.
+- (BUGF) Fixed hardlinking
+- (BUGF) Creating subprofile in WebUI no longer fails on default_ownership
+- (BUGF) No longer delete excluded files in reposync rsync
+- (BUGF) Add fedora12 and fedora13 as valid 'redhat' versions
+- (BUGF) Correct improper distro creation while importing i386 Fedora/RHEL.
+
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
 - (BUGF) Fix koan check for images ... they don't need a kickstart
