@@ -213,4 +213,4 @@ class Profile(item.Item):
             raise CX("name is required")
         distro = self.get_conceptual_parent()
         if distro is None:
-            raise CX("distro is required")
+            raise CX("Error with profile %s - distro is required" % (self.name))

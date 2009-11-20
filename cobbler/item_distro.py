@@ -222,11 +222,11 @@ class Distro(item.Item):
         if self.name is None:
             raise CX("name is required")
         if self.kernel is None:
-            raise CX("kernel is required")
+            raise CX("Error with distro %s - kernel is required" % (self.name))
         if self.initrd is None:
-            raise CX("initrd is required")
+            raise CX("Error with distro %s - initrd is required" % (self.name))
         if not os.path.exists(self.kernel):
-            raise CX("kernel path not found")
+            raise CX("Error with distro %s - kernel path not found" % (self.name))
         if not os.path.exists(self.initrd):
-            raise CX("initrd path not found")
+            raise CX("Error with distro %s - initrd path not found" % (self.name))
 

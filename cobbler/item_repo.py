@@ -193,6 +193,6 @@ class Repo(item.Item):
         if self.name is None:
             raise CX("name is required")
         if self.mirror is None:
-            raise CX("mirror is required")
+            raise CX("Error with repo %s - mirror is required" % (self.name))
 
 
