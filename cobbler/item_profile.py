@@ -50,7 +50,7 @@ FIELDS = [
   ["virt_path","",'<<inherit>>',"Virt Path",True,"Ex: /directory OR VolGroup00",0,"str"],
   ["virt_bridge","SETTINGS:default_virt_bridge",'<<inherit>>',"Virt Bridge",True,"",0,"str"],
   ["dhcp_tag","default",'<<inherit>>',"DHCP Tag",True,"See manpage or leave blank",0,"str"],
-  ["parent",'','',"",False,"",0,"str"],
+  ["parent",'','',"",True,"",0,"str"],
   ["server","<<inherit>>",'<<inherit>>',"Server Override",True,"See manpage or leave blank",0,"str"],
   ["ctime",0,0,"",False,"",0,"int"],
   ["mtime",0,0,"",False,"",0,"int"],
