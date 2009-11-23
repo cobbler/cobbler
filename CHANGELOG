@@ -1,6 +1,6 @@
 Cobbler CHANGELOG
 
-- Nov 20 2009 - 2.0.2
+- Nov 23 2009 - 2.0.2
 - (FEAT) Added support for Cobbler4j
 - (FEAT) Added method for enabling autostart on qemu domains
 - (BUGF) web ui: move sessions directory to /var
@@ -14,6 +14,8 @@ Cobbler CHANGELOG
 - (BUGF) No longer delete excluded files in reposync rsync
 - (BUGF) Add fedora12 and fedora13 as valid 'redhat' versions
 - (BUGF) Correct improper distro creation while importing i386 Fedora/RHEL.
+- (BUGF) Better messaging for invalid object errors
+- (BUGF) Added a legacy sync mechanism
 
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
