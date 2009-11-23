@@ -6,7 +6,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.1
+Version: 2.0.2
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -374,6 +374,8 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
+- Upstream changes (see CHANGELOG)
 
 * Tue Sep 15 2009 Michael DeHaan <mdehaan@redhat.com> - 2.0.0-1
 - First release with unified spec files
