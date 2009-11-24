@@ -16,6 +16,7 @@ Cobbler CHANGELOG
 - (BUGF) Correct improper distro creation while importing i386 Fedora/RHEL.
 - (BUGF) Better messaging for invalid object errors
 - (BUGF) Added a legacy sync mechanism
+- (BUGF) No longer bundle libraries on distros where they are already available
 
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
