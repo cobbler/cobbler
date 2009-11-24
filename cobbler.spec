@@ -291,7 +291,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.1
+Version: 2.0.2
 Release: 1%{?dist}
 Group: Applications/System
 Requires: mkinitrd
@@ -338,7 +338,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.1
+Version: 2.0.2
 Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
