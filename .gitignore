@@ -3,6 +3,7 @@
 *.tmp
 *.class
 *~
+*.class
 dist
 rpm-build
 build
