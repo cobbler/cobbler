@@ -30,7 +30,7 @@ import codes
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','s390'],"str"],
+  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','s390', 'noarch', 'src'],"str"],
   ["breed","",0,"Breed",True,"",codes.VALID_REPO_BREEDS,"str"],
   ["comment","",0,"Comment",True,"Free form text description",0,"str"],
   ["ctime",0,0,"",False,"",0,"float"],
@@ -95,8 +95,8 @@ class Repo(item.Item):
 
     def set_keep_updated(self,keep_updated):
         """
-	This allows the user to disable updates to a particular repo for whatever reason.
-	"""
+    This allows the user to disable updates to a particular repo for whatever reason.
+    """
         self.keep_updated = utils.input_boolean(keep_updated)
         return True
 
@@ -185,7 +185,7 @@ class Repo(item.Item):
     def get_parent(self):
         """
         currently the Cobbler object space does not support subobjects of this object
-        as it is conceptually not useful.  
+        as it is conceptually not useful.
         """
         return None
 
