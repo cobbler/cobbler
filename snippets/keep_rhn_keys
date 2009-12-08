@@ -85,4 +85,4 @@ if [ "$rhn_keys_found" = "yes" ]; then
         fi
     done &
 fi
-#end
+#end raw
