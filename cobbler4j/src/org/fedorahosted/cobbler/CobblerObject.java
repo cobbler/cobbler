@@ -121,6 +121,7 @@ public abstract class CobblerObject {
         }
         
         this.dataMap = lookupCopy.dataMap;
+        this.blendedDataMap = lookupCopy.blendedDataMap;
     }
     
     protected void modify(String key, Object value) {
