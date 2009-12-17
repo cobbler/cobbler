@@ -39,6 +39,12 @@ function intf_update_visibility()
     intf_enable_field("virt_bridge",!is_master)
     intf_enable_field("bonding_opts",is_master)
     intf_enable_field("bonding_master",is_slave)
+    intf_enable_field("mtu",!is_slave)
+    intf_enable_field("ipv6_address",!is_slave)
+    intf_enable_field("ipv6_secondaries",!is_slave)
+    intf_enable_field("ipv6_mtu",!is_slave)
+    intf_enable_field("ipv6_static_routes",!is_slave)
+    intf_enable_field("ipv6_default_gateway",!is_slave)
 }
 
 function get_selected_interface()
@@ -107,6 +113,12 @@ function on_interface_add()
    interface_table[iname]["static"] = false
    interface_table[iname]["present"] = "1"
    interface_table[iname]["original"] = "0"
+   interface_table[iname]["mtu"] = ""
+   interface_table[iname]["ipv6_address"] = ""
+   interface_table[iname]["ipv6_secondaries"] = ""
+   interface_table[iname]["ipv6_mtu"] = ""
+   interface_table[iname]["ipv6_static_routes"] = ""
+   interface_table[iname]["ipv6_default_gateway"] = ""
 
    var interfaces = document.getElementById("interfaces")
    ilen = interfaces.length
@@ -183,7 +195,12 @@ function save_intf(which)
     itable["virt_bridge"]    = get_enabled_field("virt_bridge",!is_master)
     itable["present"]        = document.getElementById("present").value
     itable["original"]       = document.getElementById("original").value
-
+    itable["mtu"]                  = get_enabled_field("mtu",!is_slave)
+    itable["ipv6_address"]         = get_enabled_field("ipv6_address",!is_slave)
+    itable["ipv6_secondaries"]     = get_enabled_field("ipv6_secondaries",!is_slave)
+    itable["ipv6_mtu"]             = get_enabled_field("ipv6_mtu",!is_slave)
+    itable["ipv6_static_routes"]   = get_enabled_field("ipv6_static_routes",!is_slave)
+    itable["ipv6_default_gateway"] = get_enabled_field("ipv6_default_gateway",!is_slave)
 }
 
 function load_intf()
@@ -205,7 +222,13 @@ function load_intf()
     document.getElementById("virt_bridge").value    = interface_table[intf]["virt_bridge"]
     document.getElementById("present").value        = interface_table[intf]["present"]
     document.getElementById("original").value       = interface_table[intf]["original"]
-    
+    document.getElementById("mtu").value                  = interface_table[intf]["mtu"]
+    document.getElementById("ipv6_address").value         = interface_table[intf]["ipv6_address"]
+    document.getElementById("ipv6_secondaries").value     = interface_table[intf]["ipv6_secondaries"]
+    document.getElementById("ipv6_mtu").value             = interface_table[intf]["ipv6_mtu"]
+    document.getElementById("ipv6_static_routes").value   = interface_table[intf]["ipv6_static_routes"]
+    document.getElementById("ipv6_default_gateway").value = interface_table[intf]["ipv6_default_gateway"]
+
     intf_update_visibility()
 }
 
@@ -213,19 +236,26 @@ function clear_intf()
 {
     // this clears the interface list and populates it with the currently selected interface data
 
-    document.getElementById("mac_address").value    = ""
-    document.getElementById("bonding").value        = "na"
-    document.getElementById("bonding_master").value = ""
-    document.getElementById("bonding_opts").value   = ""
-    document.getElementById("static").checked       = true
-    document.getElementById("ip_address").value     = ""
-    document.getElementById("subnet").value         = ""
-    document.getElementById("dns_name").value       = ""
-    document.getElementById("static_routes").value  = ""
-    document.getElementById("dhcp_tag").value       = ""
-    document.getElementById("virt_bridge").value    = ""
-    document.getElementById("present").value        = "1"
-    document.getElementById("original").value       = "0"
+    document.getElementById("mac_address").value          = ""
+    document.getElementById("bonding").value              = "na"
+    document.getElementById("bonding_master").value       = ""
+    document.getElementById("bonding_opts").value         = ""
+    document.getElementById("static").checked             = true
+    document.getElementById("ip_address").value           = ""
+    document.getElementById("subnet").value               = ""
+    document.getElementById("dns_name").value             = ""
+    document.getElementById("static_routes").value        = ""
+    document.getElementById("dhcp_tag").value             = ""
+    document.getElementById("virt_bridge").value          = ""
+    document.getElementById("present").value              = "1"
+    document.getElementById("original").value             = "0"
+    document.getElementById("mtu").value                  = ""
+    document.getElementById("ipv6_address").value         = ""
+    document.getElementById("ipv6_secondaries").value     = ""
+    document.getElementById("ipv6_mtu").value             = ""
+    document.getElementById("ipv6_static_routes").value   = ""
+    document.getElementById("ipv6_default_gateway").value = ""
+
 
 }
 
@@ -239,19 +269,25 @@ function build_interface_table()
        var ifound = 0
        {% for key,value in interfaces.items %}
            interface_table['{{ key }}'] = new Array()
-           interface_table['{{ key }}']["mac_address"]    = "{{ value.mac_address }}"
-           interface_table['{{ key }}']["bonding"]        = "{{ value.bonding }}"
-           interface_table['{{ key }}']["bonding_master"] = "{{ value.bonding_master }}"
-           interface_table['{{ key }}']["bonding_opts"]   = "{{ value.bonding_opts }}"
-           interface_table['{{ key }}']["static"]         = {{ value.static|lower }}
-           interface_table['{{ key }}']["ip_address"]     = "{{ value.ip_address }}"
-           interface_table['{{ key }}']["subnet"]         = "{{ value.subnet }}"
-           interface_table['{{ key }}']["dns_name"]       = "{{ value.dns_name }}"
-           interface_table['{{ key }}']["static_routes"]  = "{{ value.static_routes|join:" " }}"
-           interface_table['{{ key }}']["dhcp_tag"]       = "{{ value.dhcp_tag }}"
-           interface_table['{{ key }}']["virt_bridge"]    = "{{ value.virt_bridge }}"
-           interface_table['{{ key }}']["present"]        = "1"
-           interface_table['{{ key }}']["original"]       = "1"
+           interface_table['{{ key }}']["mac_address"]          = "{{ value.mac_address }}"
+           interface_table['{{ key }}']["bonding"]              = "{{ value.bonding }}"
+           interface_table['{{ key }}']["bonding_master"]       = "{{ value.bonding_master }}"
+           interface_table['{{ key }}']["bonding_opts"]         = "{{ value.bonding_opts }}"
+           interface_table['{{ key }}']["static"]               = {{ value.static|lower }}
+           interface_table['{{ key }}']["ip_address"]           = "{{ value.ip_address }}"
+           interface_table['{{ key }}']["subnet"]               = "{{ value.subnet }}"
+           interface_table['{{ key }}']["dns_name"]             = "{{ value.dns_name }}"
+           interface_table['{{ key }}']["static_routes"]        = "{{ value.static_routes|join:" " }}"
+           interface_table['{{ key }}']["dhcp_tag"]             = "{{ value.dhcp_tag }}"
+           interface_table['{{ key }}']["virt_bridge"]          = "{{ value.virt_bridge }}"
+           interface_table['{{ key }}']["present"]              = "1"
+           interface_table['{{ key }}']["original"]             = "1"
+           interface_table['{{ key }}']["mtu"]                  = "{{ value.mtu }}"
+           interface_table['{{ key }}']["ipv6_address"]         = "{{ value.ipv6_address }}"
+           interface_table['{{ key }}']["ipv6_secondaries"]     = "{{ value.ipv6_secondaries|join:" " }}"
+           interface_table['{{ key }}']["ipv6_mtu"]             = "{{ value.ipv6_mtu }}"
+           interface_table['{{ key }}']["ipv6_static_routes"]   = "{{ value.ipv6_static_routes|join:" " }}"
+           interface_table['{{ key }}']["ipv6_default_gateway"] = "{{ value.ipv6_default_gateway }}"
            last = "{{ key }}"
        {% endfor %}
     {% endsmart_if %}

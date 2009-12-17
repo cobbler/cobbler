@@ -59,9 +59,12 @@ FIELDS = [
   ["gateway","",0,"Gateway",True,"",0,"str"],
   ["name_servers",[],0,"Name Servers",True,"space delimited",0,"list"],
   ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited",0,"list"],
+  ["ipv6_default_device","",0,"IPv6 Default Device",True,"",0,"str"],
+  ["ipv6_autoconfiguration",False,0,"IPv6 Autoconfiguration",True,"",0,"bool"],
   ["network_widget_a","",0,"Add Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"",0,"str"],
+  ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"",0,"str"],
   ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"],"str"],
   ["*bonding_master","",0,"Bonding Master",True,"",0,"str"],
@@ -72,6 +75,11 @@ FIELDS = [
   ["*dns_name","",0,"DNS Name",True,"",0,"str"],
   ["*static_routes",[],0,"Static Routes",True,"",0,"list"],
   ["*virt_bridge","",0,"Virt Bridge",True,"",0,"str"],
+  ["*ipv6_address","",0,"IPv6 Address",True,"",0,"str"],
+  ["*ipv6_secondaries",[],0,"IPv6 Secondaries",True,"space delimited",0,"list"],
+  ["*ipv6_mtu","",0,"IPv6 MTU",True,"",0,"str"],
+  ["*ipv6_static_routes",[],0,"IPv6 Static Routes",True,"",0,"list"],
+  ["*ipv6_default_gateway","",0,"IPv6 Default Gateway",True,"",0,"str"],
   ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0,"list"],
   ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0,"dict"],
   ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0,"str"],
@@ -114,6 +122,7 @@ class System(item.Item):
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
                 "mac_address"    : "",
+                "mtu"            : "",
                 "ip_address"     : "",
                 "dhcp_tag"       : "",
                 "subnet"         : "",
@@ -124,6 +133,11 @@ class System(item.Item):
                 "bonding_opts"   : "",
                 "dns_name"       : "",
                 "static_routes"  : [],
+                "ipv6_address"   : "",
+                "ipv6_secondaries"  : [],
+                "ipv6_mtu"       : "",
+                "ipv6_static_routes"  : [],
+                "ipv6_default_gateway" : "",
             }
 
         return self.interfaces[name]
@@ -364,6 +378,63 @@ class System(item.Item):
         intf["bonding_opts"] = bonding_opts
         return True
 
+    def set_ipv6_autoconfiguration(self,truthiness):
+        self.ipv6_autoconfiguration = utils.input_boolean(truthiness)
+        return True
+
+    def set_ipv6_default_device(self,interface_name):
+        if interface_name is None:
+           interface_name = ""
+        self.ipv6_default_device = interface_name
+        return True
+
+    def set_ipv6_address(self,address,interface):
+        """
+        Assign a IP or hostname in DHCP when this MAC boots.
+        Only works if manage_dhcp is set in /etc/cobbler/settings
+        """
+        intf = self.__get_interface(interface)
+        if address == "" or utils.is_ip(address):
+           intf["ipv6_address"] = address.strip()
+           return True
+        raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+
+    def set_ipv6_secondaries(self,addresses,interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(addresses)
+        secondaries = []
+        for address in data:
+           if address == "" or utils.is_ip(address):
+               secondaries.append(address)
+           else:
+               raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+
+        intf["ipv6_secondaries"] = secondaries
+        return True
+
+    def set_ipv6_default_gateway(self,address,interface):
+        intf = self.__get_interface(interface)
+        if address == "" or utils.is_ip(address):
+           intf["ipv6_default_gateway"] = address.strip()
+           return True
+        raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+
+    def set_ipv6_static_routes(self,routes,interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(routes)
+        intf["ipv6_static_routes"] = data
+        return True
+
+    def set_ipv6_mtu(self,mtu,interface):
+        intf = self.__get_interface(interface)
+        intf["ipv6_mtu"] = mtu
+        return True
+
+    def set_mtu(self,mtu,interface):
+        intf = self.__get_interface(interface)
+        intf["mtu"] = mtu
+        return True
+
     def set_profile(self,profile_name):
         """
         Set the system to use a certain named profile.  The profile
@@ -504,17 +575,24 @@ class System(item.Item):
         for (key,value) in hash.iteritems():
             (field,interface) = key.split("-")
             field = field.replace("_","").replace("-","")
-            if field == "macaddress"    : self.set_mac_address(value, interface)
-            if field == "ipaddress"     : self.set_ip_address(value, interface)
-            if field == "dnsname"       : self.set_dns_name(value, interface)
-            if field == "static"        : self.set_static(value, interface)
-            if field == "dhcptag"       : self.set_dhcp_tag(value, interface)
-            if field == "subnet"        : self.set_subnet(value, interface)
-            if field == "virtbridge"    : self.set_virt_bridge(value, interface)
-            if field == "bonding"       : self.set_bonding(value, interface)
-            if field == "bondingmaster" : self.set_bonding_master(value, interface)
-            if field == "bondingopts"   : self.set_bonding_opts(value, interface)
-            if field == "staticroutes"  : self.set_static_routes(value, interface)
+            if field == "macaddress"          : self.set_mac_address(value, interface)
+            if field == "mtu"                 : self.set_mtu(value, interface)
+            if field == "ipaddress"           : self.set_ip_address(value, interface)
+            if field == "dnsname"             : self.set_dns_name(value, interface)
+            if field == "static"              : self.set_static(value, interface)
+            if field == "dhcptag"             : self.set_dhcp_tag(value, interface)
+            if field == "subnet"              : self.set_subnet(value, interface)
+            if field == "virtbridge"          : self.set_virt_bridge(value, interface)
+            if field == "bonding"             : self.set_bonding(value, interface)
+            if field == "bondingmaster"       : self.set_bonding_master(value, interface)
+            if field == "bondingopts"         : self.set_bonding_opts(value, interface)
+            if field == "staticroutes"        : self.set_static_routes(value, interface)
+            if field == "ipv6address"         : self.set_ipv6_address(value, interface)
+            if field == "ipv6secondaries"     : self.set_ipv6_secondaries(value, interface)
+            if field == "ipv6mtu"             : self.set_ipv6_mtu(value, interface)
+            if field == "ipv6staticroutes"    : self.set_ipv6_static_routes(value, interface)
+            if field == "ipv6defaultgateway"  : self.set_ipv6_default_gateway(value, interface)
+
         return True
 
     def check_if_valid(self):

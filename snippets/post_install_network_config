@@ -1,5 +1,6 @@
 # Start post_install_network_config generated code
 #if $getVar("system_name","") != ""
+
     ## this is being provisioned by system records, not profile records
     ## so we can do the more complex stuff
     ## get the list of interface names
@@ -11,13 +12,17 @@
     ## Only physical interfaces are required to have a MAC address
     ## Also determine the number of bonding devices we have, so we can set the
     ## max-bonds option in modprobe.conf accordingly. -- jcapel
-    #
+
     #set $configbymac = True
     #set $numbondingdevs = 0
+    #set $enableipv6 = False
+
     ## =============================================================================
     #for $iname in $ikeys
+
         ## look at the interface hash data for the specific interface
     	#set $idata = $interfaces[$iname]
+
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
     	#if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master":
@@ -25,11 +30,19 @@
     		## use it now
     		#set $configbymac = False
     	#end if
+
     	## count the number of bonding devices we have.
     	#if $idata["bonding"].lower() == "master"
     	    #set $numbondingdevs += 1
     	#end if
+
+        ## enable IPv6 networking if we set an ipv6 address or turn on autoconfiguration
+        #if $idata["ipv6_address"] != "" or $ipv6_autoconfiguration == True
+            #set $enableipv6 = True
+        #end if
+
     #end for
+
     ## end looping through the interfaces to see which ones we need to configure.
     ## =============================================================================
     #set $i = 0
@@ -39,11 +52,13 @@ if [ -f "/etc/modprobe.conf" ]; then
     echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
 fi 
     #end if
+
     ## =============================================================================
     ## create a staging directory to build out our network scripts into
     ## make sure we preserve the loopback device
 mkdir /etc/sysconfig/network-scripts/cobbler
 cp /etc/sysconfig/network-scripts/ifcfg-lo /etc/sysconfig/network-scripts/cobbler/
+
     ## =============================================================================
     ## configure the gateway if set up (this is global, not a per-interface setting)
     #if $gateway != ""
@@ -52,6 +67,7 @@ echo "GATEWAY=$gateway" >> /etc/sysconfig/network.cobbler
 rm -f /etc/sysconfig/network
 mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
     #end if
+
     ## =============================================================================
     ## Configure the system's primary hostname. This is also passed to anaconda, but
     ## anaconda doesn't seem to honour it in DHCP-setups.
@@ -60,26 +76,63 @@ grep -v HOSTNAME /etc/sysconfig/network > /etc/sysconfig/network.cobbler
 echo "HOSTNAME=$hostname" >> /etc/sysconfig/network.cobbler
 rm -f /etc/sysconfig/network
 mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+
     # Also set the hostname now, some applications require it (e.g.: if we're
     # connecting to Puppet before a reboot).
 /bin/hostname $hostname
     #end if
+
+    #if $enableipv6 == True
+grep -v NETWORKING_IPV6 /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "NETWORKING_IPV6=yes" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+
+        #if $ipv6_autoconfiguration != ""
+grep -v IPV6_AUTOCONF /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+            #if $ipv6_autoconfiguration == True
+echo "IPV6_AUTOCONF=yes" >> /etc/sysconfig/network.cobbler
+            #else
+echo "IPV6_AUTOCONF=no" >> /etc/sysconfig/network.cobbler
+            #end if
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+        #end if
+
+        #if $ipv6_default_device != ""
+grep -v IPV6_DEFAULTDEV /etc/sysconfig/network > /etc/sysconfig/network.cobbler
+echo "IPV6_DEFAULTDEV=$ipv6_default_device" >> /etc/sysconfig/network.cobbler
+rm -f /etc/sysconfig/network
+mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
+        #end if
+
+    #end if
+
     ## =============================================================================
     ## now create the config file for each interface
     #for $iname in $ikeys
-# Start configuration for $iname
+
+        # Start configuration for $iname
         ## create lots of variables to use later
-        #set $idata          = $interfaces[$iname]
-        #set $mac            = $idata["mac_address"].upper()
-        #set $static         = $idata["static"]
-        #set $ip             = $idata["ip_address"]
-        #set $netmask        = $idata["subnet"]
-        #set $static_routes  = $idata["static_routes"]
-        #set $bonding        = $idata["bonding"]
-        #set $bonding_master = $idata["bonding_master"]
-        #set $bonding_opts   = $idata["bonding_opts"]
-        #set $devfile        = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
-        #set $routesfile     = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
+        #set $idata                = $interfaces[$iname]
+        #set $mac                  = $idata["mac_address"].upper()
+        #set $mtu                  = $idata["mtu"]
+        #set $static               = $idata["static"]
+        #set $ip                   = $idata["ip_address"]
+        #set $netmask              = $idata["subnet"]
+        #set $static_routes        = $idata["static_routes"]
+        #set $bonding              = $idata["bonding"]
+        #set $bonding_master       = $idata["bonding_master"]
+        #set $bonding_opts         = $idata["bonding_opts"]
+        #set $ipv6_address     	   = $idata["ipv6_address"]
+        #set $ipv6_secondaries     = $idata["ipv6_secondaries"]
+        #set $ipv6_mtu             = $idata["ipv6_mtu"]
+        #set $ipv6_default_gateway = $idata["ipv6_default_gateway"]
+        #set $ipv6_static_routes   = $idata["ipv6_static_routes"]
+        #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
+        #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
+        #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
+
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             ## If this is a VLAN interface, skip it, anaconda doesn't know
@@ -88,6 +141,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #else
             #set $is_vlan = "false"
         #end if
+
         ## if this is a bonded interface, configure it in modprobe.conf
         #if $bonding.lower() == "master"
             #if $osversion == "rhel4"
@@ -101,6 +155,7 @@ if [ -f "/etc/modprobe.conf" ]; then
 fi
             #end if
         #end if
+
         #if $configbymac and $is_vlan == "false" and $bonding.lower() != "master"
             ## This is the code path physical interfaces will follow.
             ## Get the current interface name
@@ -140,9 +195,29 @@ echo "NETMASK=$netmask" >> $devfile
                     ## we don't have enough info for static configuration
 echo "BOOTPROTO=none" >> $devfile
                 #end if
+                #if $enableipv6 == True and $ipv6_autoconfiguration == False
+                    #if $ipv6_address != ""
+echo "IPV6INIT=yes" >> $devfile
+echo "IPV6ADDR=$ipv6_address" >> $devfile
+                    #end if
+                    #if $ipv6_secondaries != ""
+                        #set ipv6_secondaries = ' '.join(ipv6_secondaries)
+                        ## The quotes around the ipv6 ip's need to be here
+echo 'IPV6ADDR_SECONDARIES="$ipv6_secondaries"' >> $devfile
+                    #end if
+                    #if $ipv6_mtu != ""
+echo "IPV6MTU=$ipv6_mtu" >> $devfile
+                    #end if
+                    #if $ipv6_default_gateway != ""
+echo "IPV6_DEFAULTGW=$ipv6_default_gateway" >> $devfile
+                    #end if
+                #end if
             #else
                 ## this is a DHCP interface, much less work to do
 echo "BOOTPROTO=dhcp" >> $devfile
+            #end if
+            #if $mtu != ""
+echo "MTU=$mtu" >> $devfile
             #end if
         #else if $is_vlan == "true" or $bonding.lower() == "master"
             ## Handle non-physical interfaces with special care. :)
@@ -177,6 +252,9 @@ echo "BOOTPROTO=none" >> $devfile
                 #end if
             #else
 echo "BOOTPROTO=dhcp" >> $devfile
+            #end if
+            #if $mtu != ""
+echo "MTU=$mtu" >> $devfile
             #end if
         #else if $configbymac == False
             ## We'll end up here when not all physical interfaces present for
@@ -214,10 +292,14 @@ echo "BOOTPROTO=none" >> $devfile
                 ## this is a DHCP interface, much less work to do
 echo "BOOTPROTO=dhcp" >> $devfile
             #end if
+            #if $mtu != ""
+echo "MTU=$mtu" >> $devfile
+            #end if
         #else
             # If you end up here, please mail the list... This shouldn't
             # happen. ;-) -- jcapel
 	#end if
+
         ## If the interface is anything but a slave then add DNSn entry
         #if $bonding.lower() != "slave"
             #set $nct = 0
@@ -225,25 +307,42 @@ echo "BOOTPROTO=dhcp" >> $devfile
                 #set $nct = $nct + 1
 echo "DNS$nct=$nameserver" >> $devfile
             #end for
-	#end if
-	#for $route in $static_routes
-	    #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
-	    #if $routepattern.match($route)
-                #set $routebits = $route.split(":")
-                #set [$network, $router] = $route.split(":")
+	    #end if
+
+		#for $route in $static_routes
+			#set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
+			#if $routepattern.match($route)
+				#set $routebits = $route.split(":")
+				#set [$network, $router] = $route.split(":")
 echo "$network via $router" >> $routesfile
-	    #else
+			#else
+				# Warning: invalid route "$route"
+			#end if
+		#end for
+
+    #if $enableipv6 == True
+        #for $route in $ipv6_static_routes
+            #set routepattern = $re.compile("[0-9a-fA-F:/]+,[0-9a-fA-F:]+")
+            #if $routepattern.match($route)
+                #set $routebits = $route.split(",")
+                #set [$network, $router] = $route.split(",")
+echo "$network via $router dev $iname" >> $ipv6_routesfile
+            #else
                 # Warning: invalid route "$route"
             #end if
-	#end for
+        #end for
+    #end if
+
 	#set $i = $i + 1
-# End configuration for $iname
+
+    # End configuration for $iname
     #end for	
+
     ## =============================================================================
     ## Configure name server search path in /etc/resolv.conf
     #set $num_ns = $len($name_servers)
     #set $num_ns_search = $len($name_servers_search)
-        #if $num_ns_search > 0
+    #if $num_ns_search > 0
 sed -i -e "/^search /d" /etc/resolv.conf
 echo -n "search " >>/etc/resolv.conf
         #for $nameserversearch in $name_servers_search
@@ -251,6 +350,7 @@ echo -n "$nameserversearch " >>/etc/resolv.conf
         #end for
 echo "" >>/etc/resolv.conf
     #end if
+
     ## =============================================================================
     ## Configure name servers in /etc/resolv.conf
     #if $num_ns > 0
@@ -259,6 +359,7 @@ sed -i -e "/^nameserver /d" /etc/resolv.conf
 echo "nameserver $nameserver" >>/etc/resolv.conf
         #end for
     #end if
+
 ## Move all staged files to their final location
 rm -f /etc/sysconfig/network-scripts/ifcfg-*
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
