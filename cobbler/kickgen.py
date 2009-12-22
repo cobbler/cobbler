@@ -60,42 +60,6 @@ class KickGen:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
 
-    def generate_kickstart_for_profile(self,g):
-
-        g = self.api.find_profile(name=g)
-        if g is None:
-           return "# profile not found"
-
-        distro = g.get_conceptual_parent()
-        meta = utils.blender(self.api, False, g)
-        if distro is None:
-           raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
-        kickstart_path = utils.find_kickstart(meta["kickstart"])
-        if kickstart_path is not None and os.path.exists(kickstart_path):
-            # the input is an *actual* file, hence we have to copy it
-            try:
-                meta = utils.blender(self.api, False, g)
-                ksmeta = meta["ks_meta"]
-                del meta["ks_meta"]
-                meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
-                meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
-                meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
-                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                kfile = open(kickstart_path)
-                data = self.templar.render(kfile, meta, None, g)
-                kfile.close()
-                return data
-            except:
-                utils.log_exc(self.api.logger)
-                raise
-
-        elif kickstart_path is not None and not os.path.exists(kickstart_path):
-            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
-                return "# Error, cannot find %s" % kickstart_path
-        return "# kickstart is sourced externally, or is missing, and cannot be displayed here: %s" % meta["kickstart"]
-
     def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
         """
         Do things that we do at the start/end of kickstarts...
@@ -218,7 +182,6 @@ class KickGen:
 
     def generate_kickstart_for_system(self,s):
 
-
         s = self.api.find_system(name=s)
         if s is None:
             return "# system not found"
@@ -226,10 +189,12 @@ class KickGen:
         profile = s.get_conceptual_parent()
         if profile is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
+
         distro = profile.get_conceptual_parent()
         if distro is None: 
             # this is an image parented system, no kickstart available
             return "# image based systems do not have kickstarts"
+
         meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
         if kickstart_path and os.path.exists(kickstart_path):
@@ -250,10 +215,53 @@ class KickGen:
             except:
                 traceback.print_exc()
                 raise CX(_("Error templating file"))
+
         elif kickstart_path is not None and not os.path.exists(kickstart_path):
             if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
                 return "# Error, cannot find %s" % kickstart_path
         return "# kickstart is sourced externally: %s" % meta["kickstart"]
+
+
+    def generate_kickstart_for_profile(self,g):
+
+        g = self.api.find_profile(name=g)
+        if g is None:
+           return "# profile not found"
+
+        distro = g.get_conceptual_parent()
+        if distro is None:
+           raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
+
+
+
+
+
+
+        meta = utils.blender(self.api, False, g)
+        kickstart_path = utils.find_kickstart(meta["kickstart"])
+        if kickstart_path and os.path.exists(kickstart_path):
+            # the input is an *actual* file, hence we have to copy it
+            try:
+                ksmeta = meta["ks_meta"]
+                del meta["ks_meta"]
+                meta.update(ksmeta) # make available at top level
+                meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
+                meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
+                meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
+                meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
+                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+                kfile = open(kickstart_path)
+                data = self.templar.render(kfile, meta, None, g)
+                kfile.close()
+                return data
+            except:
+                utils.log_exc(self.api.logger)
+                raise
+
+        elif kickstart_path is not None and not os.path.exists(kickstart_path):
+            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
+                return "# Error, cannot find %s" % kickstart_path
+        return "# kickstart is sourced externally, or is missing, and cannot be displayed here: %s" % meta["kickstart"]
 
 
     def get_last_errors(self):
