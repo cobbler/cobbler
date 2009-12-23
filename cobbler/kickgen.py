@@ -250,9 +250,8 @@ class KickGen:
                 meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
                 meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
                 meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                kfile = open(kickstart_path)
-                data = self.templar.render(kfile, meta, None, g)
-                kfile.close()
+                data = utils.read_file_contents(kickstart_path)
+                data = self.templar.render(data, meta, None, g)
                 return data
             except:
                 utils.log_exc(self.api.logger)

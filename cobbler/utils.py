@@ -417,6 +417,33 @@ def find_kickstart(url):
            return url
     return None
 
+
+def read_file_contents(file_location):
+    """
+    Reads the contents of a file, which could be referenced locally
+    or as a URI.
+
+    Returns None if we cannot read the file contents.
+    """
+    if not file_location:
+        return None
+
+    data = None
+    try:
+        # Local files:
+        if file_location.startswith("/") and os.path.exists(file_location):
+            f = open(file_location)
+            data = f.read()
+            f.close()
+            return data
+        return None
+    except:
+        log_exc(self.api.logger)
+        raise
+
+    return data
+
+
 def input_string_or_list(options):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
