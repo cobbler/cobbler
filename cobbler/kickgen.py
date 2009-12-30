@@ -219,19 +219,16 @@ class KickGen:
         meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
         # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
 
-        raw_data = utils.read_file_contents(kickstart_path)
-        if raw_data is None:
-            return "# unable to read kickstart: %s" % meta["kickstart"]
-        data = self.templar.render(raw_data, meta, None, obj)
-        return data
-
-        #except:
-        #    traceback.print_exc()
-        #    raise CX(_("Error templating file"))
-
-        # TODO: Save this for when we add configuration option for old behavior
-        #return "# kickstart is sourced externally: %s" % meta["kickstart"]
-
+        try:
+            raw_data = utils.read_file_contents(kickstart_path, self.api.logger,
+                    self.settings.template_remote_kickstarts)
+            if raw_data is None:
+                return "# kickstart is sourced externally: %s" % meta["kickstart"]
+            data = self.templar.render(raw_data, meta, None, obj)
+            return data
+        except FileNotFoundException:
+            self.api.logger.warning("kickstart not found: %s" % meta["kickstart"])
+            return "# kickstart not found: %s" % meta["kickstart"]
 
     def generate_kickstart_for_profile(self,g):
 

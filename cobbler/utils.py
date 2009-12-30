@@ -421,21 +421,26 @@ def find_kickstart(url):
     return None
 
 
-def read_file_contents(file_location, logger=None):
+def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     """
     Reads the contents of a file, which could be referenced locally
     or as a URI.
 
-    Returns None if we cannot read the file contents.
+    Returns None if kickstart is remote and templating of remote files is 
+    disabled.
+
+    Throws a FileNotFoundException if the kickstart does not exist at the
+    specified location.
     """
 
-    # TODO: Raise exceptions for file not found, and return None for
-    # sourced externally.
-    if not file_location:
-        return None
-
     # Local files:
-    if file_location.startswith("/") and os.path.exists(file_location):
+    if file_location.startswith("/"):
+
+        if not os.path.exists(file_location):
+            logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
         try:
             f = open(file_location)
             data = f.read()
@@ -446,6 +451,9 @@ def read_file_contents(file_location, logger=None):
             raise
 
     # Remote files:
+    if not fetch_if_remote:
+        return None
+
     file_loc_lc = file_location.lower()
     for prefix in ["http://"]:
         if file_loc_lc.startswith(prefix):
@@ -457,7 +465,8 @@ def read_file_contents(file_location, logger=None):
             except urllib2.HTTPError:
                 # File likely doesn't exist
                 logger.warning("File does not exist: %s" % file_location)
-                return None
+                raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                    file_location))
 
     return None
 
