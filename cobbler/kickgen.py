@@ -180,22 +180,30 @@ class KickGen:
 
         return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
-    def generate_kickstart_for_system(self,s):
+    def generate_kickstart_for_system(self, sys_name):
 
-        s = self.api.find_system(name=s)
+        s = self.api.find_system(name=sys_name)
         if s is None:
             return "# system not found"
 
-        profile = s.get_conceptual_parent()
-        if profile is None:
+        p = s.get_conceptual_parent()
+        if p is None:
             raise CX(_("system %(system)s references missing profile %(profile)s") % { "system" : s.name, "profile" : s.profile })
 
-        distro = profile.get_conceptual_parent()
+        distro = p.get_conceptual_parent()
         if distro is None: 
             # this is an image parented system, no kickstart available
             return "# image based systems do not have kickstarts"
 
-        meta = utils.blender(self.api, False, s)
+        return self.generate_kickstart(profile=p, system=s) 
+
+    def generate_kickstart(self, profile=None, system=None):
+
+        obj = system
+        if system is None:
+            obj = profile
+
+        meta = utils.blender(self.api, False, obj)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
 
         if not kickstart_path:
@@ -204,17 +212,17 @@ class KickGen:
         ksmeta = meta["ks_meta"]
         del meta["ks_meta"]
         meta.update(ksmeta) # make available at top level
-        meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
-        meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
-        meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
-        meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
+        meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
+        meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
+        meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, system)
+        meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, system)
         meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
         # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
 
         raw_data = utils.read_file_contents(kickstart_path)
         if raw_data is None:
             return "# unable to read kickstart: %s" % meta["kickstart"]
-        data = self.templar.render(raw_data, meta, None, s)
+        data = self.templar.render(raw_data, meta, None, obj)
         return data
 
         #except:
@@ -233,33 +241,10 @@ class KickGen:
 
         distro = g.get_conceptual_parent()
         if distro is None:
-           raise CX(_("profile %(profile)s references missing distro %(distro)s") % { "profile" : g.name, "distro" : g.distro })
+           raise CX(_("profile %(profile)s references missing distro %(distro)s") % 
+                   { "profile" : g.name, "distro" : g.distro })
 
-
-
-
-
-
-        meta = utils.blender(self.api, False, g)
-        kickstart_path = utils.find_kickstart(meta["kickstart"])
-
-        if not kickstart_path:
-            return "# kickstart is missing or invalid: %s" % meta["kickstart"]
-
-        ksmeta = meta["ks_meta"]
-        del meta["ks_meta"]
-        meta.update(ksmeta) # make available at top level
-        meta["yum_repo_stanza"] = self.generate_repo_stanza(g, True)
-        meta["yum_config_stanza"] = self.generate_config_stanza(g, True)
-        meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
-        meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
-        meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-
-        raw_data = utils.read_file_contents(kickstart_path)
-        if data is None:
-            return "# unable to read kickstart: %s" % meta["kickstart"]
-        data = self.templar.render(raw_data, meta, None, g)
-        return data
+        return self.generate_kickstart(profile=g)
 
     def get_last_errors(self):
         """

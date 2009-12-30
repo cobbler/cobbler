@@ -456,6 +456,7 @@ def read_file_contents(file_location, logger=None):
                 return data
             except urllib2.HTTPError:
                 # File likely doesn't exist
+                logger.warning("File does not exist: %s" % file_location)
                 return None
 
     return None
