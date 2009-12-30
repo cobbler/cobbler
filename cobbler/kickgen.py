@@ -239,29 +239,24 @@ class KickGen:
 
         meta = utils.blender(self.api, False, g)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
-        if kickstart_path and os.path.exists(kickstart_path):
-            # the input is an *actual* file, hence we have to copy it
-            try:
-                ksmeta = meta["ks_meta"]
-                del meta["ks_meta"]
-                meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
-                meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
-                meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
-                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                data = utils.read_file_contents(kickstart_path)
-                data = self.templar.render(data, meta, None, g)
-                return data
-            except:
-                utils.log_exc(self.api.logger)
-                raise
 
-        elif kickstart_path is not None and not os.path.exists(kickstart_path):
-            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
-                return "# Error, cannot find %s" % kickstart_path
-        return "# kickstart is sourced externally, or is missing, and cannot be displayed here: %s" % meta["kickstart"]
+        if not kickstart_path:
+            return "# kickstart is missing or invalid: %s" % meta["kickstart"]
 
+        ksmeta = meta["ks_meta"]
+        del meta["ks_meta"]
+        meta.update(ksmeta) # make available at top level
+        meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
+        meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
+        meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
+        meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
+        meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+
+        data = utils.read_file_contents(kickstart_path)
+        if data is None:
+            return "# unable to read kickstart: %s" % meta["kickstart"]
+        data = self.templar.render(data, meta, None, g)
+        return data
 
     def get_last_errors(self):
         """

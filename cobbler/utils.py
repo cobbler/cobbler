@@ -47,6 +47,7 @@ import shlex
 import field_info
 import clogger
 import yaml
+import urllib2
 
 try:
     import hashlib as fiver
@@ -406,11 +407,13 @@ def find_kickstart(url):
     Check if a kickstart url looks like an http, ftp, nfs or local path.
     If a local path is used, cobbler will copy the kickstart and serve
     it over http.
+
+    Return None if the url format does not look valid.
     """
     if url is None:
         return None
     x = url.lower()
-    for y in ["http://","nfs://","ftp://","/"]:
+    for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
            if x.startswith("/") and not os.path.isfile(url):
                return None
@@ -418,7 +421,7 @@ def find_kickstart(url):
     return None
 
 
-def read_file_contents(file_location):
+def read_file_contents(file_location, logger=None):
     """
     Reads the contents of a file, which could be referenced locally
     or as a URI.
@@ -428,20 +431,31 @@ def read_file_contents(file_location):
     if not file_location:
         return None
 
-    data = None
-    try:
-        # Local files:
-        if file_location.startswith("/") and os.path.exists(file_location):
+    # Local files:
+    if file_location.startswith("/") and os.path.exists(file_location):
+        try:
             f = open(file_location)
             data = f.read()
             f.close()
             return data
-        return None
-    except:
-        log_exc(self.api.logger)
-        raise
+        except:
+            log_exc(logger)
+            raise
 
-    return data
+    # Remote files:
+    file_loc_lc = file_location.lower()
+    for prefix in ["http://"]:
+        if file_loc_lc.startswith(prefix):
+            # TODO do http stuff here
+            try:
+                handler = urllib2.urlopen(file_location)
+                data = handler.read()
+                return data
+            except urllib2.HTTPError:
+                # File likely doesn't exist
+                return None
+
+    return None
 
 
 def input_string_or_list(options):
