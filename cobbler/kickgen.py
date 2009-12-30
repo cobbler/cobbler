@@ -197,29 +197,32 @@ class KickGen:
 
         meta = utils.blender(self.api, False, s)
         kickstart_path = utils.find_kickstart(meta["kickstart"])
-        if kickstart_path and os.path.exists(kickstart_path):
-            try:
-                ksmeta = meta["ks_meta"]
-                del meta["ks_meta"]
-                meta.update(ksmeta) # make available at top level
-                meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
-                meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
-                meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
-                meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
-                meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
-                # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
-                kfile = open(kickstart_path)
-                data = self.templar.render(kfile, meta, None, s)
-                kfile.close()
-                return data
-            except:
-                traceback.print_exc()
-                raise CX(_("Error templating file"))
 
-        elif kickstart_path is not None and not os.path.exists(kickstart_path):
-            if kickstart_path.find("http://") == -1 and kickstart_path.find("ftp://") == -1 and kickstart_path.find("nfs:") == -1:
-                return "# Error, cannot find %s" % kickstart_path
-        return "# kickstart is sourced externally: %s" % meta["kickstart"]
+        if not kickstart_path:
+            return "# kickstart is missing or invalid: %s" % meta["kickstart"]
+
+        ksmeta = meta["ks_meta"]
+        del meta["ks_meta"]
+        meta.update(ksmeta) # make available at top level
+        meta["yum_repo_stanza"] = self.generate_repo_stanza(s, False)
+        meta["yum_config_stanza"] = self.generate_config_stanza(s, False)
+        meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, s)
+        meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, s)
+        meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+        # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
+
+        raw_data = utils.read_file_contents(kickstart_path)
+        if raw_data is None:
+            return "# unable to read kickstart: %s" % meta["kickstart"]
+        data = self.templar.render(raw_data, meta, None, s)
+        return data
+
+        #except:
+        #    traceback.print_exc()
+        #    raise CX(_("Error templating file"))
+
+        # TODO: Save this for when we add configuration option for old behavior
+        #return "# kickstart is sourced externally: %s" % meta["kickstart"]
 
 
     def generate_kickstart_for_profile(self,g):
@@ -246,16 +249,16 @@ class KickGen:
         ksmeta = meta["ks_meta"]
         del meta["ks_meta"]
         meta.update(ksmeta) # make available at top level
-        meta["yum_repo_stanza"] = self.generate_repo_stanza(g,True)
-        meta["yum_config_stanza"] = self.generate_config_stanza(g,True)
+        meta["yum_repo_stanza"] = self.generate_repo_stanza(g, True)
+        meta["yum_config_stanza"] = self.generate_config_stanza(g, True)
         meta["kickstart_done"]  = self.generate_kickstart_signal(0, g, None)
         meta["kickstart_start"] = self.generate_kickstart_signal(1, g, None)
         meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
 
-        data = utils.read_file_contents(kickstart_path)
+        raw_data = utils.read_file_contents(kickstart_path)
         if data is None:
             return "# unable to read kickstart: %s" % meta["kickstart"]
-        data = self.templar.render(data, meta, None, g)
+        data = self.templar.render(raw_data, meta, None, g)
         return data
 
     def get_last_errors(self):

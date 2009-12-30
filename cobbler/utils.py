@@ -428,6 +428,9 @@ def read_file_contents(file_location, logger=None):
 
     Returns None if we cannot read the file contents.
     """
+
+    # TODO: Raise exceptions for file not found, and return None for
+    # sourced externally.
     if not file_location:
         return None
 
@@ -446,10 +449,10 @@ def read_file_contents(file_location, logger=None):
     file_loc_lc = file_location.lower()
     for prefix in ["http://"]:
         if file_loc_lc.startswith(prefix):
-            # TODO do http stuff here
             try:
                 handler = urllib2.urlopen(file_location)
                 data = handler.read()
+                handler.close()
                 return data
             except urllib2.HTTPError:
                 # File likely doesn't exist
