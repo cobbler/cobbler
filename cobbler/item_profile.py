@@ -59,7 +59,8 @@ FIELDS = [
   ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0,"list"],
   ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0,"dict"],
   ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
-  ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"]
+  ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"],
+  ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"]
 ]
 
 class Profile(item.Item):

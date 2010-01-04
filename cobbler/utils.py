@@ -426,10 +426,10 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     Reads the contents of a file, which could be referenced locally
     or as a URI.
 
-    Returns None if kickstart is remote and templating of remote files is 
+    Returns None if file is remote and templating of remote files is 
     disabled.
 
-    Throws a FileNotFoundException if the kickstart does not exist at the
+    Throws a FileNotFoundException if the file does not exist at the
     specified location.
     """
 
@@ -454,21 +454,30 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     if not fetch_if_remote:
         return None
 
+    if file_is_remote(file_location):
+        try:
+            handler = urllib2.urlopen(file_location)
+            data = handler.read()
+            handler.close()
+            return data
+        except urllib2.HTTPError:
+            # File likely doesn't exist
+            logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
+
+def file_is_remote(file_location):
+    """ 
+    Returns true if the file is remote and referenced via a protocol
+    we support.
+    """
+    # TODO: nfs and ftp ok too?
     file_loc_lc = file_location.lower()
     for prefix in ["http://"]:
         if file_loc_lc.startswith(prefix):
-            try:
-                handler = urllib2.urlopen(file_location)
-                data = handler.read()
-                handler.close()
-                return data
-            except urllib2.HTTPError:
-                # File likely doesn't exist
-                logger.warning("File does not exist: %s" % file_location)
-                raise FileNotFoundException("%s: %s" % (_("File not found"), 
-                    file_location))
-
-    return None
+            return True
+    return False
 
 
 def input_string_or_list(options):
@@ -1623,6 +1632,7 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
+
     return ds
 
 def printable_from_fields(obj, fields):
