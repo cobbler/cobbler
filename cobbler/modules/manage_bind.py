@@ -117,9 +117,8 @@ class BindManager:
 
                 # strip the zone off the dns_name and append the
                 # remainder + ip to the zone list
-                host = host.replace(best_match, '')
-                if host[-1] == '.': # strip trailing '.' if it's there
-                   host = host[:-1]
+                host = re.sub('\.%s$' % best_match, '', host)
+
                 zones[best_match][host] = ip
 
         return zones
