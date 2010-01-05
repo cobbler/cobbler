@@ -1521,12 +1521,14 @@ def is_remote_file(file):
 def subprocess_call(logger, cmd, shell=True):
     logger.info("running: %s" % cmd)
     try:
-       rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle(), close_fds=True)
+       p = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.STDOUT, close_fds=True)
+       logger.handle().write(p.stdout.read())
     except OSError:
        log_exc(logger)
        if not isinstance(cmd, basestring):
           cmd = str(" ".join(cmd))
        die(logger, "OS Error, command not found?  While running: %s" % cmd)
+    rc = p.wait()
     logger.info("returned: %s" % rc)
     return rc
 
