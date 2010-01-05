@@ -65,14 +65,6 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
             "# Error: no snippet data for $file",
         "#end if",
     "#end def",
-#    "#def SNIPPET($file)",
-#        "#set $fullpath = $find_snippet($file)",
-#        "#if $fullpath",
-#            "#include $fullpath",
-#        "#else",
-#            "# Error: no snippet data for $file",
-#        "#end if",
-#    "#end def",
 ]) + "\n")
 
 MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
@@ -135,22 +127,6 @@ class Template(BuiltinTemplate, MacrosTemplate):
         return Cheetah.Template.Template.compile(*args, **kwargs)
     compile = classmethod(compile)
     
-    def find_snippet(self, file):
-        """
-        Locate the appropriate snippet for the current system and profile.
-        This will first check for a per-system snippet, a per-profile snippet,
-        a distro snippet, and a general snippet. If no snippet is located, it
-        returns None.
-        """
-        for snipclass in ('system', 'profile', 'distro'):
-            if self.varExists('%s_name' % snipclass):
-                fullpath = '%s/per_%s/%s/%s' % (self.getVar('snippetsdir'),
-                    snipclass, file, self.getVar('%s_name' % snipclass))
-                if os.path.exists(fullpath):
-                    return fullpath
-
-        return '%s/%s' % (self.getVar('snippetsdir'), file)
-
     def read_snippet(self, file):
         """
         Locate the appropriate snippet for the current system and profile and
