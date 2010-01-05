@@ -437,7 +437,8 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     if file_location.startswith("/"):
 
         if not os.path.exists(file_location):
-            logger.warning("File does not exist: %s" % file_location)
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
             raise FileNotFoundException("%s: %s" % (_("File not found"), 
                 file_location))
 
@@ -462,7 +463,8 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
             return data
         except urllib2.HTTPError:
             # File likely doesn't exist
-            logger.warning("File does not exist: %s" % file_location)
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
             raise FileNotFoundException("%s: %s" % (_("File not found"), 
                 file_location))
 
