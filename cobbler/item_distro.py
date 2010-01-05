@@ -37,7 +37,7 @@ import codes
 # entry to the list following some conventions to be described later.  You must also add a method called
 # set_$fieldname.  Do not write a method called get_$fieldname, that will not be called.
 #
-# name | default | subobject default | hidden | tooltip | editable? | values ? | type
+# name | default | subobject default | display name | editable? | tooltip | values ? | type
 #
 # name -- what the filed should be called.   For the command line, underscores will be replaced with
 #         a hyphen programatically, so use underscores to seperate things that are seperate words
@@ -57,6 +57,8 @@ import codes
 # values -- for fields that have a limited set of valid options and those options are always fixed
 #           (such as architecture type), the list of valid options goes in this field.  This should
 #           almost always be a constant from codes.py
+#
+# type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
 #
 # you will also notice some names start with "*" ... this denotes that the fields belong to
 # interfaces, and only item_system.py should have these.   Each system may have multiple interfaces.
