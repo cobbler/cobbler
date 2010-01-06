@@ -47,6 +47,7 @@ import shlex
 import field_info
 import clogger
 import yaml
+import urllib2
 
 try:
     import hashlib as fiver
@@ -406,16 +407,80 @@ def find_kickstart(url):
     Check if a kickstart url looks like an http, ftp, nfs or local path.
     If a local path is used, cobbler will copy the kickstart and serve
     it over http.
+
+    Return None if the url format does not look valid.
     """
     if url is None:
         return None
     x = url.lower()
-    for y in ["http://","nfs://","ftp://","/"]:
+    for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
            if x.startswith("/") and not os.path.isfile(url):
                return None
            return url
     return None
+
+
+def read_file_contents(file_location, logger=None, fetch_if_remote=False):
+    """
+    Reads the contents of a file, which could be referenced locally
+    or as a URI.
+
+    Returns None if file is remote and templating of remote files is 
+    disabled.
+
+    Throws a FileNotFoundException if the file does not exist at the
+    specified location.
+    """
+
+    # Local files:
+    if file_location.startswith("/"):
+
+        if not os.path.exists(file_location):
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
+        try:
+            f = open(file_location)
+            data = f.read()
+            f.close()
+            return data
+        except:
+            log_exc(logger)
+            raise
+
+    # Remote files:
+    if not fetch_if_remote:
+        return None
+
+    if file_is_remote(file_location):
+        try:
+            handler = urllib2.urlopen(file_location)
+            data = handler.read()
+            handler.close()
+            return data
+        except urllib2.HTTPError:
+            # File likely doesn't exist
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
+
+def file_is_remote(file_location):
+    """ 
+    Returns true if the file is remote and referenced via a protocol
+    we support.
+    """
+    # TODO: nfs and ftp ok too?
+    file_loc_lc = file_location.lower()
+    for prefix in ["http://"]:
+        if file_loc_lc.startswith(prefix):
+            return True
+    return False
+
 
 def input_string_or_list(options):
     """
@@ -1569,6 +1634,7 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
+
     return ds
 
 def printable_from_fields(obj, fields):
