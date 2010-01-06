@@ -79,7 +79,7 @@ if [ "$rhn_keys_found" = "yes" ]; then
     while : ; do
         sleep 10
         if [ -d /mnt/sysimage/etc/sysconfig/rhn ] ; then
-            cp -f /tmp/rhn/* /mnt/sysimage/etc/sysconfig/rhn/
+            cp -af /tmp/rhn/* /mnt/sysimage/etc/sysconfig/rhn/
             logger "RHN KEY copied to newly installed system"
             break
         fi

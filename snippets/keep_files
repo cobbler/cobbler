@@ -115,7 +115,7 @@ function restore_keys
     while : ; do
         sleep 10
         if [ -d /mnt/sysimage$SEARCHDIR ] ; then
-            cp -f /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
+            cp -af /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
             logger "$TEMPDIR keys copied to newly installed system"
             break
         fi
