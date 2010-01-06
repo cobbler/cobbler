@@ -829,6 +829,7 @@ def __names_from_dicts(loh,optional=True):
       results.append("<<None>>")
    for x in loh:
       results.append(x["name"])
+   results.sort()
    return results
 
 # ======================================================================
