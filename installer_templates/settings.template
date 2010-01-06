@@ -309,6 +309,13 @@ server: $server
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
 
+# Normally if a kickstart is specified at a remote location, this
+# URL will be passed directly to the kickstarting system, thus bypassing
+# the usual snippet templating Cobbler does for local kickstart files. If
+# this option is enabled, Cobbler will fetch the file contents internally
+# and serve a templated version of the file to the client.
+template_remote_kickstarts: 0
+
 # should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
 # this can be overridden on each profile or system object.
 virt_auto_boot: 1

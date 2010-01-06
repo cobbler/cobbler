@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import Cheetah.Template
 import os.path
 import re
+import utils
+from cexceptions import *
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
@@ -56,9 +58,9 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
     # general snippet. If none is found, a comment explaining the error is
     # substituted.
     "#def SNIPPET($file)",
-        "#set $fullpath = $find_snippet($file)",
-        "#if $fullpath",
-            "#include $fullpath",
+        "#set $snippet = $read_snippet($file)",
+        "#if $snippet",
+            "#include source=$snippet",
         "#else",
             "# Error: no snippet data for $file",
         "#end if",
@@ -125,9 +127,13 @@ class Template(BuiltinTemplate, MacrosTemplate):
         return Cheetah.Template.Template.compile(*args, **kwargs)
     compile = classmethod(compile)
     
-    def find_snippet(self, file):
+    def read_snippet(self, file):
         """
-        Locate the appropriate snippet for the current system and profile.
+        Locate the appropriate snippet for the current system and profile and
+        read it's contents.
+
+        This file could be located in a remote location.
+
         This will first check for a per-system snippet, a per-profile snippet,
         a distro snippet, and a general snippet. If no snippet is located, it
         returns None.
@@ -136,21 +142,29 @@ class Template(BuiltinTemplate, MacrosTemplate):
             if self.varExists('%s_name' % snipclass):
                 fullpath = '%s/per_%s/%s/%s' % (self.getVar('snippetsdir'),
                     snipclass, file, self.getVar('%s_name' % snipclass))
-                if os.path.exists(fullpath):
-                    return fullpath
+                try:
+                    contents = utils.read_file_contents(fullpath, fetch_if_remote=True)
+                    return contents
+                except FileNotFoundException:
+                    pass
 
-        return '%s/%s' % (self.getVar('snippetsdir'), file)
-    
-    # This may be a little frobby, but it's really cool. This is a pure python
-    # portion of SNIPPET that appends the snippet's searchList to the caller's
-    # searchList. This makes any #defs within a given snippet available to the
-    # template that included the snippet.
+        try: 
+            return utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'), 
+                file), fetch_if_remote=True)
+        except FileNotFoundException:
+            return None
 
     def SNIPPET(self, file):
         """
         Include the contents of the named snippet here. This is equivalent to
         the #include directive in Cheetah, except that it searches for system
         and profile specific snippets, and it includes the snippet's namespace.
+
+        This may be a little frobby, but it's really cool. This is a pure python
+        portion of SNIPPET that appends the snippet's searchList to the caller's
+        searchList. This makes any #defs within a given snippet available to the
+        template that included the snippet.
+
         """
         # First, do the actual inclusion. Cheetah (when processing #include)
         # will track the inclusion in self._CHEETAH__cheetahIncludes
@@ -159,13 +173,18 @@ class Template(BuiltinTemplate, MacrosTemplate):
         # Now do our dirty work: locate the new include, and append its
         # searchList to ours.
         # We have to compute the full path again? Eww.
-        fullpath = self.find_snippet(file);
-        if fullpath:
+
+        # This weird method is getting even weirder, the cheetah includes keys
+        # are no longer filenames but actual contents of snippets. Regardless
+        # this seems to work and hopefully it will be ok.
+
+        snippet_contents = self.read_snippet(file);
+        if snippet_contents:
             # Only include what we don't already have. Because Cheetah
             # passes our searchList into included templates, the snippet's
             # searchList will include this templates searchList. We need to
             # avoid duplicating entries.
-            childList = self._CHEETAH__cheetahIncludes[fullpath].searchList()
+            childList = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
             myList = self.searchList()
             for childElem in childList:
                 if not childElem in myList:
