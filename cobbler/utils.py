@@ -352,6 +352,7 @@ def find_kernel(path):
     """
     if path is None:
         return None
+
     if os.path.isfile(path):
         #filename = os.path.basename(path)
         #if _re_kernel.match(filename):
@@ -359,8 +360,15 @@ def find_kernel(path):
         #elif filename == "vmlinuz":
         #   return path
         return path
+
     elif os.path.isdir(path):
         return find_highest_files(path,"vmlinuz",_re_kernel)
+
+    # For remote URLs we expect an absolute path, and will not
+    # do any searching for the latest:
+    elif file_is_remote(path) and remote_file_exists(path):
+        return path
+
     return None
 
 def remove_yum_olddata(path,logger=None):
@@ -390,6 +398,7 @@ def find_initrd(path):
     # FUTURE: try to match kernel/initrd pairs?
     if path is None:
         return None
+
     if os.path.isfile(path):
         #filename = os.path.basename(path)
         #if _re_initrd.match(filename):
@@ -397,8 +406,15 @@ def find_initrd(path):
         #if filename == "initrd.img" or filename == "initrd":
         #   return path
         return path
+
     elif os.path.isdir(path):
         return find_highest_files(path,"initrd.img",_re_initrd)
+
+    # For remote URLs we expect an absolute path, and will not
+    # do any searching for the latest:
+    elif file_is_remote(path) and remote_file_exists(path):
+        return path
+
     return None
 
 
@@ -467,6 +483,17 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
                 logger.warning("File does not exist: %s" % file_location)
             raise FileNotFoundException("%s: %s" % (_("File not found"), 
                 file_location))
+
+
+def remote_file_exists(file_url):
+    """ Return True if the remote file exists. """
+    try:
+        handler = urllib2.urlopen(file_url)
+        handler.close()
+        return True
+    except urllib2.HTTPError:
+        # File likely doesn't exist
+        return False
 
 
 def file_is_remote(file_location):

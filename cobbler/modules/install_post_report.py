@@ -36,7 +36,6 @@ def run(api, args, logger):
 
     # go no further if this feature is turned off
     if not str(settings.build_reporting_enabled).lower() in [ "1", "yes", "y", "true"]:
-        print "not enabled"
         return 0
 
     objtype = args[0] # "target" or "profile"

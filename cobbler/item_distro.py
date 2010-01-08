@@ -146,12 +146,12 @@ class Distro(item.Item):
 
     def set_kernel(self,kernel):
         """
-	Specifies a kernel.  The kernel parameter is a full path, a filename
-	in the configured kernel directory (set in /etc/cobbler.conf) or a
-	directory path that would contain a selectable kernel.  Kernel
-	naming conventions are checked, see docs in the utils module
-	for find_kernel.
-	"""
+        Specifies a kernel.  The kernel parameter is a full path, a filename
+        in the configured kernel directory (set in /etc/cobbler.conf) or a
+        directory path that would contain a selectable kernel.  Kernel
+        naming conventions are checked, see docs in the utils module
+        for find_kernel.
+        """
         if kernel is None or kernel == "":
             raise CX("kernel not specified")
         if utils.find_kernel(kernel):
@@ -227,8 +227,17 @@ class Distro(item.Item):
             raise CX("Error with distro %s - kernel is required" % (self.name))
         if self.initrd is None:
             raise CX("Error with distro %s - initrd is required" % (self.name))
-        if not os.path.exists(self.kernel):
-            raise CX("Error with distro %s - kernel path not found" % (self.name))
-        if not os.path.exists(self.initrd):
+
+        if utils.file_is_remote(self.kernel):
+            if not utils.remote_file_exists(self.kernel):
+                raise CX("Error with distro %s - kernel not found" % (self.name))
+        elif not os.path.exists(self.kernel):
+            raise CX("Error with distro %s - kernel not found" % (self.name))
+
+        if utils.file_is_remote(self.initrd):
+            if not utils.remote_file_exists(self.initrd):
+                raise CX("Error with distro %s - initrd path not found" % 
+                        (self.name))
+        elif not os.path.exists(self.initrd):
             raise CX("Error with distro %s - initrd path not found" % (self.name))
 
