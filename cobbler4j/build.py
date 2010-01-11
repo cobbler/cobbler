@@ -23,7 +23,7 @@ import cobbler.item_system  as cobbler_system
 import cobbler.item_repo    as cobbler_repo
 import cobbler.item_image   as cobbler_image
 
-AUTOGEN_PATH = "src/org/fedorahosted/cobbler/autogen/"
+AUTOGEN_PATH = "src/main/java/org/fedorahosted/cobbler/autogen/"
 
 # FIXME: make this also do Ruby
 # FIXME: network object handling is quasi-special

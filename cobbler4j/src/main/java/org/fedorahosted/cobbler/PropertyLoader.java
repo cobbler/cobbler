@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PropertyLoader {
-	
+
 	public void load() throws Exception {
       BufferedReader reader = new BufferedReader(new FileReader(System.getProperty("user.dir")+"/user.properties"));
       Map<String, String> p = new HashMap<String, String>();
@@ -28,7 +28,7 @@ public class PropertyLoader {
           System.setProperty(parts[0], parts[1]);
       }
   }
-	
+
 	/**
      * Replace embedded variables.  These are values that contain previously
      * defined variables.
@@ -50,7 +50,7 @@ public class PropertyLoader {
         sb.append(s.substring(i));
         return sb.toString();
     }
-    
+
     Pattern pattern = Pattern.compile("(\\$\\{)([^}]+)(\\})");
 
 }

@@ -14,7 +14,7 @@ public class Fixture {
     public static void establishConnection() {
 
         // TODO: This is tricky, we're actually setting system propoerties by creating this
-        // property loader. It's likely something that should get moved to a 
+        // property loader. It's likely something that should get moved to a
         // static block in some test subpackage code.
         PropertyLoader p = new PropertyLoader();
         try {

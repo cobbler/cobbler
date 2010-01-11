@@ -1,0 +1,93 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.fedorahosted.cobbler</groupId>
+    <artifactId>cobbler4j</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>cobbler4j</name>
+    <description>Wrapper for XMLRPC communication with a Cobbler server.</description>
+    <url>http://fedorahosted.org/cobbler/</url>
+
+    <licenses>
+        <license>
+            <name>GPLv2</name>
+            <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+        </license>
+    </licenses>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <exec
+                  dir="${basedir}"
+                  executable="python"
+                  failonerror="true">
+<arg line="${basedir}/build.py" />
+                </exec>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+<plugin>
+    <artifactId>maven-clean-plugin</artifactId>
+    <version>2.2</version>
+    <configuration>
+      <filesets>
+        <fileset>
+<directory>${basedir}/src/main/java/org/fedorahosted/cobbler/autogen/</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+          <followSymlinks>false</followSymlinks>
+        </fileset>
+      </filesets>
+    </configuration>
+  </plugin>
+
+
+
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.5</version>
+            <!--scope>test</scope-->
+        </dependency>
+
+        <!-- Can't find redstone xmlrpc packaged for Maven anywhere. -->
+        <dependency>
+            <groupId>net.sf.xmlrpc</groupId>
+            <artifactId>redstone-xmlrpc-client</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/xmlrpc.jar</systemPath>
+        </dependency>
+    </dependencies>
+</project>

@@ -14,11 +14,11 @@ import org.fedorahosted.cobbler.autogen.*;
 import org.fedorahosted.cobbler.*;
 
 public class ProfileTests extends Fixture {
-    
+
     private static final String TEST_PROFILE_NAME = "cobblertestprofile";
     private Distro testDistro;
     private Profile testProfile;
-    
+
     public static Profile createTestProfile(Distro distro) {
         Profile newProfile = new Profile(xmlrpc);
         newProfile.setName(TEST_PROFILE_NAME);
@@ -26,13 +26,13 @@ public class ProfileTests extends Fixture {
         newProfile.commit();
         return newProfile;
     }
-    
+
     @Before
     public void setUp() {
         testDistro = DistroTests.createTestDistro();
         testProfile = createTestProfile(testDistro);
     }
-    
+
     @After
     public void tearDown() {
         try {
@@ -40,7 +40,7 @@ public class ProfileTests extends Fixture {
         }
         catch (XmlRpcException e) {
         }
-        
+
         try {
             testProfile.remove();
         }
@@ -48,17 +48,17 @@ public class ProfileTests extends Fixture {
         }
 
     }
-    
-    @Test 
+
+    @Test
     public void createAndDelete() {
 
-        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc, 
+        Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
                 ObjectType.PROFILE, testProfile.getName());
         assertEquals(lookedUp.getName(), testProfile.getName());
-        
+
         testProfile.remove();
 
-        lookedUp = (Profile)finder.findItemByName(xmlrpc, 
+        lookedUp = (Profile)finder.findItemByName(xmlrpc,
                 ObjectType.PROFILE, testProfile.getName());
         assertNull(lookedUp);
     }
@@ -87,7 +87,7 @@ public class ProfileTests extends Fixture {
         testProfile.setKernelOptions(kernelOptions);
 
         testProfile.commit();
-        
+
         Profile lookedUp = (Profile)finder.findItemByName(xmlrpc,
                 ObjectType.PROFILE, testProfile.getName());
         assertEquals(lookedUp.getName(), testProfile.getName());
@@ -96,8 +96,8 @@ public class ProfileTests extends Fixture {
         assertEquals(comment, lookedUp.getComment());
 
     }
-    
-    @Test 
+
+    @Test
     public void testVirtFileSize() {
         testProfile.setVirtFileSize(new Integer(5));
         testProfile.commit();
@@ -105,7 +105,7 @@ public class ProfileTests extends Fixture {
                 ObjectType.PROFILE, testProfile.getName());
         assertEquals(new Integer(5), lookedUp.getVirtFileSize());
     }
-    
+
     @Test
     public void testVirtAutoBoot() {
         testProfile.setVirtAutoBoot(true);

@@ -22,7 +22,7 @@ import java.util.HashMap;
 public class Finder {
     private static final Finder INSTANCE = new Finder();
 
-    private Finder() { 
+    private Finder() {
     }
 
     public static Finder getInstance() {
@@ -32,7 +32,7 @@ public class Finder {
     @SuppressWarnings("unchecked")
     public List<? extends CobblerObject> findItems(CobblerConnection client,
             ObjectType type, String critera, String value) {
-        
+
         if (value == null) {
             return null;
         }
@@ -47,7 +47,7 @@ public class Finder {
 
     private List <? extends CobblerObject> maps2Objects(CobblerConnection client,
             ObjectType type, List<Map<String, Object>> maps) {
-        
+
         List<CobblerObject> ret = new LinkedList<CobblerObject>();
         for (Map<String, Object> obj : maps) {
 
@@ -58,10 +58,10 @@ public class Finder {
             // from the parent object. Blending is Cobbler's process by which these
             // fields get set. Profiles and systems are the only two objects supporting
             // this blending.
-            
+
             // This does result in two calls but I think it's the only way to get this
             // right...
-            
+
             // Will remain null except for profiles and systems:
             Map<String, Object> blendedDataMap = null;
             if (type == ObjectType.PROFILE) {
@@ -73,20 +73,20 @@ public class Finder {
                 blendedDataMap = (Map<String, Object>)
                     client.invokeMethod("get_blended_data", "", obj.get("name"));
             }
-            
+
             ret.add(CobblerObject.load(type, client, obj, blendedDataMap));
         }
-        
+
         return ret;
     }
 
     public CobblerObject findItemById(CobblerConnection client,
-            ObjectType type, 
+            ObjectType type,
             String id) {
         if (id == null) {
             return null;
         }
-        List <? extends CobblerObject> items = findItems(client, type, 
+        List <? extends CobblerObject> items = findItems(client, type,
                 CobblerObject.UID, id);
         if (items.isEmpty()) {
             return null;
@@ -100,7 +100,7 @@ public class Finder {
             return null;
         }
 
-        List <? extends CobblerObject> items = findItems(client, type, 
+        List <? extends CobblerObject> items = findItems(client, type,
                 CobblerObject.NAME, name);
         if (items.isEmpty()) {
             return null;
@@ -109,7 +109,7 @@ public class Finder {
     }
 
     @SuppressWarnings("unchecked")
-    public List<? extends CobblerObject> listItems(CobblerConnection client, 
+    public List<? extends CobblerObject> listItems(CobblerConnection client,
             ObjectType type) {
         List<Map<String, Object>> objects = (List<Map<String, Object>>)
             client.invokeNoTokenMethod("get_" + type.getName()+ "s");
