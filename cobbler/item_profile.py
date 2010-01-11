@@ -144,6 +144,14 @@ class Profile(item.Item):
         self.enable_menu = utils.input_boolean(enable_menu)
         return True
 
+    def set_template_remote_kickstarts(self, template):
+        """
+        Sets whether or not the server is configured to template remote 
+        kickstarts.
+        """
+        self.template_remote_kickstarts = utils.input_boolean(template)
+        return True
+
     def set_dhcp_tag(self,dhcp_tag):
         if dhcp_tag is None:
            dhcp_tag = ""
