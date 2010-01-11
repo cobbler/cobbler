@@ -11,7 +11,7 @@ org.fedorahosted.cobbler.autogen)
 Requirements
 ============
 
-To build: ant java-1.6.0-openjdk-devel python-cheetah 
+To build: ant java-1.6.0-openjdk-devel python-cheetah python-netaddr PyYAML
 To test: ant-junit junit4
 
 Build with: "ant"
