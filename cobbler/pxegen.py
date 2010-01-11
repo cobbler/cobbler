@@ -150,20 +150,42 @@ class PXEGen:
             utils.mkdir(distro_dir)
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
-            if kernel is None or not os.path.isfile(kernel):
-                raise CX("kernel not found: %(file)s, distro: %(distro)s" % { "file" : d.kernel, "distro" : d.name })
-            if initrd is None or not os.path.isfile(initrd):
-                raise CX("initrd not found: %(file)s, distro: %(distro)s" % { "file" : d.initrd, "distro" : d.name })
-            b_kernel = os.path.basename(kernel)
-            b_initrd = os.path.basename(initrd)
+
+            if utils.file_is_remote(kernel):
+                if kernel is None:
+                    raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
+                            { "file" : d.kernel, "distro" : d.name })
+            else:
+                if kernel is None or not os.path.isfile(kernel):
+                    raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
+                            { "file" : d.kernel, "distro" : d.name })
+
+            if utils.file_is_remote(initrd):
+                if initrd is None:
+                    raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
+                            { "file" : d.initrd, "distro" : d.name })
+            else:
+                if initrd is None or not os.path.isfile(initrd):
+                    raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
+                            { "file" : d.initrd, "distro" : d.name })
+
             allow_symlink=False
             if dirtree == self.settings.webdir:
                 allow_symlink=True
-            dst1 = os.path.join(distro_dir, b_kernel)
-            dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, api=self.api, logger=self.logger)
 
-            utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, api=self.api, logger=self.logger)
+            # Kernels referenced by remote URL are passed through to koan directly,
+            # no need for copying the kernel locally:
+            if not utils.file_is_remote(kernel):
+                b_kernel = os.path.basename(kernel)
+                dst1 = os.path.join(distro_dir, b_kernel)
+                utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, 
+                        api=self.api, logger=self.logger)
+
+            if not utils.file_is_remote(initrd):
+                b_initrd = os.path.basename(initrd)
+                dst2 = os.path.join(distro_dir, b_initrd)
+                utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, 
+                        api=self.api, logger=self.logger)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")

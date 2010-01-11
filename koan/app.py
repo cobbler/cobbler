@@ -1022,8 +1022,8 @@ class Koan:
             print "downloading initrd %s to %s" % (initrd_short, initrd_save)
             print "url=%s" % initrd
             utils.urlgrab(initrd,initrd_save)
-            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
 
+            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
             print "url=%s" % kernel
             utils.urlgrab(kernel,kernel_save)
         except:
