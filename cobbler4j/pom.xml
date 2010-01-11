@@ -5,7 +5,7 @@
 	<groupId>org.fedorahosted.cobbler</groupId>
 	<artifactId>cobbler4j</artifactId>
 	<packaging>jar</packaging>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.1</version>
 	<name>cobbler4j</name>
 	<description>Wrapper for XMLRPC communication with a Cobbler server.</description>
 	<url>http://fedorahosted.org/cobbler/</url>
