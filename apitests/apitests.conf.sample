@@ -13,8 +13,8 @@ repo_loc: /mnt/engarchive/distro/os
 
 #distro-specific settings
 distro_name: RHEL5-i386
-distro_kernel: /mnt/engarchive/released/RHEL-5-Server/U4/i386/os/isolinux/vmlinuz
-distro_initrd: /mnt/engarchive/released/RHEL-5-Server/U4/i386/os/isolinux/initrd.img
+distro_kernel: /path/to/some/fake/kernel
+distro_initrd: /path/to/some/fake/initrd
 distro_osversion: rhel5
 
 #profile-specific settings

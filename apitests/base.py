@@ -37,7 +37,7 @@ def read_config():
     f = open(CONFIG_LOC, 'r')
     cfg = yaml.load(f)
     f.close()
-    
+
 class CobblerTest(unittest.TestCase):
     def __cleanUpObjects(self):
         try:
@@ -71,4 +71,28 @@ class CobblerTest(unittest.TestCase):
         """
         self.__cleanUpObjects()
         
+    def create_distro(self):
+        did = self.api.new_distro(self.token)
+        self.api.modify_distro(did, "name", cfg["distro_name"], self.token)
+        self.api.modify_distro(did, "kernel", cfg["distro_kernel"], self.token) 
+        self.api.modify_distro(did, "initrd", cfg["distro_initrd"], self.token) 
+        self.api.save_distro(did, self.token)
+        return did
+
+    def create_distro_detailed(self):
+        did = self.api.new_distro(self.token)
+        self.api.modify_distro(did, "name", cfg["distro_name"], self.token)
+        self.api.modify_distro(did, "kernel", cfg["distro_kernel"], self.token) 
+        self.api.modify_distro(did, "initrd", cfg["distro_initrd"], self.token) 
+        self.api.modify_distro(did, "kopts", { "dog" : "fido", "cat" : "fluffy" }, self.token) # hash or string
+        self.api.modify_distro(did, "ksmeta", "good=sg1 evil=gould", self.token) # hash or string
+        self.api.modify_distro(did, "breed", "redhat", self.token)
+        self.api.modify_distro(did, "os-version", cfg["distro_osversion"], self.token)
+        self.api.modify_distro(did, "owners", "sam dave", self.token) # array or string
+        self.api.modify_distro(did, "mgmt-classes", "blip", self.token) # list or string
+        self.api.modify_distro(did, "comment", "test distro", self.token)
+        self.api.modify_distro(did, "redhat_management_key", cfg["redhat_mgmt_key"], self.token)
+        self.api.modify_distro(did, "redhat_management_server", cfg["redhat_mgmt_server"], self.token)
+        return did
+    
 read_config()

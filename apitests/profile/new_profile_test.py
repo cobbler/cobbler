@@ -1,6 +1,6 @@
 """
-new_profile.py defines a set of methods designed for testing Cobbler's
-new_distro method
+new_profile.py defines a set of methods designed for testing Cobbler
+profiles.
 
 Copyright 2009, Red Hat, Inc
 Steve Salevan <ssalevan@redhat.com>
@@ -24,16 +24,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import pdb
 
 from base import *
-from distro.new_distro import new_distro
 
-class new_profile(CobblerTest):
+class ProfileTests(CobblerTest):
+
     def test_new_working_profile_basic(self):
         """
         Attempts to create a barebones Cobbler profile using information
         contained within config file
         """
         #print "testnewworkingprofilebasic"
-        new_distro('test_new_working_distro_basic').run()
+        self.create_distro()
         did = self.api.new_profile(self.token)
         self.api.modify_profile(did, "name", cfg["profile_name"], self.token)
         self.api.modify_profile(did, "distro", cfg["distro_name"], self.token)
@@ -45,7 +45,7 @@ class new_profile(CobblerTest):
         Attempts to create a barebones Cobbler profile using information
         contained within config file
         """
-        new_distro('test_new_working_distro_detailed').run()
+        self.create_distro_detailed()
         did = self.api.new_profile(self.token)
         self.api.modify_profile(did, "name", cfg["profile_name"], self.token)
         self.api.modify_profile(did, "distro", cfg["distro_name"], self.token)
