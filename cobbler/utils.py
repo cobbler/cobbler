@@ -518,7 +518,7 @@ def input_string_or_list(options):
        return "<<inherit>>"
     if options is None or options == "" or options == "delete":
        return []
-    elif type(options) == list:
+    elif isinstance(options,list):
        return options
     elif isinstance(options,basestring):
        tokens = options.split(delim)
@@ -538,9 +538,9 @@ def input_string_or_hash(options,allow_multiples=True):
 
     if options is None or options == "delete":
         return (True, {})
-    elif type(options) == list:
+    elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif type(options) == str:
+    elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
@@ -561,7 +561,7 @@ def input_string_or_hash(options,allow_multiples=True):
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
-                if type(new_dict[key]) == list:
+                if isinstance(new_dict[key], list):
                     new_dict[key].append(value)
                 else:
                     new_dict[key] = [new_dict[key], value]
@@ -570,7 +570,7 @@ def input_string_or_hash(options,allow_multiples=True):
         # make sure we have no empty entries
         new_dict.pop('', None)
         return (True, new_dict)
-    elif type(options) == dict:
+    elif isinstance(options, dict):
         options.pop('',None)
         return (True, options)
     else:
@@ -717,9 +717,9 @@ def flatten(data):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
     if data.has_key("template_files"):
         data["template_files"] = hash_to_string(data["template_files"])
-    if data.has_key("repos") and type(data["repos"]) == list:
+    if data.has_key("repos") and isinstance(data["repos"], list):
         data["repos"]   = " ".join(data["repos"])
-    if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
+    if data.has_key("rpm_list") and isinstance(data["rpm_list"], list):
         data["rpm_list"] = " ".join(data["rpm_list"])
 
     # note -- we do not need to flatten "interfaces" as koan does not expect
@@ -757,9 +757,9 @@ def __consolidate(node,results):
     for key in node_data:
        value = node_data[key]
        if value != "<<inherit>>":
-          if type(value) == type({}):
+          if isinstance(value, hash):
               node_data_copy[key] = value.copy()
-          elif type(value) == type([]):
+          elif isinstance(value, list):
               node_data_copy[key] = value[:]
           else:
               node_data_copy[key] = value
@@ -774,10 +774,10 @@ def __consolidate(node,results):
 
           fielddata = results[field]
 
-          if type(fielddata) == dict:
+          if isinstance(fielddata, dict):
              # interweave hash results
              results[field].update(data_item.copy())
-          elif type(fielddata) == list or type(fielddata) == tuple:
+          elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
              # add to lists (cobbler doesn't have many lists)
              # FIXME: should probably uniqueify list after doing this
              results[field].extend(data_item)
@@ -816,13 +816,13 @@ def hash_to_string(hash):
     (though this last part should be changed to hashes)
     """
     buffer = ""
-    if type(hash) != dict:
+    if isinstance(hash, dict):
        return hash
     for key in hash:
        value = hash[key]
        if value is None:
            buffer = buffer + str(key) + " "
-       elif type(value) == list:
+       elif isinstance(value, list):
            # this value is an array, so we print out every
            # key=value
            for item in value:
@@ -1261,7 +1261,7 @@ def set_virt_file_size(self,num):
         self.virt_file_size = "<<inherit>>"
         return True
 
-    if type(num) == str and num.find(",") != -1:
+    if isinstance(num, str) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1727,7 +1727,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             desc = nicename + " (%s)" % tooltip
 
 
-        if type(choices) == type([]) and len(choices) != 0:
+        if isinstance(choices, list) and len(choices) != 0:
             desc = desc + " (valid options: %s)" % ",".join(choices)    
             parser.add_option(niceopt, dest=k, help=desc, choices=choices)
         else:
@@ -1813,7 +1813,7 @@ def strip_none(data, omit_none=False):
     if data is None:
         data = '~'
 
-    elif type(data) == list:
+    elif isinstance(data, list):
         data2 = []
         for x in data:
             if omit_none and x is None:
@@ -1822,7 +1822,7 @@ def strip_none(data, omit_none=False):
                 data2.append(strip_none(x))
         return data2
 
-    elif type(data) == dict:
+    elif isinstance(data, dict):
         data2 = {}
         for key in data.keys():
             keydata = data[key]
