@@ -23,7 +23,7 @@ import java.util.List;
 import redstone.xmlrpc.*;
 
 /**
- * CobblerConnection - represents an authenticatable 
+ * CobblerConnection - represents an authenticatable
  * XMLRPC connection to Cobbler.
  */
 
@@ -40,7 +40,7 @@ public class CobblerConnection {
      * @param password cobbler XMLRPC password
      * @throws XmlRpcException on remote or communication errors
      */
-    
+
     public CobblerConnection(String url, String user, String pass) {
 
         url += "/cobbler_api";
@@ -63,10 +63,10 @@ public class CobblerConnection {
     public Object invokeNoTokenMethod(String method, List args) {
         try {
             return client.invoke(method, args);
-        } 
+        }
         catch (Exception e) {
             throw new XmlRpcException("XmlRpcException calling cobbler.", e);
-        } 
+        }
     }
 
     /**
@@ -77,10 +77,10 @@ public class CobblerConnection {
      */
     public Object invokeNoTokenMethod(String method, Object ... params) {
         return invokeNoTokenMethod(method, Arrays.asList(params));
-    }    
+    }
 
 
-    
+
     /**
      * Invoke an XMLRPC method.
      * @param method method to invoke
@@ -102,5 +102,5 @@ public class CobblerConnection {
     public Object invokeMethod(String method, Object ... params) {
         return invokeMethod(method, Arrays.asList(params));
     }
-    
+
 }

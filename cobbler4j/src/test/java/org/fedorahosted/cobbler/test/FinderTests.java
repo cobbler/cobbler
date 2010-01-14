@@ -7,18 +7,18 @@ import org.fedorahosted.cobbler.ObjectType;
 import org.fedorahosted.cobbler.autogen.Distro;
 import org.junit.Test;
 
-public class FinderTests extends Fixture {	
+public class FinderTests extends Fixture {
 
-    @Test 
+    @Test
     public void findDistros() {
         Finder finder = Finder.getInstance();
-        List<Distro> d = (List<Distro>)finder.listItems(xmlrpc, 
+        List<Distro> d = (List<Distro>)finder.listItems(xmlrpc,
                 ObjectType.DISTRO);
-        
+
 //        for(Distro x: d){
 //        	System.out.println(x.getName());
 //        }
-        // Ideally we'd check that some were returned, but we can't guarantee 
+        // Ideally we'd check that some were returned, but we can't guarantee
         // the cobbler server we're testing against has any distro's available.
     }
 

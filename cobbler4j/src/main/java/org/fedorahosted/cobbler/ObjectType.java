@@ -12,40 +12,35 @@
  * granted to use or replicate Red Hat trademarks that are incorporated
  * in this software or its documentation.
  */
-
 package org.fedorahosted.cobbler;
 
+// Wildcard isn't great, but better than an explicit list of objects that
+// may change.
+import org.fedorahosted.cobbler.autogen.*;
 
-/**
- * @author paji
- * @version $Rev$
- */
-public class XmlRpcException extends RuntimeException {
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+public enum ObjectType {
+    DISTRO ("distro", Distro.class),
+    PROFILE ("profile", Profile.class),
+    SYSTEM ("system", SystemRecord.class),
+    IMAGE ("image", Image.class),
+    REPO ("repo", Repo.class);
+    private String name;
+    private Class clazz;
 
-    /**
-     * @param messageIn exception message
-     */
-    public XmlRpcException(String messageIn) {
-        super(messageIn);
+    ObjectType (String nameIn, Class clazzIn) {
+        name = nameIn;
+        clazz = clazzIn;
     }
 
-    /**
-     * @param causeIn cause
-     */
-    public XmlRpcException(Throwable causeIn) {
-        super(causeIn);
-    }    
-    
-    /**
-     * @param messageIn exception message
-     * @param causeIn cause
-     */
-    public XmlRpcException(String messageIn, Throwable causeIn) {
-        super(messageIn, causeIn);
+    public String getName() {
+        return name;
     }
 
+    public Class getObjectClass() {
+        return clazz;
+    }
+
+    public String toString() {
+        return getName();
+    }
 }
