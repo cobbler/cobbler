@@ -524,4 +524,12 @@ class System(item.Item):
             if self.image is None or self.image == "":
                 raise CX("Error with system %s - profile or image is required" % (self.name))
             
+    def set_template_remote_kickstarts(self, template):
+        """
+        Sets whether or not the server is configured to template remote 
+        kickstarts.
+        """
+        self.template_remote_kickstarts = utils.input_boolean(template)
+        return True
+
 
