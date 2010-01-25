@@ -107,7 +107,7 @@ fi
 IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
             ## Rename this interface in modprobe.conf
             ## FIXME: if both interfaces startwith eth this is wrong
-if [ -f "/etc/modprobe.conf" ] && [ $IFNAME ]; then
+if [ -f "/etc/modprobe.conf" ] && [ \$IFNAME ]; then
     grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
     grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
     rm -f /etc/modprobe.conf
