@@ -820,7 +820,7 @@ def guess_breed(kerneldir,path,cli_breed,logger):
         if cli_breed:
             logger.info("Warning: No distro signature for kernel at %s, using value from command line" % kerneldir)
             return (cli_breed , kerneldir , None)
-        utils.die(self.logger, "No distro signature for kernel at %s" % kerneldir )
+        utils.die(logger, "No distro signature for kernel at %s" % kerneldir )
 
     if guess == "debian" :
         for suite in [ "debian" , "ubuntu" ] :
