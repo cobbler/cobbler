@@ -392,7 +392,7 @@ $(document).ready(function()
           </select>
           {% endifequal %}
           {% ifequal item.html_element "multiselect" %}
-          <select multiple id="{{ item.dname }}" class="edit">
+          <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
             {% for choice in item.choices %}
               {% smart_if choice in item.value_raw %}
           <option value="{{ choice }}" selected>{{ choice }}</a>

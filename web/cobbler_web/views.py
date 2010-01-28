@@ -958,6 +958,15 @@ def generic_save(request,what):
                     value=True
                 else:
                     value=False
+
+            # Multiselect fields are handled differently
+            if field["html_element"] == "multiselect":
+                values=request.POST.getlist(field['name'])
+                value=[]
+                for single_value in values:
+                    if single_value != "<<None>>":
+                        value.insert(0,single_value)
+
             if value != None:
                 if value == "<<None>>":
                     value = ""
