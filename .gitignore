@@ -1,6 +1,7 @@
 *.pyc
 *.swp
 *.tmp
+*~
 *.class
 *~
 *.class
