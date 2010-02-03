@@ -64,8 +64,8 @@ class KickGen:
         """
         Do things that we do at the start/end of kickstarts...
         * start: signal the status watcher we're starting
+        * start: disable PXE if needed
         * end:   signal the status watcher we're done
-        * end:   disable PXE if needed
         * end:   save the original kickstart file for debug
         """
 
@@ -87,13 +87,13 @@ class KickGen:
         srv = blended["http_server"]
         if system is not None:
             if not is_pre:
-                if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                    buf = buf + nopxe % (srv, system.name)
                 if kickstart and os.path.exists(kickstart):
                     buf = buf + saveks % (srv, "system", system.name)
                 if self.settings.run_install_triggers:
                     buf = buf + runpost % (srv, what, system.name)
             else:
+                if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
+                    buf = buf + nopxe % (srv, system.name)
                 if self.settings.run_install_triggers:
                     buf = buf + runpre % (srv, what, system.name)
 
