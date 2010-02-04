@@ -281,7 +281,7 @@ def genlist(request, what, page=None):
     limit = int(request.session.get("%s_limit" % what, 50))   
     sort_field = request.session.get("%s_sort_field" % what, "name")
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-    pageditems = remote.find_items_paged(what,filters,sort_field,page,limit)
+    pageditems = remote.find_items_paged(what,utils.strip_none(filters),sort_field,page,limit)
 
     # what columns to show for each page?
     if what == "distro":
