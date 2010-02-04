@@ -99,10 +99,14 @@ def opt(options, k):
 
 class BootCLI:
 
-    def __init__(self,endpoint="http://127.0.0.1/cobbler_api"):
+    def __init__(self):
+        # Load server ip and ports from local config
+        self.url_cobbler_api = utils.local_get_cobbler_api_url()
+        self.url_cobbler_xmlrpc = utils.local_get_cobbler_xmlrpc_url()
+
         # FIXME: allow specifying other endpoints, and user+pass
         self.parser        = optparse.OptionParser()
-        self.remote        = xmlrpclib.Server(endpoint)
+        self.remote        = xmlrpclib.Server(self.url_cobbler_api)
         self.shared_secret = utils.get_shared_secret()
 
     def start_task(self, name, options):
@@ -152,14 +156,14 @@ class BootCLI:
         nicer error messages for them.
         """
 
-        s = xmlrpclib.Server("http://127.0.0.1:25151")
+        s = xmlrpclib.Server(self.url_cobbler_xmlrpc)
         try:
             s.ping()
         except:
             print >> sys.stderr, "cobblerd does not appear to be running/accessible" 
             sys.exit(411)
 
-        s = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        s = xmlrpclib.Server(self.url_cobbler_api)
         try:
             s.ping()
         except:

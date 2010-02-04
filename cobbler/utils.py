@@ -1807,6 +1807,28 @@ def get_shared_secret():
        return -1
     return str(data).strip()
 
+def local_get_cobbler_api_url():
+    # Load server and http port
+    try:
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
+        fh.close()
+    except:
+       traceback.print_exc()
+       raise CX("/etc/cobbler/settings is not a valid YAML file")
+    return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+
+def local_get_cobbler_xmlrpc_url():
+    # Load xmlrpc port
+    try:
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
+        fh.close()
+    except:
+       traceback.print_exc()
+       raise CX("/etc/cobbler/settings is not a valid YAML file")
+    return "http://%s:%s" % ("127.0.0.1",data.get("xmlrpc_port","25151"))
+
 def strip_none(data, omit_none=False):
     """
     Remove "none" entries from datastructures.

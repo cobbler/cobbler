@@ -21,7 +21,7 @@ import cobbler.item_image   as item_image
 import cobbler.field_info   as field_info
 import cobbler.utils        as utils
 
-my_uri = "http://127.0.0.1/cobbler_api"
+url_cobbler_api = None
 remote = None
 token = None
 username = None
@@ -37,11 +37,16 @@ def authenhandler(req):
     global remote
     global token
     global username
+    global url_cobbler_api
 
     password = req.get_basic_auth_pw()
     username = req.user     
     try:
-        remote = xmlrpclib.Server(my_uri, allow_none=True)
+        # Load server ip and port from local config
+        if url_cobbler_api is None:
+            url_cobbler_api = utils.local_get_cobbler_api_url()
+
+        remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
         token = remote.login(username, password)
         remote.update(token)
         return apache.OK
