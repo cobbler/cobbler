@@ -1878,6 +1878,22 @@ def dhcpconf_location(api):
     else:
         return "/etc/dhcp/dhcpd.conf"
 
+def link_distro(settings, distro):
+    # find the tree location
+    dirname = os.path.dirname(distro.kernel)
+    base = os.path.split(os.path.split(dirname)[0])[0]
+    dest_link = os.path.join(settings.webdir, "links", distro.name)
+
+    # create the links directory only if we are mirroring because with
+    # SELinux Apache can't symlink to NFS (without some doing)
+
+    if not os.path.exists(dest_link):
+        try:
+            os.symlink(base, dest_link)
+        except:
+            # this shouldn't happen but I've seen it ... debug ...
+            print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3

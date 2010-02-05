@@ -159,6 +159,7 @@ class Replicate:
                             if not os.path.isdir(parentdir):
                                 os.makedirs(parentdir)
                             self.rsync_it("distro-%s"%distro["name"], dest)
+
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
@@ -182,6 +183,13 @@ class Replicate:
             self.replace_objects_newer_on_remote(what)
 
 
+    def link_distros(self):
+
+        for distro in self.api.distros():
+            self.logger.debug("Linking Distro %s" % distro.name)
+            utils.link_distro(self.settings, distro)
+
+        
     def generate_include_map(self):
 
         self.remote_names = {}
@@ -304,6 +312,7 @@ class Replicate:
         self.local.ping()
 
         self.replicate_data()
+        self.link_distros()
         self.logger.info("Syncing")
         self.api.sync()
         self.logger.info("Done")
