@@ -675,7 +675,7 @@ def snippet_save(request):
 
    editmode = request.POST.get('editmode', 'edit')
    snippet_name = request.POST.get('snippet_name', None)
-   snippetdata = request.POST.get('snippetdata', "")
+   snippetdata = request.POST.get('snippetdata', "").replace('\r\n','\n')
 
    if snippet_name == None:
       return HttpResponse("NO SNIPPET NAME SPECIFIED")
