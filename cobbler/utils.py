@@ -757,7 +757,7 @@ def __consolidate(node,results):
     for key in node_data:
        value = node_data[key]
        if value != "<<inherit>>":
-          if isinstance(value, hash):
+          if isinstance(value, dict):
               node_data_copy[key] = value.copy()
           elif isinstance(value, list):
               node_data_copy[key] = value[:]
