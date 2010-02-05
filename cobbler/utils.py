@@ -1753,7 +1753,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
     if object_type == "system":
         # system object
-        parser.add_option("--interface", dest="interface", default="eth0", help="which interface to edit")
+        parser.add_option("--interface", dest="interface", help="which interface to edit")
         parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
 
 
