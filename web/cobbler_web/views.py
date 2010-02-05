@@ -597,7 +597,7 @@ def ksfile_save(request):
 
    editmode = request.POST.get('editmode', 'edit')
    ksfile_name = request.POST.get('ksfile_name', None)
-   ksdata = request.POST.get('ksdata', "")
+   ksdata = request.POST.get('ksdata', "").replace('\r\n','\n')
 
    if ksfile_name == None:
       return HttpResponse("NO KSFILE NAME SPECIFIED")
