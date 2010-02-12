@@ -1,5 +1,28 @@
 Cobbler CHANGELOG
 
+- Feb 12 2010 - 2.0.3
+- (FEAT) API Test Framework
+- (FEAT) Cobbler4j Eclipse bindings
+- (BUGF) Trac544 Create noarch and src repos
+- (BUGF) Snippet Cleanups
+- (FEAT) Cleanup Kickstart Generation
+- (FEAT) Ability to include remote kickstart content
+- (FEAT) Koan ability for remote kickstart content
+- (BUGF) Trac547 Profile Creation in WebUI
+- (BUGF) Trac520 Sort HTML Dropdown Lists
+- (BUGF) Allow koan to use http urls for kernel/initrd
+- (FEAT) Cobbler4j now uses maven to build
+- (FEAT) Allow multiple kernel options with the same name
+- (BUGF) Various logging cleanups
+- (BUGF) Exit with proper error codes
+- (BUGF) Fix multiselect fields in the WUI
+- (BUGF) Trac550 stop leaking FDs in subprocess_call
+- (BUGF) Trac566 link distros on replicate
+- (BUGF) Trac563 Replace dos line endings with unix line endings when saving ksdata
+- (FEAT) Support RHEL6 kernel sizes
+- (BUGF) Preserve hardlinks on replicate
+- Full List 2b3a4f960b564691ca9a0470f677bd902f60b021..b99401d4dc6cf7f6c010eecf6c5d235316b59f73
+
 - Nov 23 2009 - 2.0.2
 - (FEAT) Added support for Cobbler4j
 - (FEAT) Added method for enabling autostart on qemu domains
