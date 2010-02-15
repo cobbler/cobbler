@@ -816,7 +816,7 @@ def hash_to_string(hash):
     (though this last part should be changed to hashes)
     """
     buffer = ""
-    if isinstance(hash, dict):
+    if not isinstance(hash, dict):
        return hash
     for key in hash:
        value = hash[key]
