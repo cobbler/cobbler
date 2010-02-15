@@ -461,7 +461,6 @@ class System(item.Item):
         # FIXME: modularize this better
         if power_type is None:
             power_type = ""
-        power_type = power_type.lower()
         choices = utils.get_power_types()
         choices.sort()
         if power_type not in choices:
