@@ -1,5 +1,8 @@
 Cobbler CHANGELOG
 
+- Feb 15 2010 - 2.0.3.1
+- (BUGF) Fix kernel command line parsing
+
 - Feb 12 2010 - 2.0.3
 - (FEAT) API Test Framework
 - (FEAT) Cobbler4j Eclipse bindings

@@ -6,7 +6,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.3
+Version: 2.0.3.1
 Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -294,7 +294,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.3
+Version: 2.0.3.1
 Release: 1%{?dist}
 Group: Applications/System
 Requires: mkinitrd
@@ -346,7 +346,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.3
+Version: 2.0.3.1
 Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
@@ -382,6 +382,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
+- Upstream Brown Paper Bag Release (see CHANGELOG)
+
 * Thu Feb 11 2010 Scott Henson <shenson@redhat.com> - 2.0.3-1
 - Upstream changes (see CHANGELOG)
 
