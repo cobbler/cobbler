@@ -82,7 +82,10 @@ a XMLRPC API for integration with other applications.
 %setup -q
 
 %build
-%{__python} setup.py build 
+%{__python} setup.py build
+pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
+pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz
+pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
