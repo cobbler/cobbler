@@ -11,7 +11,7 @@ EFI_PART=""
 PPC_PREP_PART=""
 BOOT_PART=""
 
-case $(uname -m) in
+case \$(uname -m) in
     ia64)
         EFI_PART="part /boot/efi --fstype vfat --size 200 --recommended"
         ;;
