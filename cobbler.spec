@@ -7,7 +7,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 2.0.3.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
@@ -295,9 +295,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Version: 2.0.3.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Applications/System
-Requires: mkinitrd
 Requires: python >= 1.5
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
@@ -382,6 +381,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-2
+- Remove requires on mkinitrd as it is not used
+
 * Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
 - Upstream Brown Paper Bag Release (see CHANGELOG)
 
