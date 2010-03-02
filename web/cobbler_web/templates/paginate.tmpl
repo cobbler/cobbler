@@ -1,4 +1,3 @@
-{% load site %}
     {% if pageinfo %}
       <script type="text/javascript">
         function add_filter() {
@@ -145,7 +144,6 @@
         {% endfor %}
       </ul>
       {% endif %}
-      {% smart_if item_count >= limit %}
       <ul>
         <li>Items/page:
           <select name="limit" id="limit" onchange="javascript:location='/cobbler_web/{{ what }}/modifylist/limit/'+this.value">
@@ -176,6 +174,5 @@
           {% endifnotequal %}
         </li>
       </ul>
-      {% endsmart_if %}
       </fieldset>
     {% endif %}

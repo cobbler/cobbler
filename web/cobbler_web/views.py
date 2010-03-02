@@ -313,7 +313,6 @@ def genlist(request, what, page=None):
         'filters'        : filters,
         'username'       : username,
         'limit'          : limit,
-        'item_count'     : len(pageditems["items"]),
     }))
     return HttpResponse(html)
 
