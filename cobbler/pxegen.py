@@ -340,9 +340,12 @@ class PXEGen:
     def make_actual_pxe_menu(self):
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
-        if default is not None:
-            return
-        
+
+        if default is None:
+            timeout_action = "local"
+        else:
+            timeout_action = default.profile
+
         fname = os.path.join(self.bootloc, "pxelinux.cfg", "default")
 
         # read the default template file
@@ -392,7 +395,7 @@ class PXEGen:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
               
         # save the template.
-        metadata = { "pxe_menu_items" : pxe_menu_items }
+        metadata = { "pxe_menu_items" : pxe_menu_items, "pxe_timeout_profile" : timeout_action}
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
