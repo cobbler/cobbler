@@ -18,7 +18,7 @@ fi
 boot_dev=""
 for mountpt in /mnt/sysimage/boot /mnt/sysimage;
 do
-  set -- \$(grep " $mountpt " /proc/mounts)
+  set -- \$(grep " \$mountpt " /proc/mounts)
   if [ -b "\$1" ]; then
     boot_dev=\$1
     break
