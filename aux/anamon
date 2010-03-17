@@ -133,22 +133,23 @@ class MountWatcher:
         self.time = time.time()
 
     def update(self):
-        fd = open('/proc/mounts')
         found = 0
-        while 1:
-            line = fd.readline()
-            if not line:
-                break
-            parts = string.split(line)
-            mp = parts[1]
-            if mp == self.mountpoint:
-                found = 1
-                if line != self.line:
-                    self.line = line
-                    self.time = time.time()
+        if os.path.exists('/proc/mounts'):
+            fd = open('/proc/mounts')
+            while 1:
+                line = fd.readline()
+                if not line:
+                    break
+                parts = string.split(line)
+                mp = parts[1]
+                if mp == self.mountpoint:
+                    found = 1
+                    if line != self.line:
+                        self.line = line
+                        self.time = time.time()
+            fd.close()
         if not found:
             self.zero()
-        fd.close()
 
     def stable(self):
         self.update()
