@@ -1142,7 +1142,7 @@ def rmtree(path,logger=None):
            raise CX(_("Error deleting %s") % path)
        return True
 
-def mkdir(path,mode=0777,logger=None):
+def mkdir(path,mode=0755,logger=None):
    try:
        if logger is not None:
           logger.info("mkdir: %s" % path)
