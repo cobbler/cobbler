@@ -208,7 +208,7 @@ class RepoSync:
         if not repo.mirror_locally:
             utils.die(self.logger,"rsync:// urls must be mirrored locally, yum cannot access them directly")
 
-        if repo.rpm_list != "":
+        if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         # FIXME: don't hardcode
@@ -250,7 +250,7 @@ class RepoSync:
 
         # detect cases that require special handling
 
-        if repo.rpm_list != "":
+        if repo.rpm_list != "" and repo.rpm_list != []:
             has_rpm_list = True
 
         # create yum config file for use by reposync
@@ -437,7 +437,7 @@ class RepoSync:
 #
 #        # detect cases that require special handling
 #
-#        if repo.rpm_list != "":
+#        if repo.rpm_list != "" and repo.rpm_list != []:
 #            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
 #
 #        if not repo.arch:
