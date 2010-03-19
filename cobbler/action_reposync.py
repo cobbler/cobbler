@@ -166,11 +166,11 @@ class RepoSync:
 
             # add any repo metadata we can use
             mdoptions = []
-            if os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
+            if os.path.isfile("%s/.origin/repomd.xml" % (dirname)):
                 if not HAS_YUM:
                    utils.die(self.logger,"yum is required to use this feature")
 
-                rmd = yum.repoMDObject.RepoMD('', "%s/repodata/repomd.xml" % (dirname))
+                rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repomd.xml" % (dirname))
                 if rmd.repoData.has_key("group"):
                     groupmdfile = rmd.getData("group").location[1]
                     mdoptions.append("-g %s" % groupmdfile)
@@ -387,16 +387,14 @@ class RepoSync:
             utils.die(self.logger,"no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
-        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O /dev/null" % (repo_mirror)
+        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
         rc = utils.subprocess_call(self.logger,cmd2)
         if rc == 0:
+            # create our repodata directory now, as any extra metadata we're
+            # about to download probably lives there
             if not os.path.isdir(repodata_path):
                 os.makedirs(repodata_path)
-            cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
-            rc = utils.subprocess_call(self.logger,cmd2)
-            if rc !=0:
-                utils.die(self.logger,"wget failed")
-            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (repodata_path))
+            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
             for mdtype in rmd.repoData.keys():
                 # don't download metadata files that are created by default
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
