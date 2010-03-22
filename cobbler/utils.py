@@ -820,7 +820,7 @@ def hash_to_string(hash):
        return hash
     for key in hash:
        value = hash[key]
-       if value is None:
+       if not value:
            buffer = buffer + str(key) + " "
        elif isinstance(value, list):
            # this value is an array, so we print out every
