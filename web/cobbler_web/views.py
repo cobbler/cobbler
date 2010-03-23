@@ -55,11 +55,36 @@ def authenhandler(req):
 
 #==================================================================================
 
+def check_auth(request):
+    """
+    A method to enable authentication by authn_passthru.  Checks the
+    proper headers and ensures that the environment is setup.
+    """
+    global remote
+    global token
+    global username
+    global url_cobbler_api
+    if request.META.has_key('REMOTE_USER'):
+        username = request.META['REMOTE_USER']
+        #REMOTE_USER is set, so no credentials are going to be available
+        #So we get the shared secret and let authn_passthru authenticate us
+        password = utils.get_shared_secret()
+        # Load server ip and port from local config
+        if url_cobbler_api is None:
+            url_cobbler_api = utils.local_get_cobbler_api_url()
+        remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
+        token = remote.login(username, password)
+        remote.update(token)
+
+
+#==================================================================================
+
 
 def index(request):
    """
    This is the main greeting page for cobbler web.  
    """
+   check_auth(request)
    t = get_template('index.tmpl')
    html = t.render(Context({
         'version': remote.version(token), 
@@ -73,6 +98,7 @@ def task_created(request):
    """
    Let's the user know what to expect for event updates.
    """
+   check_auth(request)
    t = get_template("task_created.tmpl")
    html = t.render(Context({
        'username' : username
@@ -85,6 +111,7 @@ def error_page(request,message):
    """
    This page is used to explain error messages to the user.
    """
+   check_auth(request)
    # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
    # field errors
    t = get_template('error_page.tmpl')
@@ -279,6 +306,7 @@ def genlist(request, what, page=None):
     Lists all object types, complete with links to actions
     on those objects.
     """
+    check_auth(request)
 
     # get details from the session
     if page == None:
@@ -326,6 +354,7 @@ def modify_list(request, what, pref, value=None):
     This function modifies the session object to 
     store these preferences persistently.
     """
+    check_auth(request)
 
 
     # what preference are we tweaking?
@@ -387,6 +416,7 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
    """
    Renames an object.
    """
+   check_auth(request)
 
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
@@ -405,6 +435,7 @@ def generic_copy(request, what, obj_name=None, obj_newname=None):
    """
    Copies an object.
    """
+   check_auth(request)
    # FIXME: shares all but one line with rename, merge it.
    if obj_name == None:
       return error_page(request,"You must specify a %s to rename" % what)
@@ -423,6 +454,7 @@ def generic_delete(request, what, obj_name=None):
    """
    Deletes an object.
    """
+   check_auth(request)
    # FIXME: consolidate code with above functions.
    if obj_name == None:
       return error_page(request,"You must specify a %s to delete" % what)
@@ -443,6 +475,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     Process operations like profile reassignment, netboot toggling, and deletion
     which occur on all items that are checked on the list page.
     """
+    check_auth(request)
 
     # FIXME: cleanup
     # FIXME: COMMENTS!!!11111???
@@ -498,6 +531,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 # ======================================================================
 
 def import_prompt(request):
+   check_auth(request)
    t = get_template('import.tmpl')
    html = t.render(Context({
        'username' : username,
@@ -510,6 +544,7 @@ def check(request):
    """
    Shows a page with the results of 'cobbler check'
    """
+   check_auth(request)
    results = remote.check(token)
    t = get_template('check.tmpl')
    html = t.render(Context({
@@ -521,20 +556,22 @@ def check(request):
 # ======================================================================
 
 def buildiso(request):
-   remote.background_buildiso({},token)
-   return HttpResponseRedirect('/cobbler_web/task_created')
+    check_auth(request)
+    remote.background_buildiso({},token)
+    return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
 
 def import_run(request):
-   options = {
-       "name"  : request.POST.get("name",""),
-       "path"  : request.POST.get("path",""),
-       "breed" : request.POST.get("breed",""),
-       "arch"  : request.POST.get("arch","") 
-   }
-   remote.background_import(options,token)
-   return HttpResponseRedirect('/cobbler_web/task_created')
+    check_auth(request)
+    options = {
+        "name"  : request.POST.get("name",""),
+        "path"  : request.POST.get("path",""),
+        "breed" : request.POST.get("breed",""),
+        "arch"  : request.POST.get("arch","") 
+        }
+    remote.background_import(options,token)
+    return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
 
@@ -542,6 +579,7 @@ def ksfile_list(request, page=None):
    """
    List all kickstart templates and link to their edit pages.
    """
+   check_auth(request)
    ksfiles = remote.get_kickstart_templates(token)
 
    ksfile_list = []
@@ -569,6 +607,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    """
    This is the page where a kickstart file is edited.
    """
+   check_auth(request)
    if editmode == 'edit':
       editable = False
    else:
@@ -597,6 +636,7 @@ def ksfile_save(request):
    """
    This page processes and saves edits to a kickstart file.
    """
+   check_auth(request)
    # FIXME: error checking
 
    editmode = request.POST.get('editmode', 'edit')
@@ -624,6 +664,7 @@ def snippet_list(request, page=None):
    """
    This page lists all available snippets and has links to edit them.
    """
+   check_auth(request)
    snippets = remote.get_snippets(token)
 
    snippet_list = []
@@ -647,6 +688,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
    """
    This page edits a specific snippet.
    """
+   check_auth(request)
    if editmode == 'edit':
       editable = False
    else:
@@ -675,6 +717,7 @@ def snippet_save(request):
    """
    This snippet saves a snippet once edited.
    """
+   check_auth(request)
    # FIXME: error checking
 
    editmode = request.POST.get('editmode', 'edit')
@@ -702,6 +745,7 @@ def settings(request):
    """
    This page presents a list of all the settings to the user.  They are not editable.
    """
+   check_auth(request)
    settings = remote.get_settings()
    skeys = settings.keys()
    skeys.sort()
@@ -723,6 +767,7 @@ def events(request):
    """
    This page presents a list of all the events and links to the event log viewer.
    """
+   check_auth(request)
    events = remote.get_events()
  
    events2 = []
@@ -747,6 +792,7 @@ def eventlog(request, event=0):
    """
    Shows the log for a given event.
    """
+   check_auth(request)
    event_info = remote.get_events()
    if not event_info.has_key(event):
       return HttpResponse("event not found")
@@ -776,6 +822,7 @@ def random_mac(request, virttype="xenpv"):
    Used in an ajax call to fill in a field with a mac address.
    """
    # FIXME: not exposed in UI currently
+   check_auth(request)
    random_mac = remote.get_random_mac(virttype, token)
    return HttpResponse(random_mac)
 
@@ -785,6 +832,7 @@ def sync(request):
    """
    Runs 'cobbler sync' from the API when the user presses the sync button.
    """
+   check_auth(request)
    remote.background_sync({"verbose":"True"},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
@@ -794,6 +842,7 @@ def reposync(request):
    """
    Syncs all repos that are configured to be synced.
    """
+   check_auth(request)
    remote.background_reposync({ "names":"", "tries" : 3},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
@@ -803,6 +852,7 @@ def hardlink(request):
    """
    Hardlinks files between repos and install trees to save space.
    """
+   check_auth(request)
    remote.background_hardlink({},token)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
@@ -820,6 +870,7 @@ def replicate(request):
    #settings = remote.get_settings()
    #options = settings # just load settings from file until we decide to ask user (later?)
    #remote.background_replicate(options, token)
+   check_auth(request)
    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
@@ -845,6 +896,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    Presents an editor page for any type of object.
    While this is generally standardized, systems are a little bit special.
    """
+   check_auth(request)
 
    obj = None
 
@@ -917,6 +969,7 @@ def generic_save(request,what):
     """
     Saves an object back using the cobbler API after clearing any 'generic_edit' page.
     """
+    check_auth(request)
 
     # load request fields and see if they are valid
     editmode  = request.POST.get('editmode', 'edit')
