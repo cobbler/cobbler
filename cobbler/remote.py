@@ -699,7 +699,7 @@ class CobblerXMLRPCInterface:
     def rename_image(self,object_id,newname,token=None):
         return self.rename_item("image",object_id,newname,token)
     
-    def new_item(self,what,token):
+    def new_item(self,what,token,is_subobject=False):
         """
         Creates a new (unconfigured) object, returning an object
         handle that can be used with modify_* methods and then finally
@@ -710,15 +710,15 @@ class CobblerXMLRPCInterface:
         self._log("new_item(%s)"%what,token=token)
         self.check_access(token,"new_%s"%what)
         if what == "distro":
-            d = item_distro.Distro(self.api._config)
+            d = item_distro.Distro(self.api._config,is_subobject=is_subobject)
         elif what == "profile":
-            d = item_profile.Profile(self.api._config)
+            d = item_profile.Profile(self.api._config,is_subobject=is_subobject)
         elif what == "system":
-            d = item_system.System(self.api._config)
+            d = item_system.System(self.api._config,is_subobject=is_subobject)
         elif what == "repo":
-            d = item_repo.Repo(self.api._config)
+            d = item_repo.Repo(self.api._config,is_subobject=is_subobject)
         elif what == "image":
-            d = item_image.Image(self.api._config)
+            d = item_image.Image(self.api._config,is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what,self.__get_random(25))
@@ -729,8 +729,8 @@ class CobblerXMLRPCInterface:
         return self.new_item("distro",token)
     def new_profile(self,token):
         return self.new_item("profile",token)
-    # for API backwards compatibility reasons only:
-    new_subprofile = new_profile
+    def new_subprofile(self,token):
+        return self.new_item("profile",token,is_subobject=True)
     def new_system(self,token):
         return self.new_item("system",token)
     def new_repo(self,token):
@@ -799,7 +799,8 @@ class CobblerXMLRPCInterface:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
         if edit_type == "add":
-            handle = self.new_item(object_type, token) 
+            is_subobject = object_type == "profile" and "parent" in attributes
+            handle = self.new_item(object_type, token, is_subobject=is_subobject)
         else:
             handle = self.get_item_handle(object_type, object_name)
 
