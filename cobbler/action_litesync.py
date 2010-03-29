@@ -112,11 +112,13 @@ class BootLiteSync:
             self.sync.pxegen.make_pxe_menu()
         return True
          
-    def remove_single_profile(self, name):
+    def remove_single_profile(self, name, rebuild_menu=True):
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on kickstarts/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
+        if rebuild_menu:
+            self.sync.pxegen.make_pxe_menu()
    
     def update_system_netboot_status(self,name):
         system = self.systems.find(name=name)
