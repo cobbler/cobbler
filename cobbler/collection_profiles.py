@@ -68,16 +68,15 @@ class Profiles(collection.Collection):
             if with_delete:
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", [], logger)
-                if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
-                    lite_sync.remove_single_profile(name)
             del self.listing[name]
             self.config.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers: 
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
-
+                if with_sync:
+                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
+                    lite_sync.remove_single_profile(name)
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
