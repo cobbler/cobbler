@@ -297,8 +297,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.3.2
-Release: 1%{?dist}
 Group: Applications/System
 Requires: python >= 1.5
 BuildRequires: python-devel
@@ -312,9 +310,6 @@ BuildRequires: python-setuptools-devel
 %if 0%{?rhel} >= 4
 BuildRequires: python-setuptools
 %endif
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildArch: noarch
-Url: http://fedorahosted.org/cobbler/
 
 
 %description -n koan
@@ -348,8 +343,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.3.2
-Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
 Requires: Django
@@ -363,9 +356,6 @@ BuildRequires: python-setuptools-devel
 %else
 BuildRequires: python-setuptools
 %endif
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildArch: noarch
-Url: http://fedorahosted.org/cobbler/
 
 %description -n cobbler-web
 
