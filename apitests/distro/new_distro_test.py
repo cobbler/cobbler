@@ -30,8 +30,8 @@ class DistroTests(CobblerTest):
         Attempts to create a barebones Cobbler distro using information
         contained within config file
         """
-        self.create_distro()
-        distro = self.api.find_distro({'name': cfg["distro_name"]})
+        name = self.create_distro()[1]
+        distro = self.api.find_distro({'name': name})
         self.assertTrue(distro != None)
         
     def test_new_working_distro_detailed(self):
@@ -39,8 +39,8 @@ class DistroTests(CobblerTest):
         Attempts to create a Cobbler distro with a bevy of options, using
         information contained within config file
         """
-        did = self.create_distro_detailed()
-        self.assertTrue(self.api.find_distro({'name': cfg["distro_name"]}) != None)
+        did, distro_name = self.create_distro()
+        self.assertTrue(self.api.find_distro({'name': distro_name}) != None)
 
     def test_new_nonworking_distro(self):
         """
@@ -48,7 +48,7 @@ class DistroTests(CobblerTest):
         xmlrpclib returns Fault
         """
         did = self.api.new_distro(self.token)
-        self.api.modify_distro(did, "name", cfg["distro_name"], self.token)
+        self.api.modify_distro(did, "name", "whatever", self.token)
         self.assertRaises(xmlrpclib.Fault, self.api.save_distro, did, self.token)
     
     def test_new_distro_without_token(self):

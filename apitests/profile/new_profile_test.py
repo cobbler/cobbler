@@ -32,41 +32,9 @@ class ProfileTests(CobblerTest):
         Attempts to create a barebones Cobbler profile using information
         contained within config file
         """
-        #print "testnewworkingprofilebasic"
-        self.create_distro()
-        did = self.api.new_profile(self.token)
-        self.api.modify_profile(did, "name", cfg["profile_name"], self.token)
-        self.api.modify_profile(did, "distro", cfg["distro_name"], self.token)
-        self.api.save_profile(did, self.token)
-        assert self.api.find_profile({'name': cfg["profile_name"]}) != []
-        
-    def teat_new_working_profile_detailed(self):
-        """
-        Attempts to create a barebones Cobbler profile using information
-        contained within config file
-        """
-        self.create_distro_detailed()
-        did = self.api.new_profile(self.token)
-        self.api.modify_profile(did, "name", cfg["profile_name"], self.token)
-        self.api.modify_profile(did, "distro", cfg["distro_name"], self.token)
-        self.api.modify_profile(did, "kickstart", cfg["profile_template"], self.token)
-        self.api.modify_profile(did, "kopts", { "dog" : "fido", "cat" : "fluffy" }, self.token) # hash or string
-        self.api.modify_profile(did, "kopts-post", { "phil" : "collins", "steve" : "hackett" }, self.token) # hash or string
-        self.api.modify_profile(did, "ksmeta", "good=sg1 evil=gould", self.token) # hash or string
-        self.api.modify_profile(did, "breed", "redhat", self.token)
-        self.api.modify_profile(did, "owners", "sam dave", self.token) # array or string
-        self.api.modify_profile(did, "mgmt-classes", "blip", self.token) # list or string
-        self.api.modify_profile(did, "comment", "test profile", self.token)
-        self.api.modify_profile(did, "redhat_management_key", cfg["redhat_mgmt_key"], self.token)
-        self.api.modify_profile(did, "redhat_management_server", cfg["redhat_mgmt_server"], self.token)
-        self.api.modify_profile(did, "virt_bridge", "virbr0", self.token)
-        self.api.modify_profile(did, "virt_cpus", "2", self.token)
-        self.api.modify_profile(did, "virt_file_size", "3", self.token)
-        self.api.modify_profile(did, "virt_path", "/opt/qemu/%s" % cfg["profile_name"], self.token)
-        self.api.modify_profile(did, "virt_ram", "1024", self.token)
-        self.api.modify_profile(did, "virt_type", "qemu", self.token)
-        self.api.save_profile(did, self.token)
-        assert self.api.find_profile({'name': cfg["profile_name"]}) != []
+        distro_name = self.create_distro()[1]
+        profile_name = self.create_profile(distro_name)[1]
+        self.assertTrue(self.api.find_profile({'name': profile_name}) != [])
         
     def test_new_nonworking_profile(self):
         """
@@ -74,7 +42,6 @@ class ProfileTests(CobblerTest):
         xmlrpclib returns Fault
         """
         did = self.api.new_profile(self.token)
-        self.api.modify_profile(did, "name", cfg["profile_name"], self.token)
-        self.api.save_profile(did, self.token)
-    #decorators:
-    test_new_nonworking_profile = raises(xmlrpclib.Fault)(test_new_nonworking_profile)
+        self.api.modify_profile(did, "name", "anythinggoes", self.token)
+        self.assertRaises(xmlrpclib.Fault, self.api.save_profile, did, self.token)
+
