@@ -26,28 +26,30 @@ import xmlrpclib
 import unittest
 import traceback
 import random
-import os.path
 import commands
 import urlgrabber
 
 cfg = None
 
 CONFIG_LOC = "./apitests.conf"
+def read_config():
+    global cfg
+    f = open(CONFIG_LOC, 'r')
+    cfg = yaml.load(f)
+    f.close()
+
+read_config()
+
 
 TEST_DISTRO_PREFIX = "TEST-DISTRO-"
 TEST_PROFILE_PREFIX = "TEST-PROFILE-"
 TEST_SYSTEM_PREFIX = "TEST-SYSTEM-"
 
 # Files to pretend are kernel/initrd, don't point to anything real.
-FAKE_KERNEL = "/tmp/cobbler-testing-fake-kernel"
-FAKE_INITRD = "/tmp/cobbler-testing-fake-initrd"
-FAKE_KICKSTART = "/tmp/cobbler-testing-kickstart"
-
-def read_config():
-    global cfg
-    f = open(CONFIG_LOC, 'r')
-    cfg = yaml.load(f)
-    f.close()
+# These will be created if they don't already exist.
+FAKE_KERNEL = cfg['test_kernel']
+FAKE_INITRD = cfg['test_initrd']
+FAKE_KICKSTART = cfg['test_kickstart']
 
 class CobblerTest(unittest.TestCase):
 
@@ -75,17 +77,6 @@ class CobblerTest(unittest.TestCase):
         self.api = xmlrpclib.Server("http://%s/cobbler_api" % cfg["cobbler_server"])
         self.token = self.api.login(cfg["cobbler_user"],
             cfg["cobbler_pass"])
-
-        # Create a fake kernel/init pair in /tmp, Cobbler doesn't care what
-        # these files actually contain.
-        if not os.path.exists(FAKE_KERNEL):
-            commands.getstatusoutput("touch %s" % FAKE_KERNEL)
-        if not os.path.exists(FAKE_INITRD):
-            commands.getstatusoutput("touch %s" % FAKE_INITRD)
-        if not os.path.exists(FAKE_KICKSTART):
-            f = open(FAKE_KICKSTART, 'w')
-            f.write("HELLO WORLD")
-            f.close()
 
         # Store object names to clean up in teardown. Be sure not to 
         # store anything in here unless we're sure it was successfully
@@ -128,6 +119,11 @@ class CobblerTest(unittest.TestCase):
                 "mysatellite.example.com", self.token)
         self.api.save_distro(did, self.token)
         self.cleanup_distros.append(distro_name)
+
+        url = "http://%s/cblr/svc/op/list/what/distros" % cfg['cobbler_server'] 
+        data = urlgrabber.urlread(url)
+        self.assertNotEquals(-1, data.find(distro_name))
+
         return (did, distro_name)
 
     def create_profile(self, distro_name):
@@ -169,12 +165,16 @@ class CobblerTest(unittest.TestCase):
         self.api.save_profile(profile_id, self.token)
         self.cleanup_profiles.append(profile_name)
 
-        url = "http://127.0.0.1/cblr/svc/op/ks/profile/%s" % profile_name
+        # Check cobbler services URLs:
+        url = "http://%s/cblr/svc/op/ks/profile/%s" % (cfg['cobbler_server'], 
+                profile_name)
         data = urlgrabber.urlread(url)
-        print data
-        self.assertNotEquals(-1, data.find("HELLO WORLD"))
+        self.assertNotEquals(-1, data.find("url"))
+
+        url = "http://%s/cblr/svc/op/list/what/profiles" % cfg['cobbler_server'] 
+        data = urlgrabber.urlread(url)
+        self.assertNotEquals(-1, data.find(profile_name))
 
         return (profile_id, profile_name)
         
     
-read_config()

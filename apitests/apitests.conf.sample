@@ -1,6 +1,17 @@
 # Cobbler test suite settings
 
+# Cobbler server to test against:
 cobbler_server: 127.0.0.1
 cobbler_user: testing
 cobbler_pass: testing
+
+# Test files, these must exist on the Cobbler server's filesystem:
+
+# These do not have to be real kernel/initrd, just empty files will do:
+test_kernel: /tmp/cobblertest/fake-kernel
+test_initrd: /tmp/cobblertest/fake-initrd
+
+# Should exist by default on most Cobbler servers:
+test_kickstart: /var/lib/cobbler/kickstarts/sample.ks
+
 
