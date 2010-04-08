@@ -29,8 +29,7 @@ class ProfileTests(CobblerTest):
 
     def test_new_working_profile_basic(self):
         """
-        Attempts to create a barebones Cobbler profile using information
-        contained within config file
+        Attempt to create a Cobbler profile.
         """
         distro_name = self.create_distro()[1]
         profile_name = self.create_profile(distro_name)[1]
@@ -38,8 +37,7 @@ class ProfileTests(CobblerTest):
         
     def test_new_nonworking_profile(self):
         """
-        Attempts to create a profile lacking required information, passes if
-        xmlrpclib returns Fault
+        Attempts to create a profile lacking required information.
         """
         did = self.api.new_profile(self.token)
         self.api.modify_profile(did, "name", "anythinggoes", self.token)

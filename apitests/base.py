@@ -28,6 +28,7 @@ import traceback
 import random
 import os.path
 import commands
+import urlgrabber
 
 cfg = None
 
@@ -71,7 +72,7 @@ class CobblerTest(unittest.TestCase):
         """
         Sets up Cobbler API connection and logs in
         """
-        self.api = xmlrpclib.Server(cfg["cobbler_server"])
+        self.api = xmlrpclib.Server("http://%s/cobbler_api" % cfg["cobbler_server"])
         self.token = self.api.login(cfg["cobbler_user"],
             cfg["cobbler_pass"])
 
@@ -167,6 +168,12 @@ class CobblerTest(unittest.TestCase):
         self.api.modify_profile(profile_id, "virt_type", "qemu", self.token)
         self.api.save_profile(profile_id, self.token)
         self.cleanup_profiles.append(profile_name)
+
+        url = "http://127.0.0.1/cblr/svc/op/ks/profile/%s" % profile_name
+        data = urlgrabber.urlread(url)
+        print data
+        self.assertNotEquals(-1, data.find("HELLO WORLD"))
+
         return (profile_id, profile_name)
         
     

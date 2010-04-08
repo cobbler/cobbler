@@ -1,7 +1,6 @@
 # Cobbler test suite settings
 
-# Connect to Cobbler API running at:
-cobbler_server: http://127.0.0.1/cobbler_api
+cobbler_server: 127.0.0.1
 cobbler_user: testing
 cobbler_pass: testing
 

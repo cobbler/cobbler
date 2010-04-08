@@ -32,7 +32,6 @@ import urlgrabber
 import yaml # PyYAML
 
 # the following imports are largely for the test code
-import urlgrabber
 import remote
 import glob
 try:
