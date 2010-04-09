@@ -55,19 +55,29 @@ class CobblerTest(unittest.TestCase):
 
     def __cleanUpObjects(self):
         """ Cleanup the test objects we created during testing. """
+        for system_name in self.cleanup_systems:
+            try:
+                self.api.remove_system(system_name, self.token)
+            except Exception, e:
+                print("ERROR: unable to delete system: %s" % system_name)
+                print(e)
+                pass
+
+        for profile_name in self.cleanup_profiles:
+            try:
+                self.api.remove_profile(profile_name, self.token)
+            except Exception, e:
+                print("ERROR: unable to delete profile: %s" % profile_name)
+                print(e)
+                pass
+
         for distro_name in self.cleanup_distros:
             try:
                 self.api.remove_distro(distro_name, self.token)
                 print("Removed distro: %s" % distro_name)
             except Exception, e:
                 print("ERROR: unable to delete distro: %s" % distro_name)
-                pass
-
-        for profile_name in self.cleanup_profiles:
-            try:
-                self.api.remove_profile(profile_name, self.token)
-            except:
-                print("ERROR: unable to delete profile: %s" % profile_name)
+                print(e)
                 pass
 
     def setUp(self):
@@ -176,5 +186,20 @@ class CobblerTest(unittest.TestCase):
         self.assertNotEquals(-1, data.find(profile_name))
 
         return (profile_id, profile_name)
+
+    def create_system(self, profile_name):
+        """ 
+        Create a system record. 
+        
+        Returns a tuple of system name
+        """
+        system_name = "%s%s" % (TEST_SYSTEM_PREFIX, 
+                random.randint(1, 1000000))
+        system_id = self.api.new_system(self.token)
+        self.api.modify_system(system_id, "name", system_name, self.token)
+        self.api.modify_system(system_id, "profile", profile_name, self.token)
+        self.api.save_system(system_id, self.token)
+        return (system_id, system_name)
+
         
     
