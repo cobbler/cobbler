@@ -47,7 +47,8 @@ class ProfileTests(CobblerTest):
     def test_getks_no_such_profile(self):
         url = "http://%s/cblr/svc/op/ks/profile/%s" % (cfg['cobbler_server'], 
                 "doesnotexist")
-        response = urllib2.urlopen(url)
-        data = response.read()
-        self.assertNotEquals(-1, data.find("was not found"))
-
+        try:
+            response = urllib2.urlopen(url)
+            self.fail()
+        except urllib2.HTTPError, e:
+            self.assertEquals(404, e.code)
