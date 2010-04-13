@@ -56,3 +56,4 @@ class DistroTests(CobblerTest):
         Attempts to run new_distro method without supplying authenticated token
         """
         self.assertRaises(xmlrpclib.Fault, self.api.new_distro)
+
