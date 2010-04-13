@@ -21,7 +21,6 @@ import cgi
 import os
 from cobbler.services import CobblerSvc
 import yaml # PyYAML version
-import cobbler.utils as utils
 
 #=======================================
 
@@ -65,6 +64,9 @@ def handler(req):
     # TESTING..
     form.update(req.subprocess_env)
 
+    # This MAC header is set by anaconda during a kickstart booted with the 
+    # kssendmac kernel option. The field will appear here as something 
+    # like: eth0 XX:XX:XX:XX:XX:XX
     #form["REMOTE_ADDR"] = req.headers_in.get("REMOTE_ADDR",None)
     #form["REMOTE_MAC"]  = req.subprocess_env.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0",None)
@@ -84,10 +86,10 @@ def handler(req):
     # handle invalid paths gracefully
     mode = form.get('op','index')
 
+    # Execute corresponding operation on the CobblerSvc object:
     func = getattr( cw, mode )
     content = func( **form )
 
-    # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
     req.content_type = "text/plain;charset=utf-8"
     content = unicode(content).encode('utf-8')
     
