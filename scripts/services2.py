@@ -59,28 +59,27 @@ def application(environ, start_response):
     # handle invalid paths gracefully
     mode = form.get('op','index')
 
+    # TODO: We could do proper exception handling here and return
+    # corresponding HTTP status codes:
+
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr( cw, mode )
     content = func( **form )
     print("content = %s" % content)
 
     content = unicode(content).encode('utf-8')
- #   
- #   if content.find("# *** ERROR ***") != -1:
- #       req.write(content)
- #       apache.log_error("possible cheetah template error")
- #       return apache.HTTP_INTERNAL_SERVER_ERROR
- #   elif content.find("# profile not found") != -1 or content.find("# system not found") != -1 or content.find("# object not found") != -1:
- #       req.content_type = "text/html;charset=utf-8"
- #       req.write(" ")
- #       apache.log_error("content not found")
- #       return apache.HTTP_NOT_FOUND
- #   else:
- #       req.write(content)
- #       return apache.OK
+    status = '200 OK'
+    
+    if content.find("# *** ERROR ***") != -1:
+        status = '500 SERVER ERROR'
+        print("possible cheetah template error")
+    # TODO: Not sure these strings are the right ones to look for...
+    elif content.find("not found") != -1:
+
+        print("content not found: %s" % my_uri)
+        status = "404 NOT FOUND"
 
  #   req.content_type = "text/plain;charset=utf-8"
-    status = '200 OK'
     response_headers = [('Content-type', 'text/plain;charset=utf-8'),
                         ('Content-Length', str(len(content)))]
     start_response(status, response_headers)
