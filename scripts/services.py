@@ -95,9 +95,11 @@ def application(environ, start_response):
     if content.find("# *** ERROR ***") != -1:
         status = '500 SERVER ERROR'
         print("possible cheetah template error")
-    # TODO: Not sure these strings are the right ones to look for...
-    elif content.find("not found") != -1:
 
+    # TODO: Not sure these strings are the right ones to look for...
+    elif content.find("# profile not found") != -1 or \
+            content.find("# system not found") != -1 or \
+            content.find("# object not found") != -1:
         print("content not found: %s" % my_uri)
         status = "404 NOT FOUND"
 
