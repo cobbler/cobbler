@@ -13,12 +13,14 @@ Group: Applications/System
 Requires: python >= 2.3
 %if 0%{?suse_version} >= 1000
 Requires: apache2
-Requires: apache2-mod_python
+# Used to be apache2-mod_python, similar mod_wsgi package appears to exist, but
+# this is untested.
+Requires: apache2-mod_wsgi
 Requires: tftp
 %else
 Requires: httpd
 Requires: tftp-server
-Requires: mod_python
+Requires: mod_wsgi
 %endif
 
 Requires: createrepo
