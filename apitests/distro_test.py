@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from base import *
+import urllib2
 
 class DistroTests(CobblerTest):
 
@@ -56,4 +57,9 @@ class DistroTests(CobblerTest):
         Attempts to run new_distro method without supplying authenticated token
         """
         self.assertRaises(xmlrpclib.Fault, self.api.new_distro)
+
+    def test_ks_mirror_accessible(self):
+        url = "http://%s/cblr/ks_mirror/" % (cfg['cobbler_server']) 
+        # Just want to be sure no 404 HTTPError is thrown:
+        response = urllib2.urlopen(url)
 
