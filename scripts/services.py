@@ -1,7 +1,6 @@
 """
-Cobbler uses Cheetah templates for lots of stuff, but there's
-some additional magic around that to deal with snippets/etc.
-(And it's not spelled wrong!)
+This module is a mod_wsgi application used to serve up the Cobbler 
+service URLs.
 
 Copyright 2010, Red Hat, Inc
 
@@ -25,19 +24,11 @@ import yaml
 from cobbler.services import CobblerSvc
 
 def application(environ, start_response):
-    print environ
 
     my_uri = environ['REQUEST_URI']
-    print("Checkout my URI: %s" % my_uri)
     
- #   req.add_common_vars()
-
- #   # process form and qs data, if any
- #   fs = util.FieldStorage(req)
     form = {}
- #   for x in fs.keys():
- #       form[x] = str(fs.get(x,'default'))
- #   
+
     if my_uri.find("?") == -1:
        # support fake query strings
        # something log /cobbler/web/op/ks/server/foo
@@ -56,16 +47,10 @@ def application(environ, start_response):
              form[field] = t
           label = not label
 
-    print(form)
-
- #   # TESTING..
- #   form.update(req.subprocess_env)
-
     # This MAC header is set by anaconda during a kickstart booted with the 
     # kssendmac kernel option. The field will appear here as something 
     # like: eth0 XX:XX:XX:XX:XX:XX
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
-    print("REMOTE_MAC = %s" % form["REMOTE_MAC"])
 
     # Read config for the XMLRPC port to connect to:
     fd = open("/etc/cobbler/settings")
@@ -87,7 +72,6 @@ def application(environ, start_response):
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr( cw, mode )
     content = func( **form )
-    print("content = %s" % content)
 
     content = unicode(content).encode('utf-8')
     status = '200 OK'
