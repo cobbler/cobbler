@@ -485,10 +485,8 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         return error_page(request, "Need to select some systems first")        
 
     if multi_mode == "delete":
-        # too dangerous to expose?
-        # for obj_name in names:
-        #    remote.remove_item(what,obj_name, token)
-        pass
+         for obj_name in names:
+            remote.remove_item(what,obj_name, token)
     elif what == "system" and multi_mode == "netboot":
         netboot_enabled = multi_arg # values: enable or disable
         if netboot_enabled is None:

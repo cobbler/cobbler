@@ -32,7 +32,6 @@ import urlgrabber
 import yaml # PyYAML
 
 # the following imports are largely for the test code
-import urlgrabber
 import remote
 import glob
 try:
@@ -45,24 +44,14 @@ import os
 import os.path
 import simplejson
 
-def log_exc(apache):
-    """
-    Log active traceback to logfile.
-    """
-    (t, v, tb) = sys.exc_info()
-    apache.log_error("Exception occured: %s" % t )
-    apache.log_error("Exception value: %s" % v)
-    apache.log_error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-
 class CobblerSvc(object):
     """
     Interesting mod python functions are all keyed off the parameter
     mode, which defaults to index.  All options are passed
     as parameters into the function.
     """
-    def __init__(self, server=None, apache=None, req=None):
+    def __init__(self, server=None, req=None):
         self.server = server
-        self.apache = apache
         self.remote = None
         self.req    = req
 

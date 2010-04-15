@@ -1,24 +1,17 @@
-#cobbler test suite settings
+# Cobbler test suite settings
 
-#api settings
-cobbler_server: http://127.0.0.1/cobbler_api
+# Cobbler server to test against:
+cobbler_server: 127.0.0.1
 cobbler_user: testing
 cobbler_pass: testing
 
-#redhat mgmt settings
-redhat_mgmt_server: mysatellite.test.com
-redhat_mgmt_key: 1-ABC123
+# Test files, these must exist on the Cobbler server's filesystem:
 
-repo_loc: /mnt/engarchive/distro/os
+# These do not have to be real kernel/initrd, just empty files will do:
+test_kernel: /tmp/cobblertest/fake-kernel
+test_initrd: /tmp/cobblertest/fake-initrd
 
-#distro-specific settings
-distro_name: RHEL5-i386
-distro_kernel: /path/to/some/fake/kernel
-distro_initrd: /path/to/some/fake/initrd
-distro_osversion: rhel5
+# Should exist by default on most Cobbler servers:
+test_kickstart: /var/lib/cobbler/kickstarts/sample.ks
 
-#profile-specific settings
-profile_name: RHEL4-profile
-profile_template: /tmp/template.ks
 
-system_name: cobbler_system

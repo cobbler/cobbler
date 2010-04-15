@@ -73,6 +73,9 @@ function action_multi(otype, action, param) {
   if ((action == "netboot") && (param == "disable")) {
      value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
   }
+  if ((action == "delete" ) && (param == "delete")) {
+     value = confirm("Confirm: Really delete all checked systems?")
+  }
   if ((action == "reposync")) {
      value = "reposync"
   }
@@ -99,6 +102,7 @@ function action_multi(otype, action, param) {
       <li><span class="action" onClick="javascript:action_multi('system','power','on')">Power On</span> ☼ </li>
       <li><span class="action" onClick="javascript:action_multi('system','power','off')">Power Off</span> ☼ </li>
       <li><span class="action" onClick="javascript:action_multi('system','power','reboot')">Reboot</span> ☼ </li>
+      <li><span class="action" onClick="javascript:action_multi('system','delete','delete')">Delete System</span> ☼ </li>
       <li><span class="action" onClick="javascript:action_multi('system','profile','')">Change Profile</span> ☼ </li>
       <li><span class="action" onClick="javascript:action_multi('system','netboot','enable')">Enable Netboot</span> ☼ </li>
       <li><span class="action" onClick="javascript:action_multi('system','netboot','disable')">Disable Netboot</span> ☼ </li>

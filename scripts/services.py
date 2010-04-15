@@ -77,7 +77,6 @@ def handler(req):
 
     # instantiate a CobblerWeb object
     cw = CobblerSvc(
-         apache   = apache,
          server   = "http://127.0.0.1:%s" % remote_port
     )
 
