@@ -6,8 +6,8 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.3.2
-Release: 1%{?dist}
+Version: 2.0.3.1
+Release: 3%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
@@ -374,9 +374,6 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
-* Thu Apr 01 2010 Devan Goodwin <dgoodwin@rm-rf.ca> 2.0.3.2-1
-- Initial tagged release with tito.
-
 * Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
 - Bump release because I forgot cobbler-web
 
