@@ -37,7 +37,7 @@ import utils
 # the rest are undefined (for now), this will evolve.
 
 VALID_OS_BREEDS = [
-    "redhat", "debian", "ubuntu", "suse", "generic", "windows", "unix", "other"
+    "redhat", "debian", "ubuntu", "suse", "generic", "windows", "unix", "vmware", "other"
 ]
 
 VALID_OS_VERSIONS = {
@@ -48,6 +48,7 @@ VALID_OS_VERSIONS = {
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "freebsd6", "openbsd4", "other" ],
+    "vmware"  : [ "esx4" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
 
