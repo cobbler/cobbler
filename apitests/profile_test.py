@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import pdb
 import urllib2
 
 from base import *
@@ -47,7 +46,8 @@ class ProfileTests(CobblerTest):
     def test_getks_no_such_profile(self):
         url = "http://%s/cblr/svc/op/ks/profile/%s" % (cfg['cobbler_server'], 
                 "doesnotexist")
-        response = urllib2.urlopen(url)
-        data = response.read()
-        self.assertNotEquals(-1, data.find("was not found"))
-
+        try:
+            response = urllib2.urlopen(url)
+            self.fail()
+        except urllib2.HTTPError, e:
+            self.assertEquals(404, e.code)

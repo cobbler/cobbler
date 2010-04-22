@@ -119,7 +119,7 @@ if __name__ == "__main__":
     vw_links      = wwwpath + "/links"
     vw_aux        = wwwpath + "/aux"
     modpython     = wwwpath + "/web"
-    modpythonsvc  = wwwpath + "/svc"
+    modwsgisvc    = wwwpath + "/svc"
         
     # log paths
     logpath  = "/var/log/cobbler"
@@ -159,7 +159,7 @@ if __name__ == "__main__":
             "scripts/cobbler-register"
         ],
         data_files = [ 
-            (modpythonsvc, ['scripts/services.py']),
+            (modwsgisvc, ['scripts/services.py']),
  
             # miscellaneous config files
             (rotpath,  ['config/cobblerd_rotate']),
