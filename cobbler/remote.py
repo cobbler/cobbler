@@ -1541,8 +1541,11 @@ class CobblerXMLRPCInterface:
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
-        rc = self.__authorize(token,resource,arg1,arg2)
-        self._log("authorization result: %s" % rc,debug=True)
+        if user == "<DIRECT>":
+            self._log("CLI Authorized", debug=True)
+            return True
+        rc = self.api.authorize(user,resource,arg1,arg2)
+        self._log("%s authorization result: %s" % (user,rc),debug=True)
         if not rc:
             raise CX("authorization failure for user %s" % user) 
         return rc
@@ -1570,15 +1573,6 @@ class CobblerXMLRPCInterface:
             return token
         else:
             utils.die(self.logger, "login failed (%s)" % login_user)
-
-    def __authorize(self,token,resource,arg1=None,arg2=None):
-        user = self.get_user_from_token(token)
-        args = [ resource, arg1, arg2 ]
-        rc = self.api.authorize(user,resource,arg1,arg2)
-        if rc:
-            return True
-        else:
-            utils.die(self.logger, "user %s does not have access to resource: %s" % (user,resource))
 
     def logout(self,token):
         """
