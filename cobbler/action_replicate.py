@@ -139,7 +139,10 @@ class Replicate:
         # and just keep profiles/distros common
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
-            for what in OBJ_TYPES:
+            obj_types = OBJ_TYPES
+            if len(self.system_patterns) == 0:
+                obj_types.remove("system")
+            for what in obj_types:
                 self.remove_objects_not_on_master(what)
         else:
             self.logger.info("*NOT* Removing Objects Not Stored On Master")
