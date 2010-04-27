@@ -1,5 +1,20 @@
 Cobbler CHANGELOG
 
+- Apr 27 2010 - 2.0.4
+- (BUGF) fetch extra metadata from upstream repositories more safely
+- (BUGF) allow the creation of subprofiles again
+- (BUGF) don't warn needlessly when repo rpm_list is empty
+- (BUGF) run createrepo on partial yum mirrors
+- (BUGF) change default mode for new directories from 0777 to 0755
+- (BUGF) fix replication pruning to not prune systems when inappropriate
+- (BUGF) always authorize the CLI
+- (BUGF) fix passthru auth Trac#549
+- (BUGF) fix for spacewalk bug 529277
+- (BUGF) fix umask so files are not world writable
+- (BUGF) fix default pxe template to support default system record
+- (BUGF) redo the PXE menuif a profile is removed
+- (BUGF) properly escape snippets
+
 - Feb 15 2010 - 2.0.3.1
 - (BUGF) Fix kernel command line parsing
 
