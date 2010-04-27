@@ -6,8 +6,8 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.3.1
-Release: 3%{?dist}
+Version: 2.0.4
+Release: 1%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
@@ -294,8 +294,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.3.1
-Release: 3%{?dist}
 Group: Applications/System
 Requires: python >= 1.5
 BuildRequires: python-devel
@@ -345,8 +343,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.3.1
-Release: 3%{?dist}
 Group: Applications/System
 Requires: cobbler
 Requires: Django
@@ -381,6 +377,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
+- Bug fix release, see Changelog for details
+
 * Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
 - Bump release because I forgot cobbler-web
 
