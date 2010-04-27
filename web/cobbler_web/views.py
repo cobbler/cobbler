@@ -64,7 +64,7 @@ def check_auth(request):
     global token
     global username
     global url_cobbler_api
-    if request.META.has_key('REMOTE_USER'):
+    if request.META.has_key('REMOTE_USER') and username is None:
         username = request.META['REMOTE_USER']
         #REMOTE_USER is set, so no credentials are going to be available
         #So we get the shared secret and let authn_passthru authenticate us
