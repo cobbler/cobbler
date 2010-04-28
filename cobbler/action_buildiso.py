@@ -406,7 +406,9 @@ class BuildIso:
         if not os.path.exists(isolinuxbin):
             isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
 
-        menu = "/var/lib/cobbler/loaders/menu.c32"
+        menu = "/usr/share/syslinux/menu.c32"
+        if not os.path.exists(menu):
+            menu = "/var/lib/cobbler/loaders/menu.c32"
 
         chain = "/usr/share/syslinux/chain.c32"
         if not os.path.exists(chain):
