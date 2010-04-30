@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import yaml
+import os
 
 from cobbler.services import CobblerSvc
 
@@ -35,6 +36,9 @@ def application(environ, start_response):
        # which is needed because of xend parser errors
        # not tolerating ";" and also libvirt on 5.1 not
        # tolerating "&amp;" (nor "&").
+
+       # canonicalizes uri, mod_python does this, mod_wsgi does not
+       my_uri = os.path.realpath(my_uri)
 
        tokens = my_uri.split("/")
        tokens = tokens[3:]
