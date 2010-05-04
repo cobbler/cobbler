@@ -55,20 +55,21 @@ def random_mac():
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
-def start_install(name=None, 
-                  ram=None, 
-                  disks=None, 
+def start_install(name=None,
+                  ram=None,
+                  disks=None,
                   mac=None,
-                  uuid=None,  
+                  uuid=None,
                   extra=None,
-                  vcpus=None, 
-                  profile_data=None, 
-                  arch=None, 
-                  no_gfx=False, 
-                  fullvirt=True, 
-                  bridge=None, 
+                  vcpus=None,
+                  profile_data=None,
+                  arch=None,
+                  no_gfx=False,
+                  fullvirt=True,
+                  bridge=None,
                   virt_type=None,
-                  virt_auto_boot=False):
+                  virt_auto_boot=False,
+                  qemu_driver_type=None):
 
     vtype = "qemu"
     if virtinst.util.is_kvm_capable():
@@ -154,7 +155,7 @@ def start_install(name=None,
     for d in disks:
         print "- adding disk: %s of size %s" % (d[0], d[1])
         if d[1] != 0 or d[0].startswith("/dev"):
-            guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1]))
+            guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1], bus=qemu_driver_type))
         else:
             raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
 

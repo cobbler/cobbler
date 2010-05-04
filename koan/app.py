@@ -180,6 +180,9 @@ def main():
                  dest="embed_kickstart",
                  action="store_true",
                  help="When used with  --replace-self, embed the kickstart in the initrd to overcome potential DHCP timeout issues. (seldom needed)")
+    p.add_option("", "--qemu-disk-type",
+                 dest="qemu_disk_type",
+                 help="when used with --virt_type=qemu, add select of disk drivers: ide,scsi,virtio")
 
     (options, args) = p.parse_args()
 
@@ -207,6 +210,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
+        k.qemu_disk_type      = options.qemu_disk_type
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -259,7 +263,8 @@ class Koan:
         self.static_interface  = None
         self.virt_name         = None
         self.virt_type         = None
-        self.virt_path         = None 
+        self.virt_path         = None
+        self.qemu_disk_type    = None
 
     #---------------------------------------------------
 
@@ -319,6 +324,14 @@ class Koan:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
                raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
+
+        # if --qemu-disk-type was called without --virt-type=qemu, then fail
+        if (self.qemu_disk_type is not None):
+            self.qemu_disk_type = self.qemu_disk_type.lower()
+            if self.virt_type not in [ "qemu", "auto" ]:
+               raise InfoException, "--qemu-disk-type must use with --virt-type=qemu"
+
+
 
         # if --static-interface and --profile was called together, then fail
         if self.static_interface is not None and self.profile is not None:
@@ -1113,19 +1126,20 @@ class Koan:
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
-                name           =  virtname,
-                ram            =  ram,
-                disks          =  disks,
-                uuid           =  uuid, 
-                extra          =  kextra,
-                vcpus          =  vcpus,
-                profile_data   =  profile_data,       
-                arch           =  arch,
-                no_gfx         =  self.no_gfx,   
-                fullvirt       =  fullvirt,    
-                bridge         =  self.virt_bridge,
-                virt_type      =  self.virt_type,
-                virt_auto_boot =  virt_auto_boot
+                name             =  virtname,
+                ram              =  ram,
+                disks            =  disks,
+                uuid             =  uuid,
+                extra            =  kextra,
+                vcpus            =  vcpus,
+                profile_data     =  profile_data,
+                arch             =  arch,
+                no_gfx           =  self.no_gfx,
+                fullvirt         =  fullvirt,
+                bridge           =  self.virt_bridge,
+                virt_type        =  self.virt_type,
+                virt_auto_boot   =  virt_auto_boot,
+                qemu_driver_type =  self.qemu_disk_type
         )
 
         print results
