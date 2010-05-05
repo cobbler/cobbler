@@ -578,6 +578,11 @@ class PXEGen:
 
                 # interface=bootif causes a failure
                 append_line = append_line.replace("interface=bootif","")
+            elif distro.breed == "vmware":
+                append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % (append_line, kickstart_path)
+                # interface=bootif causes a failure
+                append_line = append_line.replace("ksdevice=bootif","")
+
 
         if distro is not None and (distro.breed in [ "debian", "ubuntu" ]):
             # Hostname is required as a parameter, the one in the preseed is
