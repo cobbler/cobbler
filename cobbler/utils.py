@@ -844,6 +844,8 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
 
     # Python triggers first, before shell
 
+    if logger is not None:
+       logger.debug("running python triggers from %s" % globber)
     modules = api.get_modules_in_category(globber)
     for m in modules:
        arglist = []
@@ -851,6 +853,8 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
            arglist.append(ref.name)
        for x in additional:
            arglist.append(x)
+       if logger is not None:
+          logger.debug("running python trigger %s" % m.__name__)
        rc = m.run(api, arglist, logger)
        if rc != 0:
            raise CX("cobbler trigger failed: %s" % m.__name__)
@@ -858,6 +862,8 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
     # now do the old shell triggers, which are usually going to be slower, but are easier to write  
     # and support any language
 
+    if logger is not None:
+       logger.debug("running shell triggers from %s" % globber)
     triggers = glob.glob(globber)
     triggers.sort()
     for file in triggers:
@@ -871,6 +877,8 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
                 arglist.append(ref.name)
             for x in additional:
                 arglist.append(x)
+            if logger is not None:
+               logger.debug("running shell trigger %s" % file)
             rc = subprocess_call(logger, arglist, shell=False) # close_fds=True)
         except:
             if logger is not None:
