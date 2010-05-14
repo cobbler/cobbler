@@ -265,6 +265,7 @@ class Koan:
         self.virt_type         = None
         self.virt_path         = None
         self.qemu_disk_type    = None
+        self.virt_auto_boot    = None
 
     #---------------------------------------------------
 
