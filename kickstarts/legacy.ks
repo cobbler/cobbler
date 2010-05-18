@@ -39,7 +39,7 @@ autopart
 
 %pre
 $SNIPPET('log_ks_pre')
-$kickstart_start
+$SNIPPET('kickstart_start')
 $SNIPPET('pre_install_network_config')
 $SNIPPET('pre_anamon')
 
@@ -57,6 +57,6 @@ $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')
 $SNIPPET('cobbler_register')
 # Begin final steps
-$kickstart_done
+$SNIPPET('kickstart_done')
 # End final steps
 

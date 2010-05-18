@@ -42,7 +42,7 @@ autopart
 
 %pre
 $SNIPPET('log_ks_pre')
-$kickstart_start
+$SNIPPET('kickstart_start')
 $SNIPPET('pre_install_network_config')
 # Enable installation monitoring
 $SNIPPET('pre_anamon')
@@ -65,5 +65,5 @@ $SNIPPET('cobbler_register')
 # Enable post-install boot notification
 $SNIPPET('post_anamon')
 # Start final steps
-$kickstart_done
+$SNIPPET('kickstart_done')
 # End final steps

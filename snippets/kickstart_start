@@ -1,0 +1,32 @@
+#set system_name = $getVar('system_name','')
+#set profile_name = $getVar('profile_name','')
+#set breed = $getVar('breed','')
+#set srv = $getVar('http_server','')
+#set run_install_triggers = $str($getVar('run_install_triggers',''))
+#set runpre = ""
+
+#if $system_name != ''
+
+    ## RUN PRE TRIGGER
+    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+        #if $breed == 'redhat'
+            #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "system", system_name)
+        #else if $breed == 'vmware'
+            #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "system", system_name)
+        #end if
+    #end if
+
+#else if $profile_name != ''
+
+    ## RUN PRE TRIGGER
+    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+        #if $breed == 'redhat'
+            #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
+        #else if $breed == 'vmware'
+            #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
+        #end if
+    #end if
+
+#end if
+
+#echo $runpre

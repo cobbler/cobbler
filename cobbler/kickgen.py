@@ -60,55 +60,6 @@ class KickGen:
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
 
-    def generate_kickstart_signal(self, is_pre=0, profile=None, system=None):
-        """
-        Do things that we do at the start/end of kickstarts...
-        * start: signal the status watcher we're starting
-        * end:   signal the status watcher we're done
-        * end:   disable PXE if needed
-        * end:   save the original kickstart file for debug
-        """
-
-        nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null"
-        saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks"
-        runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null"
-        runpre  = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null"
-
-        what = "profile"
-        blend_this = profile
-        if system:
-            what = "system"
-            blend_this = system
-
-        blended = utils.blender(self.api, False, blend_this)
-        kickstart = blended.get("kickstart",None)
-
-        buf = ""
-        srv = blended["http_server"]
-        if system is not None:
-            if not is_pre:
-                if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
-                    buf = buf + nopxe % (srv, system.name)
-                if kickstart and os.path.exists(kickstart):
-                    buf = buf + saveks % (srv, "system", system.name)
-                if self.settings.run_install_triggers:
-                    buf = buf + runpost % (srv, what, system.name)
-            else:
-                if self.settings.run_install_triggers:
-                    buf = buf + runpre % (srv, what, system.name)
-
-        else:
-            if not is_pre:
-                if kickstart and os.path.exists(kickstart):
-                    buf = buf + saveks % (srv, "profile", profile.name)
-                if self.settings.run_install_triggers:
-                    buf = buf + runpost % (srv, what, profile.name) 
-            else:
-                if self.settings.run_install_triggers:
-                    buf = buf + runpre % (srv, what, profile.name) 
-
-        return buf
-
     def generate_repo_stanza(self, obj, is_profile=True):
 
         """
@@ -214,8 +165,6 @@ class KickGen:
         meta.update(ksmeta) # make available at top level
         meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
         meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
-        meta["kickstart_done"]  = self.generate_kickstart_signal(0, profile, system)
-        meta["kickstart_start"] = self.generate_kickstart_signal(1, profile, system)
         meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
         # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
 
