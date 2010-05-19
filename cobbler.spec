@@ -350,7 +350,11 @@ Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: cobbler
 Requires: Django
-BuildRequires: python-devel
+%if 0%{?suse_version} >= 1000
+Requires: apache2-mod_python
+%else
+Requires: mod_python
+%endif
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
 Requires: python(abi) >= %{pyver}
