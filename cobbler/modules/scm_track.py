@@ -82,5 +82,28 @@ def run(api,args,logger):
 
        return 0
 
+    elif mode == "hg":
+        # use mercurial        
+        old_dir = os.getcwd()
+        os.chdir("/var/lib/cobbler")
+        if os.getcwd() != "/var/lib/cobbler":
+            raise "danger will robinson"
+        
+        if not os.path.exists("/var/lib/cobbler/.hg"):
+            scall(["hg","init"])
+            
+        # FIXME: if we know the remote user of an XMLRPC call
+        # use them as the user
+
+        scall(["hg","add","config"])
+        scall(["hg","add","kickstarts"])
+        scall(["hg","add","snippets"])
+
+        scall(["hg","commit","-m",'API update',"--user","'cobbler <root@localhost.localdomain>'"])
+
+        os.chdir(old_dir)
+
+        return 0
+
     else:
        raise CX("currently unsupported SCM type: %s" % mode)
