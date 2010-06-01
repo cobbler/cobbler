@@ -81,6 +81,7 @@ FIELDS = [
   ["*ipv6_static_routes",[],0,"IPv6 Static Routes",True,"",0,"list"],
   ["*ipv6_default_gateway","",0,"IPv6 Default Gateway",True,"",0,"str"],
   ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0,"list"],
+  ["puppet_params","<<inherit>>",0,"Puppet Parameters",True,"Parameters which will be handed to puppet (Must be valid YAML dictionary)", 0,"str"],
   ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0,"dict"],
   ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0,"str"],
   ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0,"str"],

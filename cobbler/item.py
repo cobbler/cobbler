@@ -235,6 +235,22 @@ class Item:
         mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
+    
+    def set_puppet_params(self,puppet_params):
+        """
+        A YAML string which can be assigned to any object, this is used by
+        Puppet's external_nodes feature.
+        """
+        if puppet_params == "<<inherit>>":
+            self.puppet_params = puppet_params
+        else:
+            import yaml
+            data = yaml.load(puppet_params)
+            if type(data) is not dict:
+                raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
+            self.puppet_params = data
+        return True
+        
 
     def set_template_files(self,template_files,inplace=False):
         """

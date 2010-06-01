@@ -200,13 +200,23 @@ def get_fields(what, is_subobject, seed_item=None):
         # flatten hashes of all types, they can only be edited as text
         # as we have no HTML hash widget (yet)
         if type(elem["value"]) == type({}):
-            tokens = []
-            for (x,y) in elem["value"].items():
-               if y is not None:
-                  tokens.append("%s=%s" % (x,y))
-               else:
-                  tokens.appned("%s" % x)
-            elem["value"] = " ".join(tokens)
+            if elem["name"] == "puppet_params":
+                #Render dictionary as YAML for Puppet Parameters field
+                tokens = []
+                for (x,y) in elem["value"].items():
+                   if y is not None:
+                      tokens.append("%s: %s" % (x,y))
+                   else:
+                      tokens.append("%s: " % x)
+                elem["value"] = "{ %s }" % ", ".join(tokens)
+            else:
+                tokens = []
+                for (x,y) in elem["value"].items():
+                   if y is not None:
+                      tokens.append("%s=%s" % (x,y))
+                   else:
+                      tokens.append("%s" % x)
+                elem["value"] = " ".join(tokens)
  
         name = row[0]
         if name.find("_widget") != -1:
