@@ -61,7 +61,7 @@ FIELDS = [
   ["name_servers_search",[],0,"Name Servers Search Path",True,"space delimited",0,"list"],
   ["network_widget_a","",0,"Add Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
-  ["*mac_address","",0,"MAC Address",True,"",0,"str"],
+  ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["*ip_address","",0,"IP Address",True,"",0,"str"],
   ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"],"str"],
   ["*bonding_master","",0,"Bonding Master",True,"",0,"str"],
