@@ -90,6 +90,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 PREFIX="--prefix=/usr"
 %endif
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+mkdir $RPM_BUILD_ROOT/var/www/cobbler/rendered/
 
 %post
 if [ "$1" = "1" ];
@@ -156,6 +157,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/web/
 /var/www/cobbler/web/index.html
 %dir /var/www/cobbler/svc/
+%dir /var/www/cobbler/rendered/
 /var/www/cobbler/svc/*.py*
 
 %defattr(755,root,root)
