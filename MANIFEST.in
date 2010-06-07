@@ -1,18 +1,4 @@
-recursive-include config *
-include aux/anamon
-include aux/anamon.init
-recursive-include templates *.template
-recursive-include installer_templates *.template defaults
-recursive-include kickstarts *.ks
-recursive-include kickstarts *.seed
-include docs/cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG
-include scripts/*.py
-include scripts/zpxe.rexx
-include snippets/*
-include docs/koan.1.gz 
-include docs/cobbler-register.1.gz
-include scripts/koan 
-include scripts/cobbler-register
+include config/cobbler_web.conf
 recursive-include web *
 
