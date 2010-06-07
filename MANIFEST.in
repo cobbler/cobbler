@@ -2,3 +2,8 @@ include COPYING AUTHORS README CHANGELOG
 include config/cobbler_web.conf
 recursive-include web *
 
+recursive-include templates *
+recursive-include config *
+recursive-include kickstarts *
+recursive-include installer_templates *
+
