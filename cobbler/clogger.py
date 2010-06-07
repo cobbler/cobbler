@@ -45,10 +45,7 @@ class Logger:
          self.logfile.close()
 
       try:
-         if logfile.find("tasks") != -1:
-            self.logfile = open(logfile, "w+")
-         else:
-            self.logfile = open(logfile, "a")
+          self.logfile = open(logfile, "a")
       except IOError:
           # You likely don't have write access, this logger will just print 
           # things to stdout.
