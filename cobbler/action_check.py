@@ -71,12 +71,19 @@ class BootCheck:
                self.check_dnsmasq_bin(status)
                self.check_service(status,"dnsmasq")
 
+       mode = self.config.api.get_sync().tftp.what()
+       if mode == "in_tftpd": 
+           self.check_tftpd_bin(status)
+           self.check_tftpd_dir(status)
+           self.check_tftpd_conf(status)
+       elif mode == "tftpd_py":
+           self.check_ctftpd_bin(status)
+           self.check_ctftpd_dir(status)
+           self.check_ctftpd_conf(status)
+
        self.check_service(status, "cobblerd")
     
        self.check_bootloaders(status)
-       self.check_tftpd_bin(status)
-       self.check_tftpd_dir(status)
-       self.check_tftpd_conf(status)
        self.check_rsync_conf(status)
        self.check_httpd(status)
        self.check_iptables(status)
@@ -107,9 +114,9 @@ class BootCheck:
                return False
        elif self.checked_dist == "debian":
            if os.path.exists("/etc/init.d/%s" % which):
-	       rc = utils.subprocess_call(self.logger,"/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
-	   if rc != 0:
-	       status.append(_("service %s is not running%s") % which,notes)
+               rc = utils.subprocess_call(self.logger,"/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
+           if rc != 0:
+               status.append(_("service %s is not running%s") % which,notes)
                return False
        else:
            status.append(_("Unknown distribution type, cannot check for running service %s" % which))
@@ -357,6 +364,40 @@ class BootCheck:
        else:
           status.append("missing configuration file: /etc/xinetd.d/tftp")
 
+   def check_ctftpd_bin(self,status):
+       """
+       Check if the Cobbler tftp server is installed
+       """
+       if not os.path.exists("/etc/xinetd.d/ctftp"):
+          status.append("missing /etc/xinetd.d/ctftp")
+
+   def check_ctftpd_dir(self,status):
+       """
+       Check if cobbler.conf's tftpboot directory exists
+       """
+       bootloc = utils.tftpboot_location()
+       if not os.path.exists(bootloc):
+          status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
+
+   def check_ctftpd_conf(self,status):
+       """
+       Check that configured tftpd boot directory matches with actual
+       Check that tftpd is enabled to autostart
+       """
+       if os.path.exists("/etc/xinetd.d/tftp"):
+          f = open("/etc/xinetd.d/tftp")
+          re_disable = re.compile(r'disable.*=.*no')
+          for line in f.readlines():
+             if re_disable.search(line) and not line.strip().startswith("#"):
+                 status.append(_("change 'disable' to 'yes' in %(file)s") % { "file" : "/etc/xinetd.d/tftp" })
+       if os.path.exists("/etc/xinetd.d/ctftp"):
+          f = open("/etc/xinetd.d/ctftp")
+          re_disable = re.compile(r'disable.*=.*yes')
+          for line in f.readlines():
+             if re_disable.search(line) and not line.strip().startswith("#"):
+                 status.append(_("change 'disable' to 'no' in %(file)s") % { "file" : "/etc/xinetd.d/ctftp" })
+       else:
+          status.append("missing configuration file: /etc/xinetd.d/ctftp")
 
    def check_rsync_conf(self,status):
        """

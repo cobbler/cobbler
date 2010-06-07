@@ -29,6 +29,7 @@ import os.path
 import utils
 import traceback
 import clogger
+import module_loader
 
 class BootLiteSync:
     """
@@ -50,6 +51,9 @@ class BootLiteSync:
         if logger is None:
             logger = clogger.Logger()
         self.logger      = logger
+        self.tftpd       = module_loader.get_module_from_file(
+                                "tftpd","module","in_tftpd"
+                                ).get_manager(config,logger)
         self.sync        = config.api.get_sync(verbose,logger=self.logger)
         self.sync.make_tftpboot()
 
@@ -121,12 +125,7 @@ class BootLiteSync:
             self.sync.pxegen.make_pxe_menu()
    
     def update_system_netboot_status(self,name):
-        system = self.systems.find(name=name)
-        if system is None:
-            utils.die(self.logger,"error in system lookup for %s" % name)
-        self.sync.pxegen.write_all_system_files(system)
-        # generate any templates listed in the system
-        self.sync.pxegen.write_templates(system)
+        self.tftpd.update_netboot(name)
  
     def add_single_system(self, name):
         # get the system object:
@@ -139,9 +138,7 @@ class BootLiteSync:
         if self.settings.manage_dns:
             self.sync.dns.regen_hosts()  
         # write the PXE files for the system
-        self.sync.pxegen.write_all_system_files(system)
-        # generate any templates listed in the distro
-        self.sync.pxegen.write_templates(system)
+        self.tftpd.add_single_system(system)
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()

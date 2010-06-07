@@ -78,13 +78,13 @@ class IscManager:
         /var/lib/cobbler/settings.
         """
 
-        template_file = "/etc/cobbler/dhcp.template"
+        template_file = "/etc/cobbler/templates/dhcp.template"
         blender_cache = {}
 
         try:
             f2 = open(template_file,"r")
         except:
-            raise CX(_("error writing template to file: %s") % template_file)
+            raise CX(_("error reading template: %s") % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()

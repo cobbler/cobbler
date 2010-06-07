@@ -2,8 +2,10 @@ authn_module: 'authn_denyall'
 authz_module: 'authz_allowall'
 dns_module: 'manage_bind'
 dhcp_module: 'manage_isc'
+tftp_module: 'manage_in_tftpd'
 enable_dhcp: 0
 enable_dns: 0
+enable_tftpd: 1
 next_server: '127.0.0.1'
 pxe_once: 0
 redhat_management_type: "off"

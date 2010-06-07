@@ -622,7 +622,13 @@ class BootAPI:
            "module",
            "manage_bind"
         ).get_manager(self._config,logger)
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose,logger=logger)
+        self.tftpd = self.get_module_from_file(
+           "tftpd",
+           "module",
+           "in_tftpd",
+        ).get_manager(self._config,logger)
+
+        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,tftpd=self.tftpd,verbose=verbose,logger=logger)
 
     # ==========================================================================
 

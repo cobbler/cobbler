@@ -81,4 +81,18 @@ module = $dns_module
 [dhcp]
 module = $dhcp_module
 
+# tftpd:
+# chooses the TFTP management engine if manage_tftp is enabled
+# in /etc/cobbler/settings, which is ON by default.
+#
+# choices:
+#    manage_in_tftpd -- default, uses the system's tftp server
+#    manage_tftpd_py -- uses cobbler's tftp server
+#
+# for more information:
+# https://fedorahosted.org/cobbler/wiki/ManageTftp
+  
+[tftpd]
+module = $tftp_module
+
 #--------------------------------------------------

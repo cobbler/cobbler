@@ -49,7 +49,7 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=True,dhcp=None,dns=None,logger=None):
+    def __init__(self,config,verbose=True,dhcp=None,dns=None,logger=None,tftpd=None):
         """
         Constructor
         """
@@ -70,6 +70,7 @@ class BootSync:
         self.pxegen       = pxegen.PXEGen(config, self.logger)
         self.dns          = dns
         self.dhcp         = dhcp
+        self.tftpd        = tftpd
         self.bootloc      = utils.tftpboot_location()
         self.pxegen.verbose = verbose
         self.dns.verbose    = verbose
@@ -104,37 +105,22 @@ class BootSync:
         self.repos    = self.config.repos()
 
         # execute the core of the sync operation
-
         self.logger.info("cleaning trees")
         self.clean_trees()
 
-        self.logger.info("copying bootloaders")
-        self.pxegen.copy_bootloaders()
+        # Have the tftpd module handle copying bootloaders,
+        # distros, images, and all_system_files
+        self.tftpd.sync(self.verbose)
+	# make the default pxe menu anyway...
+	self.pxegen.make_pxe_menu()
 
-        self.logger.info("copying distros")
-        self.pxegen.copy_distros()
-
-        self.logger.info("copying images")
-        self.pxegen.copy_images()
-
-        self.logger.info("generating PXE configuration files")
-        for x in self.systems:
-            self.pxegen.write_all_system_files(x)
-
-        if self.settings.manage_dhcp:
-           self.logger.info("rendering DHCP files")
-           self.dhcp.write_dhcp_file()
-           self.dhcp.regen_ethers()
-        if self.settings.manage_dns:
-           self.logger.info("rendering DNS files")
-           self.dns.regen_hosts()
-           self.dns.write_dns_files()
+        if self.settings.manage_tftpd:
+           # xinetd.d/tftpd, basically
+           self.logger.info("rendering TFTPD files")
+           self.tftpd.write_tftpd_files()
 
         self.logger.info("rendering Rsync files")
         self.rsync_gen()
-
-        self.logger.info("generating PXE menu structure")
-        self.pxegen.make_pxe_menu()
 
         # run post-triggers
         self.logger.info("running post-sync triggers")
@@ -185,6 +171,7 @@ class BootSync:
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
                     # clean out directory contents
                     utils.rmtree_contents(path,logger=self.logger)
+        #
         self.make_tftpboot()
         utils.rmtree_contents(self.pxelinux_dir,logger=self.logger)
         utils.rmtree_contents(self.images_dir,logger=self.logger)
@@ -198,12 +185,12 @@ class BootSync:
         """
         Generate rsync modules of all repositories and distributions
         """
-        template_file = "/etc/cobbler/rsync.template"
+        template_file = "/etc/cobbler/templates/rsync.template"
 
         try:
             template = open(template_file,"r")
         except:
-            raise CX(_("error writing template to file: %s") % template_file)
+            raise CX(_("error reading template %s") % template_file)
 
         template_data = ""
         template_data = template.read()
