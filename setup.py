@@ -74,15 +74,6 @@ def gen_manpages():
 
 #####################################################################
 
-def templatify(template, answers, output):
-    """Fill in a template given the answers"""
-    
-    t = Template.Template(file=template, searchList=answers)
-    data = t.respond()
-    outf = open(output,"w")
-    outf.write(data)
-    outf.close()
-
 def gen_build_version():
     """Pull metadata information from git when this build is from
     a git repo.
@@ -114,29 +105,17 @@ def gen_build_version():
     fd.write(yaml.dump(data))
     fd.close()
 
-def gen_config():
-    """Activate the templating functionality with the defaults for
-    input."""
-    
-    defaults_file = open(DEFAULTS)
-    defaults_data = defaults_file.read()
-    defaults_file.close()
-    defaults = yaml.load(defaults_data)
-    templatify(MODULES_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "modules.conf"))
-    templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
 
 #####################################################################
 
 
 #####################################################################
-## Actual Setup.py Script ###########################################
+## Actual Setup.py Script ############################################
 #####################################################################
 if __name__ == "__main__":
     
     gen_manpages()
     gen_build_version()
-    gen_config()
-    
 
     setup(
         name = "cobbler",
