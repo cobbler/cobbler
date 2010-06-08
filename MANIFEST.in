@@ -6,4 +6,5 @@ recursive-include templates *
 recursive-include config *
 recursive-include kickstarts *
 recursive-include installer_templates *
+recursive-include docs *
 
