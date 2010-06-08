@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import glob, os, time, yaml
 from distutils.core import setup
-import Cheetah.Template as Template
+from distutils.command.build_py import build_py as _build_py
 try:
     import subprocess
 except:
@@ -68,6 +68,7 @@ def gen_manpages():
     
     #Actually build them
     for man, cmd in manpages.items():
+        print("building %s man page." % man)
         if os.system(cmd):
             print "Creation of %s manpage failed." % man
             exit(1) 
@@ -108,16 +109,40 @@ def gen_build_version():
 
 #####################################################################
 
+#####################################################################
+## Modify Build Stage  ##############################################
+#####################################################################
+
+class build_py(_build_py):
+    """Specialized Python source builder."""
+    
+    def run(self):
+        gen_manpages()
+#        gen_build_version()
+        _build_py.run(self)
+
 
 #####################################################################
-## Actual Setup.py Script ############################################
+## Actual Setup.py Script ###########################################
 #####################################################################
 if __name__ == "__main__":
+    ## Configurable installation roots for various data files.
     
-    gen_manpages()
-    gen_build_version()
+    # Trailing slashes on these vars is to allow for easy
+    # later configuration of relative paths if desired.
+    docpath     = "/usr/share/man/man1"
+    etcpath     = "/etc/cobbler/"
+    initpath    = "/etc/init.d/"
+    libpath     = "/var/lib/cobbler/"
+    logpath     = "/var/log/"
+    
+    webroot     = "/var/www/"
+    webconfig   = "/etc/httpd/conf.d/"
+    webcontent  = webroot + "cobbler_webui_content/"
+    
 
     setup(
+        cmdclass={'build_py': build_py},
         name = "cobbler",
         version = VERSION,
         description = "Network Boot and Update Server",
@@ -146,70 +171,72 @@ if __name__ == "__main__":
             "scripts/cobbler-register",
         ],
         data_files = proc_data_files([
-            ("config",                      ["config/*"]),
-            ("docs",                        ["docs/*.gz"]),
+            ("%s" % webconfig,              ["config/cobbler_web.conf"]),
+            ("%s" % initpath,               ["config/cobblerd"]),
+            ("%s" % etcpath,                ["config/*"]),
+            ("%s" % docpath,                ["docs/*.gz"]),
             ("installer_templates",         ["installer_templates/*"]),
-            ("kickstarts",                  ["kickstarts/*"]),
-            ("snippets",                    ["snippets/*"]),
-            ("templates",                   ["templates/*"]),
+            ("%skickstarts" % libpath,      ["kickstarts/*"]),
+            ("%ssnippets" % libpath,        ["snippets/*"]),
+            ("%stemplates" % etcpath,       ["templates/*"]),
             ("web",                         ["web/*.*"]),
-            ("web/www/content",             ["web/content/*.*"]),
+            ("%sweb/content" % webcontent,  ["web/content/*.*"]),
             ("web/cobbler_web",             ["web/cobbler_web/*.*"]),
             ("web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
             ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
-            ("web/webui_sessions",          []),
-            ("web/www/aux",                 ["aux/*"]),
+            ("%swebui_sessions" % libpath,  []),
+            ("%scobbler/aux" % webroot,     ["aux/*"]),
             
             #Build empty directories to hold triggers
-            ("trigger/add/distro/pre",      []),
-            ("trigger/add/distro/post",     []),
-            ("trigger/add/profile/pre",     []),
-            ("trigger/add/profile/post",    []),
-            ("trigger/add/system/pre",      []),
-            ("trigger/add/system/post",     []),
-            ("trigger/add/repo/pre" ,       []),
-            ("trigger/add/repo/post",       []),
-            ("trigger/delete/distro/pre",   []),
-            ("trigger/delete/distro/post",  []),
-            ("trigger/delete/profile/pre",  []),
-            ("trigger/delete/profile/post", []),
-            ("trigger/delete/system/pre",   []),
-            ("trigger/delete/system/post",  []),
-            ("trigger/delete/repo/pre",     []),
-            ("trigger/delete/repo/post",    []),
-            ("trigger/delete/repo/post",    []),
-            ("trigger/install/pre",         []),
-            ("trigger/install/post",        []),
-            ("trigger/sync/pre",            []),
-            ("trigger/sync/post",           []),
-            ("trigger/change",              []),
+            ("%striggers/add/distro/pre" % libpath,     []),
+            ("%striggers/add/distro/post" % libpath,    []),
+            ("%striggers/add/profile/pre" % libpath,    []),
+            ("%striggers/add/profile/post" % libpath,   []),
+            ("%striggers/add/system/pre" % libpath,     []),
+            ("%striggers/add/system/post" % libpath,    []),
+            ("%striggers/add/repo/pre" % libpath,       []),
+            ("%striggers/add/repo/post" % libpath,      []),
+            ("%striggers/delete/distro/pre" % libpath,  []),
+            ("%striggers/delete/distro/post" % libpath, []),
+            ("%striggers/delete/profile/pre" % libpath, []),
+            ("%striggers/delete/profile/post" % libpath,[]),
+            ("%striggers/delete/system/pre" % libpath,  []),
+            ("%striggers/delete/system/post" % libpath, []),
+            ("%striggers/delete/repo/pre" % libpath,    []),
+            ("%striggers/delete/repo/post" % libpath,   []),
+            ("%striggers/delete/repo/post" % libpath,   []),
+            ("%striggers/install/pre" % libpath,        []),
+            ("%striggers/install/post" % libpath,       []),
+            ("%striggers/sync/pre" % libpath,           []),
+            ("%striggers/sync/post" % libpath,          []),
+            ("%striggers/change" % libpath,             []),
             
             # logfiles
-            ("log/kicklog",                 []),
-            ("log/syslog",                  []),
-            ("log/httpd/cobbler",           []),
-            ("log/anamon",                  []),
-            ("log/koan",                    []),
-            ("log/tasks",                   []),
+            ("%scobbler/kicklog" % logpath,             []),
+            ("%scobbler/syslog" % logpath,              []),
+            ("%shttpd/cobbler" % logpath,               []),
+            ("%scobbler/anamon" % logpath,              []),
+            ("%skoan" % logpath,                        []),
+            ("%scobbler/tasks" % logpath,               []),
             
             # spoolpaths
-            ("spool/koan",                  []),
+            ("spool/koan",                              []),
             
             # web page directories that we own
-            ("web/www/localmirror",         []),
-            ("web/www/kickstarts",          []),
-            ("web/www/kickstarts_sys",      []),
-            ("web/www/repo_mirror",         []),
-            ("web/www/ks_mirror",           []),
-            ("web/www/ks_mirror/config",    []),
-            ("web/www/distros",             []),
-            ("web/www/images",              []),
-            ("web/www/systems",             []),
-            ("web/www/profiles",            []),
-            ("web/www/links",               []),
-            ("web/www/aux",                 []),
+            ("%scobbler/localmirror" % webroot,         []),
+            ("%scobbler/kickstarts" % webroot,          []),
+            ("%scobbler/kickstarts_sys" % webroot,      []),
+            ("%scobbler/repo_mirror" % webroot,         []),
+            ("%scobbler/ks_mirror" % webroot,           []),
+            ("%scobbler/ks_mirror/config" % webroot,    []),
+            ("%scobbler/distros" % webroot,             []),
+            ("%scobbler/images" % webroot,              []),
+            ("%scobbler/systems" % webroot,             []),
+            ("%scobbler/profiles" % webroot,            []),
+            ("%scobbler/links" % webroot,               []),
+            ("%scobbler/aux" % webroot,                 []),
             
             # zone-specific templates directory
-            ("zone_templates",              []),
+            ("%szone_templates" % etcpath,              []),
         ]),
     )
