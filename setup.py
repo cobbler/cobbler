@@ -2,19 +2,8 @@
 import glob, os, time, yaml
 from distutils.core import setup
 from distutils.command.build_py import build_py as _build_py
-try:
-    import subprocess
-except:
-    import cobbler.sub_process as subprocess
-
 
 VERSION = "2.0.4"
-
-TEMPLATES_DIR = "installer_templates"
-DEFAULTS = os.path.join(TEMPLATES_DIR, "defaults")
-MODULES_TEMPLATE = os.path.join(TEMPLATES_DIR, "modules.conf.template")
-SETTINGS_TEMPLATE = os.path.join(TEMPLATES_DIR, "settings.template")
-OUTPUT_DIR = "config"
 
 
 #####################################################################
@@ -75,39 +64,6 @@ def gen_manpages():
 
 #####################################################################
 
-def gen_build_version():
-    """Pull metadata information from git when this build is from
-    a git repo.
-    """
-    
-    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
-    gitdate = "?"
-    gitstamp = "?"
-    builddate = time.asctime()
-    if os.path.exists(".git"):
-       # for builds coming from git, include the date of the last commit
-       cmd = subprocess.Popen(["/usr/bin/git","log","-1"],stdout=subprocess.PIPE)
-       data = cmd.communicate()[0].strip()
-       for line in data.split("\n"):
-           if line.startswith("commit"):
-               tokens = line.split(" ",1)
-               gitstamp = tokens[1].strip()
-           if line.startswith("Date:"):
-               tokens = line.split(":",1)
-               gitdate = tokens[1].strip()
-               break
-    data = {
-       "gitdate" : gitdate,
-       "gitstamp"      : gitstamp,
-       "builddate"     : builddate,
-       "version"       : VERSION,
-       "version_tuple" : [ int(x) for x in VERSION.split(".")]
-    }
-    fd.write(yaml.dump(data))
-    fd.close()
-
-
-#####################################################################
 
 #####################################################################
 ## Modify Build Stage  ##############################################
