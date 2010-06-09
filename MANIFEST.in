@@ -1,5 +1,6 @@
 include COPYING AUTHORS README CHANGELOG
 
+recursive-include aux *
 recursive-include config *
 recursive-include docs *
 recursive-include installer_templates *
