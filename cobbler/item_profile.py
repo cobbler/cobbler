@@ -57,7 +57,7 @@ FIELDS = [
   ["name_servers","SETTINGS:default_name_servers",[],"Name Servers",True,"space delimited",0,"list"],
   ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited",0,"list"],
   ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0,"list"],
-  ["puppet_params","<<inherit>>",0,"Puppet Parameters",True,"Parameters which will be handed to puppet (Must be valid YAML dictionary)", 0,"str"],
+  ["mgmt_parameters","<<inherit>>",0,"Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
   ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0,"dict"],
   ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
   ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"],

@@ -236,19 +236,19 @@ class Item:
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
     
-    def set_puppet_params(self,puppet_params):
+    def set_mgmt_parameters(self,mgmt_parameters):
         """
         A YAML string which can be assigned to any object, this is used by
         Puppet's external_nodes feature.
         """
-        if puppet_params == "<<inherit>>":
-            self.puppet_params = puppet_params
+        if mgmt_parameters == "<<inherit>>":
+            self.mgmt_parameters = mgmt_parameters
         else:
             import yaml
-            data = yaml.load(puppet_params)
+            data = yaml.load(mgmt_parameters)
             if type(data) is not dict:
                 raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
-            self.puppet_params = data
+            self.mgmt_parameters = data
         return True
         
 

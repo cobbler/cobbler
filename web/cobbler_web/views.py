@@ -200,8 +200,8 @@ def get_fields(what, is_subobject, seed_item=None):
         # flatten hashes of all types, they can only be edited as text
         # as we have no HTML hash widget (yet)
         if type(elem["value"]) == type({}):
-            if elem["name"] == "puppet_params":
-                #Render dictionary as YAML for Puppet Parameters field
+            if elem["name"] == "mgmt_parameters":
+                #Render dictionary as YAML for Management Parameters field
                 tokens = []
                 for (x,y) in elem["value"].items():
                    if y is not None:

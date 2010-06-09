@@ -662,7 +662,6 @@ def blender(api_handle,remove_hashes, root_obj):
 
     mgmt_parameters = results.get("mgmt_parameters",{})
     mgmt_parameters.update(results.get("ks_meta", {}))
-    mgmt_parameters.update(results.get("puppet_params", {}))
     results["mgmt_parameters"] = mgmt_parameters
  
     # sanitize output for koan and kernel option lines, etc

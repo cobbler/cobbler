@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 USES_TEXTAREA = [
    "comment",
    "mgmt_classes",
-   "puppet_params",
+   "mgmt_parameters",
    "template_files"
 ]
 
@@ -127,7 +127,7 @@ BLOCK_MAPPINGS = {
    "repos"                  : "General",
    "dhcp_tag"               : "Advanced",
    "mgmt_classes"           : "Management",
-   "puppet_params"          : "Management",
+   "mgmt_parameters"        : "Management",
    "template_files"         : "Management",
    "network_widget_a"       : "Networking",
    "network_widget_b"       : "Networking",
