@@ -41,7 +41,6 @@ class Logger:
       # Main logfile is append mode, other logfiles not.
       if not os.path.exists(logfile):
          self.logfile = open(logfile, "a")
-         sub_process.call("chown apache %s" % logfile, shell=True)
          self.logfile.close()
 
       try:
