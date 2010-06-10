@@ -568,9 +568,3 @@ class RepoSync:
         cmd2 = "chmod -R 755 %s" % repo_path
         utils.subprocess_call(self.logger, cmd2)
 
-        if self.config.api.is_selinux_enabled():
-            cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
-            utils.subprocess_call(self.logger, cmd3)
-
-
-            
