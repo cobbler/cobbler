@@ -28,6 +28,7 @@ import traceback
 import random
 import commands
 import urlgrabber
+import os.path
 
 cfg = None
 
@@ -45,11 +46,13 @@ TEST_DISTRO_PREFIX = "TEST-DISTRO-"
 TEST_PROFILE_PREFIX = "TEST-PROFILE-"
 TEST_SYSTEM_PREFIX = "TEST-SYSTEM-"
 
+FAKE_KS_CONTENTS = "HELLO WORLD"
+
 # Files to pretend are kernel/initrd, don't point to anything real.
 # These will be created if they don't already exist.
-FAKE_KERNEL = cfg['test_kernel']
-FAKE_INITRD = cfg['test_initrd']
-FAKE_KICKSTART = cfg['test_kickstart']
+FAKE_KERNEL = "/tmp/cobbler-testing-fake-kernel"
+FAKE_INITRD = "/tmp/cobbler-testing-fake-initrd"
+FAKE_KICKSTART = "/tmp/cobbler-testing-kickstart"
 
 class CobblerTest(unittest.TestCase):
 
@@ -94,6 +97,17 @@ class CobblerTest(unittest.TestCase):
         self.cleanup_distros = []
         self.cleanup_profiles = []
         self.cleanup_systems = []
+
+        # Create a fake kernel/init pair in /tmp, Cobbler doesn't care what
+        # these files actually contain.
+        if not os.path.exists(FAKE_KERNEL):
+            commands.getstatusoutput("touch %s" % FAKE_KERNEL)
+        if not os.path.exists(FAKE_INITRD):
+            commands.getstatusoutput("touch %s" % FAKE_INITRD)
+        if not os.path.exists(FAKE_KICKSTART):
+            f = open(FAKE_KICKSTART, 'w')
+            f.write(FAKE_KS_CONTENTS)
+            f.close()
 
     def tearDown(self):
         """
@@ -179,7 +193,7 @@ class CobblerTest(unittest.TestCase):
         url = "http://%s/cblr/svc/op/ks/profile/%s" % (cfg['cobbler_server'], 
                 profile_name)
         data = urlgrabber.urlread(url)
-        self.assertNotEquals(-1, data.find("url"))
+        self.assertEquals(FAKE_KS_CONTENTS, data)
 
         url = "http://%s/cblr/svc/op/list/what/profiles" % cfg['cobbler_server'] 
         data = urlgrabber.urlread(url)
