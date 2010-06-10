@@ -1,5 +1,4 @@
-#!/bin/bash
-# The #! is here so vim will do syntax highlighting.  emacs: -*- sh -*-
+# emacs: -*- sh -*-
 #
 # bash completion file for cobbler
 #
