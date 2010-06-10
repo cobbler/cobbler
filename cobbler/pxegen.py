@@ -471,7 +471,7 @@ class PXEGen:
         
             # Find the kickstart if we inherit from another profile
             if system:
-	        blended = utils.blender(self.api, True, system)
+                blended = utils.blender(self.api, True, system)
             else:
                 blended = utils.blender(self.api, True, profile)
             kickstart_path = blended.get("kickstart","")
