@@ -1,4 +1,3 @@
-#! /usr/bin/python2.4
 
 import httplib, simplejson  # http://cheeseshop.python.org/pypi/simplejson
                             # Here only used for prettyprinting

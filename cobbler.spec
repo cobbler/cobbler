@@ -9,7 +9,7 @@ License: GPLv2+
 AutoReq: no
 Version: 2.0.4
 Release: 1%{?dist}
-Source0: cobbler-%{version}.tar.gz
+Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -24,9 +24,7 @@ Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
 Requires: createrepo
-Requires: libyaml
 Requires: python-cheetah
-Requires: python-devel
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
@@ -54,16 +52,14 @@ Requires(preun): /sbin/service
 
 %description
 
-Cobbler is a network install server.  Cobbler
-supports PXE, virtualized installs, and
-reinstalling existing Linux machines.  The last two
-modes use a helper tool, 'koan', that
-integrates with cobbler.  There is also a web interface
-'cobbler-web'.  Cobbler's advanced features
-include importing distributions from DVDs and rsync
-mirrors, kickstart templating, integrated yum
-mirroring, and built-in DHCP/DNS Management.  Cobbler has
-a XMLRPC API for integration with other applications.
+Cobbler is a network install server.  Cobbler supports PXE,
+virtualized installs, and re-installing existing Linux machines.  The
+last two modes use a helper tool, 'koan', that integrates with
+cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
+advanced features include importing distributions from DVDs and rsync
+mirrors, kickstart templating, integrated yum mirroring, and built-in
+DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with
+other applications.
 
 %prep
 %setup -q
@@ -75,10 +71,12 @@ a XMLRPC API for integration with other applications.
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.d
-install -p config/cobbler.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
-install -p config/cobbler_web.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
+install -p -m 644 config/cobbler.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
+install -p -m 644 config/cobbler_web.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
+
+rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
 %clean
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
@@ -161,10 +159,10 @@ fi
 %{python_sitelib}/cobbler*.egg-info
 %endif
 
-%defattr(-,apache,apache-)
+%doc AUTHORS CHANGELOG README COPYING
+
 /var/www/cobbler
 
-%doc AUTHORS CHANGELOG README COPYING
 
 %package -n koan
 

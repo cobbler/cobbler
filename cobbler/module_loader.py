@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Module loader, adapted for cobbler usage
 
