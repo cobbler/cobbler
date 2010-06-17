@@ -166,7 +166,7 @@ fi
 
 %package -n koan
 
-Summary: Helper tool that performs cobbler orders on remote machines.
+Summary: Helper tool that performs cobbler orders on remote machines
 Group: Applications/System
 Requires: python >= 2.0
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
