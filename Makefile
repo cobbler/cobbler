@@ -20,11 +20,6 @@ clean:
 	-rm *.tmp
 	-rm *.log
 
-manpage:
-	pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz
-	pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz
-	pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz
-
 test:
 	make savestate prefix=test
 	make rpms
@@ -37,14 +32,14 @@ test:
 nosetests:
 	nosetests cobbler/*.py -v | tee test.log
 
-build: manpage
+build:
 	python setup.py build -f
 
-install: build manpage
+install: build
 	python setup.py install -f
 	chown -R apache /usr/share/cobbler/web
 
-debinstall: manpage
+debinstall:
 	python setup.py install -f --root $(DESTDIR)
 
 devinstall:
@@ -97,7 +92,7 @@ restartservices:
 sdist: clean
 	python setup.py sdist
 
-rpms: clean manpage sdist
+rpms: clean sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
