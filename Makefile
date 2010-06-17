@@ -15,7 +15,7 @@ clean:
 	-rm -rf buildiso
 	-rm MANIFEST
 	-rm -f koan/*.pyc
-	-rm -f config/modules.conf config/settings config/version
+	-rm -f config/version
 	-rm -f docs/*.1.gz 
 	-rm *.tmp
 	-rm *.log
