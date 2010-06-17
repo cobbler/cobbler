@@ -130,6 +130,9 @@ class BootSync:
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
+        self.logger.info("cleaning link caches")
+        self.clean_link_cache()
+
         self.logger.info("rendering Rsync files")
         self.rsync_gen()
 
@@ -179,7 +182,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path,logger=self.logger)
             if os.path.isdir(path):
-                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
+                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered",".link_cache"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path,logger=self.logger)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
@@ -193,6 +196,11 @@ class BootSync:
         utils.rmtree_contents(self.yaboot_cfg_dir,logger=self.logger)
         utils.rmtree_contents(self.rendered_dir,logger=self.logger)
 
+    def clean_link_cache(self):
+        for dirtree in [self.bootloc, self.settings.webdir]:
+            cachedir = '%s/.link_cache'%dirtree
+            cmd = "find %s -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'"%cachedir
+            utils.subprocess_call(cmd)
 
     def rsync_gen(self):
         """

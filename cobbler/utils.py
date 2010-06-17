@@ -48,6 +48,7 @@ import field_info
 import clogger
 import yaml
 import urllib2
+import simplejson
 
 try:
     import hashlib as fiver
@@ -1012,6 +1013,54 @@ def is_safe_to_hardlink(src,dst,api):
     # we're dealing with SELinux and files that are not safe to chcon
     return False
 
+def hashfile(fn, lcache=None, logger=None):
+    """
+    Returns the sha1sum of the file
+    """
+
+    db = {}
+    try:
+        dbfile = os.path.join(lcache,'link_cache.json')
+        if os.path.exists(dbfile):
+            db = simplejson.load(open(dbfile, 'r'))
+    except:
+        pass
+
+    mtime = os.stat(fn).st_mtime
+    if db.has_key(fn):
+        if db[fn][0] >= mtime:
+            return db[fn][1]
+
+    if os.path.exists(fn):
+        cmd = '/usr/bin/sha1sum %s'%fn
+        key = subprocess_get(logger,cmd).split(' ')[0]
+        if lcache is not None:
+            db[fn] = (mtime,key)
+            simplejson.dump(db, open(dbfile,'w'))
+        return key
+    else:
+        return None
+
+def cachefile(src, dst, api=None, logger=None):
+    """
+    Copy a file into a cache and link it into place.
+    Use this with caution, otherwise you could end up
+    copying data twice if the cache is not on the same device
+    as the destination
+    """
+    lcache = os.path.join(os.path.dirname(os.path.dirname(dst)),'.link_cache')
+    if not os.path.isdir(lcache):
+        os.mkdir(lcache)
+    key = hashfile(src, lcache=lcache, logger=logger)
+    cachefile = os.path.join(lcache, key)
+    if not os.path.exists(cachefile):
+        logger.info("trying to create cache file %s"%cachefile)
+        copyfile(src,cachefile,api=api,logger=logger)
+
+    logger.info("trying cachelink %s -> %s -> %s"%(src,cachefile,dst))
+    rc = os.link(cachefile,dst)
+    return rc
+
 def linkfile(src, dst, symlink_ok=False, api=None, logger=None):
     """
     Attempt to create a link dst that points to src.  Because file
@@ -1068,6 +1117,11 @@ def linkfile(src, dst, symlink_ok=False, api=None, logger=None):
             return rc
         except (IOError, OSError):
             pass
+
+    try:
+        return cachefile(src,dst,api=api,logger=logger)
+    except (IOError, OSError):
+        pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
 
@@ -1543,10 +1597,12 @@ def subprocess_call(logger, cmd, shell=True):
     return rc
 
 def subprocess_get(logger, cmd, shell=True):
-    logger.info("running: %s" % cmd)
+    if logger is not None:
+        logger.info("running: %s" % cmd)
     sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
-    data = sp.communicate()[0] 
-    logger.info("received: %s" % data)
+    data = sp.communicate()[0]
+    if logger is not None:
+        logger.info("received: %s" % data)
     return data
 
 def popen2(args, **kwargs):
