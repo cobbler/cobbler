@@ -103,8 +103,8 @@ if __name__ == "__main__":
         version = VERSION,
         description = "Network Boot and Update Server",
         long_description = "Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",  
-        author = "Michael DeHaan",
-        author_email = "mdehaan@redhat.com",
+        author = "Team Cobbler",
+        author_email = "cobbler@lists.fedorahosted.org",
         url = "http://fedorahosted.org/cobbler/",
         license = "GPLv2+",
         requires = [
