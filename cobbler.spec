@@ -214,12 +214,13 @@ Requires: python(abi) >= %{pyver}
 Web interface for Cobbler that allows visiting http://server/cobbler_web to configure the install server.
 
 %files -n cobbler-web
+%defattr(-,root,root,-)
+%doc AUTHORS COPYING CHANGELOG README
+%config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
-%config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %dir /var/lib/cobbler/webui_sessions
 /var/www/cobbler_webui_content/
-%doc AUTHORS COPYING CHANGELOG README
 
 %changelog
 * Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
