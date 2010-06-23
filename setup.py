@@ -3,7 +3,7 @@ import glob, os, time, yaml
 from distutils.core import setup
 from distutils.command.build_py import build_py as _build_py
 
-VERSION = "2.0.4"
+VERSION = "2.1.0"
 
 
 #####################################################################
