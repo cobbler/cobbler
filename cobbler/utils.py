@@ -916,9 +916,11 @@ def check_dist():
        return "debian"
     elif os.path.exists("/etc/SuSE-release"):
        return "suse"
-    else:
+    elif os.path.exists("/etc/redhat-release"):
        # valid for Fedora and all Red Hat / Fedora derivatives
        return "redhat"
+    else:
+       return "unknown"
 
 def os_release():
 
