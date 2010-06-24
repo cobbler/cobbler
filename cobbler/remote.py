@@ -1708,6 +1708,15 @@ class CobblerXMLRPCInterface:
             utils.die(self.logger, "invalid power mode '%s', expected on/off/reboot" % power)
         return rc
 
+    def clear_system_logs(self, object_id, token=None, logger=None):
+        """
+        clears console logs of a system
+        """
+        obj = self.__get_object(object_id)
+        self.check_access(token, "clear_system_logs", obj)
+        rc=self.api.clear_logs(obj, logger=logger)
+        return rc
+
 # *********************************************************************************
 # *********************************************************************************
 

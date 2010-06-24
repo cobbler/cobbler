@@ -36,6 +36,7 @@ import action_replicate
 import action_acl
 import action_report
 import action_power
+import action_log
 import action_hardlink
 import action_dlcontent
 from cexceptions import *
@@ -818,6 +819,12 @@ class BootAPI:
         return self.power_on(system, user, password, logger=logger)
 
     # ==========================================================================
+
+    def clear_logs(self, system, logger=None):
+        """
+        Clears console and anamon logs for system
+        """
+        return action_log.LogTool(self._config,system,self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)
