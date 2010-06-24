@@ -74,6 +74,7 @@ DISPLAY_PARAMS = [
    "distro","profile",
    "kickstart","ks_meta",
    "install_tree","kernel","initrd",
+   "netboot_enabled",
    "kernel_options",
    "repos",
    "virt_ram","virt_disk","virt_type", "virt_path", "virt_auto_boot"
