@@ -230,7 +230,10 @@ class Collection:
         if ref is None or ref.name is None:
            return False
 
-        ref.check_if_valid()
+        try:
+            ref.check_if_valid()
+        except CX, error:
+            return False
 
         if ref.uid == '':
            ref.uid = self.config.generate_uid()
