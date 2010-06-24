@@ -47,6 +47,14 @@ config = ZPXE CONF
 upper = xrange('A', 'Z')
 lower = xrange('a', 'z')
  
+/* Query user ID.  This is used later to determine:
+     1. Whether a user-specific PXE profile exists.
+     2. Whether user is disconnected. If so, IPL the default disk.
+*/
+'pipe cp query' userid() '| var user'
+parse value user with id . dsc .
+userid = translate(id, lower, upper)
+
 /* Useful settings normally found in PROFILE EXEC */
 'cp set run on'
 'cp set pf11 retrieve forward'
@@ -58,6 +66,10 @@ if lines(config) > 0 then do
   parse var inputline . server .
   inputline = linein(config)     /* second line is DASD disk to IPL */
   parse var inputline . iplDisk .
+  if lines(config) > 0 then do
+    inputline = linein(config)    /* third line is name of system in cobbler */
+    parse var inputline . userid .
+  end
 end
  
 /* Define temporary disk (VDISK) to store files */
@@ -73,13 +85,6 @@ queue 'tmpdsk'
 'link tcpmaint 592 592 rr'
 'access 592 e'
  
-/* Query user ID.  This is used later to determine:
-     1. Whether a user-specific PXE profile exists.
-     2. Whether user is disconnected. If so, IPL the default disk.
-*/
-'pipe cp query' userid() '| var user'
-parse value user with id . dsc .
-userid = translate(id, lower, upper)
  
 /* Check whether a user-specific PXE profile exists.
    If so, proceed with this.  Otherwise, continue and
