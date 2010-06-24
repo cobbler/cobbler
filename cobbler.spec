@@ -157,6 +157,8 @@ fi
 
 %if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
 %exclude %{python_sitelib}/cobbler/sub_process.py*
+%endif
+%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
 %{python_sitelib}/cobbler*.egg-info
 %endif
 
