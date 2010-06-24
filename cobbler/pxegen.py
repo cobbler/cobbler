@@ -35,6 +35,7 @@ try:
 except:
     import sub_process
 import string
+import socket
 
 import utils
 from cexceptions import *
@@ -227,7 +228,8 @@ class PXEGen:
             self.templar.render(template_cf, blended, cf)
             # FIXME: profiles also need this data!
             # FIXME: the _conf and _parm files are limited to 80 characters in length 
-            kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
+            ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+            kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
             # gather default kernel_options and default kernel_options_s390x
             kopts = blended.get("kernel_options","")
             hkopts = shlex.split(utils.hash_to_string(kopts))
@@ -327,7 +329,8 @@ class PXEGen:
                 self.templar.render(template_cf, blended, cf)
                 # FIXME: profiles also need this data!
                 # FIXME: the _conf and _parm files are limited to 80 characters in length 
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
+                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
                 # gather default kernel_options and default kernel_options_s390x
                 kopts = blended.get("kernel_options","")
                 hkopts = shlex.split(utils.hash_to_string(kopts))
@@ -559,10 +562,11 @@ class PXEGen:
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
+            ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (blended["http_server"], system.name)
+                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
             elif kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (blended["http_server"], profile.name)
+                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
