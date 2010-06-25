@@ -17,7 +17,7 @@ def explode_glob_path(path):
     """Take a glob and hand back the full recursive expansion,
     ignoring links.
     """
-    
+
     result = []
     includes = glob.glob(path)
     for item in includes:
@@ -29,10 +29,10 @@ def explode_glob_path(path):
 
 
 def proc_data_files(data_files):
-    """Because data_files doesn't natively support globs... 
+    """Because data_files doesn't natively support globs...
     let's add them.
     """
-    
+
     result = []
     for dir,files in data_files:
         includes = []
@@ -44,23 +44,23 @@ def proc_data_files(data_files):
 #####################################################################
 
 def gen_manpages():
-    """Generate the man pages... this is currently done through POD, 
-    possible future version may do this through some Python mechanism 
+    """Generate the man pages... this is currently done through POD,
+    possible future version may do this through some Python mechanism
     (maybe conversion from ReStructured Text (.rst))...
     """
-    
+
     manpages = {
         "cobbler":          'pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz',
         "koan":             'pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz',
         "cobbler-register": 'pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz',
     }
-    
+
     #Actually build them
     for man, cmd in manpages.items():
         print("building %s man page." % man)
         if os.system(cmd):
             print "Creation of %s manpage failed." % man
-            exit(1) 
+            exit(1)
 
 #####################################################################
 
@@ -71,7 +71,7 @@ def gen_manpages():
 
 class build_py(_build_py):
     """Specialized Python source builder."""
-    
+
     def run(self):
         gen_manpages()
 #        gen_build_version()
@@ -83,7 +83,7 @@ class build_py(_build_py):
 #####################################################################
 if __name__ == "__main__":
     ## Configurable installation roots for various data files.
-    
+
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
     docpath     = "/usr/share/man/man1"
@@ -91,18 +91,18 @@ if __name__ == "__main__":
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
-    
+
     webroot     = "/var/www/"
     webconfig   = "/etc/httpd/conf.d/"
     webcontent  = webroot + "cobbler_webui_content/"
-    
+
 
     setup(
         cmdclass={'build_py': build_py},
         name = "cobbler",
         version = VERSION,
         description = "Network Boot and Update Server",
-        long_description = "Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",  
+        long_description = "Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
         author = "Team Cobbler",
         author_email = "cobbler@lists.fedorahosted.org",
         url = "http://fedorahosted.org/cobbler/",
@@ -113,8 +113,8 @@ if __name__ == "__main__":
         ],
         packages = [
             "cobbler",
-            "cobbler/modules", 
-            "koan", 
+            "cobbler/modules",
+            "koan",
         ],
         package_dir = {
             "cobbler_web": "web/cobbler_web",
@@ -129,12 +129,10 @@ if __name__ == "__main__":
         data_files = proc_data_files([
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
-            ("%s" % etcpath,                ["config/*"]),
             ("%s" % docpath,                ["docs/*.gz"]),
             ("installer_templates",         ["installer_templates/*"]),
             ("%skickstarts" % libpath,      ["kickstarts/*"]),
             ("%ssnippets" % libpath,        ["snippets/*"]),
-            ("%stemplates" % etcpath,       ["templates/*"]),
             ("web",                         ["web/*.*"]),
             ("%sweb/content" % webcontent,  ["web/content/*.*"]),
             ("web/cobbler_web",             ["web/cobbler_web/*.*"]),
@@ -142,7 +140,14 @@ if __name__ == "__main__":
             ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
             ("%swebui_sessions" % libpath,  []),
             ("%scobbler/aux" % webroot,     ["aux/*"]),
-            
+
+            #Configuration
+            ("%s" % etcpath,                ["config/*"]),
+            ("%s" % etcpath,                ["templates/etc/*"]),
+            ("%spxe" % etcpath,             ["templates/pxe/*"]),
+            ("%sreporting" % etcpath,       ["templates/reporting/*"]),
+            ("%spower" % etcpath,           ["templates/power/*"]),
+
             #Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath,     []),
             ("%striggers/add/distro/post" % libpath,    []),
@@ -166,7 +171,15 @@ if __name__ == "__main__":
             ("%striggers/sync/pre" % libpath,           []),
             ("%striggers/sync/post" % libpath,          []),
             ("%striggers/change" % libpath,             []),
-            
+
+            #Build empty directories to hold the database
+            ("%sconfig" % libpath,            []),
+            ("%sconfig/distros.d" % libpath,  []),
+            ("%sconfig/images.d" % libpath,   []),
+            ("%sconfig/profiles.d" % libpath, []),
+            ("%sconfig/repos.d" % libpath,    []),
+            ("%sconfig/systems.d" % libpath,  []),
+
             # logfiles
             ("%scobbler/kicklog" % logpath,             []),
             ("%scobbler/syslog" % logpath,              []),
@@ -174,10 +187,10 @@ if __name__ == "__main__":
             ("%scobbler/anamon" % logpath,              []),
             ("%skoan" % logpath,                        []),
             ("%scobbler/tasks" % logpath,               []),
-            
+
             # spoolpaths
             ("spool/koan",                              []),
-            
+
             # web page directories that we own
             ("%scobbler/localmirror" % webroot,         []),
             ("%scobbler/kickstarts" % webroot,          []),
@@ -191,7 +204,7 @@ if __name__ == "__main__":
             ("%scobbler/profiles" % webroot,            []),
             ("%scobbler/links" % webroot,               []),
             ("%scobbler/aux" % webroot,                 []),
-            
+
             # zone-specific templates directory
             ("%szone_templates" % etcpath,              []),
         ]),
