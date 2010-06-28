@@ -7,6 +7,7 @@ recursive-include docs *
 recursive-include installer_templates *
 recursive-include kickstarts *
 recursive-include snippets *
+recursive-include scripts *
 recursive-include templates *
 recursive-include web *
 

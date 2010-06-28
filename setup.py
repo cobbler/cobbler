@@ -193,17 +193,14 @@ if __name__ == "__main__":
 
             # web page directories that we own
             ("%scobbler/localmirror" % webroot,         []),
-            ("%scobbler/kickstarts" % webroot,          []),
-            ("%scobbler/kickstarts_sys" % webroot,      []),
             ("%scobbler/repo_mirror" % webroot,         []),
             ("%scobbler/ks_mirror" % webroot,           []),
             ("%scobbler/ks_mirror/config" % webroot,    []),
-            ("%scobbler/distros" % webroot,             []),
-            ("%scobbler/images" % webroot,              []),
-            ("%scobbler/systems" % webroot,             []),
-            ("%scobbler/profiles" % webroot,            []),
             ("%scobbler/links" % webroot,               []),
             ("%scobbler/aux" % webroot,                 []),
+
+            #A script that isn't really data, wsgi script
+            ("%scobbler/svc/" % webroot,     ["scripts/services.py"]),
 
             # zone-specific templates directory
             ("%szone_templates" % etcpath,              []),
