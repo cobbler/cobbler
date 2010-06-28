@@ -139,6 +139,7 @@ if __name__ == "__main__":
             ("web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
             ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
             ("%swebui_sessions" % libpath,  []),
+            ("%sloaders" % libpath,         []),
             ("%scobbler/aux" % webroot,     ["aux/*"]),
 
             #Configuration
