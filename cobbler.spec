@@ -160,6 +160,9 @@ fi
 %endif
 %if 0%{?fedora} >= 9 || 0%{?rhel} > 5
 %{python_sitelib}/cobbler*.egg-info
+/var/lib/tftpboot/images
+%else
+/tftpboot/images
 %endif
 
 %doc AUTHORS CHANGELOG README COPYING
