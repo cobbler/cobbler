@@ -220,7 +220,8 @@ Requires: python(abi) >= %{pyver}
 
 %description -n cobbler-web
 
-Web interface for Cobbler that allows visiting http://server/cobbler_web to configure the install server.
+Web interface for Cobbler that allows visiting
+http://server/cobbler_web to configure the install server.
 
 %files -n cobbler-web
 %defattr(-,root,root,-)
