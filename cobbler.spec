@@ -76,6 +76,12 @@ install -p -m 644 config/cobbler_web.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
+%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
+%else
+mkdir -p $RPM_BUILD_ROOT/tftpboot/images
+%endif
+
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
 %clean
