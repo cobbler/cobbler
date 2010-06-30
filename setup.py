@@ -170,7 +170,7 @@ if __name__ == "__main__":
             ("%skickstarts" % libpath,      ["kickstarts/*"]),
             ("%ssnippets" % libpath,        ["snippets/*"]),
             ("web",                         ["web/*.*"]),
-            ("%sweb/content" % webcontent,  ["web/content/*.*"]),
+            ("%s" % webcontent,             ["web/content/*.*"]),
             ("web/cobbler_web",             ["web/cobbler_web/*.*"]),
             ("web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
             ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
