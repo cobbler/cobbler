@@ -3,7 +3,14 @@ import glob, os, time, yaml
 from distutils.core import setup
 from distutils.command.build_py import build_py as _build_py
 
+try:
+    import subprocess
+except:
+    import cobbler.sub_process as subprocess
+
+
 VERSION = "2.1.0"
+OUTPUT_DIR = "config"
 
 
 #####################################################################
@@ -64,6 +71,35 @@ def gen_manpages():
 
 #####################################################################
 
+def gen_build_version():
+    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
+    gitdate = "?"
+    gitstamp = "?"
+    builddate = time.asctime()
+    if os.path.exists(".git"):
+       # for builds coming from git, include the date of the last commit
+       cmd = subprocess.Popen(["/usr/bin/git","log","-1"],stdout=subprocess.PIPE)
+       data = cmd.communicate()[0].strip()
+       for line in data.split("\n"):
+           if line.startswith("commit"):
+               tokens = line.split(" ",1)
+               gitstamp = tokens[1].strip()
+           if line.startswith("Date:"):
+               tokens = line.split(":",1)
+               gitdate = tokens[1].strip()
+               break
+    data = {
+       "gitdate" : gitdate,
+       "gitstamp"      : gitstamp,
+       "builddate"     : builddate,
+       "version"       : VERSION,
+       "version_tuple" : [ int(x) for x in VERSION.split(".")]
+    }
+    fd.write(yaml.dump(data))
+    fd.close()
+
+#####################################################################
+
 
 #####################################################################
 ## Modify Build Stage  ##############################################
@@ -74,7 +110,7 @@ class build_py(_build_py):
 
     def run(self):
         gen_manpages()
-#        gen_build_version()
+        gen_build_version()
         _build_py.run(self)
 
 

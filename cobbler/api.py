@@ -217,7 +217,7 @@ class BootAPI:
             version       -- something like "1.3.2"
             version_tuple -- something like [ 1, 3, 2 ]
         """
-        fd = open("/var/lib/cobbler/version")
+        fd = open("/etc/cobbler/version")
         ydata = fd.read()
         fd.close()
         data = yaml.load(ydata)
