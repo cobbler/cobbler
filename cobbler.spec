@@ -6,8 +6,8 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.0.1
-Release: 1%{?dist}
+Version: 2.0.4
+Release: 2%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
@@ -214,6 +214,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler/*.py*
 #%{python_sitelib}/cobbler/server/*.py*
 %{python_sitelib}/cobbler/modules/*.py*
+%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
+%exclude %{python_sitelib}/cobbler/sub_process.py*
+%endif
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
 %if 0%{?suse_version} >= 1000
@@ -283,7 +286,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 
 %defattr(-,root,root)
-%if 0%{?fedora} > 8
+%if 0%{?fedora} > 8 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
 %endif
 %doc AUTHORS CHANGELOG README COPYING
@@ -291,10 +294,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
-Version: 2.0.1
-Release: 1%{?dist}
 Group: Applications/System
-Requires: mkinitrd
 Requires: python >= 1.5
 BuildRequires: python-devel
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
@@ -329,6 +329,11 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/cobbler-register
 %dir %{python_sitelib}/koan
 %{python_sitelib}/koan/*.py*
+%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
+%exclude %{python_sitelib}/koan/sub_process.py*
+%exclude %{python_sitelib}/koan/opt_parse.py*
+%exclude %{python_sitelib}/koan/text_wrap.py*
+%endif
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
@@ -338,8 +343,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Version: 2.0.1
-Release: 1%{?dist}
 Group: Applications/System
 Requires: cobbler
 Requires: Django
@@ -368,12 +371,32 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %dir /usr/share/cobbler/web/cobbler_web
 /usr/share/cobbler/web/cobbler_web/*
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
-%dir /usr/share/cobbler/web/sessions
+%dir /var/lib/cobbler/webui_sessions
 %dir /var/www/cobbler_webui_content
 /var/www/cobbler_webui_content/*
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Fri Jun 04 2010 John Eckersberg <jeckersb@redhat.com> - 2.0.4-2
+- Bump spec for rebuild with updated sources for 2.0.4
+
+* Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
+- Bug fix release, see Changelog for details
+
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
+- Bump release because I forgot cobbler-web
+
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-2
+- Remove requires on mkinitrd as it is not used
+
+* Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
+- Upstream Brown Paper Bag Release (see CHANGELOG)
+
+* Thu Feb 11 2010 Scott Henson <shenson@redhat.com> - 2.0.3-1
+- Upstream changes (see CHANGELOG)
+
+* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
+- Upstream changes (see CHANGELOG)
 
 * Tue Sep 15 2009 Michael DeHaan <mdehaan@redhat.com> - 2.0.0-1
 - First release with unified spec files
