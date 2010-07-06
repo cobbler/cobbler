@@ -801,6 +801,7 @@ def guess_breed(kerneldir,path,cli_breed,logger):
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
        [ 'Client'      , "redhat" ],
+       [ 'SL'          , "redhat" ],
        [ 'isolinux.bin', None ],
     ]
     guess = None
