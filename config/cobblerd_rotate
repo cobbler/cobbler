@@ -12,12 +12,12 @@
 
 /var/log/cobbler/tasks/*.log {
    weekly
-   size=0M
-   rotate=0
-   sharedscripts
-   postrotate
-       find /var/log/cobbler/tasks -name "*log" -mtime +10 -exec /bin/rm -f {} \;
-   endscript
+   rotate 0
+   missingok
+   ifempty
+   nocompress
+   nocreate
+   nomail
 }
 
 /var/log/cobbler/install.log {
