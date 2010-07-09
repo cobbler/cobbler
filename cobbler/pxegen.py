@@ -152,23 +152,13 @@ class PXEGen:
             kernel = utils.find_kernel(d.kernel) # full path
             initrd = utils.find_initrd(d.initrd) # full path
 
-            if utils.file_is_remote(kernel):
-                if kernel is None:
-                    raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
-                            { "file" : d.kernel, "distro" : d.name })
-            else:
-                if kernel is None or not os.path.isfile(kernel):
-                    raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
-                            { "file" : d.kernel, "distro" : d.name })
+            if kernel is None:
+                raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
+                        { "file" : d.kernel, "distro" : d.name })
 
-            if utils.file_is_remote(initrd):
-                if initrd is None:
-                    raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
-                            { "file" : d.initrd, "distro" : d.name })
-            else:
-                if initrd is None or not os.path.isfile(initrd):
-                    raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
-                            { "file" : d.initrd, "distro" : d.name })
+            if initrd is None:
+                raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
+                        { "file" : d.initrd, "distro" : d.name })
 
             allow_symlink=False
             if dirtree == self.settings.webdir:
