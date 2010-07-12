@@ -20,20 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys
-import socket
-import time
-import os
-import errno
+import sys, socket, time, os, errno, re, random, stat, string
 import base64
 import SimpleXMLRPCServer
 from SocketServer import ThreadingMixIn
 import xmlrpclib
-import random
-import stat
 import base64
 import fcntl
-import string
 import traceback
 import glob
 try:
@@ -51,6 +44,7 @@ import item_system
 import item_repo
 import item_image
 import clogger
+import pxegen
 import utils
 #from utils import * # BAD!
 from utils import _
@@ -126,6 +120,7 @@ class CobblerXMLRPCInterface:
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
+        self.pxegen = pxegen.PXEGen(api._config,self.logger)
 
     def check(self, token):
         """
@@ -1362,7 +1357,44 @@ class CobblerXMLRPCInterface:
         self._log("get_system_as_rendered",name=name,token=token)
         obj = self.api.find_system(name=name)
         if obj is not None:
-           return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+            hash = utils.blender(self.api,True,obj)
+            # Generate a pxelinux.cfg?
+            image_based = False
+            profile = obj.get_conceptual_parent()
+            distro  = profile.get_conceptual_parent()
+            arch = distro.arch
+            if distro is None and profile.COLLECTION_TYPE == "profile":
+                image_based = True
+                arch = profile.arch
+
+            if obj.is_management_supported():
+		# Ok, I've got to be a bit evil here.  I'm putting this field
+		# into the hash for the pytftpd server.  It can remap "kernel"
+		# into the correct kernel, eliminating sync requirements.
+		# 
+		# However, to chain to a different boot loader (as opposed
+		# to a different kernel), the file name that pxelinux.0
+		# requests has to have specific extensions (.bs, others)
+		# ...
+		# So ... pytftpd knows to "remove 'pytftpd.*'" from filenames
+		# if trying to look for matching keys, and we'll add the
+		# real extension onto the kernel's name
+		kernel = "kernelpytftpd"
+		m = re.compile("([.][^.]+)$").search(hash["kernel"])
+		if m:
+		    kernel = kernel + m.group(1)
+                metadata = dict(kernel_path=kernel,initrd_path="initrd")
+                self._log("returning pxelinux.cfg: metadata = %s" % repr(metadata))
+                if not image_based:
+                    hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
+                        None, obj, profile, distro, arch,metadata=metadata)
+                else:
+                    hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
+                        None, obj,None,None,arch,image=profile,
+                        metadata=metadata)
+                self._log("returning pxelinux.cfg: metadata = %s" % repr(metadata))
+
+            return self.xmlrpc_hacks(hash)
         return self.xmlrpc_hacks({})
 
     def get_repo_as_rendered(self,name,token=None,**rest):

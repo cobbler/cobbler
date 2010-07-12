@@ -171,9 +171,9 @@ class Item:
 
     def set_kernel_options(self,options,inplace=False):
         """
-	Kernel options are a space delimited list,
-	like 'a=b c=d e=f g h i=j' or a hash.
-	"""
+        Kernel options are a space delimited list,
+        like 'a=b c=d e=f g h i=j' or a hash.
+        """
         (success, value) = utils.input_string_or_hash(options)
         if not success:
             raise CX(_("invalid kernel options"))

@@ -339,12 +339,6 @@ class PXEGen:
         else:
             timeout_action = default.profile
 
-        fname = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-
-        # read the default template file
-        template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
-        template_data = template_src.read()
-
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
         def sort_name(a,b):
@@ -390,6 +384,12 @@ class PXEGen:
         # save the template.
         metadata = { "pxe_menu_items" : pxe_menu_items, "pxe_timeout_profile" : timeout_action}
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+
+        # read the default template file
+        template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
+        template_data = template_src.read()
+
+        # write the template
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
@@ -425,7 +425,7 @@ class PXEGen:
         return buffer
 
 
-    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True):
+    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True,metadata={}):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -448,7 +448,6 @@ class PXEGen:
         # ---
         # just some random variables
         template = None
-        metadata = {}
         buffer = ""
 
         # ---
@@ -538,8 +537,8 @@ class PXEGen:
 
         # generate the append line
         hkopts = utils.hash_to_string(kopts)
-        if initrd_path and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
-            append_line = "append initrd=%s %s" % (initrd_path, hkopts)
+        if metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
+            append_line = "append initrd=%s %s" % (metadata["initrd_path"], hkopts)
         else:
             append_line = "append %s" % hkopts
 
@@ -624,9 +623,9 @@ class PXEGen:
         if system:
             metadata["system_name"] = system.name
 
-        if kernel_path is not None:
+        if kernel_path is not None and not metadata.has_key("kernel_path"):
             metadata["kernel_path"] = kernel_path
-        if initrd_path is not None:
+        if initrd_path is not None and not metadata.has_key("initrd_path"):
             metadata["initrd_path"] = initrd_path
 
         metadata["append_line"] = append_line
