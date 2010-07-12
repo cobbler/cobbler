@@ -146,6 +146,7 @@ fi
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
+%{_sbindir}/tftpd.py*
 
 %config(noreplace) %{_sysconfdir}/cobbler
 /etc/init.d/cobblerd

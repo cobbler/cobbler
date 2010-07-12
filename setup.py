@@ -163,6 +163,9 @@ if __name__ == "__main__":
             "scripts/cobbler-register",
         ],
         data_files = proc_data_files([
+            # tftpd, hide in /usr/sbin
+            ("/usr/sbin", ["scripts/tftpd.py"]),
+
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
             ("%s" % docpath,                ["docs/*.gz"]),
