@@ -271,6 +271,26 @@ class Item:
                 self.template_files = value
             return True
 
+    def set_fetchable_files(self,fetchable_files,inplace=False):
+        """
+        A comma seperated list of virt_name=path_to_template
+        that should be fetchable via tftp or a webserver
+        """
+        (success, value) = utils.input_string_or_hash(fetchable_files,allow_multiples=False)
+        if not success:
+            return False
+        else:
+            if inplace:
+                for key in value.keys():
+                    if key.startswith("~"):
+                        del self.fetchable_files[key[1:]]
+                    else:
+                        self.fetchable_files[key] = value[key]
+            else:
+                self.fetchable_files= value
+            return True
+
+
     def sort_key(self,sort_fields=[]):
         data = self.to_datastruct()
         return [data.get(x,"") for x in sort_fields]

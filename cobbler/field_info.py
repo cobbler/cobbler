@@ -30,6 +30,7 @@ USES_TEXTAREA = [
    "mgmt_classes",
    "mgmt_parameters",
    "template_files"
+   "fetchable_files"
 ]
 
 # fields that use a multi select in the web app
@@ -129,6 +130,7 @@ BLOCK_MAPPINGS = {
    "mgmt_classes"           : "Management",
    "mgmt_parameters"        : "Management",
    "template_files"         : "Management",
+   "fetchable_files"        : "Management",
    "network_widget_a"       : "Networking",
    "network_widget_b"       : "Networking",
    "server"                 : "Advanced",

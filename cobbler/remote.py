@@ -825,7 +825,7 @@ class CobblerXMLRPCInterface:
 
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
-                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files"] and attributes.has_key("in_place") and attributes["in_place"]:
+                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files", "fetchable_files"] and attributes.has_key("in_place") and attributes["in_place"]:
                         details = self.get_item(object_type,object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_hash(v)
@@ -2171,6 +2171,7 @@ def test_xmlrpc_rw():
    }, token)
    server.modify_system(sid, "mgmt_classes", [ "one", "two", "three"], token)
    server.modify_system(sid, "template_files", {}, token)
+   server.modify_system(sid, "fetchable_files", {}, token)
    server.modify_system(sid, "comment", "...", token)
    server.modify_system(sid, "power_address", "power.example.org", token)
    server.modify_system(sid, "power_type", "ipmitool", token)
