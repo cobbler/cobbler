@@ -146,7 +146,7 @@ class Packet:
         self.opcode,  = unpack("!H",data[0:2])
 
     def marshall(self):
-	raise NotImplementedError("%s: Write marshall method" % repr(self))
+        raise NotImplementedError("%s: Write marshall method" % repr(self))
 
     def is_error(self):
         return False
@@ -243,7 +243,7 @@ class ERRORPacket(Packet):
 
     def marshall(self):
         return pack("!HHsB",
-		    TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
+                    TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
 
 class OACKPacket(Packet):
     """The Option Acknowledge (rfc2347) packet.  We only send these.
@@ -269,14 +269,21 @@ class XMLRPCSystem:
     """Use XMLRPC to look up system attributes.  This is the recommended
        method.
     """
-    def __init__(self, ip_address):
+    def __init__(self, ip_address=None, mac_address=None):
+        query = {}
+        if mac_address is not None:
+            query["mac_address"] = mac_address.replace("-",":").upper()
+        elif ip_address is not None:
+            query["ip_address"] = ip_address
+
         try:
-            systems = COBBLER_HANDLE.find_system({"ip_address" : ip_address })
+            systems = COBBLER_HANDLE.find_system(query)
 
             if len(systems) > 1:
-                raise RuntimeError("IP mapped to multiple systems")
+                raise RuntimeError("Args mapped to multiple systems")
             elif len(systems) == 0:
-                raise RuntimeError("IP %s not found in cobbler" % ip_address)
+                raise RuntimeError("Args %s,%s not found in cobbler"
+                                   % (ip_address,mac_address))
 
             self.system = COBBLER_HANDLE.get_system_for_koan(systems[0])
             self.attrs  = self.system
@@ -324,7 +331,7 @@ class Request:
                 break;
 
         OPTIONS["active"] += 1
-	self.system = XMLRPCSystem(self.remote_addr[0])
+        self.system = XMLRPCSystem(self.remote_addr[0])
 
     def _remap_strip_ip(self,filename):
         # remove per-host IP or Mac prefixes, so that earlier pxelinux requests
@@ -335,6 +342,16 @@ class Request:
         # /<filename>/IP (C000025B)
         trimmed = filename
         if self.system.system is None:
+            # If the file name has a mac address, strip that, use it to
+            # look up the system, and recurse.
+            m = re.compile("01((-[0-9a-f]{2}){6})$").search(filename)
+            if m:
+                # Found a mac address.  try and look up a system
+                self.system = XMLRPCSystem(self.system.name,m.group(1)[1:])
+                if self.system.system is not None:
+                    logging.info("Looked up host late: '%s'" % self.system.name)
+                    return self._remap_strip_ip(filename)
+
             # We can still trim off an ip address... system.name is the
             # incoming ip
             suffix = "/%08X" %unpack('!L',socket.inet_aton(self.system.name))[0]
@@ -349,7 +366,9 @@ class Request:
                 # if I find a mac_address key or ip_address key, then see if
                 # that matches the file I'm looking at
                 if k.find("mac_address") >= 0 and v != '':
-                    suffix = "/" + v.replace(":","-").lower()
+                    # the "01" is the ARP type of the interface.  01 is
+                    # ethernet.  This won't work for token ring, for example
+                    suffix = "/01-" + v.replace(":","-").lower()
                 elif k.find("ip_address") >= 0 and v != '':
                     # IPv4 hardcoded here.
                     suffix = "/%08X" % unpack('!L',socket.inet_aton(v))[0]
@@ -362,20 +381,20 @@ class Request:
         return filename
 
     def _remap_via_profiles(self,filename):
-	pattern = re.compile("images/([^/]*)/(.*)")
-	m = pattern.match(filename)
-	if m:
-	    logging.debug("client requesting distro?")
-	    p = COBBLER_HANDLE.get_distro_for_koan(m.group(1))
+        pattern = re.compile("images/([^/]*)/(.*)")
+        m = pattern.match(filename)
+        if m:
+            logging.debug("client requesting distro?")
+            p = COBBLER_HANDLE.get_distro_for_koan(m.group(1))
             if p:
-                logging.debug("%s matched image %s" % (filename,p["name"]))
+                logging.debug("%s matched distro %s" % (filename,p["name"]))
                 if m.group(2) == os.path.basename(p["kernel"]):
                     return p["kernel"],"template"
                 elif m.group(2) == os.path.basename(p["initrd"]):
                     return p["initrd"],"template"
                 logging.debug("but unknown file requested.")
-	    else:
-		logging.debug("Couldn't load profile %s" % m.group(1))
+            else:
+                logging.debug("Couldn't load profile %s" % m.group(1))
         return filename,"chroot"
 
     def _remap_name(self,filename):
@@ -401,20 +420,20 @@ class Request:
 
         fetchable_files = self.system.attrs["fetchable_files"].strip()
         if not fetchable_files:
-            return filename,"chroot"
+            return self._remap_via_profiles(trimmed)
 
         # Look for the file in the fetchable_files hash
         for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
             # Render the target, to expand things like "$kernel"
             if k == trimmed:
-		logging.debug('_remap_name: %s => %s' % (k,v))
+                logging.debug('_remap_name: %s => %s' % (k,v))
                 try:
                     return TEMPLAR.render(
                         v, self.system.attrs, None).strip(),"template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
                                  % (trimmed,v,e))
-                    return filename,"chroot"
+                    return self._remap_via_profiles(trimmed)
 
         # last try: try profiles
         return self._remap_via_profiles(trimmed)
@@ -457,7 +476,7 @@ class Request:
                 else:
                     logging.debug('Template failed to render.')
             else:
-                logging.debug('Not trying to render non-text file %s.'
+                logging.debug('Not rendering binary file %s.'
                               % (self.filename))
         elif self.type == "hash_value":
             self.file = RenderedFile(self.system.attrs[self.filename])
