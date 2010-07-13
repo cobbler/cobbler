@@ -61,6 +61,7 @@ import glob
 import socket
 import utils
 import time
+import configmgmt
 
 COBBLER_REQUIRED = 1.300
 
@@ -114,6 +115,14 @@ def main():
                  dest="is_update_files",
                  action="store_true",
                  help="update templated files from cobbler config management")
+    p.add_option("-c", "--update-config",
+                 dest="is_update_config",
+                 action="store_true",
+                 help="update system configuration from cobbler config management")
+    p.add_option("", "--summary",
+                 dest="summary",
+                 action="store_true",
+                 help="print configuration run stats")
     p.add_option("-V", "--virt-name",
                  dest="virt_name",
                  help="use this name for the virtual guest")
@@ -194,6 +203,8 @@ def main():
         k.server              = options.server
         k.is_virt             = options.is_virt
         k.is_update_files     = options.is_update_files
+        k.is_update_config    = options.is_update_config
+        k.summary             = options.summary
         k.is_replace          = options.is_replace
         k.is_display          = options.is_display
         k.profile             = options.profile
@@ -259,6 +270,8 @@ class Koan:
         self.list_systems      = None
         self.is_virt           = None
         self.is_update_files   = None
+        self.is_update_config  = None
+        self.summary           = None
         self.is_replace        = None
         self.port              = None
         self.static_interface  = None
@@ -282,7 +295,7 @@ class Koan:
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items):
+        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items, self.is_update_config):
             if x:
                found = found+1
         if found != 1:
@@ -349,6 +362,8 @@ class Koan:
                 self.replace()
         elif self.is_update_files:
             self.update_files()
+        elif self.is_update_config:
+            self.update_config()
         else:
             self.display()
 
@@ -719,6 +734,115 @@ class Koan:
             utils.subprocess_call(cmd)
        
         return True 
+
+    #---------------------------------------------------
+
+    def update_config(self):
+        """
+        Contact the cobbler server and update the system configuration using
+        cobbler's built-in configuration management. Configs are based on
+        a combination of mgmt-classes assigned to the system, profile, and
+        distro.
+        """
+        # FIXME get hostname from utils?
+        hostname = socket.gethostname()
+        server   = self.xmlrpc_server
+        try:
+            config_data   = server.get_config_data(hostname)
+            repos_enabled = server.repos_enabled(hostname)
+            ldap_enabled  = server.ldap_enabled(hostname) 
+            monit_enabled = server.monit_enabled(hostname)
+        except:
+            traceback.print_exc()
+            self.connect_fail()
+
+        # Save configuration data to disk
+        # FIXME should we version this, maybe append a timestamp? 
+        node_config_data = "/var/lib/koan/config/localconfig.json" % (hostname)
+        f = open(node_config_data, 'w')
+        f.write(config_data)
+        f.close
+
+        # Start Configuration Run
+        print "- Starting configuration run for %s" % (hostname)
+        runtime_start = time.time()
+        config_run  = configmgmt.Configure(config_data)
+        if repos_enabled:
+            repos_status = config_run.configure_repos()
+        if ldap_enabled:
+            ldap_status = config_run.configure_ldap()
+        pkg_stats   = config_run.configure_packages()
+        file_stats  = config_run.configure_files()
+        runtime_end = time.time()
+        if monit_enabled:
+            monit_status = config_run.configure_monit()
+
+        total_runtime = (runtime_end - runtime_start)
+
+        # Gather resource stats
+        in_sync_resources = (
+            pkg_stats['in_sync']   +
+            file_stats['in_sync']
+        )
+        oo_sync_resources = (
+            pkg_stats['oo_sync']   +
+            file_stats['oo_sync']
+        )
+        failed_resources = (
+            pkg_stats['failed']   +
+            file_stats['failed']
+        )
+
+        total_resources = (in_sync_resources + oo_sync_resources + failed_resources)
+
+        if self.summary:
+            # Print Resource Report
+            print
+            print "\tResource Report"
+            print "\t-------------------------"
+            print "\t    In Sync: %d" % in_sync_resources
+            print "\tOut of Sync: %d" % oo_sync_resources
+            print "\t       Fail: %d" % failed_resources
+            print "\t-------------------------"
+            print "\tTotal Resources: %d" % total_resources
+            
+            if repos_enabled:
+                print
+                print "\tRepos Status"
+                print "\t-------------------------"
+                print "\t%s" % repos_status
+                print "\t-------------------------"
+            
+            if ldap_enabled:
+                print
+                print "\tLDAP Status"
+                print "\t-------------------------"
+                print "\t%s" % ldap_status
+                print "\t-------------------------"
+    
+            if monit_enabled:
+                print
+                print "\tMonit Status"
+                print "\t-------------------------"
+                print "\t%s" % monit_status
+                print "\t-------------------------"
+    
+            print
+            print "\tResource |In Sync|OO Sync|Failed"
+            print "\t-----------------------------"
+            print "\t   Packages:  %d      %d    %d" % (pkg_stats['in_sync'],pkg_stats['oo_sync'],pkg_stats['failed'])
+            print "\t      Files:  %d      %d    %d" % (file_stats['in_sync'],file_stats['oo_sync'],file_stats['failed'])
+    
+    
+            # Print Runtime Report
+            print
+            print "\tRunTime Report"
+            print "\t-------------------------"
+            print "\t   Packages: %.02f" % pkg_stats['runtime']
+            print "\t      Files: %.02f" % file_stats['runtime']
+            print "\t-------------------------"
+            print "\tTotal Runtime: %.02f" % total_runtime
+            print
 
     #---------------------------------------------------
   
