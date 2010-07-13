@@ -316,7 +316,7 @@ class XMLRPCSystem:
                     "time" : time.time(),
                 }
         except RuntimeError, e:
-            logging.info(str(e))
+            logging.warn("RT Exception retrieving rendered system: %s" % str(e))
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
