@@ -185,7 +185,7 @@ class BootSync:
         """
         Generate rsync modules of all repositories and distributions
         """
-        template_file = "/etc/cobbler/templates/rsync.template"
+        template_file = "/etc/cobbler/rsync.template"
 
         try:
             template = open(template_file,"r")

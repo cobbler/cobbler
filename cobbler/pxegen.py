@@ -425,7 +425,7 @@ class PXEGen:
         return buffer
 
 
-    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True,metadata={}):
+    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True,metadata=None):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -445,6 +445,8 @@ class PXEGen:
         if image and not os.path.exists(image.file):
             return None  # nfs:// URLs or something, can't use for TFTP
 
+        if metadata is None:
+	    metadata = {}
         # ---
         # just some random variables
         template = None
