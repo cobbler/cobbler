@@ -481,6 +481,12 @@ class PXEGen:
                 # CD-ROM ISO or virt-clone image? We can't PXE boot it.
                 kernel_path = None
                 initrd_path = None
+
+        if kernel_path is not None and not metadata.has_key("kernel_path"):
+            metadata["kernel_path"] = kernel_path
+        if initrd_path is not None and not metadata.has_key("initrd_path"):
+            metadata["initrd_path"] = initrd_path
+
         # ---
         # choose a template
         if system:
@@ -624,11 +630,6 @@ class PXEGen:
 
         if system:
             metadata["system_name"] = system.name
-
-        if kernel_path is not None and not metadata.has_key("kernel_path"):
-            metadata["kernel_path"] = kernel_path
-        if initrd_path is not None and not metadata.has_key("initrd_path"):
-            metadata["initrd_path"] = initrd_path
 
         metadata["append_line"] = append_line
 
