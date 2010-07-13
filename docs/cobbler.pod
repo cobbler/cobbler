@@ -322,6 +322,18 @@ While it is recommended that the --kickstart parameter is only used within for t
 If set false, the system will be provisionable through koan but not through
 standard PXE.  This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object.  The default value allows PXE.   Cobbler contains a PXE boot loop prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can automatically trip off this value after a system gets done installing.  This can prevent installs from appearing in an endless loop when the system is set to PXE first in the BIOS order.
 
+=item --ldap-enabled, --ldap-type
+
+Cobbler contains features that enable ldap management for easier configuration after system provisioning. If set true, koan will run the ldap command as defined by the systems ldap_type. The default value is false. 
+
+=item --monit-enabled
+
+If set true, koan will reload monit after each configuration run. The default value is false.
+
+=item --repos-enabled
+
+If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://fedorahosted.org/cobbler/wiki/ManageYumRepos.
+
 =item --dhcp-tag
 
 If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will probably want to use this option.  If not, it canbe ignored.
@@ -450,6 +462,136 @@ Ordinarily cobbler's repo system will understand what you mean without supplying
 
 =back
 
+=head2 MANAGEMENT CLASSES
+
+Management classes allows cobbler to function as an configuration management system. Cobbler currently supports the following resource types:
+
+=over
+
+=item 1. Packages
+
+=item 2. Files
+
+=back
+
+Resources are executed in the order listed above.
+
+B<cobbler mgmtclass add --name=string --comment=string [--packages=list] [--files=list]>
+
+=over
+
+=item name
+
+The name of the mgmtclass. Use this name when adding a management class to a system, profile, or distro. To add a mgmtclass to an existing system use something like (cobbler system edit --name="madhatter" --mgmt-classes="http mysql").
+
+=item comment
+
+A comment that describes the functions of the management class.
+
+=item packages
+
+Specifies a list of package resources required by the management class.
+
+=item files
+
+Specifies a list of file resources required by the management class.
+
+=back
+
+=head1 MANAGEMENT RESOURCES
+
+Resources are the lego blocks of configuration management. Resources are grouped together via Management Classes, which are then linked to a system. Cobbler supports two (2) resource types. Resources are configured in the order listed below.
+
+=over
+
+=item 1. Packages
+
+=item 2. Files
+
+=back
+
+=head2 PACKAGE RESOURCES
+
+Package resources are managed using cobbler package add
+
+=head3 Actions
+
+=over
+
+=item install
+
+Install the package. [Default]
+
+=item uninstall
+
+Uninstall the package.
+
+=back
+
+=head3 Attributes
+
+=over
+
+=item installer
+
+Which package manager to use, vaild options [rpm|yum].
+
+=item version
+
+Which version of the package to install.
+
+=head3 Examples
+
+B<cobbler package add --name=string --comment=string [--action=install|uninstall] --installer=string [--version=string]>
+
+=back
+
+=head2 FILE RESOURCES
+
+=head3 Actions
+
+=over
+
+=item create
+
+Create the file. [Default]
+
+=item remove
+
+Remove the file.
+
+=back
+
+=head3 Attributes
+
+=over
+
+=item mode
+
+Permission mode (as in chmod).
+
+=item group
+
+The group owner of the file.
+
+=item user
+
+The user for the file.
+
+=item path
+
+The path for the file.
+
+=item template
+
+The template for the file.
+
+=back
+
+=head3 Examples
+
+B<cobbler file add --name=string --comment=string [--action=string] --mode=string --group=string --user=string --path=string [--template=string]>
+
 =head2 DISPLAYING CONFIGURATION ENTRIES
 
 The following commands are usable regardless of how you are using cobbler.
@@ -458,11 +600,11 @@ Run these commands to check how you have cobbler configured.
 
 B<cobbler list>
 
-B<cobbler distro|profile|system|repo|image list>
+B<cobbler distro|profile|system|repo|image|mgmtclass|package|file list>
 
 B<cobbler report>
 
-B<cobbler distro|profile|system|repo|image report --name=[object-name]>
+B<cobbler distro|profile|system|repo|image|mgmtclass|package|file report --name=[object-name]>
 
 
 Alternatively, you could look at the configuration files in /var/lib/cobbler to see the same information.  
@@ -481,25 +623,31 @@ B<cobbler repo remove --name=string>
 
 B<cobbler image remove --name=string>
 
+B<cobbler mgmtclass remove --name=string>
+
+B<cobbler package remove --name=string>
+
+B<cobbler file remove --name=string>
+
 =head2 EDITING
 
 If you want to change a particular setting without doing an "add" again, use the "edit" command, using
 the same name you gave when you added the item.  Anything supplied in the parameter list will overwrite
 the settings in the existing object, preserving settings not mentioned.
 
-B<cobbler distro|profile|system|repo|image edit --name=string [parameterlist]>
+B<cobbler distro|profile|system|repo|image|mgmtclass|package|file edit --name=string [parameterlist]>
 
 =head2 COPYING
 
 Objects can also be copied:
 
-B<cobbler distro|profile|system|repo|image copy --name=oldname --newname=newname>
+B<cobbler distro|profile|system|repo|image|mgmtclass|package|file copy --name=oldname --newname=newname>
 
 =head2 RENAMING
 
 Objects can also be renamed, as long as other objects don't reference them.
 
-B<cobbler distro|profile|system|repo|image rename --name=oldname --newname=newname>
+B<cobbler distro|profile|system|repo|image|mgmtclass|package|file rename --name=oldname --newname=newname>
 
 =head2 REPLICATING
 
