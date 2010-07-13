@@ -1368,31 +1368,12 @@ class CobblerXMLRPCInterface:
                 arch = profile.arch
 
             if obj.is_management_supported():
-		# Ok, I've got to be a bit evil here.  I'm putting this field
-		# into the hash for the pytftpd server.  It can remap "kernel"
-		# into the correct kernel, eliminating sync requirements.
-		# 
-		# However, to chain to a different boot loader (as opposed
-		# to a different kernel), the file name that pxelinux.0
-		# requests has to have specific extensions (.bs, others)
-		# ...
-		# So ... pytftpd knows to "remove 'pytftpd.*'" from filenames
-		# if trying to look for matching keys, and we'll add the
-		# real extension onto the kernel's name
-		kernel = "kernelpytftpd"
-		m = re.compile("([.][^.]+)$").search(hash["kernel"])
-		if m:
-		    kernel = kernel + m.group(1)
-                metadata = dict(kernel_path=kernel,initrd_path="initrd")
-                self._log("returning pxelinux.cfg: metadata = %s" % repr(metadata))
                 if not image_based:
                     hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
-                        None, obj, profile, distro, arch,metadata=metadata)
+                        None, obj, profile, distro, arch)
                 else:
                     hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
-                        None, obj,None,None,arch,image=profile,
-                        metadata=metadata)
-                self._log("returning pxelinux.cfg: metadata = %s" % repr(metadata))
+                        None, obj,None,None,arch,image=profile)
 
             return self.xmlrpc_hacks(hash)
         return self.xmlrpc_hacks({})
