@@ -1888,6 +1888,16 @@ def local_get_cobbler_api_url():
        raise CX("/etc/cobbler/settings is not a valid YAML file")
     return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
 
+def get_ldap_template(ldaptype=None):
+    """
+    Return ldap command for type
+    """
+    if ldaptype:
+        ldappath = "/etc/cobbler/ldap/ldap_%s.template" % ldaptype
+        if os.path.isfile(ldappath):
+            return ldappath
+    return None
+
 def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port
     try:
