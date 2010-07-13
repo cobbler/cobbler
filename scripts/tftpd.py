@@ -212,7 +212,7 @@ class ACKPacket(Packet):
     def __init__(self, data, local_sock, remote_addr):
         Packet.__init__(self,data,local_sock,remote_addr)
         block_number, = unpack("!H",data[2:])
-        logging.debug("ACK for packet %d from %s"%(block_number,remote_addr))
+        logging.log(9,"ACK for packet %d from %s"%(block_number,remote_addr))
         self.block_number = block_number
 
     def marshall(self):
@@ -289,7 +289,7 @@ class XMLRPCSystem:
             self.attrs  = self.system
             self.name   = self.attrs["name"]
         except RuntimeError, e:
-            logging.warn("Exception retrieving rendered system: %s" % str(e))
+            logging.warn("RT Exception retrieving rendered system: %s" % str(e))
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
@@ -359,6 +359,7 @@ class Request:
                 trimmed = trimmed.replace(suffix,"")
                 logging.debug('_remap_name: converted %s to %s'
                               % (filename, trimmed))
+                return trimmed
         else:
             # looking over all keys, because I have to search for keys I want
             for (k,v) in self.system.system.iteritems():
@@ -406,17 +407,19 @@ class Request:
             # Look for image match.  All we can do
             return self._remap_via_profiles(trimmed)
 
-        # for the two tests below, I want to ignore "pytftp.*" in the string.
-        # which allows for some minimal control over extensions, which matters
-        # to pxelinux.0
-        trimmed = re.sub("pytftpd.*","",filename)
-
-        # Specific hacks to handle the PXE boot case without any configuration
+        # Specific hacks to handle the PXE/initrd case without any configuration
         if self.system.attrs.has_key(trimmed):
             if trimmed in ["pxelinux.cfg"]:
                 return trimmed,"hash_value"
-            if trimmed in ["kernel","initrd"]:
+            elif trimmed in ["initrd"]:
                 return self.system.attrs[trimmed],"template"
+
+        # for the two tests below, I want to ignore "pytftp.*" in the string,
+        # which allows for some minimal control over extensions, which matters
+        # to pxelinux.0
+        noext = re.sub("pytftpd.*","",filename)
+        if self.system.attrs.has_key(noext) and noext in ["kernel"]:
+            return self.system.attrs[noext],"template"
 
         fetchable_files = self.system.attrs["fetchable_files"].strip()
         if not fetchable_files:
@@ -598,7 +601,7 @@ class Request:
 
             self.state = TFTP_OPCODE_DATA
             # Block Count starts at 1, so offset
-            logging.debug("DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
+            logging.log(9,"DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
                 self.remote_addr[0],self.remote_addr[1],
                 self.block_count + 1, (self.block_count+1)&0xFFFF,
                 len(data),offset+len(data),self.file_size))
