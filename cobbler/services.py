@@ -156,6 +156,12 @@ class CobblerSvc(object):
            listing = self.remote.get_images()
         elif what == "repos":
            listing = self.remote.get_repos()
+        elif what == "mgmtclasses":
+           listing = self.remote.get_mgmtclasses()
+        elif what == "packages":
+           listing = self.remote.get_packages()
+        elif what == "files":
+           listing = self.remote.get_files()
         else:
            return "?"
         for x in listing:

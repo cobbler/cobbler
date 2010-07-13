@@ -43,6 +43,9 @@ import item_profile
 import item_system
 import item_repo
 import item_image
+import item_mgmtclass
+import item_package
+import item_file
 import clogger
 import pxegen
 import utils
@@ -199,6 +202,9 @@ class CobblerXMLRPCInterface:
                 self.options.get("system_patterns", ""),
                 self.options.get("repo_patterns", ""),
                 self.options.get("image_patterns", ""),
+                self.options.get("mgmtclass_patterns", ""),
+                self.options.get("package_patterns", ""),
+                self.options.get("file_patterns", ""),
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
                 self.logger
@@ -246,6 +252,7 @@ class CobblerXMLRPCInterface:
             return True
         self.check_access(token, "power")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power",""), options)
+    
 
     def get_events(self, for_user=""):
         """
@@ -528,6 +535,12 @@ class CobblerXMLRPCInterface:
         return self.get_item("repo",name,flatten=flatten)
     def get_image(self,name,flatten=False,token=None,**rest):
         return self.get_item("image",name,flatten=flatten)
+    def get_mgmtclass(self,name,flatten=False,token=None,**rest):
+        return self.get_mgmtclass("mgmtclass",name,flatten=flatten)
+    def get_package(self,name,flatten=False,token=None,**rest):
+        return self.get_package("package",name,flatten=flatten)
+    def get_file(self,name,flatten=False,token=None,**rest):
+        return self.get_file("file",name,flatten=flatten)
 
     def get_items(self, what):
         """
@@ -556,6 +569,12 @@ class CobblerXMLRPCInterface:
         return self.get_items("repo")
     def get_images(self,page=None,results_per_page=None,token=None,**rest):
         return self.get_items("image")
+    def get_mgmtclasses(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("mgmtclass")
+    def get_packages(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("package")
+    def get_files(self,page=None,results_per_page=None,token=None,**rest):
+        return self.get_items("file")
 
     def find_items(self, what, criteria=None,sort_field=None,expand=True):
         """
@@ -583,6 +602,12 @@ class CobblerXMLRPCInterface:
         return self.find_items("repo",criteria,expand=expand)
     def find_image(self,criteria={},expand=False,token=None,**rest):
         return self.find_items("image",criteria,expand=expand)
+    def find_mgmtclass(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("mgmtclass",criteria,expand=expand)
+    def find_package(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("package",criteria,expand=expand)
+    def find_file(self,criteria={},expand=False,token=None,**rest):
+        return self.find_items("file",criteria,expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
@@ -634,6 +659,12 @@ class CobblerXMLRPCInterface:
         return self.get_item_handle("repo",name,token)
     def get_image_handle(self,name,token):
         return self.get_item_handle("image",name,token)
+    def get_mgmtclass_handle(self,name,token):
+        return self.get_item_handle("mgmtclass",name,token)
+    def get_package_handle(self,name,token):
+        return self.get_item_handle("package",name,token)
+    def get_file_handle(self,name,token):
+        return self.get_item_handle("file",name,token)
         
     def remove_item(self,what,name,token,recursive=True):
         """
@@ -654,6 +685,12 @@ class CobblerXMLRPCInterface:
         return self.remove_item("repo",name,token,recursive)
     def remove_image(self,name,token,recursive=1):
         return self.remove_item("image",name,token,recursive)
+    def remove_mgmtclass(self,name,token,recursive=1):
+        return self.remove_item("mgmtclass",name,token,recursive)
+    def remove_package(self,name,token,recursive=1):
+        return self.remove_item("package",name,token,recursive)
+    def remove_file(self,name,token,recursive=1):
+        return self.remove_item("file",name,token,recursive)
 
     def copy_item(self,what,object_id,newname,token=None):
         """
@@ -674,6 +711,12 @@ class CobblerXMLRPCInterface:
         return self.copy_item("repo",object_id,newname,token)
     def copy_image(self,object_id,newname,token=None):
         return self.copy_item("image",object_id,newname,token)
+    def copy_mgmtclass(self,object_id,newname,token=None):
+        return self.copy_item("mgmtclass",object_id,newname,token)
+    def copy_package(self,object_id,newname,token=None):
+        return self.copy_item("package",object_id,newname,token)
+    def copy_file(self,object_id,newname,token=None):
+        return self.copy_item("file",object_id,newname,token)
     
     def rename_item(self,what,object_id,newname,token=None):
         """
@@ -693,6 +736,12 @@ class CobblerXMLRPCInterface:
         return self.rename_item("repo",object_id,newname,token)
     def rename_image(self,object_id,newname,token=None):
         return self.rename_item("image",object_id,newname,token)
+    def rename_mgmtclass(self,object_id,newname,token=None):
+        return self.rename_item("mgmtclass",object_id,newname,token)
+    def rename_package(self,object_id,newname,token=None):
+        return self.rename_item("package",object_id,newname,token)
+    def rename_file(self,object_id,newname,token=None):
+        return self.rename_item("file",object_id,newname,token)
     
     def new_item(self,what,token,is_subobject=False):
         """
@@ -714,6 +763,12 @@ class CobblerXMLRPCInterface:
             d = item_repo.Repo(self.api._config,is_subobject=is_subobject)
         elif what == "image":
             d = item_image.Image(self.api._config,is_subobject=is_subobject)
+        elif what == "mgmtclass":
+            d = item_mgmtclass.Mgmtclass(self.api._config,is_subobject=is_subobject)
+        elif what == "package":
+            d = item_package.Package(self.api._config,is_subobject=is_subobject)
+        elif what == "file":
+            d = item_file.File(self.api._config,is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what,self.__get_random(25))
@@ -732,6 +787,12 @@ class CobblerXMLRPCInterface:
         return self.new_item("repo",token)
     def new_image(self,token):
         return self.new_item("image",token)
+    def new_mgmtclass(self,token):
+        return self.new_item("mgmtclass",token)
+    def new_package(self,token):
+        return self.new_item("package",token)
+    def new_file(self,token):
+        return self.new_item("file",token)
 
     def modify_item(self,what,object_id,attribute,arg,token):
         """
@@ -762,6 +823,12 @@ class CobblerXMLRPCInterface:
         return self.modify_item("image",object_id,attribute,arg,token)
     def modify_repo(self,object_id,attribute,arg,token):
         return self.modify_item("repo",object_id,attribute,arg,token)
+    def modify_mgmtclass(self,object_id,attribute,arg,token):
+        return self.modify_item("mgmtclass",object_id,attribute,arg,token)
+    def modify_package(self,object_id,attribute,arg,token):
+        return self.modify_item("package",object_id,attribute,arg,token)
+    def modify_file(self,object_id,attribute,arg,token):
+        return self.modify_item("file",object_id,attribute,arg,token)
    
     def __is_interface_field(self,f):
         k = "*%s" % f
@@ -871,6 +938,12 @@ class CobblerXMLRPCInterface:
         return self.save_item("image",object_id,token,editmode=editmode)
     def save_repo(self,object_id,token,editmode="bypass"):
         return self.save_item("repo",object_id,token,editmode=editmode)
+    def save_mgmtclass(self,object_id,token,editmode="bypass"):
+        return self.save_item("mgmtclass",object_id,token,editmode=editmode)
+    def save_package(self,object_id,token,editmode="bypass"):
+        return self.save_item("package",object_id,token,editmode=editmode)
+    def save_file(self,object_id,token,editmode="bypass"):
+        return self.save_item("file",object_id,token,editmode=editmode)
 
     def get_kickstart_templates(self,token=None,**rest):
         """
@@ -1257,6 +1330,27 @@ class CobblerXMLRPCInterface:
         data = self.api.get_images_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
     
+    def get_mgmtclasses_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_mgmtclasses_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+    
+    def get_packages_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_packages_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+    
+    def get_files_since(self,mtime):
+        """
+        See documentation for get_distros_since
+        """
+        data = self.api.get_files_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+    
     def get_repos_compatible_with_profile(self,profile=None,token=None,**rest):
         """
         Get repos that can be used with a given profile name
@@ -1413,6 +1507,60 @@ class CobblerXMLRPCInterface:
         if obj is not None:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
+    
+    def get_mgmtclass_as_rendered(self,name,token=None,**rest):
+        """
+        Return the mgmtclass as passed through cobbler's
+        inheritance/graph engine.  Shows what would be installed, not
+        the input data.
+        """
+        return self.get_mgmtclass_for_koan(self,name)
+
+    def get_mgmtclass_for_koan(self,name,token=None,**rest):
+        """
+        Same as get_mgmtclass_as_rendered.
+        """
+        self._log("get_mgmtclass_as_rendered",name=name,token=token)
+        obj = self.api.find_mgmtclass(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
+    
+    def get_package_as_rendered(self,name,token=None,**rest):
+        """
+        Return the package as passed through cobbler's
+        inheritance/graph engine.  Shows what would be installed, not
+        the input data.
+        """
+        return self.get_package_for_koan(self,name)
+
+    def get_package_for_koan(self,name,token=None,**rest):
+        """
+        Same as get_package_as_rendered.
+        """
+        self._log("get_package_as_rendered",name=name,token=token)
+        obj = self.api.find_package(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
+    
+    def get_file_as_rendered(self,name,token=None,**rest):
+        """
+        Return the file as passed through cobbler's
+        inheritance/graph engine.  Shows what would be installed, not
+        the input data.
+        """
+        return self.get_file_for_koan(self,name)
+
+    def get_file_for_koan(self,name,token=None,**rest):
+        """
+        Same as get_file_as_rendered.
+        """
+        self._log("get_file_as_rendered",name=name,token=token)
+        obj = self.api.find_file(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_random_mac(self,virt_type="xenpv",token=None,**rest):
         """
@@ -1525,6 +1673,12 @@ class CobblerXMLRPCInterface:
             return self.api.find_system(name)
         if resource.find("repo") != -1:
             return self.api.find_repo(name)
+        if resource.find("mgmtclass") != -1:
+            return self.api.find_mgmtclass(name)
+        if resource.find("package") != -1:
+            return self.api.find_package(name)
+        if resource.find("file") != -1:
+            return self.api.find_file(name)
         return None
 
     def check_access_no_fail(self,token,resource,arg1=None,arg2=None):
@@ -1536,7 +1690,7 @@ class CobblerXMLRPCInterface:
         """
 
         need_remap = False
-        for x in [ "distro", "profile", "system", "repo", "image" ]:
+        for x in [ "distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file" ]:
            if arg1 is not None and resource.find(x) != -1:
               need_remap = True
               break
@@ -1720,6 +1874,33 @@ class CobblerXMLRPCInterface:
         else:
             utils.die(self.logger, "invalid power mode '%s', expected on/off/reboot" % power)
         return rc
+
+    def get_config_data(self,hostname):
+        """
+        Generate configuration data of a system specified by hostname.
+        """
+        import cobbler.configgen as cgen
+        self._log("get_config_data for %s" % hostname)
+        obj = cgen.GenConfig(hostname)
+        return obj.gen_config_data_for_koan()
+    
+    def repos_enabled(self,hostname):
+        import cobbler.configgen as cgen
+        self._log("repos_enabled for %s" % hostname)
+        obj = cgen.GenConfig(hostname)
+        return obj.repos_enabled()
+    
+    def ldap_enabled(self,hostname):
+        import cobbler.configgen as cgen
+        self._log("ldap_enabled for %s" % hostname)
+        obj = cgen.GenConfig(hostname)
+        return obj.ldap_enabled()
+    
+    def monit_enabled(self,hostname):
+        import cobbler.configgen as cgen
+        self._log("monit_enabled for %s" % hostname)
+        obj = cgen.GenConfig(hostname)
+        return obj.monit_enabled()
 
     def clear_system_logs(self, object_id, token=None, logger=None):
         """

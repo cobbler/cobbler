@@ -35,13 +35,19 @@ import item_profile
 import item_system
 import item_repo
 import item_image
+import item_mgmtclass
+import item_package
+import item_file
 
 OBJECT_ACTIONS   = {
-   "distro"  : "add copy edit find list remove rename report".split(" "),
-   "profile" : "add copy dumpvars edit find getks list remove rename report".split(" "),
-   "system"  : "add copy dumpvars edit find getks list remove rename report poweron poweroff reboot".split(" "),
-   "image"   : "add copy edit find list remove rename report".split(" "),
-   "repo"    : "add copy edit find list remove rename report".split(" ")
+   "distro"    : "add copy edit find list remove rename report".split(" "),
+   "profile"   : "add copy dumpvars edit find getks list remove rename report".split(" "),
+   "system"    : "add copy dumpvars edit find getks list remove rename report poweron poweroff reboot".split(" "),
+   "image"     : "add copy edit find list remove rename report".split(" "),
+   "repo"      : "add copy edit find list remove rename report".split(" "),
+   "mgmtclass" : "add copy edit find list remove rename report".split(" "),
+   "package"   : "add copy edit find list remove rename report".split(" "),
+   "file"      : "add copy edit find list remove rename report".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
 DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks version".split()
@@ -69,6 +75,12 @@ def report_item(remote,otype,item=None,name=None):
       data = utils.printable_from_fields(item, item_repo.FIELDS)
    elif otype == "image":
       data = utils.printable_from_fields(item, item_image.FIELDS)
+   elif otype == "mgmtclass":
+      data = utils.printable_from_fields(item,item_mgmtclass.FIELDS)
+   elif otype == "package":
+      data = utils.printable_from_fields(item,item_package.FIELDS)
+   elif otype == "file":
+      data = utils.printable_from_fields(item,item_file.FIELDS)
    print data
 
 def list_items(remote,otype):
@@ -240,6 +252,12 @@ class BootCLI:
             return item_repo.FIELDS
         elif object_type == "image":
             return item_image.FIELDS
+        elif object_type == "mgmtclass":
+            return item_mgmtclass.FIELDS
+        elif object_type == "package":
+            return item_package.FIELDS
+        elif object_type == "file":
+            return item_file.FIELDS
 
     def object_command(self, object_type, object_action):
         """
@@ -326,14 +344,17 @@ class BootCLI:
             task_id = self.start_task("buildiso",options)
 
         elif action_name == "replicate":
-            self.parser.add_option("--master",    dest="master",    help="Cobbler server to replicate from.")
-            self.parser.add_option("--distros",   dest="distro_patterns",   help="patterns of distros to replicate")
-            self.parser.add_option("--profiles",  dest="profile_patterns",  help="patterns of profiles to replicate")
-            self.parser.add_option("--systems",   dest="system_patterns",   help="patterns of systems to replicate")
-            self.parser.add_option("--repos",     dest="repo_patterns",     help="patterns of repos to replicate")
-            self.parser.add_option("--image",     dest="image_patterns",   help="patterns of images to replicate")
-            self.parser.add_option("--omit-data", dest="omit_data", action="store_true", help="do not rsync data")
-            self.parser.add_option("--prune",     dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
+            self.parser.add_option("--master",      dest="master",             help="Cobbler server to replicate from.")
+            self.parser.add_option("--distros",     dest="distro_patterns",    help="patterns of distros to replicate")
+            self.parser.add_option("--profiles",    dest="profile_patterns",   help="patterns of profiles to replicate")
+            self.parser.add_option("--systems",     dest="system_patterns",    help="patterns of systems to replicate")
+            self.parser.add_option("--repos",       dest="repo_patterns",      help="patterns of repos to replicate")
+            self.parser.add_option("--image",       dest="image_patterns",     help="patterns of images to replicate")
+            self.parser.add_option("--mgmtclasses", dest="mgmtclass_patterns", help="patterns of mgmtclasses to replicate")
+            self.parser.add_option("--packages",    dest="package_patterns",   help="patterns of packages to replicate")
+            self.parser.add_option("--files",       dest="file_patterns",      help="patterns of files to replicate")
+            self.parser.add_option("--omit-data",   dest="omit_data", action="store_true", help="do not rsync data")
+            self.parser.add_option("--prune",       dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)
 
@@ -416,6 +437,12 @@ class BootCLI:
             report_items(self.remote,"repo")
             print "\nimages:\n=========="
             report_items(self.remote,"image")
+            print "\nmgmtclasses:\n=========="
+            report_items(self.remote,"mgmtclass")
+            print "\npackages:\n=========="
+            report_items(self.remote,"package")
+            print "\nfiles:\n=========="
+            report_items(self.remote,"file")
         elif action_name == "list":
             # no tree view like 1.6?  This is more efficient remotely
             # for large configs and prevents xfering the whole config
@@ -431,6 +458,12 @@ class BootCLI:
             list_items(self.remote,"repo")
             print "\nimages:"
             list_items(self.remote,"image")
+            print "\nmgmtclasses:"
+            list_items(self.remote,"mgmtclass")
+            print "\npackages:"
+            list_items(self.remote,"package")
+            print "\nfiles:"
+            list_items(self.remote,"file")
         else:
             print "No such command: %s" % action_name
             sys.exit(1)
@@ -495,7 +528,7 @@ class BootCLI:
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """
         print "usage\n====="
-        print "cobbler <distro|profile|system|repo|image> ... "
+        print "cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... "
         print "        [add|edit|copy|getks*|list|remove|rename|report] [options|--help]"
         print "cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS)
         sys.exit(2)

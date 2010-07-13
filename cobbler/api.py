@@ -64,6 +64,9 @@ import item_profile
 import item_system
 import item_repo
 import item_image
+import item_mgmtclass
+import item_package
+import item_file
 
 ERROR = 100
 INFO  = 10
@@ -286,6 +289,24 @@ class BootAPI:
         Return the application configuration
         """
         return self._config.settings()
+    
+    def mgmtclasses(self):
+        """
+        Return the current list of mgmtclasses
+        """
+        return self.get_items("mgmtclass")
+    
+    def packages(self):
+        """
+        Return the current list of packages
+        """
+        return self.get_items("package")
+    
+    def files(self):
+        """
+        Return the current list of files
+        """
+        return self.get_items("file")
 
     # =======================================================================
 
@@ -316,6 +337,15 @@ class BootAPI:
     
     def copy_image(self, ref, newname):
         return self.copy_item("image", ref, newname, logger=None)
+    
+    def copy_mgmtclass(self, ref, newname):
+        return self.copy_item("mgmtclass", ref, newname, logger=None)
+    
+    def copy_package(self, ref, newname):
+        return self.copy_item("package", ref, newname, logger=None)
+    
+    def copy_file(self, ref, newname):
+        return self.copy_item("file", ref, newname, logger=None)
 
     # ==========================================================================
 
@@ -341,6 +371,15 @@ class BootAPI:
 
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    
+    def remove_mgmtclass(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    
+    def remove_package(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+    
+    def remove_file(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        return self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     # ==========================================================================
 
@@ -362,6 +401,15 @@ class BootAPI:
     
     def rename_image(self, ref, newname, logger=None):
         return self.rename_item("image", ref, newname, logger=logger)
+    
+    def rename_mgmtclass(self, ref, newname, logger=None):
+        return self.rename_item("mgmtclass", ref, newname, logger=logger)
+    
+    def rename_package(self, ref, newname, logger=None):
+        return self.rename_item("package", ref, newname, logger=logger)
+    
+    def rename_file(self, ref, newname, logger=None):
+        return self.rename_item("file", ref, newname, logger=logger)
 
     # ==========================================================================
    
@@ -386,6 +434,18 @@ class BootAPI:
     def new_image(self,is_subobject=False):
         self.log("new_image",[is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
+    
+    def new_mgmtclass(self,is_subobject=False):
+        self.log("new_mgmtclass",[is_subobject])
+        return self._config.new_mgmtclass(is_subobject=is_subobject)
+    
+    def new_package(self,is_subobject=False):
+        self.log("new_package",[is_subobject])
+        return self._config.new_package(is_subobject=is_subobject)
+    
+    def new_file(self,is_subobject=False):
+        self.log("new_file",[is_subobject])
+        return self._config.new_file(is_subobject=is_subobject)
 
     # ==========================================================================
 
@@ -407,6 +467,15 @@ class BootAPI:
 
     def add_image(self, ref, check_for_duplicate_names=False,save=True, logger=None):
         return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    
+    def add_mgmtclass(self, ref, check_for_duplicate_names=False,save=True, logger=None):
+        return self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    
+    def add_package(self, ref, check_for_duplicate_names=False,save=True, logger=None):
+        return self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    
+    def add_file(self, ref, check_for_duplicate_names=False,save=True, logger=None):
+        return self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
 
     # ==========================================================================
 
@@ -441,6 +510,15 @@ class BootAPI:
 
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+    
+    def find_mgmtclass(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.mgmtclasses().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+    
+    def find_package(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.packages().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+    
+    def find_file(self, name=None, return_list=False, no_errors=False, **kargs):
+        return self._config.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     # ==========================================================================
 
@@ -476,6 +554,15 @@ class BootAPI:
 
     def get_images_since(self,mtime,collapse=False):
         return self.__since(mtime,self.images,collapse=collapse)
+    
+    def get_mgmtclasses_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.mgmtclasses,collapse=collapse)
+    
+    def get_packages_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.packages,collapse=collapse)
+    
+    def get_files_since(self,mtime,collapse=False):
+        return self.__since(mtime,self.files,collapse=collapse)
 
     # ==========================================================================
 
@@ -834,5 +921,3 @@ class BootAPI:
 
     def get_os_details(self):
         return (self.dist, self.os_version)
-
-

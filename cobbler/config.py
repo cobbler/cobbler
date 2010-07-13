@@ -32,12 +32,18 @@ import item_profile as profile
 import item_system as system
 import item_repo as repo
 import item_image as image
+import item_mgmtclass as mgmtclass
+import item_package as package
+import item_file as file
 
 import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
 import collection_repos as repos
 import collection_images as images
+import collection_mgmtclasses as mgmtclasses
+import collection_packages as packages
+import collection_files as files
 
 import settings
 import serializer
@@ -76,6 +82,9 @@ class Config:
        self._profiles     = profiles.Profiles(weakref.proxy(self))
        self._systems      = systems.Systems(weakref.proxy(self))
        self._images       = images.Images(weakref.proxy(self))
+       self._mgmtclasses  = mgmtclasses.Mgmtclasses(weakref.proxy(self))
+       self._packages     = packages.Packages(weakref.proxy(self))
+       self._files        = files.Files(weakref.proxy(self))
        self._settings     = settings.Settings() # not a true collection
 
    def generate_uid(self):
@@ -126,6 +135,24 @@ class Config:
        Return the definitive copy of the Images collection
        """
        return self._images
+   
+   def mgmtclasses(self):
+       """
+       Return the definitive copy of the Mgmtclasses collection
+       """
+       return self._mgmtclasses
+    
+   def packages(self):
+       """
+       Return the definitive copy of the Packages collection
+       """
+       return self._packages
+   
+   def files(self):
+       """
+       Return the definitive copy of the Files collection
+       """
+       return self._files
 
    def new_distro(self,is_subobject=False):
        """
@@ -156,6 +183,24 @@ class Config:
        Create a new image object...
        """
        return image.Image(weakref.proxy(self),is_subobject=is_subobject)
+   
+   def new_mgmtclass(self,is_subobject=False):
+       """
+       Create a new mgmtclass object...
+       """
+       return mgmtclass.Mgmtclass(weakref.proxy(self),is_subobject=is_subobject)
+    
+   def new_package(self,is_subobject=False):
+       """
+       Create a new package object...
+       """
+       return package.Package(weakref.proxy(self),is_subobject=is_subobject)
+    
+   def new_file(self,is_subobject=False):
+       """
+       Create a new image object...
+       """
+       return file.File(weakref.proxy(self),is_subobject=is_subobject)
 
    def clear(self):
        """
@@ -167,6 +212,9 @@ class Config:
        self._profiles.clear(),
        self._images.clear()
        self._systems.clear(),
+       self._mgmtclasses.clear(),
+       self._packages.clear(),
+       self._files.clear(),
        return True
 
    def serialize(self):
@@ -178,6 +226,9 @@ class Config:
        serializer.serialize(self._profiles)
        serializer.serialize(self._images)
        serializer.serialize(self._systems)
+       serializer.serialize(self._mgmtclasses)
+       serializer.serialize(self._packages)
+       serializer.serialize(self._files)
        return True
 
    def serialize_item(self,collection,item):
@@ -208,6 +259,9 @@ class Config:
        serializer.deserialize(self._profiles)
        serializer.deserialize(self._images)
        serializer.deserialize(self._systems)
+       serializer.deserialize(self._mgmtclasses)
+       serializer.deserialize(self._packages)
+       serializer.deserialize(self._files)
        return True
 
    def deserialize_raw(self,collection_type):
@@ -233,6 +287,12 @@ class Config:
             result=self._repos
         elif collection_type == "image":
             result=self._images
+        elif collection_type == "mgmtclass":
+            result=self._mgmtclasses
+        elif collection_type == "package":
+            result=self._packages
+        elif collection_type == "file":
+            result=self._files
         else:
             raise CX("internal error, collection name %s not supported" % collection_type)
         return result

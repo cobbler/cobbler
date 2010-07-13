@@ -33,6 +33,9 @@ import item_profile
 import item_distro
 import item_repo
 import item_image
+import item_mgmtclass
+import item_package
+import item_file
 from utils import _
 
 class Collection:
@@ -118,7 +121,9 @@ class Collection:
            'virt-host'       : 'virt_host',
            'virt-group'      : 'virt_group',
            'dhcp-tag'        : 'dhcp_tag',
-           'netboot-enabled' : 'netboot_enabled'
+           'netboot-enabled' : 'netboot_enabled',
+           'ldap-enabled'    : 'ldap_enabled',
+           'monit-enabled'   : 'monit_enabled'
     }
 
     def __rekey(self,hash):
@@ -290,6 +295,12 @@ class Collection:
                     self.lite_sync.add_single_image(ref.name)
                 elif isinstance(ref, item_repo.Repo):
                     pass
+                elif isinstance(ref, item_mgmtclass.Mgmtclass):
+                    pass
+                elif isinstance(ref, item_package.Package):
+                    pass
+                elif isinstance(ref, item_file.File):
+                    pass
                 else:
                     print _("Internal error. Object type not recognized: %s") % type(ref)
             if not with_sync and quick_pxe_update:
@@ -329,6 +340,12 @@ class Collection:
                 match = self.api.find_repo(ref.name)
             elif isinstance(ref, item_image.Image):
                 match = self.api.find_image(ref.name)
+            elif isinstance(ref, item_mgmtclass.Mgmtclass):
+                match = self.api.find_mgmtclass(ref.name)
+            elif isinstance(ref, item_package.Package):
+                match = self.api.find_package(ref.name)
+            elif isinstance(ref, item_file.File):
+                match = self.api.find_file(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 
