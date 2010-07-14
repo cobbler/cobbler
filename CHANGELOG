@@ -1,5 +1,11 @@
 Cobbler CHANGELOG
 
+- Jul 15 2010 - 2.0.5
+- (BUGF) Improved logging
+- (BUGF) Improved selinux friendliness
+- (BUGF) Many improvements and bugfixes
+- Full list fde282c4bd88c07a1d5c3d3215950b1af0abe190..189b4096b3ed198651237c49169e48ed49078aa6
+
 - Apr 27 2010 - 2.0.4
 - (BUGF) fetch extra metadata from upstream repositories more safely
 - (BUGF) allow the creation of subprofiles again
