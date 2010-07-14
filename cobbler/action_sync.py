@@ -200,7 +200,7 @@ class BootSync:
         for dirtree in [self.bootloc, self.settings.webdir]:
             cachedir = '%s/.link_cache'%dirtree
             cmd = "find %s -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'"%cachedir
-            utils.subprocess_call(cmd)
+            utils.subprocess_call(self.logger,cmd)
 
     def rsync_gen(self):
         """
