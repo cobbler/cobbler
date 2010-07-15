@@ -57,6 +57,9 @@ class TftpdPyManager:
     def write_dns_files(self):
 	pass # not used
 
+    def add_single_distro(self,distro):
+	pass # not used
+
     def write_tftpd_files(self):
         """
         xinetd files are written when manage_tftp is set in

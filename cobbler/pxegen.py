@@ -108,28 +108,6 @@ class PXEGen:
         except:
             utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, require_match=False, api=self.api, logger=self.logger)
 
-
-    def copy_distros(self):
-        """
-        A distro is a kernel and an initrd.  Copy all of them and error
-        out if any files are missing.  The conf file was correct if built
-        via the CLI or API, though it's possible files have been moved
-        since or perhaps they reference NFS directories that are no longer
-        mounted.
-
-        NOTE:  this has to be done for both tftp and http methods
-        """
-        errors = list()
-        for d in self.distros:
-            try:
-                self.logger.info("copying files for distro: %s" % d.name)
-                self.copy_single_distro_files(d)
-            except CX, e:
-                errors.append(e)
-                self.logger.error(e.value)
-
-        # FIXME: using logging module so this ends up in cobbler.log?
-
     def copy_images(self):
         """
         Like copy_distros except for images.
@@ -144,39 +122,34 @@ class PXEGen:
 
         # FIXME: using logging module so this ends up in cobbler.log?
 
-    def copy_single_distro_files(self, d):
-        for dirtree in [self.bootloc, self.settings.webdir]: 
-            distros = os.path.join(dirtree, "images")
-            distro_dir = os.path.join(distros,d.name)
-            utils.mkdir(distro_dir)
-            kernel = utils.find_kernel(d.kernel) # full path
-            initrd = utils.find_initrd(d.initrd) # full path
+    def copy_single_distro_files(self, d, dirtree, symlink_ok):
+        distros = os.path.join(dirtree, "images")
+        distro_dir = os.path.join(distros,d.name)
+        utils.mkdir(distro_dir)
+        kernel = utils.find_kernel(d.kernel) # full path
+        initrd = utils.find_initrd(d.initrd) # full path
 
-            if kernel is None:
-                raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
-                        { "file" : d.kernel, "distro" : d.name })
+        if kernel is None:
+            raise CX("kernel not found: %(file)s, distro: %(distro)s" % 
+                    { "file" : d.kernel, "distro" : d.name })
 
-            if initrd is None:
-                raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
-                        { "file" : d.initrd, "distro" : d.name })
+        if initrd is None:
+            raise CX("initrd not found: %(file)s, distro: %(distro)s" % 
+                    { "file" : d.initrd, "distro" : d.name })
 
-            allow_symlink=False
-            if dirtree == self.settings.webdir:
-                allow_symlink=True
+        # Kernels referenced by remote URL are passed through to koan directly,
+        # no need for copying the kernel locally:
+        if not utils.file_is_remote(kernel):
+            b_kernel = os.path.basename(kernel)
+            dst1 = os.path.join(distro_dir, b_kernel)
+            utils.linkfile(kernel, dst1, symlink_ok=symlink_ok, 
+                    api=self.api, logger=self.logger)
 
-            # Kernels referenced by remote URL are passed through to koan directly,
-            # no need for copying the kernel locally:
-            if not utils.file_is_remote(kernel):
-                b_kernel = os.path.basename(kernel)
-                dst1 = os.path.join(distro_dir, b_kernel)
-                utils.linkfile(kernel, dst1, symlink_ok=allow_symlink, 
-                        api=self.api, logger=self.logger)
-
-            if not utils.file_is_remote(initrd):
-                b_initrd = os.path.basename(initrd)
-                dst2 = os.path.join(distro_dir, b_initrd)
-                utils.linkfile(initrd, dst2, symlink_ok=allow_symlink, 
-                        api=self.api, logger=self.logger)
+        if not utils.file_is_remote(initrd):
+            b_initrd = os.path.basename(initrd)
+            dst2 = os.path.join(distro_dir, b_initrd)
+            utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, 
+                    api=self.api, logger=self.logger)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -446,7 +419,7 @@ class PXEGen:
             return None  # nfs:// URLs or something, can't use for TFTP
 
         if metadata is None:
-	    metadata = {}
+            metadata = {}
         # ---
         # just some random variables
         template = None

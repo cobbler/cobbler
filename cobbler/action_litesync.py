@@ -63,7 +63,10 @@ class BootLiteSync:
         if distro is None:
             return
         # copy image files to images/$name in webdir & tftpboot:
-        self.sync.pxegen.copy_single_distro_files(distro)
+        self.sync.pxegen.copy_single_distro_files(distro,
+                                                  self.settings.webdir,True)
+        self.tftpd.add_single_distro(distro)
+
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(distro)
         # cascade sync
