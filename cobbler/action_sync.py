@@ -111,8 +111,18 @@ class BootSync:
         # Have the tftpd module handle copying bootloaders,
         # distros, images, and all_system_files
         self.tftpd.sync(self.verbose)
-	# make the default pxe menu anyway...
-	self.pxegen.make_pxe_menu()
+        # make the default pxe menu anyway...
+        self.pxegen.make_pxe_menu()
+
+        if self.settings.manage_dhcp:
+            self.logger.info("rendering DHCP files")
+            self.dhcp.write_dhcp_file()
+            self.dhcp.regen_ethers()
+        if self.settings.manage_dns:
+            self.logger.info("rendering DNS files")
+            self.dns.regen_hosts()
+            self.dns.write_dns_files()
+
 
         if self.settings.manage_tftpd:
            # xinetd.d/tftpd, basically
