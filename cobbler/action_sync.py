@@ -111,18 +111,6 @@ class BootSync:
         # Have the tftpd module handle copying bootloaders,
         # distros, images, and all_system_files
         self.tftpd.sync(self.verbose)
-        # Copy distros to the webdir
-        # Adding in the exception handling to not blow up if files have
-        # been moved (or the path references an NFS directory that's no longer
-        # mounted)
-	for d in self.distros:
-            try:
-                self.logger.info("copying files for distro: %s" % d.name)
-                self.pxegen.copy_single_distro_files(d,
-                                                     self.settings.webdir,True)
-            except CX, e:
-                self.logger.error(e.value)
-
         # make the default pxe menu anyway...
         self.pxegen.make_pxe_menu()
 
