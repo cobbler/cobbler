@@ -48,15 +48,16 @@ class InTftpdManager:
         self.logger        = logger
         self.config        = config
         self.templar       = templar.Templar(config)
-	self.settings_file = "/etc/xinetd.d/tftp"
-	self.pxegen        = pxegen.PXEGen(config, self.logger)
-	self.systems       = config.systems()
+        self.settings_file = "/etc/xinetd.d/tftp"
+        self.pxegen        = pxegen.PXEGen(config, self.logger)
+        self.systems       = config.systems()
+        self.bootloc       = utils.tftpboot_location()
 
     def regen_hosts(self):
         pass # not used
 
     def write_dns_files(self):
-	pass # not used
+        pass # not used
 
     def write_tftpd_files(self):
         """
@@ -74,17 +75,17 @@ class InTftpdManager:
         f.close()
 
         metadata = {
-	    "binary"	: "/usr/sbin/in.tftpd",
-	    "args"	: "-B 1468 -v -s %s" % tftpboot_location()
-	}
+            "binary"    : "/usr/sbin/in.tftpd",
+            "args"      : "-B 1468 -v -s %s" % self.bootloc
+        }
         if self.logger is not None:
             self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def update_netboot(self,name):
-	"""
-	Write out new pxelinux.cfg files to /tftpboot
-	"""
+        """
+        Write out new pxelinux.cfg files to /tftpboot
+        """
         system = self.systems.find(name=name)
         if system is None:
             utils.die(self.logger,"error in system lookup for %s" % name)
@@ -93,32 +94,44 @@ class InTftpdManager:
         self.pxegen.write_templates(system)
 
     def add_single_system(self,system):
-	"""
-	Write out new pxelinux.cfg files to /tftpboot
-	"""
+        """
+        Write out new pxelinux.cfg files to /tftpboot
+        """
         # write the PXE files for the system
         self.pxegen.write_all_system_files(system)
         # generate any templates listed in the distro
         self.pxegen.write_templates(system)
 
+    def add_single_distro(self,distro):
+        self.pxegen.copy_single_distro_files(distro,self.bootloc,False)
+
     def sync(self,verbose=True):
-	"""
-	Write out all files to /tftpdboot
-	"""
-	self.pxegen.verbose = verbose
-	self.logger.info("copying bootloaders")
-	self.pxegen.copy_bootloaders()
+        """
+        Write out all files to /tftpdboot
+        """
+        self.pxegen.verbose = verbose
+        self.logger.info("copying bootloaders")
+        self.pxegen.copy_bootloaders()
 
-	self.logger.info("copying distros")
-	self.pxegen.copy_distros()
+        self.logger.info("copying distros to tftpboot")
 
-	self.logger.info("copying images")
-	self.pxegen.copy_images()
+        # Adding in the exception handling to not blow up if files have
+        # been moved (or the path references an NFS directory that's no longer
+        # mounted)
+	for d in self.config.distros():
+            try:
+                self.logger.info("copying files for distro: %s" % d.name)
+                self.pxegen.copy_single_distro_files(d,self.bootloc,False)
+            except CX, e:
+                self.logger.error(e.value)
+
+        self.logger.info("copying images")
+        self.pxegen.copy_images()
 
         # the actual pxelinux.cfg files, for each interface
-	self.logger.info("generating PXE configuration files")
-	for x in self.systems:
-	    self.pxegen.write_all_system_files(x)
+        self.logger.info("generating PXE configuration files")
+        for x in self.systems:
+            self.pxegen.write_all_system_files(x)
 
         self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
