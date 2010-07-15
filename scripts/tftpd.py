@@ -47,7 +47,7 @@ from collections import deque
 from cobbler.utils import local_get_cobbler_api_url, tftpboot_location
 
 import tornado.ioloop as ioloop
-import cobbler.templar as templar
+import cobbler.templar
 import Cheetah # need exception types
 
 from struct import *;
@@ -61,37 +61,39 @@ TFTP_OPCODE_ACK   = 4
 TFTP_OPCODE_ERROR = 5
 TFTP_OPCODE_OACK  = 6
 
-TEMPLAR = None
 COBBLER_HANDLE = xmlrpclib.Server(local_get_cobbler_api_url())
 
-OPTIONS = dict(
-    port        = "69",
+OPTIONS = {
+    "port"       : "69",
 
-    timeout     =   10,
-    min_timeout =    1,
-    max_timeout =  255,
+    "timeout"    :   10,
+    "min_timeout":    1,
+    "max_timeout":  255,
 
-    blksize     =  512, # that's the default, required
-    max_blksize = 1428, # MTU - overhead
-    min_blksize =  512, # the default is small enough already
+    "blksize"    :  512, # that's the default, required
+    "max_blksize": 1428, # MTU - overhead
+    "min_blksize":  512, # the default is small enough already
 
-    retries     =    4,
+    "retries"    :    4,
 
-    verbose     = False,
-    debug       = False,
+    "verbose"    : False,
+    "debug"      : False,
 
-    idle        = 0, # how long to stick around: 0: unlimited
-    idle_timer  = None,
+    "idle"       : 0, # how long to stick around: 0: unlimited
+    "idle_timer" : None,
 
-    active      = 0,
+    "cache"      : False, # 'cache-time' = 300
+    "cache-time" : 5 * 300,
 
-    prefix      = tftpboot_location(),
+    "active"     : 0,
 
-    logger      = "stream",
+    "prefix"     : tftpboot_location(),
 
-    file_cmd    = "/usr/bin/file",
-    user        = "nobody",
-)
+    "logger"     : "stream",
+
+    "file_cmd"   : "/usr/bin/file",
+    "user"       : "nobody",
+}
 
 ERRORS = [
     'Not defined, see error message (if any)',  # 0
@@ -183,8 +185,8 @@ class RRQPacket(Packet):
         self.filename    = file
         self.mode        = mode
  
-    def get_request(self):
-        return Request(file,self.remote_addr)
+    def get_request(self,templar):
+        return Request(file,self.remote_addr,templar)
 
 class DATAPacket(Packet):
     """The DATA packet.  We only send these, so this object only
@@ -212,7 +214,7 @@ class ACKPacket(Packet):
     def __init__(self, data, local_sock, remote_addr):
         Packet.__init__(self,data,local_sock,remote_addr)
         block_number, = unpack("!H",data[2:])
-        logging.debug("ACK for packet %d from %s"%(block_number,remote_addr))
+        logging.log(9,"ACK for packet %d from %s"%(block_number,remote_addr))
         self.block_number = block_number
 
     def marshall(self):
@@ -268,7 +270,12 @@ class OACKPacket(Packet):
 class XMLRPCSystem:
     """Use XMLRPC to look up system attributes.  This is the recommended
        method.
+
+       The cache is only used if needed.  If we look up the host by IP
+       address, but can not find it, then check the cache and look it up
+       by name in the cache.  This limits the need for cache aging.
     """
+    cache = {}
     def __init__(self, ip_address=None, mac_address=None):
         query = {}
         if mac_address is not None:
@@ -279,22 +286,44 @@ class XMLRPCSystem:
         try:
             systems = COBBLER_HANDLE.find_system(query)
 
+            # if we don't find it, try the cache.
+            if (len(systems) == 0 and OPTIONS["cache"] and mac_address is None
+                    and XMLRPCSystem.cache.has_key(ip_address)):
+                logging.debug("Checking cache for %s" % (ip_address))
+                cache_ent = XMLRPCSystem.cache[ip_address]
+                if cache_ent["time"] + OPTIONS["cache-time"] > time.time():
+                    logging.debug("Using cache name for system %s,%s"
+                                  % (cache_ent["name"],ip_address))
+                    systems = COBBLER_HANDLE.find_system(
+                        {"name":cache_ent["name"]})
+                else:
+                    del XMLRPCSystem.cache[ip_address]
+
             if len(systems) > 1:
                 raise RuntimeError("Args mapped to multiple systems")
             elif len(systems) == 0:
-                raise RuntimeError("Args %s,%s not found in cobbler"
+                raise RuntimeError("%s,%s not found in cobbler"
                                    % (ip_address,mac_address))
 
             self.system = COBBLER_HANDLE.get_system_for_koan(systems[0])
             self.attrs  = self.system
             self.name   = self.attrs["name"]
+            if mac_address and OPTIONS["cache"]:
+                # fill the cache
+	        logging.debug("Putting %s,%s into cache" % (self.name,ip_address))
+                XMLRPCSystem.cache[ip_address] = {
+                    "name" : self.name,
+                    "time" : time.time(),
+                }
         except RuntimeError, e:
-            logging.warn("Exception retrieving rendered system: %s" % str(e))
+            logging.info(str(e))
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
         except:
-            logging.warn("Exception retrieving rendered system: %s" % sys.exc_info()[0])
+            (etype,eval,etrace) = sys.exc_info()
+            logging.warn("Exception retrieving rendered system: %s (%s)"
+                % (etype,eval))
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
@@ -304,7 +333,7 @@ class Request:
     is spawned per client request (RRQ packet received on well-known port)
     and it is responsible for keeping track of where the file transfer
     is..."""
-    def __init__(self,rrq_packet,local_sock):
+    def __init__(self,rrq_packet,local_sock,templar):
         self.filename    = rrq_packet.filename
         self.type        = "chroot"
         self.remote_addr = rrq_packet.remote_addr
@@ -314,6 +343,7 @@ class Request:
         self.local_sock  = local_sock
         self.state       = TFTP_OPCODE_RRQ
         self.expand      = False
+        self.templar     = templar
 
         # Sanitize input.
 
@@ -359,6 +389,7 @@ class Request:
                 trimmed = trimmed.replace(suffix,"")
                 logging.debug('_remap_name: converted %s to %s'
                               % (filename, trimmed))
+                return trimmed
         else:
             # looking over all keys, because I have to search for keys I want
             for (k,v) in self.system.system.iteritems():
@@ -406,17 +437,19 @@ class Request:
             # Look for image match.  All we can do
             return self._remap_via_profiles(trimmed)
 
-        # for the two tests below, I want to ignore "pytftp.*" in the string.
-        # which allows for some minimal control over extensions, which matters
-        # to pxelinux.0
-        trimmed = re.sub("pytftpd.*","",filename)
-
-        # Specific hacks to handle the PXE boot case without any configuration
+        # Specific hacks to handle the PXE/initrd case without any configuration
         if self.system.attrs.has_key(trimmed):
             if trimmed in ["pxelinux.cfg"]:
                 return trimmed,"hash_value"
-            if trimmed in ["kernel","initrd"]:
+            elif trimmed in ["initrd"]:
                 return self.system.attrs[trimmed],"template"
+
+        # for the two tests below, I want to ignore "pytftp.*" in the string,
+        # which allows for some minimal control over extensions, which matters
+        # to pxelinux.0
+        noext = re.sub("pytftpd.*","",filename)
+        if self.system.attrs.has_key(noext) and noext in ["kernel"]:
+            return self.system.attrs[noext],"template"
 
         fetchable_files = self.system.attrs["fetchable_files"].strip()
         if not fetchable_files:
@@ -428,7 +461,7 @@ class Request:
             if k == trimmed:
                 logging.debug('_remap_name: %s => %s' % (k,v))
                 try:
-                    return TEMPLAR.render(
+                    return self.templar.render(
                         v, self.system.attrs, None).strip(),"template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
@@ -440,8 +473,8 @@ class Request:
 
     def _render_template(self):
         try:
-            return RenderedFile(
-                TEMPLAR.render(open(self.filename,"r"),self.system.attrs,None))
+            return RenderedFile(self.templar.render(open(self.filename,"r"),
+                                self.system.attrs,None))
         except Cheetah.Parser.ParseError, e:
             logging.warn('Unable to expand template: %s: %s'
                          % (self.filename,e))
@@ -598,7 +631,7 @@ class Request:
 
             self.state = TFTP_OPCODE_DATA
             # Block Count starts at 1, so offset
-            logging.debug("DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
+            logging.log(9,"DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
                 self.remote_addr[0],self.remote_addr[1],
                 self.block_count + 1, (self.block_count+1)&0xFFFF,
                 len(data),offset+len(data),self.file_size))
@@ -793,7 +826,7 @@ def idle_out(sock):
         io_loop.stop()
 
 # called from ioloop.py:245
-def new_req(sock, fd, events):
+def new_req(sock, templar, fd, events):
     """The IO handler for the well-known port.  Handles the RRQ
        packet of a known size (512), and sets up the transient port
        for future messages for the same request.
@@ -831,7 +864,7 @@ def new_req(sock, fd, events):
 
         # Create the request object to handle this request, and bind it
         # to IO from the transient port
-        request = Request(packet,new_address)
+        request = Request(packet,new_address,templar)
         io_loop.add_handler(
             new_address.fileno(),
             partial(handle_request,request),
@@ -881,6 +914,10 @@ def main():
                         help="Increase output verbosity")
     parser.add_option('-d','--debug',action='store_true',default=False,
                         help="Debug (vastly increases output verbosity)")
+    parser.add_option('-c','--cache',action='store_true',default=False,
+                        help="Use a cache to help find hosts w/o IP address")
+    parser.add_option('--cache-time',action='store',type="int",default=5*60,
+                        help="How long an ip->name mapping is valid")
 
     opts = opt_help.keys()
     opts.sort()
@@ -943,10 +980,10 @@ def main():
 
     # This takes a while, so do it after we open the port, so we
     # don't drop the packet that spawned us
-    TEMPLAR = templar.Templar(None)
+    templar = cobbler.templar.Templar(None)
 
     io_loop = ioloop.IOLoop.instance()
-    io_loop.add_handler(sock.fileno(),partial(new_req,sock),io_loop.READ)
+    io_loop.add_handler(sock.fileno(),partial(new_req,sock,templar),io_loop.READ)
     # Shove the timeout into OPTIONS, because it's there
     if OPTIONS["idle"] > 0:
         OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
