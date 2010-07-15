@@ -78,7 +78,7 @@ class IscManager:
         /var/lib/cobbler/settings.
         """
 
-        template_file = "/etc/cobbler/templates/dhcp.template"
+        template_file = "/etc/cobbler/dhcp.template"
         blender_cache = {}
 
         try:
