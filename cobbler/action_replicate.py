@@ -94,14 +94,14 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, otype):
-         locals = utils.loh_to_hoh(self.local_data[otype],"uid")
-         remotes = utils.loh_to_hoh(self.remote_data[otype],"uid")
+    def replace_objects_newer_on_remote(self, obj_type):
+         locals = utils.loh_to_hoh(self.local_data[obj_type],"uid")
+         remotes = utils.loh_to_hoh(self.remote_data[obj_type],"uid")
 
          for (ruid, rdata) in remotes.iteritems():
 
              # do not add the system if it is not on the transfer list
-             if not self.must_include[otype].has_key(rdata["name"]):
+             if not self.must_include[obj_type].has_key(rdata["name"]):
                  continue
 
              if locals.has_key(ruid):
@@ -111,12 +111,12 @@ class Replicate:
                      if ldata["name"] != rdata["name"]:
                          self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
                          self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
-                     creator = getattr(self.api, "new_%s" % otype)
+                     creator = getattr(self.api, "new_%s" % obj_type)
                      newobj = creator()
                      newobj.from_datastruct(rdata)
                      try:
-                         self.logger.info("updating %s %s" % (otype, rdata["name"]))
-                         self.api.add_item(otype, newobj)
+                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
+                         self.api.add_item(obj_type, newobj)
                      except Exception, e:
                          utils.log_exc(self.logger)
 
@@ -212,14 +212,14 @@ class Replicate:
         }
 
         # include all profiles that are matched by a pattern
-        for otype in OBJ_TYPES:
-            patvar = getattr(self, "%s_patterns" % otype)
-            self.logger.debug("* Finding Explicit %s Matches" % otype)
+        for obj_type in OBJ_TYPES:
+            patvar = getattr(self, "%s_patterns" % obj_type)
+            self.logger.debug("* Finding Explicit %s Matches" % obj_type)
             for pat in patvar:
-                for remote in self.remote_names[otype]:
+                for remote in self.remote_names[obj_type]:
                     self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
                     if fnmatch.fnmatch(remote, pat):
-                        self.must_include[otype][remote] = 1
+                        self.must_include[obj_type][remote] = 1
 
         # include all profiles that systems require
         # whether they are explicitly included or not
