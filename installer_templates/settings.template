@@ -351,4 +351,9 @@ yum_distro_priority: 1
 # --resolve.
 yumdownloader_flags: "--resolve"
 
-
+# Safe Tempating disables several features of cheetah that may prove
+# to be undesirable in situations where cobbler_web is used.  We
+#  recommend that you enable safe templating any time you have
+# individuals writting templates that do not have root access to the
+# cobbler system.
+safe_templating: true

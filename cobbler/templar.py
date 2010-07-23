@@ -30,6 +30,7 @@ from template_api import Template
 from utils import *
 import utils
 import clogger
+import time
 
 class Templar:
 
@@ -78,7 +79,7 @@ class Templar:
 
         self.check_for_invalid_imports(raw_data)
 
-        # backward support for Cobbler's legacy (and slightly more readable) 
+        # backward support for Cobbler's legacy (and slightly more readable)
         # template syntax.
         raw_data = raw_data.replace("TEMPLATE::","$")
 
@@ -86,7 +87,7 @@ class Templar:
         # case this is likely WRONG for kickstart, which needs the NFS
         # directive instead.  Do this to make the templates work.
         newdata = ""
-        if search_table.has_key("tree") and search_table["tree"].startswith("nfs://"): 
+        if search_table.has_key("tree") and search_table["tree"].startswith("nfs://"):
             for line in raw_data.split("\n"):
                if line.find("--url") != -1 and line.find("url ") != -1:
                    rest = search_table["tree"][6:] # strip off "nfs://" part
@@ -99,13 +100,16 @@ class Templar:
                    # what the original value was
                    line = line + "\n" + "#url --url=%s" % search_table["tree"]
                newdata = newdata + line + "\n"
-            raw_data = newdata 
+            raw_data = newdata
+
+        # delete os and sys
+        raw_data = "#silent os,sys=None,None\n" + raw_data
 
         # tell Cheetah not to blow up if it can't find a symbol for something
         raw_data = "#errorCatcher ListErrors\n" + raw_data
 
         table_copy = search_table.copy()
- 
+
         # for various reasons we may want to call a module inside a template and pass
         # it all of the template variables.  The variable "template_universe" serves
         # this purpose to make it easier to iterate through all of the variables without
@@ -116,7 +120,8 @@ class Templar:
         })
 
         # now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table])
+        t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table], compilerSettings={'useStackFrame':False})
+
         try:
             data_out = t.respond()
             self.last_errors = t.errorCatcher().listErrors()
@@ -143,7 +148,7 @@ class Templar:
         for x in search_table.keys():
            if type(x) == str:
                data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
- 
+
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
             data_out = data_out.lstrip()

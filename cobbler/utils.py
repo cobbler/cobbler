@@ -1983,6 +1983,96 @@ def link_distro(settings, distro):
             # this shouldn't happen but I've seen it ... debug ...
             print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
 
+# -------------------------------------------------------
+# Used to parse Cheetah templates and resulting python
+# for any unsafe actions.
+
+import parser
+import symbol
+import token
+
+try:
+    fh = open("/etc/cobbler/settings")
+    data = yaml.load(fh.read())
+    fh.close()
+except:
+    data = {}
+
+parse_whitelist = {
+    'import': data.get("cheetah_import_whitelist",('re','time','random'))
+    }
+
+safe_templating = data.get('safe_templating',True)
+
+parse_blacklist = {
+    'builtins': (
+        'classmethod',
+        'compile',
+        'eval',
+        'exec',
+        'execfile',
+        'file',
+        'global',
+        'input',
+        'open',
+        'os',
+        'raw_input',
+        'staticmethod',
+        #'super',
+        'sys',
+        '__import__',
+    ),
+}
+
+def parse_import_stmt(stmt, whitelist):
+    if stmt[0] == symbol.import_from:
+        module = stmt[2]
+        if module[1][1] not in whitelist:
+            return False, module[1][1]
+    else:
+        modules = stmt[2]
+        for name_list in modules:
+            if type(name_list) is list or type(name_list) is tuple and \
+                    name_list[0] == symbol.dotted_as_name:
+                if name_list[1][1][1] not in whitelist:
+                    return False, name_list[1][1][1]
+    return True, None
+
+def parse_walker(stmt):
+
+    for i, val in enumerate(stmt):
+        if i == 0:
+            if val == token.NAME:
+                if stmt[1] in parse_blacklist['builtins']:
+                    raise CX(
+                        "Unsafe builtin name (%s) used in Cheetah template." %
+                        stmt[1])
+            elif val == symbol.import_stmt:
+                valid, module = parse_import_stmt(stmt[1],
+                                    parse_whitelist['import'])
+                if not valid:
+                    raise CX(
+                        "Unsafe import (%s) made in Cheetah template." %
+                        module)
+                # We have reached a valid import statement
+                break
+            elif val in token.tok_name:
+                #print stmt[1]
+                # We've reached a terminal
+                break
+        else:
+            parse_walker(val)
+    return True
+
+def parse_template_class(class_string):
+    if not safe_templating:
+        return
+    st_tuple = parser.suite(class_string).totuple()
+    return parse_walker(st_tuple)
+
+
+# -------------------------------------------------------
+
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
