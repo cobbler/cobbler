@@ -58,5 +58,5 @@ class Package(resource.Resource):
         return True
 
     def check_if_valid(self):
-        if self.name is None:
+        if self.name is None or self.name == "":
             raise CX("name is required")

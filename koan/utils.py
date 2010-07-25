@@ -522,6 +522,11 @@ def make_floppy(kickstart):
     # return the path to the completed disk image to pass to virtinst
     return floppy_path
 
+def sync_file(ofile, nfile, uid, gid, mode):
+    sub_process.call(['/usr/bin/diff', ofile, nfile])
+    shutil.copy(nfile, ofile)
+    os.chmod(ofile,mode)
+    os.chown(ofile,uid,gid)
 
 #class ServerProxy(xmlrpclib.ServerProxy):
 #

@@ -51,6 +51,7 @@ import pxegen
 import utils
 #from utils import * # BAD!
 from utils import _
+import configgen
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
@@ -1877,30 +1878,11 @@ class CobblerXMLRPCInterface:
 
     def get_config_data(self,hostname):
         """
-        Generate configuration data of a system specified by hostname.
+        Generate configuration data for the system specified by hostname.
         """
-        import cobbler.configgen as cgen
         self._log("get_config_data for %s" % hostname)
-        obj = cgen.GenConfig(hostname)
+        obj = configgen.ConfigGen(hostname)
         return obj.gen_config_data_for_koan()
-    
-    def repos_enabled(self,hostname):
-        import cobbler.configgen as cgen
-        self._log("repos_enabled for %s" % hostname)
-        obj = cgen.GenConfig(hostname)
-        return obj.repos_enabled()
-    
-    def ldap_enabled(self,hostname):
-        import cobbler.configgen as cgen
-        self._log("ldap_enabled for %s" % hostname)
-        obj = cgen.GenConfig(hostname)
-        return obj.ldap_enabled()
-    
-    def monit_enabled(self,hostname):
-        import cobbler.configgen as cgen
-        self._log("monit_enabled for %s" % hostname)
-        obj = cgen.GenConfig(hostname)
-        return obj.monit_enabled()
 
     def clear_system_logs(self, object_id, token=None, logger=None):
         """

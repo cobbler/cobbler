@@ -1,5 +1,5 @@
 """
-Configuration generation class.
+configgen.py: Generate configuration data.
 
 Copyright 2010 Kelsey Hightower
 Kelsey Hightower <kelsey.hightower@gmail.com>
@@ -24,179 +24,133 @@ mgmtclasses, resources, and templates for a given system (hostname)
 """
 
 from Cheetah.Template import Template
-from ConfigParser import RawConfigParser
 from cexceptions import CX
 import cobbler.utils
 import cobbler.api as capi
-import pprint
 import simplejson as json
 import string
 import utils
+import clogger
 
-class GenConfig:
+
+class ConfigGen:
+    """
+    Generate configuration data for Cobbler's management resources: 
+    repos, ldap, files, packages, and monit. Mainly used by Koan to 
+    configure remote systems.
+    """
 
     def __init__(self,hostname):
+        """Constructor. Requires a Cobbler API handle."""
         self.hostname    = hostname
         self.handle      = capi.BootAPI()
         self.system      = self.handle.find_system(hostname=self.hostname)
-        self.mgmtclasses = self.get_host_mgmtclasses()
-        self.resources   = self.get_resources()
-
-    def get_host_vars(self):
-        handle = self.handle
-        system = self.system
-        return cobbler.utils.blender(handle, False, system)['ks_meta']
-
-    def get_host_mgmtclasses(self):
-        handle = self.handle
-        system = self.system
-        return cobbler.utils.blender(handle, False, system)['mgmt_classes']
-    
-    def repos_enabled(self):
-        handle = self.handle
-        system = self.system
-        return cobbler.utils.blender(handle, False, system)['repos_enabled']
-    
-    def ldap_enabled(self):
-        handle = self.handle
-        system = self.system
-        return cobbler.utils.blender(handle, False, system)['ldap_enabled']
-    
-    def monit_enabled(self):
-        handle = self.handle
-        system = self.system
-        return cobbler.utils.blender(handle, False, system)['monit_enabled']
+        self.host_vars   = self.get_cobbler_resource('ks_meta')
+        self.logger      = clogger.Logger("/var/log/cobbler/cobbler.log")
+        self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
+        
+    #----------------------------------------------------------------------
 
     def resolve_resource_var(self,string_data):
-        data = string.Template(string_data).substitute(self.get_host_vars())
+        """Substitute variables in strings."""
+        data = string.Template(string_data).substitute(self.host_vars)
         return data
     
+    #----------------------------------------------------------------------
+    
     def resolve_resource_list(self,list_data):
+        """Substitute variables in lists. Return new list."""
         new_list = []
         for item in list_data:
-            new_list.append(string.Template(item).substitute(self.get_host_vars()))
+            new_list.append(string.Template(item).substitute(self.host_vars))
         return new_list
+    
+    #----------------------------------------------------------------------
+    
+    def get_cobbler_resource(self,resource):
+        """Wrapper around cobbler blender method"""
+        return cobbler.utils.blender(self.handle, False, self.system)[resource]
+    
+    #----------------------------------------------------------------------
 
-    def get_packages(self):
-        return self.resources['packages']
-    def get_files(self):
-        return self.resources['files']
-
-    def get_resources(self):
-        handle      = self.handle
-        mgmtclasses = self.mgmtclasses
+    def gen_config_data(self):
+        """
+        Generate configuration data for repos, ldap, files,
+        packages, and monit. Returns a dict. 
+        """
+        config_data = {
+            'repo_data'    : self.handle.get_repo_config_for_system(self.system),
+            'repos_enabled': self.get_cobbler_resource('repos_enabled'),
+            'ldap_enabled' : self.get_cobbler_resource('ldap_enabled'),
+            'monit_enabled': self.get_cobbler_resource('monit_enabled')           
+        }
         package_set = set()
         file_set    = set()
-        # Construct the resources dictionary
-        for mgmtclass in mgmtclasses:
-            _mgmtclass = handle.find_mgmtclass(name=mgmtclass)
+
+        for mgmtclass in self.mgmtclasses:
+            _mgmtclass = self.handle.find_mgmtclass(name=mgmtclass)
             for package in _mgmtclass.packages:
                 package_set.add(package)
             for file in _mgmtclass.files:
                 file_set.add(file)
-        resources = {
-            'packages': package_set,
-            'files'   : file_set,
-        } 
-        return resources
     
-    def gen_repo_data(self):
-        """
-        Generate repo data. Return repos attached to this system.
-        """
-        handle = self.handle
-        system = self.system
-        repo_data = handle.get_repo_config_for_system(system)
-        return repo_data
-
-    def gen_ldap_data(self):
-        """
-        Generate LDAP data
-        """
-        system = self.system
-        if system.ldap_type in [ "", "none" ]:
-            utils.die(self.logger,"LDAP management is not enabled for this system")
-        template = utils.get_ldap_template(self.system.ldap_type)
-        if not template:
-            utils.die(self.logger, "Invalid LDAP management type for this system (%s, %s)" % (self.system.ldap_type, self.system.name))
-        t = Template(file=template, searchList=[self.get_host_vars()])
-        ldap_data = t.respond()
-        return ldap_data
-
-    def gen_package_data(self):
-        """
-        Generate package resources dictionary.
-        """
-        handle = self.handle
-        package_list = self.get_packages()
+        # Generate LDAP data
+        if self.get_cobbler_resource("ldap_enabled"):
+            if self.system.ldap_type in [ "", "none" ]:
+                utils.die(self.logger, "LDAP management type not set for this system (%s, %s)" % (self.system.ldap_type, self.system.name))
+            else:
+                template = utils.get_ldap_template(self.system.ldap_type)
+                t = Template(file=template, searchList=[self.host_vars])
+                print t
+                config_data['ldap_data'] = t.respond()
+        
+        # Generate Package data
         pkg_data = {}
-        pkg_data['rpm'] = {}
-        pkg_data['yum'] = {}
-        for package in package_list:
-            _package = handle.find_package(name=package)
+        for package in package_set:
+            _package = self.handle.find_package(name=package)
             if _package is None:
                 raise CX('%s package resource is not defined' % package)
-            if _package.installer == 'rpm':
-                pkg_data['rpm'][package] = {}
-                pkg_data['rpm'][package]['action'] = self.resolve_resource_var(_package.action)
-                pkg_data['rpm'][package]['url']    = self.resolve_resource_var(_package.url)
-            if _package.installer == 'yum':
-                pkg_data['yum'][package] = {}
-                pkg_data['yum'][package]['action']  = self.resolve_resource_var(_package.action)
-                pkg_data['yum'][package]['version'] = self.resolve_resource_var(_package.version)
-        return pkg_data
+            else:
+                pkg_data[package] = {}
+                pkg_data[package]['action']    = self.resolve_resource_var(_package.action)
+                pkg_data[package]['installer'] = _package.installer
+                pkg_data[package]['version']   = self.resolve_resource_var(_package.version)
+                if pkg_data[package]['version'] != "":
+                    pkg_data[package]["install_name"] = "%s-%s" % (package, pkg_data[package]['version'])
+                else:
+                    pkg_data[package]["install_name"] = package
+        config_data['packages'] = pkg_data
     
-    def gen_file_data(self):
-        """
-        Generate file resources dictionary.
-        """
-        handle = self.handle
-        file_list = self.get_files()
-        file_data = {}
-        file_data['directories'] = {}
-        file_data['files']       = {}
-        for file in file_list:
-            _file = handle.find_file(name=file)
+        # Generate File data
+        file_data = {}    
+        for file in file_set:
+            _file = self.handle.find_file(name=file)
+        
             if _file is None:
                 raise CX('%s file resource is not defined' % file)
-            if _file.is_directory:
-                file_data['directories'][file] = {}
-                file_data['directories'][file]['is_directory'] = _file.is_directory
-                file_data['directories'][file]['action']   = self.resolve_resource_var(_file.action)
-                file_data['directories'][file]['group']    = self.resolve_resource_var(_file.group)
-                file_data['directories'][file]['mode']     = self.resolve_resource_var(_file.mode) 
-                file_data['directories'][file]['owner']    = self.resolve_resource_var(_file.owner)
-                file_data['directories'][file]['path']     = self.resolve_resource_var(_file.path)
-            else:
-                file_data['files'][file] = {}
-                file_data['files'][file]['is_directory'] = _file.is_directory
-                file_data['files'][file]['action']   = self.resolve_resource_var(_file.action)
-                file_data['files'][file]['group']    = self.resolve_resource_var(_file.group)
-                file_data['files'][file]['mode']     = self.resolve_resource_var(_file.mode) 
-                file_data['files'][file]['owner']    = self.resolve_resource_var(_file.owner)
-                file_data['files'][file]['path']     = self.resolve_resource_var(_file.path)
-                file_data['files'][file]['template'] = self.resolve_resource_var(_file.template)
-                if 'template' in file_data['files'][file]:
-                    t = Template(file=file_data['files'][file]['template'], searchList=[self.get_host_vars()])
-                    file_data['files'][file]['content'] = t.respond()
-                    del file_data['files'][file]['template']
-        return file_data
-
-    def gen_config_data(self):
-        """
-        Generate configuration data.
-        """
-        config_data = {
-            'repo_data': self.gen_repo_data(),
-            'ldap_data': self.gen_ldap_data(),
-            'packages' : self.gen_package_data(),
-            'files'    : self.gen_file_data(),           
-        }
+            
+            file_data[file] = {}
+            file_data[file]['is_dir'] = _file.is_dir
+            file_data[file]['action'] = self.resolve_resource_var(_file.action)
+            file_data[file]['group']  = self.resolve_resource_var(_file.group)
+            file_data[file]['mode']   = self.resolve_resource_var(_file.mode) 
+            file_data[file]['owner']  = self.resolve_resource_var(_file.owner)
+            file_data[file]['path']   = self.resolve_resource_var(_file.path)
+            
+            if not _file.is_dir:
+                file_data[file]['template'] = self.resolve_resource_var(_file.template)
+                try:
+                    t = Template(file=file_data[file]['template'], searchList=[self.host_vars])
+                    file_data[file]['content'] = t.respond()
+                except:
+                    utils.die(self.logger, "Missing template for this file resource %s" % (file_data[file]))
+                    
+        config_data['files'] = file_data
         return config_data
+    
+    #----------------------------------------------------------------------
 
     def gen_config_data_for_koan(self):
-        """
-        Encode configuration data. Return json object for Koan.
-        """
+        """Encode configuration data. Return json object for Koan."""
         json_config_data = json.JSONEncoder(sort_keys=True, indent=4).encode(self.gen_config_data())
         return json_config_data

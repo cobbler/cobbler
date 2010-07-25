@@ -151,7 +151,6 @@ if __name__ == "__main__":
             "cobbler",
             "cobbler/modules", 
             "koan",
-            "koan/redhat",
         ],
         package_dir = {
             "cobbler_web": "web/cobbler_web",

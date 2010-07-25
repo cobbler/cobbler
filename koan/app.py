@@ -61,7 +61,7 @@ import glob
 import socket
 import utils
 import time
-import configmgmt
+import configurator
 
 COBBLER_REQUIRED = 1.300
 
@@ -748,100 +748,59 @@ class Koan:
         hostname = socket.gethostname()
         server   = self.xmlrpc_server
         try:
-            config_data   = server.get_config_data(hostname)
-            repos_enabled = server.repos_enabled(hostname)
-            ldap_enabled  = server.ldap_enabled(hostname) 
-            monit_enabled = server.monit_enabled(hostname)
+            config = server.get_config_data(hostname)
         except:
             traceback.print_exc()
             self.connect_fail()
 
-        # Save configuration data to disk
         # FIXME should we version this, maybe append a timestamp? 
-        node_config_data = "/var/lib/koan/config/localconfig.json" % (hostname)
+        node_config_data = "/var/lib/koan/config/localconfig.json"
         f = open(node_config_data, 'w')
-        f.write(config_data)
-        f.close
+        f.write(config)
+        f.close()
 
-        # Start Configuration Run
         print "- Starting configuration run for %s" % (hostname)
         runtime_start = time.time()
-        config_run  = configmgmt.Configure(config_data)
-        if repos_enabled:
-            repos_status = config_run.configure_repos()
-        if ldap_enabled:
-            ldap_status = config_run.configure_ldap()
-        pkg_stats   = config_run.configure_packages()
-        file_stats  = config_run.configure_files()
+        configure = configurator.KoanConfigure(config)
+        stats = configure.run() 
         runtime_end = time.time()
-        if monit_enabled:
-            monit_status = config_run.configure_monit()
-
-        total_runtime = (runtime_end - runtime_start)
-
-        # Gather resource stats
-        in_sync_resources = (
-            pkg_stats['in_sync']   +
-            file_stats['in_sync']
-        )
-        oo_sync_resources = (
-            pkg_stats['oo_sync']   +
-            file_stats['oo_sync']
-        )
-        failed_resources = (
-            pkg_stats['failed']   +
-            file_stats['failed']
-        )
-
-        total_resources = (in_sync_resources + oo_sync_resources + failed_resources)
-
+        
         if self.summary:
-            # Print Resource Report
+            pstats = (stats["pkg"]['nsync'],stats["pkg"]['osync'],stats["pkg"]['fail'],stats["pkg"]['runtime'])
+            dstats = (stats["dir"]['nsync'],stats["dir"]['osync'],stats["dir"]['fail'],stats["dir"]['runtime'])
+            fstats = (stats["files"]['nsync'],stats["files"]['osync'],stats["files"]['fail'],stats["files"]['runtime'])                                          
+            
+            nsync = pstats[0] + dstats[0] + fstats[0]
+            osync = pstats[1] + dstats[1] + fstats[1]
+            fail  = pstats[2] + dstats[2] + fstats[2]
+            
+            total_resources = (nsync + osync + fail)
+            total_runtime   = (runtime_end - runtime_start)
+           
             print
             print "\tResource Report"
             print "\t-------------------------"
-            print "\t    In Sync: %d" % in_sync_resources
-            print "\tOut of Sync: %d" % oo_sync_resources
-            print "\t       Fail: %d" % failed_resources
+            print "\t    In Sync: %d" % nsync
+            print "\tOut of Sync: %d" % osync
+            print "\t       Fail: %d" % fail
             print "\t-------------------------"
             print "\tTotal Resources: %d" % total_resources
+            print "\t  Total Runtime: %.02f" % total_runtime
             
-            if repos_enabled:
-                print
-                print "\tRepos Status"
-                print "\t-------------------------"
-                print "\t%s" % repos_status
-                print "\t-------------------------"
+            for status in ["repos_status", "ldap_status", "monit_status"]:
+                if status in stats:
+                    print
+                    print "\t%s" % status
+                    print "\t-------------------------"
+                    print "\t%s" % stats[status]
+                    print "\t-------------------------"          
             
-            if ldap_enabled:
-                print
-                print "\tLDAP Status"
-                print "\t-------------------------"
-                print "\t%s" % ldap_status
-                print "\t-------------------------"
-    
-            if monit_enabled:
-                print
-                print "\tMonit Status"
-                print "\t-------------------------"
-                print "\t%s" % monit_status
-                print "\t-------------------------"
-    
             print
-            print "\tResource |In Sync|OO Sync|Failed"
-            print "\t-----------------------------"
-            print "\t   Packages:  %d      %d    %d" % (pkg_stats['in_sync'],pkg_stats['oo_sync'],pkg_stats['failed'])
-            print "\t      Files:  %d      %d    %d" % (file_stats['in_sync'],file_stats['oo_sync'],file_stats['failed'])
-    
-    
-            # Print Runtime Report
-            print
-            print "\tRunTime Report"
-            print "\t-------------------------"
-            print "\t   Packages: %.02f" % pkg_stats['runtime']
-            print "\t      Files: %.02f" % file_stats['runtime']
-            print "\t-------------------------"
-            print "\tTotal Runtime: %.02f" % total_runtime
+            print "\tResource |In Sync|OO Sync|Failed|Runtime"
+            print "\t----------------------------------------"
+            print "\t      Packages:  %d      %d    %d     %.02f" % pstats
+            print "\t   Directories:  %d      %d    %d     %.02f" % dstats
+            print "\t         Files:  %d      %d    %d     %.02f" % fstats
             print
 
     #---------------------------------------------------

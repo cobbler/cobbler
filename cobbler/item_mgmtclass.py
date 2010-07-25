@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
+from cexceptions import CX
+from utils import _
 
-from utils import _, CX
-
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
   ["name","",0,"Name",True,"Ex: F10-i386-webserver",0,"str"],
@@ -48,21 +49,13 @@ class Mgmtclass(item.Item):
     def get_fields(self):
         return FIELDS
 
-    def set_packages(self,packages,inplace=True):
+    def set_packages(self,packages):
         self.packages = utils.input_string_or_list(packages)    
         return True
 
     def set_files(self,files):
-        files_split = utils.input_string_or_list(files)
-        self.files = utils.input_string_or_list(files_split)
+        self.files = utils.input_string_or_list(files)
         return True
-
-    def get_parent(self):
-        """
-        currently the Cobbler object space does not support subobjects of mgmtclass
-        as it is conceptually not useful.
-        """
-        return None
 
     def check_if_valid(self):
         if self.name is None or self.name == "":

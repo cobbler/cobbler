@@ -13,6 +13,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import item
+import utils
 from cexceptions import CX
 
 class Resource(item.Item):
@@ -37,18 +38,14 @@ class Resource(item.Item):
         """
         Unix group ownership of a file or directory.
         """
-        if group is None or group == "":
-            raise CX("group not specified")
         self.group = group
         return True
     
     def set_mode(self,mode):
         """
-        Unix file permission mode ie: '644' assigned to
+        Unix file permission mode ie: '0644' assigned to
         file and directory resources.
         """
-        if mode is None or mode == "":
-            raise CX("mode not specified")
         self.mode = mode
         return True
     
@@ -56,8 +53,6 @@ class Resource(item.Item):
         """
         Unix owner of a file or directory
         """
-        if owner is None or owner == "":
-            raise CX("owner not specified")
         self.owner = owner
         return True
     
@@ -67,8 +62,6 @@ class Resource(item.Item):
         a absolute path of the file or directory to create or
         manage.
         """
-        if path is None or path == "":
-            raise CX("path not specified")
         self.path = path
         return True
     
@@ -78,7 +71,5 @@ class Resource(item.Item):
         Used to generate file data shipped to koan via json. All
         templates have access to flatten ksmeta data.
         """
-        if template is None or template == "":
-            raise CX("template not specified")
         self.template = template
         return True
