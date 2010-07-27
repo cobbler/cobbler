@@ -64,15 +64,28 @@ def check_auth(request):
     global token
     global username
     global url_cobbler_api
-    if request.META.has_key('REMOTE_USER') and username is None:
+
+    if url_cobbler_api is None:
+        url_cobbler_api = utils.local_get_cobbler_api_url()
+
+    remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
+
+    if token is not None:
+        try:
+            token_user = remote.get_user_from_token(token)
+        except:
+            token_user = None
+    else:
+        token_user = None
+
+    if request.META.has_key('REMOTE_USER'):
+        if token_user == request.META['REMOTE_USER']:
+            return
         username = request.META['REMOTE_USER']
         #REMOTE_USER is set, so no credentials are going to be available
         #So we get the shared secret and let authn_passthru authenticate us
         password = utils.get_shared_secret()
         # Load server ip and port from local config
-        if url_cobbler_api is None:
-            url_cobbler_api = utils.local_get_cobbler_api_url()
-        remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
         token = remote.login(username, password)
         remote.update(token)
 
