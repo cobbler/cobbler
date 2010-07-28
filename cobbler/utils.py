@@ -1583,29 +1583,30 @@ def is_remote_file(file):
     if dev.find(":") != -1:
        return True
     else:
-       return False 
+       return False
+
+def subprocess_sp(logger, cmd, self.shell=True):
+    if logger is not None:
+        logger.info("running: %s" % cmd)
+    try:
+        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
+    except OSError:
+        if logger is not None:
+            log_exc(logger)
+        die(logger, "OS Error, command not found?  While running: %s" % cmd)
+
+    data = sp.communicate()[0]
+    rc = sp.returncode
+    if logger is not None:
+        logger.info("received: %s" % data)
+    return data, rc
 
 def subprocess_call(logger, cmd, shell=True):
-    logger.info("running: %s" % cmd)
-    try:
-       p = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.STDOUT, close_fds=True)
-       logger.handle().write(p.stdout.read())
-    except OSError:
-       log_exc(logger)
-       if not isinstance(cmd, basestring):
-          cmd = str(" ".join(cmd))
-       die(logger, "OS Error, command not found?  While running: %s" % cmd)
-    rc = p.wait()
-    logger.info("returned: %s" % rc)
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return rc
 
 def subprocess_get(logger, cmd, shell=True):
-    if logger is not None:
-        logger.info("running: %s" % cmd)
-    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
-    data = sp.communicate()[0]
-    if logger is not None:
-        logger.info("received: %s" % data)
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return data
 
 def popen2(args, **kwargs):
