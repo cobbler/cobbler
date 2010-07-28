@@ -1582,7 +1582,7 @@ def is_remote_file(file):
     else:
        return False
 
-def subprocess_sp(logger, cmd, self.shell=True):
+def subprocess_sp(logger, cmd, shell=True):
     if logger is not None:
         logger.info("running: %s" % cmd)
     try:
