@@ -1,0 +1,65 @@
+#set system_name = $getVar('system_name','')
+#set profile_name = $getVar('profile_name','')
+#set breed = $getVar('breed','')
+#set srv = $getVar('http_server','')
+#set kickstart = $getVar('kickstart','')
+#set run_install_triggers = $str($getVar('run_install_triggers',''))
+#set pxe_just_once = $str($getVar('pxe_just_once',''))
+#set nopxe = ""
+#set saveks = ""
+#set runpost = ""
+
+#if $system_name != ''
+
+    ## PXE JUST ONCE
+    #if $pxe_just_once in [ "1", "true", "yes", "y" ]
+        #if $breed == 'redhat'
+            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
+        #else if $breed == 'vmware'
+            #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
+        #end if
+    #end if
+
+    ## SAVE KICKSTART
+    #if $kickstart != ''
+        #if $breed == 'redhat'
+            #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "system", system_name)
+        #else if $breed == 'vmware'
+            #set saveks = "\ncurl \"http://%s/cblr/svc/op/ks/%s/%s\" -o /root/cobbler.ks" % (srv, "system", system_name)
+        #end if
+    #end if
+
+    ## RUN POST TRIGGER
+    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+        #if $breed == 'redhat'
+            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
+        #else if $breed == 'vmware'
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
+        #end if
+    #end if
+
+#else if $profile_name != ''
+
+    ## SAVE KICKSTART
+    #if $kickstart != ''
+        #if $breed == 'redhat'
+            #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "profile", profile_name)
+        #else if $breed == 'vmware'
+            #set saveks = "\ncurl \"http://%s/cblr/svc/op/ks/%s/%s\" -o /root/cobbler.ks" % (srv, "profile", profile_name)
+        #end if
+    #end if
+
+    ## RUN POST TRIGGER
+    #if $run_install_triggers in [ "1", "true", "yes", "y" ]
+        #if $breed == 'redhat'
+            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
+        #else if $breed == 'vmware'
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
+        #end if
+    #end if
+
+#end if
+
+#echo $saveks
+#echo $runpost
+#echo $nopxe
