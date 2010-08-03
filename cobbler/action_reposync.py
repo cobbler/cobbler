@@ -291,8 +291,9 @@ class RepoSync:
 
         if repo.mirror_locally:
             rc = utils.subprocess_call(self.logger, cmd)
-            if rc !=0:
-                utils.die(self.logger,"cobbler reposync failed")
+            # Don't die if reposync fails, it is logged
+            # if rc !=0:
+            #     utils.die(self.logger,"cobbler reposync failed")
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
