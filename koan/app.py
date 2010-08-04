@@ -28,6 +28,7 @@ import random
 import os
 import traceback
 import tempfile
+import shlex
 
 ANCIENT_PYTHON = 0
 try:
@@ -611,12 +612,12 @@ class Koan:
                 if match:
                     cmd = match.group("urlcmd")
                     if cmd:
-                        (options,args) = url_parser.parse_args(cmd.split()[1:])
+                        (options,args) = url_parser.parse_args(shlex.split(cmd)[1:])
                         profile_data["install_tree"] = options.url
                         break
                     cmd = match.group("nfscmd")
                     if cmd:
-                        (options,args) = nfs_parser.parse_args(cmd.split()[1:])
+                        (options,args) = nfs_parser.parse_args(shlex.split(cmd)[1:])
                         profile_data["install_tree"] = "nfs://%s:%s" % (options.server,options.dir)
                         break
 
