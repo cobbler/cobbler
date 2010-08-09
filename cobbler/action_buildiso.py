@@ -160,8 +160,9 @@ class BuildIso:
                 cfg.write("  kernel %s.krn\n" % distname)
 
                 if data["kickstart"].startswith("/"):
-                    data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
+                    data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
                         data["server"],
+                        self.api.settings().http_port,
                         profile.name
                     )
 
@@ -207,8 +208,9 @@ class BuildIso:
                    cfg.write("  kernel %s.krn\n" % distname)
 
                    if data["kickstart"].startswith("/"):
-                       data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (
+                       data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
                            data["server"],
+                           self.api.settings().http_port,
                            system.name
                        )
 
