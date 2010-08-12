@@ -89,12 +89,19 @@ class BootCheck:
        self.check_iptables(status)
        self.check_yum(status)
        self.check_debmirror(status)
+       self.check_for_ksvalidator(status)
        self.check_for_default_password(status)
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
        self.check_for_cman(status)
 
        return status
+
+   def check_for_ksvalidator(self, status):
+       if not os.path.exists("/usr/bin/ksvalidator"):
+           status.append("ksvalidator was not found, install pykickstart")
+
+       return True
 
    def check_for_cman(self, status):
        # not doing rpm -q here to be cross-distro friendly
