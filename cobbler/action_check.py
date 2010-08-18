@@ -71,7 +71,7 @@ class BootCheck:
                self.check_dnsmasq_bin(status)
                self.check_service(status,"dnsmasq")
 
-       mode = self.config.api.get_sync().tftp.what()
+       mode = self.config.api.get_sync().tftpd.what()
        if mode == "in_tftpd": 
            self.check_tftpd_bin(status)
            self.check_tftpd_dir(status)
