@@ -93,6 +93,11 @@ OPTIONS = {
 
     "file_cmd"   : "/usr/bin/file",
     "user"       : "nobody",
+
+    # the well known socket.  needs to be global for timeout
+    # Using the options hash as a hackaround for python's
+    # "create a new object at local scope by default" design.
+    "sock"       : None
 }
 
 ERRORS = [
@@ -213,7 +218,7 @@ class ACKPacket(Packet):
 
     def __init__(self, data, local_sock, remote_addr):
         Packet.__init__(self,data,local_sock,remote_addr)
-        block_number, = unpack("!H",data[2:])
+        block_number, = unpack("!H",data[2:4])
         logging.log(9,"ACK for packet %d from %s"%(block_number,remote_addr))
         self.block_number = block_number
 
@@ -310,7 +315,7 @@ class XMLRPCSystem:
             self.name   = self.attrs["name"]
             if mac_address and OPTIONS["cache"]:
                 # fill the cache
-	        logging.debug("Putting %s,%s into cache" % (self.name,ip_address))
+                logging.debug("Putting %s,%s into cache"%(self.name,ip_address))
                 XMLRPCSystem.cache[ip_address] = {
                     "name" : self.name,
                     "time" : time.time(),
@@ -754,7 +759,10 @@ def read_packet(data,local_sock,remote_addr):
             ERRORPacket(2,"Unsupported request").marshall(),remote_addr)
         return None
 
-    return (REQUESTS[opcode][REQ_CLASS])(data,local_sock,remote_addr)
+    try:
+        return (REQUESTS[opcode][REQ_CLASS])(data,local_sock,remote_addr)
+    except:
+        return None
 
 def partial(func, *args, **keywords):
     """Method factory.  Returns a semi-anonymous method that provides
@@ -787,39 +795,50 @@ def handle_request(request,fd,events):
        and calls the Request.handle_input method of the request associated
        with the port.
     """
-    while request.state != 0: # 0 is the "done" state
-        try:
-            data,address = request.local_sock.recvfrom(
-                request.options["blksize"]);
-        except socket.error, e:
-            if e[0] in (errno.EWOULDBLOCK, errno.EAGAIN):
-                return
+    try:
+        while request.state != 0: # 0 is the "done" state
+            try:
+                data,address = request.local_sock.recvfrom(
+                    request.options["blksize"]);
+            except socket.error, e:
+                if e[0] in (errno.EWOULDBLOCK, errno.EAGAIN):
+                    return
+                else:
+                    raise
+
+            if address == request.remote_addr:
+                packet = read_packet(data,request.local_sock,address)
+                if (packet is None):
+                    request.finish()
+                    continue
+
+                request.handle_input(packet)
+                reply = request.reply()
+
+                if reply:
+                    request.local_sock.sendto(reply.marshall(),address)
+
+                if not reply or reply is ERRORPacket:
+                    request.finish()
             else:
-                raise
+                raise NotImplementedError("Input from unexpected source")
+    finally:
+        # Reset the timer
+        if OPTIONS["idle"] > 0:
+            io_loop = ioloop.IOLoop.instance()
+            try:
+                io_loop.remove_timeout(OPTIONS["idle_timer"])
+            except:
+                pass
+            OPTIONS["idle_timer"] = io_loop.add_timeout(
+                time.time()+OPTIONS["idle"],
+                lambda : idle_out())
 
-        if address == request.remote_addr:
-            packet = read_packet(data,request.local_sock,address)
-            if (packet is None):
-                request.finish()
-                continue
-
-            request.handle_input(packet)
-            reply = request.reply()
-
-            if reply:
-                request.local_sock.sendto(reply.marshall(),address)
-
-            if not reply or reply is ERRORPacket:
-                request.finish()
-        else:
-            raise NotImplementedError("Input from unexpected source")
-
-
-def idle_out(sock):
+def idle_out():
     logging.info("Idling out")
     io_loop = ioloop.IOLoop.instance()
-    io_loop.remove_handler(sock.fileno())
-    sock.close()
+    io_loop.remove_handler(OPTIONS["sock"].fileno())
+    OPTIONS["sock"].close()
     if OPTIONS["active"] == 0:
         OPTIONS["idle_timer"] = None
         io_loop.stop()
@@ -879,10 +898,10 @@ def new_req(sock, templar, fd, events):
         if not reply or reply.is_error():
             request.finish()
 
-    # After the while loop.  Readd the idle timer
+    # After the while loop.  Re-add the idle timer
     if OPTIONS["idle"] > 0:
         OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out(sock))
+                                                    lambda : idle_out())
 
 def main():
     # If we're called from xinetd, set idle to non-zero
@@ -955,15 +974,15 @@ def main():
         logging.getLogger().setLevel(logging.WARN)
   
     if stat.S_ISSOCK(mode):
-        sock = socket.fromfd(sys.stdin.fileno(),
+        OPTIONS["sock"] = socket.fromfd(sys.stdin.fileno(),
                              socket.AF_INET,
                              socket.SOCK_DGRAM,
                              0)
     else:
-        sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        OPTIONS["sock"] = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
+        OPTIONS["sock"].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("",OPTIONS["port"]))
+            OPTIONS["sock"].bind(("",OPTIONS["port"]))
         except socket.error, e:
             if e[0] in (errno.EPERM, errno.EACCES):
                 print "Unable to bind to port %d" % OPTIONS["port"]
@@ -971,7 +990,7 @@ def main():
             else:
                 raise
 
-    sock.setblocking(0)
+    OPTIONS["sock"].setblocking(0)
 
     if os.getuid() == 0:
         uid = pwd.getpwnam(OPTIONS["user"])[2]
@@ -982,20 +1001,22 @@ def main():
     templar = cobbler.templar.Templar(None)
 
     io_loop = ioloop.IOLoop.instance()
-    io_loop.add_handler(sock.fileno(),partial(new_req,sock,templar),io_loop.READ)
+    io_loop.add_handler(OPTIONS["sock"].fileno(),
+                        partial(new_req,OPTIONS["sock"],templar),io_loop.READ)
     # Shove the timeout into OPTIONS, because it's there
     if OPTIONS["idle"] > 0:
         OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out(sock))
+                                                    lambda : idle_out())
 
     logging.info('Starting Eventloop')
     try:
-        io_loop.start()
-    except KeyboardInterrupt:
-        # Someone hit ^C
-        logging.info('Exiting')
-
-    sock.close()
+        try:
+            io_loop.start()
+        except KeyboardInterrupt:
+            # Someone hit ^C
+            logging.info('Exiting')
+    finally:
+        OPTIONS["sock"].close()
     return 0
     
 if __name__ == "__main__":
