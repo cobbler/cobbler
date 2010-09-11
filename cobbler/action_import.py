@@ -536,13 +536,13 @@ class Importer:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") ) and x != "initrd.size":
                 if x.find("PAE") == -1:
                     initrd = os.path.join(dirname,x)
                 else:
                     pae_initrd = os.path.join(dirname, x)
 
-            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
+            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") ) and x.find("initrd") == -1:
                 if x.find("PAE") == -1:
                     kernel = os.path.join(dirname,x)
                 else:
@@ -798,6 +798,7 @@ def guess_breed(kerneldir,path,cli_breed,logger):
     signatures = [
        [ 'pool'        , "debian" ],
        [ 'VMware/RPMS' , "vmware" ],
+       [ 'imagedd.bz2' , "vmware" ],
        [ 'RedHat/RPMS' , "redhat" ],
        [ 'RedHat/rpms' , "redhat" ],
        [ 'RedHat/Base' , "redhat" ],
@@ -859,10 +860,14 @@ def import_factory(kerneldir,path,cli_breed,logger):
     # the real root directory available, so allowing kernels at different levels within
     # the same tree (removing the isolinux rejection from distro_adder) -- JP
 
-    if rootdir[1]:
-        logger.info("found content (breed=%s) at %s" % (breed,os.path.join( rootdir[0] , rootdir[1])))
+    if isinstance(rootdir, list):
+        if rootdir[1]:
+            logger.info("found content (breed=%s) at %s" % (breed,os.path.join( rootdir[0] , rootdir[1])))
+        else:
+            logger.info("found content (breed=%s) at %s" % (breed,rootdir[0]))
     else:
-        logger.info("found content (breed=%s) at %s" % (breed,rootdir[0]))
+        logger.info("found content (breed=%s) at %s" % (breed,rootdir))
+
     if cli_breed:
         if cli_breed != breed:
             utils.die(logger, "Requested breed (%s); breed found is %s" % ( cli_breed , breed ) )
@@ -1160,6 +1165,9 @@ class VMwareImporter (BaseImporter):
             b = os.path.basename(x)
             if b.find("vmware") != -1:
                 data2.append(x)
+        if len(data2) == 0:
+            # ESXi maybe?
+            return glob.glob(os.path.join(self.get_rootdir(), "imagedd.bz2*"))
         return data2
 
     def scan_pkg_filename(self, rpm):
@@ -1170,12 +1178,19 @@ class VMwareImporter (BaseImporter):
 
         if rpm.lower().find("-esx-") != -1:
             flavor = "esx"
+        elif rpm.lower() == "imagedd.bz2":
+            flavor = "esxi"
 
         match = re.search(r'^([\-a-zA-Z0-9]+)-([\.0-9]+)-([\.0-9]+)\.', rpm)
         if match:
             (name, version, release) = [match.group(1), match.group(2), match.group(3)]
             major = version.split('.')[0]
             minor = release.split('.')[0]
+        else:
+            # FIXME: better major/minor detection for esxi
+            #        or if the match falls through for some reason
+            major = 4
+            minor = 0
 
         return (flavor, major, minor)
 
