@@ -80,6 +80,7 @@ class TftpdPyManager:
         f.close()
 
         metadata = {
+	    "user"      : "nobody",
 	    "binary"	: "/usr/sbin/tftpd.py",
 	    "args"	: "-v"
 	}

@@ -79,6 +79,7 @@ class InTftpdManager:
         f.close()
 
         metadata = {
+	    "user"	: "root",
             "binary"    : "/usr/sbin/in.tftpd",
             "args"      : "-B 1468 -v -s %s" % self.bootloc
         }
