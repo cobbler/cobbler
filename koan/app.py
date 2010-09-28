@@ -736,7 +736,7 @@ class Koan:
             kickstart = self.safe_load(profile_data,'kickstart')
             arch      = self.safe_load(profile_data,'arch')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -817,7 +817,7 @@ class Koan:
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
