@@ -249,7 +249,7 @@ class ERRORPacket(Packet):
         return True
 
     def marshall(self):
-        return pack("!HHsB",
+        return pack("!HH %dsB" % (len(self.error_str)),
                     TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
 
 class OACKPacket(Packet):
