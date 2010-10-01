@@ -932,6 +932,8 @@ def main():
                         help="Increase output verbosity")
     parser.add_option('-d','--debug',action='store_true',default=False,
                         help="Debug (vastly increases output verbosity)")
+    parser.add_option('-B', type="int", dest="max_blksize",
+                        help="The maximum block size to permit"),
     parser.add_option('-c','--cache',action='store_true',default=False,
                         help="Use a cache to help find hosts w/o IP address")
     parser.add_option('--cache-time',action='store',type="int",default=5*60,
@@ -943,7 +945,10 @@ def main():
         v = opt_help[k]
         parser.add_option("--"+k,default=OPTIONS[k],
                             type=v["type"],help=v["help"])
+    parser.add_option('-B',dest="max_blksize",type="int",default=1428,
+                        help="alias for --max-blksize, for in.tftpd compatibility")
 
+    # Actually read the args
     (options,args) = parser.parse_args()
 
     for attr in dir(options):

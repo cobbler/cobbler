@@ -81,7 +81,7 @@ class InTftpdManager:
         metadata = {
 	    "user"	: "root",
             "binary"    : "/usr/sbin/in.tftpd",
-            "args"      : "-B 1468 -v -s %s" % self.bootloc
+            "args"      : "-v -s %s" % self.bootloc
         }
 	self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)

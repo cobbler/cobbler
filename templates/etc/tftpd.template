@@ -11,7 +11,7 @@ service tftp
         wait                    = yes
         user                    = $user
         server                  = $binary
-        server_args             = $args
+        server_args             = -B 1380 $args
         per_source              = 11
         cps                     = 100 2
         flags                   = IPv4
