@@ -82,8 +82,9 @@ OPTIONS = {
     "idle"       : 0, # how long to stick around: 0: unlimited
     "idle_timer" : None,
 
-    "cache"      : False, # 'cache-time' = 300
-    "cache-time" : 5 * 300,
+    "cache"          : True, # 'cache-time' = 300
+    "cache-time"     : 5 * 300,
+    "neg-cache-time" : 10,
 
     "active"     : 0,
 
@@ -276,62 +277,95 @@ class XMLRPCSystem:
     """Use XMLRPC to look up system attributes.  This is the recommended
        method.
 
-       The cache is only used if needed.  If we look up the host by IP
-       address, but can not find it, then check the cache and look it up
-       by name in the cache.  This limits the need for cache aging.
+       The cache is controlled by the "cache" option and the "cache-time"
+       option
     """
     cache = {}
     def __init__(self, ip_address=None, mac_address=None):
-        query = {}
-        if mac_address is not None:
-            query["mac_address"] = mac_address.replace("-",":").upper()
-        elif ip_address is not None:
-            query["ip_address"] = ip_address
+        name = None
+        resolve = True
 
-        try:
-            systems = COBBLER_HANDLE.find_system(query)
+        # Try the cache.
+        if XMLRPCSystem.cache.has_key(ip_address):
+            cache_ent = XMLRPCSystem.cache[ip_address]
+            now = time.time()
+            cache_time = float(OPTIONS["cache-time"])
+            neg_cache_time = float(OPTIONS["neg-cache-time"])
 
-            # if we don't find it, try the cache.
-            if (len(systems) == 0 and OPTIONS["cache"] and mac_address is None
-                    and XMLRPCSystem.cache.has_key(ip_address)):
-                logging.debug("Checking cache for %s" % (ip_address))
-                cache_ent = XMLRPCSystem.cache[ip_address]
-                if cache_ent["time"] + OPTIONS["cache-time"] > time.time():
+            if cache_ent["time"] + cache_time > now:
+                name = cache_ent["name"]
+
+                if name is not None:
                     logging.debug("Using cache name for system %s,%s"
-                                  % (cache_ent["name"],ip_address))
-                    systems = COBBLER_HANDLE.find_system(
-                        {"name":cache_ent["name"]})
+                              % (cache_ent["name"],ip_address))
+                    resolve = False
+                elif (name is None and mac_address is None and
+                        cache_ent["time"] + neg_cache_time > now):
+                    age = (cache_ent["time"] + neg_cache_time) - now
+                    logging.debug("Using neg-cache for system %s:%f"
+                                  %(ip_address,age))
+                    resolve = False
                 else:
-                    del XMLRPCSystem.cache[ip_address]
+                    age = (cache_ent["time"] + neg_cache_time) - now
+                    logging.debug("ignoring cache for %s:%d"%(ip_address,age))
 
-            if len(systems) > 1:
-                raise RuntimeError("Args mapped to multiple systems")
-            elif len(systems) == 0:
-                raise RuntimeError("%s,%s not found in cobbler"
-                                   % (ip_address,mac_address))
+                # Don't bother trying to find it.. until the neg-cache-time
+                # expires anyway
+            else:
+                del XMLRPCSystem.cache[ip_address]
 
-            self.system = COBBLER_HANDLE.get_system_for_koan(systems[0])
-            self.attrs  = self.system
-            self.name   = self.attrs["name"]
-            if mac_address and OPTIONS["cache"]:
-                # fill the cache
-                logging.debug("Putting %s,%s into cache"%(self.name,ip_address))
-                XMLRPCSystem.cache[ip_address] = {
-                    "name" : self.name,
-                    "time" : time.time(),
-                }
-        except RuntimeError, e:
-            logging.info(str(e))
+        # Not in the cache, try to find it.
+        if resolve:
+            query = {}
+            if mac_address is not None:
+                query["mac_address"] = mac_address.replace("-",":").upper()
+            elif ip_address is not None:
+                query["ip_address"] = ip_address
+
+            try:
+                logging.debug("Searching for system %s" % repr(query))
+                systems = COBBLER_HANDLE.find_system(query)
+                if len(systems) > 1:
+                    raise RuntimeError("Args mapped to multiple systems")
+                elif len(systems) == 0:
+                    raise RuntimeError("%s,%s not found in cobbler"
+                                % (ip_address,mac_address))
+                name = systems[0]
+
+            except RuntimeError, e:
+                logging.info(str(e))
+                name = None
+            except:
+                (etype,eval,etrace) = sys.exc_info()
+                logging.warn("Exception retrieving rendered system: %s (%s)"
+                            % (etype,eval))
+                name = None
+
+        if name is not None:
+            logging.debug("Materializing system %s" % name)
+            try:
+                self.system = COBBLER_HANDLE.get_system_for_koan(name)
+                self.attrs  = self.system
+                self.name   = self.attrs["name"]
+            except:
+                (etype,eval,etrace) = sys.exc_info()
+                logging.warn ("Exception Materializing system %s" % name)
+                del XMLRPCSystem.cache[ip_address]
+                self.system = None
+                self.attrs  = dict()
+                self.name   = str(ip_address)
+        else:
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
-        except:
-            (etype,eval,etrace) = sys.exc_info()
-            logging.warn("Exception retrieving rendered system: %s (%s)"
-                % (etype,eval))
-            self.system = None
-            self.attrs  = dict()
-            self.name   = str(ip_address)
+
+        # fill the cache, negative entries too
+        if OPTIONS["cache"] and resolve:
+            logging.debug("Putting %s,%s into cache"%(name,ip_address))
+            XMLRPCSystem.cache[ip_address] = {
+                "name" : name,
+                "time" : time.time(),
+            }
 
 class Request:
     """Handles the "business logic" of the TFTP server.  One instance
@@ -932,11 +966,11 @@ def main():
                         help="Increase output verbosity")
     parser.add_option('-d','--debug',action='store_true',default=False,
                         help="Debug (vastly increases output verbosity)")
-    parser.add_option('-B', type="int", dest="max_blksize",
-                        help="The maximum block size to permit"),
-    parser.add_option('-c','--cache',action='store_true',default=False,
+    parser.add_option('-c','--cache',action='store_true',default=True,
                         help="Use a cache to help find hosts w/o IP address")
     parser.add_option('--cache-time',action='store',type="int",default=5*60,
+                        help="How long an ip->name mapping is valid")
+    parser.add_option('--neg-cache-time',action='store',type="int",default=10,
                         help="How long an ip->name mapping is valid")
 
     opts = opt_help.keys()
