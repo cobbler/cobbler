@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import traceback
 import errno
 import re
+import clogger
 import pxegen
 
 import utils
@@ -46,6 +47,9 @@ class InTftpdManager:
         Constructor
         """
         self.logger        = logger
+	if self.logger is None:
+	    self.logger = clogger.Logger()
+
         self.config        = config
         self.templar       = templar.Templar(config)
         self.settings_file = "/etc/xinetd.d/tftp"
@@ -78,8 +82,7 @@ class InTftpdManager:
             "binary"    : "/usr/sbin/in.tftpd",
             "args"      : "-B 1468 -v -s %s" % self.bootloc
         }
-        if self.logger is not None:
-            self.logger.info("generating %s" % self.settings_file)
+	self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def update_netboot(self,name):

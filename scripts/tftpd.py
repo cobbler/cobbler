@@ -545,13 +545,12 @@ class Request:
 
     def finish(self):
         io_loop = ioloop.IOLoop.instance()
-        logging.debug("finishing req from %s for %s: fd %d" %
-                      (self.filename,self.remote_addr,self.local_sock.fileno()))
-
-        io_loop.remove_handler(self.local_sock.fileno())
+        logging.debug("finishing req from %s for %s" %
+                      (self.filename,self.remote_addr))
 
         self.state = 0
         try:
+            io_loop.remove_handler(self.local_sock.fileno())
             logging.debug("closing fd %d" % self.local_sock.fileno())
             self.local_sock.close()
         except:
