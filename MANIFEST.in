@@ -8,6 +8,7 @@ recursive-include kickstarts *.seed
 include docs/cobbler.1.gz
 include COPYING AUTHORS README CHANGELOG
 include scripts/*.py
+include scripts/*.wsgi
 include scripts/zpxe.rexx
 include snippets/*
 include docs/koan.1.gz 

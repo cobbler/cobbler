@@ -160,12 +160,13 @@ if __name__ == "__main__":
             "scripts/cobbler-register"
         ],
         data_files = [
-            (modwsgisvc,    ['scripts/services.wsgi']),
-            (modwpythonsvc, ['scripts/services.py']),
+            (modpythonsvc, ['scripts/services.py']),
+            (modwsgisvc,   ['scripts/services.wsgi']),
 
             # miscellaneous config files
             (rotpath,  ['config/cobblerd_rotate']),
             (wwwconf,  ['config/cobbler.conf']),
+            (wwwconf,  ['config/cobbler_wsgi.conf']),
             (libpath,  ['config/cobbler_hosts']),
             (etcpath,  ['config/modules.conf']),
             (etcpath,  ['config/users.digest']),

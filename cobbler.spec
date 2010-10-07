@@ -13,14 +13,17 @@ Group: Applications/System
 Requires: python >= 2.3
 %if 0%{?suse_version} >= 1000
 Requires: apache2
-# Used to be apache2-mod_python, similar mod_wsgi package appears to exist, but
-# this is untested.
-Requires: apache2-mod_wsgi
+Requires: apache2-mod_python
 Requires: tftp
 %else
 Requires: httpd
 Requires: tftp-server
+%endif
+
+%if 0%{?rhel} >= 6
 Requires: mod_wsgi
+%else
+Requires: mod_python
 %endif
 
 Requires: createrepo
@@ -161,6 +164,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/svc/
 %dir /var/www/cobbler/rendered/
 /var/www/cobbler/svc/*.py*
+/var/www/cobbler/svc/*.wsgi*
 
 %defattr(755,root,root)
 %dir /usr/share/cobbler/installer_templates
@@ -223,11 +227,19 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %endif
 %{_mandir}/man1/cobbler.1.gz
 /etc/init.d/cobblerd
+
 %if 0%{?suse_version} >= 1000
 %config(noreplace) /etc/apache2/conf.d/cobbler.conf
 %else
+%if 0%{?rhel} >= 6
+%config(noreplace) /etc/httpd/conf.d/cobbler_wsgi.conf
+%exclude /etc/httpd/conf.d/cobbler.conf
+%else
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
+%exclude /etc/httpd/conf.d/cobbler_wsgi.conf
 %endif
+%endif
+
 %dir /var/log/cobbler/syslog
 %dir /var/log/cobbler/anamon
 
