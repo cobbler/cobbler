@@ -302,7 +302,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 
 %defattr(-,root,root)
-%if 0%{?fedora} > 8 || 0{?rhel} >= 6
+%if 0%{?fedora} > 8 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
 %endif
 %doc AUTHORS CHANGELOG README COPYING
