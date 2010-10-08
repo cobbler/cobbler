@@ -373,7 +373,8 @@ class Request:
     and it is responsible for keeping track of where the file transfer
     is..."""
     def __init__(self,rrq_packet,local_sock,templar):
-        self.filename    = rrq_packet.filename
+        # Trim leading /s, since that's kinda implicit
+        self.filename    = rrq_packet.filename.lstrip('/') # assumed
         self.type        = "chroot"
         self.remote_addr = rrq_packet.remote_addr
         self.req_options = rrq_packet.req_options
@@ -384,20 +385,24 @@ class Request:
         self.expand      = False
         self.templar     = templar
 
-        # Sanitize input.
+        # Sanitize input more
 
-        # Trim leading /s, since that's kinda implicit
-        self.filename = re.compile(r"^/*([^/].*)").match(self.filename).group(1)
+        logging.warn("Testing: %s,%s",rrq_packet.filename,self.filename)
         # Strip out \s
         self.filename = self.filename.replace('\\','')
         # Look for elements starting with ".", and blow up.
-        for elm in self.filename.split("/"):
-            if elm[0] == ".":
-                self.error_code = 2
-                self.error_str = "Invalid file name"
-                self.state = TFTP_OPCODE_ERROR
-                self.filename = None
-                break;
+        try:
+            if len(self.filename) == 0:
+                    raise RuntimeError("Empty Path: ")
+            for elm in self.filename.split("/"):
+                if elm[0] == ".":
+                    raise RuntimeError("Path includes '.': ")
+        except RuntimeError, e:
+            logging.warn(str(e) + rrq_packet.filename)
+            self.error_code = 2
+            self.error_str = "Invalid file name"
+            self.state = TFTP_OPCODE_ERROR
+            self.filename = None
 
         OPTIONS["active"] += 1
         self.system = XMLRPCSystem(self.remote_addr[0])
@@ -426,7 +431,7 @@ class Request:
             suffix = "/%08X" %unpack('!L',socket.inet_aton(self.system.name))[0]
             if suffix and trimmed[len(trimmed)-len(suffix):] == suffix:
                 trimmed = trimmed.replace(suffix,"")
-                logging.debug('_remap_name: converted %s to %s'
+                logging.debug('_remap_strip_ip: converted %s to %s'
                               % (filename, trimmed))
                 return trimmed
         else:
@@ -445,7 +450,7 @@ class Request:
 
                 if suffix and trimmed[len(trimmed)-len(suffix):] == suffix:
                     trimmed = trimmed.replace(suffix,"")
-                    logging.debug('_remap_name: converted %s to %s'
+                    logging.debug('_remap_strip_ip: converted %s to %s'
                                   % (filename, trimmed))
                     return trimmed
         return filename
