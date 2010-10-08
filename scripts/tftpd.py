@@ -39,10 +39,12 @@ TODO
 
 VERSION=0.5
 
-import sys, os, stat, errno, time, optparse, re, socket, pwd
+import sys, os, stat, errno, time, optparse, re, socket, pwd, traceback
 import logging, logging.handlers
 import xmlrpclib
 from collections import deque
+
+from fnmatch import fnmatch
 
 from cobbler.utils import local_get_cobbler_api_url, tftpboot_location
 
@@ -207,7 +209,7 @@ class DATAPacket(Packet):
         self.blk_num = blk_num;
     def marshall(self):
         return pack("!HH %ds" % (len(self.data)),
-                    TFTP_OPCODE_DATA, self.blk_num & 0xFFFF ,self.data)
+                    TFTP_OPCODE_DATA, self.blk_num & 0xFFFF ,str(self.data))
 
 class ACKPacket(Packet):
     """The ACK packet.  We only receive these.
@@ -336,9 +338,9 @@ class XMLRPCSystem:
                 logging.info(str(e))
                 name = None
             except:
-                (etype,eval,etrace) = sys.exc_info()
-                logging.warn("Exception retrieving rendered system: %s (%s)"
-                            % (etype,eval))
+                (etype,eval,) = sys.exc_info()[:2]
+                logging.warn("Exception retrieving rendered system: %s (%s):%s"
+                                % (name,eval,traceback.format_exc()))
                 name = None
 
         if name is not None:
@@ -348,9 +350,11 @@ class XMLRPCSystem:
                 self.attrs  = self.system
                 self.name   = self.attrs["name"]
             except:
-                (etype,eval,etrace) = sys.exc_info()
-                logging.warn ("Exception Materializing system %s" % name)
-                del XMLRPCSystem.cache[ip_address]
+                (etype,eval,) = sys.exc_info()[:2]
+                logging.warn ("Exception Materializing system %s (%s):%s"
+                                % (name,eval,traceback.format_exc()))
+                if XMLRPCSystem.cache.has_key(ip_address):
+                    del XMLRPCSystem.cache[ip_address]
                 self.system = None
                 self.attrs  = dict()
                 self.name   = str(ip_address)
@@ -499,19 +503,45 @@ class Request:
         if not fetchable_files:
             return self._remap_via_profiles(trimmed)
 
+        # We support two types of matches in fetchable_files
+        # * Direct match ("/foo=/bar")
+        # * Globs on directories ("/foo/*=/bar")
+        #   A glob is realliy just a directory remap
+        glob_pattern = re.compile("(/)?[*]$")
+
         # Look for the file in the fetchable_files hash
+        # XXX: Template name
         for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
 	    k = k.lstrip('/') # Allow some slop w/ starting /s
-            # Render the target, to expand things like "$kernel"
-            if k == trimmed;
+            # Full Path: "/foo=/bar"
+            result = None
+
+            if k == trimmed:
+                # Render the target, to expand things like "$kernel"
                 logging.debug('_remap_name: %s => %s' % (k,v))
+                result = v
+            # Glob Path: "/foo/*=/bar/"
+            else:
+                match = glob_pattern.search(k)
+                if match and fnmatch("/"+trimmed,"/"+k):
+                    logging.debug('_remap_name (glob): %s => %s' % (k,v))
+                    # Erase the trailing '/?[*]' in key
+                    # Replace the matching leading portion in trimmed
+                    # with the value 
+                    # Expand the result
+                    if match.group(1):
+                        lead_dir = glob_pattern.sub(match.group(1),k)
+                    else:
+                        lead_dir = glob_pattern.sub("",k)
+                    result = trimmed.replace(lead_dir,v,1)
+            
+            if result is not None:
                 try:
                     return self.templar.render(
-                        v, self.system.attrs, None).strip(),"template"
+                        result, self.system.attrs, None).strip(),"template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
-                                 % (trimmed,v,e))
-                    return self._remap_via_profiles(trimmed)
+                                 % (trimmed,result,e))
 
         # last try: try profiles
         return self._remap_via_profiles(trimmed)
@@ -554,8 +584,8 @@ class Request:
                 else:
                     logging.debug('Template failed to render.')
             else:
-                logging.debug('Not rendering binary file %s.'
-                              % (self.filename))
+                logging.debug('Not rendering binary file %s (%s).'
+                              % (self.filename,output))
         elif self.type == "hash_value":
             self.file = RenderedFile(self.system.attrs[self.filename])
             self.block_count = 0
