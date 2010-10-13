@@ -4,20 +4,20 @@
 #else
 #set $argList = $kernel_options.split(" ")
 #end if
-#silent $argList.append("DASD=100-101,200")
-#silent $argList.append("SUBCHANNELS=0.0.0600,0.0.0601,0.0.0602")
-#silent $argList.append("NETTYPE=qeth")
+#set $argList = $argList + "DASD=100-101,200"
+#set $argList = $argList + "SUBCHANNELS=0.0.0600,0.0.0601,0.0.0602"
+#set $argList = $argList + "NETTYPE=qeth"
 #if $getVar('hostname', '') != ''
-#silent $argList.append("HOSTNAME=%s" % $hostname)
+#set $argList = $argList + "HOSTNAME=%s" % $hostname
 #end if
 #if $getVar('name_servers_search', '') != ''
-#silent $argList.append("SEARCHDNS=%s" % ':'.join($name_servers_search))
+#set $argList = $argList + "SEARCHDNS=%s" % ':'.join($name_servers_search)
 #end if
 #if $getVar('gateway', '') != ''
-#silent $argList.append("GATEWAY=%s" % $gateway)
+#set $argList = $argList + "GATEWAY=%s" % $gateway
 #end if
 #if $getVar('name_servers', '') != ''
-#silent $argList.append("DNS=%s" % ':'.join($name_servers))
+#set $argList = $argList + "DNS=%s" % ':'.join($name_servers)
 #end if
 #if $getVar("interfaces","") != "" and $interfaces.has_key("eth0")
    #set $ip=$interfaces['eth0'].get('ip_address','')
@@ -35,31 +35,31 @@
    #set $broadcast = ""
 #end if
 #if $ip != ''
-#silent $argList.append("IPADDR=%s" % $ip)
+#set $argList = $argList + "IPADDR=%s" % $ip
 #end if
 ## Unless provided, calculate the network using netmask and broadcast
 #if $getVar('network', '') != ''
-#silent $argList.append("NETWORK=%s" % $network)
+#set $argList = $argList + "NETWORK=%s" % $network
 #elif $netmask != '' and $ip != ''
 #set $ip_split = $ip.split('.')
 #set $nm_split = $netmask.split('.')
 #set $nw_split = []
 #for $oct in $range($len($ip_split))
-#silent $nw_split.append("%s" % ($int($nm_split[$oct]) & $int($ip_split[$oct])))
+#set $nw = $nw + append("%s" % ($int($nm_split[$oct]) & $int($ip_split[$oct]))
 #end for
 #set $network=".".join($nw_split)
-#silent $argList.append("NETWORK=%s" % $network)
+#set $argList = $argList + "NETWORK=%s" % $network
 #end if
 #if $netmask != ''
-#silent $argList.append("NETMASK=%s" % $netmask)
+#set $argList = $argList + "NETMASK=%s" % $netmask
 #end if
 #if $broadcast != ''
-#silent $argList.append("BROADCAST=%s" % $broadcast)
+#set $argList = $argList + "BROADCAST=%s" % $broadcast
 #end if
-#silent $argList.append("MTU=1500")
-#silent $argList.append("PORTNAME=UNASSIGNED")
-#silent $argList.append("PORTNO=0")
-#silent $argList.append("LAYER2=0")
+#set $argList = $argList + "MTU=1500"
+#set $argList = $argList + "PORTNAME=UNASSIGNED"
+#set $argList = $argList + "PORTNO=0"
+#set $argList = $argList + "LAYER2=0"
 ## =====================================
 ## Now write out data.  Content cannot be longer than 80 characters in length,
 ## and must not exceed 11 lines
