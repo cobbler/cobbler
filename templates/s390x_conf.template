@@ -45,7 +45,7 @@
 #set $nm_split = $netmask.split('.')
 #set $nw_split = []
 #for $oct in $range($len($ip_split))
-#set $nw = $nw + append("%s" % ($int($nm_split[$oct]) & $int($ip_split[$oct]))
+#set $nw_split = $nw_split + "%s" % ($int($nm_split[$oct]) & $int($ip_split[$oct]))
 #end for
 #set $network=".".join($nw_split)
 #set $argList = $argList + "NETWORK=%s" % $network
