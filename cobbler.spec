@@ -7,7 +7,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 2.0.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: cobbler-%{version}.tar.gz
 Group: Applications/System
 Requires: python >= 2.3
@@ -397,6 +397,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Wed Oct 13 2010 Scott Henson <shenson@redhat.com> - 2.0.6-3
+- add elif to the whitelist
+
 * Wed Oct 13 2010 Scott Henson <shenson@redhat.com> - 2.0.6-2
 - Remove the use of silent in s390 templates
 
