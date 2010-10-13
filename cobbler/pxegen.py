@@ -55,7 +55,7 @@ class PXEGen:
     Handles building out PXE stuff
     """
 
-    def __init__(self,config,logger):
+    def __init__(self, config, logger):
         """
         Constructor
         """
@@ -84,29 +84,46 @@ class PXEGen:
         # copy syslinux from one of two locations
         try:
             try:
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0', dst, api=self.api, logger=self.logger)
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32', dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0',
+                        dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32',
+                        dst, api=self.api, logger=self.logger)
             except:
-                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0', dst, api=self.api, logger=self.logger)
-                utils.copyfile_pattern('/usr/share/syslinux/menu.c32', dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0',
+                        dst, api=self.api, logger=self.logger)
+                utils.copyfile_pattern('/usr/share/syslinux/menu.c32',
+                        dst, api=self.api, logger=self.logger)
 
         except:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',   dst, api=self.api, logger=self.logger)
-            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',   dst, api=self.api, logger=self.logger)
+            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',
+                    dst, api=self.api, logger=self.logger)
+            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',
+                    dst, api=self.api, logger=self.logger)
  
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', dst, require_match=False, api=self.api, logger=self.logger)
+        utils.copyfile_pattern('/boot/memtest*',
+                dst, require_match=False, api=self.api, logger=self.logger)
   
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst, require_match=False, api=self.api, logger=self.logger)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst,
+                require_match=False, api=self.api, logger=self.logger)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst, require_match=False, api=self.api, logger=self.logger)
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst,
+                require_match=False, api=self.api, logger=self.logger)
 
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',   dst, api=self.api, logger=self.logger)
+            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',
+                    dst, api=self.api, logger=self.logger)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst, require_match=False, api=self.api, logger=self.logger)
+            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst,
+                    require_match=False, api=self.api, logger=self.logger)
+
+        # Copy grub EFI bootloaders if possible:
+        grub_dst = os.path.join(dst, "grub")
+        utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
+                require_match=False, api=self.api, logger=self.logger)
+
 
 
     def copy_distros(self):
@@ -201,11 +218,12 @@ class PXEGen:
         utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
         return True
 
-    def write_all_system_files(self,system):
+    def write_all_system_files(self, system):
 
         profile = system.get_conceptual_parent()
         if profile is None:
             raise CX("system %(system)s references a missing profile %(profile)s" % { "system" : system.name, "profile" : system.profile})
+
         distro = profile.get_conceptual_parent()
         image_based = False
         image = None
@@ -239,7 +257,7 @@ class PXEGen:
 
             # Write system specific zPXE file
             if system.is_management_supported():
-                self.write_pxe_file(f2,system,profile,distro,distro.arch)
+                self.write_pxe_file(f2, system, profile, distro, distro.arch)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -251,7 +269,7 @@ class PXEGen:
 
             ip = interface["ip_address"]
 
-            f1 = utils.get_config_filename(system,interface=name)
+            f1 = utils.get_config_filename(system, interface=name)
             if f1 is None:
                 self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name,name))
                 continue;
@@ -268,6 +286,10 @@ class PXEGen:
             if working_arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
+
+                # Only generating grub menus for these arch's:
+                grub_path = os.path.join(self.bootloc, "grub", f1.upper())
+
             elif working_arch == "ia64":
                 # elilo expects files to be named "$name.conf" in the root
                 # and can not do files based on the MAC address
@@ -276,6 +298,7 @@ class PXEGen:
 
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
+
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific yaboot.conf
                 filename = "%s" % utils.get_config_filename(system, interface=name).lower()
@@ -291,12 +314,17 @@ class PXEGen:
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2,system,profile,distro,working_arch)
+                    self.write_pxe_file(f2, system, profile, distro, working_arch)
+                    if grub_path:
+                        self.write_pxe_file(grub_path, system, profile, distro, 
+                                working_arch, format="grub")
                 else:
-                    self.write_pxe_file(f2,system,None,None,working_arch,image=profile)
+                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
+                if grub_path:
+                    utils.rmfile(grub_path)
 
     def make_pxe_menu(self):
         self.make_s390_pseudo_pxe_menu()
@@ -341,6 +369,9 @@ class PXEGen:
         listfile.close()
 
     def make_actual_pxe_menu(self):
+        """
+        Generates both pxe and grub boot menus.
+        """
         # only do this if there is NOT a system named default.
         default = self.systems.find(name="default")
 
@@ -365,8 +396,12 @@ class PXEGen:
         image_list = [image for image in self.images]
         image_list.sort(sort_name)
 
-        # build out the menu entries
+        # Build out menu items and append each to this master list, used for
+        # the default menus:
         pxe_menu_items = ""
+        grub_menu_items = ""
+
+        # For now, profiles are the only items we want grub EFI boot menu entries for:
         for profile in profile_list:
             if not profile.enable_menu:
                # This profile has been excluded from the menu
@@ -376,14 +411,24 @@ class PXEGen:
             if distro.name.find("-xen") != -1 or distro.arch not in ["i386", "x86_64"]:
                 # can't PXE Xen
                 continue
-            contents = self.write_pxe_file(None,None,profile,distro,distro.arch,include_header=False)
+            contents = self.write_pxe_file(filename=None, system=None,
+                    profile=profile, distro=distro,
+                    arch=distro.arch, include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
+
+            grub_contents = self.write_pxe_file(filename=None, system=None,
+                    profile=profile, distro=distro,
+                    arch=distro.arch, include_header=False, format="grub")
+            if grub_contents is not None:
+                grub_menu_items = grub_menu_items + grub_contents + "\n"
+
 
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
-                contents = self.write_pxe_file(None,None,None,None,image.arch,image=image)
+                contents = self.write_pxe_file(filename=None, system=None,
+                        profile=None, distro=None, arch=image.arch, image=image)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
@@ -397,9 +442,19 @@ class PXEGen:
                 contents = self.write_memtest_pxe("/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
               
-        # save the template.
+        # Write the PXE menu:
         metadata = { "pxe_menu_items" : pxe_menu_items, "pxe_timeout_profile" : timeout_action}
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+        template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
+
+        # Write the grub menu:
+        metadata = { "grub_menu_items" : grub_menu_items }
+        outfile = os.path.join(self.bootloc, "grub", "efidefault")
+        template_src = open(os.path.join(self.settings.pxe_template_dir, "efidefault.template"))
+        template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
@@ -435,7 +490,8 @@ class PXEGen:
         return buffer
 
 
-    def write_pxe_file(self,filename,system,profile,distro,arch,image=None,include_header=True):
+    def write_pxe_file(self, filename, system, profile, distro, arch,
+            image=None, include_header=True, metadata=None, format="pxe"):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -447,6 +503,8 @@ class PXEGen:
         short-circuited and simpler.  All of it goes through the
         templating engine, see the templates in /etc/cobbler for
         more details
+
+        Can be used for different formats, "pxe" (default) and "grub".
         """
 
         if arch is None:
@@ -493,68 +551,123 @@ class PXEGen:
         # ---
         # choose a template
         if system:
-            if system.netboot_enabled:
-                template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
-    
-                if arch.startswith("s390"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
-                elif arch == "ia64":
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
-                elif arch.startswith("ppc"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
-            else:
-                # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                if arch is not None and arch.startswith("ppc"):
-                    # Disable yaboot network booting for all interfaces on the system
-                    for (name,interface) in system.interfaces.iteritems():
-
-                        filename = "%s" % utils.get_config_filename(system, interface=name).lower()
-
-                        # Remove symlink to the yaboot binary
-                        f3 = os.path.join(self.bootloc, "ppc", filename)
-                        if os.path.lexists(f3):
-                            utils.rmfile(f3)
-
-                        # Remove the interface-specific config file
-                        f3 = os.path.join(self.bootloc, "etc", filename)
-                        if os.path.lexists(f3):
-                            utils.rmfile(f3)
-
-                    # Yaboot/OF doesn't support booting locally once you've
-                    # booted off the network, so nothing left to do
-                    return None
-                elif arch is not None and arch.startswith("s390"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
-                elif arch is not None and arch.startswith("ia64"):
-                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ia64.template")
+            if format == "grub":
+                template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
+            else: # pxe
+                if system.netboot_enabled:
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
+        
+                    if arch.startswith("s390"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
+                    elif arch == "ia64":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
+                    elif arch.startswith("ppc"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
                 else:
-                    template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
+                    # local booting on ppc requires removing the system-specific dhcpd.conf filename
+                    if arch is not None and arch.startswith("ppc"):
+                        # Disable yaboot network booting for all interfaces on the system
+                        for (name,interface) in system.interfaces.iteritems():
+
+                            filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+
+                            # Remove symlink to the yaboot binary
+                            f3 = os.path.join(self.bootloc, "ppc", filename)
+                            if os.path.lexists(f3):
+                                utils.rmfile(f3)
+
+                            # Remove the interface-specific config file
+                            f3 = os.path.join(self.bootloc, "etc", filename)
+                            if os.path.lexists(f3):
+                                utils.rmfile(f3)
+
+                        # Yaboot/OF doesn't support booting locally once you've
+                        # booted off the network, so nothing left to do
+                        return None
+                    elif arch is not None and arch.startswith("s390"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
+                    elif arch is not None and arch.startswith("ia64"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ia64.template")
+                    else:
+                        template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
             # not a system record, so this is a profile record
 
             if arch.startswith("s390"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
+            elif format == "grub":
+                template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
-        # now build the kernel command line
+        # generate the kernel options and append line:
+        kernel_options = self.build_kernel_options(system, profile, distro,
+                image, arch, kickstart_path)
+        metadata["kernel_options"] = kernel_options
+
+        if metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
+            append_line = "append initrd=%s" % (metadata["initrd_path"])
+        else:
+            append_line = "append "
+        append_line = "%s %s" % (append_line, kernel_options)
+        if arch.startswith("ppc") or arch.startswith("s390"):
+            # remove the prefix "append"
+            # TODO: this looks like it's removing more than append, really
+            # not sure what's up here...
+            append_line = append_line[7:]
+        metadata["append_line"] = append_line
+
+        # store variables for templating
+        metadata["menu_label"] = ""
+        if profile:
+            if not arch in [ "ia64", "ppc", "ppc64", "s390", "s390x" ]:
+                metadata["menu_label"] = "MENU LABEL %s" % profile.name
+                metadata["profile_name"] = profile.name
+        elif image:
+            metadata["menu_label"] = "MENU LABEL %s" % image.name
+            metadata["profile_name"] = image.name
+
+        if system:
+            metadata["system_name"] = system.name
+
+
+        # get the template
+        if kernel_path is not None:
+            template_fh = open(template)
+            template_data = template_fh.read()
+            template_fh.close()
+        else:
+            # this is something we can't PXE boot
+            template_data = "\n"
+
+        # save file and/or return results, depending on how called.
+        buffer = self.templar.render(template_data, metadata, None)
+        if filename is not None:
+            self.logger.info("generating: %s" % filename)
+            fd = open(filename, "w")
+            fd.write(buffer)
+            fd.close()
+        return buffer
+
+    def build_kernel_options(self, system, profile, distro, image, arch,
+            kickstart_path):
+        """
+        Builds the full kernel options line.
+        """
+
         if system is not None:
             blended = utils.blender(self.api, True, system)
         elif profile is not None:
             blended = utils.blender(self.api, True, profile)
         else:
             blended = utils.blender(self.api, True, image)
-        kopts = blended.get("kernel_options","")
 
-        # generate the append line
+        kopts = blended.get("kernel_options", "")
         hkopts = utils.hash_to_string(kopts)
-        if initrd_path and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
-            append_line = "append initrd=%s %s" % (initrd_path, hkopts)
-        else:
-            append_line = "append %s" % hkopts
-
+        append_line = "%s" % hkopts
         # FIXME - the append_line length limit is architecture specific
-        if len(append_line) >= 255 + len("append "):
+        # TODO: why is this checked here, before we finish adding everything?
+        if len(append_line) >= 255:
             self.logger.warning("warning: kernel option length exceeds 255")
 
         # kickstart path rewriting (get URLs for local files)
@@ -582,6 +695,11 @@ class PXEGen:
 
                 # interface=bootif causes a failure
                 append_line = append_line.replace("interface=bootif","")
+            elif distro.breed == "vmware":
+                append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
+                    (append_line, kickstart_path)
+                # interface=bootif causes a failure
+                append_line = append_line.replace("ksdevice=bootif","")
 
         if distro is not None and (distro.breed in [ "debian", "ubuntu" ]):
             # Hostname is required as a parameter, the one in the preseed is
@@ -612,47 +730,7 @@ class PXEGen:
             # the existence of "stable" in the dists directory
             append_line = "%s suite=%s" % (append_line, distro.os_version)
 
-        if arch.startswith("ppc") or arch.startswith("s390"):
-            # remove the prefix "append"
-            append_line = append_line[7:]
-
-        # store variables for templating
-        metadata["menu_label"] = ""
-        if profile:
-            if not arch in [ "ia64", "ppc", "ppc64", "s390", "s390x" ]:
-                metadata["menu_label"] = "MENU LABEL %s" % profile.name
-                metadata["profile_name"] = profile.name
-        elif image:
-            metadata["menu_label"] = "MENU LABEL %s" % image.name
-            metadata["profile_name"] = image.name
-
-        if system:
-            metadata["system_name"] = system.name
-
-        if kernel_path is not None:
-            metadata["kernel_path"] = kernel_path
-        if initrd_path is not None:
-            metadata["initrd_path"] = initrd_path
-
-        metadata["append_line"] = append_line
-
-        # get the template
-        if kernel_path is not None:
-            template_fh = open(template)
-            template_data = template_fh.read()
-            template_fh.close()
-        else:
-            # this is something we can't PXE boot
-            template_data = "\n"        
-
-        # save file and/or return results, depending on how called.
-        buffer = self.templar.render(template_data, metadata, None)
-        if filename is not None:
-            self.logger.info("generating: %s" % filename)
-            fd = open(filename, "w")
-            fd.write(buffer)
-            fd.close()
-        return buffer
+        return append_line
 
     def write_templates(self,obj,write_file=False,path=None):
         """

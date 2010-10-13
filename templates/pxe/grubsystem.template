@@ -1,0 +1,4 @@
+title $profile_name
+    root (nd)
+    kernel $kernel_path $kernel_options
+    initrd $initrd_path
