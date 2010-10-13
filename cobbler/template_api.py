@@ -67,6 +67,7 @@ class CobblerCompiler(Cheetah.Compiler.ModuleCompiler):
             'import',
             'from',
             'if',
+            'elif',
             'else',
             'def',
             'block',
