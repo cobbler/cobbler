@@ -46,7 +46,7 @@ class ContentDownloader:
        they can still source their cross-arch bootloader content manually.
        """
 
-       content_server = "http://mdehaan.fedorapeople.org/loaders"
+       content_server = "http://dgoodwin.fedorapeople.org/loaders"
        dest = "/var/lib/cobbler/loaders"
 
        files = (
@@ -58,6 +58,8 @@ class ContentDownloader:
           ( "%s/yaboot-1.3.14-12" % content_server, "%s/yaboot" % dest),
           ( "%s/pxelinux.0-3.61" % content_server, "%s/pxelinux.0" % dest),
           ( "%s/menu.c32-3.61" % content_server, "%s/menu.c32" % dest),
+          ( "%s/grub-0.97-x86.efi" % content_server, "%s/grub-x86.efi" % dest),
+          ( "%s/grub-0.97-x86_64.efi" % content_server, "%s/grub-x86_64.efi" % dest),
        )
 
        self.logger.info("downloading content required to netboot all arches")

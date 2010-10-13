@@ -161,6 +161,7 @@ class BootLiteSync:
 
             if not itanic:
                 utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+                utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
             else:
                 utils.rmfile(os.path.join(bootloc, filename))
 
