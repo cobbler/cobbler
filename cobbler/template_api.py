@@ -89,6 +89,7 @@ class CobblerCompiler(Cheetah.Compiler.ModuleCompiler):
             'break',
             'continue',
             'silent',
+            'slurp',
             'raw',
             ]
 
