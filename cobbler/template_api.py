@@ -34,6 +34,15 @@ import traceback
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
+try:
+    fh = open("/etc/cobbler/settings")
+    data = yaml.load(fh.read())
+    fh.close()
+except:
+    raise CX("/etc/cobbler/settings is not a valid YAML file")
+SAFE_TEMPLATING = data.get('safe_templating',True)
+
+
 class CobblerMethod(Cheetah.Compiler.AutoMethodCompiler):
     def addSilent(self, expr):
         if expr == 'os,sys=None,None':
@@ -270,14 +279,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         if not kwargs.has_key('baseclass'):
             kwargs['baseclass'] = Template
 
-        try:
-            fh = open("/etc/cobbler/settings")
-            data = yaml.load(fh.read())
-            fh.close()
-        except:
-            raise CX("/etc/cobbler/settings is not a valid YAML file")
-
-        if data.get('safe_templating',True):
+        if SAFE_TEMPLATING:
             # Tell Cheetah to use the Non-PSP Compiler
             if not kwargs.has_key('compilerClass'):
                 kwargs['compilerClass'] = CobblerCompiler
