@@ -211,7 +211,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
-        k.qemu_disk_type      = options.qemu_disk_type
+        k.qemu_disk_type      = options.qemu_disk_type       
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
