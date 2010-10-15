@@ -212,7 +212,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
-        k.qemu_disk_type      = options.qemu_disk_type
+        k.qemu_disk_type      = options.qemu_disk_type       
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -268,6 +268,12 @@ class Koan:
         self.virt_path         = None
         self.qemu_disk_type    = None
         self.virt_auto_boot    = None
+
+        # This option adds the --copy-default argument to /sbin/grubby
+        # which uses the default boot entry in the grub.conf
+        # as template for the new entry being added to that file. 
+        # look at /sbin/grubby --help for more info
+        self.grubby_copy_default  =  1
 
     #---------------------------------------------------
 
@@ -858,9 +864,12 @@ class Koan:
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", "\"%s\"" % k_args,
-                    "--copy-default"
+                    "--args", "\"%s\"" % k_args
             ]
+
+            if self.grubby_copy_default:
+                cmd.append("--copy-default")
+
             boot_probe_ret_code, probe_output = self.get_boot_loader_info()
             if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
                 cmd.append("--lilo")
