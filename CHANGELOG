@@ -1,11 +1,14 @@
 Cobbler CHANGELOG
 
-- Oct 16 2010 - 2.0.6
+- Oct 18 2010 - 2.0.7
 - (BUGF) Disabled certain undesirable behavior of cheetah
 - (BUGF) Don't fail on reposync just because one reposync fails
 - Enable the use of cobbler on EL6 via mod_wsgi.  cobbler_web still requires mod_python though
 - (BUGF) some fixes for authn_passthru so that sessions do not switch
 - (BUGF) properly handle None being handed to the process caller as the logger
+- (BUGF) Fix replicate when bringing down changed systems
+- (BUGF) Various fixes for koan on RHEL6
+- (BUGF) Add fc14 and fc15
 
 - Jul 15 2010 - 2.0.5
 - (BUGF) Improved logging
