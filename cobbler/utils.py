@@ -1586,7 +1586,7 @@ def subprocess_sp(logger, cmd, shell=True):
     if logger is not None:
         logger.info("running: %s" % cmd)
     try:
-        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
+        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
