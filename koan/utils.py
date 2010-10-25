@@ -383,22 +383,26 @@ def uniqify(lst, purge=None):
 
 def get_network_info():
    try:
-      import rhpl.ethtool 
+      import ethtool
    except:
-      raise InfoException("the rhpl module is required to use this feature (is your OS>=EL3?)")
+      try:
+         import rhpl.ethtool
+         ethtool = rhpl.ethtool
+      except:
+           raise InfoException("the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
 
    interfaces = {}
    # get names
-   inames  = rhpl.ethtool.get_devices() 
+   inames  = ethtool.get_devices()
 
    for iname in inames:
-      mac = rhpl.ethtool.get_hwaddr(iname)
+      mac = ethtool.get_hwaddr(iname)
 
       if mac == "00:00:00:00:00:00":
          mac = "?"
 
       try:
-         ip  = rhpl.ethtool.get_ipaddr(iname)
+         ip  = ethtool.get_ipaddr(iname)
          if ip == "127.0.0.1":
             ip = "?"
       except:
@@ -408,7 +412,7 @@ def get_network_info():
       module = ""
 
       try:
-         nm  = rhpl.ethtool.get_netmask(iname)
+         nm  = ethtool.get_netmask(iname)
       except:
          nm  = "?"
 

@@ -400,10 +400,6 @@ class Koan:
         Determine the name of the cobbler system record that
         matches this MAC address. 
         """
-        try:
-            import rhpl
-        except:
-            raise CX("the rhpl module is required to autodetect a system.  Your OS does not have this, please manually specify --profile or --system")
         systems = self.get_data("systems")
         my_netinfo = utils.get_network_info()
         my_interfaces = my_netinfo.keys()
