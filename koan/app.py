@@ -1485,7 +1485,7 @@ class Koan:
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
-            freespace_str = freespace_str.replace("G","") # remove gigabytes
+            freespace_str = re.sub("(?i)G","", freespace_str) # remove gigabytes
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 
