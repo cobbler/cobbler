@@ -1067,6 +1067,8 @@ class Koan:
         if kickstart is not None and kickstart != "":
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
+            elif breed is not None and breed == "debian" or breed =="ubuntu":
+                kextra = "auto url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
