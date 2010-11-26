@@ -91,6 +91,10 @@ class Profile(item.Item):
         work.  So, API users -- make sure you pass is_subobject=True into the
         constructor when using this.
         """
+
+        old_parent = self.get_parent()
+        if isinstance(old_parent, item.Item):
+            old_parent.children.pop(self.name, 'pass')
         if parent_name is None or parent_name == '':
            self.parent = ''
            return True
@@ -103,6 +107,9 @@ class Profile(item.Item):
            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name       
         self.depth = found.depth + 1
+        parent = self.get_parent()
+        if isinstance(parent, item.Item):
+            parent.children[self.name] = self
         return True
 
     def set_distro(self,distro_name):
@@ -112,8 +119,12 @@ class Profile(item.Item):
 	"""
         d = self.config.distros().find(name=distro_name)
         if d is not None:
+            old_parent = self.get_parent()
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
             self.distro = distro_name
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
+            d.children[self.name] = self
             return True
         raise CX(_("distribution not found"))
 
