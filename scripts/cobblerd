@@ -50,10 +50,10 @@ def daemonize_self():
         print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror) 
         sys.exit(1) 
 
-    #dev_null = file('/dev/null','rw') 
-    #os.dup2(dev_null.fileno(), sys.stdin.fileno()) 
-    #os.dup2(dev_null.fileno(), sys.stdout.fileno()) 
-    #os.dup2(dev_null.fileno(), sys.stderr.fileno()) 
+    dev_null = file('/dev/null','rw') 
+    os.dup2(dev_null.fileno(), sys.stdin.fileno()) 
+    os.dup2(dev_null.fileno(), sys.stdout.fileno()) 
+    os.dup2(dev_null.fileno(), sys.stderr.fileno()) 
 
 def main():
     op = optparse.OptionParser()
