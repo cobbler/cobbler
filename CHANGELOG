@@ -1,4 +1,6 @@
 Cobbler CHANGELOG
+- Nov 29 2010
+- (FEAT) --force-path to overwrite virt-path file location
 
 - Oct 18 2010 - 2.0.7
 - (BUGF) Disabled certain undesirable behavior of cheetah
