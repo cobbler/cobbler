@@ -152,6 +152,10 @@ def main():
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="override virt install location")  
+    p.add_option("", "--force-path",
+                 dest="force_path",
+                 action="store_true",
+                 help="Force overwrite of virt install location")
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="override virt install type")
@@ -202,6 +206,7 @@ def main():
         k.image               = options.image
         k.live_cd             = options.live_cd
         k.virt_path           = options.virt_path
+        k.force_path          = options.force_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
@@ -266,6 +271,7 @@ class Koan:
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None
+        self.force_path        = None
         self.qemu_disk_type    = None
         self.virt_auto_boot    = None
 
@@ -1457,7 +1463,10 @@ class Koan:
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
                 return location
             else:
-                raise InfoException, "invalid location: %s" % location                
+                if self.force_path:
+                    return location
+                else:
+		    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):

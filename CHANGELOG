@@ -1,4 +1,6 @@
 Cobbler CHANGELOG
+- Nov 29 2010
+- (FEAT) --force-path to overwrite virt-path file location
 
 - Apr 27 2010 - 2.0.4
 - (BUGF) fetch extra metadata from upstream repositories more safely
