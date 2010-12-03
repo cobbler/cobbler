@@ -1,4 +1,15 @@
 Cobbler CHANGELOG
+- Dec 3 2010 - 2.0.8
+- (FEAT) PXE
+- (BUGF) Support EL6 and FC14 (and FC15)
+- (FEAT) Ability to force path in koan to overwrite existing files
+- (BUGF) Rename repos instead of deleting them
+- (BUGF) True daemonize
+- (BUGF) Debian cleanups
+- (FEAT) Allow qemu disk type to be specified
+- (BUGF) Close file descriptors so we don't leak listen ports
+- (BUGF) Prefer ethtool over rhpl
+
 - Nov 29 2010
 - (FEAT) --force-path to overwrite virt-path file location
 
