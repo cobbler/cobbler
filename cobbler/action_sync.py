@@ -77,6 +77,7 @@ class BootSync:
         self.dhcp.verbose   = verbose
 
         self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
+        self.grub_dir = os.path.join(self.bootloc, "grub")
         self.images_dir = os.path.join(self.bootloc, "images")
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
@@ -159,6 +160,11 @@ class BootSync:
         """
         if not os.path.exists(self.pxelinux_dir):
             utils.mkdir(self.pxelinux_dir,logger=self.logger)
+        if not os.path.exists(self.grub_dir):
+            utils.mkdir(self.grub_dir,logger=self.logger)
+        grub_images_link = os.path.join(self.grub_dir, "images")
+        if not os.path.exists(grub_images_link):
+            os.symlink("../images", grub_images_link)
         if not os.path.exists(self.images_dir):
             utils.mkdir(self.images_dir,logger=self.logger)
         if not os.path.exists(self.s390_dir):
@@ -198,6 +204,7 @@ class BootSync:
         #
         self.make_tftpboot()
         utils.rmtree_contents(self.pxelinux_dir,logger=self.logger)
+        utils.rmtree_contents(self.grub_dir,logger=self.logger)
         utils.rmtree_contents(self.images_dir,logger=self.logger)
         utils.rmtree_contents(self.s390_dir,logger=self.logger)
         utils.rmtree_contents(self.yaboot_bin_dir,logger=self.logger)

@@ -82,8 +82,9 @@ OPTIONS = {
     "idle"       : 0, # how long to stick around: 0: unlimited
     "idle_timer" : None,
 
-    "cache"      : False, # 'cache-time' = 300
-    "cache-time" : 5 * 300,
+    "cache"          : True, # 'cache-time' = 300
+    "cache-time"     : 5 * 300,
+    "neg-cache-time" : 10,
 
     "active"     : 0,
 
@@ -93,6 +94,11 @@ OPTIONS = {
 
     "file_cmd"   : "/usr/bin/file",
     "user"       : "nobody",
+
+    # the well known socket.  needs to be global for timeout
+    # Using the options hash as a hackaround for python's
+    # "create a new object at local scope by default" design.
+    "sock"       : None
 }
 
 ERRORS = [
@@ -213,7 +219,7 @@ class ACKPacket(Packet):
 
     def __init__(self, data, local_sock, remote_addr):
         Packet.__init__(self,data,local_sock,remote_addr)
-        block_number, = unpack("!H",data[2:])
+        block_number, = unpack("!H",data[2:4])
         logging.log(9,"ACK for packet %d from %s"%(block_number,remote_addr))
         self.block_number = block_number
 
@@ -244,7 +250,7 @@ class ERRORPacket(Packet):
         return True
 
     def marshall(self):
-        return pack("!HHsB",
+        return pack("!HH %dsB" % (len(self.error_str)),
                     TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
 
 class OACKPacket(Packet):
@@ -271,62 +277,95 @@ class XMLRPCSystem:
     """Use XMLRPC to look up system attributes.  This is the recommended
        method.
 
-       The cache is only used if needed.  If we look up the host by IP
-       address, but can not find it, then check the cache and look it up
-       by name in the cache.  This limits the need for cache aging.
+       The cache is controlled by the "cache" option and the "cache-time"
+       option
     """
     cache = {}
     def __init__(self, ip_address=None, mac_address=None):
-        query = {}
-        if mac_address is not None:
-            query["mac_address"] = mac_address.replace("-",":").upper()
-        elif ip_address is not None:
-            query["ip_address"] = ip_address
+        name = None
+        resolve = True
 
-        try:
-            systems = COBBLER_HANDLE.find_system(query)
+        # Try the cache.
+        if XMLRPCSystem.cache.has_key(ip_address):
+            cache_ent = XMLRPCSystem.cache[ip_address]
+            now = time.time()
+            cache_time = float(OPTIONS["cache-time"])
+            neg_cache_time = float(OPTIONS["neg-cache-time"])
 
-            # if we don't find it, try the cache.
-            if (len(systems) == 0 and OPTIONS["cache"] and mac_address is None
-                    and XMLRPCSystem.cache.has_key(ip_address)):
-                logging.debug("Checking cache for %s" % (ip_address))
-                cache_ent = XMLRPCSystem.cache[ip_address]
-                if cache_ent["time"] + OPTIONS["cache-time"] > time.time():
+            if cache_ent["time"] + cache_time > now:
+                name = cache_ent["name"]
+
+                if name is not None:
                     logging.debug("Using cache name for system %s,%s"
-                                  % (cache_ent["name"],ip_address))
-                    systems = COBBLER_HANDLE.find_system(
-                        {"name":cache_ent["name"]})
+                              % (cache_ent["name"],ip_address))
+                    resolve = False
+                elif (name is None and mac_address is None and
+                        cache_ent["time"] + neg_cache_time > now):
+                    age = (cache_ent["time"] + neg_cache_time) - now
+                    logging.debug("Using neg-cache for system %s:%f"
+                                  %(ip_address,age))
+                    resolve = False
                 else:
-                    del XMLRPCSystem.cache[ip_address]
+                    age = (cache_ent["time"] + neg_cache_time) - now
+                    logging.debug("ignoring cache for %s:%d"%(ip_address,age))
 
-            if len(systems) > 1:
-                raise RuntimeError("Args mapped to multiple systems")
-            elif len(systems) == 0:
-                raise RuntimeError("%s,%s not found in cobbler"
-                                   % (ip_address,mac_address))
+                # Don't bother trying to find it.. until the neg-cache-time
+                # expires anyway
+            else:
+                del XMLRPCSystem.cache[ip_address]
 
-            self.system = COBBLER_HANDLE.get_system_for_koan(systems[0])
-            self.attrs  = self.system
-            self.name   = self.attrs["name"]
-            if mac_address and OPTIONS["cache"]:
-                # fill the cache
-	        logging.debug("Putting %s,%s into cache" % (self.name,ip_address))
-                XMLRPCSystem.cache[ip_address] = {
-                    "name" : self.name,
-                    "time" : time.time(),
-                }
-        except RuntimeError, e:
-            logging.info(str(e))
+        # Not in the cache, try to find it.
+        if resolve:
+            query = {}
+            if mac_address is not None:
+                query["mac_address"] = mac_address.replace("-",":").upper()
+            elif ip_address is not None:
+                query["ip_address"] = ip_address
+
+            try:
+                logging.debug("Searching for system %s" % repr(query))
+                systems = COBBLER_HANDLE.find_system(query)
+                if len(systems) > 1:
+                    raise RuntimeError("Args mapped to multiple systems")
+                elif len(systems) == 0:
+                    raise RuntimeError("%s,%s not found in cobbler"
+                                % (ip_address,mac_address))
+                name = systems[0]
+
+            except RuntimeError, e:
+                logging.info(str(e))
+                name = None
+            except:
+                (etype,eval,etrace) = sys.exc_info()
+                logging.warn("Exception retrieving rendered system: %s (%s)"
+                            % (etype,eval))
+                name = None
+
+        if name is not None:
+            logging.debug("Materializing system %s" % name)
+            try:
+                self.system = COBBLER_HANDLE.get_system_for_koan(name)
+                self.attrs  = self.system
+                self.name   = self.attrs["name"]
+            except:
+                (etype,eval,etrace) = sys.exc_info()
+                logging.warn ("Exception Materializing system %s" % name)
+                del XMLRPCSystem.cache[ip_address]
+                self.system = None
+                self.attrs  = dict()
+                self.name   = str(ip_address)
+        else:
             self.system = None
             self.attrs  = dict()
             self.name   = str(ip_address)
-        except:
-            (etype,eval,etrace) = sys.exc_info()
-            logging.warn("Exception retrieving rendered system: %s (%s)"
-                % (etype,eval))
-            self.system = None
-            self.attrs  = dict()
-            self.name   = str(ip_address)
+
+        # fill the cache, negative entries too
+        if OPTIONS["cache"] and resolve:
+            logging.debug("Putting %s,%s into cache"%(name,ip_address))
+            XMLRPCSystem.cache[ip_address] = {
+                "name" : name,
+                "time" : time.time(),
+            }
 
 class Request:
     """Handles the "business logic" of the TFTP server.  One instance
@@ -545,13 +584,12 @@ class Request:
 
     def finish(self):
         io_loop = ioloop.IOLoop.instance()
-        logging.debug("finishing req from %s for %s: fd %d" %
-                      (self.filename,self.remote_addr,self.local_sock.fileno()))
-
-        io_loop.remove_handler(self.local_sock.fileno())
+        logging.debug("finishing req from %s for %s" %
+                      (self.filename,self.remote_addr))
 
         self.state = 0
         try:
+            io_loop.remove_handler(self.local_sock.fileno())
             logging.debug("closing fd %d" % self.local_sock.fileno())
             self.local_sock.close()
         except:
@@ -755,7 +793,10 @@ def read_packet(data,local_sock,remote_addr):
             ERRORPacket(2,"Unsupported request").marshall(),remote_addr)
         return None
 
-    return (REQUESTS[opcode][REQ_CLASS])(data,local_sock,remote_addr)
+    try:
+        return (REQUESTS[opcode][REQ_CLASS])(data,local_sock,remote_addr)
+    except:
+        return None
 
 def partial(func, *args, **keywords):
     """Method factory.  Returns a semi-anonymous method that provides
@@ -788,39 +829,50 @@ def handle_request(request,fd,events):
        and calls the Request.handle_input method of the request associated
        with the port.
     """
-    while request.state != 0: # 0 is the "done" state
-        try:
-            data,address = request.local_sock.recvfrom(
-                request.options["blksize"]);
-        except socket.error, e:
-            if e[0] in (errno.EWOULDBLOCK, errno.EAGAIN):
-                return
+    try:
+        while request.state != 0: # 0 is the "done" state
+            try:
+                data,address = request.local_sock.recvfrom(
+                    request.options["blksize"]);
+            except socket.error, e:
+                if e[0] in (errno.EWOULDBLOCK, errno.EAGAIN):
+                    return
+                else:
+                    raise
+
+            if address == request.remote_addr:
+                packet = read_packet(data,request.local_sock,address)
+                if (packet is None):
+                    request.finish()
+                    continue
+
+                request.handle_input(packet)
+                reply = request.reply()
+
+                if reply:
+                    request.local_sock.sendto(reply.marshall(),address)
+
+                if not reply or reply is ERRORPacket:
+                    request.finish()
             else:
-                raise
+                raise NotImplementedError("Input from unexpected source")
+    finally:
+        # Reset the timer
+        if OPTIONS["idle"] > 0:
+            io_loop = ioloop.IOLoop.instance()
+            try:
+                io_loop.remove_timeout(OPTIONS["idle_timer"])
+            except:
+                pass
+            OPTIONS["idle_timer"] = io_loop.add_timeout(
+                time.time()+OPTIONS["idle"],
+                lambda : idle_out())
 
-        if address == request.remote_addr:
-            packet = read_packet(data,request.local_sock,address)
-            if (packet is None):
-                request.finish()
-                continue
-
-            request.handle_input(packet)
-            reply = request.reply()
-
-            if reply:
-                request.local_sock.sendto(reply.marshall(),address)
-
-            if not reply or reply is ERRORPacket:
-                request.finish()
-        else:
-            raise NotImplementedError("Input from unexpected source")
-
-
-def idle_out(sock):
+def idle_out():
     logging.info("Idling out")
     io_loop = ioloop.IOLoop.instance()
-    io_loop.remove_handler(sock.fileno())
-    sock.close()
+    io_loop.remove_handler(OPTIONS["sock"].fileno())
+    OPTIONS["sock"].close()
     if OPTIONS["active"] == 0:
         OPTIONS["idle_timer"] = None
         io_loop.stop()
@@ -880,10 +932,10 @@ def new_req(sock, templar, fd, events):
         if not reply or reply.is_error():
             request.finish()
 
-    # After the while loop.  Readd the idle timer
+    # After the while loop.  Re-add the idle timer
     if OPTIONS["idle"] > 0:
         OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out(sock))
+                                                    lambda : idle_out())
 
 def main():
     # If we're called from xinetd, set idle to non-zero
@@ -914,9 +966,11 @@ def main():
                         help="Increase output verbosity")
     parser.add_option('-d','--debug',action='store_true',default=False,
                         help="Debug (vastly increases output verbosity)")
-    parser.add_option('-c','--cache',action='store_true',default=False,
+    parser.add_option('-c','--cache',action='store_true',default=True,
                         help="Use a cache to help find hosts w/o IP address")
     parser.add_option('--cache-time',action='store',type="int",default=5*60,
+                        help="How long an ip->name mapping is valid")
+    parser.add_option('--neg-cache-time',action='store',type="int",default=10,
                         help="How long an ip->name mapping is valid")
 
     opts = opt_help.keys()
@@ -925,7 +979,10 @@ def main():
         v = opt_help[k]
         parser.add_option("--"+k,default=OPTIONS[k],
                             type=v["type"],help=v["help"])
+    parser.add_option('-B',dest="max_blksize",type="int",default=1428,
+                        help="alias for --max-blksize, for in.tftpd compatibility")
 
+    # Actually read the args
     (options,args) = parser.parse_args()
 
     for attr in dir(options):
@@ -956,15 +1013,15 @@ def main():
         logging.getLogger().setLevel(logging.WARN)
   
     if stat.S_ISSOCK(mode):
-        sock = socket.fromfd(sys.stdin.fileno(),
+        OPTIONS["sock"] = socket.fromfd(sys.stdin.fileno(),
                              socket.AF_INET,
                              socket.SOCK_DGRAM,
                              0)
     else:
-        sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        OPTIONS["sock"] = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
+        OPTIONS["sock"].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("",OPTIONS["port"]))
+            OPTIONS["sock"].bind(("",OPTIONS["port"]))
         except socket.error, e:
             if e[0] in (errno.EPERM, errno.EACCES):
                 print "Unable to bind to port %d" % OPTIONS["port"]
@@ -972,7 +1029,7 @@ def main():
             else:
                 raise
 
-    sock.setblocking(0)
+    OPTIONS["sock"].setblocking(0)
 
     if os.getuid() == 0:
         uid = pwd.getpwnam(OPTIONS["user"])[2]
@@ -983,20 +1040,22 @@ def main():
     templar = cobbler.templar.Templar(None)
 
     io_loop = ioloop.IOLoop.instance()
-    io_loop.add_handler(sock.fileno(),partial(new_req,sock,templar),io_loop.READ)
+    io_loop.add_handler(OPTIONS["sock"].fileno(),
+                        partial(new_req,OPTIONS["sock"],templar),io_loop.READ)
     # Shove the timeout into OPTIONS, because it's there
     if OPTIONS["idle"] > 0:
         OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out(sock))
+                                                    lambda : idle_out())
 
     logging.info('Starting Eventloop')
     try:
-        io_loop.start()
-    except KeyboardInterrupt:
-        # Someone hit ^C
-        logging.info('Exiting')
-
-    sock.close()
+        try:
+            io_loop.start()
+        except KeyboardInterrupt:
+            # Someone hit ^C
+            logging.info('Exiting')
+    finally:
+        OPTIONS["sock"].close()
     return 0
     
 if __name__ == "__main__":

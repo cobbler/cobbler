@@ -442,8 +442,11 @@ class System(item.Item):
         Set the system to use a certain named profile.  The profile
         must have already been loaded into the Profiles collection.
         """
+        old_parent = self.get_parent()
         if profile_name in [ "delete", "None", "~", ""] or profile_name is None:
             self.profile = ""
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
             return True
 
         self.image = "" # mutual exclusion rule
@@ -452,6 +455,11 @@ class System(item.Item):
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1 # subprofiles have varying depths.
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
+            new_parent = self.get_parent()
+            if isinstance(new_parent, item.Item):
+                new_parent.children[self.name] = self
             return True
         raise CX(_("invalid profile name: %s") % profile_name)
 
@@ -460,8 +468,11 @@ class System(item.Item):
         Set the system to use a certain named image.  Works like set_profile
         but cannot be used at the same time.  It's one or the other.
         """
+        old_parent = self.get_parent()
         if image_name in [ "delete", "None", "~", ""] or image_name is None:
             self.image = ""
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
             return True
 
         self.profile = "" # mutual exclusion rule
@@ -471,6 +482,11 @@ class System(item.Item):
         if img is not None:
             self.image = image_name
             self.depth = img.depth + 1
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
+            new_parent = self.get_parent()
+            if isinstance(new_parent, item.Item):
+                new_parent.children[self.name] = self
             return True
         raise CX(_("invalid image name (%s)") % image_name)
 

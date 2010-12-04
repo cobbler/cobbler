@@ -9,9 +9,9 @@ service tftp
         socket_type             = dgram
         protocol                = udp
         wait                    = yes
-        user                    = nobody
+        user                    = $user
         server                  = $binary
-        server_args             = $args
+        server_args             = -B 1380 $args
         per_source              = 11
         cps                     = 100 2
         flags                   = IPv4

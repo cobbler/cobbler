@@ -258,7 +258,7 @@ class RepoSync:
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
-        if not os.path.isdir(temp_path) and repo.mirror_locally:
+        if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
          

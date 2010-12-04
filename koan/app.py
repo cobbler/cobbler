@@ -152,6 +152,10 @@ def main():
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="override virt install location")  
+    p.add_option("", "--force-path",
+                 dest="force_path",
+                 action="store_true",
+                 help="Force overwrite of virt install location")
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="override virt install type")
@@ -202,6 +206,7 @@ def main():
         k.image               = options.image
         k.live_cd             = options.live_cd
         k.virt_path           = options.virt_path
+        k.force_path          = options.force_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
@@ -212,7 +217,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
-        k.qemu_disk_type      = options.qemu_disk_type
+        k.qemu_disk_type      = options.qemu_disk_type       
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -266,8 +271,15 @@ class Koan:
         self.virt_name         = None
         self.virt_type         = None
         self.virt_path         = None
+        self.force_path        = None
         self.qemu_disk_type    = None
         self.virt_auto_boot    = None
+
+        # This option adds the --copy-default argument to /sbin/grubby
+        # which uses the default boot entry in the grub.conf
+        # as template for the new entry being added to that file. 
+        # look at /sbin/grubby --help for more info
+        self.grubby_copy_default  =  1
 
     #---------------------------------------------------
 
@@ -389,10 +401,6 @@ class Koan:
         Determine the name of the cobbler system record that
         matches this MAC address. 
         """
-        try:
-            import rhpl
-        except:
-            raise CX("the rhpl module is required to autodetect a system.  Your OS does not have this, please manually specify --profile or --system")
         systems = self.get_data("systems")
         my_netinfo = utils.get_network_info()
         my_interfaces = my_netinfo.keys()
@@ -736,7 +744,7 @@ class Koan:
             kickstart = self.safe_load(profile_data,'kickstart')
             arch      = self.safe_load(profile_data,'arch')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -817,7 +825,7 @@ class Koan:
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -858,9 +866,12 @@ class Koan:
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", "\"%s\"" % k_args,
-                    "--copy-default"
+                    "--args", "\"%s\"" % k_args
             ]
+
+            if self.grubby_copy_default:
+                cmd.append("--copy-default")
+
             boot_probe_ret_code, probe_output = self.get_boot_loader_info()
             if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
                 cmd.append("--lilo")
@@ -1059,6 +1070,8 @@ class Koan:
         if kickstart is not None and kickstart != "":
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
+            elif breed is not None and breed == "debian" or breed =="ubuntu":
+                kextra = "auto url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
@@ -1446,7 +1459,10 @@ class Koan:
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
                 return location
             else:
-                raise InfoException, "invalid location: %s" % location                
+                if self.force_path:
+                    return location
+                else:
+		    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):
@@ -1469,7 +1485,7 @@ class Koan:
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
-            freespace_str = freespace_str.replace("G","") # remove gigabytes
+            freespace_str = re.sub("(?i)G","", freespace_str) # remove gigabytes
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 
