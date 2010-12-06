@@ -658,10 +658,19 @@ class BootAPI:
         to something like "nfs://path/to/mirror_url/root" 
         """
         self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
-        importer = action_import.Importer(
-            self, self._config, mirror_url, mirror_name, network_root, kickstart_file, rsync_flags, arch, breed, os_version, logger=logger
-        )
-        return importer.run()
+        importer_modules = self.get_modules_in_category("manage/import")
+        for importer_module in importer_modules:
+            manager = importer_module.get_import_manager(self._config,logger)
+            if 1:#try:
+                (found,pkgdir) = manager.check_for_signature(mirror_url,breed)
+                if found: 
+                    self.log("running import manager: %s" % manager.what())
+                    return manager.run(pkgdir,mirror_url,mirror_name,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
+            #except:
+            #    self.log("an error occured while running the import manager")
+            #    continue
+        self.log("No import managers found a valid signature at the location specified")
+        return False
 
     # ==========================================================================
 

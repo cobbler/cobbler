@@ -835,6 +835,16 @@ def hash_to_string(hash):
           buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
 
+def run_this(cmd, args, logger):
+    """
+    A simple wrapper around subprocess calls.
+    """
+
+    my_cmd = cmd % args
+    rc = subprocess_call(logger,my_cmd,shell=True)
+    if rc != 0:
+        die(logger,"Command failed")
+
 def run_triggers(api,ref,globber,additional=[],logger=None):
     """
     Runs all the trigger scripts in a given directory.
@@ -1219,6 +1229,19 @@ def mkdir(path,mode=0755,logger=None):
            if logger is not None:
                log_exc(logger)
            raise CX(_("Error creating") % path)
+
+def path_tail(apath, bpath):
+    """
+    Given two paths (B is longer than A), find the part in B not in A
+    """
+    position = bpath.find(apath)
+    if position != 0:
+        die(self.logger, "- warning: possible symlink traversal?: %s")
+    rposition = position + len(self.mirror)
+    result = bpath[rposition:]
+    if not result.startswith("/"):
+        result = "/" + result
+    return result
 
 def set_redhat_management_key(self,key):
    self.redhat_management_key = key
