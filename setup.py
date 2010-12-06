@@ -251,6 +251,9 @@ if __name__ == "__main__":
             (etcpath,  ['templates/rsync.template']),
 
             # templates for netboot configs
+            (pxepath,  ['templates/pxe/efidefault.template']),
+            (pxepath,  ['templates/pxe/grubprofile.template']),
+            (pxepath,  ['templates/pxe/grubsystem.template']),
             (pxepath,  ['templates/pxedefault.template']),
             (pxepath,  ['templates/pxesystem.template']),
             (pxepath,  ['templates/pxesystem_s390x.template']),
