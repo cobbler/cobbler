@@ -85,6 +85,15 @@ fi
 
 # Loop until the corresponding rpm is installed
 if [ "$keys_found" = "yes" ]; then
+    if [ "$PATTERN" = "ssh_host_" ]; then
+        while : ; do
+        sleep 10
+        if [ -f /etc/ssh/ssh_host_key ] ; then
+          cp -af /tmp/$TEMPDIR/${PATTERN}* $SEARCHDIR
+          break
+        fi
+        done &
+    fi
     while : ; do
         sleep 10
         if [ -d /mnt/sysimage$SEARCHDIR ] ; then
