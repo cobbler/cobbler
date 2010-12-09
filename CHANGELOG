@@ -1,4 +1,9 @@
 Cobbler CHANGELOG
+- Dec 8 2010 - 2.0.9
+- (BUGF) Install several templates that were needed
+- (BUGF) Ensure kernel_path is expanded in pxe templates
+- (BUGF) Place qemu_driver_type on other image creators that don't use it so they work
+
 - Dec 3 2010 - 2.0.8
 - (FEAT) PXE
 - (BUGF) Support EL6 and FC14 (and FC15)
