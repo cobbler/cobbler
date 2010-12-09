@@ -600,6 +600,12 @@ class PXEGen:
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
+
+        if kernel_path is not None:
+            metadata["kernel_path"] = kernel_path
+        if initrd_path is not None:
+            metadata["initrd_path"] = initrd_path
+
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
                 image, arch, kickstart_path)
