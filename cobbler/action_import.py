@@ -536,7 +536,7 @@ class Importer:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size" and x != "initrd.addrsize":
                 if x.find("PAE") == -1:
                     initrd = os.path.join(dirname,x)
                 else:
