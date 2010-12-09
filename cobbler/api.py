@@ -321,9 +321,10 @@ class BootAPI:
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         if isinstance(what, basestring):
-             ref = self.get_item(what, ref)
-             if ref is None:
-                return # nothing to remove
+            if isinstance(ref, basestring):
+                ref = self.get_item(what, ref)
+                if ref is None:
+                    return # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
         return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
