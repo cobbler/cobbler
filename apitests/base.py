@@ -45,14 +45,19 @@ read_config()
 TEST_DISTRO_PREFIX = "TEST-DISTRO-"
 TEST_PROFILE_PREFIX = "TEST-PROFILE-"
 TEST_SYSTEM_PREFIX = "TEST-SYSTEM-"
+TEST_MGMTCLASS_PREFIX = "TEST-MGMTCLASS-"
+TEST_PACKAGE_PREFIX = "TEST-PACKAGE-"
+TEST_FILE_PREFIX = "TEST-FILE-"
 
 FAKE_KS_CONTENTS = "HELLO WORLD"
+FAKE_TEMPLATE_CONTENTS = "HELLO WORLD"
 
 # Files to pretend are kernel/initrd, don't point to anything real.
 # These will be created if they don't already exist.
 FAKE_KERNEL = "/tmp/cobbler-testing-fake-kernel"
 FAKE_INITRD = "/tmp/cobbler-testing-fake-initrd"
 FAKE_KICKSTART = "/tmp/cobbler-testing-kickstart"
+FAKE_TEMPLATE = "/tmp/cobbler-testing-template"
 
 class CobblerTest(unittest.TestCase):
 
@@ -82,6 +87,33 @@ class CobblerTest(unittest.TestCase):
                 print("ERROR: unable to delete distro: %s" % distro_name)
                 print(e)
                 pass
+            
+        for mgmtclass_name in self.cleanup_mgmtclasses:
+            try:
+                self.api.remove_mgmtclass(mgmtclass_name, self.token)
+                print("Removed mgmtclass: %s" % mgmtclass_name)
+            except Exception, e:
+                print("ERROR: unable to delete mgmtclass: %s" % mgmtclass_name)
+                print(e)
+                pass
+            
+        for package_name in self.cleanup_packages:
+            try:
+                self.api.remove_package(package_name, self.token)
+                print("Removed package: %s" % package_name)
+            except Exception, e:
+                print("ERROR: unable to delete package: %s" % package_name)
+                print(e)
+                pass
+            
+        for file_name in self.cleanup_files:
+            try:
+                self.api.remove_file(file_name, self.token)
+                print("Removed file: %s" % file_name)
+            except Exception, e:
+                print("ERROR: unable to delete file: %s" % file_name)
+                print(e)
+                pass
 
     def setUp(self):
         """
@@ -97,6 +129,9 @@ class CobblerTest(unittest.TestCase):
         self.cleanup_distros = []
         self.cleanup_profiles = []
         self.cleanup_systems = []
+        self.cleanup_mgmtclasses = []
+        self.cleanup_packages = []
+        self.cleanup_files = []
 
         # Create a fake kernel/init pair in /tmp, Cobbler doesn't care what
         # these files actually contain.
@@ -107,6 +142,10 @@ class CobblerTest(unittest.TestCase):
         if not os.path.exists(FAKE_KICKSTART):
             f = open(FAKE_KICKSTART, 'w')
             f.write(FAKE_KS_CONTENTS)
+            f.close()
+        if not os.path.exists(FAKE_TEMPLATE):
+            f = open(FAKE_TEMPLATE, 'w')
+            f.write(FAKE_TEMPLATE_CONTENTS)
             f.close()
 
     def tearDown(self):
@@ -214,6 +253,57 @@ class CobblerTest(unittest.TestCase):
         self.api.modify_system(system_id, "profile", profile_name, self.token)
         self.api.save_system(system_id, self.token)
         return (system_id, system_name)
+    
+    def create_mgmtclass(self, package_name, file_name):
+        """ 
+        Create a mgmtclass record. 
+        
+        Returns a tuple of mgmtclass name
+        """
+        mgmtclass_name = "%s%s" % (TEST_MGMTCLASS_PREFIX, random.randint(1, 1000000))
+        mgmtclass_id = self.api.new_mgmtclass(self.token)
+        self.api.modify_mgmtclass(mgmtclass_id, "name", mgmtclass_name, self.token)
+        self.api.modify_mgmtclass(mgmtclass_id, "packages", package_name, self.token)
+        self.api.modify_mgmtclass(mgmtclass_id, "files", file_name, self.token)
+        self.api.save_mgmtclass(mgmtclass_id, self.token)
+        self.cleanup_mgmtclasses.append(mgmtclass_name)
+        return (mgmtclass_id, mgmtclass_name)
 
+    def create_package(self):
+        """ 
+        Create a package record. 
+        
+        Returns a tuple of package name
+        """
+        package_name = "%s%s" % (TEST_PACKAGE_PREFIX, random.randint(1, 1000000))
+        package_id = self.api.new_package(self.token)
+        self.api.modify_package(package_id, "name", package_name, self.token)
+        self.api.modify_package(package_id, "action", "create", self.token)
+        self.api.modify_package(package_id, "installer", "yum", self.token)
+        self.api.modify_package(package_id, "version", "1.0.0", self.token)
+        self.api.save_package(package_id, self.token)
+        self.cleanup_packages.append(package_name)
+        return (package_id, package_name)
+    
+    def create_file(self):
+        """ 
+        Create a file record. 
+        
+        Returns a tuple of file name
+        """
+        file_name = "%s%s" % (TEST_FILE_PREFIX, random.randint(1, 1000000))
+        path = "/tmp/%s" % file_name
+        file_id = self.api.new_file(self.token)
+        self.api.modify_file(file_id, "name", file_name, self.token)
+        self.api.modify_file(file_id, "is_directory", "False", self.token)
+        self.api.modify_file(file_id, "action", "create", self.token)
+        self.api.modify_file(file_id, "group", "root", self.token)
+        self.api.modify_file(file_id, "mode", "0644", self.token)
+        self.api.modify_file(file_id, "owner", "root", self.token)
+        self.api.modify_file(file_id, "path", path, self.token)
+        self.api.modify_file(file_id, "template", FAKE_TEMPLATE, self.token)
+        self.api.save_file(file_id, self.token)
+        self.cleanup_files.append(file_name)
+        return (file_id, file_name)
         
     

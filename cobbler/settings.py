@@ -104,7 +104,8 @@ DEFAULTS = {
     "createrepo_flags"            : "-c cache -s sha",
     "yum_distro_priority"         : 1,
     "yumdownloader_flags"         : "--resolve",
-    "reposync_flags"              : "-l -m -d"
+    "reposync_flags"              : "-l -m -d",
+    "ldap_management_default_type": "authconfig"
 }
 
 

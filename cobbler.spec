@@ -96,11 +96,14 @@ elif [ "$1" -ge "2" ];
 then
     # backup config
     if [ -e /var/lib/cobbler/distros ]; then
-        cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/distros*     /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/profiles*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/systems*     /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/repos*       /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/networks*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/mgmtclasses* /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/packages*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/files*       /var/lib/cobbler/backup 2>/dev/null
     fi
     if [ -e /var/lib/cobbler/config ]; then
         cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
@@ -193,6 +196,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %files -n koan
 %defattr(-,root,root,-)
 %dir /var/spool/koan
+%dir /var/lib/koan/config
 %{_bindir}/koan
 %{_bindir}/cobbler-register
 %{python_sitelib}/koan

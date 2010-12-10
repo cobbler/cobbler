@@ -130,6 +130,10 @@
                 <option value="virt_cpus">virt cpus</option>
                 <option value="virt_bridge">virt bridge</option>
                 <option value="virt_file_size">virt file size (GB)</option>{% endifequal %}
+                {% ifequal what "mgmtclass" %}<option value="comment">comment</option>
+                <option value="owners">owners</option>
+                <option value="packages">packages</option>
+                <option value="files">files</option>{% endifequal %}
                 {% ifequal what "network" %}<option value="address">address</option>
                 <option value="broadcast">broadcast</option>
                 <option value="cidr">cidr</option>

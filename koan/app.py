@@ -62,6 +62,7 @@ import glob
 import socket
 import utils
 import time
+import configurator
 
 COBBLER_REQUIRED = 1.300
 
@@ -115,6 +116,14 @@ def main():
                  dest="is_update_files",
                  action="store_true",
                  help="update templated files from cobbler config management")
+    p.add_option("-c", "--update-config",
+                 dest="is_update_config",
+                 action="store_true",
+                 help="update system configuration from cobbler config management")
+    p.add_option("", "--summary",
+                 dest="summary",
+                 action="store_true",
+                 help="print configuration run stats")
     p.add_option("-V", "--virt-name",
                  dest="virt_name",
                  help="use this name for the virtual guest")
@@ -199,6 +208,8 @@ def main():
         k.server              = options.server
         k.is_virt             = options.is_virt
         k.is_update_files     = options.is_update_files
+        k.is_update_config    = options.is_update_config
+        k.summary             = options.summary
         k.is_replace          = options.is_replace
         k.is_display          = options.is_display
         k.profile             = options.profile
@@ -265,6 +276,8 @@ class Koan:
         self.list_systems      = None
         self.is_virt           = None
         self.is_update_files   = None
+        self.is_update_config  = None
+        self.summary           = None
         self.is_replace        = None
         self.port              = None
         self.static_interface  = None
@@ -295,7 +308,7 @@ class Koan:
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items):
+        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items, self.is_update_config):
             if x:
                found = found+1
         if found != 1:
@@ -362,6 +375,8 @@ class Koan:
                 self.replace()
         elif self.is_update_files:
             self.update_files()
+        elif self.is_update_config:
+            self.update_config()
         else:
             self.display()
 
@@ -728,6 +743,74 @@ class Koan:
             utils.subprocess_call(cmd)
        
         return True 
+
+    #---------------------------------------------------
+
+    def update_config(self):
+        """
+        Contact the cobbler server and update the system configuration using
+        cobbler's built-in configuration management. Configs are based on
+        a combination of mgmt-classes assigned to the system, profile, and
+        distro.
+        """
+        # FIXME get hostname from utils?
+        hostname = socket.gethostname()
+        server   = self.xmlrpc_server
+        try:
+            config = server.get_config_data(hostname)
+        except:
+            traceback.print_exc()
+            self.connect_fail()
+
+        # FIXME should we version this, maybe append a timestamp? 
+        node_config_data = "/var/lib/koan/config/localconfig.json"
+        f = open(node_config_data, 'w')
+        f.write(config)
+        f.close()
+
+        print "- Starting configuration run for %s" % (hostname)
+        runtime_start = time.time()
+        configure = configurator.KoanConfigure(config)
+        stats = configure.run() 
+        runtime_end = time.time()
+        
+        if self.summary:
+            pstats = (stats["pkg"]['nsync'],stats["pkg"]['osync'],stats["pkg"]['fail'],stats["pkg"]['runtime'])
+            dstats = (stats["dir"]['nsync'],stats["dir"]['osync'],stats["dir"]['fail'],stats["dir"]['runtime'])
+            fstats = (stats["files"]['nsync'],stats["files"]['osync'],stats["files"]['fail'],stats["files"]['runtime'])                                          
+            
+            nsync = pstats[0] + dstats[0] + fstats[0]
+            osync = pstats[1] + dstats[1] + fstats[1]
+            fail  = pstats[2] + dstats[2] + fstats[2]
+            
+            total_resources = (nsync + osync + fail)
+            total_runtime   = (runtime_end - runtime_start)
+           
+            print
+            print "\tResource Report"
+            print "\t-------------------------"
+            print "\t    In Sync: %d" % nsync
+            print "\tOut of Sync: %d" % osync
+            print "\t       Fail: %d" % fail
+            print "\t-------------------------"
+            print "\tTotal Resources: %d" % total_resources
+            print "\t  Total Runtime: %.02f" % total_runtime
+            
+            for status in ["repos_status", "ldap_status", "monit_status"]:
+                if status in stats:
+                    print
+                    print "\t%s" % status
+                    print "\t-------------------------"
+                    print "\t%s" % stats[status]
+                    print "\t-------------------------"          
+            
+            print
+            print "\tResource |In Sync|OO Sync|Failed|Runtime"
+            print "\t----------------------------------------"
+            print "\t      Packages:  %d      %d    %d     %.02f" % pstats
+            print "\t   Directories:  %d      %d    %d     %.02f" % dstats
+            print "\t         Files:  %d      %d    %d     %.02f" % fstats
+            print
 
     #---------------------------------------------------
   
