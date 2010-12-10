@@ -182,7 +182,7 @@ class RepoSync:
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
                         else:
-                            utils.die(self.logger,"this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
