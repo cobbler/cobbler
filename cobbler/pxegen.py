@@ -283,6 +283,7 @@ class PXEGen:
                 raise "internal error, invalid arch supplied"
 
             # for tftp only ...
+            grub_path = None
             if working_arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
