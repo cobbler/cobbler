@@ -917,6 +917,14 @@ def check_dist():
     Determines what distro we're running under.  
     """
     if os.path.exists("/etc/debian_version"):
+       try:
+           release = sub_process.check_output(("lsb_release","--id","--short")).rstrip()
+           if release == 'Ubuntu':
+              return "ubuntu"
+       except sub_process.CalledProcessError:
+           pass
+       except OSError:
+           pass
        return "debian"
     elif os.path.exists("/etc/SuSE-release"):
        return "suse"
@@ -953,6 +961,10 @@ def os_release():
       version = parts[0]
       rest = parts[1]
       make = "debian"
+      return (make, float(version))
+   elif check_dist() == "ubuntu":
+      version = sub_process.check_output(("lsb_release","--release","--short")).rstrip()
+      make = "ubuntu"
       return (make, float(version))
    elif check_dist() == "suse":
       fd = open("/etc/SuSE-release")
