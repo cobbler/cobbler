@@ -1,6 +1,6 @@
 =head1 NAME
 
-koan
+koan - kickstart over a network, client side helper for cobbler
 
 =head1 SYNOPSIS
 
