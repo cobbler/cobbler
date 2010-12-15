@@ -130,10 +130,6 @@ class ImportRedhatManager:
         if self.breed == None:
             self.breed = "redhat"
 
-        # If no kickstart file was specified, set it to the default
-        if self.kickstart_file == None:
-            self.kickstart_file = "/var/lib/cobbler/kickstarts/default.ks"
-
         self.logger.info("self.pkgdir = %s" % str(self.pkgdir))
         self.logger.info("self.mirror = %s" % str(self.mirror))
         self.logger.info("self.mirror_name = %s" % str(self.mirror_name))
