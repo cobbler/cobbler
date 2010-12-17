@@ -36,7 +36,10 @@ USES_TEXTAREA = [
 # fields that use a multi select in the web app
 
 USES_MULTI_SELECT = [
-   "repos"
+   "repos",
+   "mgmt_classes",
+   "packages",
+   "files",
 ]
 
 # fields that use a select in the web app
@@ -63,7 +66,13 @@ USES_CHECKBOX = [
    "ipv6_autoconfiguration",
    "keep_updated",
    "mirror_locally",
-   "virt_auto_boot"
+   "virt_auto_boot",
+   "*repos_enabled",
+   "repos_enabled",
+   "*ldap_enabled",
+   "ldap_enabled",
+   "*monit_enabled",
+   "monit_enabled"
 ]
 
 # select killed the radio button
@@ -140,7 +149,13 @@ BLOCK_MAPPINGS = {
    "environment"              : "Advanced",
    "mirror_locally"           : "Advanced",
    "priority"                 : "Advanced",
-   "yumopts"                  : "Advanced"
+   "yumopts"                  : "Advanced",
+   "packages" : "Resources",
+   "files"    : "Resources",
+   "repos_enabled" : "Management",
+   "ldap_enabled"  : "Management",
+   "ldap_type"     : "Management",
+   "monit_enabled" : "Management",
 }
    
 # Certain legacy fields need to have different CLI options than the direct translation of their

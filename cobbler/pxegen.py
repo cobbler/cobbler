@@ -246,6 +246,7 @@ class PXEGen:
                 raise "internal error, invalid arch supplied"
 
             # for tftp only ...
+            grub_path = None
             if working_arch in [ "i386", "x86", "x86_64", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
@@ -572,6 +573,12 @@ class PXEGen:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_esxi.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
+
+
+        if kernel_path is not None:
+            metadata["kernel_path"] = kernel_path
+        if initrd_path is not None:
+            metadata["initrd_path"] = initrd_path
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,

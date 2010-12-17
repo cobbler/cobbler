@@ -86,7 +86,11 @@ FIELDS = [
   ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0,"dict"],
   ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0,"str"],
   ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0,"str"],
-  ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"]
+  ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"],
+  ["repos_enabled",False,0,"Repos Enabled",True,"(re)configure local repos on this machine at next config update?",0,"bool"],
+  ["ldap_enabled",False,0,"LDAP Enabled",True,"(re)configure LDAP on this machine at next config update?",0,"bool"],
+  ["ldap_type","SETTINGS:ldap_management_default_type",0,"LDAP Management Type",True,"Ex: authconfig",0,"str"],
+  ["monit_enabled",False,0,"Monit Enabled",True,"(re)configure monit on this machine at next config update?",0,"bool"],
 ]
 
 class System(item.Item):
@@ -625,6 +629,46 @@ class System(item.Item):
         kickstarts.
         """
         self.template_remote_kickstarts = utils.input_boolean(template)
+        return True
+    
+    def set_monit_enabled(self,monit_enabled):
+        """
+        If true, allows per-system to start Monit to monitor system services such as apache.
+        If monit is not running it will start the service.
+        
+        If false, no management of monit will take place. If monit is not running it will not
+        be started. If monit is running it will not be stopped or restarted.
+        """
+        self.monit_enabled = utils.input_boolean(monit_enabled)
+        return True
+    
+    def set_ldap_enabled(self,ldap_enabled):
+        """
+        If true, allows per-system to start Monit to monitor system services such as apache.
+        If monit is not running it will start the service.
+        
+        If false, no management of monit will take place. If monit is not running it will not
+        be started. If monit is running it will not be stopped or restarted.
+        """
+        self.ldap_enabled = utils.input_boolean(ldap_enabled)
+        return True
+    
+    def set_repos_enabled(self,repos_enabled):
+        """
+        If true, allows per-system to start Monit to monitor system services such as apache.
+        If monit is not running it will start the service.
+        
+        If false, no management of monit will take place. If monit is not running it will not
+        be started. If monit is running it will not be stopped or restarted.
+        """
+        self.repos_enabled = utils.input_boolean(repos_enabled)
+        return True
+    
+    def set_ldap_type(self, ldap_type):
+        if ldap_type is None:
+            ldap_type = ""
+        ldap_type = ldap_type.lower()
+        self.ldap_type = ldap_type
         return True
 
 
