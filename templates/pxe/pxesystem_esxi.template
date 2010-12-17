@@ -1,0 +1,8 @@
+default linux
+prompt 0
+timeout 1
+label linux
+        kernel $kernel_path
+        ipappend 2
+        append $img_path/vmkboot.gz $append_line --- $img_path/vmkernel.gz --- $img_path/sys.vgz --- $img_path/cim.vgz --- $img_path/ienviron.vgz --- $img_path/install.vgz
+

@@ -1,10 +1,9 @@
 """
-Enables the "cobbler import" command to seed cobbler
-information with available distribution from rsync mirrors
-and mounted DVDs.
+This is some of the code behind 'cobbler sync'.
 
 Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
+John Eckersberg <jeckersb@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,71 +21,125 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cexceptions import *
 import os
 import os.path
-import re
-import traceback
-import glob
-import api
-import utils
 import shutil
-from utils import _
+import time
+import sys
+import glob
+import traceback
+import errno
+from utils import popen2
+from shlex import shlex
+
+
+import utils
+from cexceptions import *
+import templar
+
+import item_distro
+import item_profile
 import item_repo
-import clogger
+import item_system
+
+from utils import _
 
 # FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
+RSYNC_CMD =  "rsync -a %s '%s' %s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
-class Importer:
+def register():
+   """
+   The mandatory cobbler module registration hook.
+   """
+   return "manage/import"
 
-    def __init__(self,api,config,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None,logger=None):
+
+class ImportRedhatManager:
+
+    def __init__(self,config,logger):
         """
-        Performs an import of a install tree (or trees) from the given
-        mirror address.  The prefix of the distro is to be specified
-        by mirror name.  For instance, if FC-6 is given, FC-6-xen-i386
-        would be a potential distro that could be created.  For content
-        available on external servers via a known nfs:// or ftp:// or
-        http:// path, we can import without doing rsync mirorring to
-        cobbler's http directory.  This is explained in more detail
-        in the manpage.  Leave network_root to None if want mirroring.
+        Constructor
         """
-        self.api = api
-        self.config = config
+        self.logger        = logger
+        self.config        = config
+        self.api           = config.api
+        self.distros       = config.distros()
+        self.profiles      = config.profiles()
+        self.systems       = config.systems()
+        self.settings      = config.settings()
+        self.repos         = config.repos()
+        self.templar       = templar.Templar(config)
+
+    # required function for import modules
+    def what(self):
+        return "import/redhat"
+
+    # required function for import modules
+    def check_for_signature(self,path,cli_breed):
+       signatures = [
+          'RedHat/RPMS',
+          'RedHat/rpms',
+          'RedHat/Base',
+          'Fedora/RPMS',
+          'Fedora/rpms',
+          'CentOS/RPMS',
+          'CentOS/rpms',
+          'CentOS',
+          'Packages',
+          'Fedora',
+          'Server',
+          'Client',
+          'SL',
+       ]
+
+       self.logger.info("scanning %s for distro signature" % path)
+       for signature in signatures:
+           d = os.path.join(path,signature)
+           if os.path.exists(d):
+               self.logger.info("Found a Red Hat compatible signature: %s" % signature)
+               return (True,signature)
+
+       if cli_breed and cli_breed in self.get_valid_breeds():
+           self.logger.info("Warning: No distro signature for kernel at %s, using value from command line" % path)
+           return (True,None)
+
+       return (False,None)
+
+    # required function for import modules
+    def run(self,pkgdir,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
+        self.pkgdir = pkgdir
         self.mirror = mirror
         self.mirror_name = mirror_name
         self.network_root = network_root
-        self.distros  = config.distros()
-        self.profiles = config.profiles()
-        self.systems  = config.systems()
-        self.settings = config.settings()
         self.kickstart_file = kickstart_file
         self.rsync_flags = rsync_flags
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
-        if logger is None:
-            logger       = clogger.Logger()
-        self.logger      = logger
-
-
-    # ========================================================================
-
-    def run(self):
-
-        """
-        This contains the guts of the import command.
-        """
 
         # some fixups for the XMLRPC interface, which does not use "None"
         if self.arch == "":           self.arch           = None
         if self.mirror == "":         self.mirror         = None
         if self.mirror_name == "":    self.mirror_name    = None
-        if self.breed == "":          self.breed          = None
         if self.kickstart_file == "": self.kickstart_file = None
         if self.os_version == "":     self.os_version     = None
         if self.rsync_flags == "":    self.rsync_flags    = None
         if self.network_root == "":   self.network_root   = None
+
+        # If no breed was specified on the command line, set it to "redhat" for this module
+        if self.breed == None:
+            self.breed = "redhat"
+
+        # debug log stuff for testing
+        #self.logger.info("self.pkgdir = %s" % str(self.pkgdir))
+        #self.logger.info("self.mirror = %s" % str(self.mirror))
+        #self.logger.info("self.mirror_name = %s" % str(self.mirror_name))
+        #self.logger.info("self.network_root = %s" % str(self.network_root))
+        #self.logger.info("self.kickstart_file = %s" % str(self.kickstart_file))
+        #self.logger.info("self.rsync_flags = %s" % str(self.rsync_flags))
+        #self.logger.info("self.arch = %s" % str(self.arch))
+        #self.logger.info("self.breed = %s" % str(self.breed))
+        #self.logger.info("self.os_version = %s" % str(self.os_version))
 
         # both --import and --name are required arguments
 
@@ -102,16 +155,16 @@ class Importer:
             if self.arch == "x86":
                 # be consistent
                 self.arch = "i386"
-            if self.arch not in [ "i386", "ia64", "ppc", "ppc64", "s390", "s390x", "x86_64", ]:
-                utils.die(self.logger,"arch must be i386, ia64, ppc, ppc64, s390, s390x or x86_64")
+            if self.arch not in self.get_valid_arches():
+                utils.die(self.logger,"arch must be one of: %s" % string.join(self.get_valid_arches(),", "))
 
         # if we're going to do any copying, set where to put things
         # and then make sure nothing is already there.
 
-        mpath = os.path.join(self.settings.webdir, "ks_mirror", self.mirror_name)
-        if os.path.exists(mpath) and self.arch is None:
+        self.path = os.path.normpath( "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name) )
+        if os.path.exists(self.path) and self.arch is None:
             # FIXME : Raise exception even when network_root is given ?
-            utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files." % mpath)
+            utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files." % self.path)
 
         # import takes a --kickstart for forcing selection that can't be used in all circumstances
 
@@ -121,10 +174,8 @@ class Importer:
         if self.os_version and not self.breed:
             utils.die(self.logger,"OS version can only be specified when a specific breed is selected")
 
-        #if self.breed and self.breed.lower() not in [ "redhat", "debian", "ubuntu", "windows" ]:
-        #if self.breed and self.breed.lower() not in [ "redhat" ]:
-        if self.breed and self.breed.lower() not in [ "redhat", "vmware" ]:
-            utils.die(self.logger,"Supplied import breed is not supported")
+        if self.breed and self.breed.lower() not in self.get_valid_breeds():
+            utils.die(self.logger,"Supplied import breed is not supported by this module")
 
         # if --arch is supplied, make sure the user is not importing a path with a different
         # arch, which would just be silly.
@@ -132,24 +183,22 @@ class Importer:
         if self.arch:
             # append the arch path to the name if the arch is not already
             # found in the name.
-            for x in [ "i386", "ia64", "ppc", "ppc64", "s390", "s390x", "x86_64", "x86", ]:
-                if self.mirror_name.lower().find(x) != -1:
+            for x in self.get_valid_arches():
+                if self.path.lower().find(x) != -1:
                     if self.arch != x :
                         utils.die(self.logger,"Architecture found on pathname (%s) does not fit the one given in command line (%s)"%(x,self.arch))
                     break
             else:
                 # FIXME : This is very likely removed later at get_proposed_name, and the guessed arch appended again
-                self.mirror_name = self.mirror_name + "-" + self.arch
+                self.path += ("-%s" % self.arch)
 
         # make the output path and mirror content but only if not specifying that a network
         # accessible support location already exists (this is --available-as on the command line)
 
         if self.network_root is None:
-
             # we need to mirror (copy) the files
 
-            self.path = os.path.normpath( "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name) )
-            self.mkdir(self.path)
+            utils.mkdir(self.path)
 
             # prevent rsync from creating the directory name twice
             # if we are copying via rsync
@@ -180,7 +229,7 @@ class Importer:
 
                 # kick off the rsync now
 
-                self.run_this(rsync_cmd, (spacer, self.mirror, self.settings.webdir, self.mirror_name))
+                utils.run_this(rsync_cmd, (spacer, self.mirror, self.path), self.logger)
 
         else:
 
@@ -233,113 +282,57 @@ class Importer:
 
         return True
 
-    # ----------------------------------------------------------------------
+    # required function for import modules
+    def get_valid_arches(self):
+        return ["i386", "ia64", "ppc", "ppc64", "s390", "s390x", "x86_64", "x86",]
 
-    def mkdir(self, dir):
+    # required function for import modules
+    def get_valid_breeds(self):
+        return ["redhat",]
 
-        """
-        A more tolerant mkdir.
-        FIXME: use the one in utils.py (?)
-        """
+    # required function for import modules
+    def get_valid_os_versions(self):
+        return ["rhel2.1", "rhel3", "rhel4", "rhel5", "rhel6", 
+                "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "fedora10", 
+                "fedora11", "fedora12", "fedora13", "fedora14", "fedora15",
+                "generic24", "generic26", "virtio26", "other",]
 
-        try:
-            os.makedirs(dir)
-        except OSError , ex:
-            if ex.strerror == "Permission denied":
-                utils.die(self.logger, "Permission denied at %s" % dir)
-        except:
-            pass
+    def get_valid_repo_breeds(self):
+        return ["rsync", "rhn", "yum",]
 
-    # ----------------------------------------------------------------------
+    def get_release_files(self):
+        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
+        data2 = []
+        for x in data:
+            b = os.path.basename(x)
+            if b.find("fedora") != -1 or \
+               b.find("redhat") != -1 or \
+               b.find("centos") != -1:
+                data2.append(x)
+        return data2
 
-    def run_this(self, cmd, args):
-
-        """
-        A simple wrapper around subprocess calls.
-        """
-
-        my_cmd = cmd % args
-        rc = utils.subprocess_call(self.logger,my_cmd,shell=True)
-        if rc != 0:
-            utils.die(self.logger,"Command failed")
-
-    # =======================================================================
-
-    def kickstart_finder(self,distros_added):
-
-        """
-        For all of the profiles in the config w/o a kickstart, use the
-        given kickstart file, or look at the kernel path, from that,
-        see if we can guess the distro, and if we can, assign a kickstart
-        if one is available for it.
-        """
-        for profile in self.profiles:
-            distro = self.distros.find(name=profile.get_conceptual_parent().name)
-            if distro is None or not (distro in distros_added):
-                continue
-            
-            kdir = os.path.dirname(distro.kernel)
-            importer = import_factory(kdir,self.path,self.breed,self.logger)
-            if self.kickstart_file == None:
-                for rpm in importer.get_release_files():
-                    # FIXME : This redhat specific check should go into the importer.find_release_files method
-                    if rpm.find("notes") != -1:
-                        continue
-                    results = importer.scan_pkg_filename(rpm)
-                    # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
-                    if results is None:
-                        self.logger.warning("No version found on imported tree")
-                        continue
-                    (flavor, major, minor) = results
-                    version , ks = importer.set_variance(flavor, major, minor, distro.arch)
-                    if self.os_version:
-                        if self.os_version != version:
-                            utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
-                    ds = importer.get_datestamp()
-                    distro.set_comment("%s.%s" % (version, int(minor)))
-                    distro.set_os_version(version)
-                    if ds is not None:
-                        distro.set_tree_build_time(ds)
-                    profile.set_kickstart(ks)
-                    self.profiles.add(profile,save=True)
-
-            self.configure_tree_location(distro,importer)
-            self.distros.add(distro,save=True) # re-save
-            self.api.serialize()
-
-    # ==========================================================================
-
-
-    def configure_tree_location(self, distro, importer):
-
+    def get_tree_location(self, distro):
         """
         Once a distribution is identified, find the part of the distribution
         that has the URL in it that we want to use for kickstarting the
         distribution, and create a ksmeta variable $tree that contains this.
         """
 
-        base = importer.get_rootdir()
+        base = self.get_rootdir()
 
         if self.network_root is None:
-            if distro.breed == "debian" or distro.breed == "ubuntu":
-                dists_path = os.path.join( self.path , "dists" )
-                if os.path.isdir( dists_path ):
-                    tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
-                else:
-                    tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
-            else:
-                dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-                # create the links directory only if we are mirroring because with
-                # SELinux Apache can't symlink to NFS (without some doing)
-                if not os.path.exists(dest_link):
-                    try:
-                        os.symlink(base, dest_link)
-                    except:
-                        # this shouldn't happen but I've seen it ... debug ...
-                        self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
-                # how we set the tree depends on whether an explicit network_root was specified
-                tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
-            importer.set_install_tree( distro, tree)
+            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+            # create the links directory only if we are mirroring because with
+            # SELinux Apache can't symlink to NFS (without some doing)
+            if not os.path.exists(dest_link):
+                try:
+                    os.symlink(base, dest_link)
+                except:
+                    # this shouldn't happen but I've seen it ... debug ...
+                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+            # how we set the tree depends on whether an explicit network_root was specified
+            tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+            self.set_install_tree(distro, tree)
         else:
             # where we assign the kickstart source is relative to our current directory
             # and the input start directory in the crawl.  We find the path segments
@@ -347,27 +340,11 @@ class Importer:
             # network path to the distro that Anaconda can digest.
             tail = self.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
-            importer.set_install_tree( distro, tree)
+            self.set_install_tree(distro, tree)
 
-    # ============================================================================
+        return
 
-    def path_tail(self, apath, bpath):
-        """
-        Given two paths (B is longer than A), find the part in B not in A
-        """
-        position = bpath.find(apath)
-        if position != 0:
-            utils.die(self.logger, "- warning: possible symlink traversal?: %s")
-        rposition = position + len(self.mirror)
-        result = bpath[rposition:]
-        if not result.startswith("/"):
-            result = "/" + result
-        return result
-
-    # ======================================================================
-
-    def repo_finder(self,distros_added):
-
+    def repo_finder(self, distros_added):
         """
         This routine looks through all distributions and tries to find
         any applicable repositories in those distributions for post-install
@@ -379,24 +356,14 @@ class Importer:
             # FIXME : Shouldn't decide this the value of self.network_root ?
             if distro.kernel.find("ks_mirror") != -1:
                 basepath = os.path.dirname(distro.kernel)
-                importer = import_factory(basepath,self.path,self.breed,self.logger)
-                top = importer.get_rootdir()
+                top = self.get_rootdir()
                 self.logger.info("descent into %s" % top)
-                if distro.breed in [ "debian" , "ubuntu" ]:
-                    dists_path = os.path.join( self.path , "dists" )
-                    if not os.path.isdir( dists_path ):
-                        importer.process_repos( self , distro )
-                else:
-                    # FIXME : The location of repo definition is known from breed
-                    os.path.walk(top, self.repo_scanner, distro)
+                # FIXME : The location of repo definition is known from breed
+                os.path.walk(top, self.repo_scanner, distro)
             else:
                 self.logger.info("this distro isn't mirrored")
 
-    # ========================================================================
-
-
     def repo_scanner(self,distro,dirname,fnames):
-
         """
         This is an os.path.walk routine that looks for potential yum repositories
         to be added to the configuration for post-install usage.
@@ -418,10 +385,6 @@ class Importer:
                 else:
                     self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
                     continue
-
-    # =======================================================================================
-
-
 
     def process_comps_file(self, comps_path, distro):
         """
@@ -448,7 +411,6 @@ class Importer:
         comps_file = files[0].split("/")[-1]
 
         try:
-
             # store the yum configs on the filesystem so we can use them later.
             # and configure them in the kickstart post, etc
 
@@ -467,7 +429,6 @@ class Importer:
             fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
             repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
-
             repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
 
             distro.source_repos.append([repo_url,repo_url2])
@@ -504,11 +465,7 @@ class Importer:
             self.logger.error("error launching createrepo (not installed?), ignoring")
             utils.log_exc(self.logger)
 
-
-    # ========================================================================
-
     def distro_adder(self,distros_added,dirname,fnames):
-
         """
         This is an os.path.walk routine that finds distributions in the directory
         to be scanned and then creates them.
@@ -536,13 +493,13 @@ class Importer:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") ) and x != "initrd.size" and x != "initrd.addrsize":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
                 if x.find("PAE") == -1:
                     initrd = os.path.join(dirname,x)
                 else:
                     pae_initrd = os.path.join(dirname, x)
 
-            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") ) and x.find("initrd") == -1:
+            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") ) and x.find("initrd") == -1:
                 if x.find("PAE") == -1:
                     kernel = os.path.join(dirname,x)
                 else:
@@ -557,20 +514,11 @@ class Importer:
                 adtls.append(self.add_entry(dirname,pae_kernel,pae_initrd))
                 pae_kernel = None
                 pae_initrd = None
-            elif initrd is not None and kernel is not None and dirname.find("VMware") == -1:
-                adtls.append(self.add_entry(dirname,kernel,initrd))
-                kernel = None
-                initrd = None
+
             for adtl in adtls:
                 distros_added.extend(adtl)
 
-
-
-
-    # ========================================================================
-
     def add_entry(self,dirname,kernel,initrd):
-
         """
         When we find a directory with a valid kernel/initrd in it, create the distribution objects
         as appropriate and save them.  This includes creating xen and rescue distros/profiles
@@ -583,29 +531,22 @@ class Importer:
         if self.arch and proposed_arch and self.arch != proposed_arch:
             utils.die(self.logger,"Arch from pathname (%s) does not match with supplied one %s"%(proposed_arch,self.arch))
 
-        importer = import_factory(dirname,self.path,self.breed,self.logger)
-
-        archs = importer.learn_arch_from_tree()
+        archs = self.learn_arch_from_tree()
         if not archs:
             if self.arch:
                 archs.append( self.arch )
         else:
             if self.arch and self.arch not in archs:
-                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,importer.get_pkgdir()))
+                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,self.get_pkgdir()))
         if proposed_arch:
             if archs and proposed_arch not in archs:
-                self.logger.warning("arch from pathname (%s) not found on imported tree %s" % (proposed_arch,importer.get_pkgdir()))
+                self.logger.warning("arch from pathname (%s) not found on imported tree %s" % (proposed_arch,self.get_pkgdir()))
                 return
 
             archs = [ proposed_arch ]
 
-        if importer.breed == "ubuntu" and dirname.find("ubuntu-installer") == -1:
-            self.logger.info("skipping entry, there are no netboot images")
-            return
-
-
         if len(archs)>1:
-            if importer.breed in [ "redhat" ]:
+            if self.breed in [ "redhat" ]:
                 self.logger.warning("directory %s holds multiple arches : %s" % (dirname, archs))
                 return
             self.logger.warning("- Warning : Multiple archs found : %s" % (archs))
@@ -613,7 +554,6 @@ class Importer:
         distros_added = []
 
         for pxe_arch in archs:
-
             name = proposed_name + "-" + pxe_arch
             existing_distro = self.distros.find(name=name)
 
@@ -633,7 +573,7 @@ class Importer:
             distro.set_kernel(kernel)
             distro.set_initrd(initrd)
             distro.set_arch(pxe_arch)
-            distro.set_breed(importer.breed)
+            distro.set_breed(self.breed)
             # If a version was supplied on command line, we set it now
             if self.os_version:
                 distro.set_os_version(self.os_version)
@@ -659,10 +599,7 @@ class Importer:
 
             profile.set_name(name)
             profile.set_distro(name)
-            if self.kickstart_file:
-                profile.set_kickstart(self.kickstart_file)
-            else:
-                profile.set_kickstart(importer.ks)
+            profile.set_kickstart(self.kickstart_file)
 
             # depending on the name of the profile we can define a good virt-type
             # for usage with koan
@@ -684,8 +621,7 @@ class Importer:
             # this code disabled as it seems to be adding "-rescue" to
             # distros that are /not/ rescue related, which is wrong.
             # left as a FIXME for those who find this feature interesting.
-
-            #if name.find("-xen") == -1 and importer.breed == "redhat":
+            #if name.find("-xen") == -1 and self.breed == "redhat":
             #    rescue_name = 'rescue-' + name
             #    existing_profile = self.profiles.find(name=rescue_name)
             #
@@ -703,14 +639,9 @@ class Importer:
             #
             #    self.profiles.add(profile,save=True)
 
-        # self.api.serialize() # not required, is implicit
-
         return distros_added
 
-    # ========================================================================
-
     def get_proposed_name(self,dirname,kernel=None):
-
         """
         Given a directory name where we have a kernel/initrd pair, try to autoname
         the distribution (and profile) object based on the contents of that path
@@ -758,8 +689,6 @@ class Importer:
 
         return name
 
-    # ========================================================================
-
     def get_proposed_arch(self,dirname):
         """
         Given an directory name, can we infer an architecture from a path segment?
@@ -782,121 +711,6 @@ class Importer:
             return "ppc"
         return None
 
-# ==============================================
-
-
-def guess_breed(kerneldir,path,cli_breed,logger):
-
-    """
-    This tries to guess the distro. Traverses from kernel dir to imported root checking
-    for distro signatures, which are the locations in media where the search for release
-    packages should start.  When a debian/ubuntu pool is found, the upper directory should
-    be checked to get the real breed. If we are on a real media, the upper directory will
-    be at the same level, as a local '.' symlink
-    The lowercase names are required for fat32/vfat filesystems
-    """
-    signatures = [
-       [ 'pool'        , "debian" ],
-       [ 'VMware/RPMS' , "vmware" ],
-       [ 'imagedd.bz2' , "vmware" ],
-       [ 'RedHat/RPMS' , "redhat" ],
-       [ 'RedHat/rpms' , "redhat" ],
-       [ 'RedHat/Base' , "redhat" ],
-       [ 'Fedora/RPMS' , "redhat" ],
-       [ 'Fedora/rpms' , "redhat" ],
-       [ 'CentOS/RPMS' , "redhat" ],
-       [ 'CentOS/rpms' , "redhat" ],
-       [ 'CentOS'      , "redhat" ],
-       [ 'Packages'    , "redhat" ],
-       [ 'Fedora'      , "redhat" ],
-       [ 'Server'      , "redhat" ],
-       [ 'Client'      , "redhat" ],
-       [ 'SL'          , "redhat" ],
-       [ 'isolinux.bin', None ],
-    ]
-    guess = None
-
-    while kerneldir != os.path.dirname(path) :
-        logger.info("scanning %s for distro signature" % kerneldir)
-        for (x, breedguess) in signatures:
-            d = os.path.join( kerneldir , x )
-            if os.path.exists( d ):
-                guess = breedguess
-                break
-        if guess:
-            break
-
-        kerneldir = os.path.dirname(kerneldir)
-    else:
-        if cli_breed:
-            logger.info("Warning: No distro signature for kernel at %s, using value from command line" % kerneldir)
-            return (cli_breed , kerneldir , None)
-        utils.die(logger, "No distro signature for kernel at %s" % kerneldir )
-
-    if guess == "debian" :
-        for suite in [ "debian" , "ubuntu" ] :
-            # NOTE : Although we break the loop after the first match,
-            # multiple debian derived distros can actually live at the same pool -- JP
-            d = os.path.join( kerneldir , suite )
-            if os.path.islink(d) and os.path.isdir(d):
-                if os.path.realpath(d) == os.path.realpath(kerneldir):
-                    return (suite, kerneldir ,x)
-            if os.path.basename( kerneldir ) == suite :
-                return (suite , kerneldir , x)
-
-    return (guess, kerneldir , x)
-
-# ============================================================
-
-
-def import_factory(kerneldir,path,cli_breed,logger):
-    """
-    Given a directory containing a kernel, return an instance of an Importer
-    that can be used to complete the import.
-    """
-
-    breed , rootdir, pkgdir = guess_breed(kerneldir,path,cli_breed,logger)
-    # NOTE : The guess_breed code should be included in the factory, in order to make
-    # the real root directory available, so allowing kernels at different levels within
-    # the same tree (removing the isolinux rejection from distro_adder) -- JP
-
-    if isinstance(rootdir, list):
-        if rootdir[1]:
-            logger.info("found content (breed=%s) at %s" % (breed,os.path.join( rootdir[0] , rootdir[1])))
-        else:
-            logger.info("found content (breed=%s) at %s" % (breed,rootdir[0]))
-    else:
-        logger.info("found content (breed=%s) at %s" % (breed,rootdir))
-
-    if cli_breed:
-        if cli_breed != breed:
-            utils.die(logger, "Requested breed (%s); breed found is %s" % ( cli_breed , breed ) )
-        breed = cli_breed
-
-    if breed == "redhat":
-        return RedHatImporter(logger,rootdir,pkgdir)
-    if breed == "vmware":
-        return VMwareImporter(logger,rootdir,pkgdir)
-    # disabled for 2.0
-    #elif breed == "debian":
-    #    return DebianImporter(logger,rootdir,pkgdir)
-    #elif breed == "ubuntu":
-    #    return UbuntuImporter(logger,rootdir,pkgdir)
-    elif breed:
-        utils.die(logger, "Unsupported OS breed %s" % breed)
-
-
-class BaseImporter:
-    """
-    Base class for distribution specific importer code.
-    """
-
-    # FIXME : Rename learn_arch_from_tree into guess_arch and simplify.
-    # FIXME : Drop package extension check and make a single search for all names.
-    # FIXME:  Next methods to be moved here: kickstart_finder TRY_LIST loop
-
-    # ===================================================================
-
     def arch_walker(self,foo,dirname,fnames):
         """
         See docs on learn_arch_from_tree.
@@ -910,31 +724,94 @@ class BaseImporter:
         # try to find a kernel header RPM and then look at it's arch.
         for x in fnames:
             if self.match_kernelarch_file(x):
-                for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc", "s390", "s390x" ]:
+                for arch in self.get_valid_arches():
                     if x.find(arch) != -1:
                         foo[arch] = 1
                 for arch in [ "i686" , "amd64" ]:
                     if x.find(arch) != -1:
                         foo[arch] = 1
 
-    # ===================================================================
+    def kickstart_finder(self,distros_added):
+        """
+        For all of the profiles in the config w/o a kickstart, use the
+        given kickstart file, or look at the kernel path, from that,
+        see if we can guess the distro, and if we can, assign a kickstart
+        if one is available for it.
+        """
+        for profile in self.profiles:
+            distro = self.distros.find(name=profile.get_conceptual_parent().name)
+            if distro is None or not (distro in distros_added):
+                continue
+
+            kdir = os.path.dirname(distro.kernel)
+            if self.kickstart_file == None:
+                for rpm in self.get_release_files():
+                    # FIXME : This redhat specific check should go into the importer.find_release_files method
+                    if rpm.find("notes") != -1:
+                        continue
+                    results = self.scan_pkg_filename(rpm)
+                    # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
+                    if results is None:
+                        self.logger.warning("No version found on imported tree")
+                        continue
+                    (flavor, major, minor) = results
+                    version , ks = self.set_variance(flavor, major, minor, distro.arch)
+                    if self.os_version:
+                        if self.os_version != version:
+                            utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
+                    ds = self.get_datestamp()
+                    distro.set_comment("%s.%s" % (version, int(minor)))
+                    distro.set_os_version(version)
+                    if ds is not None:
+                        distro.set_tree_build_time(ds)
+                    profile.set_kickstart(ks)
+                    self.profiles.add(profile,save=True)
+
+            self.configure_tree_location(distro)
+            self.distros.add(distro,save=True) # re-save
+            self.api.serialize()
+
+    def configure_tree_location(self, distro):
+        """
+        Once a distribution is identified, find the part of the distribution
+        that has the URL in it that we want to use for kickstarting the
+        distribution, and create a ksmeta variable $tree that contains this.
+        """
+
+        base = self.get_rootdir()
+
+        if self.network_root is None:
+            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+            # create the links directory only if we are mirroring because with
+            # SELinux Apache can't symlink to NFS (without some doing)
+            if not os.path.exists(dest_link):
+                try:
+                    os.symlink(base, dest_link)
+                except:
+                    # this shouldn't happen but I've seen it ... debug ...
+                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+            # how we set the tree depends on whether an explicit network_root was specified
+            tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+            self.set_install_tree( distro, tree)
+        else:
+            # where we assign the kickstart source is relative to our current directory
+            # and the input start directory in the crawl.  We find the path segments
+            # between and tack them on the network source path to find the explicit
+            # network path to the distro that Anaconda can digest.
+            tail = utils.path_tail(self.path, base)
+            tree = self.network_root[:-1] + tail
+            self.set_install_tree( distro, tree)
 
     def get_rootdir(self):
-        return self.rootdir
-
-    # ===================================================================
+        return self.mirror
 
     def get_pkgdir(self):
         if not self.pkgdir:
             return None
         return os.path.join(self.get_rootdir(),self.pkgdir)
 
-    # ===================================================================
-
     def set_install_tree(self, distro, url):
         distro.ks_meta["tree"] = url
-
-    # ===================================================================
 
     def learn_arch_from_tree(self):
         """
@@ -953,48 +830,6 @@ class BaseImporter:
             result["i386"] = 1
         return result.keys()
 
-    def get_datestamp(self):
-        """
-        Allows each breed to return its datetime stamp
-        """
-        return None
-    # ===================================================================
-
-    def __init__(self,logger,rootdir,pkgdir):
-        raise exceptions.NotImplementedError
-
-    # ===================================================================
-
-    def process_repos(self, main_importer, distro):
-        raise exceptions.NotImplementedError
-
-# ===================================================================
-# ===================================================================
-
-class RedHatImporter ( BaseImporter ) :
-
-    def __init__(self,logger,rootdir,pkgdir):
-        self.breed = "redhat"
-        self.ks = "/var/lib/cobbler/kickstarts/default.ks"
-        self.rootdir = rootdir
-        self.pkgdir = pkgdir
-        self.logger = logger
-
-    # ================================================================
-
-    def get_release_files(self):
-        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
-        data2 = []
-        for x in data:
-            b = os.path.basename(x)
-            if b.find("fedora") != -1 or \
-               b.find("redhat") != -1 or \
-               b.find("centos") != -1:
-                data2.append(x)
-        return data2
-
-    # ================================================================
-
     def match_kernelarch_file(self, filename):
         """
         Is the given filename a kernel filename?
@@ -1006,8 +841,6 @@ class RedHatImporter ( BaseImporter ) :
             if filename.find(match) != -1:
                 return True
         return False
-
-    # ================================================================
 
     def scan_pkg_filename(self, rpm):
         """
@@ -1067,7 +900,6 @@ class RedHatImporter ( BaseImporter ) :
         return float(datestamp)
 
     def set_variance(self, flavor, major, minor, arch):
-
         """
         find the profile kickstart and set the distro breed/os-version based on what
         we can find out from the rpm filenames and then return the kickstart
@@ -1134,199 +966,7 @@ class RedHatImporter ( BaseImporter ) :
         self.logger.warning("could not use distro specifics, using rhel 4 compatible kickstart")
         return None , "/var/lib/cobbler/kickstarts/legacy.ks"
 
+# ==========================================================================
 
-class VMwareImporter (BaseImporter):
-    """ 
-    VMware specific importer code.
-    """
-
-    def __init__(self,logger,rootdir,pkgdir):
-        self.breed = "vmware"
-        self.ks = "/var/lib/cobbler/kickstarts/default.ks"
-        self.rootdir = rootdir
-        self.pkgdir = pkgdir
-        self.logger = logger
-
-    def learn_arch_from_tree(self):
-        """
-        Attempt to figure out the arch from packages in the install tree.
-        ESX 4 and up is 64bit.
-        """
-        result = ["x86_64"]
-        return result
-
-    def get_release_files(self):
-        """
-        Find distro release packages.
-        """
-        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
-        data2 = []
-        for x in data:
-            b = os.path.basename(x)
-            if b.find("vmware") != -1:
-                data2.append(x)
-        if len(data2) == 0:
-            # ESXi maybe?
-            return glob.glob(os.path.join(self.get_rootdir(), "imagedd.bz2*"))
-        return data2
-
-    def scan_pkg_filename(self, rpm):
-        """
-        Determine what the distro is based on the release package filename.
-        """
-        rpm = os.path.basename(rpm)
-
-        if rpm.lower().find("-esx-") != -1:
-            flavor = "esx"
-        elif rpm.lower() == "imagedd.bz2":
-            flavor = "esxi"
-
-        match = re.search(r'^([\-a-zA-Z0-9]+)-([\.0-9]+)-([\.0-9]+)\.', rpm)
-        if match:
-            (name, version, release) = [match.group(1), match.group(2), match.group(3)]
-            major = version.split('.')[0]
-            minor = release.split('.')[0]
-        else:
-            # FIXME: better major/minor detection for esxi
-            #        or if the match falls through for some reason
-            major = 4
-            minor = 0
-
-        return (flavor, major, minor)
-
-    def set_variance(self, flavor, major, minor, arch):
-        """
-        Set distro specific versioning.
-        """
-        os_version = "%s%s" % (flavor, major)
-        return os_version , "/var/lib/cobbler/kickstarts/default.ks"
-
-
-    def get_datestamp(self):
-        """
-        Based on a VMWare tree find the creation timestamp
-        """
-        pass
-
-#class DebianImporter ( BaseImporter ) :
-#
-#   def __init__(self,logger,rootdir,pkgdir):
-#       self.breed = "debian"
-#       self.ks = "/var/lib/cobbler/kickstarts/sample.seed"
-#       self.rootdir = rootdir
-#       self.pkgdir = pkgdir
-#       self.logger = logger
-#
-#   def get_release_files(self):
-#       if not self.get_pkgdir():
-#           return []
-#       # search for base-files or base-installer ?
-#       return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
-#
-#   def match_kernelarch_file(self, filename):
-#       if not filename.endswith("deb"):
-#           return False
-#       if filename.startswith("linux-headers-"):
-#           return True
-#       return False
-#
-#   def scan_pkg_filename(self, deb):
-#
-#       deb = os.path.basename(deb)
-#       self.logger.info("processing deb : %s" % deb)
-#
-#       # get all the tokens and try to guess a version
-#       accum = []
-#       tokens = deb.split("_")
-#       tokens2 = tokens[1].split(".")
-#       for t2 in tokens2:
-#          try:
-#              val = int(t2)
-#              accum.append(val)
-#          except:
-#              pass
-#       # Safeguard for non-guessable versions
-#       if not accum:
-#          return None
-#       accum.append(0)
-#
-#       return (None, accum[0], accum[1])
-#
-#   def set_variance(self, flavor, major, minor, arch):
-#
-#       dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
-#       dist_vers = "%s.%s" % ( major , minor )
-#       os_version = dist_names[dist_vers]
-#
-#       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-#
-#   def set_install_tree(self, distro, url):
-#       idx = url.find("://")
-#       url = url[idx+3:]
-#
-#       idx = url.find("/")
-#       distro.ks_meta["hostname"] = url[:idx]
-#       distro.ks_meta["directory"] = url[idx:]
-#       if not distro.os_version :
-#           utils.die(self.logger, "OS version is required for debian distros")
-#       distro.ks_meta["suite"] = distro.os_version
-#
-#   def process_repos(self, main_importer, distro):
-#
-#       # Create a disabled repository for the new distro, and the security updates
-#       #
-#       # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
-#
-#       repo = item_repo.Repo(main_importer.config)
-#       repo.set_breed( "apt" )
-#       repo.set_arch( distro.arch )
-#       repo.set_keep_updated( False )
-#       repo.yumopts["--ignore-release-gpg"] = None
-#       repo.yumopts["--verbose"] = None
-#       repo.set_name( distro.name )
-#       repo.set_os_version( distro.os_version )
-#       # NOTE : The location of the mirror should come from timezone
-#       repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
-#
-#       security_repo = item_repo.Repo(main_importer.config)
-#       security_repo.set_breed( "apt" )
-#       security_repo.set_arch( distro.arch )
-#       security_repo.set_keep_updated( False )
-#       security_repo.yumopts["--ignore-release-gpg"] = None
-#       security_repo.yumopts["--verbose"] = None
-#       security_repo.set_name( distro.name + "-security" )
-#       security_repo.set_os_version( distro.os_version )
-#       # There are no official mirrors for security updates
-#       security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
-#
-#       self.logger.info("Added repos for %s" % distro.name)
-#       repos  = main_importer.config.repos()
-#       repos.add(repo,save=True)
-#       repos.add(security_repo,save=True)
-
-
-#class UbuntuImporter ( DebianImporter ) :
-#
-#   def __init__(self,rootdir,pkgdir):
-#       DebianImporter.__init__(self,rootdir,pkgdir)
-#       self.breed = "ubuntu"
-#
-#   def get_release_files(self):
-#       if not self.get_pkgdir():
-#           return []
-#       return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
-#
-#   def set_variance(self, flavor, major, minor, arch):
-#
-#       # Release names taken from wikipedia
-#       dist_names = { '6.4':"dapper", '8.4':"hardy", '8.10':"intrepid", '9.4':"jaunty" }
-#       dist_vers = "%s.%s" % ( major , minor )
-#       if not dist_names.has_key( dist_vers ):
-#           dist_names['4ubuntu2.0'] = "IntrepidIbex"
-#       os_version = dist_names[dist_vers]
-#
-#       return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-#
-#   def process_repos(self, main_importer, distro):
-#
-#       pass
+def get_import_manager(config,logger):
+    return ImportRedhatManager(config,logger)

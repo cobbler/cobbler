@@ -521,13 +521,19 @@ class PXEGen:
             else: # pxe
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
-        
+
                     if arch.startswith("s390"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
                     elif arch == "ia64":
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
                     elif arch.startswith("ppc"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                    elif distro.os_version.startswith("esxi"):
+                        # ESXi uses a very different pxe method, using more files than
+                        # a standard kickstart and different options - so giving it a dedicated
+                        # PXE template makes more sense than shoe-horning it into the existing
+                        # templates
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
                     if arch is not None and arch.startswith("ppc"):
@@ -562,6 +568,9 @@ class PXEGen:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             elif format == "grub":
                 template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
+            elif distro.os_version.startswith("esxi"):
+                # ESXi uses a very different pxe method, see comment above in the system section
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_esxi.template")
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
@@ -667,8 +676,15 @@ class PXEGen:
                 # interface=bootif causes a failure
                 append_line = append_line.replace("interface=bootif","")
             elif distro.breed == "vmware":
-                append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
-                    (append_line, kickstart_path)
+                if distro.os_version.find("esxi") != -1:
+                    # ESXi is very picky, it's easier just to redo the
+                    # entire append line here since 
+                    append_line = "ks=%s %s" % (kickstart_path, hkopts)
+                    # ESXi likes even fewer options, so we remove them too
+                    append_line = append_line.replace("kssendmac","")
+                else:
+                    append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
+                        (append_line, kickstart_path)
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif","")
 
