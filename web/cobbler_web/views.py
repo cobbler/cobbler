@@ -13,13 +13,16 @@ import distutils
 import exceptions
 import time
 
-import cobbler.item_distro  as item_distro
-import cobbler.item_profile as item_profile
-import cobbler.item_system  as item_system
-import cobbler.item_repo    as item_repo
-import cobbler.item_image   as item_image
-import cobbler.field_info   as field_info
-import cobbler.utils        as utils
+import cobbler.item_distro    as item_distro
+import cobbler.item_profile   as item_profile
+import cobbler.item_system    as item_system
+import cobbler.item_repo      as item_repo
+import cobbler.item_image     as item_image
+import cobbler.item_mgmtclass as item_mgmtclass
+import cobbler.item_package   as item_package
+import cobbler.item_file      as item_file
+import cobbler.field_info     as field_info
+import cobbler.utils          as utils
 
 url_cobbler_api = None
 remote = None
@@ -157,6 +160,12 @@ def get_fields(what, is_subobject, seed_item=None):
        field_data = item_repo.FIELDS
     if what == "image":
        field_data =  item_image.FIELDS
+    if what == "mgmtclass":
+        field_data = item_mgmtclass.FIELDS
+    if what == "package":
+        field_data = item_package.FIELDS
+    if what == "file":
+        field_data = item_file.FIELDS
 
     settings = remote.get_settings()
   
@@ -312,7 +321,7 @@ def __format_items(items, column_names):
         for fieldname in column_names:
             if fieldname == "name":
                 html_element = "name"
-            elif fieldname in [ "system", "repo", "distro", "profile", "image" ]:
+            elif fieldname in [ "system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file" ]:
                 html_element = "editlink"
             elif fieldname in field_info.USES_CHECKBOX:
                 html_element = "checkbox"
@@ -352,7 +361,13 @@ def genlist(request, what, page=None):
     if what == "image":
        columns = [ "name", "file" ]
     if what == "network":
-       columns = [ "name" ] 
+       columns = [ "name" ]
+    if what == "mgmtclass":
+        columns = [ "name" ]
+    if what == "package":
+        columns = [ "name", "installer" ]
+    if what == "file":
+        columns = [ "name" ] 
 
     # render the list
     t = get_template('generic_list.tmpl')
@@ -961,8 +976,12 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
          __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
       __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
    elif what == "system":
-      __tweak_field(fields, "profile", "choices",   __names_from_dicts(remote.get_profiles()))
-      __tweak_field(fields, "image", "choices",     __names_from_dicts(remote.get_images(),optional=True))
+      __tweak_field(fields, "profile", "choices",      __names_from_dicts(remote.get_profiles()))
+      __tweak_field(fields, "image", "choices",        __names_from_dicts(remote.get_images(),optional=True))
+      __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses()))
+   elif what == "mgmtclass":
+        __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
+        __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
 
 
    t = get_template('generic_edit.tmpl')

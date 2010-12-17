@@ -125,6 +125,11 @@ class BootCheck:
            if rc != 0:
                status.append(_("service %s is not running%s") % which,notes)
                return False
+       elif self.checked_dist == "ubuntu":
+           if os.path.exists("/etc/init/%s.conf" % which):
+               rc = utils.subprocess_call(self.logger,"status %s > /dev/null 2>&1" % which, shell=True)
+           if rc != 0:
+               status.append(_("service %s is not running%s") % (which,notes))
        else:
            status.append(_("Unknown distribution type, cannot check for running service %s" % which))
            return False

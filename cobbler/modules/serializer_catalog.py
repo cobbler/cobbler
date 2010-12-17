@@ -58,8 +58,14 @@ def serialize_item(obj, item):
 
     if item.name is None or item.name == "":
        raise exceptions.RuntimeError("name unset for object!")
+   
+    # FIXME: Need a better way to support collections/items
+    # appending an 's' does not work in all cases 
+    if obj.collection_type() in [ 'mgmtclass' ]:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(),item.name)
+    else:
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
 
-    filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
     datastruct = item.to_datastruct()
 
     jsonable = can_use_json()
@@ -93,7 +99,13 @@ def serialize_item(obj, item):
     return True
 
 def serialize_delete(obj, item):
-    filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
+    # FIXME: Need a better way to support collections/items
+    # appending an 's' does not work in all cases
+    if item.name in [ 'mgmtclass' ]:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(),item.name)
+    else:
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
+    
     filename2 = filename + ".json"
     if os.path.exists(filename):
         os.remove(filename)
@@ -104,7 +116,14 @@ def serialize_delete(obj, item):
 def deserialize_item_raw(collection_type, item_name):
     # this new fn is not really implemented performantly in this module.
     # yet.
-    filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
+    
+    # FIXME: Need a better way to support collections/items
+    # appending an 's' does not work in all cases
+    if item_name in [ 'mgmtclass' ]:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (collection_type(),item_name)
+    else:
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
+    
     filename2 = filename + ".json"
     if os.path.exists(filename): 
         fd = open(filename)
@@ -132,7 +151,13 @@ def serialize(obj):
     return True
 
 def deserialize_raw(collection_type):
-    old_filename = "/var/lib/cobbler/%ss" % collection_type
+    # FIXME: Need a better way to support collections/items
+    # appending an 's' does not work in all cases
+    if collection_type in [ 'mgmtclass' ]:
+        old_filename = "/var/lib/cobbler/%ses" % collection_type
+    else:
+        old_filename = "/var/lib/cobbler/%ss" % collection_type
+   
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
          datastruct = yaml.load(fd.read())
@@ -146,7 +171,13 @@ def deserialize_raw(collection_type):
          return datastruct
     else:
          results = []
-         all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
+         # FIXME: Need a better way to support collections/items
+         # appending an 's' does not work in all cases
+         if collection_type in [ 'mgmtclass' ]:
+             all_files = glob.glob("/var/lib/cobbler/config/%ses.d/*" % collection_type)
+         else:
+             all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
+         
          all_files = filter_upgrade_duplicates(all_files)
          for f in all_files:
              fd = open(f)
@@ -182,7 +213,13 @@ def deserialize(obj,topological=True):
     Populate an existing object with the contents of datastruct.
     Object must "implement" Serializable.  
     """
-    old_filename = "/var/lib/cobbler/%ss" % obj.collection_type()
+    # FIXME: Need a better way to support collections/items
+    # appending an 's' does not work in all cases
+    if obj.collection_type() in [ 'mgmtclass' ]:
+        old_filename = "/var/lib/cobbler/%ses" % obj.collection_type()
+    else:
+        old_filename = "/var/lib/cobbler/%ss" % obj.collection_type()
+    
     datastruct = deserialize_raw(obj.collection_type())
     if topological and type(datastruct) == list:
        datastruct.sort(__depth_cmp)

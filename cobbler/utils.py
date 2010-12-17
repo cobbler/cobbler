@@ -917,6 +917,14 @@ def check_dist():
     Determines what distro we're running under.  
     """
     if os.path.exists("/etc/debian_version"):
+       try:
+           release = sub_process.check_output(("lsb_release","--id","--short")).rstrip()
+           if release == 'Ubuntu':
+              return "ubuntu"
+       except sub_process.CalledProcessError:
+           pass
+       except OSError:
+           pass
        return "debian"
     elif os.path.exists("/etc/SuSE-release"):
        return "suse"
@@ -953,6 +961,10 @@ def os_release():
       version = parts[0]
       rest = parts[1]
       make = "debian"
+      return (make, float(version))
+   elif check_dist() == "ubuntu":
+      version = sub_process.check_output(("lsb_release","--release","--short")).rstrip()
+      make = "ubuntu"
       return (make, float(version))
    elif check_dist() == "suse":
       fd = open("/etc/SuSE-release")
@@ -1887,6 +1899,16 @@ def local_get_cobbler_api_url():
        traceback.print_exc()
        raise CX("/etc/cobbler/settings is not a valid YAML file")
     return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+
+def get_ldap_template(ldaptype=None):
+    """
+    Return ldap command for type
+    """
+    if ldaptype:
+        ldappath = "/etc/cobbler/ldap/ldap_%s.template" % ldaptype
+        if os.path.isfile(ldappath):
+            return ldappath
+    return None
 
 def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port

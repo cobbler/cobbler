@@ -1,6 +1,6 @@
 =head1 NAME
 
-koan
+koan - kickstart over a network, client side helper for cobbler
 
 =head1 SYNOPSIS
 
@@ -79,6 +79,19 @@ Flag                Explanation                             Example
 Nearly all of these variables can also be defined and centrally managed by the Cobbler server.
 
 If installing virtual machines in environments without DHCP, use of --system instead of --profile is required.  Additionally use --static-interface=eth0 to supply which interface to use to supply network information.  The installer will boot from this virtual interface.  Leaving off --static-interface will result in an unsuccessful network installation.
+
+=head1 CONFIGURATION MANAGEMENT
+
+Using --update-config will update a system configuration as defined by Cobbler.
+
+koan --server=cobbler.example.org --update-config
+
+Additionally, adding the flag --summary will print configuration run stats.
+
+
+Koan passes in the system's FQDN in the background during the configuration request. Cobbler will match this FQDN to a configured system defined by Cobbler.
+
+The FQDN (Fully Qualified Domain Name) maps to the system's hostname field.
 
 =head1 ENVIRONMENT VARIABLES
 

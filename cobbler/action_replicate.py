@@ -135,12 +135,10 @@ class Replicate:
 
         self.generate_include_map()
 
-        # FIXME: this should be optional as we might want to maintain local system records
-        # and just keep profiles/distros common
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
             obj_types = OBJ_TYPES
-            if len(self.system_patterns) == 0:
+            if len(self.system_patterns) == 0 and "system" in obj_types:
                 obj_types.remove("system")
             for what in obj_types:
                 self.remove_objects_not_on_master(what)
