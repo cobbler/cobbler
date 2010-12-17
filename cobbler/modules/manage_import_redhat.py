@@ -45,7 +45,7 @@ import item_system
 from utils import _
 
 # FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -a %s '%s' %s/ks_mirror/%s --exclude-from=/etc/cobbler/rsync.exclude --progress"
+RSYNC_CMD =  "rsync -a %s '%s' %s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 def register():
    """
@@ -130,15 +130,16 @@ class ImportRedhatManager:
         if self.breed == None:
             self.breed = "redhat"
 
-        self.logger.info("self.pkgdir = %s" % str(self.pkgdir))
-        self.logger.info("self.mirror = %s" % str(self.mirror))
-        self.logger.info("self.mirror_name = %s" % str(self.mirror_name))
-        self.logger.info("self.network_root = %s" % str(self.network_root))
-        self.logger.info("self.kickstart_file = %s" % str(self.kickstart_file))
-        self.logger.info("self.rsync_flags = %s" % str(self.rsync_flags))
-        self.logger.info("self.arch = %s" % str(self.arch))
-        self.logger.info("self.breed = %s" % str(self.breed))
-        self.logger.info("self.os_version = %s" % str(self.os_version))
+        # debug log stuff for testing
+        #self.logger.info("self.pkgdir = %s" % str(self.pkgdir))
+        #self.logger.info("self.mirror = %s" % str(self.mirror))
+        #self.logger.info("self.mirror_name = %s" % str(self.mirror_name))
+        #self.logger.info("self.network_root = %s" % str(self.network_root))
+        #self.logger.info("self.kickstart_file = %s" % str(self.kickstart_file))
+        #self.logger.info("self.rsync_flags = %s" % str(self.rsync_flags))
+        #self.logger.info("self.arch = %s" % str(self.arch))
+        #self.logger.info("self.breed = %s" % str(self.breed))
+        #self.logger.info("self.os_version = %s" % str(self.os_version))
 
         # both --import and --name are required arguments
 
@@ -183,13 +184,13 @@ class ImportRedhatManager:
             # append the arch path to the name if the arch is not already
             # found in the name.
             for x in self.get_valid_arches():
-                if self.mirror_name.lower().find(x) != -1:
+                if self.path.lower().find(x) != -1:
                     if self.arch != x :
                         utils.die(self.logger,"Architecture found on pathname (%s) does not fit the one given in command line (%s)"%(x,self.arch))
                     break
             else:
                 # FIXME : This is very likely removed later at get_proposed_name, and the guessed arch appended again
-                self.mirror_name = self.mirror_name + "-" + self.arch
+                self.path += ("-%s" % self.arch)
 
         # make the output path and mirror content but only if not specifying that a network
         # accessible support location already exists (this is --available-as on the command line)
@@ -228,7 +229,7 @@ class ImportRedhatManager:
 
                 # kick off the rsync now
 
-                utils.run_this(rsync_cmd, (spacer, self.mirror, self.settings.webdir, self.mirror_name), self.logger)
+                utils.run_this(rsync_cmd, (spacer, self.mirror, self.path), self.logger)
 
         else:
 
