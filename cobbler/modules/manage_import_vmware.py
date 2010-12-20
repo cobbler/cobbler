@@ -291,7 +291,7 @@ class ImportVMWareManager:
         """
         Find distro release packages.
         """
-        data = glob.glob(os.path.join(self.get_pkgdir(), "*release-*"))
+        data = glob.glob(os.path.join(self.get_pkgdir(), "vmware-esx-vmware-release-*"))
         data2 = []
         for x in data:
             b = os.path.basename(x)
@@ -299,7 +299,7 @@ class ImportVMWareManager:
                 data2.append(x)
         if len(data2) == 0:
             # ESXi maybe?
-            return glob.glob(os.path.join(self.get_rootdir(), "imagedd.bz2*"))
+            return glob.glob(os.path.join(self.get_rootdir(), "vmkernel.gz"))
         return data2
 
     def get_tree_location(self, distro):
@@ -697,17 +697,24 @@ class ImportVMWareManager:
                     if results is None:
                         self.logger.warning("No version found on imported tree")
                         continue
-                    (flavor, major, minor) = results
-                    version , ks = self.set_variance(flavor, major, minor, distro.arch)
+                    (flavor, major, minor, release, update) = results
+                    version , ks = self.set_variance(flavor, major, minor, release, update, distro.arch)
                     if self.os_version:
                         if self.os_version != version:
                             utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
                     ds = self.get_datestamp()
-                    distro.set_comment("%s.%s" % (version, int(minor)))
+                    distro.set_comment("%s.%s.%s update %s" % (version,minor,release,update))
                     distro.set_os_version(version)
                     if ds is not None:
                         distro.set_tree_build_time(ds)
                     profile.set_kickstart(ks)
+                    if flavor == "esxi":
+                        self.logger.info("This is an ESXi distro - adding extra PXE files to fetchable-files list")
+                        # add extra files to fetchable_files in the distro
+                        fetchable_files = ''
+                        for file in ('vmkernel.gz','sys.vgz','cim.vgz','ienviron.vgz','install.vgz'):
+                           fetchable_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
+                        distro.set_fetchable_files(fetchable_files.strip())
                     self.profiles.add(profile,save=True)
 
             self.configure_tree_location(distro)
@@ -789,25 +796,46 @@ class ImportVMWareManager:
         """
         Determine what the distro is based on the release package filename.
         """
-        rpm = os.path.basename(rpm)
+        rpm_file = os.path.basename(rpm)
 
-        if rpm.lower().find("-esx-") != -1:
+        if rpm_file.lower().find("-esx-") != -1:
             flavor = "esx"
-        elif rpm.lower() == "imagedd.bz2":
-            flavor = "esxi"
+            match = re.search(r'release-(\d)+-(\d)+\.(\d)+\.(\d)+-(\d)\.', rpm_file)
+            if match:
+                major   = match.group(2)
+                minor   = match.group(3)
+                release = match.group(4)
+                update  = match.group(5)
+            else:
+                # FIXME: what should we do if the re fails above?
+                return None
+        elif rpm_file.lower() == "vmkernel.gz":
+            flavor  = "esxi"
+            major   = 0
+            minor   = 0
+            release = 0
+            update  = 0
 
-        match = re.search(r'^([\-a-zA-Z0-9]+)-([\.0-9]+)-([\.0-9]+)\.', rpm)
-        if match:
-            (name, version, release) = [match.group(1), match.group(2), match.group(3)]
-            major = version.split('.')[0]
-            minor = release.split('.')[0]
-        else:
-            # FIXME: better major/minor detection for esxi
-            #        or if the match falls through for some reason
-            major = 4
-            minor = 0
+            # this should return something like:
+            # VMware ESXi 4.1.0 [Releasebuild-260247], built on May 18 2010
+            # though there will most likely be multiple results
+            scan_cmd = 'gunzip -c %s | strings | grep -i "^vmware esxi"' % rpm
+            (data,rc) = utils.subprocess_sp(self.logger, scan_cmd)
+            lines = data.split('\n')
+            m = re.compile(r'ESXi (\d)+\.(\d)+\.(\d)+ \[Releasebuild-([\d]+)\]')
+            for line in lines:
+                match = m.search(line)
+                if match:
+                    major   = match.group(1)
+                    minor   = match.group(2)
+                    release = match.group(3)
+                    update  = match.group(4)
+                    break
+            else:
+                return None
 
-        return (flavor, major, minor)
+        #self.logger.info("DEBUG: in scan_pkg_filename() - major=%s, minor=%s, release=%s, update=%s" % (major,minor,release,update))
+        return (flavor, major, minor, release, update)
 
     def get_datestamp(self):
         """
@@ -815,7 +843,7 @@ class ImportVMWareManager:
         """
         pass
 
-    def set_variance(self, flavor, major, minor, arch):
+    def set_variance(self, flavor, major, minor, release, update, arch):
         """
         Set distro specific versioning.
         """
