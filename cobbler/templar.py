@@ -32,6 +32,17 @@ import utils
 import clogger
 import time
 
+import Cheetah
+major, minor, release = Cheetah.Version.split('.')
+fix_cheetah_class = False
+if major >= 2 and minor >=4 and release >= 2:
+    fix_cheetah_class = True
+
+try:
+    import functools
+except:
+    functools = None
+
 class Templar:
 
     def __init__(self,config=None,logger=None):
@@ -121,6 +132,10 @@ class Templar:
 
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table], compilerSettings={'useStackFrame':False})
+
+        if fix_cheetah_class and functools is not None:
+            t.SNIPPET = functools.partial(t.SNIPPET, t)
+            t.read_snippet = functools.partial(t.read_snippet, t)
 
         try:
             data_out = t.respond()
