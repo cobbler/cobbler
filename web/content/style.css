@@ -1,7 +1,7 @@
 
 body, html {
   font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
-  background-color: #EEEEEE;
+  background-color: #D4D4D4;
   color: #222222;
   font-size: .9em;
 }
@@ -42,3 +42,4 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 
 #edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
 #edit select { width: 175px; }
+#edit input[type=text] { width: 300px; }
