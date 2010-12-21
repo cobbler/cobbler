@@ -122,15 +122,15 @@ class ImportDebianUbuntuManager:
                 utils.die(self.logger,"import failed - could not determine breed of debian-based distro")
                
         # debug log stuff for testing
-        #self.logger.info("self.pkgdir = %s" % str(self.pkgdir))
-        #self.logger.info("self.mirror = %s" % str(self.mirror))
-        #self.logger.info("self.mirror_name = %s" % str(self.mirror_name))
-        #self.logger.info("self.network_root = %s" % str(self.network_root))
-        #self.logger.info("self.kickstart_file = %s" % str(self.kickstart_file))
-        #self.logger.info("self.rsync_flags = %s" % str(self.rsync_flags))
-        #self.logger.info("self.arch = %s" % str(self.arch))
-        #self.logger.info("self.breed = %s" % str(self.breed))
-        #self.logger.info("self.os_version = %s" % str(self.os_version))
+        #self.logger.info("DEBUG: self.pkgdir = %s" % str(self.pkgdir))
+        #self.logger.info("DEBUG: self.mirror = %s" % str(self.mirror))
+        #self.logger.info("DEBUG: self.mirror_name = %s" % str(self.mirror_name))
+        #self.logger.info("DEBUG: self.network_root = %s" % str(self.network_root))
+        #self.logger.info("DEBUG: self.kickstart_file = %s" % str(self.kickstart_file))
+        #self.logger.info("DEBUG: self.rsync_flags = %s" % str(self.rsync_flags))
+        #self.logger.info("DEBUG: self.arch = %s" % str(self.arch))
+        #self.logger.info("DEBUG: self.breed = %s" % str(self.breed))
+        #self.logger.info("DEBUG: self.os_version = %s" % str(self.os_version))
 
         # both --import and --name are required arguments
 
@@ -276,13 +276,18 @@ class ImportDebianUbuntuManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return ["dapper", "hardy", "intrepid", "jaunty", "karmic", "lucid", "maverick"]
+        return ["dapper", "hardy", "intrepid", "jaunty", "karmic", "lucid", "maverick", "natty"]
 
     def get_release_files(self):
         """
         Find distro release packages.
         """
-        return glob.glob(os.path.join(self.get_pkgdir(), "main/u/ubuntu-docs" , "ubuntu-docs_*"))
+        if self.breed == "debian":
+            return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
+        elif self.breed == "ubuntu":
+            return glob.glob(os.path.join(self.get_rootdir(), "dists/*"))
+        else:
+            return []
 
     def get_breed_from_directory(self):
         for breed in self.get_valid_breeds():
@@ -562,33 +567,23 @@ class ImportDebianUbuntuManager:
 
             kdir = os.path.dirname(distro.kernel)
             if self.kickstart_file == None:
-                for rpm in self.get_release_files():
-                    # FIXME : This redhat specific check should go into the importer.find_release_files method
-                    if rpm.find("notes") != -1:
-                        continue
-                    results = self.scan_pkg_filename(rpm)
+                for file in self.get_release_files():
+                    results = self.scan_pkg_filename(file)
                     # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
                     if results is None:
-                        self.logger.warning("No version found on imported tree")
+                        self.logger.warning("skipping %s" % file)
                         continue
-                    (flavor, major, minor, release, update) = results
-                    version , ks = self.set_variance(flavor, major, minor, release, update, distro.arch)
+                    (flavor, major, minor) = results
+                    version , ks = self.set_variance(flavor, major, minor, distro.arch)
                     if self.os_version:
                         if self.os_version != version:
                             utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
                     ds = self.get_datestamp()
-                    distro.set_comment("%s.%s.%s update %s" % (version,minor,release,update))
+                    distro.set_comment("%s %s (%s.%s) %s" % (self.breed,version,major,minor,self.arch))
                     distro.set_os_version(version)
                     if ds is not None:
                         distro.set_tree_build_time(ds)
                     profile.set_kickstart(ks)
-                    if flavor == "esxi":
-                        self.logger.info("This is an ESXi distro - adding extra PXE files to fetchable-files list")
-                        # add extra files to fetchable_files in the distro
-                        fetchable_files = ''
-                        for file in ('vmkernel.gz','sys.vgz','cim.vgz','ienviron.vgz','install.vgz'):
-                           fetchable_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
-                        distro.set_fetchable_files(fetchable_files.strip())
                     self.profiles.add(profile,save=True)
 
             self.configure_tree_location(distro)
@@ -666,29 +661,49 @@ class ImportDebianUbuntuManager:
             return True
         return False
 
-    def scan_pkg_filename(self, rpm):
+    def scan_pkg_filename(self, file):
         """
         Determine what the distro is based on the release package filename.
         """
-        deb = os.path.basename(deb)
-        self.logger.info("processing deb : %s" % deb)
+        file = os.path.basename(file)
 
-        # get all the tokens and try to guess a version
-        accum = []
-        tokens = deb.split("_")
-        tokens2 = tokens[1].split(".")
-        for t2 in tokens2:
-           try:
-               val = int(t2)
-               accum.append(val)
-           except:
-               pass
-        # Safeguard for non-guessable versions
-        if not accum:
-           return None
-        accum.append(0)
+        if self.breed == "debian":
+            self.logger.info("processing deb : %s" % file)
+            # get all the tokens and try to guess a version
+            accum = []
+            tokens = file.split("_")
+            tokens2 = tokens[1].split(".")
+            self.logger.info("DEBUG: tokens = %s, tokens2 = %s" % (str(tokens), str(tokens2)))
+            for t2 in tokens2:
+               try:
+                   self.logger.info("DEBUG: t2 = %s" % t2)
+                   val = int(t2)
+                   accum.append(val)
+               except:
+                   self.logger.info("DEBUG: not an int")
+                   pass
+            # Safeguard for non-guessable versions
+            self.logger.info("DEBUG: accum = %s" % str(accum))
+            if not accum:
+               return None
+            accum.append(0)
 
-        return (None, accum[0], accum[1])
+            return (file, accum[0], accum[1])
+        elif self.breed == "ubuntu":
+            #self.logger.info("scanning file : %s" % file)
+            dist_names = { "dapper"  : (6,4),
+                           "hardy"   : (8,4),
+                           "intrepid": (8,10),
+                           "jaunty"  : (9,4),
+                           "karmic"  : (9,10),
+                           "lynx"    : (10,4),
+                           "maverick": (10,10),
+                           "natty"   : (11,4),
+                         }
+            if file in dist_names.keys():
+                return (file, dist_names[file][0], dist_names[file][1])
+            else:
+                return None
 
     def get_datestamp(self):
         """
@@ -696,27 +711,36 @@ class ImportDebianUbuntuManager:
         """
         pass
 
-    def set_variance(self, flavor, major, minor, release, update, arch):
+    def set_variance(self, flavor, major, minor, arch):
         """
         Set distro specific versioning.
         """
 
-        # Release names taken from wikipedia
-        dist_names = { '6.4'  :"dapper", 
-                       '8.4'  :"hardy", 
-                       '8.10' :"intrepid", 
-                       '9.4'  :"jaunty",
-                       '9.10' :"karmic",
-                       '10.4' :"lynx",
-                       '10.10':"maverick",
-                       '11.4' :"natty",
-                     }
-        dist_vers = "%s.%s" % ( major , minor )
-        if not dist_names.has_key( dist_vers ):
-            dist_names['4ubuntu2.0'] = "IntrepidIbex"
-        os_version = dist_names[dist_vers]
+        if self.breed == "debian":
+            dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
+            dist_vers = "%s.%s" % ( major , minor )
+            os_version = dist_names[dist_vers]
+
+            return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+        elif self.breed == "ubuntu":
+            # Release names taken from wikipedia
+            dist_names = { '6.4'  :"dapper", 
+                           '8.4'  :"hardy", 
+                           '8.10' :"intrepid", 
+                           '9.4'  :"jaunty",
+                           '9.10' :"karmic",
+                           '10.4' :"lynx",
+                           '10.10':"maverick",
+                           '11.4' :"natty",
+                         }
+            dist_vers = "%s.%s" % ( major , minor )
+            if not dist_names.has_key( dist_vers ):
+                dist_names['4ubuntu2.0'] = "IntrepidIbex"
+            os_version = dist_names[dist_vers]
  
-        return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+            return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+        else:
+            return None
 
     def process_repos(self, main_importer, distro):
 
