@@ -1008,6 +1008,8 @@ def tftpboot_location():
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
        return "/var/lib/tftpboot"
+    elif make == "debian" or make == "ubuntu":
+       return "/var/lib/tftpboot"
     return "/tftpboot"
 
 def can_do_public_content(api):
