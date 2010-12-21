@@ -98,6 +98,9 @@ class BootCheck:
        return status
 
    def check_for_ksvalidator(self, status):
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if not os.path.exists("/usr/bin/ksvalidator"):
            status.append("ksvalidator was not found, install pykickstart")
 
@@ -119,7 +122,8 @@ class BootCheck:
            if rc != 0:
                status.append(_("service %s is not running%s") % (which,notes))
                return False
-       elif self.checked_dist == "debian":
+       elif self.checked_dist in ["debian", "ubuntu"]:
+           # we still use /etc/init.d
            if os.path.exists("/etc/init.d/%s" % which):
                rc = utils.subprocess_call(self.logger,"/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
@@ -142,6 +146,9 @@ class BootCheck:
               status.append(_("since iptables may be running, ensure 69, 80, and %(xmlrpc)s are unblocked") % { "xmlrpc" : self.settings.xmlrpc_port })
 
    def check_yum(self,status):
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if not os.path.exists("/usr/bin/createrepo"):
            status.append(_("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?"))
        if not os.path.exists("/usr/bin/reposync"):
@@ -185,6 +192,9 @@ class BootCheck:
        SELinux in enforcing mode.  FIXME: this method could use some
        refactoring in the future.
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        enabled = self.config.api.is_selinux_enabled()
        if enabled:
            data2 = utils.subprocess_get(self.logger,"/usr/sbin/getsebool -a",shell=True)
@@ -345,6 +355,9 @@ class BootCheck:
        """
        Check if tftpd is installed
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if not os.path.exists("/etc/xinetd.d/tftp"):
           status.append("missing /etc/xinetd.d/tftp, install tftp-server?")
 
@@ -352,6 +365,9 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
@@ -362,6 +378,9 @@ class BootCheck:
        Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if os.path.exists("/etc/xinetd.d/tftp"):
           f = open("/etc/xinetd.d/tftp")
           re_disable = re.compile(r'disable.*=.*yes')
@@ -375,6 +394,9 @@ class BootCheck:
        """
        Check if the Cobbler tftp server is installed
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if not os.path.exists("/etc/xinetd.d/ctftp"):
           status.append("missing /etc/xinetd.d/ctftp")
 
@@ -382,6 +404,9 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
@@ -391,6 +416,9 @@ class BootCheck:
        Check that configured tftpd boot directory matches with actual
        Check that tftpd is enabled to autostart
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if os.path.exists("/etc/xinetd.d/tftp"):
           f = open("/etc/xinetd.d/tftp")
           re_disable = re.compile(r'disable.*=.*no')
@@ -410,6 +438,9 @@ class BootCheck:
        """
        Check that rsync is enabled to autostart
        """
+       if self.checked_dist in ["debian", "ubuntu"]:
+          return
+
        if os.path.exists("/etc/xinetd.d/rsync"):
           f = open("/etc/xinetd.d/rsync")
           re_disable = re.compile(r'disable.*=.*yes')
