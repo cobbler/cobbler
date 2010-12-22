@@ -82,11 +82,11 @@ class ImportVMWareManager:
            'imagedd.bz2',
        ]
 
-       self.logger.info("scanning %s for distro signature" % path)
+       #self.logger.info("scanning %s for a vmware-based signature" % path)
        for signature in signatures:
            d = os.path.join(path,signature)
            if os.path.exists(d):
-               self.logger.info("Found a VMWare compatible signature: %s" % signature)
+               self.logger.info("Found a vmware compatible signature: %s" % signature)
                return (True,signature)
 
        if cli_breed and cli_breed in self.get_valid_breeds():

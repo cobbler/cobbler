@@ -92,11 +92,11 @@ class ImportRedhatManager:
           'SL',
        ]
 
-       self.logger.info("scanning %s for distro signature" % path)
+       #self.logger.info("scanning %s for a redhat-based distro signature" % path)
        for signature in signatures:
            d = os.path.join(path,signature)
            if os.path.exists(d):
-               self.logger.info("Found a Red Hat compatible signature: %s" % signature)
+               self.logger.info("Found a redhat compatible signature: %s" % signature)
                return (True,signature)
 
        if cli_breed and cli_breed in self.get_valid_breeds():

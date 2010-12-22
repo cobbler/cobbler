@@ -45,9 +45,6 @@ import item_system
 
 from utils import _
 
-# FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -a %s '%s' %s --exclude-from=/etc/cobbler/rsync.exclude --progress"
-
 def register():
    """
    The mandatory cobbler module registration hook.
@@ -81,11 +78,11 @@ class ImportDebianUbuntuManager:
            'pool',
        ]
 
-       self.logger.info("scanning %s for distro signature" % path)
+       #self.logger.info("scanning %s for a debian/ubuntu distro signature" % path)
        for signature in signatures:
            d = os.path.join(path,signature)
            if os.path.exists(d):
-               self.logger.info("Found a debian-based compatible signature: %s" % signature)
+               self.logger.info("Found a debian/ubuntu compatible signature: %s" % signature)
                return (True,signature)
 
        if cli_breed and cli_breed in self.get_valid_breeds():
@@ -191,12 +188,6 @@ class ImportDebianUbuntuManager:
 
             utils.mkdir(self.path)
 
-            # prevent rsync from creating the directory name twice
-            # if we are copying via rsync
-
-            if not self.mirror.endswith("/"):
-                self.mirror = "%s/" % self.mirror
-
             if self.mirror.startswith("http://") or self.mirror.startswith("ftp://") or self.mirror.startswith("nfs://"):
 
                 # http mirrors are kind of primative.  rsync is better.
@@ -211,16 +202,19 @@ class ImportDebianUbuntuManager:
                 # we don't use SSH for public mirrors and local files.
                 # presence of user@host syntax means use SSH
 
-                spacer = ""
-                if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
-                    spacer = ' -e "ssh" '
-                rsync_cmd = RSYNC_CMD
-                if self.rsync_flags:
-                    rsync_cmd = rsync_cmd + " " + self.rsync_flags
-
+                #spacer = ""
+                #if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
+                #    spacer = ' -e "ssh" '
+                #rsync_cmd = RSYNC_CMD
+                #if self.rsync_flags:
+                #    rsync_cmd = rsync_cmd + " " + self.rsync_flags
+                #
                 # kick off the rsync now
+                #
+                #utils.run_this(rsync_cmd, (spacer, self.mirror, self.path), self.logger)
 
-                utils.run_this(rsync_cmd, (spacer, self.mirror, self.path), self.logger)
+                if not utils.rsync_files(self.mirror, self.path, self.rsync_flags, self.logger):
+                    utils.die(self.logger, "failed to rsync the files")
 
         else:
 
@@ -282,12 +276,7 @@ class ImportDebianUbuntuManager:
         """
         Find distro release packages.
         """
-        if self.breed == "debian":
-            return glob.glob(os.path.join(self.get_pkgdir(), "main/b/base-files" , "base-files_*"))
-        elif self.breed == "ubuntu":
-            return glob.glob(os.path.join(self.get_rootdir(), "dists/*"))
-        else:
-            return []
+        return glob.glob(os.path.join(self.get_rootdir(), "dists/*"))
 
     def get_breed_from_directory(self):
         for breed in self.get_valid_breeds():
@@ -573,17 +562,19 @@ class ImportDebianUbuntuManager:
                     if results is None:
                         self.logger.warning("skipping %s" % file)
                         continue
-                    (flavor, major, minor) = results
-                    version , ks = self.set_variance(flavor, major, minor, distro.arch)
+                    (flavor, major, minor, release) = results
+                    # Why use set_variance()? scan_pkg_filename() does everything we need now - jcammarata
+                    #version , ks = self.set_variance(flavor, major, minor, distro.arch)
                     if self.os_version:
-                        if self.os_version != version:
-                            utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
-                    ds = self.get_datestamp()
-                    distro.set_comment("%s %s (%s.%s) %s" % (self.breed,version,major,minor,self.arch))
-                    distro.set_os_version(version)
-                    if ds is not None:
-                        distro.set_tree_build_time(ds)
-                    profile.set_kickstart(ks)
+                        if self.os_version != flavor:
+                            utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,flavor))
+                    distro.set_comment("%s %s (%s.%s.%s) %s" % (self.breed,flavor,major,minor,release,self.arch))
+                    distro.set_os_version(flavor)
+                    # is this even valid for debian/ubuntu? - jcammarata
+                    #ds = self.get_datestamp()
+                    #if ds is not None:
+                    #    distro.set_tree_build_time(ds)
+                    profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.seed")
                     self.profiles.add(profile,save=True)
 
             self.configure_tree_location(distro)
@@ -665,49 +656,41 @@ class ImportDebianUbuntuManager:
         """
         Determine what the distro is based on the release package filename.
         """
-        file = os.path.basename(file)
-
+        # FIXME: all of these dist_names should probably be put in a function
+        # which would be called in place of looking in codes.py.  Right now
+        # you have to update both codes.py and this to add a new release
         if self.breed == "debian":
-            self.logger.info("processing deb : %s" % file)
-            # get all the tokens and try to guess a version
-            accum = []
-            tokens = file.split("_")
-            tokens2 = tokens[1].split(".")
-            self.logger.info("DEBUG: tokens = %s, tokens2 = %s" % (str(tokens), str(tokens2)))
-            for t2 in tokens2:
-               try:
-                   self.logger.info("DEBUG: t2 = %s" % t2)
-                   val = int(t2)
-                   accum.append(val)
-               except:
-                   self.logger.info("DEBUG: not an int")
-                   pass
-            # Safeguard for non-guessable versions
-            self.logger.info("DEBUG: accum = %s" % str(accum))
-            if not accum:
-               return None
-            accum.append(0)
-
-            return (file, accum[0], accum[1])
+            dist_names = ['etch','lenny',]
         elif self.breed == "ubuntu":
-            #self.logger.info("scanning file : %s" % file)
-            dist_names = { "dapper"  : (6,4),
-                           "hardy"   : (8,4),
-                           "intrepid": (8,10),
-                           "jaunty"  : (9,4),
-                           "karmic"  : (9,10),
-                           "lynx"    : (10,4),
-                           "maverick": (10,10),
-                           "natty"   : (11,4),
-                         }
-            if file in dist_names.keys():
-                return (file, dist_names[file][0], dist_names[file][1])
-            else:
-                return None
+            dist_names = ['dapper','hardy','intrepid','jaunty','karmic','lynx','maverick','natty',]
+        else:
+            return None
+
+        if os.path.basename(file) in dist_names:
+            release_file = os.path.join(file,'Release')
+            self.logger.info("Found %s release file: %s" % (self.breed,release_file))
+
+            f = open(release_file,'r')
+            lines = f.readlines()
+            f.close()
+
+            for line in lines:
+                if line.lower().startswith('version: '):
+                    version = line.split(':')[1].strip()
+                    values = version.split('.')
+                    if len(values) == 1:
+                        # I don't think you'd ever hit this currently with debian or ubuntu,
+                        # just including it for safety reasons
+                        return (os.path.basename(file), values[0], "0", "0")
+                    elif len(values) == 2:
+                        return (os.path.basename(file), values[0], values[1], "0")
+                    elif len(values) > 2:
+                        return (os.path.basename(file), values[0], values[1], values[2])
+        return None
 
     def get_datestamp(self):
         """
-        Based on a VMWare tree find the creation timestamp
+        Not used for debian/ubuntu... should probably be removed? - jcammarata
         """
         pass
 
@@ -715,35 +698,37 @@ class ImportDebianUbuntuManager:
         """
         Set distro specific versioning.
         """
-
-        if self.breed == "debian":
-            dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
-            dist_vers = "%s.%s" % ( major , minor )
-            os_version = dist_names[dist_vers]
-
-            return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-        elif self.breed == "ubuntu":
-            # Release names taken from wikipedia
-            dist_names = { '6.4'  :"dapper", 
-                           '8.4'  :"hardy", 
-                           '8.10' :"intrepid", 
-                           '9.4'  :"jaunty",
-                           '9.10' :"karmic",
-                           '10.4' :"lynx",
-                           '10.10':"maverick",
-                           '11.4' :"natty",
-                         }
-            dist_vers = "%s.%s" % ( major , minor )
-            if not dist_names.has_key( dist_vers ):
-                dist_names['4ubuntu2.0'] = "IntrepidIbex"
-            os_version = dist_names[dist_vers]
- 
-            return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
-        else:
-            return None
+        # I don't think this is required anymore, as the scan_pkg_filename() function
+        # above does everything we need it to - jcammarata
+        #
+        #if self.breed == "debian":
+        #    dist_names = { '4.0' : "etch" , '5.0' : "lenny" }
+        #    dist_vers = "%s.%s" % ( major , minor )
+        #    os_version = dist_names[dist_vers]
+        #
+        #    return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+        #elif self.breed == "ubuntu":
+        #    # Release names taken from wikipedia
+        #    dist_names = { '6.4'  :"dapper", 
+        #                   '8.4'  :"hardy", 
+        #                   '8.10' :"intrepid", 
+        #                   '9.4'  :"jaunty",
+        #                   '9.10' :"karmic",
+        #                   '10.4' :"lynx",
+        #                   '10.10':"maverick",
+        #                   '11.4' :"natty",
+        #                 }
+        #    dist_vers = "%s.%s" % ( major , minor )
+        #    if not dist_names.has_key( dist_vers ):
+        #        dist_names['4ubuntu2.0'] = "IntrepidIbex"
+        #    os_version = dist_names[dist_vers]
+        # 
+        #    return os_version , "/var/lib/cobbler/kickstarts/sample.seed"
+        #else:
+        #    return None
+        pass
 
     def process_repos(self, main_importer, distro):
-
         # Create a disabled repository for the new distro, and the security updates
         #
         # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
