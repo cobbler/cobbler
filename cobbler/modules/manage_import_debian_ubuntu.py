@@ -202,16 +202,7 @@ class ImportDebianUbuntuManager:
                 # we don't use SSH for public mirrors and local files.
                 # presence of user@host syntax means use SSH
 
-                #spacer = ""
-                #if not self.mirror.startswith("rsync://") and not self.mirror.startswith("/"):
-                #    spacer = ' -e "ssh" '
-                #rsync_cmd = RSYNC_CMD
-                #if self.rsync_flags:
-                #    rsync_cmd = rsync_cmd + " " + self.rsync_flags
-                #
                 # kick off the rsync now
-                #
-                #utils.run_this(rsync_cmd, (spacer, self.mirror, self.path), self.logger)
 
                 if not utils.rsync_files(self.mirror, self.path, self.rsync_flags, self.logger):
                     utils.die(self.logger, "failed to rsync the files")
@@ -250,6 +241,13 @@ class ImportDebianUbuntuManager:
         # FIXME : search below self.path for isolinux configurations or known directories from TRY_LIST
         os.path.walk(self.path, self.distro_adder, distros_added)
 
+        # find out if we can auto-create any repository records from the install tree
+
+        if self.network_root is None:
+            self.logger.info("associating repos")
+            # FIXME: this automagic is not possible (yet) without mirroring
+            self.repo_finder(distros_added)
+
         # find the most appropriate answer files for each profile object
 
         self.logger.info("associating kickstarts")
@@ -262,7 +260,7 @@ class ImportDebianUbuntuManager:
 
     # required function for import modules
     def get_valid_arches(self):
-        return ["i386", "x86_64", "x86",]
+        return ["i386", "ppc", "x86_64", "x86",]
 
     # required function for import modules
     def get_valid_breeds(self):
@@ -270,7 +268,15 @@ class ImportDebianUbuntuManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return ["dapper", "hardy", "intrepid", "jaunty", "karmic", "lucid", "maverick", "natty"]
+        if self.breed == "debian":
+            return ["etch", "lenny", "squeeze", "sid", "stable", "testing", "unstable", "experimental",]
+        elif self.breed == "ubuntu":
+            return ["dapper", "hardy", "karmic", "lucid", "maverick", "natty",]
+        else:
+            return []
+
+    def get_valid_repo_breeds(self):
+        return ["apt",]
 
     def get_release_files(self):
         """
@@ -298,17 +304,11 @@ class ImportDebianUbuntuManager:
         base = self.get_rootdir()
 
         if self.network_root is None:
-            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-            # create the links directory only if we are mirroring because with
-            # SELinux Apache can't symlink to NFS (without some doing)
-            if not os.path.exists(dest_link):
-                try:
-                    os.symlink(base, dest_link)
-                except:
-                    # this shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
-            # how we set the tree depends on whether an explicit network_root was specified
-            tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+            dists_path = os.path.join(self.path, "dists")
+            if os.path.isdir(dists_path):
+                tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
+            else:
+                tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
             self.set_install_tree(distro, tree)
         else:
             # where we assign the kickstart source is relative to our current directory
@@ -320,6 +320,23 @@ class ImportDebianUbuntuManager:
             self.set_install_tree(distro, tree)
 
         return
+
+    def repo_finder(self, distros_added):
+        for distro in distros_added:
+            self.logger.info("traversing distro %s" % distro.name)
+            # FIXME : Shouldn't decide this the value of self.network_root ?
+            if distro.kernel.find("ks_mirror") != -1:
+                basepath = os.path.dirname(distro.kernel)
+                top = self.get_rootdir()
+                self.logger.info("descent into %s" % top)
+                dists_path = os.path.join(self.path, "dists")
+                if not os.path.isdir(dists_path):
+                    self.process_repos()
+            else:
+                self.logger.info("this distro isn't mirrored")
+
+    def process_repos(self):
+        pass
 
     def distro_adder(self,distros_added,dirname,fnames):
         """
@@ -443,6 +460,8 @@ class ImportDebianUbuntuManager:
 
             if name.find("-xen") != -1:
                 profile.set_virt_type("xenpv")
+            elif name.find("vmware") != -1:
+                profile.set_virt_type("vmware")
             else:
                 profile.set_virt_type("qemu")
 
@@ -615,15 +634,7 @@ class ImportDebianUbuntuManager:
         return os.path.join(self.get_rootdir(),self.pkgdir)
 
     def set_install_tree(self, distro, url):
-        idx = url.find("://")
-        url = url[idx+3:]
-
-        idx = url.find("/")
-        distro.ks_meta["hostname"] = url[:idx]
-        distro.ks_meta["directory"] = url[idx:]
-        if not distro.os_version :
-            utils.die(self.logger, "OS version is required for debian distros")
-        distro.ks_meta["suite"] = distro.os_version
+        distro.ks_meta["tree"] = url
 
     def learn_arch_from_tree(self):
         """
