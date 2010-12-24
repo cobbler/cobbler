@@ -1,4 +1,13 @@
 Cobbler CHANGELOG
+- Dec 24 2010 - 2.0.10
+- (BUGF) Fixed pruning of objects that have children on replicate
+- (BUGF) Exclude initrd.addrsize on import
+- (BUGF) Various reposync fixes
+- (BUGF) Manpage fixes
+- (BUGF) Work with Cheetah >= 2.4.2
+- (BUGF) Better logging when we call subprocesses
+- (BUGF) Fix over agressive caching on copying files
+
 - Dec 8 2010 - 2.0.9
 - (BUGF) Install several templates that were needed
 - (BUGF) Ensure kernel_path is expanded in pxe templates
