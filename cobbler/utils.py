@@ -1669,11 +1669,12 @@ def subprocess_sp(logger, cmd, shell=True):
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    data = sp.communicate()[0]
+    (out,err) = sp.communicate()
     rc = sp.returncode
     if logger is not None:
-        logger.info("received: %s" % data)
-    return data, rc
+        logger.info("received on stdout: %s" % out)
+        logger.debug("recieved on stderr: %s" % err)
+    return out, rc
 
 def subprocess_call(logger, cmd, shell=True):
     data, rc = subprocess_sp(logger, cmd, shell=shell)
