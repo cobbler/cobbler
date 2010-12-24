@@ -85,44 +85,44 @@ class PXEGen:
         try:
             try:
                 utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0',
-                        dst, api=self.api, logger=self.logger)
+                        dst, api=self.api, cache=False, logger=self.logger)
                 utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32',
-                        dst, api=self.api, logger=self.logger)
+                        dst, api=self.api, cache=False, logger=self.logger)
             except:
                 utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0',
-                        dst, api=self.api, logger=self.logger)
+                        dst, api=self.api, cache=False, logger=self.logger)
                 utils.copyfile_pattern('/usr/share/syslinux/menu.c32',
-                        dst, api=self.api, logger=self.logger)
+                        dst, api=self.api, cache=False, logger=self.logger)
 
         except:
             utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',
-                    dst, api=self.api, logger=self.logger)
+                    dst, api=self.api, cache=False, logger=self.logger)
             utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',
-                    dst, api=self.api, logger=self.logger)
+                    dst, api=self.api, cache=False, logger=self.logger)
  
         # copy memtest only if we find it
         utils.copyfile_pattern('/boot/memtest*',
-                dst, require_match=False, api=self.api, logger=self.logger)
+                dst, require_match=False, api=self.api, cache=False, logger=self.logger)
   
         # copy elilo which we include for IA64 targets
         utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst,
-                require_match=False, api=self.api, logger=self.logger)
+                require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst,
-                require_match=False, api=self.api, logger=self.logger)
+                require_match=False, api=self.api, cache=False, logger=self.logger)
 
         try:
             utils.copyfile_pattern('/usr/lib/syslinux/memdisk',
-                    dst, api=self.api, logger=self.logger)
+                    dst, api=self.api, cache=False, logger=self.logger)
         except:
             utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst,
-                    require_match=False, api=self.api, logger=self.logger)
+                    require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # Copy grub EFI bootloaders if possible:
         grub_dst = os.path.join(dst, "grub")
         utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
-                require_match=False, api=self.api, logger=self.logger)
+                require_match=False, api=self.api, cache=False, logger=self.logger)
 
 
 
