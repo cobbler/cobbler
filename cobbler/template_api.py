@@ -311,8 +311,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
                     pass
 
         try:
-            return utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'),
-                file), fetch_if_remote=True)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'), file), fetch_if_remote=True)
         except FileNotFoundException:
             return None
 
