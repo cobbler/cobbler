@@ -149,8 +149,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
                     pass
 
         try: 
-            return utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'), 
-                file), fetch_if_remote=True)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'), file), fetch_if_remote=True)
         except FileNotFoundException:
             return None
 
@@ -169,7 +168,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         # First, do the actual inclusion. Cheetah (when processing #include)
         # will track the inclusion in self._CHEETAH__cheetahIncludes
         result = BuiltinTemplate.SNIPPET(self, file)
-        
+
         # Now do our dirty work: locate the new include, and append its
         # searchList to ours.
         # We have to compute the full path again? Eww.
