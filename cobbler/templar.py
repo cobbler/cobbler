@@ -34,9 +34,7 @@ import time
 
 import Cheetah
 major, minor, release = Cheetah.Version.split('.')
-fix_cheetah_class = False
-if major >= 2 and minor >=4 and release >= 2:
-    fix_cheetah_class = True
+fix_cheetah_class = int(major) >= 2 and int(minor) >=4 and int(release) >= 2
 
 try:
     import functools
