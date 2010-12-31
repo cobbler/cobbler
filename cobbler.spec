@@ -27,7 +27,7 @@ Requires: mod_python
 %endif
 
 Requires: createrepo
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 11
 Requires: fence-agents
 %endif
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
