@@ -80,6 +80,8 @@ class PXEGen:
         /etc/cobbler/settings.
         """
         dst = self.bootloc
+        grub_dst = os.path.join(dst, "grub")
+        image_dst = os.path.join(dst, "images")
 
         # copy syslinux from one of two locations
         try:
@@ -99,11 +101,11 @@ class PXEGen:
                     dst, api=self.api, cache=False, logger=self.logger)
             utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',
                     dst, api=self.api, cache=False, logger=self.logger)
- 
+
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*',
-                dst, require_match=False, api=self.api, cache=False, logger=self.logger)
-  
+        utils.copyfile_pattern('/boot/memtest*', image_dst,
+                require_match=False, api=self.api, cache=False, logger=self.logger)
+
         # copy elilo which we include for IA64 targets
         utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
@@ -120,7 +122,6 @@ class PXEGen:
                     require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # Copy grub EFI bootloaders if possible:
-        grub_dst = os.path.join(dst, "grub")
         utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
 
