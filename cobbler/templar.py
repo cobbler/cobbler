@@ -32,7 +32,7 @@ import utils
 import clogger
 
 import Cheetah
-major, minor, release = Cheetah.Version.split('.')
+major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = int(major) >= 2 and int(minor) >=4 and int(release) >= 2
 
 try:
