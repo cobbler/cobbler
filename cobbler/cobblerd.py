@@ -61,7 +61,12 @@ def regen_ss_file():
     fd.write(binascii.hexlify(data))
     fd.close()
     utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
-    utils.os_system("chown apache /var/lib/cobbler/web.ss")
+    http_user = "apache"
+    if utils.check_dist() in [ "debian", "ubuntu" ]:
+        http_user = "www-data"
+
+    cmd = "chown %s /var/lib/cobbler/web.ss" % http_user
+    utils.os_system( cmd )
     return 1
 
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port):
