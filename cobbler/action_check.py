@@ -281,11 +281,11 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       if self.checked_dist == "suse":
+       if self.checked_dist in [ "suse", "redhat" ]:
            rc = utils.subprocess_get(self.logger,"httpd -v")
        else:
            rc = utils.subprocess_get(self.logger,"apache2 -v")
-       if rc.find("Server") != -1:
+       if rc.find("Server") == -1:
            status.append("Apache (httpd) is not installed and/or in path")
 
 
