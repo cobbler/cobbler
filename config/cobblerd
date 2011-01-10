@@ -8,6 +8,7 @@
 ### BEGIN INIT INFO
 # Provides: cobblerd
 # Required-Start: $network, xinetd, httpd
+# Required-Stop: $network
 # Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
 # Short-Description: daemon for libvirt virtualization API
@@ -30,7 +31,7 @@ DEBIAN_VERSION=/etc/debian_version
 SUSE_RELEASE=/etc/SuSE-release
 # Source function library.
 if [ -f $DEBIAN_VERSION ]; then
-   break   
+    . /lib/lsb/init-functions
 elif [ -f $SUSE_RELEASE -a -r /etc/rc.status ]; then
     . /etc/rc.status
 else
