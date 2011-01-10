@@ -129,7 +129,13 @@ if __name__ == "__main__":
     logpath     = "/var/log/"
 
     webroot     = "/var/www/"
-    webconfig   = "/etc/httpd/conf.d/"
+    if os.path.exists("/etc/SuSE-release"):
+        webconfig  = "/etc/apache2/conf.d"
+    elif os.path.exists("/etc/debian_version"):
+        webconfig  = "/etc/apache2/conf.d"
+    else:
+        webconfig  = "/etc/httpd/conf.d"
+
     webcontent  = webroot + "cobbler_webui_content/"
 
 
@@ -166,6 +172,7 @@ if __name__ == "__main__":
             # tftpd, hide in /usr/sbin
             ("/usr/sbin", ["scripts/tftpd.py"]),
 
+            ("%s" % webconfig,              ["config/cobbler.conf"]),
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
             ("%s" % docpath,                ["docs/*.gz"]),

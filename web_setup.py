@@ -2,7 +2,13 @@
 from distutils.core import setup
 
 #Django Configuration
-dj_config       = "/etc/httpd/conf.d/"
+if os.path.exists("/etc/SuSE-release"):
+    dj_config  = "/etc/apache2/conf.d"
+elif os.path.exists("/etc/debian_version"):
+    dj_config  = "/etc/apache2/conf.d"
+else:
+    dj_config  = "/etc/httpd/conf.d"
+
 #dj_templates    = "/usr/share/cobbler/web/cobbler_web/templates"
 #dj_webui        = "/usr/share/cobbler/web/cobbler_web"
 #dj_webui2       = "/usr/share/cobbler/web/cobbler_web/templatetags"
