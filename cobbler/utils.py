@@ -964,15 +964,8 @@ def check_dist():
     Determines what distro we're running under.  
     """
     if os.path.exists("/etc/debian_version"):
-       try:
-           release = sub_process.check_output(("lsb_release","--id","--short")).rstrip()
-           if release == 'Ubuntu':
-              return "ubuntu"
-       except sub_process.CalledProcessError:
-           pass
-       except OSError:
-           pass
-       return "debian"
+       import lsb_release
+       return lsb_release.get_distro_information()['ID'].lower()
     elif os.path.exists("/etc/SuSE-release"):
        return "suse"
     elif os.path.exists("/etc/redhat-release"):
@@ -1003,12 +996,9 @@ def os_release():
       raise CX("failed to detect local OS version from /etc/redhat-release")
 
    elif check_dist() == "debian":
-      fd = open("/etc/debian_version")
-      parts = fd.read().split(".")
-      version = parts[0]
-      rest = parts[1]
-      make = "debian"
-      return (make, float(version))
+      import lsb_release
+      release = lsb_release.get_distro_information()['RELEASE']
+      return ("debian", release)
    elif check_dist() == "ubuntu":
       version = sub_process.check_output(("lsb_release","--release","--short")).rstrip()
       make = "ubuntu"
