@@ -921,6 +921,15 @@ class BootAPI:
         time.sleep(5)
         return self.power_on(system, user, password, logger=logger)
 
+    def power_status(self, system, user=None, password=None, logger=None):
+        """
+        Returns the power status for a system that has power management configured.
+
+        @return: 0  the system is powered on, False if it's not or None on error
+        """
+        return action_power.PowerTool(self._config, system, self, user, password, logger = logger).power("status")
+
+
     # ==========================================================================
 
     def clear_logs(self, system, logger=None):

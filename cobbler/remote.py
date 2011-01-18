@@ -1862,7 +1862,7 @@ class CobblerXMLRPCInterface:
         """
         Internal implementation used by background_power, do not call
         directly if possible.  
-        Allows poweron/poweroff/reboot of a system specified by object_id.
+        Allows poweron/poweroff/powerstatus/reboot of a system specified by object_id.
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
@@ -1870,10 +1870,12 @@ class CobblerXMLRPCInterface:
             rc=self.api.power_on(obj, user=None, password=None, logger=logger)
         elif power=="off":
             rc=self.api.power_off(obj, user=None, password=None, logger=logger)
+        elif power=="status":
+            rc=self.api.power_status(obj, user=None, password=None, logger=logger)
         elif power=="reboot":
             rc=self.api.reboot(obj, user=None, password=None, logger=logger)
         else:
-            utils.die(self.logger, "invalid power mode '%s', expected on/off/reboot" % power)
+            utils.die(self.logger, "invalid power mode '%s', expected on/off/status/reboot" % power)
         return rc
 
     def get_config_data(self,hostname):

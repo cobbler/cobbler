@@ -30,6 +30,7 @@ import os
 import os.path
 import traceback
 import time
+import re
 
 import utils
 import func_utils
@@ -108,8 +109,20 @@ class PowerTool:
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
         for x in range(0,5):
-            rc = utils.subprocess_call(self.logger, cmd, shell=False)
+            output, rc = utils.subprocess_sp(self.logger, cmd, shell=False)
             if rc == 0:
+                # If the desired state is actually a query for the status
+                # return different information than command return code
+                if desired_state == 'status':
+                    match = re.match('(^Status:\s)(ON|OFF)', output)
+                    if match:
+                        power_status = match.groups()[1]
+                        if power_status == 'ON':
+                            return True
+                        else:
+                            return False
+                    utils.die(self.logger,"command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output))
+                    return None
                 break
             else:
                 time.sleep(2)
