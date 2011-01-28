@@ -1,1 +1,9 @@
-/sbin/ether-wake -i eth0 "$power_address"
+if [ -x /sbin/ether-wake ]; then
+	/sbin/ether-wake -i eth0 "$power_address"
+elif [ -x /usr/bin/powerwake ]; then
+	/usr/bin/powerwake "$power_address"
+elif [ -x /usr/bin/wakeonlan ]; then
+	/usr/bin/wakeonlan "$power_address"
+elif [ -x /usr/sbin/etherwake ]; then
+	/usr/sbin/etherwake "$power_address"
+fi
