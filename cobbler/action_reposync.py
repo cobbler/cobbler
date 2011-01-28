@@ -148,8 +148,8 @@ class RepoSync:
             return self.rhn_sync(repo)
         elif repo.breed == "yum":
             return self.yum_sync(repo)
-        #elif repo.breed == "apt":
-        #    return self.apt_sync(repo)
+        elif repo.breed == "apt":
+            return self.apt_sync(repo)
         elif repo.breed == "rsync":
             return self.rsync_sync(repo)
         else:
@@ -417,78 +417,75 @@ class RepoSync:
     # ====================================================================================
  
 
-#    def apt_sync(self, repo):
-#
-#        """
-#        Handle copying of http:// and ftp:// debian repos.
-#        """
-#
-#        repo_mirror = repo.mirror
-#
-#        # warn about not having mirror program.
-#
-#        mirror_program = "/usr/bin/debmirror"
-#        if not os.path.exists(mirror_program):
-#            utils.die(self.logger,"no %s found, please install it"%(mirror_program))
-#
-#        cmd = ""                  # command to run
-#        has_rpm_list = False      # flag indicating not to pull the whole repo
-#
-#        # detect cases that require special handling
-#
-#        if repo.rpm_list != "" and repo.rpm_list != []:
-#            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
-#
-#        if not repo.arch:
-#            utils.die(self.logger,"Architecture is required for apt repositories")
-#
-#        # built destination path for the repo
-#        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
-#         
-#        if repo.mirror_locally:
-#            mirror = repo.mirror.replace("@@suite@@",repo.os_version)
-#
-#            idx = mirror.find("://")
-#            method = mirror[:idx]
-#            mirror = mirror[idx+3:]
-#
-#            idx = mirror.find("/")
-#            host = mirror[:idx]
-#            mirror = mirror[idx+1:]
-#
-#            idx = mirror.rfind("/dists/")
-#            suite = mirror[idx+7:]
-#            mirror = mirror[:idx]
-#
-#            mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
-#
-#            # FIXME : flags should come from repo instead of being hardcoded
-#
-#            rflags = "--passive --nocleanup"
-#            for x in repo.yumopts:
-#                if repo.yumopts[x]:
-#                    rflags += " %s %s" % ( x , repo.yumopts[x] ) 
-#                else:
-#                    rflags += " %s" % x 
-#            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
-#            if repo.arch == "src":
-#                cmd = "%s --source" % cmd
-#            else:
-#                arch = repo.arch
-#                if arch == "x86":
-#                   arch = "i386" # FIX potential arch errors
-#                if arch == "x86_64":
-#                   arch = "amd64" # FIX potential arch errors
-#                cmd = "%s --nosource -a %s" % (cmd, arch)
-#                    
-#            rc = utils.subprocess_call(self.logger, cmd)
-#            if rc !=0:
-#                utils.die(self.logger,"cobbler reposync failed")
- 
+    def apt_sync(self, repo):
 
-        
-    # ==================================================================================
+        """
+        Handle copying of http:// and ftp:// debian repos.
+        """
 
+        repo_mirror = repo.mirror
+
+        # warn about not having mirror program.
+
+        mirror_program = "/usr/bin/debmirror"
+        if not os.path.exists(mirror_program):
+            utils.die(self.logger,"no %s found, please install it"%(mirror_program))
+
+        cmd = ""                  # command to run
+        has_rpm_list = False      # flag indicating not to pull the whole repo
+
+        # detect cases that require special handling
+
+        if repo.rpm_list != "" and repo.rpm_list != []:
+            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
+
+        if not repo.arch:
+            utils.die(self.logger,"Architecture is required for apt repositories")
+
+        # built destination path for the repo
+        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
+         
+        if repo.mirror_locally:
+            mirror = repo.mirror.replace("@@suite@@",repo.os_version)
+
+            idx = mirror.find("://")
+            method = mirror[:idx]
+            mirror = mirror[idx+3:]
+
+            idx = mirror.find("/")
+            host = mirror[:idx]
+            mirror = mirror[idx+1:]
+
+            idx = mirror.rfind("/dists/")
+            suite = mirror[idx+7:]
+            mirror = mirror[:idx]
+
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
+
+            # FIXME : flags should come from repo instead of being hardcoded
+
+            rflags = "--passive --nocleanup"
+            for x in repo.yumopts:
+                if repo.yumopts[x]:
+                    rflags += " %s %s" % ( x , repo.yumopts[x] ) 
+                else:
+                    rflags += " %s" % x 
+            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
+            if repo.arch == "src":
+                cmd = "%s --source" % cmd
+            else:
+                arch = repo.arch
+                if arch == "x86":
+                   arch = "i386" # FIX potential arch errors
+                if arch == "x86_64":
+                   arch = "amd64" # FIX potential arch errors
+                cmd = "%s --nosource -a %s" % (cmd, arch)
+                    
+            rc = utils.subprocess_call(self.logger, cmd)
+            if rc !=0:
+                utils.die(self.logger,"cobbler reposync failed")
+
+       
     def create_local_file(self, dest_path, repo, output=True):
         """
 
