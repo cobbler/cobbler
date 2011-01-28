@@ -42,10 +42,10 @@ def run(api,args,logger):
                 if rc != 0:
                    logger.error("dhcpd -t failed")
                    return 1
-                rc = utils.subprocess_call(logger,"/etc/rc.d/init.d/dhcpd restart", shell=True)
+                rc = utils.subprocess_call(logger,"service dhcpd restart", shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp != "0":
-                rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart")
+                rc = utils.subprocess_call(logger, "service dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
@@ -53,9 +53,9 @@ def run(api,args,logger):
 
     if manage_dns != "0" and restart_dns != "0":
         if which_dns_module == "manage_bind":
-            rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/named restart", shell=True)
+            rc = utils.subprocess_call(logger, "service named restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart", shell=True)
+            rc = utils.subprocess_call(logger, "service dnsmasq restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         else:
