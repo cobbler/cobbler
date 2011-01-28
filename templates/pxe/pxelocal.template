@@ -5,5 +5,5 @@ TOTALTIMEOUT 0
 ONTIMEOUT local
 
 LABEL local
-        LOCALBOOT 0
+        LOCALBOOT -1
 
