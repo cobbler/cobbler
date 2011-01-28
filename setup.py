@@ -128,13 +128,15 @@ if __name__ == "__main__":
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
 
-    webroot     = "/var/www/"
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
+        webroot     = "/srv/www/"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
+        webroot     = "/usr/share/cobbler/webroot/"
     else:
         webconfig  = "/etc/httpd/conf.d"
+        webroot     = "/var/www/"
 
     webcontent  = webroot + "cobbler_webui_content/"
 
