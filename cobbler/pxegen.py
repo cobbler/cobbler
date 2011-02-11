@@ -617,7 +617,7 @@ class PXEGen:
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
-        append_line = "%s %s" % (append_line, kernel_options)
+        append_line = "%s%s" % (append_line, kernel_options)
         if arch.startswith("ppc") or arch.startswith("s390"):
             # remove the prefix "append"
             # TODO: this looks like it's removing more than append, really
@@ -664,15 +664,19 @@ class PXEGen:
         """
 
         if system is not None:
-            blended = utils.blender(self.api, True, system)
+            blended = utils.blender(self.api, False, system)
         elif profile is not None:
-            blended = utils.blender(self.api, True, profile)
+            blended = utils.blender(self.api, False, profile)
         else:
-            blended = utils.blender(self.api, True, image)
+            blended = utils.blender(self.api, False, image)
 
-        kopts = blended.get("kernel_options", "")
+        append_line = ""
+        kopts = blended.get("kernel_options", dict())
+        # support additional initrd= entries in kernel options.
+        if "initrd" in kopts:
+            append_line = ",%s" % kopts.pop("initrd")
         hkopts = utils.hash_to_string(kopts)
-        append_line = "%s" % hkopts
+        append_line = "%s %s" % (append_line, hkopts)
         # FIXME - the append_line length limit is architecture specific
         # TODO: why is this checked here, before we finish adding everything?
         if len(append_line) >= 255:
