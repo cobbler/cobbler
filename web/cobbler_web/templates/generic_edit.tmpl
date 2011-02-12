@@ -396,14 +396,14 @@ function populate_mgmt_classes() {
 }
 
 function page_onload() {
-    populate_widgets()
+    populate_widgets();
+    populate_mgmt_classes();
 {% ifequal what "system" %}
-    interface_table = build_interface_table()
-    populate_interfaces()
-    last_interface = get_selected_interface()
-    load_intf()
+    interface_table = build_interface_table();
+    populate_interfaces();
+    last_interface = get_selected_interface();
+    load_intf();
 {% endifequal %}
-    populate_mgmt_classes()
 }
 </script>
 {% endsmart_if %}
