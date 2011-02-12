@@ -983,7 +983,11 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
 
    if what in ("distro","profile","system"):
-      __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses()))
+      obj_mgmt_classes = []
+      if obj:
+          obj_mgmt_classes = obj.get('mgmt_classes',[])
+          obj_mgmt_classes.sort()
+      __tweak_field(fields, "mgmt_classes", "choices", obj_mgmt_classes)
 
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()

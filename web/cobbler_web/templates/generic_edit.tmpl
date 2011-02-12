@@ -336,11 +336,14 @@ function populate_interfaces() {
 }
 
 function page_onload() {
-    populate_widgets()
-    interface_table = build_interface_table()
-    populate_interfaces()
-    last_interface = get_selected_interface()
-    load_intf()
+    populate_widgets();
+    populate_mgmt_classes();
+{% ifequal what "system" %}
+    interface_table = build_interface_table();
+    populate_interfaces();
+    last_interface = get_selected_interface();
+    load_intf();
+{% endifequal %}
 }
 </script>
 {% endifequal %}
