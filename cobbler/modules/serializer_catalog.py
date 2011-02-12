@@ -101,7 +101,7 @@ def serialize_item(obj, item):
 def serialize_delete(obj, item):
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if item.name in [ 'mgmtclass' ]:
+    if obj.collection_type() in [ 'mgmtclass', ]:
         filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(),item.name)
     else:
         filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
