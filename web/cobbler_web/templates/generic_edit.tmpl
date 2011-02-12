@@ -1,12 +1,9 @@
 {% extends "master.tmpl" %}
 {% load site %}
 {% block content %}
-
-
-{% ifequal what "system" %}
-
+{% smart_if what in use_extra_js %}
 <script type="text/javascript">
-
+{% ifequal what "system" %}
 function intf_enable_field(field,enabled)
 {
     if (enabled) {
@@ -62,10 +59,10 @@ function on_interface_change()
     last_interface = get_selected_interface()
     load_intf()
 }
-
+{% endifequal %}
 function populate_widgets() 
 {
-
+{% ifequal what "system" %}
     var buf = "";
     buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
     buf = buf + "<input type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
@@ -76,9 +73,55 @@ function populate_widgets()
     buf = buf + "</select>";
     buf = buf + "<input type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
+{% endifequal %}
+    buf = "";
+    buf = buf + "<select name='mgmtclasses' id='mgmtclasses'>";
+    buf = buf + "</select>";
+    buf = buf + "<input type='button' name='addmgmtclass' value='Add' onclick='javascript:on_mgmt_class_add()'/>";
+    document.getElementById("widget_network_widget_c").innerHTML = buf;
 
+    buf = "";
+    buf = buf + "<input type='button' name='delmgmtclass' value='Delete' onclick='javascript:on_mgmt_class_del()'/>";
+    document.getElementById("widget_network_widget_d").innerHTML = buf;
 }
 
+function on_mgmt_class_add()
+{
+    var cname = document.getElementById("mgmtclasses").value
+    var mgmt_classes = document.getElementById("mgmt_classes");
+    var exists = false;
+    
+    for (i=0; i <= mgmt_classes.options.length - 1; i++) {
+        if(mgmt_classes.options[i].value == cname) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (!exists) {
+        var new_option = document.createElement("OPTION");
+        new_option.text = cname;
+        new_option.value = cname;
+
+        mgmt_classes.options.add(new_option);
+    }
+}
+
+function on_mgmt_class_del()
+{
+    var mgmt_classes = document.getElementById("mgmt_classes");
+    if (mgmt_classes.selectedIndex != -1) {
+        for (i=mgmt_classes.length-1; i>=0; i--) {
+            if (mgmt_classes.options[i].selected) {
+                mgmt_classes.options[i] = null;
+            }
+        }
+        if (mgmt_classes.length > 0) {
+            mgmt_classes.selectedIndex = 0
+        }
+    }
+}
+{% ifequal what "system" %}
 function on_interface_add()
 {
    // called when the user hits the "new interface" button
@@ -293,10 +336,11 @@ function build_interface_table()
     {% endsmart_if %}
     return interface_table
 }
-
+{% endifequal %}
 function on_form_submit()
 {
     // form submission handler
+{% ifequal what "system" %}
     save_intf(get_selected_interface())
     var listing = ""
     for (var iname in interface_table) {
@@ -318,9 +362,16 @@ function on_form_submit()
     }
     document.getElementById("interface_list").value = listing
     document.getElementById("name").disabled= false
+{% endifequal %}
+    // we have to select all items in the management classes
+    // list so they'll be submitted and saved correctly
+    var mgmt_classes = document.getElementById("mgmt_classes");
+    for (i=0; i <= mgmt_classes.options.length - 1; i++) {
+        mgmt_classes.options[i].selected = true;
+    }
     document.forms[0].submit()
 }
-
+{% ifequal what "system" %}
 function populate_interfaces() {
     interfaces = document.getElementById("interfaces")
     ilen = interfaces.length
@@ -334,6 +385,15 @@ function populate_interfaces() {
     document.getElementById("static").onchange=intf_update_visibility;
     document.getElementById("bonding").onchange=intf_update_visibility;
 }
+{% endifequal %}
+function populate_mgmt_classes() {
+    var mgmt_classes = document.getElementById("mgmtclasses");
+    {% for x in mgmt_classes %}
+        var new_option = new Option("{{ x|safe }}","{{ x|safe }}")
+        mgmt_classes.options.add(new_option);
+    {% endfor %}
+    mgmt_classes.selectedIndex = 0
+}
 
 function page_onload() {
     populate_widgets();
@@ -346,7 +406,7 @@ function page_onload() {
 {% endifequal %}
 }
 </script>
-{% endifequal %}
+{% endsmart_if %}
 
 <script type="text/javascript">
 $(document).ready(function()
