@@ -39,7 +39,7 @@ class Logger:
       self.logfile = None
 
       # Main logfile is append mode, other logfiles not.
-      if not os.path.exists(logfile) an os.path.exists.(os.path.dirname(logfile)):
+      if not os.path.exists(logfile) and os.path.exists(os.path.dirname(logfile)):
          self.logfile = open(logfile, "a")
          self.logfile.close()
 
