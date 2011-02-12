@@ -43,7 +43,7 @@ def authenhandler(req):
     global url_cobbler_api
 
     password = req.get_basic_auth_pw()
-    username = req.user     
+    username = req.user
     try:
         # Load server ip and port from local config
         if url_cobbler_api is None:
@@ -98,12 +98,12 @@ def check_auth(request):
 
 def index(request):
    """
-   This is the main greeting page for cobbler web.  
+   This is the main greeting page for cobbler web.
    """
    check_auth(request)
    t = get_template('index.tmpl')
    html = t.render(Context({
-        'version': remote.version(token), 
+        'version': remote.version(token),
         'username':username
    }))
    return HttpResponse(html)
@@ -142,7 +142,7 @@ def error_page(request,message):
 #==================================================================================
 
 def get_fields(what, is_subobject, seed_item=None):
-  
+
     """
     Helper function.  Retrieves the field table from the cobbler objects
     and formats it in a way to make it useful for Django templating.
@@ -168,7 +168,7 @@ def get_fields(what, is_subobject, seed_item=None):
         field_data = item_file.FIELDS
 
     settings = remote.get_settings()
-  
+
     fields = []
     for row in field_data:
 
@@ -177,7 +177,7 @@ def get_fields(what, is_subobject, seed_item=None):
         if is_subobject and row[0] == "distro":
             row[0] = "parent"
             row[3] = "Parent object"
-            row[5] = "Inherit settings from this profile" 
+            row[5] = "Inherit settings from this profile"
             row[6] = []
 
         elem = {
@@ -239,7 +239,7 @@ def get_fields(what, is_subobject, seed_item=None):
                    else:
                       tokens.append("%s" % x)
                 elem["value"] = " ".join(tokens)
- 
+
         name = row[0]
         if name.find("_widget") != -1:
             elem["html_element"] = "widget"
@@ -257,7 +257,7 @@ def get_fields(what, is_subobject, seed_item=None):
             elem["html_element"] = "text"
 
         elem["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
- 
+
         # flatten lists for those that aren't using select boxes
         if type(elem["value"]) == type([]):
             if elem["html_element"] != "select":
@@ -289,12 +289,12 @@ def __format_columns(column_names,sort_field):
     """
     dataset = []
 
-    # Default is sorting on name    
+    # Default is sorting on name
     if sort_field is not None:
         sort_name = sort_field
     else:
         sort_name = "name"
-    
+
     if sort_name.startswith("!"):
         sort_name = sort_name[1:]
         sort_order = "desc"
@@ -343,7 +343,7 @@ def genlist(request, what, page=None):
     # get details from the session
     if page == None:
         page = int(request.session.get("%s_page" % what, 1))
-    limit = int(request.session.get("%s_limit" % what, 50))   
+    limit = int(request.session.get("%s_limit" % what, 50))
     sort_field = request.session.get("%s_sort_field" % what, "name")
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
     pageditems = remote.find_items_paged(what,utils.strip_none(filters),sort_field,page,limit)
@@ -355,7 +355,7 @@ def genlist(request, what, page=None):
        columns = [ "name", "distro" ]
     if what == "system":
        # FIXME: also list network, once working
-       columns = [ "name", "profile", "netboot_enabled" ] 
+       columns = [ "name", "profile", "netboot_enabled" ]
     if what == "repo":
        columns = [ "name", "mirror" ]
     if what == "image":
@@ -367,7 +367,7 @@ def genlist(request, what, page=None):
     if what == "package":
         columns = [ "name", "installer" ]
     if what == "file":
-        columns = [ "name" ] 
+        columns = [ "name" ]
 
     # render the list
     t = get_template('generic_list.tmpl')
@@ -386,10 +386,10 @@ def genlist(request, what, page=None):
 def modify_list(request, what, pref, value=None):
     """
     This function is used in the generic list view
-    to modify the page/column sort/number of items 
+    to modify the page/column sort/number of items
     shown per page, and also modify the filters.
 
-    This function modifies the session object to 
+    This function modifies the session object to
     store these preferences persistently.
     """
     check_auth(request)
@@ -408,7 +408,7 @@ def modify_list(request, what, pref, value=None):
             old_revsort = True
         else:
             old_revsort = False
-        # User clicked on the column already sorted on, 
+        # User clicked on the column already sorted on,
         # so reverse the sorting list
         if old_sort == value and not old_revsort:
             value = "!" + value
@@ -500,7 +500,7 @@ def generic_delete(request, what, obj_name=None):
       return error_page(request,"Unknown %s specified" % what)
    elif not remote.check_access_no_fail(token, "remove_%s" % what, obj_name):
       return error_page(request,"You do not have permission to delete this %s" % what)
-   else:  
+   else:
       remote.remove_item(what, obj_name, token)
       return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
@@ -520,7 +520,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 
     names = request.POST.get('names', '').strip().split()
     if names == "":
-        return error_page(request, "Need to select some systems first")        
+        return error_page(request, "Need to select some systems first")
 
     if multi_mode == "delete":
          for obj_name in names:
@@ -604,7 +604,7 @@ def import_run(request):
         "name"  : request.POST.get("name",""),
         "path"  : request.POST.get("path",""),
         "breed" : request.POST.get("breed",""),
-        "arch"  : request.POST.get("arch","") 
+        "arch"  : request.POST.get("arch","")
         }
     remote.background_import(options,token)
     return HttpResponseRedirect('/cobbler_web/task_created')
@@ -629,7 +629,7 @@ def ksfile_list(request, page=None):
 
    t = get_template('ksfile_list.tmpl')
    html = t.render(Context({
-       'what':'ksfile', 
+       'what':'ksfile',
        'ksfiles': ksfile_list,
        'username': username,
        'item_count': len(ksfile_list[0]),
@@ -657,10 +657,10 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
 
    t = get_template('ksfile_edit.tmpl')
    html = t.render(Context({
-       'ksfile_name' : ksfile_name, 
-       'deleteable'  : deleteable, 
-       'ksdata'      : ksdata, 
-       'editable'    : editable, 
+       'ksfile_name' : ksfile_name,
+       'deleteable'  : deleteable,
+       'ksdata'      : ksdata,
+       'editable'    : editable,
        'editmode'    : editmode,
        'username'    : username
    }))
@@ -712,7 +712,7 @@ def snippet_list(request, page=None):
 
    t = get_template('snippet_list.tmpl')
    html = t.render(Context({
-       'what'     : 'snippet', 
+       'what'     : 'snippet',
        'snippets' : snippet_list,
        'username' : username
    }))
@@ -738,10 +738,10 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
 
    t = get_template('snippet_edit.tmpl')
    html = t.render(Context({
-       'snippet_name' : snippet_name, 
-       'deleteable'   : deleteable, 
-       'snippetdata'  : snippetdata, 
-       'editable'     : editable, 
+       'snippet_name' : snippet_name,
+       'deleteable'   : deleteable,
+       'snippetdata'  : snippetdata,
+       'editable'     : editable,
        'editmode'     : editmode,
        'username'     : username
    }))
@@ -785,7 +785,7 @@ def settings(request):
    settings = remote.get_settings()
    skeys = settings.keys()
    skeys.sort()
- 
+
    results = []
    for k in skeys:
       results.append([k,settings[k]])
@@ -805,7 +805,7 @@ def events(request):
    """
    check_auth(request)
    events = remote.get_events()
- 
+
    events2 = []
    for id in events.keys():
       (ttime, name, state, read_by) = events[id]
@@ -965,6 +965,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        else:
            interfaces = {}
 
+   mgmt_classes = __names_from_dicts(remote.get_mgmtclasses(),optional=False)
+
    fields = get_fields(what, child, obj)
 
    # populate some select boxes
@@ -983,13 +985,14 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
 
    if what in ("distro","profile","system"):
-      __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses()))
+      __tweak_field(fields, "mgmt_classes", "choices", obj.get('mgmt_classes',[]))
 
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
    html = t.render(Context({
        'what'            : what, 
+       'use_extra_js'    : ['distro','profile','system'],
        'fields'          : fields, 
        'subobject'       : child,
        'editmode'        : editmode, 
@@ -997,6 +1000,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'interfaces'      : interfaces,
        'interface_names' : inames,
        'interface_length': len(inames),
+       'mgmt_classes'    : mgmt_classes,
        'username'        : username,
        'name'            : obj_name
    }))

@@ -80,7 +80,9 @@ FIELDS = [
   ["*ipv6_mtu","",0,"IPv6 MTU",True,"",0,"str"],
   ["*ipv6_static_routes",[],0,"IPv6 Static Routes",True,"",0,"list"],
   ["*ipv6_default_gateway","",0,"IPv6 Default Gateway",True,"",0,"str"],
+  ["network_widget_c","",0,"Add Management Class",True,"",0,"str"], # not a real field, a marker for the web app
   ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0,"list"],
+  ["network_widget_d","",0,"Remove Selected Classes",True,"",0,"str"], # not a real field, a marker for the web app
   ["mgmt_parameters","<<inherit>>",0,"Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
   ["fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget",0,"dict"],
   ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0,"dict"],
