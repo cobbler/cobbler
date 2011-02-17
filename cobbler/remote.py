@@ -1443,7 +1443,7 @@ class CobblerXMLRPCInterface:
         inheritance/graph engine.  Shows what would be installed, not
         the input data.
         """
-        return self.get_system_for_koan(self,name)
+        return self.get_system_for_koan(name)
 
     def get_system_for_koan(self,name,token=None,**rest):
         """
