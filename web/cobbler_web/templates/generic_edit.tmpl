@@ -428,7 +428,7 @@ $(document).ready(function()
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
     <div>
-      <table border=0 width=0 height=0>
+      <table border="0" width="0" height="0">
       {% for item in fields %}
         {% ifchanged item.block_section %}
       </table>
@@ -436,7 +436,7 @@ $(document).ready(function()
     <h3 class="sectionheader action">&rArr; {{ item.block_section }}</h3>
     <div class="sectionbody" id="block_{{ item.block_section }}">
     <table border="0">
-      {% endifchanged %}
+       {% endifchanged %}
       <tr id="{{ item.dname  }}_row" class="editrow">
         <td valign="top"><label id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
         {% ifequal item.html_element "widget" %}
@@ -444,7 +444,11 @@ $(document).ready(function()
         {% else %}
         <td>
           {% ifequal item.html_element "text" %}
+          {% smart_if editmode == "edit" and item.dname == "name" %}
+          {{ item.value }}<input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+          {% else %}
           <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+          {% endsmart_if %}
           {% endifequal %}
           {% ifequal item.html_element "textarea" %}
           <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
@@ -487,7 +491,11 @@ $(document).ready(function()
             {% endfor %} 
           </select>
           {% endifequal %}
-          <sup><em>{{ item.tooltip }}</em></sup>
+          {% smart_if editmode == "edit" and item.dname == "name" %}
+          (editing, value is read-only)
+          {% else %}
+          <em>{{ item.tooltip }}</em>
+          {% endsmart_if %}
         </td>
         {% endifequal %}
       </tr>
