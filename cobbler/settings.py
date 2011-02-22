@@ -74,6 +74,7 @@ DEFAULTS = {
     "manage_dns"                  : 0,
     "manage_tftp"                 : 1,
     "manage_tftpd"                : 1,
+    "manage_rsync"                : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
     "mgmt_classes"                : [],
