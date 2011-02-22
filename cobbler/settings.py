@@ -72,6 +72,7 @@ DEFAULTS = {
     "kernel_options_s390x"        : {},
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
+    "manage_rsync"                : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
     "mgmt_classes"                : [],

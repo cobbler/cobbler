@@ -134,8 +134,9 @@ class BootSync:
         self.logger.info("cleaning link caches")
         self.clean_link_cache()
 
-        self.logger.info("rendering Rsync files")
-        self.rsync_gen()
+        if self.settings.manage_rsync:
+           self.logger.info("rendering Rsync files")
+           self.rsync_gen()
 
         self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
