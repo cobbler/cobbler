@@ -684,7 +684,7 @@ class PXEGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since 
-                    append_line = "ks=%s %s" % (kickstart_path, hkopts)
+                    append_line = " ks=%s %s" % (kickstart_path, hkopts)
                     # ESXi likes even fewer options, so we remove them too
                     append_line = append_line.replace("kssendmac","")
                 else:
