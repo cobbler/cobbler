@@ -867,7 +867,7 @@ class BootAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, logger=None):
+    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, sync_all=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
@@ -880,7 +880,8 @@ class BootAPI:
               repo_patterns    = repo_patterns,
               image_patterns   = image_patterns,
               prune            = prune,
-              omit_data        = omit_data
+              omit_data        = omit_data,
+              sync_all         = sync_all
         )
 
     # ==========================================================================

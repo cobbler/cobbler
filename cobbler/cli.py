@@ -354,6 +354,7 @@ class BootCLI:
             self.parser.add_option("--packages",    dest="package_patterns",   help="patterns of packages to replicate")
             self.parser.add_option("--files",       dest="file_patterns",      help="patterns of files to replicate")
             self.parser.add_option("--omit-data",   dest="omit_data", action="store_true", help="do not rsync data")
+            self.parser.add_option("--sync-all",  dest="sync_all", action="store_true", help="sync all data")
             self.parser.add_option("--prune",       dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)

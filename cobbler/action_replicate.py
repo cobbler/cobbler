@@ -195,12 +195,6 @@ class Replicate:
 
         self.remote_names = {}
         self.remote_dict  = {}
-        for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
-            self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
-
-        self.logger.debug("remote names struct is %s" % self.remote_names)
-
         self.must_include = {
             "distro"  : {},
             "profile" : {},
@@ -209,65 +203,75 @@ class Replicate:
             "repo"    : {}
         }
 
-        # include all profiles that are matched by a pattern
-        for obj_type in OBJ_TYPES:
-            patvar = getattr(self, "%s_patterns" % obj_type)
-            self.logger.debug("* Finding Explicit %s Matches" % obj_type)
-            for pat in patvar:
-                for remote in self.remote_names[obj_type]:
-                    self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
-                    if fnmatch.fnmatch(remote, pat):
-                        self.must_include[obj_type][remote] = 1
+        for ot in OBJ_TYPES:
+            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
+            self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
+            if self.sync_all:
+                for names in self.remote_dict[ot]:
+                    self.must_include[ot][names] = 1
 
-        # include all profiles that systems require
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Profiles Required By Systems")
-        for sys in self.must_include["system"].keys():
-            pro = self.remote_dict["system"][sys].get("profile","")
-            self.logger.debug("?: requires profile: %s" % pro)
-            if pro != "":
-               self.must_include["profile"][pro] = 1
+        self.logger.debug("remote names struct is %s" % self.remote_names)
 
-        # include all profiles that subprofiles require
-        # whether they are explicitly included or not
-        # very deep nesting is possible
-        self.logger.debug("* Adding Profiles Required By SubProfiles")
-        while True:
-            loop_exit = True
-            for pro in self.must_include["profile"].keys():
-                parent = self.remote_dict["profile"][pro].get("parent","")
-                if parent != "":
-                    if not self.must_include["profile"].has_key(parent):
-                        self.must_include["profile"][parent] = 1
-                        loop_exit = False
-            if loop_exit:
-                break
+        if not self.sync_all:
+             # include all profiles that are matched by a pattern
+             for obj_type in OBJ_TYPES:
+                 patvar = getattr(self, "%s_patterns" % obj_type)
+                 self.logger.debug("* Finding Explicit %s Matches" % obj_type)
+                 for pat in patvar:
+                     for remote in self.remote_names[obj_type]:
+                         self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
+                         if fnmatch.fnmatch(remote, pat):
+                             self.must_include[obj_type][remote] = 1
 
-        # require all distros that any profiles in the generated list requires
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Distros Required By Profiles")
-        for p in self.must_include["profile"].keys():
-            distro = self.remote_dict["profile"][p].get("distro","")
-            if not distro == "<<inherit>>" and not distro == "~":
-                self.logger.info("Adding repo %s for profile %s."%(p, distro))
-                self.must_include["distro"][distro] = 1
+             # include all profiles that systems require
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Profiles Required By Systems")
+             for sys in self.must_include["system"].keys():
+                 pro = self.remote_dict["system"][sys].get("profile","")
+                 self.logger.debug("?: requires profile: %s" % pro)
+                 if pro != "":
+                    self.must_include["profile"][pro] = 1
 
-        # require any repos that any profiles in the generated list requires
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Repos Required By Profiles")
-        for p in self.must_include["profile"].keys():
-            repos = self.remote_dict["profile"][p].get("repos",[])
-            for r in repos:
-                self.must_include["repo"][r] = 1
+             # include all profiles that subprofiles require
+             # whether they are explicitly included or not
+             # very deep nesting is possible
+             self.logger.debug("* Adding Profiles Required By SubProfiles")
+             while True:
+                 loop_exit = True
+                 for pro in self.must_include["profile"].keys():
+                     parent = self.remote_dict["profile"][pro].get("parent","")
+                     if parent != "":
+                         if not self.must_include["profile"].has_key(parent):
+                             self.must_include["profile"][parent] = 1
+                             loop_exit = False
+                 if loop_exit:
+                     break
+     
+             # require all distros that any profiles in the generated list requires
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Distros Required By Profiles")
+             for p in self.must_include["profile"].keys():
+                 distro = self.remote_dict["profile"][p].get("distro","")
+                 if not distro == "<<inherit>>" and not distro == "~":
+                     self.logger.info("Adding repo %s for profile %s."%(p, distro))
+                     self.must_include["distro"][distro] = 1
 
-        # include all images that systems require
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Images Required By Systems")
-        for sys in self.must_include["system"].keys():
-            img = self.remote_dict["system"][sys].get("image","")
-            self.logger.debug("?: requires profile: %s" % pro)
-            if img != "":
-               self.must_include["image"][img] = 1
+             # require any repos that any profiles in the generated list requires
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Repos Required By Profiles")
+             for p in self.must_include["profile"].keys():
+                 repos = self.remote_dict["profile"][p].get("repos",[])
+                 for r in repos:
+                     self.must_include["repo"][r] = 1
+
+             # include all images that systems require
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Images Required By Systems")
+             for sys in self.must_include["system"].keys():
+                 img = self.remote_dict["system"][sys].get("image","")
+                 self.logger.debug("?: requires profile: %s" % pro)
+                 if img != "":
+                    self.must_include["image"][img] = 1
 
         # FIXME: remove debug
         for ot in OBJ_TYPES:
@@ -275,7 +279,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False):
+    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False, sync_all=False):
         """
         Get remote profiles and distros and sync them locally
         """
@@ -287,11 +291,14 @@ class Replicate:
         self.image_patterns   = image_patterns.split()
         self.omit_data        = omit_data
         self.prune            = prune
+        self.sync_all         = sync_all
 
         self.logger.info("cobbler_master   = %s" % cobbler_master)
         self.logger.info("profile_patterns = %s" % self.profile_patterns)
         self.logger.info("system_patterns  = %s" % self.system_patterns)
         self.logger.info("omit_data        = %s" % self.omit_data)
+        self.logger.info("sync_all         = %s" % self.sync_all)
+
 
         if cobbler_master is not None:
             self.logger.info("using CLI defined master")

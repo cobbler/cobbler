@@ -208,6 +208,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("file_patterns", ""),
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
+                self.options.get("sync_all", False),
                 self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
