@@ -100,6 +100,7 @@ DEFAULTS = {
     "template_remote_kickstarts"  : 0,
     "virt_auto_boot"              : 0,
     "webdir"                      : "/var/www/cobbler",
+    "buildisodir"                 : "/var/cache/cobbler/buildiso",
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "createrepo_flags"            : "-c cache -s sha",

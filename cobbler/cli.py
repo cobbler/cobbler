@@ -334,7 +334,7 @@ class BootCLI:
             self.parser.add_option("--iso",      dest="iso",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
-            self.parser.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+            self.parser.add_option("--tempdir",  dest="buildisodir",  help="(OPTIONAL) working directory")
             self.parser.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
             self.parser.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
             self.parser.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")

@@ -102,7 +102,7 @@ class BuildIso:
                   self.logger.info("skipping Xen distro: %s" % dist.name)
                   continue
               distname = self.make_shorter(dist.name)
-              # tempdir/isolinux/$distro/vmlinuz, initrd.img
+              # buildisodir/isolinux/$distro/vmlinuz, initrd.img
               # FIXME: this will likely crash on non-Linux breeds
               f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
               f2 = os.path.join(isolinuxdir, "%s.img" % distname)
@@ -123,7 +123,7 @@ class BuildIso:
                  if dist.name.find("-xen") != -1:
                     continue
                  distname = self.make_shorter(dist.name)
-                 # tempdir/isolinux/$distro/vmlinuz, initrd.img
+                 # buildisodir/isolinux/$distro/vmlinuz, initrd.img
                  # FIXME: this will likely crash on non-Linux breeds
                  shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
                  shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
@@ -295,7 +295,7 @@ class BuildIso:
                 utils.die(self.logger," Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally")
 
         self.logger.info("copying kernels and initrds for standalone distro")
-        # tempdir/isolinux/$distro/vmlinuz, initrd.img
+        # buildisodir/isolinux/$distro/vmlinuz, initrd.img
         # FIXME: this will likely crash on non-Linux breeds
         f1 = os.path.join(isolinuxdir, "vmlinuz")
         f2 = os.path.join(isolinuxdir, "initrd.img")
@@ -354,7 +354,9 @@ class BuildIso:
         return
 
 
-    def run(self,iso=None,tempdir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
+    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
+
+        self.settings = self.config.settings()
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
@@ -373,28 +375,28 @@ class BuildIso:
         if iso is None:
             iso = "kickstart.iso"
 
-        if tempdir is None:
-            tempdir = os.path.join(os.getcwd(), "buildiso")
+        if buildisodir is None:
+            buildisodir = self.settings.buildisodir
         else:
-            if not os.path.isdir(tempdir):
+            if not os.path.isdir(buildisodir):
                 utils.die(self.logger,"The --tempdir specified is not a directory")
 
-            (tempdir_head,tempdir_tail) = os.path.split(os.path.normpath(tempdir))
-            if tempdir_tail != "buildiso":
-                tempdir = os.path.join(tempdir, "buildiso")
+            (buildisodir_head,buildisodir_tail) = os.path.split(os.path.normpath(buildisodir))
+            if buildisodir_tail != "buildiso":
+                buildisodir = os.path.join(buildisodir, "buildiso")
 
-        self.logger.info("using/creating tempdir: %s" % tempdir)
-        if not os.path.exists(tempdir):
-            os.makedirs(tempdir)
+        self.logger.info("using/creating buildisodir: %s" % buildisodir)
+        if not os.path.exists(buildisodir):
+            os.makedirs(buildisodir)
         else:
-            shutil.rmtree(tempdir)
-            os.makedirs(tempdir)
+            shutil.rmtree(buildisodir)
+            os.makedirs(buildisodir)
 
-        # if base of tempdir does not exist, fail
+        # if base of buildisodir does not exist, fail
         # create all profiles unless filtered by "profiles"
 
-        imagesdir = os.path.join(tempdir, "images")
-        isolinuxdir = os.path.join(tempdir, "isolinux")
+        imagesdir = os.path.join(buildisodir, "images")
+        isolinuxdir = os.path.join(buildisodir, "isolinux")
 
         self.logger.info("building tree for isolinux")
         if not os.path.exists(imagesdir):
@@ -431,14 +433,14 @@ class BuildIso:
         # removed --quiet
         cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
-        cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % tempdir
+        cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
 
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc != 0:
             utils.die(self.logger,"mkisofs failed")
 
         self.logger.info("ISO build complete")
-        self.logger.info("You may wish to delete: %s" % tempdir)
+        self.logger.info("You may wish to delete: %s" % buildisodir)
         self.logger.info("The output file is: %s" % iso)
 
         return True
