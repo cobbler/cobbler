@@ -1,6 +1,7 @@
 #set system_name = $getVar('system_name','')
 #set profile_name = $getVar('profile_name','')
 #set breed = $getVar('breed','')
+#set os_version = $getVar('os_version','')
 #set srv = $getVar('http_server','')
 #set kickstart = $getVar('kickstart','')
 #set run_install_triggers = $str($getVar('run_install_triggers',''))
@@ -15,8 +16,10 @@
     #if $pxe_just_once in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
             #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
-        #else if $breed == 'vmware'
+        #else if $breed == 'vmware' and $os_version == 'esx4'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
+        #else if $breed == 'vmware' and $os_version == 'esxi4'
+            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
         #end if
     #end if
 
@@ -24,8 +27,10 @@
     #if $kickstart != ''
         #if $breed == 'redhat'
             #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "system", system_name)
-        #else if $breed == 'vmware'
+        #else if $breed == 'vmware' and $os_version == 'esx4'
             #set saveks = "\ncurl \"http://%s/cblr/svc/op/ks/%s/%s\" -o /root/cobbler.ks" % (srv, "system", system_name)
+        #else if $breed == 'vmware' and $os_version == 'esxi4'
+            #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /var/log/cobbler.ks" % (srv, "system", system_name)
         #end if
     #end if
 
@@ -33,8 +38,10 @@
     #if $run_install_triggers in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
             #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
-        #else if $breed == 'vmware'
+        #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
+        #else if $breed == 'vmware' and $os_version == 'esxi4'
+            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
         #end if
     #end if
 
@@ -44,8 +51,10 @@
     #if $kickstart != ''
         #if $breed == 'redhat'
             #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "profile", profile_name)
-        #else if $breed == 'vmware'
+        #else if $breed == 'vmware' and $os_version == 'esx4'
             #set saveks = "\ncurl \"http://%s/cblr/svc/op/ks/%s/%s\" -o /root/cobbler.ks" % (srv, "profile", profile_name)
+        #else if $breed == 'vmware' and $os_version == 'esxi4'
+            #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /var/log/cobbler.ks" % (srv, "profile", profile_name)
         #end if
     #end if
 
@@ -53,8 +62,10 @@
     #if $run_install_triggers in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
             #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
-        #else if $breed == 'vmware'
+        #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
+        #else if $breed == 'vmware' and $os_version == 'esxi4'
+            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
         #end if
     #end if
 
