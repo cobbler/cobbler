@@ -131,6 +131,10 @@ if __name__ == "__main__":
     logpath6 = "/var/log/koan"
     logpath7 = logpath + "/tasks"
 
+    # cache paths
+    cachepath     = "/var/cache/cobbler/"
+    buildisocache = cachepath + "buildiso/"
+
     # django content
     dj_config    = "/etc/httpd/conf.d/"
     dj_templates = "/usr/share/cobbler/web/cobbler_web/templates"
@@ -214,6 +218,10 @@ if __name__ == "__main__":
             (dj_webui2,      [ 'web/cobbler_web/templatetags/site.py' ]),
             (dj_webui2,      [ 'web/cobbler_web/templatetags/__init__.py' ]),
             (dj_sessions,  []),
+
+            # Cache Paths
+            (cachepath, []),
+            (buildisocache, []),
 
             # backups for upgrades
             (backpath, []),

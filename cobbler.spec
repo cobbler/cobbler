@@ -288,6 +288,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/cobbler/triggers/install/pre
 %dir /var/lib/cobbler/triggers/install/post
 %dir /var/lib/cobbler/snippets/
+%dir /var/cache/cobbler
+%dir /var/cache/cobbler/buildiso
 
 %defattr(664,root,root)
 %config(noreplace) /etc/cobbler/settings
