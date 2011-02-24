@@ -144,8 +144,9 @@ class BootSync:
         self.logger.info("cleaning link caches")
         self.clean_link_cache()
 
-        self.logger.info("rendering Rsync files")
-        self.rsync_gen()
+        if self.settings.manage_rsync:
+           self.logger.info("rendering Rsync files")
+           self.rsync_gen()
 
         # run post-triggers
         self.logger.info("running post-sync triggers")

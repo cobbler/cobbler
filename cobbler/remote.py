@@ -92,7 +92,7 @@ class CobblerThread(Thread):
         try:
             rc = self._run(self)
             self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-            self.on_done()
+            self.on_done(self)
             return rc
         except:
             utils.log_exc(self.logger)
@@ -146,7 +146,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("iso","/var/www/cobbler/pub/generated.iso"),
                 self.options.get("profiles",None),
                 self.options.get("systems",None),
-                self.options.get("tempdir",None),
+                self.options.get("buildisodir",None),
                 self.options.get("distro",None),
                 self.options.get("standalone",False),
                 self.options.get("source",None),
@@ -208,6 +208,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("file_patterns", ""),
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
+                self.options.get("sync_all", False),
                 self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)

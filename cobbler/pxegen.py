@@ -487,6 +487,7 @@ class PXEGen:
         if image is None: 
             # not image based, it's something normalish
 
+            img_path = os.path.join("/images",distro.name)
             kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
             initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
@@ -509,6 +510,8 @@ class PXEGen:
                 kernel_path = None
                 initrd_path = None
 
+        if img_path is not None and not metadata.has_key("img_path"):
+            metadata["img_path"] = img_path
         if kernel_path is not None and not metadata.has_key("kernel_path"):
             metadata["kernel_path"] = kernel_path
         if initrd_path is not None and not metadata.has_key("initrd_path"):
@@ -586,7 +589,9 @@ class PXEGen:
                 image, arch, kickstart_path)
         metadata["kernel_options"] = kernel_options
 
-        if metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
+        if distro.os_version.startswith("esxi") and filename is not None:
+            append_line = "BOOTIF=%s" % (os.path.basename(filename))
+        elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
@@ -684,7 +689,7 @@ class PXEGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since 
-                    append_line = "ks=%s %s" % (kickstart_path, hkopts)
+                    append_line = " ks=%s %s" % (kickstart_path, hkopts)
                     # ESXi likes even fewer options, so we remove them too
                     append_line = append_line.replace("kssendmac","")
                 else:
