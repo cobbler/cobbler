@@ -435,7 +435,7 @@ class PXEGen:
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
         metadata["profile_name"] = os.path.basename(filename)
-        metadata["kernel_path"] = "/images/%s" % os.path.basename(filename)
+        metadata["kernel_path"] = "/%s" % os.path.basename(filename)
         metadata["initrd_path"] = ""
         metadata["append_line"] = ""
 
