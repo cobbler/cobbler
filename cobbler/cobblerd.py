@@ -38,7 +38,7 @@ import remote
 
 
 def main():
-   core(logger=None)
+    core(logger=None)
 
 def core(api):
 
@@ -53,15 +53,23 @@ def regen_ss_file():
     # this is only used for Kerberos auth at the moment.
     # it identifies XMLRPC requests from Apache that have already
     # been cleared by Kerberos.
-
+    ssfile = "/var/lib/cobbler/web.ss"
     fd = open("/dev/urandom")
     data = fd.read(512)
     fd.close()
-    fd = open("/var/lib/cobbler/web.ss","w+")
-    fd.write(binascii.hexlify(data))
-    fd.close()
-    utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
-    utils.os_system("chown apache /var/lib/cobbler/web.ss")
+    if not os.path.isfile(ssfile):
+        um = os.umask(int('0027',16))
+        fd = open(ssfile,"w+")
+        fd.write(binascii.hexlify(data))
+        fd.close()
+        os.umask(um)
+        utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
+        utils.os_system("chown apache /var/lib/cobbler/web.ss")
+     else:
+        fd = open(ssfile,"w+")
+        fd.write(binascii.hexlify(data))
+        fd.close()
+
     return 1
 
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port):
