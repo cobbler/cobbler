@@ -94,7 +94,7 @@ class CobblerThread(Thread):
         try:
             rc = self._run(self)
             self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-            self.on_done(self)
+            self.on_done()
             return rc
         except:
             utils.log_exc(self.logger)
@@ -325,9 +325,11 @@ class CobblerXMLRPCInterface:
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
         thr_obj = CobblerThread(event_id,self,logatron,args)
+        on_done_type = type(thr_obj.on_done)
+
         thr_obj._run = thr_obj_fn
         if on_done is not None:
-           thr_obj.on_done = on_done
+           thr_obj.on_done = on_done_type(on_done, thr_obj, CobblerThread)
         thr_obj.start()
         return event_id
 
