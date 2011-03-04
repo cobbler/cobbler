@@ -1597,7 +1597,7 @@ def subprocess_sp(logger, cmd, shell=True):
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
-        logger.debug("recieved on stderr: %s" % err)
+        logger.debug("received on stderr: %s" % err)
     return out, rc
 
 def subprocess_call(logger, cmd, shell=True):
