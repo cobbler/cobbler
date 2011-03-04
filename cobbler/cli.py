@@ -44,7 +44,7 @@ OBJECT_ACTIONS   = {
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
-DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks version".split()
+DIRECT_ACTIONS = "aclsetup buildiso import list report reposync sync validateks version".split()
 
 ####################################################
 
