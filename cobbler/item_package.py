@@ -25,14 +25,16 @@ from utils import _
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["comment","",0,"Comment",True,"Free form text description",0,"str"],
-  ["ctime",0,0,"",False,"",0,"float"],
-  ["mtime",0,0,"",False,"",0,"float"],
-  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
-  ["name","",0,"Name",True,"Name of file resource",0,"str"],
-  ["action","create",0,"Action",True,"Install or remove package resource",0,"str"],
-  ["installer","yum",0,"Installer",True,"Package Manager",0,"str"],
-  ["version","",0,"Version",True,"Package Version",0,"str"],
+    [ "uid","",0,"",False,"",0,"str"],
+    ["depth",2,0,"",False,"",0,"float"],
+    ["comment","",0,"Comment",True,"Free form text description",0,"str"],
+    ["ctime",0,0,"",False,"",0,"float"],
+    ["mtime",0,0,"",False,"",0,"float"],
+    ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
+    ["name","",0,"Name",True,"Name of file resource",0,"str"],
+    ["action","create",0,"Action",True,"Install or remove package resource",0,"str"],
+    ["installer","yum",0,"Installer",True,"Package Manager",0,"str"],
+    ["version","",0,"Version",True,"Package Version",0,"str"],
 ]
 
 class Package(resource.Resource):

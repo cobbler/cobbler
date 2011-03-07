@@ -68,7 +68,7 @@ def regen_ss_file():
         if utils.check_dist() in [ "debian", "ubuntu" ]:
             http_user = "www-data"
         utils.os_system("chown %s /var/lib/cobbler/web.ss"%http_user )
-     else:
+    else:
         fd = open(ssfile,"w+")
         fd.write(binascii.hexlify(data))
         fd.close()

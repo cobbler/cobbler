@@ -31,7 +31,7 @@ from cexceptions import *
 import clogger
 import fnmatch
 
-OBJ_TYPES = [ "distro", "profile", "system", "repo", "image" ]
+OBJ_TYPES = [ "distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file" ]
 
 class Replicate:
 
@@ -182,6 +182,7 @@ class Replicate:
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
                     self.rsync_it("repo-%s"%repo, os.path.join(self.settings.webdir,"repo_mirror",repo))
+                    
             self.logger.info("Rsyncing distro repo configs")
             self.rsync_it("cobbler-distros/config", os.path.join(self.settings.webdir,"ks_mirror"))
             self.logger.info("Rsyncing kickstart templates & snippets")
@@ -213,11 +214,14 @@ class Replicate:
         self.remote_names = {}
         self.remote_dict  = {}
         self.must_include = {
-            "distro"  : {},
-            "profile" : {},
-            "system"  : {},
-            "image"   : {},
-            "repo"    : {}
+            "distro"    : {},
+            "profile"   : {},
+            "system"    : {},
+            "image"     : {},
+            "repo"      : {},
+            "mgmtclass" : {},
+            "package"   : {},
+            "file"      : {}
         }
 
         for ot in OBJ_TYPES:
@@ -296,25 +300,34 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False, sync_all=False):
+    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, 
+            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False):
         """
         Get remote profiles and distros and sync them locally
         """
 
-        self.distro_patterns  = distro_patterns.split()
-        self.profile_patterns = profile_patterns.split()
-        self.system_patterns  = system_patterns.split()
-        self.repo_patterns    = repo_patterns.split()
-        self.image_patterns   = image_patterns.split()
-        self.omit_data        = omit_data
-        self.prune            = prune
-        self.sync_all         = sync_all
+        self.distro_patterns     = distro_patterns.split()
+        self.profile_patterns    = profile_patterns.split()
+        self.system_patterns     = system_patterns.split()
+        self.repo_patterns       = repo_patterns.split()
+        self.image_patterns      = image_patterns.split()
+        self.mgmtclass_patterns  = mgmtclass_patterns.split()
+        self.package_patterns    = package_patterns.split()
+        self.file_patterns       = file_patterns.split()
+        self.omit_data           = omit_data
+        self.prune               = prune
+        self.sync_all            = sync_all
 
-        self.logger.info("cobbler_master   = %s" % cobbler_master)
-        self.logger.info("profile_patterns = %s" % self.profile_patterns)
-        self.logger.info("system_patterns  = %s" % self.system_patterns)
-        self.logger.info("omit_data        = %s" % self.omit_data)
-        self.logger.info("sync_all         = %s" % self.sync_all)
+        self.logger.info("cobbler_master      = %s" % cobbler_master)
+        self.logger.info("profile_patterns    = %s" % self.profile_patterns)
+        self.logger.info("system_patterns     = %s" % self.system_patterns)
+        self.logger.info("repo_patterns       = %s" % self.repo_patterns)
+        self.logger.info("image_patterns      = %s" % self.image_patterns)
+        self.logger.info("mgmtclass_patterns  = %s" % self.mgmtclass_patterns)
+        self.logger.info("package_patterns    = %s" % self.package_patterns)
+        self.logger.info("file_patterns       = %s" % self.file_patterns)
+        self.logger.info("omit_data           = %s" % self.omit_data)
+        self.logger.info("sync_all            = %s" % self.sync_all)
 
 
         if cobbler_master is not None:
@@ -330,10 +343,10 @@ class Replicate:
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
-        self.remote =  xmlrpclib.Server(self.uri)
+        self.remote = xmlrpclib.Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
-        self.local  =  xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        self.local = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
         self.local.ping()
 
         self.replicate_data()
