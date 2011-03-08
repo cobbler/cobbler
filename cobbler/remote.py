@@ -235,14 +235,15 @@ class CobblerXMLRPCInterface:
             only = options.get("only", None)
             if only is not None:
                 repos = [ only ] 
+            nofail = options.get("nofail", len(repos) > 0)
 
             if len(repos) > 0:
                 for name in repos:
                     self.remote.api.reposync(tries=self.options.get("tries",
-                        3), name=name, nofail=True, logger=self.logger)
+                        3), name=name, nofail=nofail, logger=self.logger)
             else:
                 self.remote.api.reposync(tries=self.options.get("tries",3),
-                        name=None, nofail=False, logger=self.logger)
+                        name=None, nofail=nofail, logger=self.logger)
             return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
