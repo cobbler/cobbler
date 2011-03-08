@@ -1269,7 +1269,7 @@ class CobblerXMLRPCInterface:
 
         self._log("run_install_triggers",token=token)
 
-        if mode != "pre" and mode != "post":
+        if mode != "pre" and mode != "post" and mode != "firstboot":
             return False
         if objtype != "system" and objtype !="profile":
             return False

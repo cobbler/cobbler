@@ -229,6 +229,7 @@ if __name__ == "__main__":
             ("%striggers/delete/file/post" % libpath,     []),
             ("%striggers/install/pre" % libpath,          []),
             ("%striggers/install/post" % libpath,         []),
+            ("%striggers/install/firstboot" % libpath,    []),
             ("%striggers/sync/pre" % libpath,             []),
             ("%striggers/sync/post" % libpath,            []),
             ("%striggers/change" % libpath,               []),
