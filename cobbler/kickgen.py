@@ -41,6 +41,7 @@ import item_system
 
 from utils import _
 
+import xml.dom.minidom
 
 class KickGen:
     """
@@ -59,6 +60,98 @@ class KickGen:
         self.settings    = config.settings()
         self.repos       = config.repos()
         self.templar     = templar.Templar(config)
+
+    def createAutoYaSTScript( self, document, script, name ):
+        newScript = document.createElement("script")
+        newScriptSource = document.createElement("source")
+        newScriptSourceText = document.createTextNode(script)
+        newScript.appendChild(newScriptSource)
+
+        newScriptFile = document.createElement("filename")
+        newScriptFileText = document.createTextNode(name)
+        newScript.appendChild(newScriptFile)
+
+        newScriptSource.appendChild(newScriptSourceText)
+        newScriptFile.appendChild(newScriptFileText)
+        return newScript
+
+    def addAutoYaSTScript( self, document, type, source ):
+        scripts = document.getElementsByTagName("scripts")
+        if scripts.length == 0:
+            newScripts = document.createElement("scripts")
+            document.documentElement.appendChild( newScripts )
+            scripts = document.getElementsByTagName("scripts")
+        added = 0
+        for stype in scripts[0].childNodes:
+            if stype.nodeType == stype.ELEMENT_NODE and stype.tagName == type:
+                stype.appendChild( self.createAutoYaSTScript( document, source, type+"_cobbler" ) )
+                added = 1
+        if added == 0:
+            newChrootScripts = document.createElement( type )
+            newChrootScripts.setAttribute( "config:type", "list" )
+            newChrootScripts.appendChild( self.createAutoYaSTScript( document, source, type+"_cobbler" ) )
+            scripts[0].appendChild( newChrootScripts )
+
+    def generate_autoyast(self, profile=None, system=None, raw_data=None):
+        self.api.logger.info("autoyast XML file found. Checkpoint: profile=%s system=%s" % (profile,system) )
+        nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null"
+        runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" > /dev/null"
+        runpre  = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null"
+
+        what = "profile"
+        blend_this = profile
+        if system:
+            what = "system"
+            blend_this = system
+        blended = utils.blender(self.api, False, blend_this)
+        srv = blended["http_server"]
+
+        document = xml.dom.minidom.parseString(raw_data)
+
+        # do we already have the #raw comment in the XML? (addComment = 0 means, don't add #raw comment)
+        addComment = 1
+        for node in document.childNodes[1].childNodes:
+            if node.nodeType == ELEMENT_NODE and stype.tagName == "cobbler":
+                addComment = 0
+                break
+
+        # add some cobbler information to the XML file
+        # maybe that should be configureable
+        if addComment == 1:
+            #startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n#raw\n")
+            #endComment = document.createComment("\n#end raw\n")
+            startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n")
+            endComment = document.createComment("\n")
+            document.childNodes[1].insertBefore( startComment, document.childNodes[1].childNodes[1])
+            document.childNodes[1].appendChild( endComment )
+            cobblerElement = document.createElement("cobbler")
+            cobblerElementSystem = xml.dom.minidom.Element("system_name")
+            cobblerTextSystem    = document.createTextNode("$system_name")
+            cobblerElementSystem.appendChild( cobblerTextSystem )
+
+            cobblerElementServer = document.createElement("server")
+            cobblerTextServer     = document.createTextNode("$server")
+            cobblerElementServer.appendChild( cobblerTextServer )
+
+            cobblerElement.appendChild( cobblerElementServer )
+            cobblerElement.appendChild( cobblerElementSystem )
+
+            document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[1])
+
+        name = profile.name
+        if system is not None:
+            name = system.name
+
+        if str(self.settings.pxe_just_once).upper() in [ "1", "Y", "YES", "TRUE" ]:
+            self.addAutoYaSTScript( document, "chroot-scripts", nopxe % (srv, name) )
+        if self.settings.run_install_triggers:
+            # notify cobblerd when we start/finished the installation
+            self.addAutoYaSTScript( document, "pre-scripts", runpre % ( srv, what, name ) )
+            self.addAutoYaSTScript( document, "init-scripts", runpost % ( srv, what, name ) )
+
+        return document.toxml()
+
+
 
     def generate_repo_stanza(self, obj, is_profile=True):
 
@@ -173,6 +266,13 @@ class KickGen:
                     self.settings.template_remote_kickstarts)
             if raw_data is None:
                 return "# kickstart is sourced externally: %s" % meta["kickstart"]
+            distro = profile.get_conceptual_parent()
+            if system is not None:
+                distro = system.get_conceptual_parent().get_conceptual_parent()
+            if distro.breed == "suse":
+                # AutoYaST profile
+                raw_data = self.generate_autoyast(profile,system,raw_data)
+
             data = self.templar.render(raw_data, meta, None, obj)
             return data
         except FileNotFoundException:
