@@ -617,43 +617,51 @@ class Koan:
            take the install_tree url from that
 
         """
-        try:
-            raw = utils.urlread(profile_data["kickstart"])
-            lines = raw.splitlines()
+        if profile_data["breed"] == "suse":
+            kopts = profile_data["kernel_options"]
+            options = kopts.split(" ")
+            for opt in options:
+                if opt.startswith("install="):
+                    profile_data["install_tree"] = opt.replace("install=","")
+                    break
+        else:
+            try:
+                raw = utils.urlread(profile_data["kickstart"])
+                lines = raw.splitlines()
 
-            method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
+                method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
 
-            url_parser = OptionParser()
-            url_parser.add_option("--url", dest="url")
+                url_parser = OptionParser()
+                url_parser.add_option("--url", dest="url")
 
-            nfs_parser = OptionParser()
-            nfs_parser.add_option("--dir", dest="dir")
-            nfs_parser.add_option("--server", dest="server")
+                nfs_parser = OptionParser()
+                nfs_parser.add_option("--dir", dest="dir")
+                nfs_parser.add_option("--server", dest="server")
 
-            for line in lines:
-                match = method_re.match(line)
-                if match:
-                    cmd = match.group("urlcmd")
-                    if cmd:
-                        (options,args) = url_parser.parse_args(shlex.split(cmd)[1:])
-                        profile_data["install_tree"] = options.url
-                        break
-                    cmd = match.group("nfscmd")
-                    if cmd:
-                        (options,args) = nfs_parser.parse_args(shlex.split(cmd)[1:])
-                        profile_data["install_tree"] = "nfs://%s:%s" % (options.server,options.dir)
-                        break
+                for line in lines:
+                    match = method_re.match(line)
+                    if match:
+                        cmd = match.group("urlcmd")
+                        if cmd:
+                            (options,args) = url_parser.parse_args(shlex.split(cmd)[1:])
+                            profile_data["install_tree"] = options.url
+                            break
+                        cmd = match.group("nfscmd")
+                        if cmd:
+                            (options,args) = nfs_parser.parse_args(shlex.split(cmd)[1:])
+                            profile_data["install_tree"] = "nfs://%s:%s" % (options.server,options.dir)
+                            break
 
-            if self.safe_load(profile_data,"install_tree"):
-                print "install_tree:", profile_data["install_tree"]
-            else:
-                print "warning: kickstart found but no install_tree found"
-                        
-        except:
-            # unstable to download the kickstart, however this might not
-            # be an error.  For instance, xen FV installations of non
-            # kickstart OS's...
-            pass
+                if self.safe_load(profile_data,"install_tree"):
+                    print "install_tree:", profile_data["install_tree"]
+                else:
+                    print "warning: kickstart found but no install_tree found"
+                            
+            except:
+                # unstable to download the kickstart, however this might not
+                # be an error.  For instance, xen FV installations of non
+                # kickstart OS's...
+                pass
 
     #---------------------------------------------------
 
