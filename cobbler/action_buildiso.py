@@ -167,7 +167,10 @@ class BuildIso:
                     )
 
                 append_line = "  append initrd=%s.img" % distname
-                append_line = append_line + " ks=%s " % data["kickstart"]
+                if dist.breed == "suse":
+                    append_line = append_line + " autoyast=%s " % data["kickstart"]
+                else:
+                    append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
 
                 length=len(append_line)
