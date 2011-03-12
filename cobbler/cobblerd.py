@@ -65,7 +65,7 @@ def regen_ss_file():
         os.umask(um)
         utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
         utils.os_system("chown apache /var/lib/cobbler/web.ss")
-     else:
+    else:
         fd = open(ssfile,"w+")
         fd.write(binascii.hexlify(data))
         fd.close()
