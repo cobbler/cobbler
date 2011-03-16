@@ -98,6 +98,9 @@ if [ "$keys_found" = "yes" ]; then
         sleep 10
         if [ -d /mnt/sysimage$SEARCHDIR ] ; then
             cp -af /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
+            if [ -e "/sbin/restorecon"]; then
+                /sbin/restorecon -r /etc/ssh
+            fi
             logger "keys copied to newly installed system"
             break
         fi
