@@ -145,7 +145,7 @@ If you're using Red Hat Network, Red Hat Satellite Server, or Spacewalk, you can
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server-override]>
+B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server-override] [--parent=profile>
 
 Arguments are the same as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -205,7 +205,7 @@ For more information on bridge setup, see the Cobbler Wiki, where there is a sec
 This is a space delimited list of all the repos (created with "cobbler repo add" and updated with "cobbler reposync") that this profile
 can make use of during kickstart installation.  For example, an example might be --repos="fc6i386updates fc6i386extras" if the profile wants to access these two mirrors that are already mirrored on the cobbler server.  Repo management is described in greater depth later in the manpage.
 
-=item inherit
+=item parent
 
 This is an advanced feature. 
 
