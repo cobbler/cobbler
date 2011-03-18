@@ -94,7 +94,7 @@ restartservices:
 	/sbin/service cobblerd restart
 	/sbin/service httpd restart
 
-sdist: clean
+sdist: manpage
 	python setup.py sdist
 
 rpms: clean manpage sdist
