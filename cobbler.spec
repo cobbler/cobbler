@@ -16,6 +16,7 @@ BuildArch: noarch
 Url: http://fedorahosted.org/cobbler
 
 BuildRequires: redhat-rpm-config
+BuildRequires: git
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
 
