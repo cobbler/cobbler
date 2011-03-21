@@ -78,16 +78,10 @@ def gen_build_version():
     builddate = time.asctime()
     if os.path.exists(".git"):
        # for builds coming from git, include the date of the last commit
-       cmd = subprocess.Popen(["/usr/bin/git","log","-1"],stdout=subprocess.PIPE)
+       cmd = subprocess.Popen(["/usr/bin/git","log","--format=%h%n%ad","-1"],stdout=subprocess.PIPE)
        data = cmd.communicate()[0].strip()
-       for line in data.split("\n"):
-           if line.startswith("commit"):
-               tokens = line.split(" ",1)
-               gitstamp = tokens[1].strip()
-           if line.startswith("Date:"):
-               tokens = line.split(":",1)
-               gitdate = tokens[1].strip()
-               break
+       if cmd.returncode == 0:
+           gitstamp, gitdate = data.split("\n")
     data = {
        "gitdate" : gitdate,
        "gitstamp"      : gitstamp,
