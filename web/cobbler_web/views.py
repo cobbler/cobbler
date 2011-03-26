@@ -988,8 +988,13 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
       obj_mgmt_classes = []
       if obj:
           obj_mgmt_classes = obj.get('mgmt_classes',[])
+          if not isinstance(obj_mgmt_classes,list):
+              obj_mgmt_classes = [obj_mgmt_classes,]
           obj_mgmt_classes.sort()
       __tweak_field(fields, "mgmt_classes", "choices", obj_mgmt_classes)
+
+   # save the fields in the session for comparison later
+   request.session['%s_%s' % (what,obj_name)] = fields
 
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
@@ -1033,6 +1038,10 @@ def generic_save(request,what):
     if obj_name == "":
         return error_page(request,"Required field name is missing")
               
+    prev_fields = []
+    if request.session.has_key("%s_%s" % (what,obj_name)):
+        prev_fields = request.session["%s_%s" % (what,obj_name)]
+
     # grab the remote object handle
     # for edits, fail in the object cannot be found to be edited
     # for new objects, fail if the object already exists
@@ -1057,6 +1066,13 @@ def generic_save(request,what):
             # interface fields will be handled below
             continue
         else:
+            # check and see if the value exists in the fields stored in the session
+            prev_value = None
+            for prev_field in prev_fields:
+                if prev_field['name'] == field['name']:
+                    prev_value = prev_field['value']
+                    break
+
             value = request.POST.get(field['name'],None)
             # Checkboxes return the value of the field if checked, otherwise None
             # convert to True/False
@@ -1070,14 +1086,17 @@ def generic_save(request,what):
             if field["html_element"] == "multiselect":
                 values=request.POST.getlist(field['name'])
                 value=[]
-                for single_value in values:
-                    if single_value != "<<None>>":
-                        value.insert(0,single_value)
+                if '<<inherit>>' in values:
+                    value='<<inherit>>'
+                else:
+                    for single_value in values:
+                        if single_value != "<<None>>":
+                            value.insert(0,single_value)
 
             if value != None:
                 if value == "<<None>>":
                     value = ""
-                if value is not None and (not subobject or field['name'] != 'distro'):
+                if value is not None and (not subobject or field['name'] != 'distro') and value != prev_value:
                     try:
                         remote.modify_item(what,obj_id,field['name'],value,token)
                     except Exception, e:

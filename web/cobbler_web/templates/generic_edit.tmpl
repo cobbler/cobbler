@@ -388,8 +388,9 @@ function populate_interfaces() {
 {% endifequal %}
 function populate_mgmt_classes() {
     var mgmt_classes = document.getElementById("mgmtclasses");
+    var new_option = new Option("<<inherit>>","<<inherit>>")
     {% for x in mgmt_classes %}
-        var new_option = new Option("{{ x|safe }}","{{ x|safe }}")
+        new_option = new Option("{{ x|safe }}","{{ x|safe }}")
         mgmt_classes.options.add(new_option);
     {% endfor %}
     mgmt_classes.selectedIndex = 0
