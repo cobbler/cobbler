@@ -45,3 +45,16 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 #edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
 #edit select { width: 175px; }
 #edit input[type=text] { width: 300px; }
+
+#login {
+ width:250px;
+ margin:0 auto;
+ padding:20px;
+ text-align: center;
+ border: 1px solid black;
+}
+
+#login #button {
+ margin-top:10px;
+ text-align: right;
+}

@@ -44,4 +44,8 @@ urlpatterns = patterns('',
     (r'^import/run$', import_run),
     (r'^buildiso$', buildiso),
     (r'^check$', check),
+
+    (r'^login$', login),
+    (r'^do_login$', do_login),
+    (r'^logout$', do_logout),
 )
