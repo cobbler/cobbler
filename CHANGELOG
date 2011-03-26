@@ -1,4 +1,41 @@
 Cobbler CHANGELOG
+- Mar 17 2011 - 2.1.0
+- (FEAT) enhanced config mgmt capabilities
+- (BUGF) add a check to make sure system is in obj_types before removing it
+- (BUGF) fix for keep_ssh_host_keys snippet on Fedora 13+
+- (BUGF) re-enable debian/ubuntu support
+- (BUGF) fix compatibility problem with cheetah >= 2.4.2
+- (BUGF) fix for trac #541 - cobbler sync deletes /var/www/cobbler/pub
+- (BUGF) fix for trac #587 - Un-escaped '$' in snippet silently fails to render
+- (BUGF) copy memtest to $bootloc/images/.  Fixes BZ#663307
+- (FEAT) allow dlcontent to use proxy environment variables
+- (FEAT) implement system power status API method and CLI command
+- (FEAT) add manage_rsync option which defaults to 0
+- (FEAT) add --sync-all option to cobbler replicate
+- (BUGF) fix trac#574 memtest
+- (BUGF) fix for trac #509/#510 -- can't build iso with web UI
+- (FEAT) add VMware ESX and ESXi support
+- (FEAT) add FreeBSD support (includes pytftpd)
+- (FEAT) add batch delete option for profiles and mgmtclasses
+- (BUGF) restore --no-fail functionality to CLI reposync
+- (FEAT) add firstboot install trigger mode
+
+- Dec 8 2010 - 2.0.9
+- (BUGF) Install several templates that were needed
+- (BUGF) Ensure kernel_path is expanded in pxe templates
+- (BUGF) Place qemu_driver_type on other image creators that don't use it so they work
+
+- Dec 3 2010 - 2.0.8
+- (FEAT) PXE
+- (BUGF) Support EL6 and FC14 (and FC15)
+- (FEAT) Ability to force path in koan to overwrite existing files
+- (BUGF) Rename repos instead of deleting them
+- (BUGF) True daemonize
+- (BUGF) Debian cleanups
+- (FEAT) Allow qemu disk type to be specified
+- (BUGF) Close file descriptors so we don't leak listen ports
+- (BUGF) Prefer ethtool over rhpl
+
 - Nov 29 2010
 - (FEAT) --force-path to overwrite virt-path file location
 

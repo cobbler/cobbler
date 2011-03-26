@@ -483,6 +483,7 @@ class PXEGen:
         kickstart_path = None
         kernel_path = None
         initrd_path = None
+        img_path = None
 
         if image is None: 
             # not image based, it's something normalish

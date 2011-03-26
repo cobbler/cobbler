@@ -867,21 +867,25 @@ class BootAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, sync_all=False, logger=None):
+    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
+                  mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
         replicator = action_replicate.Replicate(self._config, logger=logger)
         return replicator.run(
-              cobbler_master   = cobbler_master,
-              distro_patterns  = distro_patterns,
-              profile_patterns = profile_patterns,
-              system_patterns  = system_patterns,
-              repo_patterns    = repo_patterns,
-              image_patterns   = image_patterns,
-              prune            = prune,
-              omit_data        = omit_data,
-              sync_all         = sync_all
+              cobbler_master       = cobbler_master,
+              distro_patterns      = distro_patterns,
+              profile_patterns     = profile_patterns,
+              system_patterns      = system_patterns,
+              repo_patterns        = repo_patterns,
+              image_patterns       = image_patterns,
+              mgmtclass_patterns   = mgmtclass_patterns,
+              package_patterns     = package_patterns,
+              file_patterns        = file_patterns,
+              prune                = prune,
+              omit_data            = omit_data,
+              sync_all             = sync_all
         )
 
     # ==========================================================================

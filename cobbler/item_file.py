@@ -26,18 +26,20 @@ from cexceptions import CX
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["comment","",0,"Comment",True,"Free form text description",0,"str"],
-  ["ctime",0,0,"",False,"",0,"float"],
-  ["mtime",0,0,"",False,"",0,"float"],
-  ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)",[],"list"],
-  ["name","",0,"Name",True,"Name of file resource",0,"str"],
-  ["is_dir",False,0,"Is Directory",True,"Treat file resource as a directory",0,"bool"],
-  ["action","create",0,"Action",True,"Create or remove file resource",0,"str"],
-  ["group","",0,"Group",True,"The group owner of the file",0,"str"],
-  ["mode","",0,"Mode",True,"The mode of the file",0,"str"],
-  ["owner","",0,"Owner",True,"The owner for the file",0,"str"],
-  ["path","",0,"Path",True,"The path for the file",0,"str"],
-  ["template","",0,"Template",True,"The template for the file",0,"str"]
+    [ "uid","",0,"",False,"",0,"str"],
+    ["depth",2,0,"",False,"",0,"float"],
+    ["comment","",0,"Comment",True,"Free form text description",0,"str"],
+    ["ctime",0,0,"",False,"",0,"float"],
+    ["mtime",0,0,"",False,"",0,"float"],
+    ["owners","SETTINGS:default_ownership",0,"Owners",False,"Owners list for authz_ownership (space delimited)",[],"list"],
+    ["name","",0,"Name",True,"Name of file resource",0,"str"],
+    ["is_dir",False,0,"Is Directory",True,"Treat file resource as a directory",0,"bool"],
+    ["action","create",0,"Action",True,"Create or remove file resource",0,"str"],
+    ["group","",0,"Group",True,"The group owner of the file",0,"str"],
+    ["mode","",0,"Mode",True,"The mode of the file",0,"str"],
+    ["owner","",0,"Owner",True,"The owner for the file",0,"str"],
+    ["path","",0,"Path",True,"The path for the file",0,"str"],
+    ["template","",0,"Template",True,"The template for the file",0,"str"]
 ]
 
 class File(resource.Resource):

@@ -26,13 +26,15 @@ from utils import _
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["name","",0,"Name",True,"Ex: F10-i386-webserver",0,"str"],
-  ["owners","SETTINGS:default_ownership","SETTINGS:default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
-  ["comment","",0,"Comment",True,"Free form text description",0,"str"],
-  ["ctime",0,0,"",False,"",0,"int"],
-  ["mtime",0,0,"",False,"",0,"int"],
-  ["packages",[],0,"Packages",True,"Package resources",0,"list"],
-  ["files",[],0,"Files",True,"File resources",0,"list"],
+    [ "uid","",0,"",False,"",0,"str"],
+    ["depth",2,0,"",False,"",0,"float"],
+    ["name","",0,"Name",True,"Ex: F10-i386-webserver",0,"str"],
+    ["owners","SETTINGS:default_ownership","SETTINGS:default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
+    ["comment","",0,"Comment",True,"Free form text description",0,"str"],
+    ["ctime",0,0,"",False,"",0,"int"],
+    ["mtime",0,0,"",False,"",0,"int"],
+    ["packages",[],0,"Packages",True,"Package resources",0,"list"],
+    ["files",[],0,"Files",True,"File resources",0,"list"],
 ]
 
 class Mgmtclass(item.Item):

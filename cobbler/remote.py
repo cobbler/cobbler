@@ -92,7 +92,7 @@ class CobblerThread(Thread):
         try:
             rc = self._run(self)
             self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
-            self.on_done(self)
+            self.on_done()
             return rc
         except:
             utils.log_exc(self.logger)
@@ -235,14 +235,15 @@ class CobblerXMLRPCInterface:
             only = options.get("only", None)
             if only is not None:
                 repos = [ only ] 
+            nofail = options.get("nofail", len(repos) > 0)
 
             if len(repos) > 0:
                 for name in repos:
                     self.remote.api.reposync(tries=self.options.get("tries",
-                        3), name=name, nofail=True, logger=self.logger)
+                        3), name=name, nofail=nofail, logger=self.logger)
             else:
                 self.remote.api.reposync(tries=self.options.get("tries",3),
-                        name=None, nofail=False, logger=self.logger)
+                        name=None, nofail=nofail, logger=self.logger)
             return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
@@ -328,9 +329,11 @@ class CobblerXMLRPCInterface:
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
         thr_obj = CobblerThread(event_id,self,logatron,args)
+        on_done_type = type(thr_obj.on_done)
+
         thr_obj._run = thr_obj_fn
         if on_done is not None:
-           thr_obj.on_done = on_done
+           thr_obj.on_done = on_done_type(on_done, thr_obj, CobblerThread)
         thr_obj.start()
         return event_id
 
@@ -1266,7 +1269,7 @@ class CobblerXMLRPCInterface:
 
         self._log("run_install_triggers",token=token)
 
-        if mode != "pre" and mode != "post":
+        if mode != "pre" and mode != "post" and mode != "firstboot":
             return False
         if objtype != "system" and objtype !="profile":
             return False
