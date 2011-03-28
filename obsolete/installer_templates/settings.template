@@ -188,7 +188,8 @@ puppetca_path: "/usr/sbin/puppetca"
 # new certificate is signed (see above). Enabling the following
 # feature will ensure that the certificate for the machine to be
 # installed is removed from the puppet master server if the puppet
-# master server is running on the same machine as cobbler
+# master server is running on the same machine as cobbler. This
+# requires puppet_auto_setup above to be enabled
 remove_old_puppet_certs_automatically: 0
 
 # set to 1 to enable Cobbler's DHCP management features.
