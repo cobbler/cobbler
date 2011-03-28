@@ -162,6 +162,7 @@ class ImportRedhatManager:
         # and then make sure nothing is already there.
 
         self.path = os.path.normpath( "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name) )
+        self.rootdir = os.path.normpath( "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name) )
         if os.path.exists(self.path) and self.arch is None:
             # FIXME : Raise exception even when network_root is given ?
             utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files." % self.path)
@@ -803,7 +804,7 @@ class ImportRedhatManager:
             self.set_install_tree( distro, tree)
 
     def get_rootdir(self):
-        return self.mirror
+        return self.rootdir
 
     def get_pkgdir(self):
         if not self.pkgdir:
