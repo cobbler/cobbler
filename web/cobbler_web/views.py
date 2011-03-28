@@ -284,6 +284,14 @@ def genlist(request, what, page=None):
     pageditems = remote.find_items_paged(what,utils.strip_none(filters),sort_field,page,limit)
 
     # what columns to show for each page?
+    # we also setup the batch actions here since they're dependent 
+    # on what we're looking at
+
+    # everythng gets batch delete 
+    batchactions = [
+        ["Delete","delete","delete"],
+    ]
+
     if what == "distro":
        columns = [ "name" ]
     if what == "profile":
@@ -291,8 +299,19 @@ def genlist(request, what, page=None):
     if what == "system":
        # FIXME: also list network, once working
        columns = [ "name", "profile", "netboot_enabled" ]
+       batchactions += [
+           ["Power on","power","on"],
+           ["Power off","power","off"],
+           ["Reboot","power","reboot"],
+           ["Change profile","profile",""],
+           ["Netboot enable","netboot","enable"],
+           ["Netboot disable","netboot","disable"],
+       ]
     if what == "repo":
        columns = [ "name", "mirror" ]
+       batchactions += [
+           ["Reposync","reposync","go"],
+       ]
     if what == "image":
        columns = [ "name", "file" ]
     if what == "network":
@@ -314,6 +333,7 @@ def genlist(request, what, page=None):
         'filters'        : filters,
         'username'       : username,
         'limit'          : limit,
+        'batchactions'   : batchactions,
     }))
     return HttpResponse(html)
 
