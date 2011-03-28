@@ -177,7 +177,8 @@ puppet_auto_setup: 0
 # its certificate signed by the puppet master server. Enabling the
 # following feature will ensure that the puppet server signs the
 # certificate after installation if the puppet master server is
-# running on the same machine as cobbler
+# running on the same machine as cobbler. This requires
+# puppet_auto_setup above to be enabled
 sign_puppet_certs_automatically: 0
 
 # location of the puppet signing utility puppetca
