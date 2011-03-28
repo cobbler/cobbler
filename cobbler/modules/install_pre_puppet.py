@@ -29,6 +29,9 @@ def run(api, args, logger):
 
     settings = api.settings()
 
+    if not str(settings.puppet_auto_setup).lower() in [ "1", "yes", "y", "true"]:
+        return 0
+
     if not str(settings.remove_old_puppet_certs_automatically).lower() in [ "1", "yes", "y", "true"]:
         return 0
 
