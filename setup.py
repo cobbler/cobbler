@@ -320,6 +320,7 @@ if __name__ == "__main__":
             (snippetpath, ['snippets/log_ks_pre']),
             (snippetpath, ['snippets/log_ks_post']),
             (snippetpath, ['snippets/puppet_install_if_enabled']),
+            (snippetpath, ['snippets/puppet_register_if_enabled']),
 
             # documentation
             (manpath,  ['docs/cobbler.1.gz']),
