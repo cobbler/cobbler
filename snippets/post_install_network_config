@@ -25,7 +25,7 @@
 
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-    	#if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master":
+    	#if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("bonding", "").lower() == "master":
     		## we have to globally turn off the config by mac feature as we can't
     		## use it now
     		#set $configbymac = False
