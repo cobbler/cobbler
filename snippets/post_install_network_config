@@ -25,19 +25,19 @@
 
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-    	#if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master":
+    	#if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master":
     		## we have to globally turn off the config by mac feature as we can't
     		## use it now
     		#set $configbymac = False
     	#end if
 
     	## count the number of bonding devices we have.
-    	#if $idata["bonding"].lower() == "master"
+    	#if $idata.get("bonding", "").lower() == "master"
     	    #set $numbondingdevs += 1
     	#end if
 
         ## enable IPv6 networking if we set an ipv6 address or turn on autoconfiguration
-        #if $idata["ipv6_address"] != "" or $ipv6_autoconfiguration == True
+        #if $idata.get("ipv6_address", "") != "" or $ipv6_autoconfiguration == True
             #set $enableipv6 = True
         #end if
 
@@ -115,20 +115,20 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         # Start configuration for $iname
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
-        #set $mac                  = $idata["mac_address"].upper()
-        #set $mtu                  = $idata["mtu"]
-        #set $static               = $idata["static"]
-        #set $ip                   = $idata["ip_address"]
-        #set $netmask              = $idata["subnet"]
-        #set $static_routes        = $idata["static_routes"]
-        #set $bonding              = $idata["bonding"]
-        #set $bonding_master       = $idata["bonding_master"]
-        #set $bonding_opts         = $idata["bonding_opts"]
-        #set $ipv6_address     	   = $idata["ipv6_address"]
-        #set $ipv6_secondaries     = $idata["ipv6_secondaries"]
-        #set $ipv6_mtu             = $idata["ipv6_mtu"]
-        #set $ipv6_default_gateway = $idata["ipv6_default_gateway"]
-        #set $ipv6_static_routes   = $idata["ipv6_static_routes"]
+        #set $mac                  = $idata.get("mac_address", "").upper()
+        #set $mtu                  = $idata.get("mtu", "")
+        #set $static               = $idata.get("static", "")
+        #set $ip                   = $idata.get("ip_address", "")
+        #set $netmask              = $idata.get("subnet", "")
+        #set $static_routes        = $idata.get("static_routes", "")
+        #set $bonding              = $idata.get("bonding", "")
+        #set $bonding_master       = $idata.get("bonding_master", "")
+        #set $bonding_opts         = $idata.get("bonding_opts", "")
+        #set $ipv6_address     	   = $idata.get("ipv6_address", "")
+        #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
+        #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
+        #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+        #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
         #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
         #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
         #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
