@@ -20,7 +20,7 @@
         <td>{{ shortname }}</td>
         {% if option %}
         <td>
-        {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/snippet/edit/{{ snippet }}'">Edit</a> {% endifequal %}
+        {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/snippet/edit/file:{{ snippet }}'">Edit</a> {% endifequal %}
         </td>
         {% endif %}
       </tr>
