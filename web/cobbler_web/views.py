@@ -1137,7 +1137,11 @@ def do_login(request):
 
     remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
 
-    token = remote.login(username, password)
+    try:
+        token = remote.login(username, password)
+    except: 
+        token = None
+
     if token:
         request.session['username'] = username
         request.session['token'] = token
