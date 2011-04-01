@@ -920,8 +920,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        else:
            interfaces = {}
 
-   mgmt_classes = __names_from_dicts(remote.get_mgmtclasses(),optional=False)
-
    fields = get_fields(what, child, obj)
 
    # populate some select boxes
@@ -940,13 +938,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
 
    if what in ("distro","profile","system"):
-      obj_mgmt_classes = []
-      if obj:
-          obj_mgmt_classes = obj.get('mgmt_classes',[])
-          if not isinstance(obj_mgmt_classes,list):
-              obj_mgmt_classes = [obj_mgmt_classes,]
-          obj_mgmt_classes.sort()
-      __tweak_field(fields, "mgmt_classes", "choices", obj_mgmt_classes)
+       __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
 
    # save the fields in the session for comparison later
    request.session['%s_%s' % (what,obj_name)] = fields
@@ -956,7 +948,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    inames.sort()
    html = t.render(Context({
        'what'            : what, 
-       'use_extra_js'    : ['distro','profile','system'],
        'fields'          : fields, 
        'subobject'       : child,
        'editmode'        : editmode, 
@@ -964,7 +955,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'interfaces'      : interfaces,
        'interface_names' : inames,
        'interface_length': len(inames),
-       'mgmt_classes'    : mgmt_classes,
        'username'        : username,
        'name'            : obj_name
    }))
