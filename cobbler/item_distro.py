@@ -112,9 +112,7 @@ FIELDS = [
    [ "depth",0,0,"Depth",False,"",0,"int"],
    [ "comment","",0,"Comment",True,"Free form text description",0,"str"],
    [ "tree_build_time",0,0,"Tree Build Time",False,"",0,"str"],
-   [ "network_widget_c","",0,"Add Management Class",True,"",0,"str"], # not a real field, a marker for the web app
    [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0,"list"],
-   [ "network_widget_d","",0,"Remove Selected Classes",True,"",0,"str"], # not a real field, a marker for the web app
    [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget",0,"list"],
    [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0,"list"],
    [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
