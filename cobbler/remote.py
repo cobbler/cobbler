@@ -1667,7 +1667,7 @@ class CobblerXMLRPCInterface:
             return True
         else:
             self._log("invalid token",token=token)
-            raise CX("invalid token: %s" % token)
+            return False
 
     def __name_to_object(self,resource,name):
         if resource.find("distro") != -1:
@@ -1759,10 +1759,9 @@ class CobblerXMLRPCInterface:
 
     def token_check(self,token):
         """
-        This is a demo function that does not return anything useful.
+        Checks to make sure a token is valid or not
         """
-        self.__validate_token(token)
-        return True
+        return self.__validate_token(token)
 
     def sync(self,token):
         """

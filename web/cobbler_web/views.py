@@ -1101,10 +1101,11 @@ def test_user_authenticated(request):
     # the user is considered successfully authenticated
     if request.session.has_key('token') and request.session['token'] != '':
         try:
-            token_user = remote.get_user_from_token(request.session['token'])
-            if request.session.has_key('username') and request.session['username'] == token_user:
-                username = request.session['username']
-                return True
+            if remote.token_check(request.session['token']):
+                token_user = remote.get_user_from_token(request.session['token'])
+                if request.session.has_key('username') and request.session['username'] == token_user:
+                    username = request.session['username']
+                    return True
         except:
             # just let it fall through to the 'return False' below
             pass
