@@ -56,9 +56,7 @@ FIELDS = [
   ["mtime",0,0,"",False,"",0,"int"],
   ["name_servers","SETTINGS:default_name_servers",[],"Name Servers",True,"space delimited",0,"list"],
   ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited",0,"list"],
-  ["network_widget_c","",0,"Add Management Class",True,"",0,"str"], # not a real field, a marker for the web app
   ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0,"list"],
-  ["network_widget_d","",0,"Remove Selected Classes",True,"",0,"str"], # not a real field, a marker for the web app
   ["mgmt_parameters","<<inherit>>","<<inherit>>","Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
   ["fetchable_files",{},'<<inherit>>',"Fetchable Files",True,"Templates for tftp or wget",0,"dict"],
   ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0,"dict"],

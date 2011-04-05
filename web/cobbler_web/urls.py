@@ -10,12 +10,12 @@ urlpatterns = patterns('',
 
     (r'^ksfile/list(/(?P<page>\d+))?$', ksfile_list),
     (r'^ksfile/edit$', ksfile_edit, {'editmode':'new'}),
-    (r'^ksfile/edit/(?P<ksfile_name>.+)$', ksfile_edit, {'editmode':'edit'}),
+    (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', ksfile_edit, {'editmode':'edit'}),
     (r'^ksfile/save$', ksfile_save),
 
     (r'^snippet/list(/(?P<page>\d+))?$', snippet_list),
     (r'^snippet/edit$', snippet_edit, {'editmode':'new'}),
-    (r'^snippet/edit/(?P<snippet_name>.+)$', snippet_edit, {'editmode':'edit'}),
+    (r'^snippet/edit/file:(?P<snippet_name>.+)$', snippet_edit, {'editmode':'edit'}),
     (r'^snippet/save$', snippet_save),
 
     (r'^(?P<what>\w+)/list(/(?P<page>\d+))?', genlist),

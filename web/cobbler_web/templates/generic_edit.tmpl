@@ -1,7 +1,6 @@
 {% extends "master.tmpl" %}
 {% load site %}
 {% block content %}
-{% smart_if what in use_extra_js %}
 <script type="text/javascript">
 {% ifequal what "system" %}
 function intf_enable_field(field,enabled)
@@ -59,10 +58,9 @@ function on_interface_change()
     last_interface = get_selected_interface()
     load_intf()
 }
-{% endifequal %}
+
 function populate_widgets() 
 {
-{% ifequal what "system" %}
     var buf = "";
     buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
     buf = buf + "<input type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
@@ -73,55 +71,8 @@ function populate_widgets()
     buf = buf + "</select>";
     buf = buf + "<input type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
-{% endifequal %}
-    buf = "";
-    buf = buf + "<select name='mgmtclasses' id='mgmtclasses'>";
-    buf = buf + "</select>";
-    buf = buf + "<input type='button' name='addmgmtclass' value='Add' onclick='javascript:on_mgmt_class_add()'/>";
-    document.getElementById("widget_network_widget_c").innerHTML = buf;
-
-    buf = "";
-    buf = buf + "<input type='button' name='delmgmtclass' value='Delete' onclick='javascript:on_mgmt_class_del()'/>";
-    document.getElementById("widget_network_widget_d").innerHTML = buf;
 }
 
-function on_mgmt_class_add()
-{
-    var cname = document.getElementById("mgmtclasses").value
-    var mgmt_classes = document.getElementById("mgmt_classes");
-    var exists = false;
-    
-    for (i=0; i <= mgmt_classes.options.length - 1; i++) {
-        if(mgmt_classes.options[i].value == cname) {
-            exists = true;
-            break;
-        }
-    }
-
-    if (!exists) {
-        var new_option = document.createElement("OPTION");
-        new_option.text = cname;
-        new_option.value = cname;
-
-        mgmt_classes.options.add(new_option);
-    }
-}
-
-function on_mgmt_class_del()
-{
-    var mgmt_classes = document.getElementById("mgmt_classes");
-    if (mgmt_classes.selectedIndex != -1) {
-        for (i=mgmt_classes.length-1; i>=0; i--) {
-            if (mgmt_classes.options[i].selected) {
-                mgmt_classes.options[i] = null;
-            }
-        }
-        if (mgmt_classes.length > 0) {
-            mgmt_classes.selectedIndex = 0
-        }
-    }
-}
-{% ifequal what "system" %}
 function on_interface_add()
 {
    // called when the user hits the "new interface" button
@@ -336,11 +287,25 @@ function build_interface_table()
     {% endsmart_if %}
     return interface_table
 }
+
+function populate_interfaces() {
+    interfaces = document.getElementById("interfaces")
+    ilen = interfaces.length
+    {% for x in interface_names %}
+        var new_option = new Option("{{ x }}","{{ x }}")
+        interfaces.options[ilen] = new_option
+        interfaces.selectedIndex = ilen
+        ilen = ilen + 1 
+    {% endfor %}
+    interfaces.selectedIndex = 0
+    document.getElementById("static").onchange=intf_update_visibility;
+    document.getElementById("bonding").onchange=intf_update_visibility;
+}
 {% endifequal %}
 function on_form_submit()
 {
+    {% ifequal what "system" %}
     // form submission handler
-{% ifequal what "system" %}
     save_intf(get_selected_interface())
     var listing = ""
     for (var iname in interface_table) {
@@ -362,45 +327,22 @@ function on_form_submit()
     }
     document.getElementById("interface_list").value = listing
     document.getElementById("name").disabled= false
-{% endifequal %}
-    // we have to select all items in the management classes
-    // list so they'll be submitted and saved correctly
-    var mgmt_classes = document.getElementById("mgmt_classes");
-    for (i=0; i <= mgmt_classes.options.length - 1; i++) {
-        mgmt_classes.options[i].selected = true;
-    }
+    {% endifequal %}
+    // we have to select all items all multiselects
+    // so they'll be submitted and saved correctly
+    {% for item in fields %} {% ifequal item.html_element "multiselect" %}
+    var cur_multi = document.getElementById("{{ item.dname }}");
+    if (cur_multi) {
+        for (i=0; i <= cur_multi.options.length - 1; i++) {
+            cur_multi.options[i].selected = true;
+        }
+    }{% endifequal %}{% endfor %}
     document.forms[0].submit()
-}
-{% ifequal what "system" %}
-function populate_interfaces() {
-    interfaces = document.getElementById("interfaces")
-    ilen = interfaces.length
-    {% for x in interface_names %}
-        var new_option = new Option("{{ x }}","{{ x }}")
-        interfaces.options[ilen] = new_option
-        interfaces.selectedIndex = ilen
-        ilen = ilen + 1 
-    {% endfor %}
-    interfaces.selectedIndex = 0
-    document.getElementById("static").onchange=intf_update_visibility;
-    document.getElementById("bonding").onchange=intf_update_visibility;
-}
-{% endifequal %}
-function populate_mgmt_classes() {
-    var mgmt_classes = document.getElementById("mgmtclasses");
-    var new_option = new Option("<<inherit>>","<<inherit>>")
-    mgmt_classes.options.add(new_option);
-    {% for x in mgmt_classes %}
-    new_option = new Option("{{ x|safe }}","{{ x|safe }}")
-    mgmt_classes.options.add(new_option);
-    {% endfor %}
-    mgmt_classes.selectedIndex = 0
 }
 
 function page_onload() {
-    populate_widgets();
-    populate_mgmt_classes();
 {% ifequal what "system" %}
+    populate_widgets();
     interface_table = build_interface_table();
     populate_interfaces();
     last_interface = get_selected_interface();
@@ -408,7 +350,6 @@ function page_onload() {
 {% endifequal %}
 }
 </script>
-{% endsmart_if %}
 
 <script type="text/javascript">
 $(document).ready(function()
@@ -483,20 +424,33 @@ $(document).ready(function()
           </select>
           {% endifequal %}
           {% ifequal item.html_element "multiselect" %}
-          <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
+          <div><em>{{ item.tooltip }}</em></div>
+          <div style="float:left;text-align:left;">
+           Available:<br />
+           <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
             {% for choice in item.choices %}
-              {% smart_if choice in item.value_raw %}
-          <option value="{{ choice }}" selected>{{ choice }}</a>
-              {% else %}
-          <option value="{{ choice }}">{{ choice }}</a>
+              {% smart_if choice not in item.value_raw %}
+            <option value="{{ choice }}">{{ choice }}</a>
               {% endsmart_if %}
             {% endfor %} 
-          </select>
+           </select>
+           <br /><input type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
+          </div>
+          <div style="float:left;text-align:right;">
+           Selected:<br />
+           <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
+            {% for choice in item.choices %}
+              {% smart_if choice in item.value_raw %}
+            <option value="{{ choice }}">{{ choice }}</a>
+              {% endsmart_if %}
+            {% endfor %}
+           </select>
+           <br /><input type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+          </div>
           {% endifequal %}
           {% smart_if editmode == "edit" and item.dname == "name" %}
           (editing, value is read-only)
           {% else %}
-          <em>{{ item.tooltip }}</em>
           {% endsmart_if %}
         </td>
         {% endifequal %}
