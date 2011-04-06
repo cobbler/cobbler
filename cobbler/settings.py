@@ -107,7 +107,8 @@ DEFAULTS = {
     "yum_distro_priority"         : 1,
     "yumdownloader_flags"         : "--resolve",
     "reposync_flags"              : "-l -m -d",
-    "ldap_management_default_type": "authconfig"
+    "ldap_management_default_type": "authconfig",
+    "consoles"                     : "/var/consoles"
 }
 
 
