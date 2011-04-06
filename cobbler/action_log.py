@@ -53,8 +53,9 @@ class LogTool:
         Clears the system logs
         """
  
-        #FIXME /var/consoles should come from config.settings()       
-        logs = ['/var/consoles/%s' % self.system.name]
+        consoles = self.settings.consoles
+        logs = filter(os.path.isfile, 
+                      glob.glob('%s/%s' % (consoles, self.system.name)))
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
             logs.extend(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
