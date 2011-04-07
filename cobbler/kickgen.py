@@ -111,7 +111,7 @@ class KickGen:
         # do we already have the #raw comment in the XML? (addComment = 0 means, don't add #raw comment)
         addComment = 1
         for node in document.childNodes[1].childNodes:
-            if node.nodeType == ELEMENT_NODE and stype.tagName == "cobbler":
+            if node.nodeType == node.ELEMENT_NODE and node.tagName == "cobbler":
                 addComment = 0
                 break
 
