@@ -126,7 +126,7 @@ def start_install(name=None,
     if profile_data.has_key("breed"):
         breed = profile_data["breed"]
         if breed != "other" and breed != "":
-            if breed in [ "debian", "suse", "redhat" ]:
+            if breed in [ "ubuntu", "debian", "suse", "redhat" ]:
                 guest.set_os_type("linux")
             elif breed in [ "windows" ]:
                 guest.set_os_type("windows")
@@ -134,7 +134,12 @@ def start_install(name=None,
                 guest.set_os_type("unix")
             if profile_data.has_key("os_version"):
                 # FIXME: when os_version is not defined and it's linux, do we use generic24/generic26 ?
-                version = profile_data["os_version"]
+                if breed == "ubuntu":
+                    # If breed is Ubuntu, need to set the version to the type of "ubuntu<version>"
+                    # as defined by virtinst. (i.e. ubuntunatty)
+                    version = "ubuntu%s" % profile_data["os_version"]
+                else:
+                    version = profile_data["os_version"]
                 if version != "other" and version != "":
                     try:
                         guest.set_os_variant(version)
