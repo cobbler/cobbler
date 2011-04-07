@@ -491,8 +491,13 @@ class Koan:
                else:
                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (profile_data['http_server'], profile_data['name'])
                 
-            # find_kickstart source tree in the kickstart file
-            self.get_install_tree_from_kickstart(profile_data)
+            # If breed is ubuntu/debian we need to source the install tree differently
+            # as preseeds are used instead of kickstarts.
+            if profile_data["breed"] in [ "ubuntu", "debian" ]:
+                self.get_install_tree_for_debian_ubuntu(profile_data)
+            else:
+                # find_kickstart source tree in the kickstart file
+                self.get_install_tree_from_kickstart(profile_data)
 
             # if we found an install_tree, and we don't have a kernel or initrd
             # use the ones in the install_tree
@@ -662,6 +667,26 @@ class Koan:
                 # be an error.  For instance, xen FV installations of non
                 # kickstart OS's...
                 pass
+
+    #---------------------------------------------------
+
+    def get_install_tree_for_debian_ubuntu(self, profile_data):
+        """
+        Split ks_meta to obtain the tree path. Generate the install_tree
+           using the http_server and the tree obtained from splitting ks_meta
+
+        """
+
+        try:
+            tree = profile_data["ks_meta"].split("@@")[-1].strip()
+            profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
+
+            if self.safe_load(profile_data,"install_tree"):
+                print "install_tree:", profile_data["install_tree"]
+            else:
+                print "warning: kickstart found but no install_tree found"
+        except:
+            pass
 
     #---------------------------------------------------
 
