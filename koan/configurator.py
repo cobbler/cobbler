@@ -31,13 +31,16 @@ import stat
 import os.path
 import sys
 import time
-import yum
 import pwd
 import grp
 import simplejson as json
-sys.path.append('/usr/share/yum-cli')
-import cli
-
+try:
+    import yum
+    sys.path.append('/usr/share/yum-cli')
+    import cli
+    yum_available = True
+except:
+    yum_available = False
 
 class KoanConfigure:
     """
@@ -49,10 +52,16 @@ class KoanConfigure:
         """Constructor. Requires json config object."""
         self.config = json.JSONDecoder().decode(config)
         self.stats = {}
+        self.dist = utils.check_dist()
         
     #----------------------------------------------------------------------
 
     def configure_repos(self):
+        # Enables the possibility to use different types of repos
+        if yum_available and self.dist == "redhat":
+            self.configure_yum_repos()
+
+    def configure_yum_repos(self):
         """Configure YUM repositories."""
         print "- Configuring Repos"  
         old_repo = '/etc/yum.repos.d/config.repo'
@@ -108,6 +117,11 @@ class KoanConfigure:
     #----------------------------------------------------------------------
     
     def configure_packages(self):
+        # Enables the possibility to use different types of package configurators
+        if yum_available and self.dist == "redhat":
+            self.configure_yum_packages()
+
+    def configure_yum_packages(self):
         """Configure package resources."""
         print "- Configuring Packages"
         runtime_start = time.time()
