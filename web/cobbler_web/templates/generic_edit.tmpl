@@ -381,7 +381,7 @@ $(document).ready(function()
     <table border="0">
        {% endifchanged %}
       <tr id="{{ item.dname  }}_row" class="editrow">
-        <td valign="top"><label id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
+        <td valign="top"><label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
         {% ifequal item.html_element "widget" %}
         <td><div id="widget_{{ item.dname }}" />
         {% else %}
