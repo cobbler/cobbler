@@ -168,9 +168,9 @@ function action_multi(otype) {
         {% endfor %}
         <td>
           <a href="/cobbler_web/{{ what }}/edit/{{ item.0.1 }}">Edit</a>
-          <span class="action" onClick="javascript:obj_copy('{{ item.0.1 }}')"/>Copy</span> 
-          <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')"/>Rename</span> 
-          <span class="action" onClick="javascript:obj_delete('{{ item.0.1 }}')"/>Delete</span> 
+          <span class="action" onClick="javascript:obj_copy('{{ item.0.1 }}')">Copy</span> 
+          <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
+          <span class="action" onClick="javascript:obj_delete('{{ item.0.1 }}')">Delete</span> 
           {% ifequal what "system" %}
           <span class="action" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
           {% endifequal %}
