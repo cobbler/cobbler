@@ -11,8 +11,10 @@
   {% if settings %}
   <table id="listitems" border="0" width="100%" cellspacing="0" cellpadding="2">
     <thead>
-      <td>Setting</td>
-      <td>Value (read-only)</td>
+      <tr>
+        <td>Setting</td>
+        <td>Value (read-only)</td>
+      </tr>
     </thead>
     <tbody>
       {% for setting,value in settings %}
