@@ -123,11 +123,11 @@ function action_multi(otype) {
     <table id="listitems" border="0" width="100%" cellspacing="0" cellpadding="2">
       <thead>
       <tr>
-        <td>
+        <th>
           &nbsp;<input type="checkbox" id="itemsall" onclick="javascript:items_check_all();">
-        </td>
+        </th>
         {% for value in columns %}
-        <td>
+        <th>
           <a href="/cobbler_web/{{ what }}/modifylist/sort/{{ value.0 }}">{{ value.0|title }}</a>
           {% ifequal value.1 "asc" %}
           &darr;
@@ -135,9 +135,9 @@ function action_multi(otype) {
           {% ifequal value.1 "desc" %}
           &uarr;
           {% endifequal %}
-        </td>
+        </th>
         {% endfor %}
-        <td>Actions</td>
+        <th>Actions</th>
       </tr>
       </thead>
       <tbody>
