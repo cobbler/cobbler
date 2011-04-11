@@ -371,14 +371,14 @@ $(document).ready(function()
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
     <div>
-      <table border="0" width="0" height="0">
+      <table class="hidden">
       {% for item in fields %}
         {% ifchanged item.block_section %}
       </table>
     </div>
     <h3 class="sectionheader action">&rArr; {{ item.block_section }}</h3>
     <div class="sectionbody" id="block_{{ item.block_section }}">
-    <table border="0">
+    <table>
        {% endifchanged %}
       <tr id="{{ item.dname  }}_row" class="editrow">
         <td valign="top"><label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
@@ -425,7 +425,7 @@ $(document).ready(function()
           {% endifequal %}
           {% ifequal item.html_element "multiselect" %}
           <div><em>{{ item.tooltip }}</em></div>
-          <div style="float:left;text-align:left;">
+          <div class="multileft">
            Available:<br />
            <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
             {% for choice in item.choices %}
@@ -436,7 +436,7 @@ $(document).ready(function()
            </select>
            <br /><input type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
           </div>
-          <div style="float:left;text-align:right;">
+          <div class="multiright">
            Selected:<br />
            <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
             {% for choice in item.choices %}
@@ -466,7 +466,7 @@ $(document).ready(function()
     {% endifequal %}
 
 
-    <table border=0>
+    <table>
     <tr>
     <td>
     </td>

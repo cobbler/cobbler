@@ -13,12 +13,18 @@ hr { margin-top: -2px; height: 1px; }
 fieldset { border: 0px; padding: 0px; margin: 0px; }
 img { border: 0px; }
 ul { list-style-position: outside; list-style-type: none; overflow: hidden; } 
+table { border: 0px }
 
 .action { cursor: pointer; }
+.error { color: red; }
+.errormsg { color: blue; }
 .warn { color: #990000; font-weight: bold; font-size: 1.0em; }
 .rpointers { font-size: 1.6em; margin-left: 5px; }
 .lpointers { font-size: 1.6em; margin-right: 5px; }
+.hidden { display:none; }
 
+div.multileft { float: left; text-align: left; }
+div.multiright { float: left; text-align: right; }
 div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
 div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
 
@@ -30,6 +36,8 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 #listactions { padding: 5px 0px 5px 15px; width: 140px; margin-top: 5px; background-color: #CCCCCC }
 #listactions li { padding-bottom: 3px; }
 
+#listitems { border: 0; width: 100%; }
+#listitems td { padding: 2px; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; }
 #listitems thead a { color: #dddddd; }
 #listitems tbody a { text-decoration: underline; }
