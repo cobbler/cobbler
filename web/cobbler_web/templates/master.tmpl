@@ -11,8 +11,11 @@
   <link rel="stylesheet" type="text/css" media="all" href="/cobbler_webui_content/jsGrowl.css" />
 </head>
 <body onload="go_go_gadget()">
-  <div><input type="hidden" name="username" id="username" value="{{ username }}"/></div>
-  <div style="clear: both;"></div>
+<div id="body">
+  <div id='user'>
+    <input type="hidden" name="username" id="username" value="{{ username }}"/>
+    Logged in: <b>{{ username }}</b> <a class="action" href="/cobbler_web/logout">Logout</a>
+  </div>
   <div class="container">
     <div id="menubar">
       <h1>Configuration</h1>
@@ -50,12 +53,16 @@
         <li><a href="/cobbler_web/logout">Logout</a></li>
       </ul>
     </div>
-    <div class="content"/>  
+    <div id="content">
 {% block content %}
       <h1 class="error">Template Failure</h1>
 {% endblock %}
     </div>
     <div id="jsGrowl"></div>
   </div>
+</div>
+<div id="footer">
+  <a href="http://fedorahosted.org/cobbler">Cobbler {{ version }}</a>
+</div>
 </body>
 </html>
