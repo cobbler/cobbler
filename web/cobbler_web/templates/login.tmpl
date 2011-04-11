@@ -7,24 +7,24 @@
 </head>
 <body class="loginscreen">
   <div id="login">
-  <img src="/cobbler_webui_content/logo-cobbler.png" width="185" />
-  {% if form.errors %}
-  <p class="error">Sorry, that's not a valid username or password</p>
-  {% endif %}
-  <form action="/cobbler_web/do_login" method="post">
-  {% if next %}<input type="hidden" name="next" value="{{ next|escape }}" />{% endif %}
-  <div id="username">
-    <label for="username">Username: </label>
-    <input type="text" name="username" value="" id="username" autofocus>
-  </div>
-  <div id="password">
-    <label for="password">Password: </label>
-    <input type="password" name="password" value="" id="password">
-  </div>
-  <div id="button">
-    <input type="submit" value="login" />
-  </div>
-  </form>
+    <img src="/cobbler_webui_content/logo-cobbler.png" width="185" />
+{% if form.errors %}
+    <p class="error">Sorry, that's not a valid username or password</p>
+{% endif %}
+    <form action="/cobbler_web/do_login" method="post">
+      {% if next %}<input type="hidden" name="next" value="{{ next|escape }}" />{% endif %}
+      <div id="username">
+        <label for="username">Username: </label>
+        <input type="text" name="username" value="" id="username" autofocus>
+      </div>
+      <div id="password">
+        <label for="password">Password: </label>
+        <input type="password" name="password" value="" id="password">
+      </div>
+      <div id="button">
+        <input type="submit" value="login" />
+      </div>
+    </form>
   </div>
 </body>
 </html>

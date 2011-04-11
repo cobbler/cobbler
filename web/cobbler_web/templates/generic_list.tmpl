@@ -24,85 +24,85 @@ function items_checked_values() {
 }
 
 function obj_rename(old) {
-  var newname = window.prompt("Change {{ what }} name to?",old);
-  if (newname != null) {
-      window.location = "/cobbler_web/{{ what }}/rename/" + old + "/" + newname;
-  }
+    var newname = window.prompt("Change {{ what }} name to?",old);
+    if (newname != null) {
+        window.location = "/cobbler_web/{{ what }}/rename/" + old + "/" + newname;
+    }
 }
 function obj_copy(old) {
-  var newname = window.prompt("Name for the new {{ what }}?",old);
-  if (newname != null) {
-      window.location = "/cobbler_web/{{ what }}/copy/" + old + "/" + newname;
-  }
+    var newname = window.prompt("Name for the new {{ what }}?",old);
+    if (newname != null) {
+        window.location = "/cobbler_web/{{ what }}/copy/" + old + "/" + newname;
+    }
 }
 function obj_delete(old) {
-  if (confirm("Delete {{ what }} (" + old + ") and all child objects?")) {
-      window.location = "/cobbler_web/{{ what }}/delete/" + old;
-  }
+    if (confirm("Delete {{ what }} (" + old + ") and all child objects?")) {
+        window.location = "/cobbler_web/{{ what }}/delete/" + old;
+    }
 }
 
 function action(otype) {
-  sel_action = document.getElementById("actions").value
-  what   = sel_action.split("|")[0]
-  action = sel_action.split("|")[1]
-  document.location = "/cobbler_web/" + what + "/" + action
+    sel_action = document.getElementById("actions").value
+    what   = sel_action.split("|")[0]
+    action = sel_action.split("|")[1]
+    document.location = "/cobbler_web/" + what + "/" + action
 }
 
 function action_multi(otype) {
-  var values = items_checked_values()
-  if (values == "") {
-     return
-  }
-  document.getElementById("names").value = values
+    var values = items_checked_values()
+    if (values == "") {
+       return
+    }
+    document.getElementById("names").value = values
 
-  sel_batchaction = document.getElementById("batchactions").value
-  action = sel_batchaction.split("|")[0]
-  param  = sel_batchaction.split("|")[1]
+    sel_batchaction = document.getElementById("batchactions").value
+    action = sel_batchaction.split("|")[0]
+    param  = sel_batchaction.split("|")[1]
 
-  if (action == "profile") {
-       param = window.prompt("New installation profile name for checked systems?","")
-       if ((param == null) || (param == "")) {
-          return
-       }
-       value = 1
-  }
-  else {
-       value = null
-  }
-  if ((action == "power") && (param == "on")) {
-     value = confirm("Confirm: Really power up all checked systems?")
-  }
-  if ((action == "power") && (param == "off")) {
-     value = confirm("Confirm: Really power down all checked systems?")
-  }
-  if ((action == "power") && (param == "reboot")) {
-     value = confirm("Confirm: Really reboot all checked systems?")
-  }
-  if ((action == "netboot") && (param == "enable")) {
-     value = confirm("Confirm: Really flag all checked systems for PXE reinstallation?")
-  }
-  if ((action == "netboot") && (param == "disable")) {
-     value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
-  }
-  if ((action == "delete" ) && (param == "delete")) {
-     value = confirm("Confirm: Really delete all checked " + otype + "?" )
-  }
-  if ((action == "reposync")) {
-     value = "reposync"
-  }
+    if (action == "profile") {
+        param = window.prompt("New installation profile name for checked systems?","")
+        if ((param == null) || (param == "")) {
+            return
+        }
+        value = 1
+    }
+    else {
+        value = null
+    }
+    if ((action == "power") && (param == "on")) {
+        value = confirm("Confirm: Really power up all checked systems?")
+    }
+    if ((action == "power") && (param == "off")) {
+        value = confirm("Confirm: Really power down all checked systems?")
+    }
+    if ((action == "power") && (param == "reboot")) {
+        value = confirm("Confirm: Really reboot all checked systems?")
+    }
+    if ((action == "netboot") && (param == "enable")) {
+        value = confirm("Confirm: Really flag all checked systems for PXE reinstallation?")
+    }
+    if ((action == "netboot") && (param == "disable")) {
+        value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
+    }
+    if ((action == "delete" ) && (param == "delete")) {
+        value = confirm("Confirm: Really delete all checked " + otype + "?" )
+    }
+    if ((action == "reposync")) {
+        value = "reposync"
+    }
 
-  if (value) {
-     document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param
-     document.myform.submit()  
-  }
-  else {
-     alert("Operation aborted.")
-  }
+    if (value) {
+        document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param
+        document.myform.submit()  
+    }
+    else {
+        alert("Operation aborted.")
+    }
 }
 </script>
-  <h1>{{ what|title }}s</h1>
-  <hr />
-  <div>
+<h1>{{ what|title }}s</h1>
+<hr />
+<div>
   Actions: 
   <select id="actions">
   <option value="{{what}}|edit">Create new {{ what }}</option>
@@ -112,77 +112,76 @@ function action_multi(otype) {
 
   Batch Actions: 
   <select id="batchactions">
-  {% for title,action,value in batchactions %}<option value="{{ action }}|{{ value }}">{{ title }}</option>
-  {% endfor %}
+    {% for title,action,value in batchactions %}<option value="{{ action }}|{{ value }}">{{ title }}</option>{% endfor %}
   </select>
   <input type="button" value="go" onclick="javascript:action_multi('{{ what }}')" />
-  </div>
+</div>
 
-  <form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
-    <table id="listitems" cellspacing="0">
-      <thead>
+<form name="myform" method="post" action="/cobbler_web/{{ what }}/action">
+  <table id="listitems" cellspacing="0">
+    <thead>
       <tr>
         <th>
           &nbsp;<input type="checkbox" id="itemsall" onclick="javascript:items_check_all();" />
         </th>
-        {% for value in columns %}
+{% for value in columns %}
         <th>
           <a href="/cobbler_web/{{ what }}/modifylist/sort/{{ value.0 }}">{{ value.0|title }}</a>
-          {% ifequal value.1 "asc" %}
+  {% ifequal value.1 "asc" %}
           &darr;
-          {% endifequal %}
-          {% ifequal value.1 "desc" %}
+  {% endifequal %}
+  {% ifequal value.1 "desc" %}
           &uarr;
-          {% endifequal %}
+  {% endifequal %}
         </th>
-        {% endfor %}
+{% endfor %}
         <th>Actions</th>
       </tr>
-      </thead>
-      <tbody>
-      {% for item in items %}
+    </thead>
+    <tbody>
+{% for item in items %}
       <tr class="{% cycle 'rowodd' 'roweven' %}">
         <td>&nbsp;<input type="checkbox" name="items" value="{{ item.0.1 }}" /></td>
-        {% for value in item %}
+  {% for value in item %}
         <td>
-          {% ifequal value.0 "name" %}
-              <a href="/cobbler_web/{{ what }}/edit/{{ value.1 }}">{{ value.1 }}</a>
-          {% endifequal %}
-          {% ifequal value.2 "editlink" %}
-              {% ifnotequal value.1 "~" %}
-                  <a href="/cobbler_web/{{ value.0 }}/edit/{{ value.1 }}">{{ value.1 }}</a>
-              {% endifnotequal %}
-          {% endifequal %}
-          {% ifequal value.2 "checkbox" %}
-            {% ifequal value.1 1 %}
-            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" checked="checked" />
-            {% else %}
-            <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" />
-            {% endifequal %}
-          {% endifequal %}
-          {% ifequal value.2 "text" %}
-              {{ value.1 }}
-          {% endifequal %}
+    {% ifequal value.0 "name" %}
+          <a href="/cobbler_web/{{ what }}/edit/{{ value.1 }}">{{ value.1 }}</a>
+    {% endifequal %}
+    {% ifequal value.2 "editlink" %}
+      {% ifnotequal value.1 "~" %}
+          <a href="/cobbler_web/{{ value.0 }}/edit/{{ value.1 }}">{{ value.1 }}</a>
+      {% endifnotequal %}
+    {% endifequal %}
+    {% ifequal value.2 "checkbox" %}
+      {% ifequal value.1 1 %}
+          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" checked="checked" />
+      {% else %}
+          <input type="checkbox" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.name }}" disabled="disabled" />
+      {% endifequal %}
+    {% endifequal %}
+    {% ifequal value.2 "text" %}
+          {{ value.1 }}
+    {% endifequal %}
         </td>
-        {% endfor %}
+  {% endfor %}
         <td>
           <a href="/cobbler_web/{{ what }}/edit/{{ item.0.1 }}">Edit</a>
           <span class="action" onClick="javascript:obj_copy('{{ item.0.1 }}')">Copy</span> 
           <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
           <span class="action" onClick="javascript:obj_delete('{{ item.0.1 }}')">Delete</span> 
-          {% ifequal what "system" %}
+  {% ifequal what "system" %}
           <span class="action" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
-          {% endifequal %}
-          {% ifequal what "profile" %}
+  {% endifequal %}
+  {% ifequal what "profile" %}
           <span class="action" onClick="window.location='/cblr/svc/op/ks/profile/{{ item.0.1 }}'">View kickstart</span>
-          {% endifequal %}
+  {% endifequal %}
         </td>
       </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+{% endfor %}
+    </tbody>
+  </table>
   <input type="hidden" name="names" id="names" value=""/>
-  </form>
+</form>
 
 {% endblock content %}
 

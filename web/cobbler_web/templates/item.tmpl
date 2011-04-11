@@ -2,14 +2,14 @@
 
 #block body
 <table class="sortable">
-    <thead>
-      <tr>
-        <caption>$caption</caption>
-        <th>Key</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
+  <thead>
+    <tr>
+      <caption>$caption</caption>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
         #set $evenodd = 1
         #for $key,$value in $item_data.items():
 
@@ -20,21 +20,21 @@
             #end if
             #set $evenodd += 1
 
-        <tr class="$tr_class">
-            <td>$key</td>
-            <td>
+    <tr class="$tr_class">
+      <td>$key</td>
+      <td>
             #if isinstance($value,dict):
-                <ul style="list-style-type: none; margin: 0; padding: 0;">
+         <ul style="list-style-type: none; margin: 0; padding: 0;">
                 #for $skey,$sval in $value.items():
-                    <li>$skey = $sval</li>
+           <li>$skey = $sval</li>
                 #end for
-                </ul>
+         </ul>
             #else
                 $value
             #end if
-            </td>
-        </tr>
+      </td>
+    </tr>
         #end for
-    </tbody>
+  </tbody>
 </table>
 #end block body

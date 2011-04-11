@@ -2,7 +2,7 @@
 {% block content %}
 
 {% if not editable %}
-  <blockquote>
+<blockquote>
   NOTE: You do not have permission to make changes to this
   kickstart template and can only read it.  It is possible that
   other Cobbler users has secured permissions on Cobbler
@@ -11,47 +11,47 @@
   you do not have access to.  Alternatively, you may not have access
   to edit *any* kickstart templates.  Contact your Cobbler server administrator
   if you need to resolve this.
-  </blockquote>
-  <br />
+</blockquote>
+<br />
 {% else %}
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</h1>
 <hr />
 <form method="post" action="/cobbler_web/ksfile/save">
-    <ul>
-      <li>
-        <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
-        {% ifnotequal editmode 'edit' %}
-        <input type="text" size="128" style="width: 300px;" name="ksfile_name" id="ksfile_name" />
-        <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</p>
-        {% else %}
-        <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}"/>
-        {% endifnotequal %}
-      </li>
-      <li>
-        <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">{{ ksdata }}</textarea></pre>
-      </li>
-      {% if deleteable %}
-      <li>
-        <label>Delete</label>
-        <input type="checkbox" name="delete1" value="delete1" />Yes</input>
-        <input type="checkbox" name="delete2" value="delete2" />Really</input>
-        <p><span class="warn">Check both buttons and click save to delete this object</span></p>
-      </li>
-      {% else %}
-      {% ifequal editmode "edit" %}
-      <li>
-        <span class="warn">NOTE: This kickstart template is currently in-use.</span>>
-      </li>
-      {% endifequal %}
-      {% endif %}
-      {% if editable %}
-      <li>
-        <input type="hidden" name="editmode" value="{{ editmode }}"/>
-        <input type="submit" name="submit" value="Save"/>
-        <input type="reset" name="reset" value="Reset"/>
-      </li>
-      {% endif %}
-    </ul>
+  <ul>
+    <li>
+      <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
+  {% ifnotequal editmode 'edit' %}
+      <input type="text" size="128" style="width: 300px;" name="ksfile_name" id="ksfile_name" />
+      <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</p>
+  {% else %}
+      <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}"/>
+  {% endifnotequal %}
+    </li>
+    <li>
+      <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">{{ ksdata }}</textarea></pre>
+    </li>
+  {% if deleteable %}
+    <li>
+      <label>Delete</label>
+      <input type="checkbox" name="delete1" value="delete1" />Yes</input>
+      <input type="checkbox" name="delete2" value="delete2" />Really</input>
+      <p><span class="warn">Check both buttons and click save to delete this object</span></p>
+    </li>
+  {% else %}
+    {% ifequal editmode "edit" %}
+    <li>
+      <span class="warn">NOTE: This kickstart template is currently in-use.</span>>
+    </li>
+    {% endifequal %}
+  {% endif %}
+  {% if editable %}
+    <li>
+      <input type="hidden" name="editmode" value="{{ editmode }}"/>
+      <input type="submit" name="submit" value="Save"/>
+      <input type="reset" name="reset" value="Reset"/>
+    </li>
+  {% endif %}
+  </ul>
 </form>
 {% endif %}
 {% endblock content %}

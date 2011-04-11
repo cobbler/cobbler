@@ -1,32 +1,32 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-  <h1>Cobbler Kickstart Templates</h1>
-  <hr />
-  <!-- This is kind weird, but force the name "kickstart"
-  because we know this is the ksfile page. If this gets moved
-  to generic_list, then it can be hacked around -->
-  <ul id="submenubar">
-    <li><a class="action" href="/cobbler_web/{{ what }}/edit">Create new kickstart file</a><li>
-  </ul>
-  <table id="listitems" cellspacing="0">
-    <thead>
-      <tr>
-        <th>File</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ksfile,shortname,option in ksfiles %}
-      <tr class="{% cycle 'rowodd' 'roweven' %}">
-        <td>{{ shortname }}</td>
-        {% if option %}
-        <td>
-        {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/ksfile/edit/file:{{ ksfile }}'">Edit</a> {% endifequal %}
-        {% ifequal option "viewable" %}<span class="action" onClick="window.location='{{ ksfile }}'>View</a>{% endifequal %}
-        </td>
-        {% endif %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<h1>Cobbler Kickstart Templates</h1>
+<hr />
+<!-- This is kind weird, but force the name "kickstart"
+because we know this is the ksfile page. If this gets moved
+to generic_list, then it can be hacked around -->
+<ul id="submenubar">
+  <li><a class="action" href="/cobbler_web/{{ what }}/edit">Create new kickstart file</a><li>
+</ul>
+<table id="listitems" cellspacing="0">
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for ksfile,shortname,option in ksfiles %}
+    <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td>{{ shortname }}</td>
+  {% if option %}
+      <td>
+    {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/ksfile/edit/file:{{ ksfile }}'">Edit</a> {% endifequal %}
+    {% ifequal option "viewable" %}<span class="action" onClick="window.location='{{ ksfile }}'>View</a>{% endifequal %}
+      </td>
+  {% endif %}
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
 {% endblock content %}
