@@ -30,6 +30,7 @@ table { border: 0px }
 .rpointers { font-size: 1.6em; margin-left: 5px; }
 .lpointers { font-size: 1.6em; margin-right: 5px; }
 .hidden { display:none; }
+.tooptip { font-style: italic; }
 
 div.multileft { float: left; text-align: left; }
 div.multileft select { width: 150px;}

@@ -426,7 +426,7 @@ $(document).ready(function()
           </select>
     {% endifequal %}
     {% ifequal item.html_element "multiselect" %}
-          <div><em>{{ item.tooltip }}</em></div>
+          <span class="tooltip">{{ item.tooltip }}</span>
           <div class="multileft">
            Available:<br />
            <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
