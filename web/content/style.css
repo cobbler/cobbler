@@ -6,6 +6,8 @@ body, html {
   font-size: .9em;
 }
 a { color: #222222; text-decoration: none; }
+a:hover { color: #306CAC; text-decoration: none; }
+span.action:hover { color: #306CAC; text-decoration: none; }
 label { font-weight: bold; }
 legend,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
 legend { margin: 0px; padding-bottom: 3px; }
