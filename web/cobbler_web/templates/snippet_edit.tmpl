@@ -12,13 +12,7 @@ if you need to resolve this.
 <br />
 {% endif %}
 <fieldset>
-  <legend>
-  {% ifequal editmode 'edit' %}
-    Editing a Snippet
-  {% else %}
-    Adding a Snippet
-  {% endifequal %}
-  </legend>
+  <legend>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Snippet</legend>
   <form method="post" action="/cobbler_web/snippet/save">
     <fieldset id="cform">
     <table>
