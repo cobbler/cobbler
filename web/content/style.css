@@ -58,13 +58,11 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 
 #login {
  width:250px;
- margin:0 auto;
+ margin:100px auto;
  padding:20px;
  text-align: center;
- border: 1px solid black;
 }
-
 #login #button {
  margin-top:10px;
- text-align: right;
+ text-align: center;
 }

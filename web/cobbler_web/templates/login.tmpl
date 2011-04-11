@@ -5,29 +5,25 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
     <link rel="stylesheet" type="text/css" media="all" href="/cobbler_webui_content/style.css" />
 </head>
-<body>
-  <div>
-    <a href="/cobbler_web/"><img alt="Cobbler Logo" width="185" src="/cobbler_webui_content/logo-cobbler.png"/></a>
-  </div>
+<body class="loginscreen">
   <div id="login">
+  <img src="/cobbler_webui_content/logo-cobbler.png" width="185" />
   {% if form.errors %}
-    <p class="error">Sorry, that's not a valid username or password</p>
+  <p class="error">Sorry, that's not a valid username or password</p>
   {% endif %}
   <form action="/cobbler_web/do_login" method="post">
-  <fieldset>
-   {% if next %}<input type="hidden" name="next" value="{{ next|escape }}" />{% endif %}
-   <div id="username">
+  {% if next %}<input type="hidden" name="next" value="{{ next|escape }}" />{% endif %}
+  <div id="username">
     <label for="username">Username: </label>
     <input type="text" name="username" value="" id="username">
-   </div>
-   <div id="password">
+  </div>
+  <div id="password">
     <label for="password">Password: </label>
     <input type="password" name="password" value="" id="password">
-   </div>
-   <div id="button">
+  </div>
+  <div id="button">
     <input type="submit" value="login" />
-   </div>
-  </fieldset>
+  </div>
   </form>
   </div>
 </body>
