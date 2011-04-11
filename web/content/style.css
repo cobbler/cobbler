@@ -48,7 +48,7 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 
 #listitems { border: 0; width: 100%; }
 #listitems td { padding: 2px; }
-#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; }
+#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left;}
 #listitems thead a { color: #dddddd; }
 #listitems tbody a { text-decoration: underline; }
 #listitems tbody .rowodd { background-color: #d3d3d3; }
