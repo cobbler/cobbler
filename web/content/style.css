@@ -26,7 +26,9 @@ table { border: 0px }
 .hidden { display:none; }
 
 div.multileft { float: left; text-align: left; }
-div.multiright { float: left; text-align: right; }
+div.multileft select { width: 150px;}
+div.multiright { float: left; text-align: right; width: 100px; }
+div.multiright select { width: 150px;}
 div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
 div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
 
