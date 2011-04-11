@@ -365,7 +365,8 @@ $(document).ready(function()
 });
 </script>
 
-  <h1>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</h1>
+<fieldset id="edit">
+  <legend>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</legend>
   <form method="post" action="/cobbler_web/{{ what }}/save">
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
@@ -375,7 +376,7 @@ $(document).ready(function()
         {% ifchanged item.block_section %}
       </table>
     </div>
-    <h2 class="sectionheader action">&rArr; {{ item.block_section }}</h2>
+    <h3 class="sectionheader action">&rArr; {{ item.block_section }}</h3>
     <div class="sectionbody" id="block_{{ item.block_section }}">
     <table>
        {% endifchanged %}
@@ -467,6 +468,8 @@ $(document).ready(function()
 
     <table>
     <tr>
+    <td>
+    </td>
     <td>
     {% if editable %}
     <input type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
