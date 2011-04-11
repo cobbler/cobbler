@@ -1,7 +1,6 @@
 {% extends 'master.tmpl' %}
 {% block content %}
-<fieldset>
-  <legend id="listheader" class="action"><span id="shadeState"></span> Cobbler Kickstart Snippets</legend>
+  <h1 id="listheader" class="action"><span id="shadeState"></span> Cobbler Kickstart Snippets</h1>
   <hr />
   <!-- This is kind weird, but force the name "snippet"
   because we know this is the ksfile page. If this gets moved
@@ -29,5 +28,4 @@
       {% endfor %}
     </tbody>
   </table>
-</fieldset>
 {% endblock content %}

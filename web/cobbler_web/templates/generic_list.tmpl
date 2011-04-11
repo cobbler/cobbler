@@ -100,8 +100,7 @@ function action_multi(otype) {
   }
 }
 </script>
-<fieldset>
-  <legend id="listheader" class="action"><span id="shadeState"></span> {{ what|title }}s</legend>
+  <h1 id="listheader" class="action"><span id="shadeState"></span> {{ what|title }}s</h1>
   <hr />
   <div>
   Actions: 
@@ -184,7 +183,6 @@ function action_multi(otype) {
     </table>
   <input type="hidden" name="names" id="names" value=""/>
   </form>
-</fieldset>
 
 {% endblock content %}
 

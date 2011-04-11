@@ -36,8 +36,7 @@ $(document).ready(function()
   <div style="clear: both;"></div>
   <div class="container">
     <div id="menubar">
-      <fieldset>
-        <legend>Configuration</legend>
+        <h1>Configuration</h1>
         <ul>
           <li><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
           <li><a href="/cobbler_web/profile/list" class="edit">Profiles</a></li>
@@ -48,16 +47,12 @@ $(document).ready(function()
           <li><a href="/cobbler_web/snippet/list" class="edit">Snippets</a></li>
           <li><a href="/cobbler_web/mgmtclass/list" class="edit">Management Classes</a></li>
         </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Resources</legend>
+        <h1>Resources</h1>
         <ul>
           <li><a href="/cobbler_web/package/list" class="edit">Packages</a></li>
           <li><a href="/cobbler_web/file/list" class="edit">Files</a></li>
         </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Actions</legend>
+        <h1>Actions</h1>
         <ul>
           <li><a href="/cobbler_web/import/prompt">Import DVD</a></li>
           <li><a href="/cobbler_web/sync">Sync</a> ☼</li>
@@ -66,9 +61,7 @@ $(document).ready(function()
           <!-- <li><a href="/cobbler_web/replicate">Replicate</a> ☼ </li> -->
           <li><a href="/cobbler_web/buildiso">Build ISO</a> ☼ </li>
         </ul>
-      </fieldset>
-      <fieldset>
-        <legend>Cobbler</legend>
+        <h1>Cobbler</h1>
         <ul>
           <li><a href="/cobbler_web/settings" class="menu">Settings</a></li>
           <li><a href="/cobbler_web/check" class="menu">Check</a></li>
@@ -77,7 +70,6 @@ $(document).ready(function()
           <li><a href="http://webchat.freenode.net?channels=#cobbler">Online Help Chat</a></li>
           <li><a href="/cobbler_web/logout">Logout</a></li>
         </ul>
-      </fieldset>
     {% include "paginate.tmpl" %}
     </div>
     <div class="content"/>  

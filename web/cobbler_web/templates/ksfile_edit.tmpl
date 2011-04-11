@@ -15,8 +15,7 @@
   <br />
 {% else %}
 <form method="post" action="/cobbler_web/ksfile/save">
-  <fieldset id="cform">
-    <legend>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</legend>
+    <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</h1>
     <ul>
       <li>
         <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
@@ -52,7 +51,6 @@
       </li>
       {% endif %}
     </ul>
-  </fieldset>
 </form>
 {% endif %}
 {% endblock content %}

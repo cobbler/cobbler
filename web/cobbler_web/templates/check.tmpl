@@ -1,8 +1,7 @@
 {% extends "master.tmpl" %}
 
 {% block content %}
-<fieldset id="check">
-  <legend>Things You Might Want To Fix:</legend>
+  <h1>Things You Might Want To Fix:</h1>
   <hr/>
   <ol>
     {% for entry in results %}
@@ -10,5 +9,4 @@
     {% endfor %}
   </ol>
   After making changes, run "cobbler sync" and restart cobblerd.
-</fieldset>
 {% endblock %}

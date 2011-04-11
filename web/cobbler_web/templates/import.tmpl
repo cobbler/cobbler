@@ -1,8 +1,7 @@
 {% extends 'master.tmpl' %}
 {% block content %}
 <form method="post" action="/cobbler_web/import/run">
-  <fieldset id="import">
-    <legend>DVD Importer</legend>
+    <h1>DVD Importer</h1>
       <ul>
         <li>
           <label for="name" class="inputlabel">Prefix</label>
@@ -46,6 +45,5 @@
           <div style="clear: both;"></div>
         </li>
       </ul>
-    </fieldset>
 </form>
 {% endblock content %}

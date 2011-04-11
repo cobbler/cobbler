@@ -3,8 +3,7 @@
 {% block content %}
 
 {% if results %}
-<fieldset>
-  <legend>Events</legend>
+  <h1>Events</h1>
   <hr/>
   <table id="listitems" cellspacing="0">
     <thead>
@@ -26,7 +25,6 @@
       {% endfor %}
     </tbody>
   </table>
-</fieldset>
 {% else %}
 <h3>No events</h3>
 {% endif %}

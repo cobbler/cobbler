@@ -11,10 +11,8 @@ if you need to resolve this.
 </blockquote>
 <br />
 {% endif %}
-<fieldset>
-  <legend>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Snippet</legend>
+  <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Snippet</h1>
   <form method="post" action="/cobbler_web/snippet/save">
-    <fieldset id="cform">
     <table>
       <tr>
         <td colspan="2">
@@ -60,7 +58,5 @@ if you need to resolve this.
         </td>
       </tr>
     </table>
-    </fieldset>
 </form>
-</fieldset>
 {% endblock content %}

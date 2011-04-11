@@ -9,8 +9,8 @@ a { color: #222222; text-decoration: none; }
 a:hover { color: #306CAC; text-decoration: none; }
 span.action:hover { color: #306CAC; text-decoration: none; }
 label { font-weight: bold; }
-legend,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
-legend { margin: 0px; padding-bottom: 3px; }
+h1,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
+h1 { margin: 0px; padding-bottom: 3px; }
 hr { margin-top: -2px; height: 1px; }
 fieldset { border: 0px; padding: 0px; margin: 0px; }
 img { border: 0px; }
