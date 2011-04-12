@@ -1,55 +1,54 @@
-
+/* Lets set the primary styles and feel for the app */
+body, html { height: 99%; }
 body {
   font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
-  background-color: #D4D4D4;
-  color: #222222;
-  font-size: .9em;
+  color: black;
   background-color: #D4D4D4;
   background-image: url('/cobbler_webui_content/logo-cobbler.png');
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-position: 0% 0%;
-  padding-top: 78px;
+  padding-top: 80px;
 }
-a { color: #222222; text-decoration: none; }
-a:hover { color: #306CAC; text-decoration: none; }
-span.action:hover { color: #306CAC; text-decoration: none; }
-label { font-weight: bold; }
-h1,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
-h1 { margin: 0px; padding-bottom: 3px; }
-hr { margin-top: -2px; height: 1px; }
-fieldset { border: 0px; padding: 0px; margin: 0px; }
-img { border: 0px; }
-ul { list-style-position: outside; list-style-type: none; overflow: hidden; } 
-table { border: 0px }
 
+a { color: black; text-decoration: none; }
+a:hover { color: #306CAC; }
+img { border: 0px; }
+h1,h2,legend { color: #306CAC; font-weight: bold; }
+h1 { font-size: 1.5em; }
+h2 { font-size: 1.2em; margin-bottom: 0px; }
+hr { height: 1px; }
+fieldset { border: 0px; padding: 0px; margin: 0px; align: center;}
+label { font-weight: bold; }
+ul { list-style-position: outside; list-style-type: none; overflow: hidden; }
+table { border: 0px; width: 100%; padding: 2px; }
+
+/* Defining the classes */
 .action { cursor: pointer; }
-.error { color: red; }
-.errormsg { color: blue; }
 .warn { color: #990000; font-weight: bold; font-size: 1.0em; }
 .rpointers { font-size: 1.6em; margin-left: 5px; }
 .lpointers { font-size: 1.6em; margin-right: 5px; }
-.hidden { display:none; }
-.tooptip { font-style: italic; }
 
+/* Defining classes specific to a tag */
+body.loginscreen { background-image: none; padding-top: 0px; }
 div.multileft { float: left; text-align: left; }
 div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
 div.multiright select { width: 150px;}
-div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
-div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
 
-#menubar { float: left; padding-left: 11px; width: 200px; background: #D4D4D4; }
-#menubar ul { padding: 0px 0px 10px 2px; margin: 0px; }
-#menubar ul li { padding-left: 8px; }
-#menubar select { width: 102px; }
+/* Now for the 'id' specific statements */
+#login { width: 500px; margin: 100px auto; text-align: center;}
+#container { width: 100%; margin: 0; padding: 0; }
+#body { min-height: 100%; }
+#user { margin-top: -80px; height: 80px; width: 100%; text-align: right; }
+#content { postition: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
+#footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
 
-#listactions { padding: 5px 0px 5px 15px; width: 140px; margin-top: 5px; background-color: #CCCCCC }
-#listactions li { padding-bottom: 3px; }
+#menubar { float:left; padding-left: 11px; width: 200px; background-color:#d4D4D4; }
+#menubar ul { padding-left: 2px; margin: 0px; }
+#menubar ul li { font-size: .8em; padding-left: 8px; }
 
-#listitems { border: 0; width: 100%; }
-#listitems td { padding: 2px; }
-#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left;}
+#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
 #listitems tbody a { text-decoration: underline; }
 #listitems tbody .rowodd { background-color: #d3d3d3; }
@@ -58,20 +57,13 @@ div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width:
 #listitems tbody .roweven:hover { background-color: #eeeeee; }
 #listitems tbody .action { text-decoration: underline; }
 
+
+/* Old styles
+
 #import li { padding: 8px; }
 #import label { width: 60px; float: left; }
 
 #edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
 #edit select { width: 175px; }
 #edit input[type=text] { width: 300px; }
-
-#login {
- width:250px;
- margin:100px auto;
- padding:20px;
- text-align: center;
-}
-#login #button {
- margin-top:10px;
- text-align: center;
-}
+*/
