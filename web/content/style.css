@@ -5,7 +5,6 @@ body {
   color: black;
   background-color: #D4D4D4;
   background-image: url('/cobbler_webui_content/logo-cobbler.png');
-  background-attachment: fixed;
   background-repeat: no-repeat;
   background-position: 0% 0%;
   padding-top: 80px;
@@ -44,7 +43,7 @@ li.paginate { float:right; }
 #content { postition: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
 #footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
 
-#menubar { float:left; padding-left: 11px; width: 200px; background-color:#d4D4D4; }
+#menubar { float:left; padding-left: 11px; width: 200px; }
 #menubar h1 { font-size: 1.0em; }
 #menubar ul { padding-left: 2px; margin: 0px; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
