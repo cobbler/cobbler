@@ -34,6 +34,8 @@ div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
 div.multiright select { width: 150px;}
 li.paginate { float:right; }
+span.action { text-decoration: none; }
+span.action:hover { color: #306CAC; }
 
 /* Now for the 'id' specific statements */
 #login { width: 500px; margin: 100px auto; text-align: center;}
@@ -55,12 +57,10 @@ li.paginate { float:right; }
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
-#listitems tbody a { text-decoration: underline; }
 #listitems tbody .rowodd { background-color: #d3d3d3; }
 #listitems tbody .rowodd:hover { background-color: #eeeeee; }
 #listitems tbody .roweven { background-color: #e0e0e0; }
 #listitems tbody .roweven:hover { background-color: #eeeeee; }
-#listitems tbody .action { text-decoration: underline; }
 
 /* Old styles
 #import li { padding: 8px; }
