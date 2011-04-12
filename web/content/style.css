@@ -18,9 +18,8 @@ h1,h2,legend { color: #306CAC; font-weight: bold; }
 h1 { font-size: 1.5em; }
 h2 { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; }
-fieldset { border: 0px; padding: 0px; margin: 0px; align: center;}
 label { font-weight: bold; }
-ul { list-style-position: outside; list-style-type: none; overflow: hidden; }
+ul { list-style: none; }
 table { border: 0px; width: 100%; padding: 2px; }
 
 /* Defining the classes */
@@ -35,6 +34,7 @@ div.multileft { float: left; text-align: left; }
 div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
 div.multiright select { width: 150px;}
+li.paginate { float:right; }
 
 /* Now for the 'id' specific statements */
 #login { width: 500px; margin: 100px auto; text-align: center;}
@@ -45,9 +45,15 @@ div.multiright select { width: 150px;}
 #footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
 
 #menubar { float:left; padding-left: 11px; width: 200px; background-color:#d4D4D4; }
+#menubar h1 { font-size: 1.0em; }
 #menubar ul { padding-left: 2px; margin: 0px; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
 
+#submenubar { width: 100%; display: inline; }
+#submenubar li { float: left; display: inline; }
+#submenubar li.paginate { float: right; }
+
+#listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
 #listitems tbody a { text-decoration: underline; }
@@ -57,9 +63,7 @@ div.multiright select { width: 150px;}
 #listitems tbody .roweven:hover { background-color: #eeeeee; }
 #listitems tbody .action { text-decoration: underline; }
 
-
 /* Old styles
-
 #import li { padding: 8px; }
 #import label { width: 60px; float: left; }
 
