@@ -24,16 +24,17 @@ table{
 /* Lets set the primary styles and feel for the app */
 body, html { height: 99%; }
 body {
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
-  color: black;
+  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  color: #333333;
   background-color: #D4D4D4;
   background-image: url('/cobbler_webui_content/logo-cobbler.png');
   background-repeat: no-repeat;
   background-position: 0% 0%;
   padding-top: 80px;
+  position: relative;
 }
 
-a { color: black; text-decoration: none; }
+a { color: #333333; text-decoration: none; }
 a:hover { color: #306CAC; }
 img { border: 0px; }
 h1,h2,legend { color: #306CAC; font-weight: bold; }
