@@ -1,3 +1,26 @@
+/*Reset to a sane default across browsers*/
+html{
+  overflow-y: scroll;
+}
+
+a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,li,ul,ol,p,pre,textarea,table,td,th {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+select,input,button,textarea{
+  font-size:99%;
+}
+
+table{
+  border-collapse:collapse;
+  border-spacing:0;
+  empty-cells:show;
+  width: 100%;
+}
+/*End Reset*/
+
 /* Lets set the primary styles and feel for the app */
 body, html { height: 99%; }
 body {
