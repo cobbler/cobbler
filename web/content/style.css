@@ -44,10 +44,24 @@ label { font-weight: bold; }
 ul { list-style: none; }
 
 /* Defining the classes */
-.action { cursor: pointer; }
+.button, .action {
+  text-decoration: none;
+  background-color: #306CAC;
+  border: 0px;
+  font-size: .8em;
+  font-weight: bold;
+  color: #dddddd;
+  cursor: pointer;
+  margin: 2px;
+  padding: 1px 7px;
+  -moz-border-radius:3px;
+}
+.button:hover, .action:hover {
+  color: #333;
+}
 .warn { color: #990000; font-weight: bold; font-size: 1.0em; }
-.rpointers { font-size: 1.6em; margin-left: 5px; }
-.lpointers { font-size: 1.6em; margin-right: 5px; }
+.rpointers { font-size: 1.0em; margin-left: 5px; }
+.lpointers { font-size: 1.0em; margin-right: 5px; }
 
 /* Defining classes specific to a tag */
 body.loginscreen { background-image: none; padding-top: 0px; }
