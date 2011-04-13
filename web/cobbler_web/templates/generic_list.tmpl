@@ -110,7 +110,7 @@ function action_multi(otype) {
       <option value="" selected="selected">Batch Actions</option>
       {% for title,action,value in batchactions %}<option value="{{ action }}|{{ value }}">{{ title }}</option>{% endfor %}
     </select>
-    <input type="button" value="go" onclick="javascript:action_multi('{{ what }}')" />
+    <input class="button" type="button" value="go" onclick="javascript:action_multi('{{ what }}')" />
   </li>
   {% include "paginate.tmpl" %}
 </ul>

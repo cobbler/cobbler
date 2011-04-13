@@ -63,13 +63,13 @@ function populate_widgets()
 {
     var buf = "";
     buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
-    buf = buf + "<input type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
+    buf = buf + "<input class="button" type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
     document.getElementById("widget_network_widget_a").innerHTML = buf;
 
     buf = "";
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
     buf = buf + "</select>";
-    buf = buf + "<input type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
+    buf = buf + "<input class="button" type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 }
 
@@ -436,7 +436,7 @@ $(document).ready(function()
         {% endsmart_if %}
       {% endfor %} 
            </select>
-           <br /><input type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
+           <br /><input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
           </div>
           <div class="multiright">
            Selected:<br />
@@ -447,7 +447,7 @@ $(document).ready(function()
         {% endsmart_if %}
       {% endfor %}
            </select>
-           <br /><input type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+           <br /><input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
           </div>
     {% endifequal %}
     {% smart_if editmode == "edit" and item.dname == "name" %}
@@ -471,8 +471,8 @@ $(document).ready(function()
     <tr>
       <td>
 {% if editable %}
-        <input type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
-        <input type="reset" name="reset" value="Reset"/>
+        <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
+        <input class="button" type="reset" name="reset" value="Reset"/>
 {% else %}
         This user does not have permissions to edit this object.
 {% endif %}
