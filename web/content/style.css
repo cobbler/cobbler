@@ -42,7 +42,6 @@ h2 { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; }
 label { font-weight: bold; }
 ul { list-style: none; }
-table { border: 0px; width: 100%; padding: 2px; }
 
 /* Defining the classes */
 .action { cursor: pointer; }
