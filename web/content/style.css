@@ -70,8 +70,6 @@ div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
 div.multiright select { width: 150px;}
 li.paginate { float:right; }
-span.action { text-decoration: none; }
-span.action:hover { color: #306CAC; }
 
 /* Now for the 'id' specific statements */
 #login { width: 500px; margin: 100px auto; text-align: center;}
