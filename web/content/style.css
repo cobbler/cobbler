@@ -64,7 +64,7 @@ ul { list-style: none; }
 .lpointers { font-size: 1.0em; margin-right: 5px; }
 
 /* Defining classes specific to a tag */
-body.loginscreen { background-image: none; padding-top: 0px; }
+body.loginscreen { background-image: none; }
 div.multileft { float: left; text-align: left; }
 div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
