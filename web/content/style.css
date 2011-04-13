@@ -22,7 +22,6 @@ table{
 /*End Reset*/
 
 /* Lets set the primary styles and feel for the app */
-body, html { height: 99%; }
 body {
   font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   color: #333333;
