@@ -103,8 +103,8 @@ function action_multi(otype) {
 <h1>{{ what|title }}s</h1>
 <hr />
 <ul id="submenubar">
-  <li><a href="/cobbler_web/{{what}}/edit">Create new {{ what }}</a></li>
-  {% ifequal what "profile" %}<li><a href="/cobbler_web/sub{{what}}/edit">Create new sub-{{ what }}</a></li>{% endifequal %}
+  <li><a class="action" href="/cobbler_web/{{what}}/edit">Create new {{ what }}</a></li>
+  {% ifequal what "profile" %}<li><a class="action" href="/cobbler_web/sub{{what}}/edit">Create new sub-{{ what }}</a></li>{% endifequal %}
   <li>
     <select id="batchactions">
       <option value="" selected="selected">Batch Actions</option>
