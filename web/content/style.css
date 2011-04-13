@@ -72,7 +72,7 @@ div.multiright select { width: 150px;}
 li.paginate { float:right; }
 
 /* Now for the 'id' specific statements */
-#login { width: 500px; margin: 100px auto; text-align: center;}
+#login { width: 200px; margin: auto; text-align: center;}
 #container { width: 100%; margin: 0; padding: 0; }
 #body { min-height: 100%; }
 #user { margin-top: -80px; height: 80px; width: 100%; text-align: right; }
