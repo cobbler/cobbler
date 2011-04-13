@@ -232,6 +232,9 @@ pxe_just_once: 0
 # from what directory?
 pxe_template_dir: "/etc/cobbler/pxe"
 
+# Path to where system consoles are 
+consoles: "/var/consoles"
+
 # Are you using a Red Hat management platform in addition to Cobbler?
 # Cobbler can help you register to it.  Choose one of the following:
 #   "off"    : I'm not using Red Hat Network, Satellite, or Spacewalk
