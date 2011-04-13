@@ -80,12 +80,13 @@ li.paginate { float:right; }
 #footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
 
 #menubar { float:left; padding-left: 11px; width: 200px; }
-#menubar h1 { font-size: 1.0em; }
-#menubar ul { padding-left: 2px; margin: 0px; }
+#menubar h1 { font-size: 1.0em; margin-bottom: 4px; }
+#menubar ul { padding-left: 2px; margin: 0px; margin-bottom: 8px; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
 
 #submenubar { width: 100%; display: inline; }
-#submenubar li { float: left; display: inline; }
+#submenubar li { float: left; display: inline; margin-left: 8px; }
+#submenubar li { margin-left: 0px;  }
 #submenubar li.paginate { float: right; }
 
 #listitems { clear: both; }
