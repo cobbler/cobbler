@@ -164,6 +164,31 @@ mgmt_classes: []
 mgmt_parameters:
    from_cobbler: 1
 
+# if enabled, this setting ensures that puppet is installed during
+# machine provision, a client certificate is generated and a
+# certificate signing request is made with the puppet master server
+puppet_auto_setup: 0
+
+# when puppet starts on a system after installation it needs to have
+# its certificate signed by the puppet master server. Enabling the
+# following feature will ensure that the puppet server signs the
+# certificate after installation if the puppet master server is
+# running on the same machine as cobbler. This requires
+# puppet_auto_setup above to be enabled
+sign_puppet_certs_automatically: 0
+
+# location of the puppet signing utility puppetca
+puppetca_path: "/usr/sbin/puppetca"
+
+# when a puppet managed machine is reinstalled it is necessary to
+# remove the puppet certificate from the puppet master server before a
+# new certificate is signed (see above). Enabling the following
+# feature will ensure that the certificate for the machine to be
+# installed is removed from the puppet master server if the puppet
+# master server is running on the same machine as cobbler. This
+# requires puppet_auto_setup above to be enabled
+remove_old_puppet_certs_automatically: 0
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: 0
