@@ -80,10 +80,10 @@ span.action:hover { color: #306CAC; }
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
-#listitems tbody .rowodd { background-color: #d3d3d3; }
-#listitems tbody .rowodd:hover { background-color: #eeeeee; }
-#listitems tbody .roweven { background-color: #e0e0e0; }
-#listitems tbody .roweven:hover { background-color: #eeeeee; }
+#listitems tbody tr.rowodd { background-color: #d3d3d3; }
+#listitems tbody tr.rowodd:hover { background-color: #eeeeee; }
+#listitems tbody tr.roweven { background-color: #e0e0e0; }
+#listitems tbody tr.roweven:hover { background-color: #eeeeee; }
 
 /* Old styles
 #import li { padding: 8px; }
