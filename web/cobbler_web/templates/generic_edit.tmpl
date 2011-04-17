@@ -373,14 +373,14 @@ $(document).ready(function()
   <input type="hidden" name="editmode" value="{{ editmode }}"/>
   <input type="hidden" name="subobject" value="{{ subobject }}"/>
   <div>
-    <ul class="hidden">
+    <ul class="hidden"></ul>
 {% for item in fields %}
   {% ifchanged item.block_section %}
   </div>
   <h2 class="sectionheader">&rArr; {{ item.block_section }}</h2>
   <div class="sectionbody" id="block_{{ item.block_section }}">
   {% endifchanged %}
-    <ul id="{{ item.dname  }}_row" class="editrow">
+    <ol id="{{ item.dname  }}_row" class="editrow">
       <li>
         <label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label>
   {% ifequal item.html_element "widget" %}
@@ -454,7 +454,7 @@ $(document).ready(function()
       </li>
   {% endifequal %}
 {% endfor %}
-    </ul>
+    </ol>
   </div>
 
 {% ifequal what "system" %}
