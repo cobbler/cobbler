@@ -11,12 +11,11 @@
   <link rel="stylesheet" type="text/css" media="all" href="/cobbler_webui_content/jsGrowl.css" />
 </head>
 <body onload="go_go_gadget()">
-<div id="body">
+<div id="container">
   <div id='user'>
     <input type="hidden" name="username" id="username" value="{{ username }}"/>
     Logged in: <b>{{ username }}</b> <a class="action" href="/cobbler_web/logout">Logout</a>
   </div>
-  <div id="container">
     <div id="menubar">
       <h1>Configuration</h1>
       <ul>
@@ -58,7 +57,6 @@
 {% endblock %}
     </div>
     <div id="jsGrowl"></div>
-  </div>
 </div>
 <div id="footer">
   <a href="http://fedorahosted.org/cobbler">Cobbler {{ version }}</a>

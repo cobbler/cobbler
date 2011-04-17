@@ -75,8 +75,7 @@ li.paginate { float:right; }
 
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}
-#container { width: 98%; margin: 0; padding: 0; }
-#body { min-height: 100%; }
+#container { width: 98%; margin: 0; padding: 0; min-height: 100%; }
 #user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
 #content { postition: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
 #footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
