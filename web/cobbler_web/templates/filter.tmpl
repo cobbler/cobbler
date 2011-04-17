@@ -13,7 +13,7 @@ function add_filter() {
 }
 </script>
 <ul id="filter-adder">
-  <li style="float: left">
+  <li>
     <label for="filter_field">Filter</label>
     <select id="filter_field" name="filter_field" class="filter">
       <option value=""></option>
@@ -141,8 +141,8 @@ function add_filter() {
       <option value="owners">owners</option>
   {% endifequal %}
     </select>
+    <label for="filter_value">on</label><input type="text" name="filter_value" id="filter_value" size="12"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
   </li>
-  <li><label for="filter_value">on</label><input type="text" name="filter_value" id="filter_value" size="12"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/></li>
 </ul>
   {% if filters %}
 <ul id="filter-remover">
