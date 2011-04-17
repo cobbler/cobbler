@@ -88,8 +88,8 @@ li.paginate select { width: auto; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
 
 #submenubar { width: 100%; display: inline; }
-#submenubar li { float: left; display: inline; margin-left: 8px; }
-#submenubar li { margin-left: 0px;  }
+#submenubar li { float: left; display: inline; height: 26px; margin-left: 8px; }
+#submenubar li:first-child { margin-left: 0px; margin-top: 4px; }
 #submenubar li.paginate { float: right; }
 #submenubar li.paginate select { width: auto; }
 
