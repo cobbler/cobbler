@@ -72,6 +72,7 @@ div.multileft select { width: 150px;}
 div.multiright { float: left; text-align: right; width: 100px; }
 div.multiright select { width: 150px;}
 li.paginate { float:right; }
+li.paginate select { width: auto; }
 
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}
@@ -89,6 +90,7 @@ li.paginate { float:right; }
 #submenubar li { float: left; display: inline; margin-left: 8px; }
 #submenubar li { margin-left: 0px;  }
 #submenubar li.paginate { float: right; }
+#submenubar li.paginate select { width: auto; }
 
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
