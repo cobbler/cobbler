@@ -22,7 +22,7 @@
       <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
   {% ifnotequal editmode 'edit' %}
       <input type="text" size="128" style="width: 300px;" name="ksfile_name" id="ksfile_name" />
-      <p class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</p>
+      <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</span>
   {% else %}
       <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}"/>
   {% endifnotequal %}
@@ -32,15 +32,16 @@
     </li>
   {% if deleteable %}
     <li>
-      <label>Delete</label>
-      <input type="checkbox" name="delete1" value="delete1" />Yes</input>
-      <input type="checkbox" name="delete2" value="delete2" />Really</input>
-      <p><span class="warn">Check both buttons and click save to delete this object</span></p>
+      <label class="delete" for="delete1">Delete</label>
+      <input type="checkbox" name="delete1" value="delete1" />
+      <label class="delete" for="delete2">Really?</label>
+      <input type="checkbox" name="delete2" value="delete2" />
+      <span class="context-tip">Check both buttons and click save to delete this object</span>
     </li>
   {% else %}
     {% ifequal editmode "edit" %}
     <li>
-      <span class="warn">NOTE: This kickstart template is currently in-use.</span>>
+      <span class="warn">NOTE: This kickstart template is currently in-use.</span>
     </li>
     {% endifequal %}
   {% endif %}

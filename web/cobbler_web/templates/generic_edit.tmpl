@@ -373,49 +373,48 @@ $(document).ready(function()
   <input type="hidden" name="editmode" value="{{ editmode }}"/>
   <input type="hidden" name="subobject" value="{{ subobject }}"/>
   <div>
-    <table class="hidden">
+    <ul class="hidden">
 {% for item in fields %}
   {% ifchanged item.block_section %}
-    </table>
   </div>
   <h2 class="sectionheader">&rArr; {{ item.block_section }}</h2>
   <div class="sectionbody" id="block_{{ item.block_section }}">
-    <table>
   {% endifchanged %}
-      <tr id="{{ item.dname  }}_row" class="editrow">
-        <td valign="top"><label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
+    <ul id="{{ item.dname  }}_row" class="editrow">
+      <li>
+        <label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label>
   {% ifequal item.html_element "widget" %}
-        <td><div id="widget_{{ item.dname }}" />
+        <div id="widget_{{ item.dname }}" />
   {% else %}
-        <td>
     {% ifequal item.html_element "text" %}
       {% smart_if editmode == "edit" and item.dname == "name" %}
-        {{ item.value }}<input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+        {{ item.value }} (editing, value is read-only)
+        <input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
       {% else %}
-          <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+        <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
       {% endsmart_if %}
     {% endifequal %}
     {% ifequal item.html_element "textarea" %}
-          <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
+        <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
     {% endifequal %}
     {% ifequal item.html_element "radio" %}
       {% for choice in item.choices %}
         {% ifequal item.value choice %}
-          <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
+        <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
         {% else %}
-          <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}">{{ choice }}&nbsp;
+        <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}">{{ choice }}&nbsp;
         {% endifequal %}
       {% endfor %}
     {% endifequal %}
     {% ifequal item.html_element "checkbox" %}
       {% ifequal item.value 1 %}
-          <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" /> Enabled
+        <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" /> Enabled
       {% else %}
-          <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" /> Enabled
+        <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" /> Enabled
       {% endifequal %}
     {% endifequal %}
     {% ifequal item.html_element "select" %}
-          <select id="{{ item.dname }}" name="{{ item.dname }}">
+        <select id="{{ item.dname }}" name="{{ item.dname }}">
       {% for choice in item.choices %}
         {% ifequal item.value choice %}
           <option value="{{ choice }}" selected>{{ choice }}</A>
@@ -423,42 +422,39 @@ $(document).ready(function()
           <option value="{{ choice }}">{{ choice }}</A>
         {% endifequal %}
       {% endfor %} 
-          </select>
+        </select>
     {% endifequal %}
     {% ifequal item.html_element "multiselect" %}
-          <span class="tooltip">{{ item.tooltip }}</span>
-          <div class="multileft">
-           Available:<br />
-           <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
+        <span class="context-tip">{{ item.tooltip }}</span>
+        <div class="multileft">
+          Available:<br />
+          <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
             <option value="{{ choice }}">{{ choice }}</a>
         {% endsmart_if %}
       {% endfor %} 
-           </select>
-           <br /><input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
-          </div>
-          <div class="multiright">
-           Selected:<br />
-           <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
+          </select>
+          <br />
+          <input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
+        </div>
+        <div class="multiright">
+          Selected:<br />
+          <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}
             <option value="{{ choice }}">{{ choice }}</a>
         {% endsmart_if %}
       {% endfor %}
-           </select>
-           <br /><input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
-          </div>
+          </select>
+          <br />
+          <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+        </div>
     {% endifequal %}
-    {% smart_if editmode == "edit" and item.dname == "name" %}
-          (editing, value is read-only)
-    {% else %}
-    {% endsmart_if %}
-        </td>
+      </li>
   {% endifequal %}
-      </tr>
 {% endfor %}
-    </table>
+    </ul>
   </div>
 
 {% ifequal what "system" %}
@@ -467,18 +463,14 @@ $(document).ready(function()
   <input type="hidden" id="original" name="original" value="1"/>
 {% endifequal %}
 
-  <table>
-    <tr>
-      <td>
+  <div>
 {% if editable %}
-        <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
-        <input class="button" type="reset" name="reset" value="Reset"/>
+    <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
+    <input class="button" type="reset" name="reset" value="Reset"/>
 {% else %}
-        This user does not have permissions to edit this object.
+    This user does not have permissions to edit this object.
 {% endif %}
-      </td>
-    </tr>
-  </table>
+  </div>
 
 </form>
 {% endblock content %}
