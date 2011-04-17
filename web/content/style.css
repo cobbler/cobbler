@@ -59,7 +59,8 @@ input[type=text], input[type=password], select { width: 200px; }
   text-transform: capitalize;
 }
 .button:hover, .action:hover {
-  color: #333;
+  color: #DDDDDD;
+  background-color: #333333;
 }
 .warn { color: #990000; font-weight: bold; font-size: 1.0em; }
 .rpointers { font-size: 1.0em; margin-left: 5px; }
@@ -95,6 +96,7 @@ li.paginate select { width: auto; }
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
+#listitems tbody tr a.action, #listitems tbody tr span.action { font-size: .8em; }
 #listitems tbody tr.rowodd { background-color: #d3d3d3; }
 #listitems tbody tr.rowodd:hover { background-color: #eeeeee; }
 #listitems tbody tr.roweven { background-color: #e0e0e0; }
