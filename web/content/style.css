@@ -41,7 +41,7 @@ h1 { font-size: 1.5em; }
 h2 { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
 label { font-weight: bold; }
-ul { list-style: none; }
+ol, ul { list-style: none; }
 input[type=text], input[type=password], select { width: 200px; }
 
 /* Defining the classes */
@@ -68,10 +68,12 @@ input[type=text], input[type=password], select { width: 200px; }
 
 /* Defining classes specific to a tag */
 body.loginscreen { background-image: none; }
-div.multileft { float: left; text-align: left; }
-div.multileft select { width: 150px;}
-div.multiright { float: left; text-align: right; width: 100px; }
-div.multiright select { width: 150px;}
+ul.multiselect { display: -moz-inline-box; display:inline-block; width:300px; vertical-align:top; overflow:visible; }
+li.multileft { float: left; text-align: left; }
+li.multileft select { width: 150px;}
+li.multiright { float: right; text-align: right; width: 100px; }
+li.multiright select { width: 150px;}
+div.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
 
