@@ -426,30 +426,32 @@ $(document).ready(function()
     {% endifequal %}
     {% ifequal item.html_element "multiselect" %}
         <span class="context-tip">{{ item.tooltip }}</span>
-        <div class="multileft">
-          Available:<br />
-          <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
+        <ul class="multiselect">
+          <li class="multileft">
+            Available:<br />
+            <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
-            <option value="{{ choice }}">{{ choice }}</a>
+              <option value="{{ choice }}">{{ choice }}</a>
         {% endsmart_if %}
       {% endfor %} 
-          </select>
-          <br />
-          <input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
-        </div>
-        <div class="multiright">
-          Selected:<br />
-          <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
+            </select>
+            <br />
+            <input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
+          </li>
+          <li class="multiright">
+            Selected:<br />
+            <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}
-            <option value="{{ choice }}">{{ choice }}</a>
+              <option value="{{ choice }}">{{ choice }}</a>
         {% endsmart_if %}
       {% endfor %}
-          </select>
-          <br />
-          <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
-        </div>
+            </select>
+            <br />
+            <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+          </li>
+        </ul>
     {% endifequal %}
       </li>
   {% endifequal %}
