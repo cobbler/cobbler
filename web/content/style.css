@@ -39,7 +39,7 @@ img { border: 0px; }
 h1,h2,legend { color: #306CAC; font-weight: bold; }
 h1 { font-size: 1.5em; }
 h2 { font-size: 1.2em; margin-bottom: 0px; }
-hr { height: 1px; }
+hr { height: 1px; margin: 0px; }
 label { font-weight: bold; }
 ul { list-style: none; }
 input[type=text], input[type=password], select { width: 200px; }
