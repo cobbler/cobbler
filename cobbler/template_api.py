@@ -42,6 +42,30 @@ except:
     raise CX("/etc/cobbler/settings is not a valid YAML file")
 SAFE_TEMPLATING = data.get('safe_templating',True)
 
+DEFAULT_WHITELIST = [
+    'import',
+    'from',
+    'if',
+    'elif',
+    'else',
+    'unless',
+    'def',
+    'block',
+    'end',
+    'for',
+    'include',
+    'echo',
+    'set',
+    'snippet',
+    'errorcatcher',
+    'break',
+    'continue',
+    'silent',
+    'slurp',
+    'raw',
+]
+
+WHITELIST = data.get('safe_templating_whitelist', DEFAULT_WHITELIST)
 
 class CobblerMethod(Cheetah.Compiler.AutoMethodCompiler):
     def addSilent(self, expr):
@@ -72,29 +96,6 @@ class CobblerCompiler(Cheetah.Compiler.ModuleCompiler):
         """
         Create a Compiler with PSP-like code embedding disabled.
         """
-        whitelist = [
-            'import',
-            'from',
-            'if',
-            'elif',
-            'else',
-            'unless',
-            'def',
-            'block',
-            'end',
-            'for',
-            'include',
-            'echo',
-            'set',
-            'snippet',
-            'errorcatcher',
-            'break',
-            'continue',
-            'silent',
-            'slurp',
-            'raw',
-            ]
-
         if 'settings' not in kwargs:
             cs = {}
         else:
@@ -111,10 +112,10 @@ class CobblerCompiler(Cheetah.Compiler.ModuleCompiler):
                 cs['disabledDirectives'].append('psp')
 
         if 'enabledDirectives' not in cs:
-            cs['enabledDirectives'] = whitelist
+            cs['enabledDirectives'] = WHITELIST
         else:
             cs['enabledDirectives'] = list(cs['enabledDirectives'])
-            for directive in whitelist:
+            for directive in WHITELIST:
                 if directive not in cs['enabledDirectives']:
                     cs['enabledDirectives'].append(directive)
 

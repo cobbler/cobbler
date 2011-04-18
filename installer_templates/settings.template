@@ -385,3 +385,28 @@ yumdownloader_flags: "--resolve"
 # individuals writting templates that do not have root access to the
 # cobbler system.
 safe_templating: true
+
+# The Safe Templating Whitelist contains Cheetah directives that will
+# be allowed in rendered templates. Be careful allowing additional
+# directives as it may allow unsafe code execution as root.
+safe_templating_whitelist:
+   - import
+   - from
+   - if
+   - elif
+   - else
+   - unless
+   - def
+   - block
+   - end
+   - for
+   - include
+   - echo
+   - set
+   - snippet
+   - errorcatcher
+   - break
+   - continue
+   - silent
+   - slurp
+   - raw
