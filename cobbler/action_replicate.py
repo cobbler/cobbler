@@ -85,6 +85,8 @@ class Replicate:
              if not locals.has_key(rdata["uid"]):
                  creator = getattr(self.api, "new_%s" % obj_type)
                  newobj = creator()
+                 if obj_type == 'distro':
+                     rdata = self.fix_distro(rdata)
                  newobj.from_datastruct(rdata)
                  try:
                      self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
@@ -113,6 +115,8 @@ class Replicate:
                          self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                      creator = getattr(self.api, "new_%s" % obj_type)
                      newobj = creator()
+                     if obj_type == 'distro':
+                         rdata = self.fix_distro(rdata)
                      newobj.from_datastruct(rdata)
                      try:
                          self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
@@ -149,18 +153,7 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    distro = self.remote.get_item('distro',distro)
-                    if distro["breed"] == 'redhat':
-                        dest = distro["kernel"]
-                        top = None
-                        while top != 'images' and top != '':
-                            dest, top = os.path.split(dest)
-                        if not dest == os.path.sep and len(dest) > 1:
-                            parentdir = os.path.split(dest)[0]
-                            if not os.path.isdir(parentdir):
-                                os.makedirs(parentdir)
-                            self.rsync_it("distro-%s"%distro["name"], dest)
-
+                    self.rsync_it("distro-%s"distro, os.path.join(self.settings.webdir,"ks_mirror",repo))
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
@@ -175,7 +168,7 @@ class Replicate:
         else:
             self.logger.info("*NOT* Rsyncing Data")
 
-        self.logger.info("Removing Objects Not Stored On Local")
+        self.logger.info("Adding Objects Not Stored On Local")
         for what in OBJ_TYPES:
             self.add_objects_not_on_local(what)
 
@@ -183,12 +176,33 @@ class Replicate:
         for what in OBJ_TYPES:
             self.replace_objects_newer_on_remote(what)
 
-
     def link_distros(self):
 
         for distro in self.api.distros():
+            src_link = os.path.join(self.settings.webdir, "ks_mirror", distro.name)
+            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+            if os.path.exists(dest_link):
+                continue
             self.logger.debug("Linking Distro %s" % distro.name)
-            utils.link_distro(self.settings, distro)
+            try:
+                os.symlink(src_link,dest_link)
+            except:
+                # this shouldn't happen but I've seen it ... debug ...
+                print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
+    def fix_distro(self, distro):
+        for i in ['kernel','distro']:
+            f = distro[i]
+            if not os.path.exists(f):
+                #find where the kernel and initrd moved
+                tokens = f.split(os.path.sep)
+                base = os.path.join(self.settings.webdir,'ks_mirror',distro['name'])
+                for i in range(len(tokens)):
+                    n = os.path.join(base,os.path.sep.join(tokens[i:]))
+                    if os.path.exists(n):
+                        distro[i] = n
+                        break
+        return distro
 
 
     def generate_include_map(self):
