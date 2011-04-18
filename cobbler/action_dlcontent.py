@@ -62,35 +62,22 @@ class ContentDownloader:
           ( "%s/grub-0.97-x86_64.efi" % content_server, "%s/grub-x86_64.efi" % dest),
        )
 
-       proxies = {} 
-       for var in os.environ.keys():
-          if (var.lower() == "http_proxy"):
-             proxies['http'] = os.environ[var]
+       proxies = {}
+       if os.environ.has_key("HTTP_PROXY"):
+          proxies['http'] = os.environ[var]
 
-          if (var.lower() == "ftp_proxy"):
-             proxies['ftp'] = os.environ[var]
+       if os.environ.has_key("FTP_PROXY"):
+          proxies['ftp'] = os.environ[var]
 
-       if (len(proxies) > 0):
-          for f in files:
-             src = f[0]
-             dst = f[1]
-             if os.path.exists(dst) and not force:
-                self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
-                continue
-             os.chdir(dest)
-             self.logger.info("downloading %s to %s" % (src,dst))
-             urlgrabber.grabber.urlgrab(src, proxies=proxies)  
+       if len(proxies) == 0:
+          proxies = None
 
-       else:
-          self.logger.info("downloading content required to netboot all arches")
-          for f in files:
-             src = f[0]
-             dst = f[1]
-             if os.path.exists(dst) and not force:
-                self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
-                continue
+       for src,dst in files:
+          if os.path.exists(dst) and not force:
+             self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
+             continue
           self.logger.info("downloading %s to %s" % (src,dst))
-          urlgrabber.urlgrab(src,dst)
+          urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
 
        return True
 
