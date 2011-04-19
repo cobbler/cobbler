@@ -34,7 +34,7 @@ def run(api,args,logger):
    # Right now, just using img_path, but adding more
    # cobbler variables here would probably be good
    metadata = {}
-   metadata["img_path"] = os.path.join("/tftpboot/images",name)
+   metadata["img_path"] = os.path.join(utils.tftpboot_location(),"images",name)
 
    # Create the templar instance
    templater = templar.Templar()
