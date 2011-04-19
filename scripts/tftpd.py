@@ -496,8 +496,9 @@ class Request:
 
         # Look for the file in the fetchable_files hash
         for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
+	    k = k.lstrip('/') # Allow some slop w/ starting /s
             # Render the target, to expand things like "$kernel"
-            if k == trimmed:
+            if k == trimmed;
                 logging.debug('_remap_name: %s => %s' % (k,v))
                 try:
                     return self.templar.render(
