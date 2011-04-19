@@ -153,7 +153,9 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    self.rsync_it("distro-%s"distro, os.path.join(self.settings.webdir,"ks_mirror",repo))
+                    src = "distro-%s"%distro
+                    dst = os.path.join(self.settings.webdir,"ks_mirror",distro)
+                    self.rsync_it(src,dst)
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
@@ -191,7 +193,10 @@ class Replicate:
                 print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
 
     def fix_distro(self, distro):
-        for i in ['kernel','distro']:
+        for i in ['kernel','initrd']:
+            if not distro.has_key(i):
+                self.logger.debug("Distro %s did not have %s. This shouldn't happen BUG"%(distro['name'],i))
+                continue
             f = distro[i]
             if not os.path.exists(f):
                 #find where the kernel and initrd moved
