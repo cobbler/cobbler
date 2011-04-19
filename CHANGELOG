@@ -1,4 +1,24 @@
 Cobbler CHANGELOG
+
+- Apr 20 2011 - 2.0.11
+- (BUGF) Fix for bug #587 - Un-escaped '$' in snippet silently fails to render
+- (BUGF) Fix cheetah version finding
+- (BUGF) Fix for trac #541 - cobbler sync deletes /var/www/cobbler/pub
+- (BUGF) Only require fence-agents on Fedora due to it not being available in EL6 base. Fixes BZ#661342.
+- (BUGF) Copy memtest to $bootloc/images/.  Fixes BZ#663307
+- (BUGF) Allow dlcontent to use proxy environment variables
+- (BUGF) safe_templating fixups, more tags, and configurable
+- (FEAT) Supports an additional initrd from kernel_options.
+- (BUGF) Use shlex.split() to properly handle a quoted install URL (e.g. url --url="http://example.org")
+- (BUGF) Various cobbler-web UI cleanups
+- (BUGF) Added manage_rsync option which defaults to 0
+- (BUGF) Various replicate cleanups, new switch --sync-all
+- (BUGF) Buildiso fixes
+- (BUGF) restore --no-fail functionality to CLI reposync
+- (BUGF) Fix old style shell triggers
+- (BUGF) Man page cleanups
+- (FEAT) Greater puppet integration
+
 - Dec 24 2010 - 2.0.10
 - (BUGF) Fixed pruning of objects that have children on replicate
 - (BUGF) Exclude initrd.addrsize on import
