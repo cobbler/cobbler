@@ -193,6 +193,10 @@ puppetca_path: "/usr/sbin/puppetca"
 # requires puppet_auto_setup above to be enabled
 remove_old_puppet_certs_automatically: 0
 
+# set to 1 to enable Cobbler's Rsync management features.
+# this is required for sub Cobblers to replicate via rsync
+manage_rsync: 0
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: $enable_dhcp
