@@ -59,6 +59,22 @@ userid = translate(id, lower, upper)
 'cp set run on'
 'cp set pf11 retrieve forward'
 'cp set pf12 retrieve'
+
+/* Make it possible to interrupt zPXE and to enter CMS even with a
+   specific user profile present
+*/
+if (dsc <> 'DSC') then do                      /* user is connected */
+  say ''
+  say 'Enter a non-blank character and ENTER (or two ENTERs) within 10'
+  say ' seconds to interrupt zPXE.'
+  'WAKEUP +00:10 (CONS'
+  /* Check for interrupt */
+  if rc = 6 then do
+    say 'Interrupt: entering CMS.'
+    pull                                             /* Clear Stack */
+    exit
+  end
+end
  
 /* Check for config file */
 if lines(config) > 0 then do
