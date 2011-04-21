@@ -10,12 +10,12 @@
 ## =====================================
 #set $output_str=""
 #for $item in $argList
-#if $len($output_str) + $len($item) >= 80
-#echo "%s\n" % $output_str.strip()
-#set $output_str = ""
-#end if
 #set $output_str = "%s %s" % ($output_str, $item)
+#if $len($output_str) >= 80
+#echo "%s\n" % $output_str[0:80]
+#set $output_str = $output_str[80:$len($output_str)]
+#end if
 #end for
 #if $len($output_str) > 0
-#echo "%s\n" % $output_str.strip()
+#echo "%s\n" % $output_str
 #end if
