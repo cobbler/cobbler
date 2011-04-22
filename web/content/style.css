@@ -1,9 +1,10 @@
 /*Reset to a sane default across browsers*/
 html{
   overflow-y: scroll;
+  font-size: 1em;
 }
 
-a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,li,ul,ol,p,pre,textarea,table,td,th {
+a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,li,ul,ol,p,pre,select,textarea,table,tbody,td,th,thead,tr {
   border: 0;
   margin: 0;
   padding: 0;
@@ -49,13 +50,13 @@ input[type=text], input[type=password], select { width: 200px; }
   text-decoration: none;
   background-color: #306CAC;
   border: 0px;
-  height: 22px;
   font-weight: bold;
   color: #dddddd;
   cursor: pointer;
-  margin: 2px;
-  padding: 1px 7px;
+  margin: 0px 2px;
+  padding: 2px 7px;
   -moz-border-radius:3px;
+  -webkit-border-radius: 3px;
   text-transform: capitalize;
 }
 .button:hover, .action:hover {
@@ -68,6 +69,7 @@ input[type=text], input[type=password], select { width: 200px; }
 
 /* Defining classes specific to a tag */
 body.loginscreen { background-image: none; }
+input.action { height: 22px; }
 ul.multiselect { display: -moz-inline-box; display:inline-block; width:300px; vertical-align:top; overflow:visible; }
 li.multileft { float: left; text-align: left; }
 li.multileft select { width: 150px;}
@@ -96,14 +98,20 @@ li.paginate select { width: auto; }
 #submenubar li.paginate { float: right; }
 #submenubar li.paginate select { width: auto; }
 
+#batchactions option { padding-left: 1em; }
+#batchactions option:first-child { font-weight: bold; padding: 0; }
+
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
-#listitems tbody tr a.action, #listitems tbody tr span.action { font-size: .8em; }
-#listitems tbody tr.rowodd { background-color: #d3d3d3; }
-#listitems tbody tr.rowodd:hover { background-color: #eeeeee; }
-#listitems tbody tr.roweven { background-color: #e0e0e0; }
-#listitems tbody tr.roweven:hover { background-color: #eeeeee; }
+#listitems thead tr th:first-child { width: 2em; padding-left: .3em;}
+#listitems tbody tr a.action, #listitems tbody tr span.action { font-size: .8em; float: left; padding: 1px 7px; }
+#listitems tbody tr { background-color: #eeeeee; }
+#listitems tbody tr.selected { background-color: #e0e0e0; }
+#listitems tbody tr:hover { background-color: #cccccc; }
+#listitems tbody td { border-bottom: 1px solid #cccccc; }
+#listitems tbody td:first-child { width: 2em; padding-left: .3em;}
+#listitems tbody td:last-child { width: 21em; }
 
 /* Old styles
 #import li { padding: 8px; }
@@ -113,3 +121,4 @@ li.paginate select { width: auto; }
 #edit select { width: 175px; }
 #edit input[type=text] { width: 300px; }
 */
+
