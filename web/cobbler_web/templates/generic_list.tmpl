@@ -8,7 +8,12 @@ function items_check_all(){
     var items    = document.getElementsByName("items")
     for(i=0; i<items.length; ++i) {
         items[i].checked=checkall;
+        items_check(items[i])
     }
+}
+
+function items_check(obj) {
+    obj.parentNode.parentNode.className=(obj.checked)? 'selected' : '';
 }
 
 function items_checked_values() {
@@ -122,7 +127,7 @@ function action_multi(otype) {
     <thead>
       <tr>
         <th>
-          &nbsp;<input type="checkbox" id="itemsall" onclick="javascript:items_check_all();" />
+          <input type="checkbox" id="itemsall" onclick="javascript:items_check_all();" />
         </th>
 {% for value in columns %}
         <th>
@@ -141,7 +146,7 @@ function action_multi(otype) {
     <tbody>
 {% for item in items %}
       <tr class="{% cycle 'rowodd' 'roweven' %}">
-        <td>&nbsp;<input type="checkbox" name="items" value="{{ item.0.1 }}" /></td>
+        <td><input type="checkbox" name="items" value="{{ item.0.1 }}" onclick="javascript:items_check(this);" /></td>
   {% for value in item %}
         <td>
     {% ifequal value.0 "name" %}
@@ -185,5 +190,3 @@ function action_multi(otype) {
 {% include "filter.tmpl" %}
 
 {% endblock content %}
-
-
