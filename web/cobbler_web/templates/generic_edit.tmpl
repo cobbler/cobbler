@@ -395,7 +395,7 @@ $(document).ready(function()
       {% endsmart_if %}
     {% endifequal %}
     {% ifequal item.html_element "textarea" %}
-        <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea>
+        <textarea name="{{ item.dname }}" id="{{ item.dname }}">{{ item.value }}</textarea>
     {% endifequal %}
     {% ifequal item.html_element "radio" %}
       {% for choice in item.choices %}
@@ -428,7 +428,7 @@ $(document).ready(function()
         <ul class="multiselect">
           <li class="multileft">
             Available:<br />
-            <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit" size="8">
+            <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
               <option value="{{ choice }}">{{ choice }}</a>
@@ -440,7 +440,7 @@ $(document).ready(function()
           </li>
           <li class="multiright">
             Selected:<br />
-            <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit" size="8">
+            <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}
               <option value="{{ choice }}">{{ choice }}</a>

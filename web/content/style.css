@@ -4,7 +4,7 @@ html{
   font-size: 1em;
 }
 
-a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,select,span,textarea,table,tbody,td,th,thead,tr {
+a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,span,textarea,table,tbody,td,th,thead,tr {
   border: 0;
   margin: 0;
   padding: 0;
@@ -12,6 +12,10 @@ a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,la
 
 select,input,button,textarea{
   font-size:99%;
+}
+
+select {
+  margin: 0;
 }
 
 table{
@@ -41,9 +45,11 @@ h1,h2,legend { color: #306CAC; font-weight: bold; }
 h1 { font-size: 1.5em; }
 h2 { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
+input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
+input[type=text], input[type=password], select { width: 200px; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
-input[type=text], input[type=password], select { width: 200px; }
+textarea { height: 8em; width: 25em; }
 
 /* Defining the classes */
 .button, .action {
@@ -72,9 +78,8 @@ body.loginscreen { background-image: none; }
 input.action { height: 22px; }
 ul.multiselect { display: -moz-inline-box; display:inline-block; width:300px; vertical-align:top; overflow:visible; }
 li.multileft { float: left; text-align: left; }
-li.multileft select { width: 150px;}
-li.multiright { float: right; text-align: right; width: 100px; }
-li.multiright select { width: 150px;}
+li.multileft select, li.multiright select { height: 156px; width: 150px; }
+li.multiright { float: right; text-align: right; }
 div.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
@@ -82,6 +87,8 @@ span.context-tip { font-size: .7em; font-style: italic;}
 
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}
+#login input { text-align: center;}
+
 #container { width: 98%; margin: 0; padding: 0; min-height: 100%; }
 #user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
 #content { postition: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
@@ -99,8 +106,9 @@ span.context-tip { font-size: .7em; font-style: italic;}
 #submenubar li.paginate { float: right; }
 #submenubar li.paginate select { width: auto; }
 
-#batchactions option { padding-left: 1em; }
-#batchactions option:first-child { font-weight: bold; padding: 0; }
+#batchactions { font-weight: bold; }
+#batchactions option { padding-left: 1em; font-weight: normal; }
+#batchactions option:first-child { font-weight: bold; padding-left: 0; }
 
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
