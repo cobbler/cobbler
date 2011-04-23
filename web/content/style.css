@@ -96,7 +96,7 @@ span.context-tip { font-size: .7em; font-style: italic;}
 #user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
 #content { position: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
 #filter-adder { margin-top: 5px; }
-#footer { font-size: .8em; text-align: center; postition: relative; height: 25px; margin-top: -25px; clear: both; }
+#footer { font-size: .8em; text-align: center; position: relative; height: 25px; margin-top: -25px; clear: both; }
 
 #menubar { float:left; padding-left: 11px; width: 200px; }
 #menubar h1 { font-size: 1.0em; margin-bottom: 4px; }
