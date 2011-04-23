@@ -4,7 +4,7 @@ html{
   font-size: 1em;
 }
 
-a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,select,span,textarea,table,tbody,td,th,thead,tr
+a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,select,span,textarea,table,tbody,td,th,thead,tr {
   border: 0;
   margin: 0;
   padding: 0;
