@@ -437,8 +437,8 @@ $(document).ready(function()
             </select>
           </div>
           <div class="multibuttons">
-            <input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
-            <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+            <input class="button" type="button" value="&gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
+            <input class="button" type="button" value="&lt;&lt;" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
           </div>
           <div class="multiright">
             <label for="{{ item.dname }}">Selected:</label>
