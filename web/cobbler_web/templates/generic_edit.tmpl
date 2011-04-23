@@ -63,13 +63,13 @@ function populate_widgets()
 {
     var buf = "";
     buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
-    buf = buf + "<input class="button" type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
+    buf = buf + "<input class='button' type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
     document.getElementById("widget_network_widget_a").innerHTML = buf;
 
     buf = "";
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
     buf = buf + "</select>";
-    buf = buf + "<input class="button" type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
+    buf = buf + "<input class='button' type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 }
 
