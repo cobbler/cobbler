@@ -425,9 +425,9 @@ $(document).ready(function()
         </select>
     {% endifequal %}
     {% ifequal item.html_element "multiselect" %}
-        <ul class="multiselect">
-          <li class="multileft">
-            Available:<br />
+        <div class="multiselect">
+          <div class="multileft">
+            <label for="from_{{ item.dname }}">Available:</label>
             <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
@@ -435,11 +435,13 @@ $(document).ready(function()
         {% endsmart_if %}
       {% endfor %} 
             </select>
-            <br />
+          </div>
+          <div class="multibuttons">
             <input class="button" type="button" value="Add &gt;&gt;" id="add_{{ item.dname }}" onclick="$('#from_{{ item.dname }} option:selected').remove().appendTo('#{{ item.dname }}');" />
-          </li>
-          <li class="multiright">
-            Selected:<br />
+            <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
+          </div>
+          <div class="multiright">
+            <label for="{{ item.dname }}">Selected:</label>
             <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}
@@ -447,9 +449,7 @@ $(document).ready(function()
         {% endsmart_if %}
       {% endfor %}
             </select>
-            <br />
-            <input class="button" type="button" value="&lt;&lt; Remove" id="remove_{{ item.dname }}" onclick="$('#{{ item.dname }} option:selected').remove().appendTo('#from_{{ item.dname }}');" />
-          </li>
+          </div>
         </ul>
     {% endifequal %}
     {% smart_if editmode == "edit" and item.dname != "name" %}

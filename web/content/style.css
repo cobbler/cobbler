@@ -76,11 +76,14 @@ textarea { height: 8em; width: 25em; }
 /* Defining classes specific to a tag */
 body.loginscreen { background-image: none; }
 input.action { height: 22px; }
-ul.multiselect { display: -moz-inline-box; display:inline-block; width:300px; vertical-align:top; overflow:visible; }
-li.multileft { float: left; text-align: left; }
-li.multileft select, li.multiright select { height: 156px; width: 150px; }
-li.multiright { float: right; text-align: right; }
 div.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
+div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
+div.multiselect label { width: auto; font-weight: normal; display: inline; }
+div.multileft { float: left; text-align: left; width: 150px; }
+div.multileft select, div.multiright select { height: 156px; width: 150px; }
+div.multibuttons { width: 105px; padding-top: 75px; float: left;}
+div.multibuttons input.button { font-size: .8em; clear: both; width: 100px; margin: 2px;}
+div.multiright { float: left; text-align: right; width: 150px; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
 span.context-tip { font-size: .7em; font-style: italic;}
