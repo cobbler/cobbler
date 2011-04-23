@@ -78,6 +78,7 @@ li.multiright select { width: 150px;}
 div.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
+span.context-tip { font-size: .7em; font-style: italic;}
 
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}

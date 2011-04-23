@@ -395,7 +395,7 @@ $(document).ready(function()
       {% endsmart_if %}
     {% endifequal %}
     {% ifequal item.html_element "textarea" %}
-        <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
+        <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea>
     {% endifequal %}
     {% ifequal item.html_element "radio" %}
       {% for choice in item.choices %}
@@ -425,7 +425,6 @@ $(document).ready(function()
         </select>
     {% endifequal %}
     {% ifequal item.html_element "multiselect" %}
-        <span class="context-tip">{{ item.tooltip }}</span>
         <ul class="multiselect">
           <li class="multileft">
             Available:<br />
@@ -453,6 +452,11 @@ $(document).ready(function()
           </li>
         </ul>
     {% endifequal %}
+    {% smart_if editmode == "edit" and item.dname != "name" %}
+      {% if item.tooltip %}
+        <span class="context-tip">{{ item.tooltip }}</span>
+      {% endif %}
+    {% endsmart_if %}
       </li>
   {% endifequal %}
     </ol>
