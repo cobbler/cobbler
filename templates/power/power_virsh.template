@@ -10,7 +10,7 @@
 
 ## Determine requested driver to use (defaults to 'qemu')
 #if $power_address and $power_address.count(':') > 0
-    #set (driver, power_address) = $power_address.split(':', 1)
+    #set (driver, power_address) = $power_address.split('://', 1)
 #else
     #set driver = "qemu"
 #end if
