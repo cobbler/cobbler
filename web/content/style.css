@@ -47,6 +47,7 @@ h2 { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
 input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
 input[type=text], input[type=password], select { width: 200px; }
+input[type=submit], input[type=reset] { margin-top: 10px; }
 input[type=checkbox] { background: none;  border: none; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
