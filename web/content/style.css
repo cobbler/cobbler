@@ -77,7 +77,7 @@ textarea { height: 8em; width: 25em; }
 /* Defining classes specific to a tag */
 body.loginscreen { background-image: none; }
 input.action { height: 22px; }
-div.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
+ol.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
 div.multiselect label { width: auto; font-weight: normal; display: inline; }
 div.multileft { float: left; text-align: left; width: 150px; }
