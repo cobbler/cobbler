@@ -63,13 +63,13 @@ function populate_widgets()
 {
     var buf = "";
     buf = buf + "<input type='text' name='newinterfacename' id='newinterfacename' value=''>";
-    buf = buf + "<input class='button' type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()'/>";
+    buf = buf + "<input class='button' type='button' name='addinterface' value='Add' onclick='javascript:on_interface_add()' />";
     document.getElementById("widget_network_widget_a").innerHTML = buf;
 
     buf = "";
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
     buf = buf + "</select>";
-    buf = buf + "<input class='button' type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()'/>";
+    buf = buf + "<input class='button' type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()' />";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 }
 
@@ -370,8 +370,8 @@ $(document).ready(function()
 <h1>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</h1>
 <hr />
 <form method="post" action="/cobbler_web/{{ what }}/save">
-  <input type="hidden" name="editmode" value="{{ editmode }}"/>
-  <input type="hidden" name="subobject" value="{{ subobject }}"/>
+  <input type="hidden" name="editmode" value="{{ editmode }}" />
+  <input type="hidden" name="subobject" value="{{ subobject }}" />
   <ol>
     <li class="hidden"></li>
 {% for item in fields %}
@@ -388,9 +388,9 @@ $(document).ready(function()
     {% ifequal item.html_element "text" %}
       {% smart_if editmode == "edit" and item.dname == "name" %}
       {{ item.value }} (editing, value is read-only)
-      <input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+      <input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}" />
       {% else %}
-      <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+      <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}" />
       {% endsmart_if %}
     {% endifequal %}
     {% ifequal item.html_element "textarea" %}
@@ -463,15 +463,15 @@ $(document).ready(function()
   </fieldset>
 
 {% ifequal what "system" %}
-  <input type="hidden" id="interface_list" name="interface_list" value="1"/>
-  <input type="hidden" id="present" name="present" value="1"/>
-  <input type="hidden" id="original" name="original" value="1"/>
+  <input type="hidden" id="interface_list" name="interface_list" value="1" />
+  <input type="hidden" id="present" name="present" value="1" />
+  <input type="hidden" id="original" name="original" value="1" />
 {% endifequal %}
 
   <div>
 {% if editable %}
-    <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save"/>
-    <input class="button" type="reset" name="reset" value="Reset"/>
+    <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save" />
+    <input class="button" type="reset" name="reset" value="Reset" />
 {% else %}
     This user does not have permissions to edit this object.
 {% endif %}

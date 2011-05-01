@@ -21,7 +21,7 @@ if you need to resolve this.
       <input type="text" name="snippet_name" id="snippet_name" />
       <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/snippets/)</span>
 {% else %}
-      <input type="hidden" name="snippet_name" value="{{ snippet_name }}"/>
+      <input type="hidden" name="snippet_name" value="{{ snippet_name }}" />
 {% endifnotequal %}
     </li> 
     <li>
@@ -44,9 +44,9 @@ if you need to resolve this.
 {% endif %}
 {% if editable %}
     <li>
-      <input type="hidden" name="editmode" value="{{ editmode }}"/>
-      <input class="button" type="submit" name="submit" value="Save"/>
-      <input class="button" type="reset" name="reset" value="Reset"/>
+      <input type="hidden" name="editmode" value="{{ editmode }}" />
+      <input class="button" type="submit" name="submit" value="Save" />
+      <input class="button" type="reset" name="reset" value="Reset" />
     </li>
 {% endif %}
   </ol>
