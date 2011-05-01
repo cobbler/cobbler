@@ -43,7 +43,7 @@ a:hover { color: #306CAC; }
 img { border: 0px; }
 h1,h2,legend { color: #306CAC; font-weight: bold; }
 h1 { font-size: 1.5em; }
-h2 { font-size: 1.2em; margin-bottom: 0px; }
+h2,legend { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
 input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
 input[type=text], input[type=password], select { width: 200px; }
@@ -52,7 +52,6 @@ input[type=checkbox] { background: none;  border: none; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
 textarea { height: 8em; width: 25em; }
-
 /* Defining the classes */
 .button, .action {
   text-decoration: none;
@@ -88,7 +87,19 @@ div.multibuttons input.button { font-size: .8em; clear: both; width: 50px; margi
 div.multiright { float: left; text-align: right; width: 150px; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
-span.context-tip { font-size: .7em; font-style: italic;}
+span.context-tip {
+  background-repeat: no-repeat;
+  background-image: url('/cobbler_webui_content/tooltip.png');
+  padding-left: 30px;
+  color: #EEEEEE;
+}
+span.context-tip:hover {
+  background: none;
+  padding: 0;
+  color: #333333;
+  font-size: .7em;
+  font-style: italic;
+}
 
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}
