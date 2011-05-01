@@ -407,9 +407,9 @@ $(document).ready(function()
     {% endifequal %}
     {% ifequal item.html_element "checkbox" %}
       {% ifequal item.value 1 %}
-      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" /> Enabled
+      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" />
       {% else %}
-      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" /> Enabled
+      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" />
       {% endifequal %}
     {% endifequal %}
     {% ifequal item.html_element "select" %}
