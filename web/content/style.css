@@ -52,6 +52,8 @@ input[type=checkbox] { background: none;  border: none; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
 textarea { height: 8em; width: 25em; }
+pre textarea { height: 60em; width: 60em; }
+
 /* Defining the classes */
 .button, .action {
   text-decoration: none;
@@ -137,6 +139,8 @@ span.context-tip:hover {
 #listitems tbody td { border-bottom: 1px solid #cccccc; }
 #listitems tbody td:first-child { width: 2em; padding-left: .3em;}
 #listitems tbody td:last-child { width: 21em; }
+
+#ksform li, #snippetform li { margin-top: 4px; }
 
 /* Old styles
 #import li { padding: 8px; }

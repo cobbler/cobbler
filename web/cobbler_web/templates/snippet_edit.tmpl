@@ -13,19 +13,19 @@ if you need to resolve this.
 {% endif %}
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Snippet</h1>
 <hr />
-<form method="post" action="/cobbler_web/snippet/save">
+<form id="snippetform" method="post" action="/cobbler_web/snippet/save">
   <ol>
     <li>
       <label for="snippetdata">{% if snippet_name %}Snippet: {{ snippet_name }}{% else %}Filename:{% endif %}</label>
 {% ifnotequal editmode 'edit' %}
-      <input type="text" size="128" name="snippet_name" id="snippet_name" />
+      <input type="text" name="snippet_name" id="snippet_name" />
       <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/snippets/)</span>
 {% else %}
       <input type="hidden" name="snippet_name" value="{{ snippet_name }}"/>
 {% endifnotequal %}
     </li> 
     <li>
-      <pre><textarea rows="50" cols="100" name="snippetdata" id="snippetdata">{{ snippetdata }}</textarea></pre>
+      <pre><textarea name="snippetdata" id="snippetdata">{{ snippetdata }}</textarea></pre>
     </li>
 {% if deleteable %}
     <li>

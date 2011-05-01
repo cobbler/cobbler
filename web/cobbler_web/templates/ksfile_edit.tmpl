@@ -16,19 +16,19 @@
 {% else %}
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</h1>
 <hr />
-<form method="post" action="/cobbler_web/ksfile/save">
+<form id="ksform" method="post" action="/cobbler_web/ksfile/save">
   <ol>
     <li>
       <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
   {% ifnotequal editmode 'edit' %}
-      <input type="text" size="128" style="width: 300px;" name="ksfile_name" id="ksfile_name" />
+      <input type="text" name="ksfile_name" id="ksfile_name" />
       <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</span>
   {% else %}
       <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}"/>
   {% endifnotequal %}
     </li>
     <li>
-      <pre><textarea rows="40" cols="120" name="ksdata" id="ksdata">{{ ksdata }}</textarea></pre>
+      <pre><textarea name="ksdata" id="ksdata">{{ ksdata }}</textarea></pre>
     </li>
   {% if deleteable %}
     <li>
