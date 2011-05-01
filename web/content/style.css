@@ -51,7 +51,7 @@ input[type=submit], input[type=reset] { margin-top: 10px; }
 input[type=checkbox] { background: none;  border: none; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
-textarea { height: 8em; width: 25em; }
+textarea { height: 8em; width: 25em; margin-bottom: 4px; }
 pre textarea { height: 60em; width: 60em; }
 
 /* Defining the classes */
