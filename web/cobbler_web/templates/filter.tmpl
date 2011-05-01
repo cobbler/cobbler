@@ -141,7 +141,8 @@ function add_filter() {
       <option value="owners">owners</option>
   {% endifequal %}
     </select>
-    <label for="filter_value">on</label><input type="text" name="filter_value" id="filter_value" size="12"  onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
+    <label for="filter_value">on</label><input type="text" name="filter_value" id="filter_value" onkeypress="javascript:if (event.keyCode == 13) add_filter();"/>
+    <input class="button" type="button" name="filter_add" id="filter_add" onclick="javascript: add_filter();" value="Add" />
   </li>
 </ul>
   {% if filters %}
