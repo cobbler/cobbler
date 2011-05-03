@@ -141,6 +141,7 @@ span.context-tip:hover {
 #listitems tbody td:last-child { width: 21em; }
 
 #ksform li, #snippetform li { margin-top: 4px; }
+#ksform input[type=checkbox], #snippetform input[type=checkbox] { margin-right: 0px; }
 
 /* Old styles
 #import li { padding: 8px; }
