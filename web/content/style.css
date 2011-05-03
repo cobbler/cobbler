@@ -1,5 +1,6 @@
 /*Reset to a sane default across browsers*/
 html{
+  height: 100%;
   overflow-y: scroll;
   font-size: 1em;
 }
@@ -28,6 +29,7 @@ table{
 
 /* Lets set the primary styles and feel for the app */
 body {
+  height: 100%;
   font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   color: #333333;
   background-color: #EEEEEE;
