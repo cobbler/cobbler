@@ -1,14 +1,12 @@
 {% extends 'master.tmpl' %}
 {% block content %}
 
-<fieldset>
-  <legend>{{ eventid }} : {{ eventname }} :: {{ eventstate }}</legend>
-  <hr/>
-  <textarea rows="40" cols="120" name="eventlog" id="eventlog">
-  {{ eventlog }}
-  </textarea>
-  <br/>
-  <a href="javascript:location.reload(true)">Refresh log</a>
-</fieldset>
+<h1>{{ eventid }} : {{ eventname }} :: {{ eventstate }}</h1>
+<hr />
+<textarea rows="40" cols="120" name="eventlog" id="eventlog">
+{{ eventlog }}
+</textarea>
+<br />
+<a href="javascript:location.reload(true)">Refresh log</a>
 
 {% endblock content %}

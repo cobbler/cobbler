@@ -38,8 +38,8 @@ def index(request):
 
    t = get_template('index.tmpl')
    html = t.render(Context({
-        'version': remote.version(request.session['token']),
-        'username':username,
+        'version' : remote.version(request.session['token']),
+        'username': username,
    }))
    return HttpResponse(html)
 
@@ -52,6 +52,7 @@ def task_created(request):
    if not test_user_authenticated(request): return login(request)
    t = get_template("task_created.tmpl")
    html = t.render(Context({
+       'version'  : remote.version(request.session['token']),
        'username' : username
    }))
    return HttpResponse(html)
@@ -69,7 +70,8 @@ def error_page(request,message):
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
    message = message.replace("'\">","")
    html = t.render(Context({
-       'message': message,
+       'version' : remote.version(request.session['token']),
+       'message' : message,
        'username': username
    }))
    return HttpResponse(html)
@@ -331,6 +333,7 @@ def genlist(request, what, page=None):
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
+        'version'        : remote.version(request.session['token']),
         'username'       : username,
         'limit'          : limit,
         'batchactions'   : batchactions,
@@ -525,6 +528,7 @@ def import_prompt(request):
    if not test_user_authenticated(request): return login(request)
    t = get_template('import.tmpl')
    html = t.render(Context({
+       'version'  : remote.version(request.session['token']),
        'username' : username,
    }))
    return HttpResponse(html)
@@ -539,6 +543,7 @@ def check(request):
    results = remote.check(request.session['token'])
    t = get_template('check.tmpl')
    html = t.render(Context({
+       'version': remote.version(request.session['token']),
        'username' : username,
        'results'  : results
    }))
@@ -586,6 +591,7 @@ def ksfile_list(request, page=None):
    html = t.render(Context({
        'what':'ksfile',
        'ksfiles': ksfile_list,
+       'version': remote.version(request.session['token']),
        'username': username,
        'item_count': len(ksfile_list[0]),
    }))
@@ -617,6 +623,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
        'ksdata'      : ksdata,
        'editable'    : editable,
        'editmode'    : editmode,
+       'version'     : remote.version(request.session['token']),
        'username'    : username
    }))
    return HttpResponse(html)
@@ -669,6 +676,7 @@ def snippet_list(request, page=None):
    html = t.render(Context({
        'what'     : 'snippet',
        'snippets' : snippet_list,
+       'version'  : remote.version(request.session['token']),
        'username' : username
    }))
    return HttpResponse(html)
@@ -698,6 +706,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
        'snippetdata'  : snippetdata,
        'editable'     : editable,
        'editmode'     : editmode,
+       'version'      : remote.version(request.session['token']),
        'username'     : username
    }))
    return HttpResponse(html)
@@ -748,6 +757,7 @@ def settings(request):
    t = get_template('settings.tmpl')
    html = t.render(Context({
         'settings' : results,
+        'version'  : remote.version(request.session['token']),
         'username' : username,
    }))
    return HttpResponse(html)
@@ -773,6 +783,7 @@ def events(request):
    t = get_template('events.tmpl')
    html = t.render(Context({
        'results'  : events2,
+       'version'  : remote.version(request.session['token']),
        'username' : username
    }))
    return HttpResponse(html)
@@ -801,6 +812,7 @@ def eventlog(request, event=0):
       'eventstate' : eventstate,
       'eventid'    : event,
       'eventtime'  : eventtime,
+      'version'    : remote.version(request.session['token']),
       'username'  : username
    }
    html = t.render(Context(vars))
@@ -955,6 +967,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'interfaces'      : interfaces,
        'interface_names' : inames,
        'interface_length': len(inames),
+       'version'         : remote.version(request.session['token']),
        'username'        : username,
        'name'            : obj_name
    }))

@@ -1,60 +1,156 @@
-
-body, html {
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", sans-serif;
-  background-color: #D4D4D4;
-  color: #222222;
-  font-size: .9em;
+/*Reset to a sane default across browsers*/
+html{
+  height: 100%;
+  overflow-y: scroll;
+  font-size: 1em;
 }
-a { color: #222222; text-decoration: none; }
-label { font-weight: bold; }
-legend,h3 { color: #306CAC; font-size: 1.2em; font-weight: bold; }
-legend { margin: 0px; padding-bottom: 3px; }
-hr { margin-top: -2px; height: 1px; }
-fieldset { border: 0px; padding: 0px; margin: 0px; }
+
+a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,span,textarea,table,tbody,td,th,thead,tr {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+select,input,button,textarea{
+  font-size:99%;
+}
+
+select {
+  margin: 0;
+}
+
+table{
+  border-collapse:collapse;
+  border-spacing:0;
+  empty-cells:show;
+  width: 100%;
+}
+/*End Reset*/
+
+/* Lets set the primary styles and feel for the app */
+body {
+  height: 100%;
+  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  color: #333333;
+  background-color: #EEEEEE;
+  background-image: url('/cobbler_webui_content/logo-cobbler.png');
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  padding-top: 80px;
+  position: relative;
+}
+
+a { color: #333333; text-decoration: none; }
+a:hover { color: #306CAC; }
 img { border: 0px; }
-ul { list-style-position: outside; list-style-type: none; overflow: hidden; } 
+h1,h2,legend { color: #306CAC; font-weight: bold; }
+h1 { font-size: 1.5em; }
+h2,legend { font-size: 1.2em; margin-bottom: 0px; }
+hr { height: 1px; margin: 0px; }
+input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
+input[type=text], input[type=password], select { width: 200px; }
+input[type=submit], input[type=reset] { margin-top: 10px; }
+input[type=checkbox] { background: none;  border: none; margin-right: 196px; margin-top: 5px; }
+label { font-weight: bold; }
+ol, ul { list-style: none; }
+textarea { height: 8em; width: 25em; margin-bottom: 4px; }
+pre textarea { height: 60em; width: 60em; }
 
-.action { cursor: pointer; }
+/* Defining the classes */
+.button, .action {
+  text-decoration: none;
+  background-color: #306CAC;
+  border: 0px;
+  font-weight: bold;
+  color: #dddddd;
+  cursor: pointer;
+  margin: 0px 2px;
+  padding: 2px 7px;
+  -moz-border-radius:3px;
+  -webkit-border-radius: 3px;
+  text-transform: capitalize;
+}
+.button:hover, .action:hover {
+  color: #DDDDDD;
+  background-color: #333333;
+}
 .warn { color: #990000; font-weight: bold; font-size: 1.0em; }
-.rpointers { font-size: 1.6em; margin-left: 5px; }
-.lpointers { font-size: 1.6em; margin-right: 5px; }
+.rpointers { font-size: 1.0em; margin-left: 5px; }
+.lpointers { font-size: 1.0em; margin-right: 5px; }
 
-div.content { float: left; margin-left: 0px; padding: 0px; min-width: 400px; width: 80%; }
-div.container { float: left; margin: 0px; padding: 0px; min-width: 400px; width: 100%; overflow: none; }
+/* Defining classes specific to a tag */
+body.loginscreen { background-image: none; }
+input.action { height: 22px; }
+ol.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
+div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
+div.multiselect label { width: auto; font-weight: normal; display: inline; }
+div.multileft { float: left; text-align: left; width: 150px; }
+div.multileft select, div.multiright select { height: 156px; width: 150px; }
+div.multibuttons { width: 55px; padding-top: 75px; float: left;}
+div.multibuttons input.button { font-size: .8em; clear: both; width: 50px; margin: 2px;}
+div.multiright { float: left; text-align: right; width: 150px; }
+li.paginate { float:right; }
+li.paginate select { width: auto; }
+span.context-tip {
+  background-repeat: no-repeat;
+  background-image: url('/cobbler_webui_content/tooltip.png');
+  padding-left: 30px;
+  color: #EEEEEE;
+}
+span.context-tip:hover {
+  background: none;
+  padding: 0;
+  color: #333333;
+  font-size: .7em;
+  font-style: italic;
+}
 
-#menubar { float: left; padding-left: 11px; width: 200px; }
-#menubar ul { padding: 0px 0px 10px 2px; margin: 0px; }
-#menubar ul li { padding-left: 8px; }
-#menubar select { width: 102px; }
+/* Now for the 'id' specific statements */
+#login { width: 250px; margin: auto; text-align: center;}
+#login input { text-align: center;}
 
-#listactions { padding: 5px 0px 5px 15px; width: 140px; margin-top: 5px; background-color: #CCCCCC }
-#listactions li { padding-bottom: 3px; }
+#container { width: 98%; margin: 0; padding: 0; min-height: 100%; }
+#user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
+#content { position: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
+#filter-adder { margin-top: 5px; }
+#footer { font-size: .8em; text-align: center; position: relative; height: 25px; margin-top: -25px; clear: both; }
 
-#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; }
+#menubar { float:left; padding-left: 11px; width: 200px; }
+#menubar h1 { font-size: 1.0em; margin-bottom: 4px; }
+#menubar ul { padding-left: 2px; margin: 0px; margin-bottom: 8px; }
+#menubar ul li { font-size: .8em; padding-left: 8px; }
+
+#submenubar { width: 100%; display: inline; }
+#submenubar li { float: left; display: inline; height: 26px; margin-left: 8px; }
+#submenubar li:first-child { margin-left: 0px; margin-top: 4px; }
+#submenubar li.paginate { float: right; }
+#submenubar li.paginate select { width: auto; }
+
+#batchactions { font-weight: bold; }
+#batchactions option { padding-left: 1em; font-weight: normal; }
+#batchactions option:first-child { font-weight: bold; padding-left: 0; }
+
+#listitems { clear: both; }
+#listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
 #listitems thead a { color: #dddddd; }
-#listitems tbody a { text-decoration: underline; }
-#listitems tbody .rowodd { background-color: #d3d3d3; }
-#listitems tbody .rowodd:hover { background-color: #eeeeee; }
-#listitems tbody .roweven { background-color: #e0e0e0; }
-#listitems tbody .roweven:hover { background-color: #eeeeee; }
-#listitems tbody .action { text-decoration: underline; }
+#listitems thead tr th:first-child { width: 2em; padding-left: .3em;}
+#listitems tbody tr a.action, #listitems tbody tr span.action { font-size: .8em; float: left; padding: 1px 7px; }
+#listitems tbody tr { background-color: #eeeeee; }
+#listitems tbody tr.selected { background-color: #e0e0e0; }
+#listitems tbody tr:hover { background-color: #cccccc; }
+#listitems tbody td { border-bottom: 1px solid #cccccc; }
+#listitems tbody td:first-child { width: 2em; padding-left: .3em;}
+#listitems tbody td:last-child { width: 21em; }
 
+#ksform li, #snippetform li { margin-top: 4px; }
+#ksform input[type=checkbox], #snippetform input[type=checkbox] { margin-right: 0px; }
+
+/* Old styles
 #import li { padding: 8px; }
 #import label { width: 60px; float: left; }
 
 #edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
 #edit select { width: 175px; }
 #edit input[type=text] { width: 300px; }
+*/
 
-#login {
- width:250px;
- margin:0 auto;
- padding:20px;
- text-align: center;
- border: 1px solid black;
-}
-
-#login #button {
- margin-top:10px;
- text-align: right;
-}
