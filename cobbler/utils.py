@@ -718,6 +718,8 @@ def flatten(data):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
     if data.has_key("template_files"):
         data["template_files"] = hash_to_string(data["template_files"])
+    if data.has_key("boot_files"):
+        data["boot_files"] = hash_to_string(data["boot_files"])
     if data.has_key("fetchable_files"):
         data["fetchable_files"] = hash_to_string(data["fetchable_files"])
     if data.has_key("repos") and isinstance(data["repos"], list):
@@ -799,6 +801,7 @@ def __consolidate(node,results):
     hash_removals(results,"kernel_options_post")
     hash_removals(results,"ks_meta")
     hash_removals(results,"template_files")
+    hash_removals(results,"boot_files")
     hash_removals(results,"fetchable_files")
 
 def hash_removals(results,subkey):

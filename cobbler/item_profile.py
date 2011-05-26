@@ -58,6 +58,7 @@ FIELDS = [
   ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited",0,"list"],
   ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0,"list"],
   ["mgmt_parameters","<<inherit>>","<<inherit>>","Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
+  [ "boot_files",{},'<<inherit>>',"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
   ["fetchable_files",{},'<<inherit>>',"Fetchable Files",True,"Templates for tftp or wget",0,"dict"],
   ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0,"dict"],
   ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
