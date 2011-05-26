@@ -34,15 +34,15 @@ def run(api,args,logger):
       # Create the templar instance
       templater = templar.Templar()
 
-      # Loop through the hash of fetchable files,
+      # Loop through the hash of boot files,
       # executing a cp for each one
-      for file in target["fetchable_files"].keys():
+      for file in target["boot_files"].keys():
         file_dst = templater.render(file,metadata,None)
         try:
-          shutil.copyfile(target["fetchable_files"][file], file_dst)
-          api.log("copied file %s to %s for %s" % (target["fetchable_files"][file],file_dst,distro.name))
+          shutil.copyfile(target["boot_files"][file], file_dst)
+          api.log("copied file %s to %s for %s" % (target["boot_files"][file],file_dst,distro.name))
         except:
-          logger.error("failed to copy file %s to %s for %s" % (target["fetchable_files"][file],file_dst,distro.name))
+          logger.error("failed to copy file %s to %s for %s" % (target["boot_files"][file],file_dst,distro.name))
           return 1
 
    return 0

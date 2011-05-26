@@ -709,12 +709,12 @@ class ImportVMWareManager:
                         distro.set_tree_build_time(ds)
                     profile.set_kickstart(ks)
                     if flavor == "esxi":
-                        self.logger.info("This is an ESXi distro - adding extra PXE files to fetchable-files list")
-                        # add extra files to fetchable_files in the distro
-                        fetchable_files = ''
+                        self.logger.info("This is an ESXi distro - adding extra PXE files to boot-files list")
+                        # add extra files to boot_files in the distro
+                        boot_files = ''
                         for file in ('vmkernel.gz','sys.vgz','cim.vgz','ienviron.vgz','install.vgz'):
-                           fetchable_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
-                        distro.set_fetchable_files(fetchable_files.strip())
+                           boot_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
+                        distro.set_boot_files(boot_files.strip())
                     self.profiles.add(profile,save=True)
 
             self.configure_tree_location(distro)
