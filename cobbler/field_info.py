@@ -28,8 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 USES_TEXTAREA = [
    "comment",
    "mgmt_parameters",
-   "template_files"
-   "fetchable_files"
+   "template_files",
+   "fetchable_files",
+   "boot_files"
 ]
 
 # fields that use a multi select in the web app
@@ -138,6 +139,7 @@ BLOCK_MAPPINGS = {
    "mgmt_classes"           : "Management",
    "mgmt_parameters"        : "Management",
    "template_files"         : "Management",
+   "boot_files"             : "Management",
    "fetchable_files"        : "Management",
    "network_widget_a"       : "Networking",
    "network_widget_b"       : "Networking",

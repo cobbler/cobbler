@@ -271,6 +271,26 @@ class Item:
                 self.template_files = value
             return True
 
+    def set_boot_files(self,boot_files,inplace=False):
+        """
+        A comma seperated list of req_name=source_file_path
+        that should be fetchable via tftp 
+        """
+        (success, value) = utils.input_string_or_hash(boot_files,allow_multiples=False)
+        if not success:
+            return False
+        else:
+            if inplace:
+                for key in value.keys():
+                    if key.startswith("~"):
+                        del self.boot_files[key[1:]]
+                    else:
+                        self.boot_files[key] = value[key]
+            else:
+                self.boot_files= value
+            return True
+
+
     def set_fetchable_files(self,fetchable_files,inplace=False):
         """
         A comma seperated list of virt_name=path_to_template
