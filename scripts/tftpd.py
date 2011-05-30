@@ -476,6 +476,77 @@ class Request:
                 logging.debug("Couldn't load profile %s" % m.group(1))
         return filename,"chroot"
 
+    def _remap_name_via_fetchable(self,filename):
+        fetchable_files = self.system.attrs["fetchable_files"].strip()
+        if not fetchable_files:
+            return filename,None
+
+        # We support two types of matches in fetchable_files
+        # * Direct match ("/foo=/bar")
+        # * Globs on directories ("/foo/*=/bar")
+        #   A glob is realliy just a directory remap
+        glob_pattern = re.compile("(/)?[*]$")
+
+        # Look for the file in the fetchable_files hash
+        # XXX: Template name
+        for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
+            k = k.lstrip('/') # Allow some slop w/ starting /s
+            # Full Path: "/foo=/bar"
+            result = None
+
+            if k == filename:
+                # Render the target, to expand things like "$kernel"
+                logging.debug('_remap_name: %s => %s' % (k,v))
+                result = v
+            # Glob Path: "/foo/*=/bar/"
+            else:
+                match = glob_pattern.search(k)
+                if match and fnmatch("/"+filename,"/"+k):
+                    logging.debug('_remap_name (glob): %s => %s' % (k,v))
+                    # Erase the trailing '/?[*]' in key
+                    # Replace the matching leading portion in filename
+                    # with the value 
+                    # Expand the result
+                    if match.group(1):
+                        lead_dir = glob_pattern.sub(match.group(1),k)
+                    else:
+                        lead_dir = glob_pattern.sub("",k)
+                    result = filename.replace(lead_dir,v,1)
+            
+            if result is not None:
+                try:
+                    return self.templar.render(
+                        result, self.system.attrs, None).strip(),"template"
+                except Cheetah.Parser.ParseError, e:
+                    logging.warn('Unable to expand name: %s(%s): %s'
+                                 % (filename,result,e))
+
+        return filename,None
+
+    def _remap_name_via_boot_files(self,filename):
+        boot_files = self.system.attrs["boot_files"].strip()
+        if not boot_files:
+            return filename,None
+
+        # Look for the file in the boot_files hash
+        # XXX: Template name
+        for (k,v) in map(lambda x: x.split("="),boot_files.split(" ")):
+            k = k.lstrip('/') # Allow some slop w/ starting /s
+            result = None
+
+            if k == filename:
+                # Render the target, to expand things like "$kernel"
+                logging.debug('_remap_name: %s => %s' % (k,v))
+
+                try:
+                    return self.templar.render(
+                        v, self.system.attrs, None).strip(),"template"
+                except Cheetah.Parser.ParseError, e:
+                    logging.warn('Unable to expand name: %s(%s): %s'
+                                 % (filename,v,e))
+
+        return filename,None
+
     def _remap_name(self,filename):
         filename = filename.lstrip('/') # assumed
         # If possible, ignore pxelinux.0 added things we already know
@@ -499,49 +570,13 @@ class Request:
         if self.system.attrs.has_key(noext) and noext in ["kernel"]:
             return self.system.attrs[noext],"template"
 
-        fetchable_files = self.system.attrs["fetchable_files"].strip()
-        if not fetchable_files:
-            return self._remap_via_profiles(trimmed)
+        (new_name,find_type) = self._remap_name_via_fetchable(trimmed)
+        if fine_type is not None
+            return new_name,find_type
 
-        # We support two types of matches in fetchable_files
-        # * Direct match ("/foo=/bar")
-        # * Globs on directories ("/foo/*=/bar")
-        #   A glob is realliy just a directory remap
-        glob_pattern = re.compile("(/)?[*]$")
-
-        # Look for the file in the fetchable_files hash
-        # XXX: Template name
-        for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
-	    k = k.lstrip('/') # Allow some slop w/ starting /s
-            # Full Path: "/foo=/bar"
-            result = None
-
-            if k == trimmed:
-                # Render the target, to expand things like "$kernel"
-                logging.debug('_remap_name: %s => %s' % (k,v))
-                result = v
-            # Glob Path: "/foo/*=/bar/"
-            else:
-                match = glob_pattern.search(k)
-                if match and fnmatch("/"+trimmed,"/"+k):
-                    logging.debug('_remap_name (glob): %s => %s' % (k,v))
-                    # Erase the trailing '/?[*]' in key
-                    # Replace the matching leading portion in trimmed
-                    # with the value 
-                    # Expand the result
-                    if match.group(1):
-                        lead_dir = glob_pattern.sub(match.group(1),k)
-                    else:
-                        lead_dir = glob_pattern.sub("",k)
-                    result = trimmed.replace(lead_dir,v,1)
-            
-            if result is not None:
-                try:
-                    return self.templar.render(
-                        result, self.system.attrs, None).strip(),"template"
-                except Cheetah.Parser.ParseError, e:
-                    logging.warn('Unable to expand name: %s(%s): %s'
-                                 % (trimmed,result,e))
+        (new_name,find_type) = self._remap_name_via_boot_files(trimmed)
+        if fine_type is not None
+            return new_name,find_type
 
         # last try: try profiles
         return self._remap_via_profiles(trimmed)

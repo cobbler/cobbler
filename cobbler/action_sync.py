@@ -140,6 +140,8 @@ class BootSync:
            # xinetd.d/tftpd, basically
            self.logger.info("rendering TFTPD files")
            self.tftpd.write_tftpd_files()
+           # copy in boot_files
+           self.tftpd.write_boot_files()
 
         self.logger.info("cleaning link caches")
         self.clean_link_cache()
