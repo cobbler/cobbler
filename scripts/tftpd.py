@@ -571,11 +571,11 @@ class Request:
             return self.system.attrs[noext],"template"
 
         (new_name,find_type) = self._remap_name_via_fetchable(trimmed)
-        if fine_type is not None
+	if fine_type is not None:
             return new_name,find_type
 
         (new_name,find_type) = self._remap_name_via_boot_files(trimmed)
-        if fine_type is not None
+	if fine_type is not None:
             return new_name,find_type
 
         # last try: try profiles

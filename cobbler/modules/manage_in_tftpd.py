@@ -17,8 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import traceback
-import errno
+import os.path, traceback, errno
 import re
 import clogger
 import pxegen
@@ -67,7 +66,7 @@ class InTftpdManager:
         # collapse the object down to a rendered datastructure
         # the second argument set to false means we don't collapse
         # hashes/arrays into a flat string
-        target      = utils.blender(api, False, distro)
+        target      = utils.blender(self.config.api, False, distro)
 
         # Create metadata for the templar function
         # Right now, just using img_path, but adding more
@@ -83,7 +82,7 @@ class InTftpdManager:
             file_dst = templater.render(file,metadata,None)
             try:
                 shutil.copyfile(target["boot_files"][file], file_dst)
-                api.log("copied file %s to %s for %s" % (
+                self.config.api.log("copied file %s to %s for %s" % (
                         target["boot_files"][file],
                         file_dst,
                         distro.name))
@@ -104,7 +103,7 @@ class InTftpdManager:
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar()
 
-        for distro in api.distros():
+        for distro in self.config.distros():
             self.write_boot_files_distro(distro)
 
         return 0
