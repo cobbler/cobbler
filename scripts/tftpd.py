@@ -517,7 +517,6 @@ class Request:
             result = None
 
             if k == trimmed:
-                # Render the target, to expand things like "$kernel"
                 logging.debug('_remap_name: %s => %s' % (k,v))
                 result = v
             # Glob Path: "/foo/*=/bar/"
@@ -535,6 +534,7 @@ class Request:
                         lead_dir = glob_pattern.sub("",k)
                     result = trimmed.replace(lead_dir,v,1)
             
+            # Render the target, to expand things like "$kernel"
             if result is not None:
                 try:
                     return self.templar.render(
