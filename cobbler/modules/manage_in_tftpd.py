@@ -47,8 +47,8 @@ class InTftpdManager:
         Constructor
         """
         self.logger        = logger
-	if self.logger is None:
-	    self.logger = clogger.Logger()
+        if self.logger is None:
+            self.logger = clogger.Logger()
 
         self.config        = config
         self.templar       = templar.Templar(config)
@@ -62,6 +62,52 @@ class InTftpdManager:
 
     def write_dns_files(self):
         pass # not used
+
+    def write_boot_files_distro(self,distro):
+        # collapse the object down to a rendered datastructure
+        # the second argument set to false means we don't collapse
+        # hashes/arrays into a flat string
+        target      = utils.blender(api, False, distro)
+
+        # Create metadata for the templar function
+        # Right now, just using img_path, but adding more
+        # cobbler variables here would probably be good
+        metadata = {}
+        metadata["img_path"] = os.path.join(
+                                    utils.tftpboot_location(),
+                                    "images",distro.name)
+
+        # Loop through the hash of boot files,
+        # executing a cp for each one
+        for file in target["boot_files"].keys():
+            file_dst = templater.render(file,metadata,None)
+            try:
+                shutil.copyfile(target["boot_files"][file], file_dst)
+                api.log("copied file %s to %s for %s" % (
+                        target["boot_files"][file],
+                        file_dst,
+                        distro.name))
+            except:
+                logger.error("failed to copy file %s to %s for %s" % (
+                        target["boot_files"][file],
+                        file_dst,
+                    distro.name))
+                # Continue on to sync what you can
+
+        return 0
+
+    def write_boot_files(self):
+        """
+        Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
+        currently.
+        """
+        # Create the templar instance.  Used to template the target directory
+        templater = templar.Templar()
+
+        for distro in api.distros():
+            self.write_boot_files_distro(distro)
+
+        return 0
 
     def write_tftpd_files(self):
         """
@@ -79,11 +125,11 @@ class InTftpdManager:
         f.close()
 
         metadata = {
-	    "user"	: "root",
+            "user"      : "root",
             "binary"    : "/usr/sbin/in.tftpd",
             "args"      : "-v -s %s" % self.bootloc
         }
-	self.logger.info("generating %s" % self.settings_file)
+        self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def update_netboot(self,name):
@@ -108,6 +154,7 @@ class InTftpdManager:
 
     def add_single_distro(self,distro):
         self.pxegen.copy_single_distro_files(distro,self.bootloc,False)
+        self.write_boot_files_distro(distro)
 
     def sync(self,verbose=True):
         """
@@ -122,7 +169,7 @@ class InTftpdManager:
         # Adding in the exception handling to not blow up if files have
         # been moved (or the path references an NFS directory that's no longer
         # mounted)
-	for d in self.config.distros():
+        for d in self.config.distros():
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.pxegen.copy_single_distro_files(d,self.bootloc,False)
