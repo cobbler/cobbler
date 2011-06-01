@@ -75,6 +75,8 @@ class InTftpdManager:
         metadata["img_path"] = os.path.join(
                                     utils.tftpboot_location(),
                                     "images",distro.name)
+	# Create the templar instance.  Used to template the target directory
+	templater = templar.Templar()
 
         # Loop through the hash of boot files,
         # executing a cp for each one
@@ -87,7 +89,7 @@ class InTftpdManager:
                         file_dst,
                         distro.name))
             except:
-                logger.error("failed to copy file %s to %s for %s" % (
+                self.logger.error("failed to copy file %s to %s for %s" % (
                         target["boot_files"][file],
                         file_dst,
                     distro.name))
@@ -100,9 +102,6 @@ class InTftpdManager:
         Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
         currently.
         """
-        # Create the templar instance.  Used to template the target directory
-        templater = templar.Templar()
-
         for distro in self.config.distros():
             self.write_boot_files_distro(distro)
 
