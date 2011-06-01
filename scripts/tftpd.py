@@ -524,23 +524,39 @@ class Request:
         return filename,None
 
     def _remap_name_via_boot_files(self,filename):
+
         boot_files = self.system.attrs["boot_files"].strip()
         if not boot_files:
+            logging.debug('_remap_name: no boot_files for %s/%s'
+                          % (self.system,filename))
             return filename,None
 
+        filename = filename.lstrip('/') # assumed
+
+        # Override "img_path", as that's the only variable used by 
+        # the VMWare boot_files support, and they use a slightly different
+        # definition: one that's relative to tftpboot
+        attrs = self.system.attrs.copy()
+        attrs["img_path"] = os.path.join("images",attrs["distro_name"])
+
         # Look for the file in the boot_files hash
-        # XXX: Template name
         for (k,v) in map(lambda x: x.split("="),boot_files.split(" ")):
             k = k.lstrip('/') # Allow some slop w/ starting /s
-            result = None
 
-            if k == filename:
+            # Render the key, to expand things like "$img_path"
+            try:
+                expanded_k = self.templar.render(k, attrs, None)
+            except Cheetah.Parser.ParseError, e:
+                logging.warn('Unable to expand name: %s(%s): %s'
+                             % (filename,k,e))
+                continue
+
+            if expanded_k == filename:
                 # Render the target, to expand things like "$kernel"
-                logging.debug('_remap_name: %s => %s' % (k,v))
+                logging.debug('_remap_name: %s => %s' % (expanded_k,v))
 
                 try:
-                    return self.templar.render(
-                        v, self.system.attrs, None).strip(),"template"
+                    return self.templar.render(v, attrs,None).strip(),"template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
                                  % (filename,v,e))
@@ -571,11 +587,11 @@ class Request:
             return self.system.attrs[noext],"template"
 
         (new_name,find_type) = self._remap_name_via_fetchable(trimmed)
-	if fine_type is not None:
+        if find_type is not None:
             return new_name,find_type
 
         (new_name,find_type) = self._remap_name_via_boot_files(trimmed)
-	if fine_type is not None:
+        if find_type is not None:
             return new_name,find_type
 
         # last try: try profiles
