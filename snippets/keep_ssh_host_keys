@@ -61,6 +61,11 @@ if [ "$keys_found" = "no" ]; then
   if mdadm -As; then
       DISKS=$(awk '/md/{print "/dev/"$1}' /proc/mdstat)
       findkeys
+      # unmount and deactivate all md 
+      for md in $DISKS ; do
+          umount $md
+          mdadm -S $md
+      done
   fi
 fi
 
