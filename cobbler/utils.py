@@ -113,9 +113,12 @@ _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
-main_logger = clogger.Logger()
+main_logger = None #  the logger will be lazy loaded later
 
 def die(logger, msg):
+    global main_logger
+    if main_logger is None:
+        main_logger = clogger.Logger()
 
     # log the exception once in the per-task log or the main
     # log if this is not a background op.
