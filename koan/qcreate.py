@@ -126,8 +126,15 @@ def start_install(name=None,
     if profile_data.has_key("breed"):
         breed = profile_data["breed"]
         if breed != "other" and breed != "":
-            if breed in [ "ubuntu", "debian", "suse", "redhat" ]:
+            if breed in [ "ubuntu", "debian", "redhat" ]:
                 guest.set_os_type("linux")
+            elif breed == "suse":
+                guest.set_os_type("linux")
+                # SUSE requires the correct arch to find
+                # kernel+initrd on the inst-source /boot/<arch>/loader/...
+                guest.arch = profile_data["arch"]
+                if guest.arch in [ "i386", "i486", "i586" ]:
+                    guest.arch = "i686"
             elif breed in [ "windows" ]:
                 guest.set_os_type("windows")
             else:
