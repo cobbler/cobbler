@@ -269,11 +269,13 @@ class KickGen:
             distro = profile.get_conceptual_parent()
             if system is not None:
                 distro = system.get_conceptual_parent().get_conceptual_parent()
-            if distro.breed == "suse":
-                # AutoYaST profile
-                raw_data = self.generate_autoyast(profile,system,raw_data)
 
             data = self.templar.render(raw_data, meta, None, obj)
+
+            if distro.breed == "suse":
+                # AutoYaST profile
+                data = self.generate_autoyast(profile,system,data)
+
             return data
         except FileNotFoundException:
             self.api.logger.warning("kickstart not found: %s" % meta["kickstart"])
