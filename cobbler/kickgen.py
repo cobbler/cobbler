@@ -120,21 +120,23 @@ class KickGen:
         if addComment == 1:
             #startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n#raw\n")
             #endComment = document.createComment("\n#end raw\n")
-            startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n")
-            endComment = document.createComment("\n")
-            document.childNodes[1].insertBefore( startComment, document.childNodes[1].childNodes[1])
-            document.childNodes[1].appendChild( endComment )
             cobblerElement = document.createElement("cobbler")
             cobblerElementSystem = xml.dom.minidom.Element("system_name")
-            cobblerTextSystem    = document.createTextNode("$system_name")
-            cobblerElementSystem.appendChild( cobblerTextSystem )
+            cobblerElementProfile = xml.dom.minidom.Element("profile_name")
+            if( system is not None ):
+                cobblerTextSystem    = document.createTextNode(system.name)
+                cobblerElementSystem.appendChild( cobblerTextSystem )
+            if( profile is not None ):
+                cobblerTextProfile    = document.createTextNode(profile.name)
+                cobblerElementProfile.appendChild( cobblerTextProfile )
 
             cobblerElementServer = document.createElement("server")
-            cobblerTextServer     = document.createTextNode("$server")
+            cobblerTextServer    = document.createTextNode(blended["http_server"])
             cobblerElementServer.appendChild( cobblerTextServer )
 
             cobblerElement.appendChild( cobblerElementServer )
             cobblerElement.appendChild( cobblerElementSystem )
+            cobblerElement.appendChild( cobblerElementProfile )
 
             document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[1])
 
