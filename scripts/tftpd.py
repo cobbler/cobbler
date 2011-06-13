@@ -390,8 +390,6 @@ class Request:
         self.templar     = templar
 
         # Sanitize input more
-
-        logging.warn("Testing: %s,%s",rrq_packet.filename,self.filename)
         # Strip out \s
         self.filename = self.filename.replace('\\','')
         # Look for elements starting with ".", and blow up.
