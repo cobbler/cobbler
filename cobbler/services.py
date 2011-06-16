@@ -315,7 +315,11 @@ def __test_setup():
     api.add_image(image)
 
     # perhaps an artifact of the test process?
-    utils.os_system("rm -rf /var/www/cobbler/repo_mirror/repo0")
+    # FIXME: get path (at least webdir) from settings?
+    if os.path.exists("/var/www/cobbler/repo_mirror/"):
+        utils.os_system("rm -rf /var/www/cobbler/repo_mirror/repo0")
+    elif os.path.exists("/srv/www/cobbler/repo_mirror/"):
+        utils.os_system("rm -rf /srv/www/cobbler/repo_mirror/repo0")
 
     api.reposync(name="repo0")
 
