@@ -517,7 +517,8 @@ class ImportRedhatManager:
                 pae_initrd = None
 
             for adtl in adtls:
-                distros_added.extend(adtl)
+                if adtl:
+                   distros_added.extend(adtl)
 
     def add_entry(self,dirname,kernel,initrd):
         """
