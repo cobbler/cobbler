@@ -16,8 +16,8 @@ DATABASE_PASSWORD = ''
 DATABASE_HOST = ''       
 DATABASE_PORT = ''       
 
-# this is not used by cobbler-web
-TIME_ZONE = 'America/NewYork'
+# Force Django to use the systems timezone
+TIME_ZONE = None
 
 # Language section
 # TBD.
