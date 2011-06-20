@@ -50,8 +50,8 @@ class TftpdPyManager:
         Constructor
         """
         self.logger        = logger
-	if self.logger is None:
-	    self.logger = clogger.Logger()
+        if self.logger is None:
+            self.logger = clogger.Logger()
 
         self.config        = config
         self.templar       = templar.Templar(config)
@@ -109,7 +109,7 @@ class TftpdPyManager:
         Write out files to /tftpdboot.  Mostly unused for the python server
         """
         self.logger.info("copying bootloaders")
-	pxegen.PXEGen(self.config,self.logger).copy_bootloaders()
+        pxegen.PXEGen(self.config,self.logger).copy_bootloaders()
 
     def update_netboot(self,name):
         """
