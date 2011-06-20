@@ -104,9 +104,10 @@ class TftpdPyManager:
 
     def sync(self,verbose=True):
         """
-        Write out files to /tftpdboot.  Unused for the python server
+        Write out files to /tftpdboot.  Mostly unused for the python server
         """
-        pass
+        self.logger.info("copying bootloaders")
+        self.pxegen.copy_bootloaders()
 
     def update_netboot(self,name):
         """
