@@ -87,199 +87,228 @@ class BuildIso:
 
   
     def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
-        self.logger.info("copying kernels and initrds for profiles")
-        # copy all images in included profiles to images dir
-        for profile in self.api.profiles():
-           use_this = True
-           if profiles is not None:
-              which_profiles = profiles.split(",")
-              if not profile.name in which_profiles:
-                 use_this = False
+       # function to sort profiles/systems by name
+       def sort_name(a,b):
+           return cmp(a.name,b.name)
 
-           if use_this:
-              dist = profile.get_conceptual_parent()
-              if dist.name.lower().find("-xen") != -1:
-                  self.logger.info("skipping Xen distro: %s" % dist.name)
-                  continue
-              distname = self.make_shorter(dist.name)
-              # buildisodir/isolinux/$distro/vmlinuz, initrd.img
-              # FIXME: this will likely crash on non-Linux breeds
-              f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
-              f2 = os.path.join(isolinuxdir, "%s.img" % distname)
-              if not os.path.exists(dist.kernel):
+       # handle profile selection override provided via commandline
+       # default is all profiles
+       all_profiles = [profile for profile in self.api.profiles()]
+       all_profiles.sort(sort_name)
+       if profiles is not None:
+          which_profiles = profiles.split(",")
+       else:
+          which_profiles = []
+
+       # handle system selection override provided via commandline
+       # default is all systems
+       all_systems = [system for system in self.api.systems()]
+       all_systems.sort(sort_name)
+       if systems is not None:
+          which_systems = systems.split(",")
+       else:
+          which_systems = []
+
+       # setup isolinux.cfg
+       isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
+       cfg = open(isolinuxcfg, "w+")
+       cfg.write(HEADER) # FIXME: use template
+
+       # iterate through selected profiles
+       for profile in all_profiles:
+          if profile.name in which_profiles or profiles is None:
+             self.logger.info("processing profile: %s" % profile.name)
+             dist = profile.get_conceptual_parent()
+             distname = self.make_shorter(dist.name)
+             # buildisodir/isolinux/$distro/vmlinuz, initrd.img
+             # FIXME: this will likely crash on non-Linux breeds
+             f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
+             f2 = os.path.join(isolinuxdir, "%s.img" % distname)
+             if not os.path.exists(dist.kernel):
                  utils.die(self.logger,"path does not exist: %s" % dist.kernel)
-              if not os.path.exists(dist.initrd):
+             if not os.path.exists(dist.initrd):
                  utils.die(self.logger,"path does not exist: %s" % dist.initrd)
-              shutil.copyfile(dist.kernel, f1)
-              shutil.copyfile(dist.initrd, f2)
+             shutil.copyfile(dist.kernel, f1)
+             shutil.copyfile(dist.initrd, f2)
 
-        if systems is not None:
-           self.logger.info("copying kernels and initrds for systems")
-           # copy all images in included profiles to images dir
-           for system in self.api.systems():
-              if system.name in systems:
-                 profile = system.get_conceptual_parent()
-                 dist = profile.get_conceptual_parent()
-                 if dist.name.find("-xen") != -1:
-                    continue
-                 distname = self.make_shorter(dist.name)
-                 # buildisodir/isolinux/$distro/vmlinuz, initrd.img
-                 # FIXME: this will likely crash on non-Linux breeds
-                 shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
-                 shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+             cfg.write("\n")
+             cfg.write("LABEL %s\n" % profile.name)
+             cfg.write("  MENU LABEL %s\n" % profile.name)
+             cfg.write("  kernel %s.krn\n" % distname)
 
-        self.logger.info("generating a isolinux.cfg")
-        isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
-        cfg = open(isolinuxcfg, "w+")
-        cfg.write(HEADER) # fixme, use template
+             data = utils.blender(self.api, True, profile)
+             if data["kickstart"].startswith("/"):
+                 data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
+                     data["server"], self.api.settings().http_port, profile.name
+                 )
 
-        self.logger.info("generating profile list")
-       #sort the profiles
-        profile_list = [profile for profile in self.profiles]
-        def sort_name(a,b):
-            return cmp(a.name,b.name)
-        profile_list.sort(sort_name)
+             append_line = " append initrd=%s.img" % distname
+             if dist.breed == "suse":
+                 append_line += " autoyast=%s" % data["kickstart"]
+             if dist.breed == "redhat":
+                 append_line += " ks=%s" % data["kickstart"]
+             append_line = append_line + " %s\n" % data["kernel_options"]
+             cfg.write(append_line)
 
-        for profile in profile_list:
-            use_this = True
-            if profiles is not None:
-                which_profiles = profiles.split(",")
-                if not profile.name in which_profiles:
-                    use_this = False
+             length=len(append_line)
+             if length > 254:
+                self.logger.warning("append line length is greater than 254 chars (%s chars)" % length)
 
-            if use_this:
-                dist = profile.get_conceptual_parent()
-                if dist.name.find("-xen") != -1:
-                    continue
-                data = utils.blender(self.api, True, profile)
-                distname = self.make_shorter(dist.name)
+       cfg.write("\nMENU SEPARATOR\n")
 
-                cfg.write("\n")
-                cfg.write("LABEL %s\n" % profile.name)
-                cfg.write("  MENU LABEL %s\n" % profile.name)
-                cfg.write("  kernel %s.krn\n" % distname)
+       # iterate through all selected systems
+       for system in all_systems:
+          if system.name in which_systems or systems is None:
+             self.logger.info("processing system: %s" % system.name)
+             profile = system.get_conceptual_parent()
+             dist = profile.get_conceptual_parent()
+             distname = self.make_shorter(dist.name)
+             # buildisodir/isolinux/$distro/vmlinuz, initrd.img
+             # FIXME: this will likely crash on non-Linux breeds
+             if not os.path.exists(dist.kernel) or not os.path.exists(dist.initrd):
+                shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
+                shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
 
-                if data["kickstart"].startswith("/"):
-                    data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
-                        data["server"],
-                        self.api.settings().http_port,
-                        profile.name
-                    )
+             cfg.write("\n")
+             cfg.write("LABEL %s\n" % system.name)
+             cfg.write("  MENU LABEL %s\n" % system.name)
+             cfg.write("  kernel %s.krn\n" % distname)
 
-                append_line = "  append initrd=%s.img" % distname
+             bdata = utils.blender(self.api, True, system)
+             if bdata["kickstart"].startswith("/"):
+                 bdata["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
+                     bdata["server"], self.api.settings().http_port, system.name
+                 )
+
+             append_line = " append initrd=%s.img" % distname
+             if dist.breed == "suse":
+                append_line += " autoyast=%s" % bdata["kickstart"]
+             if dist.breed == "redhat":
+                append_line += " ks=%s" % bdata["kickstart"]
+
+             # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
+             # check for overrides first and clear them from kernel_options
+             data = utils.blender(self.api, False, system) # don't collapse!
+             my_int = None;  my_ip = None; my_mask = None; my_gw = None; my_dns = None
+             if dist.breed in ["suse", "redhat"]:
+                if data["kernel_options"].has_key("netmask") and data["kernel_options"]["netmask"] != "":
+                   my_mask = data["kernel_options"]["netmask"]
+                   del data["kernel_options"]["netmask"]
+                if data["kernel_options"].has_key("gateway") and data["kernel_options"]["gateway"] != "":
+                   my_gw = data["kernel_options"]["gateway"]
+                   del data["kernel_options"]["gateway"]
+
+             if dist.breed == "redhat":
+                if data["kernel_options"].has_key("ksdevice") and data["kernel_options"]["ksdevice"] != "":
+                   my_int = data["kernel_options"]["ksdevice"]
+                   del data["kernel_options"]["ksdevice"]
+                if data["kernel_options"].has_key("ip") and data["kernel_options"]["ip"] != "":
+                   my_ip = data["kernel_options"]["ip"]
+                   del data["kernel_options"]["ip"]
+                if data["kernel_options"].has_key("dns") and data["kernel_options"]["dns"] != "":
+                   my_dns = data["kernel_options"]["dns"]
+                   del data["kernel_options"]["dns"]
+
+             if dist.breed == "suse":
+                if data["kernel_options"].has_key("netdevice") and data["kernel_options"]["netdevice"] != "":
+                   my_int = data["kernel_options"]["netdevice"]
+                   del data["kernel_options"]["netdevice"]
+                if data["kernel_options"].has_key("hostip") and data["kernel_options"]["hostip"] != "":
+                   my_ip = data["kernel_options"]["hostip"]
+                   del data["kernel_options"]["hostip"]
+                if data["kernel_options"].has_key("nameserver") and data["kernel_options"]["nameserver"] != "":
+                   my_dns = data["kernel_options"]["nameserver"]
+                   del data["kernel_options"]["nameserver"]
+
+             # if no kernel_options overrides are present try to retrieve the needed information
+             # there's no mechanism in cobbler which can guarantee we've found the proper interface,
+             # so if we don't succeed finding one just give up rather than polluting the append_line
+             # with possibly false information. we don't deal with multihomed systems until cobbler
+             # provides a method to determine to proper management interface.
+             if my_int is None:
+                num_master_ints = 0; num_slave_ints = 0; slave_ints = []
+                num_ints = len(data["interfaces"].keys())
+
+                if num_ints == 1:
+                   # only 1 interface defined, use it
+                   my_int = data["interfaces"].keys()[0]
+
+                if num_ints > 1:
+                   # multiple interfaces found, make an educated guess
+                   for (iname, idata) in data["interfaces"].iteritems():
+                      if idata["bonding"] == "master":
+                         num_master_ints += 1
+                      if idata["bonding"] == "slave":
+                         num_slave_ints += 1
+                         slave_ints.append(iname)
+
+                      if ((num_master_ints + num_slave_ints) == num_ints) and num_master_ints == 1:
+                         # only a *single* bond and no multihomeing, pick a slave interface
+                         # if eth0 is a slave use that (it's what people expect)
+                         if "eth0" in slave_ints:
+                            my_int = "eth0"
+                         else:
+                            my_int = slave_ints[0]
+
+             if my_ip is None and my_int is not None:
+                if data.has_key("ip_address_" + my_int) and data["ip_address_" + my_int] != "":
+                   my_ip = data["ip_address_" + my_int]
+
+             if my_mask is None and my_int is not None:
+                if data.has_key("subnet_" + my_int) and data["subnet_" + my_int] != "":
+                   my_mask = data["subnet_" + my_int]
+
+             if my_gw is None:
+                if data.has_key("gateway") and data["gateway"] != "":
+                   my_gw = data["gateway"]
+
+             if my_dns is None:
+                if data.has_key("name_servers") and data["name_servers"] != "":
+                   my_dns = data["name_servers"]
+             
+             # add information to the append_line
+             if my_int is not None:
+                 if dist.breed == "suse":
+                     append_line += " netdevice=%s" % my_int
+                 if dist.breed == "redhat":
+                     append_line += " ksdevice=%s" % my_int
+
+             if my_ip is not None:
+                 if dist.breed == "suse":
+                     append_line += " hostip=%s" % my_ip
+                 if dist.breed == "redhat":
+                     append_line += " ip=%s" % my_ip
+
+             if my_mask is not None:
+                 if dist.breed in ["suse","redhat"]:
+                     append_line += " netmask=%s" % my_mask
+
+             if my_gw is not None:
+                 if dist.breed in ["suse","redhat"]:
+                     append_line += " gateway=%s" % my_gw
+
+             if exclude_dns is None or my_dns is not None:
                 if dist.breed == "suse":
-                    append_line = append_line + " autoyast=%s " % data["kickstart"]
+                   append_line += " nameserver=%s" % my_dns[0]
                 if dist.breed == "redhat":
-                    append_line = append_line + " ks=%s " % data["kickstart"]
-                append_line = append_line + " %s\n" % data["kernel_options"]
+                   append_line += " dns=%s" % ",".join(my_dns)
 
-                length=len(append_line)
-                if length>254:
-                   self.logger.warning("append line length is greater than 254 chars: (%s chars)" % length)
+             # add remaining kernel_options to append_line
+             for (k, v) in data["kernel_options"].iteritems():
+                if v == None:
+                   append_line += " %s" % k
+                else:
+                   append_line += " %s=%s" % (k,v)
+             append_line += "\n"
+             cfg.write(append_line)
 
-                cfg.write(append_line)
+             length = len(append_line)
+             if length > 254:
+                self.logger.warning("append line length is greater than 254 chars (%s chars)" % length)
 
-        if systems is not None:
-           self.logger.info("generating system list")
-
-           cfg.write("\nMENU SEPARATOR\n")
-
-          #sort the systems
-           system_list = [system for system in self.systems]
-           def sort_name(a,b):
-               return cmp(a.name,b.name)
-           system_list.sort(sort_name)
-
-           for system in system_list:
-               use_this = False
-               if systems is not None:
-                   which_systems = systems.split(",")
-                   if system.name in which_systems:
-                       use_this = True
-
-               if use_this:
-                   profile = system.get_conceptual_parent()
-                   dist = profile.get_conceptual_parent()
-                   if dist.name.find("-xen") != -1:
-                       continue
-                   data = utils.blender(self.api, True, system)
-                   distname = self.make_shorter(dist.name)
-
-                   cfg.write("\n")
-                   cfg.write("LABEL %s\n" % system.name)
-                   cfg.write("  MENU LABEL %s\n" % system.name)
-                   cfg.write("  kernel %s.krn\n" % distname)
-
-                   if data["kickstart"].startswith("/"):
-                       data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
-                           data["server"],
-                           self.api.settings().http_port,
-                           system.name
-                       )
-
-                   append_line = "  append initrd=%s.img" % distname
-                   if dist.breed == "suse":
-                      append_line = append_line + " autoyast=%s" % data["kickstart"]
-                   if dist.breed == "redhat":
-                      append_line = append_line + " ks=%s" % data["kickstart"]
-                   append_line = append_line + " %s" % data["kernel_options"]
-
-                   # add network info to avoid DHCP only if it is available
-
-                   if data.has_key("bonding_master_eth0") and data["bonding_master_eth0"] != "":
-                      primary_interface = data["bonding_master_eth0"]
-                   else:
-                      primary_interface = "eth0"
-
-                   # check if ksdevice entry exists and use that for network info
-
-                   blended = utils.blender(self.api, False, system) # don't collapse
-
-                   if blended["kernel_options"].has_key("ksdevice") and blended["kernel_options"]["ksdevice"] != "":
-                       ksdevice = blended["kernel_options"]["ksdevice"]
-                       self.logger.info(" - ksdevice %s set for system %s" % (ksdevice,system.name))
-
-                       if data.has_key("ip_address_" + ksdevice ) and data["ip_address_" + ksdevice] != "":
-                           primary_interface = ksdevice
-                       else:
-
-                           for (obj_iname, obj_interface) in data['interfaces'].iteritems():
-                               mac = obj_interface["mac_address"].upper()
-                               ksdevice_mac = ksdevice.upper()
-
-                               if mac == ksdevice_mac:
-                                   primary_interface = obj_iname
-
-
-                   if data.has_key("ip_address_" + primary_interface) and data["ip_address_" + primary_interface] != "":
-                       if dist.breed == "suse":
-                           append_line = append_line + " hostip=%s" % data["ip_address_" + primary_interface]
-                       else:
-                           append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
-
-
-                   if data.has_key("subnet_" + primary_interface) and data["subnet_" + primary_interface] != "":
-                       append_line = append_line + " netmask=%s" % data["subnet_" + primary_interface]
-
-                   if data.has_key("gateway") and data["gateway"] != "":
-                       append_line = append_line + " gateway=%s" % data["gateway"]
-
-                   if not exclude_dns and data.has_key("name_servers") and data["name_servers"]:
-                       if dist.breed == "suse":
-                           append_line = append_line + " nameserver=%s\n" % data["name_servers"][0]
-                       else:
-                           append_line = append_line + " dns=%s\n" % ",".join(data["name_servers"])
-
-                   length=len(append_line)
-                   if length > 254:
-                      self.logger.warning("append line length is greater than 254 chars: (%s chars)" % length)
-
-                   cfg.write(append_line)
-
-        self.logger.info("done writing config")
-        cfg.write("\n")
-        cfg.write("MENU END\n")
-        cfg.close()
+       cfg.write("\n")
+       cfg.write("MENU END\n")
+       cfg.close()
 
 
     def generate_standalone_iso(self,imagesdir,isolinuxdir,distname,filesource):
@@ -457,4 +486,5 @@ class BuildIso:
         self.logger.info("The output file is: %s" % iso)
 
         return True
+
 
