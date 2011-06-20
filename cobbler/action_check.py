@@ -217,7 +217,7 @@ class BootCheck:
                    rule1 = True
                if line.startswith("/var/lib/tftpboot/.*"):
                    rule2 = True
-               if line.startswith("/var/www/cobbler/images/.*"):
+               if line.startswith(self.settings.webdir+"/images/.*"):
                    rule3 = True
 
            rules = []
@@ -227,7 +227,7 @@ class BootCheck:
                if not rule2:
                    rules.append(selinux_msg % "/var/lib/tftpboot/.*")
            if not rule3:
-               rules.append(selinux_msg % "/var/www/cobbler/images/.*")
+               rules.append(selinux_msg % self.settings.webdir+"/images/.*")
            if len(rules) > 0:
                status.append("you need to set some SELinux content rules to ensure cobbler serves content correctly in your SELinux environment, run the following: %s" % " && ".join(rules))
 

@@ -197,6 +197,9 @@ manage_dhcp: 0
 # the choice of DNS mangement engine is in /etc/cobbler/modules.conf
 manage_dns: 0
 
+# set to 1 to enable Cobbler's RSYNC management features.
+manage_rsync: 0
+
 # if using BIND (named) for DNS management in /etc/cobbler/modules.conf
 # and manage_dns is enabled (above), this lists which zones are managed
 # See the Wiki (https://fedorahosted.org/cobbler/wiki/ManageDns) for more info

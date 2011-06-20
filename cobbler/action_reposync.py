@@ -212,7 +212,7 @@ class RepoSync:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         # FIXME: don't hardcode
-        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
 
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
@@ -255,7 +255,7 @@ class RepoSync:
 
         # create yum config file for use by reposync
         # FIXME: don't hardcode
-        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
         if not os.path.isdir(temp_path):
@@ -273,7 +273,7 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:] # everything after rhn://
-        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, "/var/www/cobbler/repo_mirror")
+        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, self.settings.webdir+"/repo_mirror")
         if repo.name != rest:
             args = { "name" : repo.name, "rest" : rest }
             utils.die(self.logger,"ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -334,7 +334,7 @@ class RepoSync:
             has_rpm_list = True
 
         # create yum config file for use by reposync
-        dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
         if not os.path.isdir(temp_path) and repo.mirror_locally:
@@ -348,7 +348,7 @@ class RepoSync:
 
         if not has_rpm_list and repo.mirror_locally:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, "/var/www/cobbler/repo_mirror")
+            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, self.settings.webdir+"/repo_mirror")
             if repo.arch != "":
                 if repo.arch == "x86":
                    repo.arch = "i386" # FIX potential arch errors

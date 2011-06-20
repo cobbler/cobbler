@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import utils
 from utils import _
 
+import os.path
+
 TESTMODE = False
 
 # defaults is to be used if the config file doesn't contain the value
@@ -112,6 +114,8 @@ DEFAULTS = {
     "consoles"                     : "/var/consoles"
 }
 
+if os.path.exists("/srv/www/"):
+    DEFAULTS["webdir"] = "/srv/www/cobbler"
 
 class Settings:
 

@@ -142,8 +142,12 @@ class CobblerXMLRPCInterface:
         profiles without using PXE.
         """
         def runner(self):
+            # FIXME: better use webdir from the settings?
+            webdir = "/var/www/cobbler/"
+            if os.path.exists("/srv/www"):
+                webdir = "/srv/www/cobbler/"
             return self.remote.api.build_iso(
-                self.options.get("iso","/var/www/cobbler/pub/generated.iso"),
+                self.options.get("iso",webdir+"/pub/generated.iso"),
                 self.options.get("profiles",None),
                 self.options.get("systems",None),
                 self.options.get("buildisodir",None),
@@ -154,7 +158,7 @@ class CobblerXMLRPCInterface:
                 self.logger
             )
         def on_done(self):
-            if self.options.get("iso","") == "/var/www/cobbler/pub/generated.iso":
+            if self.options.get("iso","") == webdir+"/pub/generated.iso":
                 msg = "ISO now available for <A HREF=\"/cobbler/pub/generated.iso\">download</A>"
                 self.remote._new_event(msg)
         return self.__start_task(runner, token, "buildiso", "Build Iso", options, on_done)
