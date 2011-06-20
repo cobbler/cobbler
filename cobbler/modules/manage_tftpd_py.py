@@ -28,6 +28,8 @@ import utils
 from cexceptions import *
 import templar 
 
+import pxegen
+
 from utils import _
 
 
@@ -107,7 +109,7 @@ class TftpdPyManager:
         Write out files to /tftpdboot.  Mostly unused for the python server
         """
         self.logger.info("copying bootloaders")
-        self.pxegen.copy_bootloaders()
+	pxegen.PXEGen(self.config,self.logger).copy_bootloaders()
 
     def update_netboot(self,name):
         """
