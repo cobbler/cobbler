@@ -777,7 +777,7 @@ def events(request):
       events2.append([id,time.asctime(time.gmtime(ttime)),name,state])
 
    def sorter(a,b):
-      return cmp(a[2],b[2])
+      return cmp(a[1],b[1])
    events2.sort(sorter)
 
    t = get_template('events.tmpl')
