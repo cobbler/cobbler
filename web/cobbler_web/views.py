@@ -774,10 +774,10 @@ def events(request):
    events2 = []
    for id in events.keys():
       (ttime, name, state, read_by) = events[id]
-      events2.append([id,time.asctime(time.gmtime(ttime)),name,state])
+      events2.append([id,time.asctime(time.localtime(ttime)),name,state])
 
    def sorter(a,b):
-      return cmp(a[1],b[1])
+      return cmp(a[0],b[0])
    events2.sort(sorter)
 
    t = get_template('events.tmpl')
