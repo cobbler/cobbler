@@ -2061,8 +2061,7 @@ def dhcpconf_location(api):
 
 def link_distro(settings, distro):
     # find the tree location
-    dirname = os.path.dirname(distro.kernel)
-    base = os.path.split(os.path.split(dirname)[0])[0]
+    base = os.path.join((settings.webdir, "ks_mirror", distro.name)
     dest_link = os.path.join(settings.webdir, "links", distro.name)
 
     # create the links directory only if we are mirroring because with
