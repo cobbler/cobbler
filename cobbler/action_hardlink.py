@@ -63,6 +63,12 @@ class HardLinker:
         self.logger.info("now hardlinking to save space, this may take some time.")
 
         rc = utils.subprocess_call(self.logger,self.hardlink_cmd,shell=True)
+        # FIXME: how about settings? (self.settings.webdir)
+        webdir = "/var/www/cobbler"
+        if os.path.exists("/srv/www"):
+            webdir = "/srv/www/cobbler"
+
+        rc = utils.subprocess_call(self.logger,"/usr/sbin/hardlink -c -v "+webdir+"/ks_mirror /var/www/cobbler/repo_mirror",shell=True)
 
         return rc
 

@@ -36,7 +36,7 @@ import virtinst
 import app as koan
 
 try:
-    import virtinst.DistroManager as DistroManager
+    import virtinst.DistroInstaller as DistroManager
 except:
     # older virtinst, this is probably ok
     # but we know we can't do Xen fullvirt installs
@@ -78,7 +78,7 @@ def start_install(name=None,
 
     if fullvirt:
         # FIXME: add error handling here to explain when it's not supported
-        guest = virtinst.FullVirtGuest(installer=DistroManager.PXEInstaller())
+        guest = virtinst.FullVirtGuest(installer=virtinst.PXEInstaller())
     else:
         guest = virtinst.ParaVirtGuest()
 

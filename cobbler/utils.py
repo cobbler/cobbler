@@ -1045,6 +1045,8 @@ def tftpboot_location():
        return "/var/lib/tftpboot"
     elif make == "debian" or make == "ubuntu":
        return "/var/lib/tftpboot"
+    if make == "suse":
+        return "/srv/tftpboot"
     return "/tftpboot"
 
 def can_do_public_content(api):
@@ -2051,9 +2053,12 @@ def loh_sort_by_key(datastruct, indexkey):
 
 def dhcpconf_location(api):
     version = api.os_version
+    (dist, ver) = api.get_os_details()
     if version[0] in [ "redhat", "centos" ] and version[1] < 6:
         return "/etc/dhcpd.conf"
     elif version[0] in [ "fedora" ] and version[1] < 11: 
+        return "/etc/dhcpd.conf"
+    elif dist == "suse":
         return "/etc/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"

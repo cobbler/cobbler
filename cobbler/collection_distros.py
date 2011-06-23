@@ -80,7 +80,8 @@ class Distros(collection.Collection):
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
-            possible_storage = glob.glob("/var/www/cobbler/ks_mirror/*")
+            settings = self.config.settings()
+            possible_storage = glob.glob(settings.webdir+"/ks_mirror/*")
             path = None
             for storage in possible_storage:
                 if os.path.dirname(obj.kernel).find(storage) != -1:
@@ -89,7 +90,7 @@ class Distros(collection.Collection):
 
             # if we found a mirrored path above, we can delete the mirrored storage /if/
             # no other object is using the same mirrored storage.
-            if with_delete and path is not None and os.path.exists(path) and kernel.find("/var/www/cobbler") != -1:
+            if with_delete and path is not None and os.path.exists(path) and kernel.find(settings.webdir) != -1:
                # this distro was originally imported so we know we can clean up the associated
                # storage as long as nothing else is also using this storage.
                found = False

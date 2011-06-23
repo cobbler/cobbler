@@ -169,7 +169,7 @@ class BuildIso:
                 append_line = "  append initrd=%s.img" % distname
                 if dist.breed == "suse":
                     append_line = append_line + " autoyast=%s " % data["kickstart"]
-                else:
+                if dist.breed == "redhat":
                     append_line = append_line + " ks=%s " % data["kickstart"]
                 append_line = append_line + " %s\n" % data["kernel_options"]
 
@@ -218,7 +218,10 @@ class BuildIso:
                        )
 
                    append_line = "  append initrd=%s.img" % distname
-                   append_line = append_line + " ks=%s" % data["kickstart"]
+                   if dist.breed == "suse":
+                      append_line = append_line + " autoyast=%s" % data["kickstart"]
+                   if dist.breed == "redhat":
+                      append_line = append_line + " ks=%s" % data["kickstart"]
                    append_line = append_line + " %s" % data["kernel_options"]
 
                    # add network info to avoid DHCP only if it is available
@@ -249,7 +252,11 @@ class BuildIso:
 
 
                    if data.has_key("ip_address_" + primary_interface) and data["ip_address_" + primary_interface] != "":
-                       append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
+                       if dist.breed == "suse":
+                           append_line = append_line + " hostip=%s" % data["ip_address_" + primary_interface]
+                       else:
+                           append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
+
 
                    if data.has_key("subnet_" + primary_interface) and data["subnet_" + primary_interface] != "":
                        append_line = append_line + " netmask=%s" % data["subnet_" + primary_interface]
@@ -258,7 +265,10 @@ class BuildIso:
                        append_line = append_line + " gateway=%s" % data["gateway"]
 
                    if not exclude_dns and data.has_key("name_servers") and data["name_servers"]:
-                       append_line = append_line + " dns=%s\n" % ",".join(data["name_servers"])
+                       if dist.breed == "suse":
+                           append_line = append_line + " nameserver=%s\n" % data["name_servers"][0]
+                       else:
+                           append_line = append_line + " dns=%s\n" % ",".join(data["name_servers"])
 
                    length=len(append_line)
                    if length > 254:

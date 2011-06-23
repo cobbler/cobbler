@@ -28,6 +28,8 @@ import utils
 from cexceptions import *
 import templar 
 
+import pxegen
+
 from utils import _
 
 
@@ -48,8 +50,8 @@ class TftpdPyManager:
         Constructor
         """
         self.logger        = logger
-	if self.logger is None:
-	    self.logger = clogger.Logger()
+        if self.logger is None:
+            self.logger = clogger.Logger()
 
         self.config        = config
         self.templar       = templar.Templar(config)
@@ -104,9 +106,10 @@ class TftpdPyManager:
 
     def sync(self,verbose=True):
         """
-        Write out files to /tftpdboot.  Unused for the python server
+        Write out files to /tftpdboot.  Mostly unused for the python server
         """
-        pass
+        self.logger.info("copying bootloaders")
+        pxegen.PXEGen(self.config,self.logger).copy_bootloaders()
 
     def update_netboot(self,name):
         """
