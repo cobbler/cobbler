@@ -1954,8 +1954,10 @@ def get_shared_secret():
 def local_get_cobbler_api_url():
     # Load server and http port
     try:
-        fh = open("/etc/cobbler/settings")
-        data = yaml.load(fh.read())
+        #fh = open("/etc/cobbler/settings")
+        fh = open("/etc/cobbler/settings.json")
+        #data = yaml.load(fh.read())
+        data = simplejson.load(fh)
         fh.close()
     except:
        traceback.print_exc()
@@ -1975,8 +1977,10 @@ def get_ldap_template(ldaptype=None):
 def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port
     try:
-        fh = open("/etc/cobbler/settings")
-        data = yaml.load(fh.read())
+        #fh = open("/etc/cobbler/settings")
+        fh = open("/etc/cobbler/settings.json")
+        #data = yaml.load(fh.read())
+        data = simplejson.load(fh)
         fh.close()
     except:
        traceback.print_exc()
