@@ -176,7 +176,7 @@ class Replicate:
                         parentdir = os.path.split(dest)[0]
                         if not os.path.isdir(parentdir):
                             os.makedirs(parentdir)
-                            self.rsync_it("distro-%s"%distro["name"], parentdir)
+                        self.rsync_it("distro-%s"%distro["name"], parentdir)
 
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
