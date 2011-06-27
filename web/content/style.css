@@ -84,11 +84,11 @@ input.action { height: 22px; }
 ol.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
 div.multiselect label { width: auto; font-weight: normal; display: inline; }
-div.multileft { float: left; text-align: left; width: 150px; }
-div.multileft select, div.multiright select { height: 156px; width: 150px; }
+div.multileft { float: left; text-align: left; width: auto; }
+div.multileft select, div.multiright select { height: 156px; min-width: 150px; width: auto; }
 div.multibuttons { width: 55px; padding-top: 75px; float: left;}
 div.multibuttons input.button { font-size: .8em; clear: both; width: 50px; margin: 2px;}
-div.multiright { float: left; text-align: right; width: 150px; }
+div.multiright { float: left; text-align: right; width: auto; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
 span.context-tip {

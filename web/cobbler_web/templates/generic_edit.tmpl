@@ -427,6 +427,7 @@ $(document).ready(function()
       <div class="multiselect">
         <div class="multileft">
           <label for="from_{{ item.dname }}">Available:</label>
+          <br />
           <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
@@ -441,6 +442,7 @@ $(document).ready(function()
         </div>
         <div class="multiright">
           <label for="{{ item.dname }}">Selected:</label>
+          <br />
           <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}
