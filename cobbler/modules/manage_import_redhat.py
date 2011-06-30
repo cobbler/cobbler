@@ -92,7 +92,7 @@ class ImportRedhatManager:
           'SL',
        ]
 
-       #self.logger.info("scanning %s for a redhat-based distro signature" % path)
+       self.logger.info("scanning %s for a redhat-based distro signature" % path)
        for signature in signatures:
            d = os.path.join(path,signature)
            if os.path.exists(d):
@@ -339,7 +339,7 @@ class ImportRedhatManager:
             # and the input start directory in the crawl.  We find the path segments
             # between and tack them on the network source path to find the explicit
             # network path to the distro that Anaconda can digest.
-            tail = self.path_tail(self.path, base)
+            tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distro, tree)
 
@@ -649,7 +649,7 @@ class ImportRedhatManager:
         """
 
         if self.network_root is not None:
-            name = self.mirror_name + "-".join(self.path_tail(os.path.dirname(self.path),dirname).split("/"))
+            name = self.mirror_name #+ "-".join(utils.path_tail(os.path.dirname(self.path),dirname).split("/"))
         else:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])

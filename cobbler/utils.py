@@ -1290,9 +1290,9 @@ def path_tail(apath, bpath):
     """
     position = bpath.find(apath)
     if position != 0:
-        die(self.logger, "- warning: possible symlink traversal?: %s")
-    rposition = position + len(self.mirror)
-    result = bpath[rposition:]
+        return ""
+    #rposition = position + len(mirror)
+    result = bpath[position:]
     if not result.startswith("/"):
         result = "/" + result
     return result
