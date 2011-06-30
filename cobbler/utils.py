@@ -1042,9 +1042,11 @@ def tftpboot_location():
     # otherwise, guess based on the distro
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
-       return "/var/lib/tftpboot"
+        return "/var/lib/tftpboot"
+    elif make =="redhat" and version >= 6:
+        return "/var/lib/tftpboot"
     elif make == "debian" or make == "ubuntu":
-       return "/var/lib/tftpboot"
+        return "/var/lib/tftpboot"
     if make == "suse":
         return "/srv/tftpboot"
     return "/tftpboot"
@@ -2065,8 +2067,7 @@ def dhcpconf_location(api):
 
 def link_distro(settings, distro):
     # find the tree location
-    dirname = os.path.dirname(distro.kernel)
-    base = os.path.split(os.path.split(dirname)[0])[0]
+    base = os.path.join(settings.webdir, "ks_mirror", distro.name)
     dest_link = os.path.join(settings.webdir, "links", distro.name)
 
     # create the links directory only if we are mirroring because with

@@ -25,10 +25,12 @@ function intf_update_visibility()
     }
 
     is_static = document.getElementById("static").checked
+    is_management = document.getElementById("management").checked
  
     intf_enable_field("static",!is_slave)
     intf_enable_field("ip_address",(!is_slave))
     intf_enable_field("subnet",(!is_slave) && is_static)
+    intf_enable_field("management",(!is_slave) && is_static)
     intf_enable_field("dns_name",!is_slave)
     intf_enable_field("static_routes",!is_slave)
     intf_enable_field("dhcp_tag",!is_slave)
@@ -105,6 +107,7 @@ function on_interface_add()
     interface_table[iname]["virt_bridge"] = ""
     interface_table[iname]["subnet"] = ""
     interface_table[iname]["static"] = false
+    interface_table[iname]["management"] = false
     interface_table[iname]["present"] = "1"
     interface_table[iname]["original"] = "0"
     interface_table[iname]["mtu"] = ""
@@ -174,6 +177,7 @@ function save_intf(which)
         is_slave   = true;
     }
     is_static=document.getElementById("static").checked
+    is_management=document.getElementById("management").checked
 
     itable["name"]           = iname
     itable["mac_address"]    = document.getElementById("mac_address").value
@@ -181,6 +185,7 @@ function save_intf(which)
     itable["bonding_master"] = get_enabled_field("bonding_master",is_slave)
     itable["bonding_opts"]   = get_enabled_field("bonding_opts",is_master)
     itable["static"]         = is_static
+    itable["management"]     = is_management
     itable["ip_address"]     = get_enabled_field("ip_address",(!is_slave))
     itable["subnet"]         = get_enabled_field("subnet",(!is_slave) && is_static)
     itable["dns_name"]       = get_enabled_field("dns_name",!is_slave)
@@ -208,6 +213,7 @@ function load_intf()
     document.getElementById("bonding_master").value = interface_table[intf]["bonding_master"]
     document.getElementById("bonding_opts").value   = interface_table[intf]["bonding_opts"]
     document.getElementById("static").checked       = interface_table[intf]["static"]
+    document.getElementById("management").checked   = interface_table[intf]["management"]
     document.getElementById("ip_address").value     = interface_table[intf]["ip_address"]
     document.getElementById("subnet").value         = interface_table[intf]["subnet"]
     document.getElementById("dns_name").value       = interface_table[intf]["dns_name"]
@@ -235,6 +241,7 @@ function clear_intf()
     document.getElementById("bonding_master").value       = ""
     document.getElementById("bonding_opts").value         = ""
     document.getElementById("static").checked             = true
+    document.getElementById("management").checked         = true
     document.getElementById("ip_address").value           = ""
     document.getElementById("subnet").value               = ""
     document.getElementById("dns_name").value             = ""
@@ -268,6 +275,7 @@ function build_interface_table()
     interface_table['{{ key }}']["bonding_master"]       = "{{ value.bonding_master }}"
     interface_table['{{ key }}']["bonding_opts"]         = "{{ value.bonding_opts }}"
     interface_table['{{ key }}']["static"]               = {{ value.static|lower }}
+    interface_table['{{ key }}']["management"]           = {{ value.management|lower }}
     interface_table['{{ key }}']["ip_address"]           = "{{ value.ip_address }}"
     interface_table['{{ key }}']["subnet"]               = "{{ value.subnet }}"
     interface_table['{{ key }}']["dns_name"]             = "{{ value.dns_name }}"
@@ -427,6 +435,7 @@ $(document).ready(function()
       <div class="multiselect">
         <div class="multileft">
           <label for="from_{{ item.dname }}">Available:</label>
+          <br />
           <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice not in item.value_raw %}
@@ -441,6 +450,7 @@ $(document).ready(function()
         </div>
         <div class="multiright">
           <label for="{{ item.dname }}">Selected:</label>
+          <br />
           <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
       {% for choice in item.choices %}
         {% smart_if choice in item.value_raw %}

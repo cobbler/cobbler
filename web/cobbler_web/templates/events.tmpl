@@ -8,14 +8,14 @@
 <table id="listitems" cellspacing="0">
   <thead>
     <tr>
-      <th>Start Time</th>
-      <th>Name</th>
-      <th>State</th>
-      <th>Log</th>
+      <th width="40%">Start Time</th>
+      <th width="20%">Name</th>
+      <th width="20%">State</th>
+      <th width="20%">Log</th>
     </tr>
   </thead>
   <tbody>
-  {% for line in results %}
+  {% for line in results reversed %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
       <td>{{ line.1|safe }}</td>
       <td>{{ line.2|safe }}</td>

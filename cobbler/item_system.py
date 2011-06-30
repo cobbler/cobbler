@@ -69,6 +69,7 @@ FIELDS = [
   ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"],"str"],
   ["*bonding_master","",0,"Bonding Master",True,"",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"",0,"str"],
+  ["*management",False,0,"Management Interface",True,"Is this the management interface?",0,"bool"],
   ["*static",False,0,"Static",True,"Is this interface static?",0,"bool"],
   ["*subnet","",0,"Subnet",True,"",0,"str"],
   ["*dhcp_tag","",0,"DHCP Tag",True,"",0,"str"],
@@ -138,6 +139,7 @@ class System(item.Item):
                 "bonding"        : "",
                 "bonding_master" : "",
                 "bonding_opts"   : "",
+                "management"     : False,
                 "dns_name"       : "",
                 "static_routes"  : [],
                 "ipv6_address"   : "",
@@ -289,6 +291,11 @@ class System(item.Item):
     def set_static(self,truthiness,interface):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
+        return True
+
+    def set_management(self,truthiness,interface):
+        intf = self.__get_interface(interface)
+        intf["management"] = utils.input_boolean(truthiness)
         return True
 
     def set_ip_address(self,address,interface):
@@ -608,6 +615,7 @@ class System(item.Item):
             if field == "bonding"             : self.set_bonding(value, interface)
             if field == "bondingmaster"       : self.set_bonding_master(value, interface)
             if field == "bondingopts"         : self.set_bonding_opts(value, interface)
+            if field == "management"          : self.set_management(value, interface)
             if field == "staticroutes"        : self.set_static_routes(value, interface)
             if field == "ipv6address"         : self.set_ipv6_address(value, interface)
             if field == "ipv6secondaries"     : self.set_ipv6_secondaries(value, interface)

@@ -41,13 +41,13 @@ VALID_OS_BREEDS = [
 ]
 
 VALID_OS_VERSIONS = {
-    "redhat"  : [ "rhel2.1", "rhel3", "rhel4", "rhel5", "rhel6", "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "fedora10", "fedora11", "fedora12", "fedora13", "fedora14", "generic24", "generic26", "virtio26", "other" ],
-    "suse"    : [ "sles10", "generic24", "generic26", "virtio26", "other" ],
-    "debian"  : [ "etch", "lenny", "squeeze", "sid", "stable", "testing", "unstable", "generic24", "generic26", "other" ],
-    "ubuntu"  : [ "dapper", "hardy", "intrepid", "jaunty", "karmic", "lucid", "maverick", "natty" ],
+    "redhat"  : [ "rhel3", "rhel4", "rhel5", "rhel6", "fedora14", "fedora15", "generic24", "generic26", "virtio26", "other" ],
+    "suse"    : [ "sles9", "sles10", "sles11", "generic24", "generic26", "virtio26", "other" ],
+    "debian"  : [ "lenny", "squeeze", "stable", "testing", "unstable", "generic24", "generic26", "other" ],
+    "ubuntu"  : [ "hardy", "lucid", "maverick", "natty" ],
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
-    "unix"    : [ "solaris9", "solaris10", "freebsd6", "openbsd4", "other" ],
+    "unix"    : [ "solaris9", "solaris10", "freebsd7", "freebsd8", "other" ],
     "vmware"  : [ "esx4", "esxi4" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
