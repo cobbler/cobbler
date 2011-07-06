@@ -187,6 +187,7 @@ if __name__ == "__main__":
             #Configuration
             ("%s" % etcpath,                ["config/*"]),
             ("%s" % etcpath,                ["templates/etc/*"]),
+            ("%siso" % etcpath,             ["templates/iso/*"]),
             ("%spxe" % etcpath,             ["templates/pxe/*"]),
             ("%sreporting" % etcpath,       ["templates/reporting/*"]),
             ("%spower" % etcpath,           ["templates/power/*"]),
