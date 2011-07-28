@@ -1958,10 +1958,8 @@ def get_shared_secret():
 def local_get_cobbler_api_url():
     # Load server and http port
     try:
-        #fh = open("/etc/cobbler/settings")
-        fh = open("/etc/cobbler/settings.json")
-        #data = yaml.load(fh.read())
-        data = simplejson.load(fh)
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
         fh.close()
     except:
        traceback.print_exc()
