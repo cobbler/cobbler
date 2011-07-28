@@ -72,9 +72,9 @@ def run(api,args,logger):
        # FIXME: if we know the remote user of an XMLRPC call
        # use them as the author
 
-       scall(["git","add","config"])
-       scall(["git","add","kickstarts"])
-       scall(["git","add","snippets"])
+       scall(["git","add","--all","config"])
+       scall(["git","add","--all","kickstarts"])
+       scall(["git","add","--all","snippets"])
 
        scall(["git","commit","-m",'API update',"--author","'cobbler <root@localhost.localdomain>'"])
 
