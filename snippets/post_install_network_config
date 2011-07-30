@@ -138,6 +138,15 @@ echo "ONBOOT=yes" >> $devfile
             #if $mac != "" and $iface_type not in ("master","bond","bridge")
             ## virtual interfaces don't get MACs
 echo "HWADDR=$mac" >> $devfile
+IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
+            ## Rename this interface in modprobe.conf
+            ## FIXME: if both interfaces startwith eth this is wrong
+if [ -f "/etc/modprobe.conf" ] && [ \$IFNAME ]; then
+    grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
+    grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
+    rm -f /etc/modprobe.conf
+    mv /etc/modprobe.conf.new /etc/modprobe.conf
+fi
             #end if
         ## ===================================================================
         ## Actions based on interface_type

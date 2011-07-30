@@ -253,7 +253,7 @@ When using "default" name, don't specify any other arguments than --profile ... 
 
 Specifying a mac address via --mac allows the system object to boot directly to a specific profile via PXE, bypassing cobbler's PXE menu.  If the name of the cobbler system already looks like a mac address, this is inferred from the system name and does not need to be specified.  
 
-MAC addresses have the format AA:BB:CC:DD:EE:FF. It's higly recommended to register your MAC-addresses in Cobbler if you're using static adressing with multiple interfaces, or if you are using any of the advanced networking features like bonding or VLANs.
+MAC addresses have the format AA:BB:CC:DD:EE:FF. It's higly recommended to register your MAC-addresses in Cobbler if you're using static adressing with multiple interfaces, or if you are using any of the advanced networking features like bonding, bridges or VLANs.
 
 Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add new system records when it finds profiles being provisioned on hardware it has seen before.  This may help if you do not have a report of all the MAC addresses in your datacenter/lab configuration.
 
@@ -364,15 +364,18 @@ Example:
 
 cobbler system edit --name=foo --interface=eth2 --delete-interface
 
-=item --bonding, --bonding-master and --bonding-opts
+=item --interface-type, --interface-master and --bonding-opts/--bridge-opts
 
-One of the other advanced networking features supported by Cobbler is NIC bonding. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network. Supported values for the --bonding parameter are "master" and "slave". If "slave" is specified, you also need to define the master-interface for this bond using --bonding-master=INTERFACE. Bonding options for the master-interface may be specified using --bonding-opts="foo=1 bar=2"
+One of the other advanced networking features supported by Cobbler is NIC bonding and bridging. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network, or to create bridged interfaces for things like tunnels and virtual machine networks. Supported values for the --interface-type parameter are "bond", "bond_slave", "bridge" and "bridge_slave". If one of the "_slave" options is specified, you also need to define the master-interface for this bond using --interface-master=INTERFACE. Bonding and bridge options for the master-interface may be specified using --bonding-opts="foo=1 bar=2" or --bridge-opts="foo=1 bar=2", respectively.
+
+Note:
+The options "master" and "slave" are deprecated, and are assumed to me "bond" and "bond_slave" when encountered. When a system object is saved, the deprecated values will be overwritten with the new, correct values.
 
 Example:
 
-cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --bonding=slave --bonding-master=bond0
-cobbler system edit --name=foo --interface=eth1 --mac=AA:BB:CC:DD:EE:01 --bonding=slave --bonding-master=bond0
-cobbler system edit --name=foo --interface=bond0 --bonding=master --bonding-opts="mode=active-backup miimon=100" --ip=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1 
+cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --interface-type=bond_slave --interface-master=bond0
+cobbler system edit --name=foo --interface=eth1 --mac=AA:BB:CC:DD:EE:01 --interface-type=bond_slave --interface-master=bond0
+cobbler system edit --name=foo --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1
 
 More information about networking setup is available at https://fedorahosted.org/cobbler/wiki/AdvancedNetworking
 
