@@ -249,19 +249,21 @@ class Config:
        """
        Load the object hierachy from disk, using the filenames referenced in each object.
        """
-       try:
-           serializer.deserialize(self._settings)
-       except:
-           traceback.print_exc()
-           raise CX("/etc/cobbler/settings is not a valid YAML file")
-       serializer.deserialize(self._distros)
-       serializer.deserialize(self._repos)
-       serializer.deserialize(self._profiles)
-       serializer.deserialize(self._images)
-       serializer.deserialize(self._systems)
-       serializer.deserialize(self._mgmtclasses)
-       serializer.deserialize(self._packages)
-       serializer.deserialize(self._files)
+       for item in [
+           self._settings,
+           self._distros,
+           self._repos,
+           self._profiles,
+           self._images,
+           self._systems,
+           self._mgmtclasses,
+           self._packages,
+           self._files,
+           ]:
+           try:
+               if not serializer.deserialize(item): raise ""
+           except:
+               raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
        return True
 
    def deserialize_raw(self,collection_type):
