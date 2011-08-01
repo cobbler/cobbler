@@ -236,9 +236,9 @@ class BuildIso:
                 if num_ints > 1:
                    # multiple interfaces found, make an educated guess
                    for (iname, idata) in data["interfaces"].iteritems():
-                      if idata["bonding"] == "master":
+                      if idata["interface_type"] in ("master","bond","bridge"):
                          num_master_ints += 1
-                      if idata["bonding"] == "slave":
+                      if idata["interface_type"] in ("slave","bond_slave","bridge_slave"):
                          num_slave_ints += 1
                          slave_ints.append(iname)
 

@@ -334,10 +334,16 @@ class Item:
         # special case for systems
         key_found_already = False
         if data.has_key("interfaces"):
-            if key in [ "mac_address", "ip_address", "subnet", "virt_bridge", "dhcp_tag", "dns_name", "static_routes", "bonding", "bonding_opts", "bonding_master" ]:
+            if key in [ "mac_address", "ip_address", "subnet", "virt_bridge", \
+                        "dhcp_tag", "dns_name", "static_routes", "interface_type", \
+                        "interface_master", "bonding_opts", "bridge_opts", "bonding", "bonding_master" ]:
+                if key == "bonding":
+                    key = "interface_type" # bonding is deprecated
+                elif key == "bonding_master":
+                    key = "interface_master" # bonding_master is deprecated
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems(): 
-                    if value is not None:
+                    if value is not None and interface.has_key(key):
                         if self.__find_compare(interface[key], value):
                             return True
 

@@ -66,9 +66,10 @@ FIELDS = [
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"",0,"str"],
-  ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"],"str"],
-  ["*bonding_master","",0,"Bonding Master",True,"",0,"str"],
+  ["*interface_type","na",0,"Interface Type",True,"",["na","master","slave","bond","bond_slave","bridge","bridge_slave"],"str"],
+  ["*interface_master","",0,"Master Interface",True,"",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"",0,"str"],
+  ["*bridge_opts","",0,"Bridge Opts",True,"",0,"str"],
   ["*management",False,0,"Management Interface",True,"Is this the management interface?",0,"bool"],
   ["*static",False,0,"Static",True,"Is this interface static?",0,"bool"],
   ["*subnet","",0,"Subnet",True,"",0,"str"],
@@ -129,23 +130,26 @@ class System(item.Item):
 
         if not self.interfaces.has_key(name):
             self.interfaces[name] = {
-                "mac_address"    : "",
-                "mtu"            : "",
-                "ip_address"     : "",
-                "dhcp_tag"       : "",
-                "subnet"         : "",
-                "virt_bridge"    : "",
-                "static"         : False,
-                "bonding"        : "",
-                "bonding_master" : "",
-                "bonding_opts"   : "",
-                "management"     : False,
-                "dns_name"       : "",
-                "static_routes"  : [],
-                "ipv6_address"   : "",
-                "ipv6_secondaries"  : [],
-                "ipv6_mtu"       : "",
-                "ipv6_static_routes"  : [],
+                "mac_address"          : "",
+                "mtu"                  : "",
+                "ip_address"           : "",
+                "dhcp_tag"             : "",
+                "subnet"               : "",
+                "virt_bridge"          : "",
+                "static"               : False,
+                "interface_type"       : "",
+                "interface_master"     : "",
+                "bonding"              : "", # deprecated
+                "bonding_master"       : "", # deprecated
+                "bonding_opts"         : "",
+                "bridge_opts"          : "",
+                "management"           : False,
+                "dns_name"             : "",
+                "static_routes"        : [],
+                "ipv6_address"         : "",
+                "ipv6_secondaries"     : [],
+                "ipv6_mtu"             : "",
+                "ipv6_static_routes"   : [],
                 "ipv6_default_gateway" : "",
             }
 
@@ -373,23 +377,35 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
         return True
 
-    def set_bonding(self,bonding,interface):
-        if bonding not in ["master","slave","na",""] : 
-            raise CX(_("bonding value must be one of: master, slave, na"))
-        if bonding == "na":
-            bonding = ""
+    def set_interface_type(self,type,interface):
+        # master and slave are deprecated, and will
+        # be assumed to mean bonding slave/master
+        interface_types = ["bridge","bridge_slave","bond","bond_slave","master","slave","na",""]
+        if type not in interface_types:
+            raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
+        if type == "na":
+            type = ""
+        elif type == "master":
+            type = "bond"
+        elif type == "slave":
+            type = "bond_slave"
         intf = self.__get_interface(interface)
-        intf["bonding"] = bonding
+        intf["interface_type"] = type
         return True
 
-    def set_bonding_master(self,bonding_master,interface):
+    def set_interface_master(self,interface_master,interface):
         intf = self.__get_interface(interface)
-        intf["bonding_master"] = bonding_master
+        intf["interface_master"] = interface_master
         return True
 
     def set_bonding_opts(self,bonding_opts,interface):
         intf = self.__get_interface(interface)
         intf["bonding_opts"] = bonding_opts
+        return True
+
+    def set_bridge_opts(self,bridge_opts,interface):
+        intf = self.__get_interface(interface)
+        intf["bridge_opts"] = bridge_opts
         return True
 
     def set_ipv6_autoconfiguration(self,truthiness):
@@ -612,9 +628,12 @@ class System(item.Item):
             if field == "dhcptag"             : self.set_dhcp_tag(value, interface)
             if field == "subnet"              : self.set_subnet(value, interface)
             if field == "virtbridge"          : self.set_virt_bridge(value, interface)
-            if field == "bonding"             : self.set_bonding(value, interface)
-            if field == "bondingmaster"       : self.set_bonding_master(value, interface)
+            if field == "interfacetype"       : self.set_interface_type(value, interface)
+            if field == "interfacemaster"     : self.set_interface_master(value, interface)
+            if field == "bonding"             : self.set_interface_type(value, interface)   # deprecated
+            if field == "bondingmaster"       : self.set_interface_master(value, interface) # deprecated
             if field == "bondingopts"         : self.set_bonding_opts(value, interface)
+            if field == "bridgeopts"          : self.set_bridge_opts(value, interface)
             if field == "management"          : self.set_management(value, interface)
             if field == "staticroutes"        : self.set_static_routes(value, interface)
             if field == "ipv6address"         : self.set_ipv6_address(value, interface)

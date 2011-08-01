@@ -9,7 +9,7 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["bonding"].lower() == "master"
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("master","bond","bridge")
             #set $configbymac = False
         #end if
     #end for
@@ -27,8 +27,8 @@
             #set $static   = $idata["static"]
             #set $ip       = $idata["ip_address"]
             #set $netmask  = $idata["subnet"]
-            #set $bonding  = $idata["bonding"]
-            #if $vlanpattern.match($iname) or $bonding == "master" 
+            #set $type     = $idata["interface_type"]
+            #if $vlanpattern.match($iname) or $type in ("master","bond","bridge")
                 ## If this is a VLAN interface, skip it, anaconda doesn't know
                 ## about VLANs.
                 #set $is_vlan = "true"

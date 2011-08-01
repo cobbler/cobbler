@@ -59,9 +59,10 @@ function add_filter() {
       <option value="virt_ram">virt ram (MB)</option>
       <option value="virt_type">virt type</option>
       <option value="server">server override</option>{% endifequal %}
-      {% ifequal what "system" %}<option value="bonding">bonding</option>
-      <option value="bonding_master">bonding master</option>
+      {% ifequal what "system" %}<option value="interface_type">interface type</option>
+      <option value="interface_master">interface master</option>
       <option value="bonding_opts">bonding opts</option>
+      <option value="bridge_opts">bridge opts</option>
       <option value="comment">comment</option>
       <option value="dhcp_tag">dhcp tag</option>
       <option value="distro">distro</option>
