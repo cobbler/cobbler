@@ -1775,9 +1775,12 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         # we don't have to load interface fields here
         if elems[0].startswith("*") or elems[0].find("widget") != -1:
             continue
-        k = elems[0]
-        if seed_data.has_key(k):
-            setattr(obj, k, seed_data[k])
+        src_k = dst_k = elems[0]
+        # deprecated field switcheroo
+        if field_info.DEPRECATED_FIELDS.has_key(src_k):
+            dst_k = field_info.DEPRECATED_FIELDS[src_k]
+        if seed_data.has_key(src_k):
+            setattr(obj, dst_k, seed_data[src_k])
 
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
@@ -1785,6 +1788,13 @@ def from_datastruct_from_fields(obj, seed_data, fields):
     # special handling for interfaces
     if obj.COLLECTION_TYPE == "system":
         obj.interfaces = copy.deepcopy(seed_data["interfaces"])
+        # deprecated field switcheroo for interfaces
+        for interface in obj.interfaces.keys():
+            for k in obj.interfaces[interface].keys():
+                if field_info.DEPRECATED_FIELDS.has_key(k):
+                    if not obj.interfaces[interface].has_key(field_info.DEPRECATED_FIELDS[k]) or \
+                           obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
+                        obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
 
     return obj
 
@@ -1811,6 +1821,10 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
+        #for interface in ds["interfaces"].keys():
+        #    for k in ds["interfaces"][interface].keys():
+        #        if field_info.DEPRECATED_FIELDS.has_key(k):
+        #            ds["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = ds["interfaces"][interface][k]
 
     return ds
 
@@ -1979,10 +1993,8 @@ def get_ldap_template(ldaptype=None):
 def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port
     try:
-        #fh = open("/etc/cobbler/settings")
-        fh = open("/etc/cobbler/settings.json")
-        #data = yaml.load(fh.read())
-        data = simplejson.load(fh)
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
         fh.close()
     except:
        traceback.print_exc()

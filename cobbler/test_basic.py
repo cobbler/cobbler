@@ -402,7 +402,7 @@ class MultiNIC(BootTest):
         self.assertTrue(system.set_dns_name("fooserver","eth4"))
         self.assertTrue(system.set_dhcp_tag("red","eth4"))
         self.assertTrue(system.set_ip_address("192.168.1.26","eth4"))
-        self.assertTrue(system.set_subnet("255.255.255.0","eth4"))
+        self.assertTrue(system.set_netmask("255.255.255.0","eth4"))
         self.assertTrue(system.set_dhcp_tag("tag2","eth5"))
         self.assertTrue(self.api.add_system(system))
         self.assertTrue(self.api.find_system(dns_name="fooserver"))
@@ -410,7 +410,7 @@ class MultiNIC(BootTest):
         self.assertTrue(self.api.find_system(ip_address="127.0.0.5"))
         self.assertTrue(self.api.find_system(virt_bridge="zero"))
         self.assertTrue(self.api.find_system(gateway="192.168.1.25"))
-        self.assertTrue(self.api.find_system(subnet="255.255.255.0"))
+        self.assertTrue(self.api.find_system(netmask="255.255.255.0"))
         self.assertTrue(self.api.find_system(dhcp_tag="tag2"))
         self.assertTrue(self.api.find_system(dhcp_tag="zero"))
 
@@ -425,7 +425,7 @@ class MultiNIC(BootTest):
         for (name,intf) in system.interfaces.iteritems():
             if name == "eth4": # xmlrpc dicts must have string keys, so we must also
                 self.assertTrue(intf["virt_bridge"] == "zero")
-                self.assertTrue(intf["subnet"] == "255.255.255.0")
+                self.assertTrue(intf["netmask"] == "255.255.255.0")
                 self.assertTrue(intf["mac_address"] == "AA:AA:BB:BB:CC:CC")
                 self.assertTrue(intf["ip_address"] == "192.168.1.26")
                 self.assertTrue(intf["dns_name"] == "fooserver")

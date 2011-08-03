@@ -72,7 +72,7 @@ FIELDS = [
   ["*bridge_opts","",0,"Bridge Opts",True,"",0,"str"],
   ["*management",False,0,"Management Interface",True,"Is this the management interface?",0,"bool"],
   ["*static",False,0,"Static",True,"Is this interface static?",0,"bool"],
-  ["*subnet","",0,"Subnet",True,"",0,"str"],
+  ["*netmask","",0,"Subnet Mask",True,"",0,"str"],
   ["*dhcp_tag","",0,"DHCP Tag",True,"",0,"str"],
   ["*dns_name","",0,"DNS Name",True,"",0,"str"],
   ["*static_routes",[],0,"Static Routes",True,"",0,"list"],
@@ -134,7 +134,8 @@ class System(item.Item):
                 "mtu"                  : "",
                 "ip_address"           : "",
                 "dhcp_tag"             : "",
-                "subnet"               : "",
+                "subnet"               : "", # deprecated
+                "netmask"              : "",
                 "virt_bridge"          : "",
                 "static"               : False,
                 "interface_type"       : "",
@@ -365,9 +366,9 @@ class System(item.Item):
         self.name_servers_search = data
         return True
 
-    def set_subnet(self,subnet,interface):
+    def set_netmask(self,netmask,interface):
         intf = self.__get_interface(interface)
-        intf["subnet"] = subnet
+        intf["netmask"] = netmask
         return True
     
     def set_virt_bridge(self,bridge,interface):
@@ -626,7 +627,8 @@ class System(item.Item):
             if field == "dnsname"             : self.set_dns_name(value, interface)
             if field == "static"              : self.set_static(value, interface)
             if field == "dhcptag"             : self.set_dhcp_tag(value, interface)
-            if field == "subnet"              : self.set_subnet(value, interface)
+            if field == "netmask"             : self.set_netmask(value, interface)
+            if field == "subnet"              : self.set_netmask(value, interface)
             if field == "virtbridge"          : self.set_virt_bridge(value, interface)
             if field == "interfacetype"       : self.set_interface_type(value, interface)
             if field == "interfacemaster"     : self.set_interface_master(value, interface)

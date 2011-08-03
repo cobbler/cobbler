@@ -1210,14 +1210,14 @@ class Koan:
                 interface_data = self.safe_load(interfaces, interface_name)
 
             ip = self.safe_load(interface_data, "ip_address")
-            subnet = self.safe_load(interface_data, "subnet")
+            netmask = self.safe_load(interface_data, "netmask")
             gateway = self.safe_load(pd, "gateway")
 
             hashv["ksdevice"] = self.static_interface
             if ip is not None:
                 hashv["ip"] = ip
-            if subnet is not None:
-                hashv["netmask"] = subnet
+            if netmask is not None:
+                hashv["netmask"] = netmask
             if gateway is not None:
                 hashv["gateway"] = gateway
 

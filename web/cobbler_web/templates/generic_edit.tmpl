@@ -29,7 +29,7 @@ function intf_update_visibility()
  
     intf_enable_field("static",!is_slave)
     intf_enable_field("ip_address",(!is_slave))
-    intf_enable_field("subnet",(!is_slave) && is_static)
+    intf_enable_field("netmask",(!is_slave) && is_static)
     intf_enable_field("management",(!is_slave) && is_static)
     intf_enable_field("dns_name",!is_slave)
     intf_enable_field("static_routes",!is_slave)
@@ -107,7 +107,7 @@ function on_interface_add()
     interface_table[iname]["static_routes"] = ""
     interface_table[iname]["dhcp_tag"] = ""
     interface_table[iname]["virt_bridge"] = ""
-    interface_table[iname]["subnet"] = ""
+    interface_table[iname]["netmask"] = ""
     interface_table[iname]["static"] = false
     interface_table[iname]["management"] = false
     interface_table[iname]["present"] = "1"
@@ -190,7 +190,7 @@ function save_intf(which)
     itable["static"]           = is_static
     itable["management"]       = is_management
     itable["ip_address"]       = get_enabled_field("ip_address",(!is_slave))
-    itable["subnet"]           = get_enabled_field("subnet",(!is_slave) && is_static)
+    itable["netmask"]          = get_enabled_field("netmask",(!is_slave) && is_static)
     itable["dns_name"]         = get_enabled_field("dns_name",!is_slave)
     itable["static_routes"]    = get_enabled_field("static_routes",!is_slave)
     itable["dhcp_tag"]         = get_enabled_field("dhcp_tag",!is_slave)
@@ -219,7 +219,7 @@ function load_intf()
     document.getElementById("static").checked         = interface_table[intf]["static"]
     document.getElementById("management").checked     = interface_table[intf]["management"]
     document.getElementById("ip_address").value       = interface_table[intf]["ip_address"]
-    document.getElementById("subnet").value           = interface_table[intf]["subnet"]
+    document.getElementById("netmask").value          = interface_table[intf]["netmask"]
     document.getElementById("dns_name").value         = interface_table[intf]["dns_name"]
     document.getElementById("static_routes").value    = interface_table[intf]["static_routes"]
     document.getElementById("dhcp_tag").value         = interface_table[intf]["dhcp_tag"]
@@ -248,7 +248,7 @@ function clear_intf()
     document.getElementById("static").checked             = true
     document.getElementById("management").checked         = true
     document.getElementById("ip_address").value           = ""
-    document.getElementById("subnet").value               = ""
+    document.getElementById("netmask").value               = ""
     document.getElementById("dns_name").value             = ""
     document.getElementById("static_routes").value        = ""
     document.getElementById("dhcp_tag").value             = ""
@@ -283,7 +283,7 @@ function build_interface_table()
     interface_table['{{ key }}']["static"]               = {{ value.static|lower }}
     interface_table['{{ key }}']["management"]           = {{ value.management|lower }}
     interface_table['{{ key }}']["ip_address"]           = "{{ value.ip_address }}"
-    interface_table['{{ key }}']["subnet"]               = "{{ value.subnet }}"
+    interface_table['{{ key }}']["netmask"]              = "{{ value.netmask }}"
     interface_table['{{ key }}']["dns_name"]             = "{{ value.dns_name }}"
     interface_table['{{ key }}']["static_routes"]        = "{{ value.static_routes|join:" " }}"
     interface_table['{{ key }}']["dhcp_tag"]             = "{{ value.dhcp_tag }}"

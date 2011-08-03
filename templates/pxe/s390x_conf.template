@@ -21,7 +21,7 @@
 #end if
 #if $getVar("interfaces","") != "" and $interfaces.has_key("eth0")
    #set $ip=$interfaces['eth0'].get('ip_address','')
-   #set $netmask=$interfaces['eth0'].get('subnet','')
+   #set $netmask=$interfaces['eth0'].get('netmask','')
    #if $ip != ''
        #set $tokens = $ip.split('.')
        #set $tokens = $tokens[0:-1]

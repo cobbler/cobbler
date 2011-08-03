@@ -110,7 +110,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
-        #set $netmask              = $idata.get("subnet", "")
+        #set $netmask              = $idata.get("netmask", "")
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")

@@ -44,8 +44,8 @@ group {
         #if $iface.hostname:
         option host-name "$iface.hostname";
         #end if
-        #if $iface.subnet:
-        option subnet-mask $iface.subnet;
+        #if $iface.netmask:
+        option subnet-mask $iface.netmask;
         #end if
         #if $iface.gateway:
         option routers $iface.gateway;

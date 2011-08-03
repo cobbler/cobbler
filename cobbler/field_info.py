@@ -126,7 +126,7 @@ BLOCK_MAPPINGS = {
    "*management"     : "Networking",
    "*dns_name"       : "Networking",
    "*static_routes"  : "Networking",
-   "*subnet"         : "Networking",
+   "*netmask"        : "Networking",
    "*ipv6_address"   : "Networking",
    "*ipv6_secondaries"      : "Networking",
    "*ipv6_mtu"              : "Networking",
@@ -170,4 +170,13 @@ ALTERNATE_OPTIONS = {
    "ks_meta"             : "--ksmeta",
    "kernel_options"      : "--kopts",
    "kernel_options_post" : "--kopts-post",
+}
+
+# Deprecated fields that have been renamed, but we need to account for them appearing in older 
+# datastructs that may not have been saved since the code change
+
+DEPRECATED_FIELDS = {
+   "subnet"         : "netmask",
+   "bonding"        : "interface_type",
+   "bonding_master" : "interface_master",
 }
