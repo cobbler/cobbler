@@ -54,6 +54,12 @@ def register():
     """
     return "serializer"
 
+def what():
+    """
+    Module identification function
+    """
+    return "serializer/catalog"
+
 def serialize_item(obj, item):
 
     if item.name is None or item.name == "":

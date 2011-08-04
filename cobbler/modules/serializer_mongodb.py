@@ -37,7 +37,15 @@ import utils
 from cexceptions import *
 import os
 import ConfigParser
-from pymongo import Connection
+
+pymongo_loaded = False
+
+try:
+    from pymongo import Connection
+    pymongo_loaded = True
+except:
+    # FIXME: log message
+    pass
 
 cp = ConfigParser.ConfigParser()
 cp.read("/etc/cobbler/mongodb.conf")
@@ -47,20 +55,34 @@ port = int(cp.get("connection","port"))
 mongodb = None
 
 def __connect():
-   # TODO: detect connection error
-   global mongodb
-   mongodb = Connection('localhost', 27017)['cobbler']
+    # TODO: detect connection error
+    global mongodb
+    try:
+        mongodb = Connection('localhost', 27017)['cobbler']
+        return True
+    except:
+        # FIXME: log error
+        return False
 
 def register():
     """
     The mandatory cobbler module registration hook.
     """
     # FIXME: only run this if enabled.
+    if not pymongo_loaded:
+        return ""
     return "serializer"
 
+def what():
+    """
+    Module identification function
+    """
+    return "serializer/mongodb"
+
 def serialize_item(obj, item):
-    # TODO: error detection
-    __connect()
+    if not __connect():
+        # FIXME: log error
+        return False
     collection = mongodb[obj.collection_type()]
     data = collection.find_one({'name':item.name})
     if data:
@@ -70,15 +92,17 @@ def serialize_item(obj, item):
     return True
 
 def serialize_delete(obj, item):
-    # TODO: error detection
-    __connect()
+    if not __connect():
+        # FIXME: log error
+        return False
     collection = mongodb[obj.collection_type()]
     collection.remove({'name':item.name})
     return True
 
 def deserialize_item_raw(collection_type, item_name):
-    # TODO: error detection
-    __connect()
+    if not __connect():
+        # FIXME: log error
+        return False
     collection = mongodb[obj.collection_type()]
     data = collection.find_one({'name':item.name})
     return data
@@ -94,8 +118,9 @@ def serialize(obj):
     return True
 
 def deserialize_raw(collection_type):
-    # TODO: error detection
-    __connect()
+    if not __connect():
+        # FIXME: log error
+        return False
     collection = mongodb[collection_type]
     return collection.find()
 

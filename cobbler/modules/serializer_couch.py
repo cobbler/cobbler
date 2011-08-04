@@ -55,6 +55,12 @@ def register():
     # FIXME: only run this if enabled.
     return "serializer"
 
+def what():
+    """
+    Module identification function
+    """
+    return "serializer/couchdb"
+
 def serialize_item(obj, item):
     __connect()
     datastruct = item.to_datastruct()
