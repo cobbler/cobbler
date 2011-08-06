@@ -115,6 +115,7 @@ BLOCK_MAPPINGS = {
    "broadcast"       : "Networking", # ..
    "reserved"        : "Networking", # ..
    "*mac_address"    : "Networking",
+   "network_widget_c": "Networking",
    "*mtu"            : "Networking",
    "*ip_address"     : "Networking",
    "*dhcp_tag"       : "Networking",

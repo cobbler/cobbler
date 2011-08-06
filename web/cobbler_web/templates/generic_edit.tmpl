@@ -74,6 +74,10 @@ function populate_widgets()
     buf = buf + "</select>";
     buf = buf + "<input class='button' type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()' />";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
+
+    buf = "";
+    buf = buf + "<input class='button' type='button' name='getrandommac' value='Generate Random MAC' onclick='javascript:get_random_mac()' />";
+    document.getElementById("widget_network_widget_c").innerHTML = buf;
 }
 
 function on_interface_add()
@@ -314,6 +318,22 @@ function populate_interfaces() {
     interfaces.selectedIndex = 0
     document.getElementById("static").onchange=intf_update_visibility;
     document.getElementById("interface_type").onchange=intf_update_visibility;
+}
+
+function get_random_mac()
+{
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "/cobbler_web/utils/random_mac", true);
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+            var mac_field = document.getElementById("mac_address")
+            var result = xmlHttp.responseText;
+            if (result.charAt(2) == ':' && result.charAt(5) == ':') {
+                mac_field.value = result;
+            }
+        }
+    };
+    xmlHttp.send(null);
 }
 {% endifequal %}
 function on_form_submit()

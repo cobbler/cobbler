@@ -64,6 +64,7 @@ FIELDS = [
   ["network_widget_a","",0,"Add Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
+  ["network_widget_c","",0,"",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"",0,"str"],
   ["*interface_type","na",0,"Interface Type",True,"",["na","master","slave","bond","bond_slave","bridge","bridge_slave"],"str"],

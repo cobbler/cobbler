@@ -28,9 +28,8 @@ urlpatterns = patterns('',
     (r'^(?P<what>\w+)/delete/(?P<obj_name>.+)$', generic_delete),
 
     (r'^(?P<what>\w+)/multi/(?P<multi_mode>.+)/(?P<multi_arg>.+)$', generic_domulti),
-    # FIXME: resurface in web app
-    #(r'^random_mac$', random_mac),
-    #(r'^random_mac/virttype/(?P<virttype>.+)$', random_mac),
+    (r'^utils/random_mac$', random_mac),
+    (r'^utils/random_mac/virttype/(?P<virttype>.+)$', random_mac),
     (r'^settings$', settings),
     (r'^events$', events),
     (r'^eventlog/(?P<event>.+)$', eventlog),
