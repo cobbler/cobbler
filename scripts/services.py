@@ -21,12 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 import yaml
 import os
+import urllib
 
 from cobbler.services import CobblerSvc
 
 def application(environ, start_response):
 
-    my_uri = environ['REQUEST_URI']
+    my_uri = urllib.unquote(environ['REQUEST_URI'])
     
     form = {}
 
