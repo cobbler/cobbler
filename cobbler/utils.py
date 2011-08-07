@@ -1890,12 +1890,20 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         if tooltip != "":
             desc = nicename + " (%s)" % tooltip
 
+        aliasopt = []
+        for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+            if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
+                aliasopt.append("--%s" % deprecated_field)
 
         if isinstance(choices, list) and len(choices) != 0:
             desc = desc + " (valid options: %s)" % ",".join(choices)    
             parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+            for alias in aliasopt:
+                parser.add_option(alias, dest=k, help=desc, choices=choices)
         else:
             parser.add_option(niceopt, dest=k, help=desc)
+            for alias in aliasopt:
+                parser.add_option(alias, dest=k, help=desc)
 
 
     # FIXME: not supported in 2.0?
