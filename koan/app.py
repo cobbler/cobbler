@@ -57,7 +57,6 @@ import re
 import sys
 import xmlrpclib
 import string
-import re
 import glob
 import socket
 import utils
