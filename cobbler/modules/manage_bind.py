@@ -253,7 +253,7 @@ zone "%(arpa)s." {
            spacing = " " * (max_name - len(name))
            my_name = "%s%s" % (name, spacing)
            my_host = hosts[name]
-           s += "%s  %s  %s  %s\n" % (my_name, rclass, rectype, my_host)
+           s += "%s  %s  %s  %s;\n" % (my_name, rclass, rectype, my_host)
         return s
 
     def __write_zone_files(self):
