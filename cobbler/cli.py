@@ -274,7 +274,7 @@ class BootCLI:
             self.parser.add_option("--name", dest="name", help="name of object")
         (options, args) = self.parser.parse_args()
 
-        if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
+        if object_action in [ "add", "edit", "copy", "rename", "remove", "reboot" ]:
             if opt(options, "name") == "":
                 print "--name is required"
                 sys.exit(1)
