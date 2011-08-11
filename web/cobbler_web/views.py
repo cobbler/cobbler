@@ -727,7 +727,8 @@ def snippet_save(request):
    if snippet_name == None:
       return HttpResponse("NO SNIPPET NAME SPECIFIED")
    if editmode != 'edit':
-      snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
+      if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
+          snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
 
    delete1   = request.POST.get('delete1', None)
    delete2   = request.POST.get('delete2', None)
