@@ -1846,6 +1846,7 @@ class CobblerXMLRPCInterface:
         if snippet_file.find("..") != -1 or not snippet_file.startswith("/"):
             utils.die(self.logger, "tainted file location")
 
+        # FIXME: shouldn't we get snippetdir from the settings?
         if not snippet_file.startswith("/var/lib/cobbler/snippets"):
             utils.die(self.logger, "unable to view or edit snippet in this location")
         
@@ -1859,9 +1860,23 @@ class CobblerXMLRPCInterface:
                 # FIXME: no way to check if something is using it
                 os.remove(snippet_file)
             else:
-                fileh = open(snippet_file,"w+")
-                fileh.write(new_data)
-                fileh.close()
+                # path_part(a,b) checks for the path b to be inside path a. It is
+                # guaranteed to return either an empty string (meaning b is NOT inside
+                # a), or a path starting with '/'. If the path ends with '/' the sub-path 
+                # is a directory so we don't write to it.
+
+                # FIXME: shouldn't we get snippetdir from the settings?
+                path_part = utils.path_tail("/var/lib/cobbler/snippets",snippet_file)
+                if path_part != "" and path_part[-1] != "/":
+                    try:
+                        utils.mkdir(os.path.dirname(snippet_file))
+                    except:
+                        utils.die(self.logger, "unable to create directory for snippet file: '%s'" % snippet_file)
+                    fileh = open(snippet_file,"w+")
+                    fileh.write(new_data)
+                    fileh.close()
+                else:
+                    utils.die(self.logger, "invalid snippet file specified: '%s'" % snippet_file)
             return True
 
 
