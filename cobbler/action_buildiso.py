@@ -240,8 +240,8 @@ class BuildIso:
                    my_ip = data["ip_address_" + my_int]
 
              if my_mask is None and my_int is not None:
-                if data.has_key("subnet_" + my_int) and data["subnet_" + my_int] != "":
-                   my_mask = data["subnet_" + my_int]
+                if data.has_key("netmask_" + my_int) and data["netmask_" + my_int] != "":
+                   my_mask = data["netmask_" + my_int]
 
              if my_gw is None:
                 if data.has_key("gateway") and data["gateway"] != "":
