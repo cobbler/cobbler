@@ -26,7 +26,7 @@ module Cobbler
   class NetworkInterface < Base
     cobbler_field :dhcp_tag
     cobbler_field :mac_address
-    cobbler_field :subnet
+    cobbler_field :netmask
     cobbler_field :gateway
     cobbler_field :hostname
     cobbler_field :virt_bridge
@@ -46,7 +46,7 @@ module Cobbler
       result["hostname-intf#{which}"]   = hostname    if hostname
       result["virtbridge-intf#{which}"] = virt_bridge if virt_bridge
       result["dhcptag-intf#{which}"]    = dhcp_tag    if dhcp_tag
-      result["subnet-intf#{which}"]     = subnet      if subnet
+      result["netmask-intf#{which}"]    = netmask     if netmask
       result["gateway-intf#{which}"]    = gateway     if gateway
       
       return result

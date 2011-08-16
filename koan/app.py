@@ -57,7 +57,6 @@ import re
 import sys
 import xmlrpclib
 import string
-import re
 import glob
 import socket
 import utils
@@ -198,6 +197,9 @@ def main():
     p.add_option("", "--qemu-disk-type",
                  dest="qemu_disk_type",
                  help="when used with --virt_type=qemu, add select of disk drivers: ide,scsi,virtio")
+    p.add_option("", "--qemu-net-type",
+                 dest="qemu_net_type",
+                 help="when used with --virt_type=qemu, select type of network device to use: e1000, ne2k_pci, pcnet, rtl8139, virtio")
 
     (options, args) = p.parse_args()
 
@@ -229,6 +231,7 @@ def main():
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
         k.qemu_disk_type      = options.qemu_disk_type
+        k.qemu_net_type       = options.qemu_net_type
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -286,6 +289,7 @@ class Koan:
         self.virt_path         = None
         self.force_path        = None
         self.qemu_disk_type    = None
+        self.qemu_net_type     = None
         self.virt_auto_boot    = None
 
         # This option adds the --copy-default argument to /sbin/grubby
@@ -358,6 +362,12 @@ class Koan:
             self.qemu_disk_type = self.qemu_disk_type.lower()
             if self.virt_type not in [ "qemu", "auto" ]:
                raise InfoException, "--qemu-disk-type must use with --virt-type=qemu"
+
+        # if --qemu-net-type was called without --virt-type=qemu, then fail
+        if (self.qemu_net_type is not None):
+            self.qemu_net_type = self.qemu_net_type.lower()
+            if self.virt_type not in [ "qemu", "auto" ]:
+               raise InfoException, "--qemu-net-type must use with --virt-type=qemu"
 
 
 
@@ -1210,14 +1220,14 @@ class Koan:
                 interface_data = self.safe_load(interfaces, interface_name)
 
             ip = self.safe_load(interface_data, "ip_address")
-            subnet = self.safe_load(interface_data, "subnet")
+            netmask = self.safe_load(interface_data, "netmask")
             gateway = self.safe_load(pd, "gateway")
 
             hashv["ksdevice"] = self.static_interface
             if ip is not None:
                 hashv["ip"] = ip
-            if subnet is not None:
-                hashv["netmask"] = subnet
+            if netmask is not None:
+                hashv["netmask"] = netmask
             if gateway is not None:
                 hashv["gateway"] = gateway
 
@@ -1271,7 +1281,8 @@ class Koan:
                 bridge           =  self.virt_bridge,
                 virt_type        =  self.virt_type,
                 virt_auto_boot   =  virt_auto_boot,
-                qemu_driver_type =  self.qemu_disk_type
+                qemu_driver_type =  self.qemu_disk_type,
+                qemu_net_type    =  self.qemu_net_type
         )
 
         print results
@@ -1601,7 +1612,7 @@ class Koan:
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
-            freespace_str = re.sub("(?i)G","", freespace_str) # remove gigabytes
+            freespace_str = freespace_str.lower().replace("g","") # remove gigabytes
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 

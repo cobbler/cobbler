@@ -26,7 +26,7 @@
         #set $mac           = $idata["mac_address"]
         #set $static        = $idata["static"]
         #set $ip            = $idata["ip_address"]
-        #set $netmask       = $idata["subnet"]
+        #set $netmask       = $idata["netmask"]
         #set $iface_type    = $idata["interface_type"]
         #set $iface_master  = $idata["interface_master"]
         #set $static_routes = $idata["static_routes"]

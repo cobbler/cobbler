@@ -1136,7 +1136,7 @@ class CobblerXMLRPCInterface:
             if ip != "" and ip != "?":
                 obj.set_ip_address(ip, iname)
             if netmask != "" and netmask != "?":
-                obj.set_subnet(netmask, iname)
+                obj.set_netmask(netmask, iname)
         self.api.add_system(obj)
         return 0
  

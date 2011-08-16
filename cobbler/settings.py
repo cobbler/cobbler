@@ -86,6 +86,7 @@ DEFAULTS = {
     "power_template_dir"          : "/etc/cobbler/power",
     "puppet_auto_setup"           : 0,
     "pxe_just_once"               : 0,
+    "iso_template_dir"            : "/etc/cobbler/iso",
     "pxe_template_dir"            : "/etc/cobbler/pxe",
     "redhat_management_permissive" : 0,
     "redhat_management_type"      : "off",

@@ -1775,9 +1775,12 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         # we don't have to load interface fields here
         if elems[0].startswith("*") or elems[0].find("widget") != -1:
             continue
-        k = elems[0]
-        if seed_data.has_key(k):
-            setattr(obj, k, seed_data[k])
+        src_k = dst_k = elems[0]
+        # deprecated field switcheroo
+        if field_info.DEPRECATED_FIELDS.has_key(src_k):
+            dst_k = field_info.DEPRECATED_FIELDS[src_k]
+        if seed_data.has_key(src_k):
+            setattr(obj, dst_k, seed_data[src_k])
 
     if obj.uid == '':
         obj.uid = obj.config.generate_uid()
@@ -1785,6 +1788,13 @@ def from_datastruct_from_fields(obj, seed_data, fields):
     # special handling for interfaces
     if obj.COLLECTION_TYPE == "system":
         obj.interfaces = copy.deepcopy(seed_data["interfaces"])
+        # deprecated field switcheroo for interfaces
+        for interface in obj.interfaces.keys():
+            for k in obj.interfaces[interface].keys():
+                if field_info.DEPRECATED_FIELDS.has_key(k):
+                    if not obj.interfaces[interface].has_key(field_info.DEPRECATED_FIELDS[k]) or \
+                           obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
+                        obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
 
     return obj
 
@@ -1811,6 +1821,10 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
+        #for interface in ds["interfaces"].keys():
+        #    for k in ds["interfaces"][interface].keys():
+        #        if field_info.DEPRECATED_FIELDS.has_key(k):
+        #            ds["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = ds["interfaces"][interface][k]
 
     return ds
 
@@ -1876,12 +1890,20 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         if tooltip != "":
             desc = nicename + " (%s)" % tooltip
 
+        aliasopt = []
+        for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+            if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
+                aliasopt.append("--%s" % deprecated_field)
 
         if isinstance(choices, list) and len(choices) != 0:
             desc = desc + " (valid options: %s)" % ",".join(choices)    
             parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+            for alias in aliasopt:
+                parser.add_option(alias, dest=k, help=desc, choices=choices)
         else:
             parser.add_option(niceopt, dest=k, help=desc)
+            for alias in aliasopt:
+                parser.add_option(alias, dest=k, help=desc)
 
 
     # FIXME: not supported in 2.0?

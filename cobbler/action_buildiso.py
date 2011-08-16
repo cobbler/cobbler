@@ -34,25 +34,6 @@ from cexceptions import *
 from utils import _
 import clogger
 
-# FIXME: lots of overlap with pxegen.py, should consolidate
-# FIXME: disable timeouts and remove local boot for this?
-HEADER = """
-
-DEFAULT menu
-PROMPT 0
-MENU TITLE Cobbler | http://cobbler.et.redhat.com
-TIMEOUT 200
-TOTALTIMEOUT 6000
-ONTIMEOUT local
-
-LABEL local
-        MENU LABEL (local)
-        MENU DEFAULT
-        KERNEL chain.c32
-        APPEND hd0 0
-
-"""
-
 class BuildIso:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -109,10 +90,14 @@ class BuildIso:
        else:
           which_systems = []
 
+       # grab the header from buildiso.header file
+       header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
+       header_data = header_src.read()
+       header_src.close()
        # setup isolinux.cfg
        isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
        cfg = open(isolinuxcfg, "w+")
-       cfg.write(HEADER) # FIXME: use template
+       cfg.write(header_data)
 
        # iterate through selected profiles
        for profile in all_profiles:
@@ -255,8 +240,8 @@ class BuildIso:
                    my_ip = data["ip_address_" + my_int]
 
              if my_mask is None and my_int is not None:
-                if data.has_key("subnet_" + my_int) and data["subnet_" + my_int] != "":
-                   my_mask = data["subnet_" + my_int]
+                if data.has_key("netmask_" + my_int) and data["netmask_" + my_int] != "":
+                   my_mask = data["netmask_" + my_int]
 
              if my_gw is None:
                 if data.has_key("gateway") and data["gateway"] != "":
@@ -354,10 +339,15 @@ class BuildIso:
         if rc:
             utils.die(self.logger,"rsync of files failed")
 
+        # grab the header from buildiso.header file
+        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
+        header_data = header_src.read()
+        header_src.close()
+
         self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
-        cfg.write(HEADER) # fixme, use template
+        cfg.write(header_data)
 
         for descendant in descendants:
             data = utils.blender(self.api, True, descendant)

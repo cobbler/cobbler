@@ -177,6 +177,13 @@ class Replicate:
                         if not os.path.isdir(parentdir):
                             os.makedirs(parentdir)
                         self.rsync_it("distro-%s"%distro["name"], parentdir)
+                    elif distro["breed"] == 'freebsd':
+                        dest = os.path.join(self.settings.webdir, "ks_mirror", distro["name"])
+                        if not os.path.isdir(dest):
+                            os.makedirs(dest)
+                        self.rsync_it("distro-%s"%distro["name"], dest)
+
+
 
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
