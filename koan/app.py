@@ -1167,9 +1167,9 @@ class Koan:
 
         if self.server:
             if kernel[0] == "/":
-                kernel = "http://%s/cobbler/images/%s/%s" % (self.server, distro, kernel_short)
+                kernel = "http://%s/cobbler/images/%s/%s" % (profile_data["http_server"], distro, kernel_short)
             if initrd[0] == "/":
-                initrd = "http://%s/cobbler/images/%s/%s" % (self.server, distro, initrd_short)
+                initrd = "http://%s/cobbler/images/%s/%s" % (profile_data["http_server"], distro, initrd_short)
 
         try:
             print "downloading initrd %s to %s" % (initrd_short, initrd_save)
