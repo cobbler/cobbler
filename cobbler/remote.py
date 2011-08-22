@@ -141,11 +141,12 @@ class CobblerXMLRPCInterface:
         Generates an ISO in /var/www/cobbler/pub that can be used to install
         profiles without using PXE.
         """
+        # FIXME: better use webdir from the settings?
+        webdir = "/var/www/cobbler/"
+        if os.path.exists("/srv/www"):
+            webdir = "/srv/www/cobbler/"
+
         def runner(self):
-            # FIXME: better use webdir from the settings?
-            webdir = "/var/www/cobbler/"
-            if os.path.exists("/srv/www"):
-                webdir = "/srv/www/cobbler/"
             return self.remote.api.build_iso(
                 self.options.get("iso",webdir+"/pub/generated.iso"),
                 self.options.get("profiles",None),
