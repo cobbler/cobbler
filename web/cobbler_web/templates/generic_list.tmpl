@@ -92,6 +92,9 @@ function action_multi(otype) {
     if ((action == "delete" ) && (param == "delete")) {
         value = confirm("Confirm: Really delete all checked " + otype + "?" )
     }
+    if ((action == "buildiso" ) && (param == "enable")) {
+        value = confirm("Confirm: Really buildiso for all checked " + otype + "?" )
+    }
     if ((action == "reposync")) {
         value = "reposync"
     }

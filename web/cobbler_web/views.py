@@ -308,6 +308,7 @@ def genlist(request, what, page=None):
            ["Change profile","profile",""],
            ["Netboot enable","netboot","enable"],
            ["Netboot disable","netboot","disable"],
+           ["Build ISO","buildiso","enable"],
        ]
     if what == "repo":
        columns = [ "name", "mirror" ]
@@ -513,6 +514,9 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             return error_page(request,"Cannot modify systems without specifying power option")
         options = { "systems" : names, "power" : power }
         remote.background_power_system(options, request.session['token'])
+    elif what == "system" and multi_mode == "buildiso":
+        options = { "systems" : names }
+        remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "reposync":
         options = { "repos" : names, "tries" : 3 }
         remote.background_reposync(options,request.session['token'])

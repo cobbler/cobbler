@@ -72,23 +72,15 @@ class BuildIso:
        def sort_name(a,b):
            return cmp(a.name,b.name)
 
-       # handle profile selection override provided via commandline
-       # default is all profiles
+       # handle profile selection override provided via commandline (default is all)
        all_profiles = [profile for profile in self.api.profiles()]
        all_profiles.sort(sort_name)
-       if profiles is not None:
-          which_profiles = profiles.split(",")
-       else:
-          which_profiles = []
+       which_profiles = utils.input_string_or_list(profiles)
 
-       # handle system selection override provided via commandline
-       # default is all systems
+       # handle system selection override provided via commandline (default is all)
        all_systems = [system for system in self.api.systems()]
        all_systems.sort(sort_name)
-       if systems is not None:
-          which_systems = systems.split(",")
-       else:
-          which_systems = []
+       which_systems = utils.input_string_or_list(systems)
 
        # grab the header from buildiso.header file
        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
