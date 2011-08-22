@@ -124,6 +124,8 @@ class BuildIso:
                  append_line += " autoyast=%s" % data["kickstart"]
              if dist.breed == "redhat":
                  append_line += " ks=%s" % data["kickstart"]
+             if dist.breed in ["ubuntu","debian"]:
+                 append_line += " auto-install/enable=true url=%s" % data["kickstart"]
              append_line = append_line + " %s\n" % data["kernel_options"]
              cfg.write(append_line)
 
@@ -162,6 +164,27 @@ class BuildIso:
                 append_line += " autoyast=%s" % bdata["kickstart"]
              if dist.breed == "redhat":
                 append_line += " ks=%s" % bdata["kickstart"]
+             if dist.breed in ["ubuntu","debian"]:
+                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % bdata["kickstart"]
+                # hostname is required as a parameter, the one in the preseed is not respected
+                my_domain = "local.lan"
+                if system.hostname != "":
+                    # if this is a FQDN, grab the first bit
+                    my_hostname = system.hostname.split(".")[0]
+                    _domain = system.hostname.split(".")[1:]
+                    if _domain:
+                       my_domain = ".".join(_domain)
+                else:
+                    my_hostname = system.name.split(".")[0]
+                    _domain = system.name.split(".")[1:]
+                    if _domain:
+                       my_domain = ".".join(_domain)
+                # at least for debian deployments configured for DHCP networking
+                # this values are not used, but specifying here avoids questions
+                append_line += " hostname=%s domain=%s" % (my_hostname, my_domain)
+                # a similar issue exists with suite name, as installer requires
+                # the existence of "stable" in the dists directory
+                append_line += " suite=%s" % dist.os_version
 
              # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
              # check for overrides first and clear them from kernel_options
@@ -196,6 +219,23 @@ class BuildIso:
                 if data["kernel_options"].has_key("nameserver") and data["kernel_options"]["nameserver"] != "":
                    my_dns = data["kernel_options"]["nameserver"]
                    del data["kernel_options"]["nameserver"]
+
+             if dist.breed in ["ubuntu","debian"]:
+                if data["kernel_options"].has_key("netcfg/choose_interface") and data["kernel_options"]["netcfg/choose_interface"] != "":
+                   my_int = data["kernel_options"]["netcfg/choose_interface"]
+                   del data["kernel_options"]["netcfg/choose_interface"]
+                if data["kernel_options"].has_key("netcfg/get_ipaddress") and data["kernel_options"]["netcfg/get_ipaddress"] != "":
+                   my_ip = data["kernel_options"]["netcfg/get_ipaddress"]
+                   del data["kernel_options"]["netcfg/get_ipaddress"]
+                if data["kernel_options"].has_key("netcfg/get_netmask") and data["kernel_options"]["netcfg/get_netmask"] != "":
+                   my_mask = data["kernel_options"]["netcfg/get_netmask"]
+                   del data["kernel_options"]["netcfg/get_netmask"]
+                if data["kernel_options"].has_key("netcfg/get_gateway") and data["kernel_options"]["netcfg/get_gateway"] != "":
+                   my_gw = data["kernel_options"]["netcfg/get_gateway"]
+                   del data["kernel_options"]["netcfg/get_gateway"]
+                if data["kernel_options"].has_key("netcfg/get_nameservers") and data["kernel_options"]["netcfg/get_nameservers"] != "":
+                   my_dns = data["kernel_options"]["netcfg/get_nameservers"]
+                   del data["kernel_options"]["netcfg/get_nameservers"]
 
              # if no kernel_options overrides are present try to retrieve the needed information
              # there's no mechanism in cobbler which can guarantee we've found the proper interface,
@@ -249,26 +289,36 @@ class BuildIso:
                      append_line += " netdevice=%s" % my_int
                  if dist.breed == "redhat":
                      append_line += " ksdevice=%s" % my_int
+                 if dist.breed in ["ubuntu","debian"]:
+                     append_line += " netcfg/choose_interface=%s" % my_int
 
              if my_ip is not None:
                  if dist.breed == "suse":
                      append_line += " hostip=%s" % my_ip
                  if dist.breed == "redhat":
                      append_line += " ip=%s" % my_ip
+                 if dist.breed in ["ubuntu","debian"]:
+                     append_line += " netcfg/get_ipaddress=%s" % my_ip
 
              if my_mask is not None:
                  if dist.breed in ["suse","redhat"]:
                      append_line += " netmask=%s" % my_mask
+                 if dist.breed in ["ubuntu","debian"]:
+                     append_line += " netcfg/get_netmask=%s" % my_mask
 
              if my_gw is not None:
                  if dist.breed in ["suse","redhat"]:
                      append_line += " gateway=%s" % my_gw
+                 if dist.breed in ["ubuntu","debian"]:
+                     append_line += " netcfg/get_gateway=%s" % my_gw
 
              if exclude_dns is None or my_dns is not None:
                 if dist.breed == "suse":
                    append_line += " nameserver=%s" % my_dns[0]
                 if dist.breed == "redhat":
                    append_line += " dns=%s" % ",".join(my_dns)
+                if dist.breed in ["ubuntu","debian"]:
+                   append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
 
              # add remaining kernel_options to append_line
              for (k, v) in data["kernel_options"].iteritems():
