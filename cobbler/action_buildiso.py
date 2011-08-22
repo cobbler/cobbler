@@ -286,9 +286,15 @@ class BuildIso:
              # add information to the append_line
              if my_int is not None:
                  if dist.breed == "suse":
-                     append_line += " netdevice=%s" % my_int
+                     if data.has_key("mac_address_" + my_int) and data["mac_address_" + my_int] != "":
+                        append_line += " netdevice=%s" % data["mac_address_" + my_int]
+                     else:
+                        append_line += " netdevice=%s" % my_int
                  if dist.breed == "redhat":
-                     append_line += " ksdevice=%s" % my_int
+                     if data.has_key("mac_address_" + my_int) and data["mac_address_" + my_int] != "":
+                        append_line += " ksdevice=%s" % data["mac_address_" + my_int]
+                     else:
+                        append_line += " ksdevice=%s" % my_int
                  if dist.breed in ["ubuntu","debian"]:
                      append_line += " netcfg/choose_interface=%s" % my_int
 
