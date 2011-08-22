@@ -45,6 +45,7 @@ class BuildIso:
         """
         self.verbose     = verbose
         self.config      = config
+        self.settings    = config.settings()
         self.api         = config.api
         self.distros     = config.distros()
         self.profiles    = config.profiles()
@@ -56,6 +57,10 @@ class BuildIso:
         if logger is None:
             logger       = clogger.Logger()
         self.logger      = logger
+        # grab the header from buildiso.header file
+        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
+        self.iso_template = header_src.read()
+        header_src.close()
 
 
     def make_shorter(self,distname):
@@ -82,14 +87,10 @@ class BuildIso:
        all_systems.sort(sort_name)
        which_systems = utils.input_string_or_list(systems)
 
-       # grab the header from buildiso.header file
-       header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
-       header_data = header_src.read()
-       header_src.close()
        # setup isolinux.cfg
        isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
        cfg = open(isolinuxcfg, "w+")
-       cfg.write(header_data)
+       cfg.write(self.iso_template)
 
        # iterate through selected profiles
        for profile in all_profiles:
@@ -387,15 +388,10 @@ class BuildIso:
         if rc:
             utils.die(self.logger,"rsync of files failed")
 
-        # grab the header from buildiso.header file
-        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
-        header_data = header_src.read()
-        header_src.close()
-
         self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
-        cfg.write(header_data)
+        cfg.write(self.iso_template)
 
         for descendant in descendants:
             data = utils.blender(self.api, True, descendant)
@@ -435,8 +431,6 @@ class BuildIso:
 
 
     def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
-
-        self.settings = self.config.settings()
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
