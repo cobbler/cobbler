@@ -238,36 +238,39 @@ class BuildIso:
                    my_dns = data["kernel_options"]["netcfg/get_nameservers"]
                    del data["kernel_options"]["netcfg/get_nameservers"]
 
-             # if no kernel_options overrides are present try to retrieve the needed information
-             # there's no mechanism in cobbler which can guarantee we've found the proper interface,
-             # so if we don't succeed finding one just give up rather than polluting the append_line
-             # with possibly false information. we don't deal with multihomed systems until cobbler
-             # provides a method to determine to proper management interface.
+             # if no kernel_options overrides are present find the management interface
+             # do nothing when zero or multiple management interfaces are found
              if my_int is None:
-                num_master_ints = 0; num_slave_ints = 0; slave_ints = []
-                num_ints = len(data["interfaces"].keys())
-
-                if num_ints == 1:
-                   # only 1 interface defined, use it
-                   my_int = data["interfaces"].keys()[0]
-
-                if num_ints > 1:
-                   # multiple interfaces found, make an educated guess
+                mgmt_ints = []; mgmt_ints_multi = []; slave_ints = []
+                if len(data["interfaces"].keys()) >= 1:
                    for (iname, idata) in data["interfaces"].iteritems():
-                      if idata["interface_type"] in ("master","bond","bridge"):
-                         num_master_ints += 1
-                      if idata["interface_type"] in ("slave","bond_slave","bridge_slave"):
-                         num_slave_ints += 1
+                      if idata["management"] == True and idata["interface_type"] in ["master","bond","bridge"]:
+                         # bonded/bridged management interface
+                         mgmt_ints_multi.append(iname)
+                      if idata["management"] == True and idata["interface_type"] not in ["master","bond","bridge","slave","bond_slave","bridge_slave"]:
+                         # single management interface
+                         mgmt_ints.append(iname)
+
+                if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
+                   # bonded/bridged management interface, find a slave interface
+                   # if eth0 is a slave use that (it's what people expect)
+                   for (iname, idata) in data["interfaces"].iteritems():
+                      if idata["interface_type"] in ["slave","bond_slave","bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
                          slave_ints.append(iname)
 
-                      if ((num_master_ints + num_slave_ints) == num_ints) and num_master_ints == 1:
-                         # only a *single* bond and no multihomeing, pick a slave interface
-                         # if eth0 is a slave use that (it's what people expect)
-                         if "eth0" in slave_ints:
-                            my_int = "eth0"
-                         else:
-                            my_int = slave_ints[0]
+                   if "eth0" in slave_ints:
+                      my_int = "eth0"
+                   else:
+                      my_int = slave_ints[0]
+                   # set my_ip from the bonded/bridged interface here
+                   my_ip = data["ip_address_" + data["interface_master_" + my_int]]
+                   my_mask = data["netmask_" + data["interface_master_" + my_int]]
 
+                if len(mgmt_ints) == 1 and len(mgmt_ints_multi) == 0:
+                   # single management interface
+                   my_int = mgmt_ints[0]
+
+             # lookup tcp/ip configuration data
              if my_ip is None and my_int is not None:
                 if data.has_key("ip_address_" + my_int) and data["ip_address_" + my_int] != "":
                    my_ip = data["ip_address_" + my_int]
