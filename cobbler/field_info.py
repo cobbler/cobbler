@@ -54,6 +54,7 @@ USES_SELECT = [
    "parent",
    "breed",
    "os_version",
+   "status",
 ]
 
 # fields that should use the checkbox in the web app

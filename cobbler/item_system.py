@@ -34,6 +34,7 @@ FIELDS = [
   ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
   ["profile",None,0,"Profile",True,"Parent profile",[],"str"],
   ["image",None,0,"Image",True,"Parent image (if not a profile)",0,"str"],
+  ["status","production",0,"Status",True,"System status",["development","testing","acceptance","production"],"str"],
   ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
   ["kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
   ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
@@ -292,6 +293,10 @@ class System(item.Item):
         if hostname is None:
            hostname = ""
         self.hostname = hostname
+        return True
+
+    def set_status(self,status):
+        self.status = status
         return True
 
     def set_static(self,truthiness,interface):

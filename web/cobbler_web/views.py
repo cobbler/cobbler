@@ -303,7 +303,7 @@ def genlist(request, what, page=None):
        ]
     if what == "system":
        # FIXME: also list network, once working
-       columns = [ "name", "profile", "netboot_enabled" ]
+       columns = [ "name", "profile", "status", "netboot_enabled" ]
        batchactions += [
            ["Power on","power","on"],
            ["Power off","power","off"],
