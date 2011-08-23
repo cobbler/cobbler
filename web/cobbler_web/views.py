@@ -518,7 +518,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         options = { "systems" : names, "power" : power }
         remote.background_power_system(options, request.session['token'])
     elif what == "system" and multi_mode == "buildiso":
-        options = { "systems" : names }
+        options = { "systems" : names, "profiles" : [] }
         remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "buildiso":
         options = { "profiles" : names, "systems" : [] }
