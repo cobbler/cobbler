@@ -298,6 +298,9 @@ def genlist(request, what, page=None):
        columns = [ "name" ]
     if what == "profile":
        columns = [ "name", "distro" ]
+       batchactions += [
+           ["Build ISO","buildiso","enable"],
+       ]
     if what == "system":
        # FIXME: also list network, once working
        columns = [ "name", "profile", "netboot_enabled" ]
@@ -516,6 +519,9 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         remote.background_power_system(options, request.session['token'])
     elif what == "system" and multi_mode == "buildiso":
         options = { "systems" : names }
+        remote.background_buildiso(options, request.session['token'])
+    elif what == "profile" and multi_mode == "buildiso":
+        options = { "profiles" : names, "systems" : [] }
         remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "reposync":
         options = { "repos" : names, "tries" : 3 }
