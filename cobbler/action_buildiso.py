@@ -412,19 +412,31 @@ class BuildIso:
         cfg.write(self.iso_template)
 
         for descendant in descendants:
-            data = utils.blender(self.api, True, descendant)
+            #data = utils.blender(self.api, True, descendant)
+            data = utils.blender(self.api, False, descendant)
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
             cfg.write("  MENU LABEL %s\n" % descendant.name)
             cfg.write("  kernel vmlinuz\n")
 
-            data["kickstart"] = "cdrom:/isolinux/ks-%s.cfg" % descendant.name
-
             append_line = "  append initrd=initrd.img"
-            append_line = append_line + " ks=%s " % data["kickstart"]
-            append_line = append_line + " %s\n" % data["kernel_options"]
+            if distro.breed == "redhat":
+               append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
+            if distro.breed == "suse":
+               append_line += " autoyast=file:///isolinux/%s.cfg install=file:///" % descendant.name
+               if data["kernel_options"].has_key("install"):
+                  del data["kernel_options"]["install"]
+            if distro.breed in ["ubuntu","debian"]:
+               append_line += " auto-install/enable=true preseed/file=/cdrom/isolinux/%s.cfg" % descendant.name
 
+            # add remaining kernel_options to append_line
+            for (k, v) in data["kernel_options"].iteritems():
+               if v == None:
+                  append_line += " %s" % k
+               else:
+                  append_line += " %s=%s" % (k,v)
+            append_line += "\n"
             cfg.write(append_line)
 
             if descendant.COLLECTION_TYPE == 'profile':
@@ -435,7 +447,7 @@ class BuildIso:
             cdregex = re.compile("url .*\n", re.IGNORECASE)
             kickstart_data = cdregex.sub("cdrom\n", kickstart_data)
 
-            ks_name = os.path.join(isolinuxdir, "ks-%s.cfg" % descendant.name)
+            ks_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
             ks_file = open(ks_name, "w+")
             ks_file.write(kickstart_data)
             ks_file.close()
