@@ -296,6 +296,9 @@ def genlist(request, what, page=None):
 
     if what == "distro":
        columns = [ "name" ]
+       batchactions += [
+           ["Build ISO","buildiso","enable"],
+       ]
     if what == "profile":
        columns = [ "name", "distro" ]
        batchactions += [
@@ -522,6 +525,11 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "buildiso":
         options = { "profiles" : names, "systems" : [] }
+        remote.background_buildiso(options, request.session['token'])
+    elif what == "distro" and multi_mode == "buildiso":
+        if len(names) > 1:
+            return error_page(request,"You can only select one distro at a time to build an ISO for")
+        options = { "standalone" : True, "distro": str(names[0]) }
         remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "reposync":
         options = { "repos" : names, "tries" : 3 }
