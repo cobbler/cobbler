@@ -72,35 +72,26 @@ class BuildIso:
             return str(self.distctr)
 
   
-    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=[],systems=[],exclude_dns=None):
+    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
        # function to sort profiles/systems by name
        def sort_name(a,b):
            return cmp(a.name,b.name)
 
-       # handle profile selection override provided via commandline (default is all)
+       # setup all profiles/systems lists
        all_profiles = [profile for profile in self.api.profiles()]
        all_profiles.sort(sort_name)
-       which_profiles = utils.input_string_or_list(profiles)
-
-       # handle system selection override provided via commandline (default is all)
        all_systems = [system for system in self.api.systems()]
        all_systems.sort(sort_name)
+       # convert input to lists
+       which_profiles = utils.input_string_or_list(profiles)
        which_systems = utils.input_string_or_list(systems)
 
-       # no systems and profiles are selected, so let's select all
-       # only possible from the cli: cobbler buildiso
-       want_all_systems = False
-       if len(which_systems) == 0 and len(which_profiles) == 0:
-          want_all_systems = True
-
-       # include profiles for selected systems only
-       for system in all_systems:
-          if want_all_systems == True:
-             which_systems.append(system.name)
-          if system.name in which_systems:
-             profile = system.get_conceptual_parent()
-             if profile.name not in which_profiles:
-                which_profiles.append(profile.name)
+       # no profiles/systems selection is made, let's process everything
+       do_all_systems = False
+       do_all_profiles = False
+       if len(which_profiles) == 0 and len(which_systems) == 0:
+          do_all_systems = True
+          do_all_profiles = True
 
        # setup isolinux.cfg
        isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
@@ -109,7 +100,7 @@ class BuildIso:
 
        # iterate through selected profiles
        for profile in all_profiles:
-          if profile.name in which_profiles:
+          if profile.name in which_profiles or do_all_profiles is True:
              self.logger.info("processing profile: %s" % profile.name)
              dist = profile.get_conceptual_parent()
              distname = self.make_shorter(dist.name)
@@ -153,7 +144,7 @@ class BuildIso:
 
        # iterate through all selected systems
        for system in all_systems:
-          if system.name in which_systems:
+          if system.name in which_systems or do_all_systems is True:
              self.logger.info("processing system: %s" % system.name)
              profile = system.get_conceptual_parent()
              dist = profile.get_conceptual_parent()
@@ -412,7 +403,6 @@ class BuildIso:
         cfg.write(self.iso_template)
 
         for descendant in descendants:
-            #data = utils.blender(self.api, True, descendant)
             data = utils.blender(self.api, False, descendant)
 
             cfg.write("\n")
