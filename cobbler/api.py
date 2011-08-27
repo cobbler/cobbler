@@ -27,7 +27,6 @@ import config
 import utils
 import action_sync
 import action_check
-import action_import
 import action_reposync
 import action_status
 import action_validate

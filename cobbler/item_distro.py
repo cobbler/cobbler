@@ -163,7 +163,7 @@ class Distro(item.Item):
 
     def set_tree_build_time(self, datestamp):
         """
-        Sets the import time of the distro, for use by action_import.py.
+        Sets the import time of the distro.
         If not imported, this field is not meaningful.
         """
         self.tree_build_time = float(datestamp)
