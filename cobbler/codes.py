@@ -47,9 +47,9 @@ VALID_OS_VERSIONS = {
     "ubuntu"  : [ "hardy", "lucid", "maverick", "natty" ],
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
-    "unix"    : [ "solaris9", "solaris10", "freebsd7", "freebsd8", "other" ],
+    "unix"    : [ "solaris9", "solaris10", "other" ],
     "vmware"  : [ "esx4", "esxi4" ],
-    "freebsd" : [ "freebsd8.0", "freebsd8.1", "freebsd8.2" ],
+    "freebsd" : [ "freebsd7", "freebsd8" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
 
