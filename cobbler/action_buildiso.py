@@ -1,6 +1,6 @@
 """
-Builds non-live bootable CD's that have PXE-equivalent behavior
-for all cobbler profiles currently in memory.
+Builds bootable CD images that have PXE-equivalent behavior
+for all Cobbler distros/profiles/systems currently in memory.
 
 Copyright 2006-2009, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -34,11 +34,11 @@ from cexceptions import *
 from utils import _
 import clogger
 
+
 class BuildIso:
     """
-    Handles conversion of internal state to the tftpboot tree layout
+    Handles conversion of internal state to the isolinux tree layout
     """
-
     def __init__(self,config,verbose=False,logger=None):
         """
         Constructor
@@ -71,17 +71,39 @@ class BuildIso:
             self.distmap[distname] = str(self.distctr)
             return str(self.distctr)
 
+
+    def copy_boot_files(self,distro,destdir,prefix=None):
+       """
+       Copy kernel/initrd to destdir with (optional) newfile prefix
+       """
+       if not os.path.exists(distro.kernel):
+          utils.die(self.logger,"path does not exist: %s" % distro.kernel)
+       if not os.path.exists(distro.initrd):
+          utils.die(self.logger,"path does not exist: %s" % distro.initrd)
+       if prefix is None:
+          shutil.copyfile(distro.kernel, os.path.join(destdir, "%s" % os.path.basename(distro.kernel)))
+          shutil.copyfile(distro.initrd, os.path.join(destdir, "%s" % os.path.basename(distro.initrd)))
+       else:
+          shutil.copyfile(distro.kernel, os.path.join(destdir, "%s.krn" % prefix))
+          shutil.copyfile(distro.initrd, os.path.join(destdir, "%s.img" % prefix))
+
+
+    def sort_name(self,a,b):
+       """
+       Sort profiles/systems by name
+       """
+       return cmp(a.name,b.name)
+
   
     def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
-       # function to sort profiles/systems by name
-       def sort_name(a,b):
-           return cmp(a.name,b.name)
-
+       """
+       Create bootable CD image to be used for network installations
+       """
        # setup all profiles/systems lists
        all_profiles = [profile for profile in self.api.profiles()]
-       all_profiles.sort(sort_name)
+       all_profiles.sort(self.sort_name)
        all_systems = [system for system in self.api.systems()]
-       all_systems.sort(sort_name)
+       all_systems.sort(self.sort_name)
        # convert input to lists
        which_profiles = utils.input_string_or_list(profiles)
        which_systems = utils.input_string_or_list(systems)
@@ -104,16 +126,7 @@ class BuildIso:
              self.logger.info("processing profile: %s" % profile.name)
              dist = profile.get_conceptual_parent()
              distname = self.make_shorter(dist.name)
-             # buildisodir/isolinux/$distro/vmlinuz, initrd.img
-             # FIXME: this will likely crash on non-Linux breeds
-             f1 = os.path.join(isolinuxdir, "%s.krn" % distname)
-             f2 = os.path.join(isolinuxdir, "%s.img" % distname)
-             if not os.path.exists(dist.kernel):
-                 utils.die(self.logger,"path does not exist: %s" % dist.kernel)
-             if not os.path.exists(dist.initrd):
-                 utils.die(self.logger,"path does not exist: %s" % dist.initrd)
-             shutil.copyfile(dist.kernel, f1)
-             shutil.copyfile(dist.initrd, f2)
+             self.copy_boot_files(dist,isolinuxdir,distname)
 
              cfg.write("\n")
              cfg.write("LABEL %s\n" % profile.name)
@@ -149,11 +162,7 @@ class BuildIso:
              profile = system.get_conceptual_parent()
              dist = profile.get_conceptual_parent()
              distname = self.make_shorter(dist.name)
-             # buildisodir/isolinux/$distro/vmlinuz, initrd.img
-             # FIXME: this will likely crash on non-Linux breeds
-             if not os.path.exists(dist.kernel) or not os.path.exists(dist.initrd):
-                shutil.copyfile(dist.kernel, os.path.join(isolinuxdir, "%s.krn" % distname))
-                shutil.copyfile(dist.initrd, os.path.join(isolinuxdir, "%s.img" % distname))
+             self.copy_boot_files(dist,isolinuxdir,distname)
 
              cfg.write("\n")
              cfg.write("LABEL %s\n" % system.name)
@@ -355,7 +364,9 @@ class BuildIso:
 
 
     def generate_standalone_iso(self,imagesdir,isolinuxdir,distname,filesource):
-
+        """
+        Create bootable CD image to be used for handsoff CD installtions
+        """
         # Get the distro object for the requested distro
         # and then get all of its descendants (profiles/sub-profiles/systems)
         distro = self.api.find_distro(distname)
@@ -380,16 +391,7 @@ class BuildIso:
                 utils.die(self.logger," Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally")
 
         self.logger.info("copying kernels and initrds for standalone distro")
-        # buildisodir/isolinux/$distro/vmlinuz, initrd.img
-        # FIXME: this will likely crash on non-Linux breeds
-        f1 = os.path.join(isolinuxdir, "vmlinuz")
-        f2 = os.path.join(isolinuxdir, "initrd.img")
-        if not os.path.exists(distro.kernel):
-            utils.die(self.logger,"path does not exist: %s" % distro.kernel)
-        if not os.path.exists(distro.initrd):
-            utils.die(self.logger,"path does not exist: %s" % distro.initrd)
-        shutil.copyfile(distro.kernel, f1)
-        shutil.copyfile(distro.initrd, f2)
+        self.copy_boot_files(distro,isolinuxdir,None)
 
         cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
         self.logger.info("- copying distro %s files (%s)" % (distname,cmd))
@@ -408,9 +410,9 @@ class BuildIso:
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
             cfg.write("  MENU LABEL %s\n" % descendant.name)
-            cfg.write("  kernel vmlinuz\n")
+            cfg.write("  kernel %s\n" % os.path.basename(distro.kernel))
 
-            append_line = "  append initrd=initrd.img"
+            append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
             if distro.breed == "redhat":
                append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
             if distro.breed == "suse":
