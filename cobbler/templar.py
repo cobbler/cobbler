@@ -78,7 +78,7 @@ class Templar:
                if rest not in self.settings.cheetah_import_whitelist:
                    raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input, search_table, out_path, subject=None):
+    def render(self, data_input, search_table, out_path, subject=None, template_type=None):
         """
         Render data_input back into a file.
         data_input is either a string or a filename
@@ -94,7 +94,14 @@ class Templar:
            raw_data = data_input
         lines = raw_data.split('\n')
 
-        template_type = "cheetah"
+        if not template_type:
+            # Assume we're using the default template type, if set in
+            # the settinigs file or use cheetah as the last resort
+            if self.settings.default_template_type:
+                template_type = self.settings.default_template_type
+            else:
+                template_type = "cheetah"
+
         if len(lines) > 0 and lines[0].find("#template=") == 0:
             # pull the template type out of the first line and then drop 
             # it and rejoin them to pass to the template language

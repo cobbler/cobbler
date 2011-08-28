@@ -82,6 +82,15 @@ default_ownership:
 # this is not changed.
 default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 
+# the default template type to use in the absence of any
+# other detected template. If you do not specify the template 
+# with '#template=<template_type>' on the first line of your
+# templates/snippets, cobbler will assume try to use the
+# following template engine to parse the templates.
+#
+# Current valid values are: cheetah, jinja2
+default_template_type: "cheetah"
+
 # for libvirt based installs in koan, if no virt bridge
 # is specified, which bridge do we try?  For EL 4/5 hosts
 # this should be xenbr0, for all versions of Fedora, try
