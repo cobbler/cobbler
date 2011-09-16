@@ -29,4 +29,7 @@
 
 ## Perform requested action
 ## NOTE - may require additional setup by sys-admin to enable passwd-less operation
-/usr/bin/virsh --connect $driver://$username$power_address/system $operation $power_id
+domstate=\$(/usr/bin/virsh --connect $driver://$username$power_address/system domstate $power_id)
+if [ "$operation" = "destroy" -a "$domstate" = "running" -o "$operation" = "start" -a "$domstate" = "shut off" ]; then
+    /usr/bin/virsh --connect $driver://$username$power_address/system $operation $power_id
+fi
