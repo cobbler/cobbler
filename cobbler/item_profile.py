@@ -40,6 +40,7 @@ FIELDS = [
   ["kernel_options",{},'<<inherit>>',"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
   ["kernel_options_post",{},'<<inherit>>',"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
   ["ks_meta",{},'<<inherit>>',"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
+  ["proxy","",None,"Proxy",True,"Proxy URL",0,"str"],
   ["repos",[],'<<inherit>>',"Repos",True,"Repos to auto-assign to this profile",[],"list"],
   ["comment","","","Comment",True,"Free form text description",0,"str"],
   ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
@@ -148,6 +149,10 @@ class Profile(item.Item):
            data = []
         data = utils.input_string_or_list(data)
         self.name_servers_search = data
+        return True
+
+    def set_proxy(self,proxy):
+        self.proxy = proxy
         return True
 
     def set_enable_menu(self,enable_menu):
