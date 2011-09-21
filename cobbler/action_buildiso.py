@@ -306,7 +306,7 @@ class BuildIso:
              if my_int is not None:
                  if dist.breed == "suse":
                      if data.has_key("mac_address_" + my_int) and data["mac_address_" + my_int] != "":
-                        append_line += " netdevice=%s" % data["mac_address_" + my_int]
+                        append_line += " netdevice=%s" % data["mac_address_" + my_int].lower()
                      else:
                         append_line += " netdevice=%s" % my_int
                  if dist.breed == "redhat":
