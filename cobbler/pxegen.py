@@ -209,8 +209,11 @@ class PXEGen:
             blended = utils.blender(self.api, True, system)
             self.templar.render(template_cf, blended, cf)
             # FIXME: profiles also need this data!
-            # FIXME: the _conf and _parm files are limited to 80 characters in length 
-            ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+            # FIXME: the _conf and _parm files are limited to 80 characters in length
+            try: 
+                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+            except socket.gaierror:
+                ipaddress = blended["http_server"]
             kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
             # gather default kernel_options and default kernel_options_s390x
             kopts = blended.get("kernel_options","")
@@ -321,8 +324,11 @@ class PXEGen:
                 blended = utils.blender(self.api, True, profile)
                 self.templar.render(template_cf, blended, cf)
                 # FIXME: profiles also need this data!
-                # FIXME: the _conf and _parm files are limited to 80 characters in length 
-                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                # FIXME: the _conf and _parm files are limited to 80 characters in length
+                try: 
+                    ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                except socket.gaierror:
+                    ipaddress = blended["http_server"]
                 kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
                 # gather default kernel_options and default kernel_options_s390x
                 kopts = blended.get("kernel_options","")
@@ -666,7 +672,10 @@ class PXEGen:
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
-            ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+            try:
+                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+            except socket.gaierror:
+                ipaddress = blended["http_server"]
             if system is not None and kickstart_path.startswith("/"):
                 kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
             elif kickstart_path.startswith("/"):
