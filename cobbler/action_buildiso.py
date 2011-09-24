@@ -58,7 +58,7 @@ class BuildIso:
             logger       = clogger.Logger()
         self.logger      = logger
         # grab the header from buildiso.header file
-        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.header"))
+        header_src = open(os.path.join(self.settings.iso_template_dir,"buildiso.template"))
         self.iso_template = header_src.read()
         header_src.close()
 

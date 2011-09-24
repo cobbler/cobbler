@@ -1,0 +1,12 @@
+DEFAULT MENU
+PROMPT 0
+MENU TITLE Cobbler | https://fedorahosted.org/cobbler
+TIMEOUT 200
+TOTALTIMEOUT 6000
+ONTIMEOUT local
+
+LABEL local
+	MENU LABEL (local)
+	MENU DEFAULT
+	KERNEL chain.c32
+	APPEND hd0 0
