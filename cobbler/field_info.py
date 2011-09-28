@@ -140,6 +140,7 @@ BLOCK_MAPPINGS = {
    "name_servers_search"    : "Networking (Global)",
    "ipv6_default_device"    : "Networking (Global)",
    "ipv6_autoconfiguration" : "Networking (Global)",
+   "proxy"                  : "General",
    "repos"                  : "General",
    "dhcp_tag"               : "Advanced",
    "mgmt_classes"           : "Management",
