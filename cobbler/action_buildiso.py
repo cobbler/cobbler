@@ -141,11 +141,15 @@ class BuildIso:
 
              append_line = " append initrd=%s.img" % distname
              if dist.breed == "suse":
+                 if data["proxy"] != "":
+                     append_line += " proxy=%s" % data["proxy"]
                  append_line += " autoyast=%s" % data["kickstart"]
              if dist.breed == "redhat":
                  append_line += " ks=%s" % data["kickstart"]
              if dist.breed in ["ubuntu","debian"]:
                  append_line += " auto-install/enable=true url=%s" % data["kickstart"]
+                 if data["proxy"] != "":
+                     append_line += " mirror/http/proxy=%s" % data["proxy"]
              append_line = append_line + " %s\n" % data["kernel_options"]
              cfg.write(append_line)
 
@@ -177,11 +181,15 @@ class BuildIso:
 
              append_line = " append initrd=%s.img" % distname
              if dist.breed == "suse":
+                if bdata["proxy"] != "":
+                    append_line += " proxy=%s" % bdata["proxy"]
                 append_line += " autoyast=%s" % bdata["kickstart"]
              if dist.breed == "redhat":
                 append_line += " ks=%s" % bdata["kickstart"]
              if dist.breed in ["ubuntu","debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % bdata["kickstart"]
+                if bdata["proxy"] != "":
+                    append_line += " mirror/http/proxy=%s" % bdata["proxy"]
                 # hostname is required as a parameter, the one in the preseed is not respected
                 my_domain = "local.lan"
                 if system.hostname != "":
