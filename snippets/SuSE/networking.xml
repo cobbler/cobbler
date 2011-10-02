@@ -1,0 +1,107 @@
+#if $hostname == ""
+#set $hostname = $system_name
+#end if
+#set $my_hostname = $hostname.split('.',1)[:1][0]
+#set $my_domainname = $hostname.split('.',1)[1:][0]
+<networking>
+  <keep_install_network config:type="boolean">false</keep_install_network>
+  <dhcp_options>
+    <dhclient_client_id></dhclient_client_id>
+    <dhclient_hostname_option></dhclient_hostname_option>
+  </dhcp_options>
+  <dns>
+    <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+    <dhcp_resolv config:type="boolean">false</dhcp_resolv>
+    <write_hostname config:type="boolean">false</write_hostname>
+    <resolv_conf_policy></resolv_conf_policy>
+    <hostname>$my_hostname</hostname>
+    <domain>$my_domainname</domain>
+    #if $getVar("name_servers_search","") != ""
+    <searchlist config:type="list">
+    #for $sd in $name_servers_search
+      <search>$sd</search>
+    #end for
+    </searchlist>
+    #end if
+    <nameservers config:type="list">
+    #for $ns in $name_servers
+      <nameserver>$ns</nameserver>
+    #end for
+    </nameservers>
+  </dns>
+  <interfaces config:type="list">
+  #set $ikeys = $interfaces.keys()
+  #for $iface in $ikeys
+    #set $idata = $interfaces[$iface]
+    #if $idata["interface_type"].lower() == "bond"
+    <interface>
+      <bonding_master>yes</bonding_master>
+      <bonding_module_opts>$idata["bonding_opts"].lower()</bonding_module_opts>
+      #set $loop_ikeys = $interfaces.keys()
+      #set $loop_counter = 0
+      #for $loop_iface in $loop_ikeys
+        #set $loop_idata = $interfaces[$loop_iface]
+        #if $loop_idata["interface_type"].lower == "bond_slave"
+           #if $loop_idata["interface_master"] != ""
+              #if $loop_idata["interface_master"].lower() == $iface.lower()
+                 <bonding_slave$loop_counter>$loop_iface</bonding_slave$loop_counter>
+                 #set $loop_counter += 1
+              #end if
+           #end if
+        #end if
+      #end for
+      <bootproto>static</bootproto>
+      <device>$iface</device>
+      <ipaddr>$idata["ip_address"]</ipaddr>
+      <netmask>$idata["subnet"]</netmask>
+      <startmode>auto</startmode>
+      <usercontrol>no</usercontrol>
+    </interface>
+    #end if
+    #if $idata["interface_type"].lower() in ["bond_slave","bridge_slave"]
+    <interface>
+      <bootproto>none</bootproto>
+      <device>$iface</device>
+      <startmode>off</startmode>
+      <usercontrol>no</usercontrol>
+    </interface>
+    #end if
+    #if $idata["interface_type"].lower() in ["","na"]
+    <interface>
+      <bootproto>static</bootproto>
+      <device>$iface</device>
+      <lladdr>$idata["mac_address"].lower()</lladdr>
+      <ipaddr>$idata["ip_address"]</ipaddr>
+      <netmask>$idata["subnet"]</netmask>
+      <startmode>auto</startmode>
+      <usercontrol>no</usercontrol>
+    </interface>
+    #end if
+  #end for
+  </interfaces>
+  <managed config:type="boolean">false</managed>
+  <net-udev config:type="list">
+  #set $ikeys = $interfaces.keys()
+  #for $iface in $ikeys
+    #set $idata = $interfaces[$iface]
+    #if $idata["interface_type"].lower() not in ["bond","bridge"]
+    <rule>
+      <name>$iface</name>
+      <rule>ATTR{address}</rule>
+      <value>$idata["mac_address"].lower()</value>
+    </rule>
+    #end if
+  #end for
+  </net-udev>
+  <routing>
+    <ip_forward config:type="boolean">false</ip_forward>
+    <routes config:type="list">
+      <route>
+        <destination>default</destination>
+        <netmask>-</netmask>
+        <device>-</device>
+        <gateway>$gateway</gateway>
+      </route>
+    </routes>
+  </routing>
+</networking>
