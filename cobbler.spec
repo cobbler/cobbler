@@ -7,7 +7,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.2.0
+Version: 2.2.1
 Release: 1%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -319,6 +319,9 @@ http://server/cobbler_web to configure the install server.
 /var/www/cobbler_webui_content/
 
 %changelog
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
+- Import changes for systemd from the fedora spec file (shenson@redhat.com)
+
 * Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.0-1
 - Remove the version (shenson@redhat.com)
 - New upstream 2.2.0 release (shenson@redhat.com)
