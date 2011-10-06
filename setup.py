@@ -9,7 +9,7 @@ except:
     import cobbler.sub_process as subprocess
 
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 OUTPUT_DIR = "config"
 
 
