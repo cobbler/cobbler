@@ -46,10 +46,17 @@ BuildRequires: python-setuptools
 %if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
 Requires: yum-utils
 %endif
-
+%if 0%{?fedora} >= 16
+BuildRequires: systemd-units
+Requires(post): systemd-sysv
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
+%else
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+%endif
 
 %description
 
@@ -85,26 +92,23 @@ mkdir -p $RPM_BUILD_ROOT/tftpboot/images
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%clean
-test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
+%if 0%{?fedora} >= 16
+rm -rf $RPM_BUILD_ROOT/etc/init.d
+mkdir -p $RPM_BUILD_ROOT%{_unitdir}
+install -m0644 config/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 
 %post
-if [ "$1" = "1" ];
-then
-    # This happens upon initial install. Upgrades will follow the next else
-    /sbin/chkconfig --add cobblerd
-elif [ "$1" -ge "2" ];
-then
+if [ $1 -eq 1 ] ; then 
+    # Initial installation 
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+elif [ "$1" -ge "2" ]; then
     # backup config
     if [ -e /var/lib/cobbler/distros ]; then
-        cp /var/lib/cobbler/distros*     /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/profiles*    /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/systems*     /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/repos*       /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/networks*    /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/mgmtclasses* /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/packages*    /var/lib/cobbler/backup 2>/dev/null
-        cp /var/lib/cobbler/files*       /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
     fi
     if [ -e /var/lib/cobbler/config ]; then
         cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
@@ -127,6 +131,74 @@ then
       [ -e $newf ] &&  mv $newf $newf.rpmnew
       cp $f $newf
     done
+    /bin/systemctl try-restart cobblerd.service >/dev/null 2>&1 || :
+fi
+
+%preun
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable cobblerd.service > /dev/null 2>&1 || :
+    /bin/systemctl stop cobblerd.service > /dev/null 2>&1 || :
+fi
+
+%postun
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart cobblerd.service >/dev/null 2>&1 || :
+fi
+
+%triggerun -- cobbler < 2.0.11-3
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply cobblerd
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save cobblerd >/dev/null 2>&1 ||:
+
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del cobblerd >/dev/null 2>&1 || :
+/bin/systemctl try-restart cobblerd.service >/dev/null 2>&1 || :
+
+%else
+
+%post
+if [ "$1" = "1" ];
+then
+    # This happens upon initial install. Upgrades will follow the next else
+    /sbin/chkconfig --add cobblerd
+elif [ "$1" -ge "2" ];
+then
+    # backup config
+    if [ -e /var/lib/cobbler/distros ]; then
+        cp /var/lib/cobbler/distros*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/profiles* /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/systems*  /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/repos*    /var/lib/cobbler/backup 2>/dev/null
+        cp /var/lib/cobbler/networks* /var/lib/cobbler/backup 2>/dev/null
+    fi
+    if [ -e /var/lib/cobbler/config ]; then
+        cp -a /var/lib/cobbler/config    /var/lib/cobbler/backup 2>/dev/null
+    fi
+    # upgrade older installs
+    # move power and pxe-templates from /etc/cobbler, backup new templates to *.rpmnew
+    for n in power pxe; do
+      rm -f /etc/cobbler/$n*.rpmnew
+      find /etc/cobbler -maxdepth 1 -name "$n*" -type f | while read f; do
+        newf=/etc/cobbler/$n/`basename $f`
+        [ -e $newf ] &&  mv $newf $newf.rpmnew
+        mv $f $newf
+      done
+    done
+    # upgrade older installs
+    # copy kickstarts from /etc/cobbler to /var/lib/cobbler/kickstarts
+    rm -f /etc/cobbler/*.ks.rpmnew
+    find /etc/cobbler -maxdepth 1 -name "*.ks" -type f | while read f; do
+      newf=/var/lib/cobbler/kickstarts/`basename $f`
+      [ -e $newf ] &&  mv $newf $newf.rpmnew
+      cp $f $newf
+    done
+    # reserialize and restart
+    # FIXIT: ?????
+    #/usr/bin/cobbler reserialize
     /sbin/service cobblerd condrestart
 fi
 
@@ -142,6 +214,10 @@ if [ "$1" -ge "1" ]; then
     /sbin/service httpd condrestart >/dev/null 2>&1 || :
 fi
 
+%endif
+
+%clean
+test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 
@@ -153,7 +229,11 @@ fi
 %{_sbindir}/tftpd.py*
 
 %config(noreplace) %{_sysconfdir}/cobbler
+%if 0%{?fedora} >= 16
+%{_unitdir}/cobblerd.service
+%else
 /etc/init.d/cobblerd
+%endif
 
 %{python_sitelib}/cobbler
 
