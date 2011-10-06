@@ -239,9 +239,6 @@ http://server/cobbler_web to configure the install server.
 /var/www/cobbler_webui_content/
 
 %changelog
-* Wed Oct  5 2011 Scott Henson <shenson@redhat.com> - 2.2.0-1
-- New upstream release
-
 * Thu Jun 17 2010 Scott Henson <shenson@redhat.com> - 2.1.0-1
 - Bump upstream release
 
