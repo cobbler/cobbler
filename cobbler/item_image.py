@@ -49,6 +49,7 @@ FIELDS = [
   ['virt_bridge',"SETTINGS:default_virt_bridge",0,"Virt Bridge",True,"",0,"str"],
   ['virt_cpus',1,0,"Virt CPUs",True,"",0,"int"],
   ['virt_file_size',"SETTINGS:default_virt_file_size",0,"Virt File Size (GB)",True,"",0,"float"],
+  ["virt_disk_driver","SETTINGS:default_virt_disk_driver",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
   ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00",0,"str"],
   ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,"",0,"int"],
   ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,"",["xenpv","xenfv","qemu","vmware"],"str"],
@@ -176,6 +177,9 @@ class Image(item.Item):
 
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
+
+    def set_virt_disk_driver(self,driver):
+        return utils.set_virt_disk_driver(self,driver)
 
     def set_virt_ram(self,num):
         return utils.set_virt_ram(self,num)

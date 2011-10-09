@@ -78,7 +78,12 @@ DISPLAY_PARAMS = [
    "netboot_enabled",
    "kernel_options",
    "repos",
-   "virt_ram","virt_disk","virt_type", "virt_path", "virt_auto_boot"
+   "virt_ram",
+   "virt_disk",
+   "virt_disk_driver",
+   "virt_type",
+   "virt_path",
+   "virt_auto_boot",
 ]
 
 
@@ -196,7 +201,7 @@ def main():
                  help="When used with  --replace-self, embed the kickstart in the initrd to overcome potential DHCP timeout issues. (seldom needed)")
     p.add_option("", "--qemu-disk-type",
                  dest="qemu_disk_type",
-                 help="when used with --virt_type=qemu, add select of disk drivers: ide,scsi,virtio")
+                 help="when used with --virt_type=qemu, add select of disk driver types: ide,scsi,virtio")
     p.add_option("", "--qemu-net-type",
                  dest="qemu_net_type",
                  help="when used with --virt_type=qemu, select type of network device to use: e1000, ne2k_pci, pcnet, rtl8139, virtio")
@@ -1264,7 +1269,8 @@ class Koan:
         vcpus               = self.calc_virt_cpus(pd)
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
-        disks               = self.merge_disk_data(path_list,size_list)
+        driver_list         = self.calc_virt_drivers(pd)
+        disks               = self.merge_disk_data(path_list,size_list,driver_list)
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
@@ -1373,7 +1379,7 @@ class Koan:
 
     #---------------------------------------------------
 
-    def merge_disk_data(self, paths, sizes):
+    def merge_disk_data(self, paths, sizes, drivers):
         counter = 0
         disks = []
         for p in paths:
@@ -1382,11 +1388,13 @@ class Koan:
                 size = sizes[-1]
             else:
                 size = sizes[counter]
-            disks.append([path,size])
+            driver = drivers[counter]
+            disks.append([path,size,driver])
             counter = counter + 1
         if len(disks) == 0:
-            print "paths: ", paths
-            print "sizes: ", sizes
+            print "paths:   ", paths
+            print "sizes:   ", sizes
+            print "drivers: ", drivers
             raise InfoException, "Disk configuration not resolvable!"
         return disks
 
@@ -1453,6 +1461,25 @@ class Koan:
             print "invalid file size specified, using defaults"
             return default_filesize
         return int(size)
+
+    #---------------------------------------------------
+
+    def calc_virt_drivers(self,data):
+        driver = self.safe_load(data,'virt_disk_driver',default='raw')
+
+        tokens = driver.split(",")
+        accum = []
+        for t in tokens:
+            # FIXME: this list should be pulled out of 
+            #        the virtinst VirtualDisk class, but
+            #        not all versions of virtinst have a 
+            #        nice list to use
+            if t in ('raw','qcow','aio'):
+               accum.append(t)
+            else:
+               print "invalid disk driver specified, defaulting to 'raw'"
+               accum.append('raw')
+        return accum
 
     #---------------------------------------------------
 

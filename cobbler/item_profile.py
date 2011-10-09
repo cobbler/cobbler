@@ -46,6 +46,7 @@ FIELDS = [
   ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
   ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer",0,"int"],
   ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0,"int"],
+  ["virt_disk_driver","SETTINGS:default_virt_disk_driver",'<<inherit>>',"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
   ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0,"int"],
   ["depth",1,1,"",False,"",0,"int"],
   ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "vmware"],"str"],
@@ -209,6 +210,9 @@ class Profile(item.Item):
     def set_virt_file_size(self,num):
         return utils.set_virt_file_size(self,num)
  
+    def set_virt_disk_driver(self,driver):
+        return utils.set_virt_disk_driver(self,driver)
+
     def set_virt_ram(self,num):
         return utils.set_virt_ram(self,num)
 

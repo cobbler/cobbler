@@ -114,6 +114,7 @@ class Collection:
            'mac'             : 'mac_address',
            'virt-auto-boot'  : 'virt_auto_boot',
            'virt-file-size'  : 'virt_file_size',
+           'virt-disk-driver': 'virt_disk_driver',
            'virt-ram'        : 'virt_ram',
            'virt-path'       : 'virt_path',
            'virt-type'       : 'virt_type',

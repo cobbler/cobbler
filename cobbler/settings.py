@@ -50,6 +50,7 @@ DEFAULTS = {
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",
+    "default_virt_disk_driver"    : "raw",
     "default_virt_ram"            : "512",
     "default_ownership"           : [ "admin" ],
     "enable_menu"                 : 1,

@@ -535,6 +535,7 @@ class Utilities(BootTest):
         self.assertTrue(profile.set_distro("testdistro0"))
         self.assertTrue(profile.set_kickstart("http://127.0.0.1/foo"))
         self.assertTrue(profile.set_virt_bridge("xenbr1"))
+        self.assertTrue(profile.set_disk_driver("qcow"))
         # sizes must be integers
         self.assertTrue(profile.set_virt_file_size("54321"))
         self.failUnlessRaises(Exception, profile.set_virt_file_size, "huge")

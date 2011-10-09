@@ -1426,6 +1426,20 @@ def set_virt_file_size(self,num):
         raise CX(_("invalid virt file size (%s)" % num))
     return True
 
+def set_virt_disk_driver(self,driver):
+    """
+    For Virt only.
+    Specifies the on-disk format for the virtualized disk
+    """
+    # FIXME: we should probably check the driver type
+    #        here against the libvirt/virtinst list of
+    #        drivers, but this makes things more flexible
+    #        meaning we don't have to manage this list
+    #        and it's up to the user not to enter an
+    #        unsupported disk format
+    self.virt_disk_driver = driver
+    return True
+
 def set_virt_auto_boot(self,num):
     """
     For Virt only.
