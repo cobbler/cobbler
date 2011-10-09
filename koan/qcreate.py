@@ -167,9 +167,14 @@ def start_install(name=None,
         guest.set_uuid(uuid)
 
     for d in disks:
-        print "- adding disk: %s of size %s" % (d[0], d[1])
+        print "- adding disk: %s of size %s (driver type=%s)" % (d[0], d[1], d[2])
         if d[1] != 0 or d[0].startswith("/dev"):
-            guest.disks.append(virtinst.VirtualDisk(d[0], size=d[1], bus=qemu_driver_type))
+            vdisk = virtinst.VirtualDisk(d[0], size=d[1], bus=qemu_driver_type)
+            try:
+                vdisk.set_driver_type(d[2])
+            except:
+                print "- virtinst failed to create the VirtualDisk with the specified driver type (%s), using whatever it defaults to instead" % d[2]
+            guest.disks.append(vdisk)
         else:
             raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
 
