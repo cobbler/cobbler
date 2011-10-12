@@ -437,7 +437,7 @@ def connect_to_server(server=None,port=None):
         raise InfoException("--server must be specified")
 
     if port is None: 
-        port = 25151 
+        port = 80
         
     connect_ok = 0
 
