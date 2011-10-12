@@ -152,7 +152,7 @@ def main():
                  help="use static network configuration from this interface while installing")
     p.add_option("-t", "--port",
                  dest="port",
-                 help="cobbler xmlrpc port (default 25151)")
+                 help="cobbler port (default 80)")
     p.add_option("-w", "--vm-poll",
                  dest="should_poll",
                  action="store_true",

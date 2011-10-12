@@ -61,8 +61,8 @@ def main():
                  help="override the discovered hostname")
     p.add_option("-p", "--port",
                  dest="port",
-                 default="2515",
-                 help="cobbler xmlrpc port (default 25151)")
+                 default="80",
+                 help="cobbler port (default 80)")
     p.add_option("-P", "--profile",
                  dest="profile",
                  default="",
