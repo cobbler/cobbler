@@ -25,10 +25,6 @@ import os
 import os.path
 import shutil
 import time
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
 import sys
 import glob
 import traceback

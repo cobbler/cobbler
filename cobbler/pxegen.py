@@ -30,10 +30,6 @@ import sys
 import glob
 import traceback
 import errno
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
 import string
 import socket
 
