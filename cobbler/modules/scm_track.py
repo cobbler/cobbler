@@ -25,35 +25,27 @@ import os
 import traceback
 from cobbler.cexceptions import *
 import os
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
 import sys
 #import xmlrpclib
 import cobbler.module_loader as module_loader
+import cobbler.utils as utils
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
+
 
 def register():
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/change/*"
 
-def scall(args):
-    op = sub_process.Popen(args, shell=False, close_fds=True, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
-    op.communicate()
-    
 
 def run(api,args,logger):
 
-    
     settings = api.settings()
-
-    scm_track_enabled   = str(settings.scm_track_enabled).lower()
-    mode                = str(settings.scm_track_mode).lower()
+    scm_track_enabled  = str(settings.scm_track_enabled).lower()
+    mode = str(settings.scm_track_mode).lower()
 
     if scm_track_enabled not in [ "y", "yes", "1", "true" ]:
        # feature disabled
@@ -67,19 +59,16 @@ def run(api,args,logger):
            raise "danger will robinson"
 
        if not os.path.exists("/var/lib/cobbler/.git"):
-           scall(["git","init"])
+           rc = utils.subprocess_call(logger,"git init",shell=True)
 
        # FIXME: if we know the remote user of an XMLRPC call
        # use them as the author
-
-       scall(["git","add","--all","config"])
-       scall(["git","add","--all","kickstarts"])
-       scall(["git","add","--all","snippets"])
-
-       scall(["git","commit","-m",'API update',"--author","'cobbler <root@localhost.localdomain>'"])
+       rc = utils.subprocess_call(logger,"git add --all config",shell=True)
+       rc = utils.subprocess_call(logger,"git add --all kickstarts",shell=True)
+       rc = utils.subprocess_call(logger,"git add --all snippets",shell=True)
+       rc = utils.subprocess_call(logger,"git commit -m 'API update' --author 'cobbler <root@localhost.localdomain>'",shell=True)
 
        os.chdir(old_dir)
-
        return 0
 
     elif mode == "hg":
@@ -90,19 +79,16 @@ def run(api,args,logger):
             raise "danger will robinson"
         
         if not os.path.exists("/var/lib/cobbler/.hg"):
-            scall(["hg","init"])
+            rc = utils.subprocess_call(logger,"hg init",shell=True)
             
         # FIXME: if we know the remote user of an XMLRPC call
         # use them as the user
-
-        scall(["hg","add","config"])
-        scall(["hg","add","kickstarts"])
-        scall(["hg","add","snippets"])
-
-        scall(["hg","commit","-m",'API update',"--user","'cobbler <root@localhost.localdomain>'"])
+        rc = utils.subprocess_call(logger,"hg add config",shell=True)
+        rc = utils.subprocess_call(logger,"hg add kickstarts",shell=True)
+        rc = utils.subprocess_call(logger,"hg add snippets",shell=True)
+        rc = utils.subprocess_call(logger,"hg commit -m 'API update' --user 'cobbler <root@localhost.localdomain>'",shell=True)
 
         os.chdir(old_dir)
-
         return 0
 
     else:

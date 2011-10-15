@@ -314,8 +314,8 @@ run_install_triggers: 1
 # enables a trigger which version controls all changes to /var/lib/cobbler
 # when add, edit, or sync events are performed.  This can be used
 # to revert to previous database versions, generate RSS feeds, or for
-# other auditing or backup purposes.  git is the recommend SCM
-# for use with this feature.  
+# other auditing or backup purposes. "git" and "hg" are currently suported, 
+# but git is the recommend SCM for use with this feature.
 scm_track_enabled: 0
 scm_track_mode: "git"
 
