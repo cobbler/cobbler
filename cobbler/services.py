@@ -34,10 +34,6 @@ import yaml # PyYAML
 # the following imports are largely for the test code
 import remote
 import glob
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
 import api as cobbler_api
 import utils
 import os
@@ -278,7 +274,7 @@ def __test_setup():
     files = glob.glob("rpm-build/*.rpm")
     if len(files) == 0:
        raise Exception("Tests must be run from the cobbler checkout directory.")
-    sub_process.call("cp rpm-build/*.rpm /tmp/empty",shell=True,close_fds=True)
+    rc = utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
     api.add_repo(repo)
 
     fd = open("/tmp/cobbler_t1","w+")
