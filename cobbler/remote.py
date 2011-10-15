@@ -29,10 +29,6 @@ import base64
 import fcntl
 import traceback
 import glob
-try:
-    import subprocess
-except:
-    import sub_process as subprocess
 from threading import Thread
 
 import api as cobbler_api
@@ -1996,9 +1992,9 @@ def _test_setup_settings(pxe_once=1):
 
 def _test_bootstrap_restart():
 
-   rc1 = subprocess.call(["/sbin/service","cobblerd","restart"],shell=False,close_fds=True)
+   rc1 = utils.subprocess_call(None,"/sbin/service cobblerd restart",shell=False)
    assert rc1 == 0
-   rc2 = subprocess.call(["/sbin/service","httpd","restart"],shell=False,close_fds=True)
+   rc2 = utils.subprocess.call(None,"/sbin/service httpd restart",shell=False)
    assert rc2 == 0
    time.sleep(5)
    
@@ -2078,7 +2074,7 @@ def test_xmlrpc_ro():
    files = glob.glob("rpm-build/*.rpm")
    if len(files) == 0:
       raise Exception("Tests must be run from the cobbler checkout directory.")
-   subprocess.call("cp rpm-build/*.rpm /tmp/empty",shell=True,close_fds=True)
+   rc = utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
    api.add_repo(repo)
 
    profile = api.new_profile()
