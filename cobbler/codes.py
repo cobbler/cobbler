@@ -41,8 +41,8 @@ VALID_OS_BREEDS = [
 ]
 
 VALID_OS_VERSIONS = {
-    "redhat"  : [ "rhel3", "rhel4", "rhel5", "rhel6", "fedora14", "fedora15", "generic24", "generic26", "virtio26", "other" ],
-    "suse"    : [ "sles9", "sles10", "sles11", "generic24", "generic26", "virtio26", "other" ],
+    "redhat"  : [ "rhel3", "rhel4", "rhel5", "rhel6", "fedora14", "fedora15", "fedora16", "rawhide", "generic24", "generic26", "virtio26", "other" ],
+    "suse"    : [ "sles9", "sles10", "sles11", "opensuse11.2", "opensuse11.3", "opensuse11.4", "opensuse12.1", "generic24", "generic26", "virtio26", "other" ],
     "debian"  : [ "lenny", "squeeze", "stable", "testing", "unstable", "generic24", "generic26", "other" ],
     "ubuntu"  : [ "hardy", "lucid", "maverick", "natty" ],
     "generic" : [ "generic24", "generic26", "other" ],
