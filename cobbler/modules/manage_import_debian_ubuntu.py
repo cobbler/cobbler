@@ -92,21 +92,19 @@ class ImportDebianUbuntuManager:
        return (False,None)
 
     # required function for import modules
-    def run(self,pkgdir,mirror,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
+    def run(self,pkgdir,name,path,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None):
         self.pkgdir = pkgdir
-        self.mirror = mirror
-        self.mirror_name = mirror_name
+        self.name = name
         self.network_root = network_root
         self.kickstart_file = kickstart_file
         self.rsync_flags = rsync_flags
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
+        self.path = path
 
         # some fixups for the XMLRPC interface, which does not use "None"
         if self.arch == "":           self.arch           = None
-        if self.mirror == "":         self.mirror         = None
-        if self.mirror_name == "":    self.mirror_name    = None
         if self.kickstart_file == "": self.kickstart_file = None
         if self.os_version == "":     self.os_version     = None
         if self.rsync_flags == "":    self.rsync_flags    = None
@@ -118,41 +116,8 @@ class ImportDebianUbuntuManager:
             if not self.breed:
                 utils.die(self.logger,"import failed - could not determine breed of debian-based distro")
                
-        # debug log stuff for testing
-        #self.logger.info("DEBUG: self.pkgdir = %s" % str(self.pkgdir))
-        #self.logger.info("DEBUG: self.mirror = %s" % str(self.mirror))
-        #self.logger.info("DEBUG: self.mirror_name = %s" % str(self.mirror_name))
-        #self.logger.info("DEBUG: self.network_root = %s" % str(self.network_root))
-        #self.logger.info("DEBUG: self.kickstart_file = %s" % str(self.kickstart_file))
-        #self.logger.info("DEBUG: self.rsync_flags = %s" % str(self.rsync_flags))
-        #self.logger.info("DEBUG: self.arch = %s" % str(self.arch))
-        #self.logger.info("DEBUG: self.breed = %s" % str(self.breed))
-        #self.logger.info("DEBUG: self.os_version = %s" % str(self.os_version))
-
-        # both --import and --name are required arguments
-
-        if self.mirror is None:
-            utils.die(self.logger,"import failed.  no --path specified")
-        if self.mirror_name is None:
-            utils.die(self.logger,"import failed.  no --name specified")
-
-        # if --arch is supplied, validate it to ensure it's valid
-
-        if self.arch is not None and self.arch != "":
-            self.arch = self.arch.lower()
-            if self.arch == "x86":
-                # be consistent
-                self.arch = "i386"
-            if self.arch not in self.get_valid_arches():
-                utils.die(self.logger,"arch must be one of: %s" % string.join(self.get_valid_arches(),", "))
-
         # if we're going to do any copying, set where to put things
         # and then make sure nothing is already there.
-
-        self.path = os.path.normpath( "%s/ks_mirror/%s" % (self.settings.webdir, self.mirror_name) )
-        if os.path.exists(self.path) and self.arch is None:
-            # FIXME : Raise exception even when network_root is given ?
-            utils.die(self.logger,"Something already exists at this import location (%s).  You must specify --arch to avoid potentially overwriting existing files." % self.path)
 
         # import takes a --kickstart for forcing selection that can't be used in all circumstances
 
@@ -164,75 +129,6 @@ class ImportDebianUbuntuManager:
 
         if self.breed and self.breed.lower() not in self.get_valid_breeds():
             utils.die(self.logger,"Supplied import breed is not supported by this module")
-
-        # if --arch is supplied, make sure the user is not importing a path with a different
-        # arch, which would just be silly.
-
-        if self.arch:
-            # append the arch path to the name if the arch is not already
-            # found in the name.
-            for x in self.get_valid_arches():
-                if self.path.lower().find(x) != -1:
-                    if self.arch != x :
-                        utils.die(self.logger,"Architecture found on pathname (%s) does not fit the one given in command line (%s)"%(x,self.arch))
-                    break
-            else:
-                # FIXME : This is very likely removed later at get_proposed_name, and the guessed arch appended again
-                self.path += ("-%s" % self.arch)
-
-        # make the output path and mirror content but only if not specifying that a network
-        # accessible support location already exists (this is --available-as on the command line)
-
-        if self.network_root is None:
-            # we need to mirror (copy) the files
-
-            utils.mkdir(self.path)
-
-            if self.mirror.startswith("http://") or self.mirror.startswith("ftp://") or self.mirror.startswith("nfs://"):
-
-                # http mirrors are kind of primative.  rsync is better.
-                # that's why this isn't documented in the manpage and we don't support them.
-                # TODO: how about adding recursive FTP as an option?
-
-                utils.die(self.logger,"unsupported protocol")
-
-            else:
-
-                # good, we're going to use rsync..
-                # we don't use SSH for public mirrors and local files.
-                # presence of user@host syntax means use SSH
-
-                # kick off the rsync now
-
-                if not utils.rsync_files(self.mirror, self.path, self.rsync_flags, self.logger):
-                    utils.die(self.logger, "failed to rsync the files")
-
-        else:
-
-            # rather than mirroring, we're going to assume the path is available
-            # over http, ftp, and nfs, perhaps on an external filer.  scanning still requires
-            # --mirror is a filesystem path, but --available-as marks the network path
-
-            if not os.path.exists(self.mirror):
-                utils.die(self.logger, "path does not exist: %s" % self.mirror)
-
-            # find the filesystem part of the path, after the server bits, as each distro
-            # URL needs to be calculated relative to this.
-
-            if not self.network_root.endswith("/"):
-                self.network_root = self.network_root + "/"
-            self.path = os.path.normpath( self.mirror )
-            valid_roots = [ "nfs://", "ftp://", "http://" ]
-            for valid_root in valid_roots:
-                if self.network_root.startswith(valid_root):
-                    break
-            else:
-                utils.die(self.logger, "Network root given to --available-as must be nfs://, ftp://, or http://")
-            if self.network_root.startswith("nfs://"):
-                try:
-                    (a,b,rest) = self.network_root.split(":",3)
-                except:
-                    utils.die(self.logger, "Network root given to --available-as is missing a colon, please see the manpage example.")
 
         # now walk the filesystem looking for distributions that match certain patterns
 
@@ -288,8 +184,8 @@ class ImportDebianUbuntuManager:
         for breed in self.get_valid_breeds():
             # NOTE : Although we break the loop after the first match,
             # multiple debian derived distros can actually live at the same pool -- JP
-            d = os.path.join(self.mirror, breed)
-            if (os.path.islink(d) and os.path.isdir(d) and os.path.realpath(d) == os.path.realpath(self.mirror)) or os.path.basename(self.mirror) == breed:
+            d = os.path.join(self.path, breed)
+            if (os.path.islink(d) and os.path.isdir(d) and os.path.realpath(d) == os.path.realpath(self.path)) or os.path.basename(self.path) == breed:
                 return breed
         else:
             return None
@@ -306,7 +202,7 @@ class ImportDebianUbuntuManager:
         if self.network_root is None:
             dists_path = os.path.join(self.path, "dists")
             if os.path.isdir(dists_path):
-                tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
+                tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.name)
             else:
                 tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
             self.set_install_tree(distro, tree)
@@ -478,7 +374,7 @@ class ImportDebianUbuntuManager:
         """
 
         if self.network_root is not None:
-            name = self.mirror_name + "-".join(self.path_tail(os.path.dirname(self.path),dirname).split("/"))
+            name = self.name + "-".join(self.path_tail(os.path.dirname(self.path),dirname).split("/"))
         else:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])
@@ -612,7 +508,7 @@ class ImportDebianUbuntuManager:
         if self.network_root is None:
             dists_path = os.path.join( self.path , "dists" )
             if os.path.isdir( dists_path ):
-                tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.mirror_name)
+                tree = "http://@@http_server@@/cblr/ks_mirror/%s" % (self.name)
             else:
                 tree = "http://@@http_server@@/cblr/repo_mirror/%s" % (distro.name)
             self.set_install_tree(distro, tree)
@@ -626,7 +522,7 @@ class ImportDebianUbuntuManager:
             self.set_install_tree(distro, tree)
 
     def get_rootdir(self):
-        return self.mirror
+        return self.path
 
     def get_pkgdir(self):
         if not self.pkgdir:
@@ -650,6 +546,8 @@ class ImportDebianUbuntuManager:
         if result.pop("amd64",False):
             result["x86_64"] = 1
         if result.pop("i686",False):
+            result["i386"] = 1
+        if result.pop("x86",False):
             result["i386"] = 1
         return result.keys()
 
