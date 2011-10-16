@@ -41,6 +41,7 @@ import item_distro
 import item_profile
 import item_repo
 import item_system
+import codes
 
 from utils import _
 
@@ -181,10 +182,7 @@ class ImportRedhatManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return ["rhel2.1", "rhel3", "rhel4", "rhel5", "rhel6", 
-                "fedora5", "fedora6", "fedora7", "fedora8", "fedora9", "fedora10", 
-                "fedora11", "fedora12", "fedora13", "fedora14", "fedora15",
-                "generic24", "generic26", "virtio26", "other",]
+        return codes.VALID_OS_VERSIONS["redhat"]
 
     def get_valid_repo_breeds(self):
         return ["rsync", "rhn", "yum",]
