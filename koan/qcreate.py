@@ -158,6 +158,7 @@ def start_install(name=None,
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)
+    guest.set_autostart(virt_auto_boot)
     # for KVM, we actually can't disable this, since it's the only
     # console it has other than SDL
     guest.set_graphics("vnc")
