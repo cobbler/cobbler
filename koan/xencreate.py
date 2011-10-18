@@ -113,6 +113,7 @@ def start_install(name=None,
     guest.set_name(name)
     guest.set_memory(ram)
     guest.set_vcpus(vcpus)
+    guest.set_autostart(virt_auto_boot)
 
     if not no_gfx:
         guest.set_graphics("vnc")
