@@ -85,6 +85,7 @@ DEFAULTS = {
     "power_management_default_type" : "ipmitool",
     "power_template_dir"          : "/etc/cobbler/power",
     "puppet_auto_setup"           : 0,
+    "sign_puppet_certs_automatically": 0,
     "pxe_just_once"               : 0,
     "iso_template_dir"            : "/etc/cobbler/iso",
     "pxe_template_dir"            : "/etc/cobbler/pxe",
