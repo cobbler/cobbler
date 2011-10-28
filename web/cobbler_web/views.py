@@ -5,6 +5,25 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 
+try:
+    from django.views.decorators.csrf import csrf_protect
+except:
+    # Old Django, fudge the @csrf_protect decorator to be a pass-through 
+    # that does nothing. Django decorator shell based on this page: 
+    # http://passingcuriosity.com/2009/writing-view-decorators-for-django/
+    def csrf_protect(f):
+        def _dec(view_func):
+            def _view(request,*args,**kwargs):
+                return view_func(request,*args,**kwargs)
+            _view.__name__ = view_func.__name__
+            _view.__dict__ = view_func.__dict__
+            _view.__doc__  = view_func.__doc__
+            return _view
+        if f is None:
+            return _dec
+        else:
+            return _dec(f)
+
 import xmlrpclib
 import time
 import simplejson
@@ -37,7 +56,7 @@ def index(request):
    if not test_user_authenticated(request): return login(request,next="/cobbler_web")
 
    t = get_template('index.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
         'version' : remote.version(request.session['token']),
         'username': username,
    }))
@@ -51,7 +70,7 @@ def task_created(request):
    """
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/task_created")
    t = get_template("task_created.tmpl")
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'version'  : remote.version(request.session['token']),
        'username' : username
    }))
@@ -69,7 +88,7 @@ def error_page(request,message):
    t = get_template('error_page.tmpl')
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
    message = message.replace("'\">","")
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'version' : remote.version(request.session['token']),
        'message' : message,
        'username': username
@@ -545,7 +564,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 def import_prompt(request):
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt")
    t = get_template('import.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'version'  : remote.version(request.session['token']),
        'username' : username,
    }))
@@ -560,7 +579,7 @@ def check(request):
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/check")
    results = remote.check(request.session['token'])
    t = get_template('check.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'version': remote.version(request.session['token']),
        'username' : username,
        'results'  : results
@@ -606,7 +625,7 @@ def ksfile_list(request, page=None):
          ksfile_list.append((ksfile,ksfile,None))
 
    t = get_template('ksfile_list.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'what':'ksfile',
        'ksfiles': ksfile_list,
        'version': remote.version(request.session['token']),
@@ -617,7 +636,7 @@ def ksfile_list(request, page=None):
 
 # ======================================================================
 
-
+@csrf_protect
 def ksfile_edit(request, ksfile_name=None, editmode='edit'):
    """
    This is the page where a kickstart file is edited.
@@ -635,7 +654,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
       ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
 
    t = get_template('ksfile_edit.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'ksfile_name' : ksfile_name,
        'deleteable'  : deleteable,
        'ksdata'      : ksdata,
@@ -648,6 +667,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
 
 # ======================================================================
 
+@csrf_protect
 def ksfile_save(request):
    """
    This page processes and saves edits to a kickstart file.
@@ -691,7 +711,7 @@ def snippet_list(request, page=None):
          snippet_list.append((snippet,snippet,None))
 
    t = get_template('snippet_list.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'what'     : 'snippet',
        'snippets' : snippet_list,
        'version'  : remote.version(request.session['token']),
@@ -701,6 +721,7 @@ def snippet_list(request, page=None):
 
 # ======================================================================
 
+@csrf_protect
 def snippet_edit(request, snippet_name=None, editmode='edit'):
    """
    This page edits a specific snippet.
@@ -718,7 +739,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
       snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
 
    t = get_template('snippet_edit.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'snippet_name' : snippet_name,
        'deleteable'   : deleteable,
        'snippetdata'  : snippetdata,
@@ -731,6 +752,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
 
 # ======================================================================
 
+@csrf_protect
 def snippet_save(request):
    """
    This snippet saves a snippet once edited.
@@ -774,7 +796,7 @@ def settings(request):
       results.append([k,settings[k]])
 
    t = get_template('settings.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
         'settings' : results,
         'version'  : remote.version(request.session['token']),
         'username' : username,
@@ -800,7 +822,7 @@ def events(request):
    events2.sort(sorter)
 
    t = get_template('events.tmpl')
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'results'  : events2,
        'version'  : remote.version(request.session['token']),
        'username' : username
@@ -834,7 +856,7 @@ def eventlog(request, event=0):
       'version'    : remote.version(request.session['token']),
       'username'  : username
    }
-   html = t.render(Context(vars))
+   html = t.render(RequestContext(request,vars))
    return HttpResponse(html)
 
 # ======================================================================
@@ -912,6 +934,7 @@ def __names_from_dicts(loh,optional=True):
 
 # ======================================================================
 
+@csrf_protect
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    """
@@ -981,7 +1004,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
-   html = t.render(Context({
+   html = t.render(RequestContext(request,{
        'what'            : what, 
        'fields'          : fields, 
        'subobject'       : child,
@@ -999,6 +1022,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
 # ======================================================================
 
+@csrf_protect
 def generic_save(request,what):
 
     """
@@ -1147,9 +1171,11 @@ def test_user_authenticated(request):
             pass
     return False
 
+@csrf_protect
 def login(request, next=None):
-    return render_to_response('login.tmpl', {'next':next})
+    return render_to_response('login.tmpl', RequestContext(request,{'next':next}))
 
+@csrf_protect
 def do_login(request):
     global remote
     global username
@@ -1179,6 +1205,7 @@ def do_login(request):
     else:
         return login(request,nextsite)
 
+@csrf_protect
 def do_logout(request):
     request.session['username'] = ""
     request.session['token'] = ""

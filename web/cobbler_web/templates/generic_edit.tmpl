@@ -404,6 +404,7 @@ $(document).ready(function()
 <h1>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</h1>
 <hr />
 <form method="post" action="/cobbler_web/{{ what }}/save">
+  {% csrf_token %}
   <input type="hidden" name="editmode" value="{{ editmode }}" />
   <input type="hidden" name="subobject" value="{{ subobject }}" />
   <ol>

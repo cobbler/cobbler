@@ -14,6 +14,7 @@ if you need to resolve this.
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Snippet</h1>
 <hr />
 <form id="snippetform" method="post" action="/cobbler_web/snippet/save">
+  {% csrf_token %}
   <ol>
     <li>
       <label for="snippetdata">{% if snippet_name %}Snippet: {{ snippet_name }}{% else %}Filename:{% endif %}</label>

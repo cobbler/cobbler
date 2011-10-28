@@ -12,6 +12,7 @@
     <p class="error">Sorry, that's not a valid username or password</p>
 {% endif %}
     <form action="/cobbler_web/do_login" method="post">
+      {% csrf_token %}
       {% if next %}<input type="hidden" name="next" value="{{ next|escape }}" />{% endif %}
       <div id="username">
         <label for="username">Username: </label>
