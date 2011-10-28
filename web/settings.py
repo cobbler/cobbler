@@ -31,8 +31,7 @@ MEDIA_ROOT = ''
 MEDIA_URL = ''
 ADMIN_MEDIA_PREFIX = '/media/'
 
-# FIXME: ???
-SECRET_KEY = 'w&x*74x-b=ycigsdya03699o!9kt4(z4wyx-us9q=--&7clv4='
+SECRET_KEY = ''
 
 # code config
 
@@ -42,6 +41,7 @@ TEMPLATE_LOADERS = (
 )
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.csrf.middleware.CsrfMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 )
