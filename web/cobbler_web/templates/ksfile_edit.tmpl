@@ -17,6 +17,7 @@
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</h1>
 <hr />
 <form id="ksform" method="post" action="/cobbler_web/ksfile/save">
+  {% csrf_token %}
   <ol>
     <li>
       <label for="ksdata">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
