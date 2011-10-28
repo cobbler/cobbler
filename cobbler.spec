@@ -309,6 +309,12 @@ Requires: python(abi) >= %{pyver}
 Web interface for Cobbler that allows visiting
 http://server/cobbler_web to configure the install server.
 
+%post -n cobbler-web
+# Change the SECRET_KEY option in the Django settings.py file
+# required for security reasons, should be unique on all systems
+RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
+sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/web/settings.py
+
 %files -n cobbler-web
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING CHANGELOG README
