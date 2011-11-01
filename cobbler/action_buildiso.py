@@ -63,6 +63,24 @@ class BuildIso:
         header_src.close()
 
 
+    def add_remaining_kopts(self,koptdict):
+        """
+        Add remaining kernel_options to append_line
+        """
+        append_line = ""
+        for (k, v) in koptdict.iteritems():
+            if v == None:
+                append_line += " %s" % k
+            else:
+                if type(v) == list:
+                    for i in v:
+                        append_line += " %s=%s" % (k,i)                
+                else:
+                    append_line += " %s=%s" % (k,v)
+        append_line += "\n"
+        return append_line
+
+
     def make_shorter(self,distname):
         if self.distmap.has_key(distname):
             return self.distmap[distname]
@@ -354,12 +372,7 @@ class BuildIso:
                    append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
 
              # add remaining kernel_options to append_line
-             for (k, v) in data["kernel_options"].iteritems():
-                if v == None:
-                   append_line += " %s" % k
-                else:
-                   append_line += " %s=%s" % (k,v)
-             append_line += "\n"
+             append_line += self.add_remaining_kopts(data["kernel_options"])
              cfg.write(append_line)
 
              length = len(append_line)
@@ -431,12 +444,7 @@ class BuildIso:
                append_line += " auto-install/enable=true preseed/file=/cdrom/isolinux/%s.cfg" % descendant.name
 
             # add remaining kernel_options to append_line
-            for (k, v) in data["kernel_options"].iteritems():
-               if v == None:
-                  append_line += " %s" % k
-               else:
-                  append_line += " %s=%s" % (k,v)
-            append_line += "\n"
+            append_line += self.add_remaining_kopts(data["kernel_options"])
             cfg.write(append_line)
 
             if descendant.COLLECTION_TYPE == 'profile':
