@@ -28,6 +28,11 @@ allow_duplicate_macs: 0
 # # # ok with this limitation.
 anamon_enabled: 0
 
+# If using authn_pam in the modules.conf, this can be configured
+# to change the PAM service authentication will be tested against.
+# The default value is "login".
+authn_pam_service: "login"
+
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
 # sender: optional
