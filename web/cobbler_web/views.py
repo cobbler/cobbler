@@ -974,8 +974,9 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if what in ("distro","profile","system"):
        __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
 
-   # save the fields in the session for comparison later
-   request.session['%s_%s' % (what,obj_name)] = fields
+   # if editing save the fields in the session for comparison later
+   if editmode == "edit":
+       request.session['%s_%s' % (what,obj_name)] = fields
 
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
@@ -1019,7 +1020,7 @@ def generic_save(request,what):
         return error_page(request,"Required field name is missing")
               
     prev_fields = []
-    if request.session.has_key("%s_%s" % (what,obj_name)):
+    if request.session.has_key("%s_%s" % (what,obj_name)) and editmode == "edit":
         prev_fields = request.session["%s_%s" % (what,obj_name)]
 
     # grab the remote object handle
