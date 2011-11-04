@@ -14,9 +14,16 @@
 <div id="container">
   <div id='user'>
     <input type="hidden" name="username" id="username" value="{{ username }}" />
-    Logged in: <b>{{ username }}</b> <a class="action" href="/cobbler_web/logout">Logout</a>
+    Logged in: <b>{{ username }}</b> <a class="action" href="javascript:menuaction('/cobbler_web/logout');">Logout</a>
   </div>
     <div id="menubar">
+      <form id="menuaction" method="POST" action="">{% csrf_token %}</form>
+      <script type="text/javascript">
+      function menuaction(action) {
+         document.forms["menuaction"].action = action
+         document.forms["menuaction"].submit();
+      }
+      </script>
       <h1>Configuration</h1>
       <ul>
         <li><a href="/cobbler_web/distro/list" class="edit">Distros</a></li>
@@ -36,11 +43,11 @@
       <h1>Actions</h1>
       <ul>
         <li><a href="/cobbler_web/import/prompt">Import DVD</a></li>
-        <li><a href="/cobbler_web/sync">Sync</a> ☼</li>
-        <li><a href="/cobbler_web/reposync">Reposync</a> ☼ </li>
-        <li><a href="/cobbler_web/hardlink">Hardlink</a> ☼ </li>
-        <!-- <li><a href="/cobbler_web/replicate">Replicate</a> ☼ </li> -->
-        <li><a href="/cobbler_web/buildiso">Build ISO</a> ☼ </li>
+        <li><a href="javascript:menuaction('/cobbler_web/sync');">Sync</a> ☼</li>
+        <li><a href="javascript:menuaction('/cobbler_web/reposync');"">Reposync</a> ☼ </li>
+        <li><a href="javascript:menuaction('/cobbler_web/hardlink');"">Hardlink</a> ☼ </li>
+        <!-- <li><a href="javascript:menuaction('/cobbler_web/replicate');"">Replicate</a> ☼ </li> -->
+        <li><a href="javascript:menuaction('/cobbler_web/buildiso');">Build ISO</a> ☼ </li>
       </ul>
       <h1>Cobbler</h1>
       <ul>
