@@ -1,5 +1,6 @@
 {% if pageinfo %}
 <script type="text/javascript">
+// these functions depend on the "action" form defined in generic_list
 function add_filter() {
     field_name = document.getElementById("filter_field");
     field_value = document.getElementById("filter_value");
@@ -8,8 +9,13 @@ function add_filter() {
     } else if (field_value.value == "") {
         alert("You must select a filter value.");
     } else {
-        location = '/cobbler_web/{{ what }}/modifylist/addfilter/'+field_name.value+':'+field_value.value;
+        document.forms["action"].action = '/cobbler_web/{{ what }}/modifylist/addfilter/'+field_name.value+':'+field_value.value;
+        document.forms["action"].submit();
     }
+}
+function del_filter(filter) {
+    document.forms["action"].action = '/cobbler_web/{{ what }}/modifylist/removefilter/' + filter
+    document.forms["action"].submit();
 }
 </script>
 <ul id="filter-adder">
@@ -151,7 +157,7 @@ function add_filter() {
   {% if filters %}
 <ul id="filter-remover">
     {% for key,value in filters.items %}
-  <li><a href="/cobbler_web/{{ what }}/modifylist/removefilter/{{ key }}" title="remove">✖</a> {{ key }} = {{ value }}</li>
+  <li><a href="javascript:del_filter('{{ key }}');" title="remove">✖</a> {{ key }} = {{ value }}</li>
     {% endfor %}
 </ul>
   {% endif %}

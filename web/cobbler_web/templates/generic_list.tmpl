@@ -2,6 +2,7 @@
 {% load site %}
 {% block content %}
 
+<form id="action" method="POST" action="">{% csrf_token %}</form>
 <script type="text/javascript">
 function items_check_all(){
     var checkall = document.getElementById("itemsall").checked
@@ -31,18 +32,21 @@ function items_checked_values() {
 function obj_rename(old) {
     var newname = window.prompt("Change {{ what }} name to?",old);
     if (newname != null) {
-        window.location = "/cobbler_web/{{ what }}/rename/" + old + "/" + newname;
+        document.forms["action"].action = "/cobbler_web/{{ what }}/rename/" + old + "/" + newname;
+        document.forms["action"].submit();
     }
 }
 function obj_copy(old) {
     var newname = window.prompt("Name for the new {{ what }}?",old);
     if (newname != null) {
-        window.location = "/cobbler_web/{{ what }}/copy/" + old + "/" + newname;
+        document.forms["action"].action = "/cobbler_web/{{ what }}/copy/" + old + "/" + newname;
+        document.forms["action"].submit();
     }
 }
 function obj_delete(old) {
     if (confirm("Delete {{ what }} (" + old + ") and all child objects?")) {
-        window.location = "/cobbler_web/{{ what }}/delete/" + old;
+        document.forms["action"].action = "/cobbler_web/{{ what }}/delete/" + old;
+        document.forms["action"].submit();
     }
 }
 
@@ -51,6 +55,11 @@ function action(otype) {
     what   = sel_action.split("|")[0]
     action = sel_action.split("|")[1]
     document.location = "/cobbler_web/" + what + "/" + action
+}
+
+function action_sort(value) {
+    document.forms["action"].action = '/cobbler_web/{{ what }}/modifylist/sort/' + value;
+    document.forms["action"].submit();
 }
 
 function action_multi(otype) {
@@ -135,7 +144,7 @@ function action_multi(otype) {
         </th>
 {% for value in columns %}
         <th>
-          <a href="/cobbler_web/{{ what }}/modifylist/sort/{{ value.0 }}">{{ value.0|title }}</a>
+          <a href="javascript:action_sort('{{ value.0 }}');">{{ value.0|title }}</a>
   {% ifequal value.1 "asc" %}
           &darr;
   {% endifequal %}

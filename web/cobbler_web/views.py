@@ -4,6 +4,7 @@ from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
+from django.views.decorators.http import require_POST
 
 try:
     from django.views.decorators.csrf import csrf_protect
@@ -366,7 +367,8 @@ def genlist(request, what, page=None):
     }))
     return HttpResponse(html)
 
-
+@require_POST
+@csrf_protect
 def modify_list(request, what, pref, value=None):
     """
     This function is used in the generic list view
@@ -433,6 +435,8 @@ def modify_list(request, what, pref, value=None):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def generic_rename(request, what, obj_name=None, obj_newname=None):
 
    """
@@ -453,6 +457,8 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def generic_copy(request, what, obj_name=None, obj_newname=None):
    """
    Copies an object.
@@ -472,6 +478,8 @@ def generic_copy(request, what, obj_name=None, obj_newname=None):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def generic_delete(request, what, obj_name=None):
    """
    Deletes an object.
@@ -491,6 +499,8 @@ def generic_delete(request, what, obj_name=None):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 
     """
@@ -588,6 +598,8 @@ def check(request):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def buildiso(request):
     if not test_user_authenticated(request): return login(request, next="/cobbler_web/buildiso")
     remote.background_buildiso({},request.session['token'])
@@ -595,6 +607,8 @@ def buildiso(request):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def import_run(request):
     if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt")
     options = {
@@ -667,6 +681,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
 
 # ======================================================================
 
+@require_POST
 @csrf_protect
 def ksfile_save(request):
    """
@@ -752,6 +767,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
 
 # ======================================================================
 
+@require_POST
 @csrf_protect
 def snippet_save(request):
    """
@@ -872,6 +888,8 @@ def random_mac(request, virttype="xenpv"):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def sync(request):
    """
    Runs 'cobbler sync' from the API when the user presses the sync button.
@@ -882,6 +900,8 @@ def sync(request):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def reposync(request):
    """
    Syncs all repos that are configured to be synced.
@@ -892,6 +912,8 @@ def reposync(request):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def hardlink(request):
    """
    Hardlinks files between repos and install trees to save space.
@@ -902,6 +924,8 @@ def hardlink(request):
 
 # ======================================================================
 
+@require_POST
+@csrf_protect
 def replicate(request):
    """
    Replicate configuration from the central cobbler server, configured
@@ -1022,6 +1046,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
 # ======================================================================
 
+@require_POST
 @csrf_protect
 def generic_save(request,what):
 
@@ -1175,6 +1200,7 @@ def test_user_authenticated(request):
 def login(request, next=None):
     return render_to_response('login.tmpl', RequestContext(request,{'next':next}))
 
+@require_POST
 @csrf_protect
 def do_login(request):
     global remote
@@ -1205,6 +1231,7 @@ def do_login(request):
     else:
         return login(request,nextsite)
 
+@require_POST
 @csrf_protect
 def do_logout(request):
     request.session['username'] = ""
