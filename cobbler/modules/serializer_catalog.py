@@ -134,7 +134,7 @@ def deserialize_item_raw(collection_type, item_name):
     if os.path.exists(filename): 
         fd = open(filename)
         data = fd.read()
-        return yaml.load(data)
+        return yaml.safe_load(data)
     elif os.path.exists(filename2):
         fd = open(filename2)
         data = fd.read()
@@ -166,13 +166,13 @@ def deserialize_raw(collection_type):
    
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
-         datastruct = yaml.load(fd.read())
+         datastruct = yaml.safe_load(fd.read())
          fd.close()
          return datastruct
     elif os.path.exists(old_filename):
          # for use in migration from serializer_yaml to serializer_catalog (yaml/json)
          fd = open(old_filename)
-         datastruct = yaml.load(fd.read())
+         datastruct = yaml.safe_load(fd.read())
          fd.close()
          return datastruct
     else:
@@ -192,7 +192,7 @@ def deserialize_raw(collection_type):
              if f.endswith(".json"):
                  datastruct = simplejson.loads(ydata, encoding='utf-8')
              else:
-                 datastruct = yaml.load(ydata)
+                 datastruct = yaml.safe_load(ydata)
              results.append(datastruct)
              fd.close()
          return results    

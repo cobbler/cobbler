@@ -1981,7 +1981,7 @@ def local_get_cobbler_api_url():
     # Load server and http port
     try:
         fh = open("/etc/cobbler/settings")
-        data = yaml.load(fh.read())
+        data = yaml.safe_load(fh.read())
         fh.close()
     except:
        traceback.print_exc()
@@ -2002,7 +2002,7 @@ def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port
     try:
         fh = open("/etc/cobbler/settings")
-        data = yaml.load(fh.read())
+        data = yaml.safe_load(fh.read())
         fh.close()
     except:
        traceback.print_exc()

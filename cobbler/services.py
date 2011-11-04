@@ -437,7 +437,7 @@ def test_services_access():
     assert data.find("gamma") != -1
     assert data.find("3") != -1
     
-    data = yaml.load(data)
+    data = yaml.safe_load(data)
     assert data.has_key("classes")
     assert data.has_key("parameters")
     

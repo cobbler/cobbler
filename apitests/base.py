@@ -36,7 +36,7 @@ CONFIG_LOC = "./apitests.conf"
 def read_config():
     global cfg
     f = open(CONFIG_LOC, 'r')
-    cfg = yaml.load(f)
+    cfg = yaml.safe_load(f)
     f.close()
 
 read_config()

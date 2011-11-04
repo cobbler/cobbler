@@ -109,7 +109,7 @@ def handler(req):
     fd = open("/etc/cobbler/settings")
     data = fd.read()
     fd.close()
-    ydata = yaml.load(data)
+    ydata = yaml.safe_load(data)
     remote_port = ydata.get("xmlrpc_port", 25151)
 
     mode = form.get('mode','index')

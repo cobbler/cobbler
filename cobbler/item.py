@@ -245,7 +245,7 @@ class Item:
             self.mgmt_parameters = mgmt_parameters
         else:
             import yaml
-            data = yaml.load(mgmt_parameters)
+            data = yaml.safe_load(mgmt_parameters)
             if type(data) is not dict:
                 raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
             self.mgmt_parameters = data
