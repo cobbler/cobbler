@@ -109,7 +109,7 @@ def deserialize_raw(collection_type):
 
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
-         datastruct = yaml.load(fd.read())
+         datastruct = yaml.safe_load(fd.read())
          fd.close()
          return datastruct
     else:

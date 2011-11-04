@@ -1960,7 +1960,7 @@ def _test_setup_modules(authn="authn_testing",authz="authz_allowall",pxe_once=1)
     MODULES_TEMPLATE = "installer_templates/modules.conf.template"
     DEFAULTS = "installer_templates/defaults"
     fh = open(DEFAULTS)
-    data = yaml.load(fh.read())
+    data = yaml.safe_load(fh.read())
     fh.close()
     data["authn_module"] = authn
     data["authz_module"] = authz
@@ -1981,7 +1981,7 @@ def _test_setup_settings(pxe_once=1):
     MODULES_TEMPLATE = "installer_templates/settings.template"
     DEFAULTS = "installer_templates/defaults"
     fh = open(DEFAULTS)
-    data = yaml.load(fh.read())
+    data = yaml.safe_load(fh.read())
     fh.close()
     data["pxe_once"] = pxe_once
 

@@ -62,7 +62,7 @@ settings = {
     'node_color': lambda calls, : '%f %f %f' % (calls / 2 + .5, calls, 0.9),
     'edge_color': lambda calls, : '%f %f %f' % (calls / 2 + .5, calls, 0.7),
     'exclude_module': [ 
-        'yaml', 'yaml.load', 'yaml.stream', 'sre', 'unittest',
+        'yaml', 'yaml.safe_load', 'yaml.stream', 'sre', 'unittest',
         'sys', 'os', 'subprocess', 'string', 'time', 'test', 'posixpath', 'random',
         'shutil', 'pycallgraph', 'stat', 'tempfile', 'socket', 'glob', 'sub_process', 
         'errno', 'weakref', 'traceback' 

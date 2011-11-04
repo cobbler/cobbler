@@ -222,7 +222,7 @@ class BootAPI:
         fd = open("/etc/cobbler/version")
         ydata = fd.read()
         fd.close()
-        data = yaml.load(ydata)
+        data = yaml.safe_load(ydata)
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"] 

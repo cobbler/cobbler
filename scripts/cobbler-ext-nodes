@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
    if hostname is not None:
        conf = open("/etc/cobbler/settings")
-       config = yaml.load(conf.read());
+       config = yaml.safe_load(conf.read());
        conf.close()
        url = "http://%s:%s/cblr/svc/op/puppet/hostname/%s" % (config["server"], config["http_port"], hostname)
        print urlgrabber.urlread(url)
