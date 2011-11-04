@@ -33,7 +33,7 @@ import re
 from utils import popen2
 from shlex import shlex
 
-
+import codes
 import utils
 from cexceptions import *
 import templar
@@ -165,9 +165,9 @@ class ImportDebianUbuntuManager:
     # required function for import modules
     def get_valid_os_versions(self):
         if self.breed == "debian":
-            return ["etch", "lenny", "squeeze", "sid", "stable", "testing", "unstable", "experimental",]
+            return codes.VALID_OS_VERSIONS["debian"]
         elif self.breed == "ubuntu":
-            return ["dapper", "hardy", "karmic", "lucid", "maverick", "natty",]
+            return codes.VALID_OS_VERSIONS["ubuntu"]
         else:
             return []
 
