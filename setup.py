@@ -261,6 +261,7 @@ if __name__ == "__main__":
             ("%scobbler/ks_mirror/config" % webroot,    []),
             ("%scobbler/links" % webroot,               []),
             ("%scobbler/aux" % webroot,                 []),
+            ("%scobbler/pub" % webroot,                 []),
 
             #A script that isn't really data, wsgi script
             ("%scobbler/svc/" % webroot,     ["scripts/services.py"]),
