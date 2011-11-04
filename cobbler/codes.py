@@ -49,7 +49,7 @@ VALID_OS_VERSIONS = {
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "other" ],
     "vmware"  : [ "esx4", "esxi4" ],
-    "freebsd" : [ "freebsd7", "freebsd8" ],
+    "freebsd" : [ "7.3", "7.4", "8.1", "8.2", "9.0" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }
 
