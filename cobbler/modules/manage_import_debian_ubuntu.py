@@ -211,7 +211,7 @@ class ImportDebianUbuntuManager:
             # and the input start directory in the crawl.  We find the path segments
             # between and tack them on the network source path to find the explicit
             # network path to the distro that Anaconda can digest.
-            tail = self.path_tail(self.path, base)
+            tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distro, tree)
 
@@ -282,7 +282,8 @@ class ImportDebianUbuntuManager:
         proposed_arch = self.get_proposed_arch(dirname)
 
         if self.arch and proposed_arch and self.arch != proposed_arch:
-            utils.die(self.logger,"Arch from pathname (%s) does not match with supplied one %s"%(proposed_arch,self.arch))
+            self.logger.error("Arch from pathname (%s) does not match with supplied one (%s)"%(proposed_arch,self.arch))
+            return
 
         archs = self.learn_arch_from_tree()
         if not archs:
@@ -374,7 +375,7 @@ class ImportDebianUbuntuManager:
         """
 
         if self.network_root is not None:
-            name = self.name + "-".join(self.path_tail(os.path.dirname(self.path),dirname).split("/"))
+            name = self.name #+ "-".join(utils.path_tail(os.path.dirname(self.path),dirname).split("/"))
         else:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])

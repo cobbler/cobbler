@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import sys
 import yaml
 import config
 import utils
@@ -753,7 +754,7 @@ class BootAPI:
         """
         self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
 
-        # both --import and --name are required arguments
+        # both --path and --name are required arguments
         if mirror_url is None:
             self.log("import failed.  no --path specified")
             return False
@@ -769,55 +770,49 @@ class BootAPI:
                 arch = "i386"
             path += ("-%s" % arch)
 
-        if network_root is None:
-            # we need to mirror (copy) the files
-            self.log("importing from a network location, running rsync to fetch the files first")
+        # we need to mirror (copy) the files
+        self.log("importing from a network location, running rsync to fetch the files first")
 
-            utils.mkdir(path)
+        utils.mkdir(path)
 
-            # prevent rsync from creating the directory name twice
-            # if we are copying via rsync
+        # prevent rsync from creating the directory name twice
+        # if we are copying via rsync
 
-            if not mirror_url.endswith("/"):
-                mirror_url = "%s/" % mirror_url
+        if not mirror_url.endswith("/"):
+            mirror_url = "%s/" % mirror_url
 
-            if mirror_url.startswith("http://") or mirror_url.startswith("ftp://") or mirror_url.startswith("nfs://"):
-                # http mirrors are kind of primative.  rsync is better.
-                # that's why this isn't documented in the manpage and we don't support them.
-                # TODO: how about adding recursive FTP as an option?
-                self.log("unsupported protocol")
-                return False
-            else:
-                # good, we're going to use rsync..
-                # we don't use SSH for public mirrors and local files.
-                # presence of user@host syntax means use SSH
-                spacer = ""
-                if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
-                    spacer = ' -e "ssh" '
-                rsync_cmd = RSYNC_CMD
-                if rsync_flags:
-                    rsync_cmd = rsync_cmd + " " + rsync_flags
-
-                # kick off the rsync now
-
-                utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
-
+        if mirror_url.startswith("http://") or mirror_url.startswith("ftp://") or mirror_url.startswith("nfs://"):
+            # http mirrors are kind of primative.  rsync is better.
+            # that's why this isn't documented in the manpage and we don't support them.
+            # TODO: how about adding recursive FTP as an option?
+            self.log("unsupported protocol")
+            return False
         else:
+            # good, we're going to use rsync..
+            # we don't use SSH for public mirrors and local files.
+            # presence of user@host syntax means use SSH
+            spacer = ""
+            if not mirror_url.startswith("rsync://") and not mirror_url.startswith("/"):
+                spacer = ' -e "ssh" '
+            rsync_cmd = RSYNC_CMD
+            if rsync_flags:
+                rsync_cmd = rsync_cmd + " " + rsync_flags
 
-            # rather than mirroring, we're going to assume the path is available
+            # kick off the rsync now
+            utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
+
+        if network_root is not None:
+            # in addition to mirroring, we're going to assume the path is available
             # over http, ftp, and nfs, perhaps on an external filer.  scanning still requires
-            # --mirror is a filesystem path, but --available-as marks the network path
-
-            if not os.path.exists(mirror_url):
-                self.log("path does not exist: %s" % mirror_url)
-                return False
+            # --mirror is a filesystem path, but --available-as marks the network path.
+            # this allows users to point the path at a directory containing just the network
+            # boot files while the rest of the distro files are available somewhere else.
 
             # find the filesystem part of the path, after the server bits, as each distro
             # URL needs to be calculated relative to this.
 
             if not network_root.endswith("/"):
                 network_root = network_root + "/"
-            path = os.path.normpath( mirror_url )
             valid_roots = [ "nfs://", "ftp://", "http://" ]
             for valid_root in valid_roots:
                 if network_root.startswith(valid_root):
@@ -842,9 +837,12 @@ class BootAPI:
                     self.log("running import manager: %s" % manager.what())
                     return manager.run(pkgdir,mirror_name,path,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
             except:
-                self.log("an error occured while running the import manager")
+                self.log("an exception occured while running the import manager")
+                self.log("error was: %s" % sys.exc_info()[1])
                 continue
         self.log("No import managers found a valid signature at the location specified")
+        # FIXME: since we failed, we should probably remove the 
+        # path tree we created above so we don't leave cruft around
         return False
 
     # ==========================================================================
