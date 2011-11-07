@@ -367,7 +367,10 @@ class BuildIso:
                 if dist.breed == "suse":
                    append_line += " nameserver=%s" % my_dns[0]
                 if dist.breed == "redhat":
-                   append_line += " dns=%s" % ",".join(my_dns)
+                   if type(my_dns) == list:
+                      append_line += " dns=%s" % ",".join(my_dns)
+                   else:
+                      append_line += " dns=%s" % my_dns
                 if dist.breed in ["ubuntu","debian"]:
                    append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
 
