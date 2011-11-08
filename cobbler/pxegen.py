@@ -569,13 +569,12 @@ class PXEGen:
                     else:
                         template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
-            # not a system record, so this is a profile record
-
+            # not a system record, so this is a profile record or an image
             if arch.startswith("s390"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             elif format == "grub":
                 template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
-            elif distro.os_version.startswith("esxi"):
+            elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_esxi.template")
             else:
