@@ -11,6 +11,7 @@ to generic_list, then it can be hacked around -->
 <table id="listitems" cellspacing="0">
   <thead>
     <tr>
+      <th></th>
       <th>File</th>
       <th>Actions</th>
     </tr>
@@ -18,6 +19,7 @@ to generic_list, then it can be hacked around -->
   <tbody>
 {% for snippet,shortname,option in snippets %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td></td>
       <td>{{ shortname }}</td>
   {% if option %}
       <td>

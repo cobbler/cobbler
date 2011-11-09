@@ -8,6 +8,7 @@
 <table id="listitems" cellspacing="0">
   <thead>
     <tr>
+      <th></th>
       <th width="40%">Start Time</th>
       <th width="20%">Name</th>
       <th width="20%">State</th>
@@ -17,6 +18,7 @@
   <tbody>
   {% for line in results reversed %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td></td>
       <td>{{ line.1|safe }}</td>
       <td>{{ line.2|safe }}</td>
       <td>{{ line.3|safe }}</td>

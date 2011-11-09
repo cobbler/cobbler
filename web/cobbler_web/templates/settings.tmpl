@@ -12,6 +12,7 @@
 <table id="listitems" cellspacing="0">
   <thead>
     <tr>
+      <th></th>
       <th>Setting</th>
       <th>Value (read-only)</th>
     </tr>
@@ -19,6 +20,7 @@
   <tbody>
   {% for setting,value in settings %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
+      <td></td>
       <td>{{ setting }}</td>
       <td>{% if value %}{{ value }}{% else %}None{% endif %}</td>
     </tr>
