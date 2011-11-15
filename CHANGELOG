@@ -1,4 +1,64 @@
 Cobbler CHANGELOG
+- Nov 15 2011 - 2.2.2
+- Fixed indentation on closing tr tag (gregswift@gmail.com)
+- Added leader column to the non-generic tables so that all tables have the
+  same layout. It leaves room for a checkbox and multiple selects i nthese
+  other tables as well. (gregswift@gmail.com)
+- Added action class to the event log link to bring it inline with other table
+  functions (gregswift@gmail.com)
+- buildiso bugfix: overriding dns nameservers via the dns kopt now works.
+  reported by Simon Woolsgrove <simon@woolsgrove.com> (jorgen.maas@gmail.com)
+- Fix for pxegen, where an image without a distro could cause a stack dump on
+  cobbler sync (jimi@sngx.net)
+- Added initial support for specifying the on-disk format of virtual disks,
+  currently supported for QEMU only when using koan (jimi@sngx.net)
+- Add fedora16, rawhide, opensuse 11.2, 11.3, 11.4 and 12.1 to codes.py This
+  should also fix ticket #611 (jorgen.maas@gmail.com)
+- Use VALID_OS_VERSIONS from codes.py in the redhat importer.
+  (jorgen.maas@gmail.com)
+- Cleanup: use utils.subprocess_call in services.py (jorgen.maas@gmail.com)
+- Cleanup: use utils.subprocess_call in remote.py. (jorgen.maas@gmail.com)
+- Cleanup: use utils.subprocess_call in scm_track.py. Also document that 'hg'
+  is a valid option in the settings file. (jorgen.maas@gmail.com)
+- Dont import the sub_process module when it's not needed.
+  (jorgen.maas@gmail.com)
+- Fixes to import_tree() to actually copy files to a safe place when
+  --available-as is specified. Also some cleanup to the debian/ubuntu import
+  module for when --available-as is specified. (jimi@sngx.net)
+- Modification to import processes so that rsync:// works as a path. These
+  changes should also correct the incorrect linking issue where the link
+  created in webdir/links/ pointed at a directory in ks_mirror without the arch
+  specified, resulting in a broken link if --arch was specified on the command
+  line Also removed the .old import modules for debian/ubuntu, which were
+  replaced with the unified manage_import_debian_ubuntu.py (jimi@sngx.net)
+- cleanup: use codes.VALID_OS_VERSIONS in the freebsd importer
+  (jorgen.maas@gmail.com)
+- cleanup: use codes.VALID_OS_VERSIONS in the debian/ubuntu importer
+  (jorgen.maas@gmail.com)
+- Bugfix: add the /var/www/cobbler/pub directory to setup.py. Calling buildiso
+  from cobbler-web now works as expected. (jorgen.maas@gmail.com)
+- BUGFIX: patch koan (xencreate) to correct the same issue that was broken for
+  vmware regarding qemu_net_type (jimi@sngx.net)
+- BUGFIX: fixed issue with saving objects in the webgui failing when it was the
+  first of that object type saved. (jimi@sngx.net)
+- Minor fix to the remote version to use the nicer extended version available
+  (jimi@sngx.net)
+- Fix a bug in buildiso when duplicate kopt keys are used. Reported and tested
+  by Simon Woolsgrove <simon@woolsgrove.com> (jorgen.maas@gmail.com)
+- Fix for koan, where vmwcreate.py was not updated to accept the network type,
+  causing failures. (jimi@sngx.net)
+- Added a %post section for the cobbler-web package, which replaces the
+  SECRET_KEY field in the Django settings.py with a random string
+  (jimi@sngx.net)
+- BUGFIX: added sign_puppet_certs_automatically to settings.py. The fact that
+  this was missing was causing failures in the the pre/post puppet install
+  modules. (jimi@sngx.net)
+- set the auto-boot option for a virtual machine (ug@suse.de)
+- Correction for koan using the incorrect default port for connecting to
+  cobblerd (jimi@sngx.net)
+- config/settings: add "manage_tftpd: 1" (default setting)
+  (cristian.ciupitu@yahoo.com)
+
 - Oct 5 2011 - 2.2.0
 - Remove the version (shenson@redhat.com)
 - New upstream 2.2.0 release (shenson@redhat.com)
