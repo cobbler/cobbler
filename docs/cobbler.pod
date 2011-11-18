@@ -712,7 +712,7 @@ B<cobbler import --path=rsync://yourfavoritemirror.com/foo --name=rhel5 --arch=x
 
 B<cobbler import --path=/mnt/dvd --name=rhel5 --arch=x86_64>
 
-# OR (using an eternal NAS box without mirroring)
+# OR (using an external NAS box without mirroring)
 
 B<cobbler import --path=/path/where/filer/is/mounted --name=anyname --available-as=nfs://nfs.example.org:/where/mounted/>
 
