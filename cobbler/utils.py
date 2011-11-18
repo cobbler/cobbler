@@ -2105,7 +2105,7 @@ def link_distro(settings, distro):
     # create the links directory only if we are mirroring because with
     # SELinux Apache can't symlink to NFS (without some doing)
 
-    if not os.path.exists(dest_link):
+    if not os.path.lexists(dest_link):
         try:
             os.symlink(base, dest_link)
         except:
