@@ -706,7 +706,7 @@ Import knows how to autodetect the architecture of what is being imported, thoug
 
 B<cobbler check>
 
-B<cobbler import --path=rsync://yourfavoritemirror.com/foo --name=rhel5 --arch=x86>
+B<cobbler import --path=rsync://yourfavoritemirror.com/rhel/5/os/x86_64 --name=rhel5 --arch=x86_64>
 
 # OR 
 
