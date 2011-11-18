@@ -545,11 +545,11 @@ Which package manager to use, vaild options [rpm|yum].
 
 Which version of the package to install.
 
+=back
+
 =head3 Examples
 
 B<cobbler package add --name=string --comment=string [--action=install|uninstall] --installer=string [--version=string]>
-
-=back
 
 =head2 FILE RESOURCES
 
