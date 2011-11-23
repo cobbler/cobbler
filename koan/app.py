@@ -950,13 +950,21 @@ class Koan:
     
 
         def after_download(self, profile_data):
-            if not os.path.exists("/sbin/grubby"):
-                raise InfoException, "grubby is not installed"
+            use_grubby = False
+            use_grub2 = False
+            (make, version) = utils.os_release()
+            if make in ['ubuntu', 'debian']:
+                if not os.path.exists("/usr/sbin/update-grub"):
+                    raise InfoException, "grub2 is not installed"
+                use_grub2 = True
+            else:
+                if not os.path.exists("/sbin/grubby"):
+                    raise InfoException, "grubby is not installed"
+                use_grubby = True
+
             k_args = self.calc_kernel_args(profile_data,replace_self=1)
 
             kickstart = self.safe_load(profile_data,'kickstart')
-
-            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -994,56 +1002,100 @@ class Koan:
                 elif len(k_args) > 255:
                     raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
-            cmd = [ "/sbin/grubby",
-                    "--add-kernel", self.safe_load(profile_data,'kernel_local'),
-                    "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", "\"%s\"" % k_args
-            ]
+            if use_grubby:
+                cmd = [ "/sbin/grubby",
+                        "--add-kernel", self.safe_load(profile_data,'kernel_local'),
+                        "--initrd", self.safe_load(profile_data,'initrd_local'),
+                        "--args", "\"%s\"" % k_args
+                ]
 
-            if self.grubby_copy_default:
-                cmd.append("--copy-default")
+                if self.grubby_copy_default:
+                    cmd.append("--copy-default")
 
-            boot_probe_ret_code, probe_output = self.get_boot_loader_info()
-            if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
-                cmd.append("--lilo")
+                boot_probe_ret_code, probe_output = self.get_boot_loader_info()
+                if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
+                    cmd.append("--lilo")
 
-            if self.add_reinstall_entry:
-               cmd.append("--title=Reinstall")
-            else:
-               cmd.append("--make-default")
-               cmd.append("--title=kick%s" % int(time.time()))
+                if self.add_reinstall_entry:
+                    cmd.append("--title=Reinstall")
+                else:
+                    cmd.append("--make-default")
+                    cmd.append("--title=kick%s" % int(time.time()))
                
-            if self.live_cd:
-               cmd.append("--bad-image-okay")
-               cmd.append("--boot-filesystem=/")
-               cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
+                if self.live_cd:
+                    cmd.append("--bad-image-okay")
+                    cmd.append("--boot-filesystem=/")
+                    cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
 
-            # Are we running on ppc?
-            if not ANCIENT_PYTHON:
-               if arch.startswith("ppc"):
-                   cmd.append("--yaboot")
-               elif arch.startswith("s390"):
-                   cmd.append("--zipl")
+                # Are we running on ppc?
+                if not ANCIENT_PYTHON:
+                    if arch.startswith("ppc"):
+                        cmd.append("--yaboot")
+                    elif arch.startswith("s390"):
+                        cmd.append("--zipl")
 
-            utils.subprocess_call(cmd)
-
-            # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-            if not ANCIENT_PYTHON and arch.startswith("ppc"):
-                # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
-                print "- applying ybin changes"
-                cmd = [ "/sbin/ybin" ]
                 utils.subprocess_call(cmd)
-            elif not ANCIENT_PYTHON and arch.startswith("s390"):
-                print "- applying zipl changes"
-                cmd = [ "/sbin/zipl" ]
-                utils.subprocess_call(cmd)
-            else:
-                # if grubby --bootloader-probe returns lilo,
-                #    apply lilo changes
-                if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") != -1:
-                    print "- applying lilo changes"
-                    cmd = [ "/sbin/lilo" ]
+
+                # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
+                if not ANCIENT_PYTHON and arch.startswith("ppc"):
+                    # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
+                    print "- applying ybin changes"
+                    cmd = [ "/sbin/ybin" ]
                     utils.subprocess_call(cmd)
+                elif not ANCIENT_PYTHON and arch.startswith("s390"):
+                    print "- applying zipl changes"
+                    cmd = [ "/sbin/zipl" ]
+                    utils.subprocess_call(cmd)
+                else:
+                    # if grubby --bootloader-probe returns lilo,
+                    #    apply lilo changes
+                    if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") != -1:
+                        print "- applying lilo changes"
+                        cmd = [ "/sbin/lilo" ]
+                        utils.subprocess_call(cmd)
+
+            elif use_grub2:
+                # Use grub2 for --replace-self
+                kernel_local = self.safe_load(profile_data,'kernel_local')
+                initrd_local = self.safe_load(profile_data,'initrd_local')
+
+                # Set name for grub2 menuentry
+                if self.add_reinstall_entry:
+                    name = "Reinstall: %s" % profile_data['name']
+                else:
+                    name = "%s" % profile_data['name']
+
+                # Set paths for Ubuntu/Debian
+                # TODO: Add support for other distros when they ship grub2
+                if make in ['ubuntu', 'debian']:
+                    grub_file = "/etc/grub.d/42_koan"
+                    grub_default_file = "/etc/default/grub"
+                    cmd = ["update-grub"]
+                    default_cmd = ['sed', '-i', 's/^GRUB_DEFAULT\=.*$/GRUB_DEFAULT="%s"/g' % name, grub_default_file]
+
+                # Create grub2 menuentry
+                grub_entry = """
+                cat <<EOF
+                menuentry "%s" {
+                    linux %s %s
+                    initrd %s
+                }
+                EOF
+                """ % (name, kernel_local, k_args, initrd_local)
+
+                # Save grub2 menuentry
+                fd = open(grub_file,"w")
+                fd.write(grub_entry)
+                fd.close()
+                os.chmod(grub_file, 0755)
+
+                # Set default grub entry for reboot
+                if not self.add_reinstall_entry:
+                    print "- setting grub2 default entry"
+                    sub_process.call(default_cmd)
+
+                # Run update-grub
+                utils.subprocess_call(cmd)
 
             if not self.add_reinstall_entry:
                 print "- reboot to apply changes"
