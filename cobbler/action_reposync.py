@@ -485,6 +485,11 @@ class RepoSync:
                    arch = "amd64" # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
                     
+            # Set's an environment variable for subprocess, otherwise debmirror will fail
+            # as it needs this variable to exist.
+            # FIXME: might this break anything? So far it doesn't
+            os.putenv("HOME", "/var/lib/cobbler")
+
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
                 utils.die(self.logger,"cobbler reposync failed")
