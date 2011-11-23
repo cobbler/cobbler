@@ -32,7 +32,7 @@ from utils import _
 
 FIELDS = [
   ['name','',0,"Name",True,"",0,"str"],
-  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc"],"str"],
+  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc", "arm"],"str"],
   ['breed','redhat',0,"Breed",True,"",codes.VALID_OS_BREEDS,"str"],
   ['comment','',0,"Comment",True,"Free form text description",0,"str"],
   ['ctime',0,0,"",False,"",0,"float"],

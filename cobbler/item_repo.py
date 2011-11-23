@@ -30,7 +30,7 @@ import codes
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','s390', 'noarch', 'src'],"str"],
+  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','s390', "arm", 'noarch', 'src'],"str"],
   ["breed","",0,"Breed",True,"",codes.VALID_REPO_BREEDS,"str"],
   ["comment","",0,"Comment",True,"Free form text description",0,"str"],
   ["ctime",0,0,"",False,"",0,"float"],

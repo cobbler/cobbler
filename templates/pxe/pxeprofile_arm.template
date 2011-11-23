@@ -1,0 +1,5 @@
+LABEL $profile_name
+	kernel $kernel_path
+	$menu_label
+	$append_line
+	initrd $initrd_path
