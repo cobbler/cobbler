@@ -164,7 +164,7 @@ class ImportDebianUbuntuManager:
 
     # required function for import modules
     def get_valid_arches(self):
-        return ["i386", "ppc", "x86_64", "x86",]
+        return ["i386", "ppc", "x86_64", "x86", "arm",]
 
     # required function for import modules
     def get_valid_breeds(self):
@@ -281,9 +281,9 @@ class ImportDebianUbuntuManager:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") ) and x != "initrd.size":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") or x.startswith("uInitrd") ) and x != "initrd.size":
                 initrd = os.path.join(dirname,x)
-            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") ) and x.find("initrd") == -1:
+            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") or x.startswith("uImage") ) and x.find("initrd") == -1:
                 kernel = os.path.join(dirname,x)
 
             # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
@@ -435,7 +435,7 @@ class ImportDebianUbuntuManager:
         name = name.replace("chrp","ppc64")
 
         for separator in [ '-' , '_'  , '.' ] :
-            for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd" ]:
+            for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd", "arm" ]:
                 name = name.replace("%s%s" % ( separator , arch ),"")
 
         return name
