@@ -54,8 +54,8 @@ VALID_OS_VERSIONS = {
 }
 
 VALID_REPO_BREEDS = [
-#    "rsync", "rhn", "yum", "apt"
-     "rsync", "rhn", "yum"
+    "rsync", "rhn", "yum", "apt"
+#   "rsync", "rhn", "yum"
 ]
 
 def uniquify(seq, idfun=None):
