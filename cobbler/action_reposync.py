@@ -446,7 +446,11 @@ class RepoSync:
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
          
         if repo.mirror_locally:
-            mirror = repo.mirror.replace("@@suite@@",repo.os_version)
+            # NOTE: Dropping @@suite@@ replace as it is also dropped from
+            # from manage_import_debian_ubuntu.py due that repo has no os_version
+            # attribute. If it is added again it will break the Web UI!
+            #mirror = repo.mirror.replace("@@suite@@",repo.os_version)
+            mirror = repo.mirror
 
             idx = mirror.find("://")
             method = mirror[:idx]
