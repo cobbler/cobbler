@@ -694,6 +694,8 @@ class Koan:
 
         try:
             tree = profile_data["ks_meta"].split("@@")[-1].strip()
+            # Ensure we only take the tree in case ks_meta args are passed
+            tree = tree.split()[0]
             profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
 
             if self.safe_load(profile_data,"install_tree"):
