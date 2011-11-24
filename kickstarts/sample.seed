@@ -5,6 +5,8 @@
 d-i	grub-installer/only_debian	boolean	true
 #grub-installer	grub-installer/bootdev	string	hd0
 d-i	grub-installer/bootdev	string	hd0
+### add kernel postinst options (--kopts-post)
+d-i	debian-installer/add-kernel-opts	string $kernel_options_post
 
 # Partition clearing information
 ### Partitioning available methods are: "regular", "lvm" and "crypto"
