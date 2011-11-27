@@ -30,6 +30,7 @@ import glob
 import traceback
 import errno
 import re
+import codes
 from utils import popen2
 from shlex import shlex
 
@@ -77,9 +78,9 @@ class ImportVMWareManager:
        signatures = [
            'VMware/RPMS',
            'imagedd.bz2',
+           'tboot.b00',
        ]
 
-       #self.logger.info("scanning %s for a vmware-based signature" % path)
        for signature in signatures:
            d = os.path.join(path,signature)
            if os.path.exists(d):
@@ -134,13 +135,6 @@ class ImportVMWareManager:
         # FIXME : search below self.path for isolinux configurations or known directories from TRY_LIST
         os.path.walk(self.path, self.distro_adder, distros_added)
 
-        # find out if we can auto-create any repository records from the install tree
-
-        #if self.network_root is None:
-        #    self.logger.info("associating repos")
-        #    # FIXME: this automagic is not possible (yet) without mirroring
-        #    self.repo_finder(distros_added)
-
         # find the most appropriate answer files for each profile object
 
         self.logger.info("associating kickstarts")
@@ -161,7 +155,7 @@ class ImportVMWareManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return ["esx4","esxi"]
+        return codes.VALID_OS_VERSIONS["vmware"]
 
     def get_valid_repo_breeds(self):
         return ["rsync", "rhn", "yum",]
@@ -178,7 +172,7 @@ class ImportVMWareManager:
                 data2.append(x)
         if len(data2) == 0:
             # ESXi maybe?
-            return glob.glob(os.path.join(self.get_rootdir(), "vmkernel.gz"))
+            data2 = glob.glob(os.path.join(self.get_rootdir(), "*.*"))
         return data2
 
     def get_tree_location(self, distro):
@@ -208,132 +202,11 @@ class ImportVMWareManager:
             # and the input start directory in the crawl.  We find the path segments
             # between and tack them on the network source path to find the explicit
             # network path to the distro that Anaconda can digest.
-            tail = self.path_tail(self.path, base)
+            tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distro, tree)
 
         return
-
-    def repo_finder(self, distros_added):
-        """
-        This routine looks through all distributions and tries to find
-        any applicable repositories in those distributions for post-install
-        usage.
-        """
-
-        for distro in distros_added:
-            self.logger.info("traversing distro %s" % distro.name)
-            # FIXME : Shouldn't decide this the value of self.network_root ?
-            if distro.kernel.find("ks_mirror") != -1:
-                basepath = os.path.dirname(distro.kernel)
-                top = self.get_rootdir()
-                self.logger.info("descent into %s" % top)
-                # FIXME : The location of repo definition is known from breed
-                os.path.walk(top, self.repo_scanner, distro)
-            else:
-                self.logger.info("this distro isn't mirrored")
-
-    def repo_scanner(self,distro,dirname,fnames):
-        """
-        This is an os.path.walk routine that looks for potential yum repositories
-        to be added to the configuration for post-install usage.
-        """
-
-        matches = {}
-        for x in fnames:
-            if x == "base" or x == "repodata":
-                self.logger.info("processing repo at : %s" % dirname)
-                # only run the repo scanner on directories that contain a comps.xml
-                gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname,x))
-                if len(gloob1) >= 1:
-                    if matches.has_key(dirname):
-                        self.logger.info("looks like we've already scanned here: %s" % dirname)
-                        continue
-                    self.logger.info("need to process repo/comps: %s" % dirname)
-                    self.process_comps_file(dirname, distro)
-                    matches[dirname] = 1
-                else:
-                    self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
-                    continue
-
-    def process_comps_file(self, comps_path, distro):
-        """
-        When importing Fedora/EL certain parts of the install tree can also be used
-        as yum repos containing packages that might not yet be available via updates
-        in yum.  This code identifies those areas.
-        """
-
-        processed_repos = {}
-
-        masterdir = "repodata"
-        if not os.path.exists(os.path.join(comps_path, "repodata")):
-            # older distros...
-            masterdir = "base"
-
-        # figure out what our comps file is ...
-        self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % { "p1" : comps_path, "p2" : masterdir })
-        files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
-        if len(files) == 0:
-            self.logger.info("no comps found here: %s" % os.path.join(comps_path, masterdir))
-            return # no comps xml file found
-
-        # pull the filename from the longer part
-        comps_file = files[0].split("/")[-1]
-
-        try:
-            # store the yum configs on the filesystem so we can use them later.
-            # and configure them in the kickstart post, etc
-
-            counter = len(distro.source_repos)
-
-            # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
-            seg = comps_path.rfind("ks_mirror")
-            urlseg = comps_path[seg+10:]
-
-            # write a yum config file that shows how to use the repo.
-            if counter == 0:
-                dotrepo = "%s.repo" % distro.name
-            else:
-                dotrepo = "%s-%s.repo" % (distro.name, counter)
-
-            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
-
-            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
-            repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
-
-            distro.source_repos.append([repo_url,repo_url2])
-
-            # NOTE: the following file is now a Cheetah template, so it can be remapped
-            # during sync, that's why we have the @@http_server@@ left as templating magic.
-            # repo_url2 is actually no longer used. (?)
-
-            config_file = open(fname, "w+")
-            config_file.write("[core-%s]\n" % counter)
-            config_file.write("name=core-%s\n" % counter)
-            config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n")
-            config_file.write("priority=$yum_distro_priority\n")
-            config_file.close()
-
-            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
-            # they'll share same repo files.
-
-            if not processed_repos.has_key(comps_path):
-                utils.remove_yum_olddata(comps_path)
-                #cmd = "createrepo --basedir / --groupfile %s %s" % (os.path.join(comps_path, masterdir, comps_file), comps_path)
-                cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags,os.path.join(comps_path, masterdir, comps_file), comps_path)
-                utils.subprocess_call(self.logger, cmd, shell=True)
-                processed_repos[comps_path] = 1
-                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
-                p1 = os.path.join(comps_path, "repodata", "comps.xml")
-                p2 = os.path.join(comps_path, "base", "comps.xml")
-                if os.path.exists(p1) and os.path.exists(p2):
-                    shutil.copyfile(p1,p2)
-
-        except:
-            self.logger.error("error launching createrepo (not installed?), ignoring")
-            utils.log_exc(self.logger)
 
     def distro_adder(self,distros_added,dirname,fnames):
         """
@@ -358,7 +231,7 @@ class ImportVMWareManager:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") ) and x != "initrd.size":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") or x.startswith("s.v00") ) and x != "initrd.size":
                 initrd = os.path.join(dirname,x)
             if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") ) and x.find("initrd") == -1:
                 kernel = os.path.join(dirname,x)
@@ -379,86 +252,50 @@ class ImportVMWareManager:
         if possible.
         """
 
+        arch = "x86_64" # esxi only supports 64-bit
         proposed_name = self.get_proposed_name(dirname,kernel)
-        proposed_arch = self.get_proposed_arch(dirname)
-
-        if self.arch and proposed_arch and self.arch != proposed_arch:
-            utils.die(self.logger,"Arch from pathname (%s) does not match with supplied one %s"%(proposed_arch,self.arch))
-
-        archs = self.learn_arch_from_tree()
-        if not archs:
-            if self.arch:
-                archs.append( self.arch )
-        else:
-            if self.arch and self.arch not in archs:
-                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,self.get_pkgdir()))
-        if proposed_arch:
-            if archs and proposed_arch not in archs:
-                self.logger.warning("arch from pathname (%s) not found on imported tree %s" % (proposed_arch,self.get_pkgdir()))
-                return
-
-            archs = [ proposed_arch ]
-
-        if len(archs)>1:
-            self.logger.warning("- Warning : Multiple archs found : %s" % (archs))
 
         distros_added = []
 
-        for pxe_arch in archs:
-            name = proposed_name + "-" + pxe_arch
-            existing_distro = self.distros.find(name=name)
+        name = proposed_name + "-" + arch
+        existing_distro = self.distros.find(name=name)
 
-            if existing_distro is not None:
-                self.logger.warning("skipping import, as distro name already exists: %s" % name)
-                continue
-
-            else:
-                self.logger.info("creating new distro: %s" % name)
-                distro = self.config.new_distro()
-
-            if name.find("-autoboot") != -1:
-                # this is an artifact of some EL-3 imports
-                continue
-
+        if existing_distro is not None:
+            self.logger.warning("skipping import, as distro name already exists: %s" % name)
+        else:
+            self.logger.info("creating new distro: %s" % name)
+            distro = self.config.new_distro()
             distro.set_name(name)
             distro.set_kernel(kernel)
             distro.set_initrd(initrd)
-            distro.set_arch(pxe_arch)
+            distro.set_arch(arch)
             distro.set_breed(self.breed)
             # If a version was supplied on command line, we set it now
             if self.os_version:
                 distro.set_os_version(self.os_version)
-
             self.distros.add(distro,save=True)
             distros_added.append(distro)
 
-            existing_profile = self.profiles.find(name=name)
+        # see if the profile name is already used, if so, skip it and
+        # do not modify the existing profile
 
-            # see if the profile name is already used, if so, skip it and
-            # do not modify the existing profile
+        existing_profile = self.profiles.find(name=name)
 
-            if existing_profile is None:
-                self.logger.info("creating new profile: %s" % name)
-                #FIXME: The created profile holds a default kickstart, and should be breed specific
-                profile = self.config.new_profile()
-            else:
-                self.logger.info("skipping existing profile, name already exists: %s" % name)
-                continue
-
-            # save our minimal profile which just points to the distribution and a good
-            # default answer file
-
+        if existing_profile is not None:
+            self.logger.info("skipping existing profile, name already exists: %s" % name)
+        else:
+            self.logger.info("creating new profile: %s" % name)
+            #FIXME: The created profile holds a default kickstart, and should be breed specific
+            profile = self.config.new_profile()
             profile.set_name(name)
             profile.set_distro(name)
             profile.set_kickstart(self.kickstart_file)
 
             # We just set the virt type to vmware for these
             # since newer VMwares support running ESX as a guest for testing
-
             profile.set_virt_type("vmware")
 
             # save our new profile to the collection
-
             self.profiles.add(profile,save=True)
 
         return distros_added
@@ -470,7 +307,7 @@ class ImportVMWareManager:
         """
 
         if self.network_root is not None:
-            name = self.name + "-".join(self.path_tail(os.path.dirname(self.path),dirname).split("/"))
+            name = self.name #+ "-".join(utils.path_tail(os.path.dirname(self.path),dirname).split("/"))
         else:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])
@@ -511,48 +348,6 @@ class ImportVMWareManager:
 
         return name
 
-    def get_proposed_arch(self,dirname):
-        """
-        Given an directory name, can we infer an architecture from a path segment?
-        """
-        if dirname.find("x86_64") != -1 or dirname.find("amd") != -1:
-            return "x86_64"
-        if dirname.find("ia64") != -1:
-            return "ia64"
-        if dirname.find("i386") != -1 or dirname.find("386") != -1 or dirname.find("x86") != -1:
-            return "i386"
-        if dirname.find("s390x") != -1:
-            return "s390x"
-        if dirname.find("s390") != -1:
-            return "s390"
-        if dirname.find("ppc64") != -1 or dirname.find("chrp") != -1:
-            return "ppc64"
-        if dirname.find("ppc32") != -1:
-            return "ppc"
-        if dirname.find("ppc") != -1:
-            return "ppc"
-        return None
-
-    def arch_walker(self,foo,dirname,fnames):
-        """
-        See docs on learn_arch_from_tree.
-
-        The TRY_LIST is used to speed up search, and should be dropped for default importer
-        Searched kernel names are kernel-header, linux-headers-, kernel-largesmp, kernel-hugemem
-
-        This method is useful to get the archs, but also to package type and a raw guess of the breed
-        """
-
-        # try to find a kernel header RPM and then look at it's arch.
-        for x in fnames:
-            if self.match_kernelarch_file(x):
-                for arch in self.get_valid_arches():
-                    if x.find(arch) != -1:
-                        foo[arch] = 1
-                for arch in [ "i686" , "amd64" ]:
-                    if x.find(arch) != -1:
-                        foo[arch] = 1
-
     def kickstart_finder(self,distros_added):
         """
         For all of the profiles in the config w/o a kickstart, use the
@@ -560,41 +355,51 @@ class ImportVMWareManager:
         see if we can guess the distro, and if we can, assign a kickstart
         if one is available for it.
         """
+
+        # FIXME: this is bass-ackwards... why do we loop through all
+        # profiles to find distros we added when we already have the list
+        # of distros we added??? It would be easier to loop through the
+        # distros_added list and modify all child profiles
+
         for profile in self.profiles:
             distro = self.distros.find(name=profile.get_conceptual_parent().name)
             if distro is None or not (distro in distros_added):
                 continue
 
             kdir = os.path.dirname(distro.kernel)
-            if self.kickstart_file == None:
-                for rpm in self.get_release_files():
-                    # FIXME : This redhat specific check should go into the importer.find_release_files method
-                    if rpm.find("notes") != -1:
-                        continue
-                    results = self.scan_pkg_filename(rpm)
-                    # FIXME : If os is not found on tree but set with CLI, no kickstart is searched
-                    if results is None:
-                        self.logger.warning("No version found on imported tree")
-                        continue
-                    (flavor, major, minor, release, update) = results
-                    version , ks = self.set_variance(flavor, major, minor, release, update, distro.arch)
-                    if self.os_version:
-                        if self.os_version != version:
-                            utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
-                    ds = self.get_datestamp()
-                    distro.set_comment("%s.%s.%s update %s" % (version,minor,release,update))
-                    distro.set_os_version(version)
-                    if ds is not None:
-                        distro.set_tree_build_time(ds)
+            release_files = self.get_release_files()
+            for release_file in release_files:
+                results = self.scan_pkg_filename(release_file)
+                if results is None:
+                    continue
+                (flavor, major, minor, release, update) = results
+                version , ks = self.set_variance(flavor, major, minor, release, update, distro.arch)
+                if self.os_version:
+                    if self.os_version != version:
+                        utils.die(self.logger,"CLI version differs from tree : %s vs. %s" % (self.os_version,version))
+                ds = self.get_datestamp()
+                distro.set_comment("%s.%s.%s update %s" % (version,minor,release,update))
+                distro.set_os_version(version)
+                if ds is not None:
+                    distro.set_tree_build_time(ds)
+                if self.kickstart_file == None:
                     profile.set_kickstart(ks)
-                    if flavor == "esxi":
-                        self.logger.info("This is an ESXi distro - adding extra PXE files to boot-files list")
-                        # add extra files to boot_files in the distro
-                        boot_files = ''
-                        for file in ('vmkernel.gz','sys.vgz','cim.vgz','ienviron.vgz','install.vgz'):
-                           boot_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
-                        distro.set_boot_files(boot_files.strip())
-                    self.profiles.add(profile,save=True)
+                boot_files = ''
+                if version == "esxi4":
+                    self.logger.info("This is an ESXi4 distro - adding extra PXE files to boot-files list")
+                    # add extra files to boot_files in the distro
+                    for file in ('vmkernel.gz','sys.vgz','cim.vgz','ienviron.vgz','install.vgz'):
+                       boot_files += '$img_path/%s=%s/%s ' % (file,self.path,file)
+                elif version == "esxi5":
+                    self.logger.info("This is an ESXi5 distro - copying all files to boot-files list")
+                    #for file in glob.glob(os.path.join(self.path,"*.*")):
+                    #   file_name = os.path.basename(file)
+                    #   boot_files += '$img_path/%s=%s ' % (file_name,file)
+                    boot_files = '$img_path/=%s' % os.path.join(self.path,"*.*")
+                distro.set_boot_files(boot_files.strip())
+                self.profiles.add(profile,save=True)
+                # we found the correct details above, we can stop looping
+                break
 
             self.configure_tree_location(distro)
             self.distros.add(distro,save=True) # re-save
@@ -642,53 +447,24 @@ class ImportVMWareManager:
     def set_install_tree(self, distro, url):
         distro.ks_meta["tree"] = url
 
-    def learn_arch_from_tree(self):
-        """
-        If a distribution is imported from DVD, there is a good chance the path doesn't
-        contain the arch and we should add it back in so that it's part of the
-        meaningful name ... so this code helps figure out the arch name.  This is important
-        for producing predictable distro names (and profile names) from differing import sources
-        """
-        result = {}
-        # FIXME : this is called only once, should not be a walk
-        if self.get_pkgdir():
-            os.path.walk(self.get_pkgdir(), self.arch_walker, result)
-        if result.pop("amd64",False):
-            result["x86_64"] = 1
-        if result.pop("i686",False):
-            result["i386"] = 1
-        return result.keys()
-
-    def match_kernelarch_file(self, filename):
-        """
-        Is the given filename a kernel filename?
-        """
-
-        if not filename.endswith("rpm") and not filename.endswith("deb"):
-            return False
-        for match in ["kernel-header", "kernel-source", "kernel-smp", "kernel-largesmp", "kernel-hugemem", "linux-headers-", "kernel-devel", "kernel-"]:
-            if filename.find(match) != -1:
-                return True
-        return False
-
-    def scan_pkg_filename(self, rpm):
+    def scan_pkg_filename(self, filename):
         """
         Determine what the distro is based on the release package filename.
         """
-        rpm_file = os.path.basename(rpm)
+        file_base_name = os.path.basename(filename)
 
-        if rpm_file.lower().find("-esx-") != -1:
+        success = False
+
+        if file_base_name.lower().find("-esx-") != -1:
             flavor = "esx"
-            match = re.search(r'release-(\d)+-(\d)+\.(\d)+\.(\d)+-(\d)\.', rpm_file)
+            match = re.search(r'release-(\d)+-(\d)+\.(\d)+\.(\d)+-(\d)\.', filename)
             if match:
                 major   = match.group(2)
                 minor   = match.group(3)
                 release = match.group(4)
                 update  = match.group(5)
-            else:
-                # FIXME: what should we do if the re fails above?
-                return None
-        elif rpm_file.lower() == "vmkernel.gz":
+                success = True
+        elif file_base_name.lower() == "vmkernel.gz":
             flavor  = "esxi"
             major   = 0
             minor   = 0
@@ -698,8 +474,8 @@ class ImportVMWareManager:
             # this should return something like:
             # VMware ESXi 4.1.0 [Releasebuild-260247], built on May 18 2010
             # though there will most likely be multiple results
-            scan_cmd = 'gunzip -c %s | strings | grep -i "^vmware esxi"' % rpm
-            (data,rc) = utils.subprocess_sp(self.logger, scan_cmd)
+            scan_cmd = 'gunzip -c %s | strings | grep -i "^vmware esxi"' % filename
+            (data,rc) = utils.subprocess_sp(None, scan_cmd)
             lines = data.split('\n')
             m = re.compile(r'ESXi (\d)+\.(\d)+\.(\d)+ \[Releasebuild-([\d]+)\]')
             for line in lines:
@@ -709,12 +485,36 @@ class ImportVMWareManager:
                     minor   = match.group(2)
                     release = match.group(3)
                     update  = match.group(4)
+                    success = True
                     break
-            else:
-                return None
+        elif file_base_name.lower() == "s.v00":
+            flavor  = "esxi"
+            major   = 0
+            minor   = 0
+            release = 0
+            update  = 0
 
-        #self.logger.info("DEBUG: in scan_pkg_filename() - major=%s, minor=%s, release=%s, update=%s" % (major,minor,release,update))
-        return (flavor, major, minor, release, update)
+            # this should return something like:
+            # VMware ESXi 5.0.0 build-469512
+            # though there will most likely be multiple results
+            scan_cmd = 'gunzip -c %s | strings | grep -i "^# vmware esxi"' % filename
+            (data,rc) = utils.subprocess_sp(None, scan_cmd)
+            lines = data.split('\n')
+            m = re.compile(r'ESXi (\d)+\.(\d)+\.(\d)+[ ]+build-([\d]+)')
+            for line in lines:
+                match = m.search(line)
+                if match:
+                    major   = match.group(1)
+                    minor   = match.group(2)
+                    release = match.group(3)
+                    update  = match.group(4)
+                    success = True
+                    break
+
+        if success:
+            return (flavor, major, minor, release, update)
+        else:
+            return None
 
     def get_datestamp(self):
         """
@@ -727,10 +527,12 @@ class ImportVMWareManager:
         Set distro specific versioning.
         """
         os_version = "%s%s" % (flavor, major)
-        if flavor == "esx4":
+        if os_version == "esx4":
             ks = "/var/lib/cobbler/kickstarts/esx.ks"
-        elif flavor == "esxi4":
-            ks = "/var/lib/cobbler/kickstarts/esxi.ks"
+        elif os_version == "esxi4":
+            ks = "/var/lib/cobbler/kickstarts/esxi4-ks.cfg"
+        elif os_version == "esxi5":
+            ks = "/var/lib/cobbler/kickstarts/esxi5-ks.cfg"
         else:
             ks = "/var/lib/cobbler/kickstarts/default.ks"
         return os_version , ks
