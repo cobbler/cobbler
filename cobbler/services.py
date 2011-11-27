@@ -76,6 +76,23 @@ class CobblerSvc(object):
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
         return u"%s" % data    
 
+    def gpxe(self,profile=None,system=None,**rest):
+        """
+        Generate a gPXE config
+        """
+        self.__xmlrpc_setup()
+        data = self.remote.generate_gpxe(profile,system)
+        return u"%s" % data
+
+    def bootcfg(self,profile=None,system=None,**rest):
+        """
+        Generate a boot.cfg config file. Used primarily 
+        for VMware ESXi.
+        """
+        self.__xmlrpc_setup()
+        data = self.remote.generate_bootcfg(profile,system)
+        return u"%s" % data
+
     def events(self,user="",**rest):
         self.__xmlrpc_setup()
         if user == "":

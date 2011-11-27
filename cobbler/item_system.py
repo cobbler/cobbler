@@ -38,6 +38,7 @@ FIELDS = [
   ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
   ["kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
   ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
+  ["enable_gpxe","SETTINGS:enable_gpxe",0,"Enable gPXE?",True,"Use gPXE instead of PXELINUX for advanced booting options",0,"bool"],
   ["proxy","<<inherit>>",0,"Proxy",True,"Proxy URL",0,"str"],
   ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?",0,"bool"],
   ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template",0,"str"],
@@ -478,6 +479,13 @@ class System(item.Item):
     def set_mtu(self,mtu,interface):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
+        return True
+
+    def set_enable_gpxe(self,enable_gpxe):
+        """
+        Sets whether or not the system will use gPXE for booting.
+        """
+        self.enable_gpxe = utils.input_boolean(enable_gpxe)
         return True
 
     def set_profile(self,profile_name):
