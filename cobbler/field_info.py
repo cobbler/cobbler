@@ -60,6 +60,7 @@ USES_SELECT = [
 # fields that should use the checkbox in the web app
 
 USES_CHECKBOX = [
+   "enable_gpxe",
    "enable_menu",
    "*netboot_enabled",
    "netboot_enabled",
@@ -145,6 +146,7 @@ BLOCK_MAPPINGS = {
    "proxy"                  : "General",
    "repos"                  : "General",
    "dhcp_tag"               : "Advanced",
+   "enable_gpxe"            : "Advanced",
    "mgmt_classes"           : "Management",
    "mgmt_parameters"        : "Management",
    "template_files"         : "Management",

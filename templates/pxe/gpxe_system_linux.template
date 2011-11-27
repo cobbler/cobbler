@@ -1,0 +1,5 @@
+#!gpxe
+kernel http://$server/cobbler/images/$distro/$kernel_name
+imgargs $kernel_name $append_line
+initrd http://$server/cobbler/images/$distro/$initrd_name
+boot

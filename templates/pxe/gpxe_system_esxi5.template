@@ -1,0 +1,4 @@
+#!gpxe
+kernel http://$server/cobbler/ks_mirror/$ks_mirror_name/mboot.c32
+imgargs mboot.c32 -c http://$server/cblr/svc/op/bootcfg/system/$name BOOTIF=$mac
+boot

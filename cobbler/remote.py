@@ -993,6 +993,14 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         return self.api.generate_kickstart(profile,system)
 
+    def generate_gpxe(self,profile=None,system=None,**rest):
+        self._log("generate_gpxe")
+        return self.api.generate_gpxe(profile,system)
+
+    def generate_bootcfg(self,profile=None,system=None,**rest):
+        self._log("generate_bootcfg")
+        return self.api.generate_bootcfg(profile,system)
+
     def get_blended_data(self,profile=None,system=None):
         if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
