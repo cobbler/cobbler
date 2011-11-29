@@ -247,7 +247,7 @@ class PXEGen:
 
             # for tftp only ...
             grub_path = None
-            if working_arch in [ "i386", "x86", "x86_64", "standard"]:
+            if working_arch in [ "i386", "x86", "x86_64", "arm", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
 
@@ -535,6 +535,8 @@ class PXEGen:
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
                     elif arch.startswith("ppc"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                    elif arch.startswith("arm"):
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_arm.template")
                     elif distro.os_version.startswith("esxi"):
                         # ESXi uses a very different pxe method, using more files than
                         # a standard kickstart and different options - so giving it a dedicated
@@ -572,6 +574,8 @@ class PXEGen:
             # not a system record, so this is a profile record or an image
             if arch.startswith("s390"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
+            if arch.startswith("arm"):
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_arm.template")
             elif format == "grub":
                 template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
             elif distro and distro.os_version.startswith("esxi"):
@@ -593,7 +597,7 @@ class PXEGen:
 
         if distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
+        elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64", "arm"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
@@ -712,7 +716,7 @@ class PXEGen:
             # using LVM.
             domain = "local.lan"
             if system is not None:
-                if system.hostname is not None:
+                if system.hostname is not None and system.hostname != "":
                     # If this is a FQDN, grab the first bit
                     hostname = system.hostname.split(".")[0]
                     _domain = system.hostname.split(".")[1:]
@@ -731,6 +735,10 @@ class PXEGen:
             # A similar issue exists with suite name, as installer requires
             # the existence of "stable" in the dists directory
             append_line = "%s suite=%s" % (append_line, distro.os_version)
+
+        # append necessary kernel args for arm architectures
+        if arch is not None and arch.startswith("arm"):
+            append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
 
         return append_line
 
