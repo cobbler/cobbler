@@ -332,6 +332,12 @@ scm_track_mode: "git"
 # of the manpage for how that works.
 server: 127.0.0.1
 
+# If set to 1, all commands will be forced to use the localhost address
+# instead of using the above value which can force commands like
+# cobbler sync to open a connection to a remote address if one is in the
+# configuration and would traceback.
+client_use_localhost: 0
+
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
