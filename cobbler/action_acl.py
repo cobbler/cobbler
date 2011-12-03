@@ -5,7 +5,7 @@ useful for not having to log in (access to shared-secret) file but also grants
 access to hand-edit various config files and other useful things.
 
 Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

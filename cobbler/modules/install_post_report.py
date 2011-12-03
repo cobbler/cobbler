@@ -1,6 +1,6 @@
 # (c) 2008-2009
 # Jeff Schroeder <jeffschroeder@computer.org>
-# Michael DeHaan <mdehaan@redhat.com>
+# Michael DeHaan <michael.dehaan AT gmail>
 #
 # License: GPLv2+
 

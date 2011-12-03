@@ -3,7 +3,7 @@ Serializer code for cobbler.
 Experimental:  mongodb version
 
 Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 James Cammarata <jimi@sngx.net>
 
 This program is free software; you can redistribute it and/or modify

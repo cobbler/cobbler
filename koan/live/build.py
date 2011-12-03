@@ -3,7 +3,7 @@ Validates whether the system is reasonably well configured for
 serving up content.  This is the code behind 'cobbler check'.
 
 Copyright 2007-2008, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.

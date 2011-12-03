@@ -34,6 +34,6 @@ Subscribe at https://fedorahosted.org/mailman/listinfo/cobbler
 
 =head1 AUTHOR
 
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 

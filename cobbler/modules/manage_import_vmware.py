@@ -2,7 +2,7 @@
 This is some of the code behind 'cobbler sync'.
 
 Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 John Eckersberg <jeckersb@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

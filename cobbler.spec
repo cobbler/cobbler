@@ -1328,5 +1328,5 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 * Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
 - Upstream changes (see CHANGELOG)
 
-* Tue Sep 15 2009 Michael DeHaan <mdehaan@redhat.com> - 2.0.0-1
+* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail> - 2.0.0-1
 - First release with unified spec files

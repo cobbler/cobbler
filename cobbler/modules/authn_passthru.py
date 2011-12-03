@@ -3,7 +3,7 @@ Authentication module that defers to Apache and trusts
 what Apache trusts.
 
 Copyright 2008-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
