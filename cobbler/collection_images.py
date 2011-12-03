@@ -3,7 +3,7 @@ A image instance represents a ISO or virt image we want to track
 and repeatedly install.  It differs from a answer-file based installation.
 
 Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.

@@ -3,12 +3,12 @@ Virtualization installation functions.
 Currently somewhat Xen/paravirt specific, will evolve later.
 
 Copyright 2006-2008 Red Hat, Inc and Others.
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 Original version based on virtguest-install
 Jeremy Katz <katzj@redhat.com>
 Option handling added by Andrew Puch <apuch@redhat.com>
-Simplified for use as library by koan, Michael DeHaan <mdehaan@redhat.com>
+Simplified for use as library by koan, Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

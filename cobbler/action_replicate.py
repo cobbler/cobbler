@@ -2,7 +2,7 @@
 Replicate from a cobbler master.
 
 Copyright 2007-2009, Red Hat, Inc and Others
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 Scott Henson <shenson@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

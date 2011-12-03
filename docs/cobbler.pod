@@ -991,6 +991,6 @@ Official web site, bug tracker, and Wiki: http://fedorahosted.org/cobbler/
 
 =head1 AUTHOR
 
-Michael DeHaan <mdehaan@redhat.com>
+Michael DeHaan <michael.dehaan AT gmail>
 
 

@@ -1,6 +1,6 @@
 # Test cases for Cobbler
 #
-# Michael DeHaan <mdehaan@redhat.com>
+# Michael DeHaan <michael.dehaan AT gmail>
 
 import sys
 import unittest
