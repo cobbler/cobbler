@@ -2,7 +2,7 @@
 Virtualization installation functions.  
 Currently somewhat Xen/paravirt specific, will evolve later.
 
-Copyright 2006-2008 Red Hat, Inc.
+Copyright 2006-2008 Red Hat, Inc and Others.
 Michael DeHaan <mdehaan@redhat.com>
 
 Original version based on virtguest-install

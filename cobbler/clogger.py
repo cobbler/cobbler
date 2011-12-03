@@ -2,7 +2,7 @@
 Python standard logging doesn't super-intelligent and won't expose filehandles,
 which we want.  So we're not using it.
 
-Copyright 2009, Red Hat, Inc
+Copyright 2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

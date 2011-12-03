@@ -6,7 +6,7 @@ And JSON, when possible, and YAML, when not.
 It is particularly fast, especially when using JSON.   YAML, not so much.
 It also knows how to upgrade the old "single file" configs to .d versions.
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

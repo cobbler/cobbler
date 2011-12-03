@@ -1,7 +1,7 @@
 """
 Replicate from a cobbler master.
 
-Copyright 2007-2009, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 Scott Henson <shenson@redhat.com>
 

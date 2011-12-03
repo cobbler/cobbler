@@ -1,7 +1,7 @@
 """
 Misc func functions for cobbler
 
-Copyright 2006-2008, Red Hat, Inc
+Copyright 2006-2008, Red Hat, Inc and Others
 Scott Henson <shenson@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

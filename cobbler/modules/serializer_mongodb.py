@@ -2,7 +2,7 @@
 Serializer code for cobbler.
 Experimental:  mongodb version
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 James Cammarata <jimi@sngx.net>
 

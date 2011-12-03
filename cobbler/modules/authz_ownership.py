@@ -4,7 +4,7 @@ Authorization module that allow users listed in
 the further restriction that cobbler objects can be edited to only
 allow certain users/groups to access those specific objects.
 
-Copyright 2008-2009, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

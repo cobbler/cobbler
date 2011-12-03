@@ -13,7 +13,7 @@ default dasd in ZPXE CONF, as well as the hostname of the Cobbler
 server.
 ---
  
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Brad Hinson <bhinson@redhat.com>
  
 This program is free software; you can redistribute it and/or modify

@@ -1,7 +1,7 @@
 """
 Virtualization installation functions.  
 
-Copyright 2007-2008 Red Hat, Inc.
+Copyright 2007-2008 Red Hat, Inc and Others.
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

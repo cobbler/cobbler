@@ -2,7 +2,7 @@
 This module is a mod_wsgi application used to serve up the Cobbler 
 service URLs.
 
-Copyright 2010, Red Hat, Inc
+Copyright 2010, Red Hat, Inc and Others
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
