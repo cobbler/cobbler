@@ -1,7 +1,7 @@
 """
 Virtualization installation functions for image based deployment
 
-Copyright 2008 Red Hat, Inc.
+Copyright 2008 Red Hat, Inc and Others.
 Bryan Kearney <bkearney@redhat.com>
 
 Original version based on virt-image

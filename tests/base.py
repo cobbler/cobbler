@@ -2,7 +2,7 @@
 Base.py defines a base set of helper methods for running automated Cobbler
 XMLRPC API tests
 
-Copyright 2009, Red Hat, Inc
+Copyright 2009, Red Hat, Inc and Others
 Steve Salevan <ssalevan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

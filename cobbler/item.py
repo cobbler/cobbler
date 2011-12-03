@@ -1,7 +1,7 @@
 """
 An Item is a serializable thing that can appear in a Collection
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU

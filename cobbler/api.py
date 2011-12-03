@@ -3,7 +3,7 @@ python API module for Cobbler
 see source for cobbler.py, or pydoc, for example usage.
 CLI apps and daemons should import api.py, and no other cobbler code.
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

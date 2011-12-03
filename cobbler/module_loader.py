@@ -1,7 +1,7 @@
 """
 Module loader, adapted for cobbler usage
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Adrian Likins <alikins@redhat.com>
 Michael DeHaan <mdehaan@redhat.com>
 

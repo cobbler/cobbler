@@ -2,7 +2,7 @@
 Builds out and synchronizes yum repo mirrors.
 Initial support for rsync, perhaps reposync coming later.
 
-Copyright 2006-2007, Red Hat, Inc
+Copyright 2006-2007, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

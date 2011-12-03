@@ -1,7 +1,7 @@
 """
 Base class for any serializable list of things...
 
-Copyright 2006-2009, Red Hat, Inc
+Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

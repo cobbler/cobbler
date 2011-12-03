@@ -3,7 +3,7 @@ Cobbler uses Cheetah templates for lots of stuff, but there's
 some additional magic around that to deal with snippets/etc.
 (And it's not spelled wrong!)
 
-Copyright 2008-2009, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

@@ -5,7 +5,7 @@ Quick test script to read the cobbler configurations and touch and mkdir -p any 
 neccessary to trivially debug another user's configuration even if the distros don't exist yet
 Intended for basic support questions only. Not for production use.
 
-Copyright 2008-2009, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

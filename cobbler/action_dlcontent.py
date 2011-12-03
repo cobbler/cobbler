@@ -1,7 +1,7 @@
 """
 Downloads bootloader content for all arches for when the user doesn't want to supply their own.
 
-Copyright 2009, Red Hat, Inc
+Copyright 2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

@@ -6,7 +6,7 @@ set up.  This makes power cycling a system for reinstallation much easier.
 
 See https://fedorahosted.org/cobbler/wiki/PowerManagement
 
-Copyright 2008-2009, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

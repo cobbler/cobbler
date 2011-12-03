@@ -2,7 +2,7 @@
 new_profile.py defines a set of methods designed for testing Cobbler
 profiles.
 
-Copyright 2009, Red Hat, Inc
+Copyright 2009, Red Hat, Inc and Others
 Steve Salevan <ssalevan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

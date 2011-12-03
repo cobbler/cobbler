@@ -2,7 +2,7 @@
 Systems are hostnames/MACs/IP names and the associated profile
 they belong to.
 
-Copyright 2008-2009, Red Hat, Inc
+Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <mdehaan@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

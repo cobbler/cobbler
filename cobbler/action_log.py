@@ -1,6 +1,6 @@
 """
 
-Copyright 2009, Red Hat, Inc
+Copyright 2009, Red Hat, Inc and Others
 Bill Peck <bpeck@redhat.com>
 
 This program is free software; you can redistribute it and/or modify

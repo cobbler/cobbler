@@ -2,7 +2,7 @@
 Report from a cobbler master.
 FIXME: reinstante functionality for 2.0
 
-Copyright 2007-2009, Red Hat, Inc
+Copyright 2007-2009, Red Hat, Inc and Others
 Anderson Silva <ansilva@redhat.com>
 Michael DeHaan <mdehaan@redhat.com>
 
