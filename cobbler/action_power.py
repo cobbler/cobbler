@@ -4,7 +4,7 @@ encapsulate the logic to run power management commands so that the admin does no
 have to use seperate tools and remember how each of the power management tools are
 set up.  This makes power cycling a system for reinstallation much easier.
 
-See https://fedorahosted.org/cobbler/wiki/PowerManagement
+See https://github.com/cobbler/cobbler/wiki/Power-management
 
 Copyright 2008-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
