@@ -26,7 +26,7 @@ The main advantage of cobbler is that it glues together many disjoint technologi
 
 This manpage will focus on the cobbler command line tool for use in configuring cobbler.  There is also mention
 of the Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured.  Docs on
-the API and XMLRPC components are available online at http://fedorahosted.org/cobbler.
+the API and XMLRPC components are available online at http://cobbler.github.com.
 
 Most users will be interested in the Web UI and should set it up, though the command line is needed for initial configuration -- in particular "cobbler check" and "cobbler import", as well as the repo mirroring features.  All of these are described later in the documentation.
 
@@ -294,7 +294,7 @@ This parameter is assigned once per system, it is not a per-interface setting.
 
 =item --power-address, --power-type, --power-user, --power-password, --power-id
 
-Cobbler contains features that enable integration with power management for easier installation, reinstallation, and management of machines in a datacenter environment.  These parameters are described online at https://fedorahosted.org/cobbler/wiki/PowerManagement.  If you have a power-managed datacenter/lab setup, usage of these features may be something you are interested in.
+Cobbler contains features that enable integration with power management for easier installation, reinstallation, and management of machines in a datacenter environment.  These parameters are described online at https://github.com/cobbler/cobbler/wiki/Power-management.  If you have a power-managed datacenter/lab setup, usage of these features may be something you are interested in.
 
 =item --static
 
@@ -334,7 +334,7 @@ If set true, koan will reload monit after each configuration run. The default va
 
 =item --repos-enabled
 
-If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://fedorahosted.org/cobbler/wiki/ManageYumRepos.
+If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.
 
 =item --dhcp-tag
 
@@ -957,13 +957,13 @@ Triggers provide a way to integrate cobbler with arbitrary 3rd party software wi
 
 =head2 API
 
-Cobbler also makes itself available as an XMLRPC API for use by higher level management software.  Learn more at http://fedorahosted.org/cobbler.  
+Cobbler also makes itself available as an XMLRPC API for use by higher level management software.  Learn more at http://cobbler.github.com.  
 
 =head2 WEB USER INTERFACE
 
 Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.  To enable and access the WebUI, see the following documentation:
 
-https://fedorahosted.org/cobbler/wiki/CobblerWebInterface
+https://github.com/cobbler/cobbler/wiki/Cobbler-web-interface
 
 =head2 BOOT CD
 
@@ -971,11 +971,11 @@ Cobbler can build all of it's profiles into a bootable CD image using the "cobbl
 
 =head2 POWER MANAGEMENT
 
-Cobbler contains a power management feature that allows the user to associate system records in cobbler with the power management configuration attached to them.  This can ease installation by making it easy to reassign systems to new operating systems and then reboot those systems.  Read more about this feature at https://fedorahosted.org/cobbler/wiki/PowerManagement
+Cobbler contains a power management feature that allows the user to associate system records in cobbler with the power management configuration attached to them.  This can ease installation by making it easy to reassign systems to new operating systems and then reboot those systems.  Read more about this feature at https://github.com/cobbler/cobbler/wiki/Power-management
 
 =head2 CONFIG MANAGEMENT INTEGRATION
 
-Cobbler contains features for integrating an installation environment with a configuration management system, which handles the configuration of the system after it is installed by allowing changes to configuration files and settings.  You can read more about this feature at https://fedorahosted.org/cobbler/wiki/BuiltinConfigManagement and https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem.  Both features may be considered experimental as of time of the 1.4 release.
+Cobbler contains features for integrating an installation environment with a configuration management system, which handles the configuration of the system after it is installed by allowing changes to configuration files and settings.  You can read more about this feature at https://github.com/cobbler/cobbler/wiki/Built-in-configuration-management and https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system.  Both features may be considered experimental as of time of the 1.4 release.
 
 =head1 EXIT_STATUS
 
@@ -987,7 +987,7 @@ Cobbler has a mailing list for user and development-related questions/comments a
 
 IRC channel:  irc.freenode.net (#cobbler)
 
-Official web site, bug tracker, and Wiki: http://fedorahosted.org/cobbler/
+Official web site, bug tracker, and Wiki: http://cobbler.github.com
 
 =head1 AUTHOR
 
