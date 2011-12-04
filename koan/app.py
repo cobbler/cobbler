@@ -750,7 +750,7 @@ class Koan:
         system for folks who are not needing a more complex CMS.
         
         Read more at:
-        https://fedorahosted.org/cobbler/wiki/BuiltinConfigManagement
+        https://github.com/cobbler/cobbler/wiki/Built-in-configuration-management
         """
 
         # FIXME: make this a utils.py function
