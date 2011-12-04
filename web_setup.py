@@ -26,7 +26,7 @@ setup(
     long_description = "Web interface for Cobbler that allows visiting http://server/cobbler_web to configure the install server.",
     author = "Michael DeHaan",
     author_email = "michael.dehaan AT gmail",
-    url = "http://fedorahosted.org/cobbler/",
+    url = "http://cobbler.github.com/",
     license = "GPLv2+",
     requires = ["mod_python",
                 "cobbler",
