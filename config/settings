@@ -129,7 +129,7 @@ enable_menu: 1
 # to use func out of the box, which is a powerful way to script and control
 # remote machines.  
 # Func lives at http://fedorahosted.org/func
-# read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
+# read more at https://github.com/cobbler/cobbler/wiki/Func-integration
 # you will need to mirror Fedora/EPEL packages for this feature, so see
 # https://github.com/cobbler/cobbler/wiki/Manage-yum-repos if you want cobbler
 # to help you with this
