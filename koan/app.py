@@ -574,8 +574,8 @@ class Koan:
                 cmd = sub_process.Popen("uname -r", stdout=sub_process.PIPE, shell=True)
                 uname_str = cmd.communicate()[0]
                 # correct kernel on dom0?
-                if uname_str.find("xen") == -1:
-                   raise InfoException("kernel-xen needs to be in use")
+                if uname_str < "2.6.37" and uname_str.find("xen") == -1:
+                   raise InfoException("kernel >= 2.6.37 or kernel-xen needs to be in use")
                 # xend installed?
                 if not os.path.exists("/usr/sbin/xend"):
                    raise InfoException("xen package needs to be installed")
