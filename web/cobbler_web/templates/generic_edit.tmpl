@@ -355,7 +355,7 @@ function on_form_submit()
             new_input.name=field_name
             new_input.value=current_value
             new_input.style.display='none'
-            document.forms[0].appendChild(new_input)
+            document.editform.appendChild(new_input)
         }
     }
     document.getElementById("interface_list").value = listing
@@ -373,7 +373,7 @@ function on_form_submit()
     }
   {% endifequal %}
 {% endfor %}
-    document.forms[0].submit()
+    document.editform.submit()
 }
 
 function page_onload() {
@@ -403,7 +403,7 @@ $(document).ready(function()
 
 <h1>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</h1>
 <hr />
-<form method="post" action="/cobbler_web/{{ what }}/save">
+<form name="editform" method="post" action="/cobbler_web/{{ what }}/save">
   {% csrf_token %}
   <input type="hidden" name="editmode" value="{{ editmode }}" />
   <input type="hidden" name="subobject" value="{{ subobject }}" />
