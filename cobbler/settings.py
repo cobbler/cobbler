@@ -103,6 +103,7 @@ DEFAULTS = {
     "scm_track_enabled"           : 0,
     "scm_track_mode"              : "git",
     "server"                      : "127.0.0.1",
+    "client_use_localhost"        : "",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "template_remote_kickstarts"  : 0,
     "virt_auto_boot"              : 0,
