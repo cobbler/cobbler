@@ -47,6 +47,7 @@ DEFAULTS = {
     "default_name_servers"        : [],
     "default_name_servers_search" : [],
     "default_password_crypted"    : "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
+    "default_template_type"       : "cheetah",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",
