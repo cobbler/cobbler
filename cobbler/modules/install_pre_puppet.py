@@ -7,6 +7,7 @@ Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import distutils.sysconfig
+import re
 import sys
 import utils
 
@@ -38,6 +39,10 @@ def run(api, args, logger):
     system = api.find_system(name)
     system = utils.blender(api, False, system)
     hostname = system[ "hostname" ]
+    if not re.match(r'[\w-]+\..+', hostname):
+        search_domains = system['name_servers_search']
+        if search_domains:
+            hostname += '.' + search_domains[0]
     puppetca_path = settings.puppetca_path
     cmd = [puppetca_path, '--clean', hostname]
 
