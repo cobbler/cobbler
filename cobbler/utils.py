@@ -1282,7 +1282,7 @@ def mkdir(path,mode=0755,logger=None):
        if not oe.errno == 17: # already exists (no constant for 17?)
            if logger is not None:
                log_exc(logger)
-           raise CX(_("Error creating") % path)
+           raise CX(_("Error creating %s") % path)
 
 def path_tail(apath, bpath):
     """
