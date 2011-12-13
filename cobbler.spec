@@ -299,7 +299,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: cobbler
-Requires: Django
+Requires: Django >= 1.1.2
 Requires: mod_wsgi
 Requires: mod_ssl
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
