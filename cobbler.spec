@@ -13,7 +13,7 @@ Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://fedorahosted.org/cobbler
+Url: http://cobbler.github.com/
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git

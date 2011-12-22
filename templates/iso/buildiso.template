@@ -1,6 +1,6 @@
 DEFAULT MENU
 PROMPT 0
-MENU TITLE Cobbler | https://fedorahosted.org/cobbler
+MENU TITLE Cobbler | http://cobbler.github.com/
 TIMEOUT 200
 TOTALTIMEOUT 6000
 ONTIMEOUT local
