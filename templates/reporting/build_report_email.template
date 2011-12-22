@@ -8,7 +8,7 @@ Subject: $subject (profile: $name, ip: $boot_ip)
 
 Cobbler build report.
 =======================================================
-http://fedorahosted.org/cobbler
+http://cobbler.github.com/
 
 #if $getVar("interfaces","") != "":
 

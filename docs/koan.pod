@@ -99,7 +99,7 @@ Koan respects the COBBLER_SERVER variable to specify the cobbler server to use. 
 
 =head1 ADDITIONAL
 
-Reading the cobbler manpage and fedorahosted.org/cobbler is highly recommended.
+Reading the cobbler manpage and cobbler.github.com is highly recommended.
 
 The mailing list is cobbler@lists.fedorahosted.org.  
 
