@@ -352,7 +352,7 @@ class ImportSuseManager:
             distro.set_initrd(initrd)
             distro.set_arch(pxe_arch)
             distro.set_breed(self.breed)
-            distro.set_kernel_options("install=http://@@http_server@@/cblr/links/%s" % (name))
+            distro.set_kernel_options("install=http://%s/cblr/links/%s" % (self.settings.server, name))
             # If a version was supplied on command line, we set it now
             if self.os_version:
                 distro.set_os_version(self.os_version)
