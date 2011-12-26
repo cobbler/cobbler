@@ -179,7 +179,7 @@ class BootCLI:
         try:
             s.ping()
         except:
-            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler, original traceback:"
+            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler, or SELinux is in the way. Original traceback:"
             traceback.print_exc()
             sys.exit(411)
 
