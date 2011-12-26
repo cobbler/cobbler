@@ -179,7 +179,8 @@ class BootCLI:
         try:
             s.ping()
         except:
-            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler"
+            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler, original traceback:"
+            traceback.print_exc()
             sys.exit(411)
 
         if not os.path.exists("/var/lib/cobbler/web.ss"):
