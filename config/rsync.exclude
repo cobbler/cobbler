@@ -10,3 +10,5 @@
 **/kde-i18n**
 pool/**/*.dsc
 pool/**/*.gz
+### Avoid deleting the local cache created by createrepo
+**/cache/**
