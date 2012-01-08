@@ -97,7 +97,7 @@ if [ "$keys_found" = "yes" ]; then
           cp -af /tmp/$TEMPDIR/${PATTERN}* $SEARCHDIR
           break
         fi
-        done &
+        done 1>/dev/null 2>/dev/null &
     fi
     while : ; do
         sleep 10
@@ -109,7 +109,7 @@ if [ "$keys_found" = "yes" ]; then
             logger "keys copied to newly installed system"
             break
         fi
-    done &
+    done 1>/dev/null 2>/dev/null &
 fi
 #end raw
 
