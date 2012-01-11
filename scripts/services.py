@@ -57,6 +57,10 @@ def application(environ, start_response):
     # like: eth0 XX:XX:XX:XX:XX:XX
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
 
+    # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume
+    # it's always present in this context.
+    form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
+
     # Read config for the XMLRPC port to connect to:
     fd = open("/etc/cobbler/settings")
     data = fd.read()
