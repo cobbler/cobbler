@@ -53,11 +53,11 @@ FIELDS = [
   ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
   ["ctime",0,0,"",False,"",0,"float"],
   ["mtime",0,0,"",False,"",0,"float"],
-  ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"",utils.get_power_types(),"str"],
-  ["power_address","",0,"Power Management Address",True,"Ex: power-device.example.org",0,"str"],
-  ["power_user","",0,"Power Username ",True,"",0,"str"],
-  ["power_pass","",0,"Power Password",True,"",0,"str"],
-  ["power_id","",0,"Power ID",True,"Usually a plug number or blade name, if power type requires it",0,"str"],
+  ["power_type","SETTINGS:power_management_default_type",0,"Type",True,"Power management script to use",utils.get_power_types(),"str"],
+  ["power_address","",0,"Address",True,"Ex: power-device.example.org",0,"str"],
+  ["power_user","",0,"Username ",True,"",0,"str"],
+  ["power_pass","",0,"Password",True,"",0,"str"],
+  ["power_id","",0,"ID",True,"Usually a plug number or blade name, if power type requires it",0,"str"],
   ["hostname","",0,"Hostname",True,"",0,"str"],
   ["gateway","",0,"Gateway",True,"",0,"str"],
   ["name_servers",[],0,"Name Servers",True,"space delimited",0,"list"],
@@ -599,7 +599,7 @@ class System(item.Item):
         choices = utils.get_power_types()
         choices.sort()
         if power_type not in choices:
-            raise CX("power type must be one of: %s" % ",".join(choices))
+            raise CX("power management type must be one of: %s" % ",".join(choices))
         self.power_type = power_type
         return True
 

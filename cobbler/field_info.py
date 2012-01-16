@@ -5,6 +5,7 @@ of the fields, so they don't have to be repeated in each file.
 
 Copyright 2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
+Arnaud Quette <arnaud.quette@free.fr>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -55,6 +56,7 @@ USES_SELECT = [
    "breed",
    "os_version",
    "status",
+   "power_type",
 ]
 
 # fields that should use the checkbox in the web app
@@ -108,11 +110,11 @@ BLOCK_MAPPINGS = {
    "*virt_type"      : "Virtualization",
    "*virt_file_size" : "Virtualization",
    "*virt_disk_driver" : "Virtualization",
-   "power_id"        : "Power",
-   "power_address"   : "Power",
-   "power_user"      : "Power",
-   "power_pass"      : "Power",
-   "power_type"      : "Power",
+   "power_id"        : "Power management",
+   "power_address"   : "Power management",
+   "power_user"      : "Power management",
+   "power_pass"      : "Power management",
+   "power_type"      : "Power management",
    "address"         : "Networking", # from network
    "cidr"            : "Networking", # ditto
    "broadcast"       : "Networking", # ..
