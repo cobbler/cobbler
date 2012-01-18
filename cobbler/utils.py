@@ -1963,6 +1963,7 @@ def get_power_types():
     power_template = re.compile(r'power_(.*).template')
     for x in glob.glob("/etc/cobbler/power/power_*.template"):
         power_types.append(power_template.search(x).group(1))
+    power_types.sort()
     return power_types
 
 def get_power(powertype=None):

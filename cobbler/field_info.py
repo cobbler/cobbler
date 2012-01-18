@@ -55,6 +55,7 @@ USES_SELECT = [
    "breed",
    "os_version",
    "status",
+   "power_type",
 ]
 
 # fields that should use the checkbox in the web app
@@ -108,11 +109,11 @@ BLOCK_MAPPINGS = {
    "*virt_type"      : "Virtualization",
    "*virt_file_size" : "Virtualization",
    "*virt_disk_driver" : "Virtualization",
-   "power_id"        : "Power",
-   "power_address"   : "Power",
-   "power_user"      : "Power",
-   "power_pass"      : "Power",
-   "power_type"      : "Power",
+   "power_id"        : "Power management",
+   "power_address"   : "Power management",
+   "power_user"      : "Power management",
+   "power_pass"      : "Power management",
+   "power_type"      : "Power management",
    "address"         : "Networking", # from network
    "cidr"            : "Networking", # ditto
    "broadcast"       : "Networking", # ..
