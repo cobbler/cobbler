@@ -21,10 +21,11 @@ import os.path, traceback, errno
 import re
 import clogger
 import pxegen
+import shutil
 
 import utils
 from cexceptions import *
-import templar 
+import templar
 
 from utils import _
 
