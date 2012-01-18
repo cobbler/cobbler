@@ -595,7 +595,7 @@ The template for the file.
 
 =head3 Examples
 
-B<cobbler file add --name=string --comment=string [--action=string] --mode=string --group=string --user=string --path=string [--template=string]>
+B<cobbler file add --name=string --comment=string [--action=string] --mode=string --group=string --owner=string --path=string [--template=string]>
 
 =head2 DISPLAYING CONFIGURATION ENTRIES
 
