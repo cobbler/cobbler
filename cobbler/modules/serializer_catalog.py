@@ -157,21 +157,8 @@ def serialize(obj):
     return True
 
 def deserialize_raw(collection_type):
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if collection_type in [ 'mgmtclass' ]:
-        old_filename = "/var/lib/cobbler/%ses" % collection_type
-    else:
-        old_filename = "/var/lib/cobbler/%ss" % collection_type
-   
     if collection_type == "settings":
          fd = open("/etc/cobbler/settings")
-         datastruct = yaml.safe_load(fd.read())
-         fd.close()
-         return datastruct
-    elif os.path.exists(old_filename):
-         # for use in migration from serializer_yaml to serializer_catalog (yaml/json)
-         fd = open(old_filename)
          datastruct = yaml.safe_load(fd.read())
          fd.close()
          return datastruct
@@ -219,22 +206,10 @@ def deserialize(obj,topological=True):
     Populate an existing object with the contents of datastruct.
     Object must "implement" Serializable.  
     """
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if obj.collection_type() in [ 'mgmtclass' ]:
-        old_filename = "/var/lib/cobbler/%ses" % obj.collection_type()
-    else:
-        old_filename = "/var/lib/cobbler/%ss" % obj.collection_type()
-    
     datastruct = deserialize_raw(obj.collection_type())
     if topological and type(datastruct) == list:
        datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
-    if os.path.exists(old_filename):
-       # we loaded it in from the old filename, so now migrate to new fmt
-       sys.stderr.write("auto-removing old config format: %s\n" % old_filename)
-       serialize(obj)
-       os.remove(old_filename)
     return True
 
 def __depth_cmp(item1, item2):
