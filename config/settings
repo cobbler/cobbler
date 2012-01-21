@@ -231,9 +231,9 @@ next_server: 127.0.0.1
 
 # settings for power management features.  optional.
 # see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
-# choices:
-#    bullpap wti apc apc_snmp ether_wake ipmilan
-#    drac ipmitool ilo rsa lpar bladecenter virsh
+# choices (refer to codes.py):
+#    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
+#    ipmilan ipmitool lpar rsa virsh wti
 power_management_default_type: 'ipmitool'
 
 # the commands used by the power management module are sourced
