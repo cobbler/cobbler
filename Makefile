@@ -35,9 +35,15 @@ nosetests:
 build:
 	python setup.py build -f
 
+# Assume we're on RedHat by default ('apache' user),
+# otherwise Debian / Ubuntu ('www-data' user)
 install: build
 	python setup.py install -f
-	chown -R apache /usr/share/cobbler/web
+	if [ -n "`getent passwd apache`" ] ; then \
+		chown -R apache /usr/share/cobbler/web; \
+	else \
+		chown -R www-data /usr/share/cobbler/web; \
+	fi
 
 debinstall:
 	python setup.py install -f --root $(DESTDIR)
@@ -53,28 +59,47 @@ savestate:
 	cp -a /var/lib/cobbler/config $(statepath)
 	cp /etc/cobbler/settings $(statepath)/settings
 	cp /etc/cobbler/modules.conf $(statepath)/modules.conf
-	cp /etc/httpd/conf.d/cobbler.conf $(statepath)/http.conf
-	cp /etc/httpd/conf.d/cobbler_web.conf $(statepath)/cobbler_web.conf
+	@if [ -d /etc/httpd ] ; then \
+		cp /etc/httpd/conf.d/cobbler.conf $(statepath)/http.conf; \
+		cp /etc/httpd/conf.d/cobbler_web.conf $(statepath)/cobbler_web.conf; \
+	else \
+		cp /etc/apache2/conf.d/cobbler.conf $(statepath)/http.conf; \
+		cp /etc/apache2/conf.d/cobbler_web.conf $(statepath)/cobbler_web.conf; \
+	fi
 	cp /etc/cobbler/users.conf $(statepath)/users.conf
 	cp /etc/cobbler/users.digest $(statepath)/users.digest
 	cp /etc/cobbler/dhcp.template $(statepath)/dhcp.template
 	cp /etc/cobbler/rsync.template $(statepath)/rsync.template
 
 
+# Assume we're on RedHat by default, otherwise Debian / Ubuntu
 restorestate:
 	cp -a $(statepath)/config /var/lib/cobbler
 	cp $(statepath)/settings /etc/cobbler/settings
 	cp $(statepath)/modules.conf /etc/cobbler/modules.conf
 	cp $(statepath)/users.conf /etc/cobbler/users.conf
 	cp $(statepath)/users.digest /etc/cobbler/users.digest
-	cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf
-	cp $(statepath)/cobbler_web.conf /etc/httpd/conf.d/cobbler_web.conf
+	if [ -d /etc/httpd ] ; then \
+		cp $(statepath)/http.conf /etc/httpd/conf.d/cobbler.conf; \
+		cp $(statepath)/cobbler_web.conf /etc/httpd/conf.d/cobbler_web.conf; \
+	else \
+		cp $(statepath)/http.conf /etc/apache2/conf.d/cobbler.conf; \
+		cp $(statepath)/cobbler_web.conf /etc/apache2/conf.d/cobbler_web.conf; \
+	fi
 	cp $(statepath)/dhcp.template /etc/cobbler/dhcp.template
 	cp $(statepath)/rsync.template /etc/cobbler/rsync.template
 	find /var/lib/cobbler/triggers | xargs chmod +x
-	chown -R apache /var/www/cobbler
-	chmod -R +x /var/www/cobbler/web
-	chmod -R +x /var/www/cobbler/svc
+	if [ -n "`getent passwd apache`" ] ; then \
+		chown -R apache /var/www/cobbler; \
+	else \
+		chown -R www-data /var/www/cobbler; \
+	fi
+	if [ -d /var/www/cobbler/web ] ; then \
+		chmod -R +x /var/www/cobbler/web; \
+	fi
+	if [ -d /var/www/cobbler/svc ] ; then \
+		chmod -R +x /var/www/cobbler/svc; \
+	fi
 	rm -rf $(statepath)
 
 completion:
@@ -85,9 +110,15 @@ webtest: devinstall
 	make devinstall
 	make restartservices
 
+# Assume we're on RedHat by default, otherwise Debian / Ubuntu
 restartservices:
-	/sbin/service cobblerd restart
-	/sbin/service httpd restart
+	if [ -x /sbin/service ] ; then \
+		/sbin/service cobblerd restart; \
+		/sbin/service httpd restart; \
+	else \
+		/usr/sbin/service cobblerd restart; \
+		/usr/sbin/service apache2 restart; \
+	fi
 
 sdist: clean
 	python setup.py sdist
