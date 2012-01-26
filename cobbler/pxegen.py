@@ -395,10 +395,10 @@ class PXEGen:
 
         # if we have any memtest files in images, make entries for them
         # after we list the profiles
-        memtests = glob.glob(self.bootloc + "/memtest*")
+        memtests = glob.glob(self.bootloc + "/images/memtest*")
         if len(memtests) > 0:
             pxe_menu_items = pxe_menu_items + "\n\n"
-            for memtest in glob.glob(self.bootloc + '/memtest*'):
+            for memtest in glob.glob(self.bootloc + '/images/memtest*'):
                 base = os.path.basename(memtest)
                 contents = self.write_memtest_pxe("/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
@@ -437,7 +437,7 @@ class PXEGen:
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
         metadata["profile_name"] = os.path.basename(filename)
-        metadata["kernel_path"] = "/%s" % os.path.basename(filename)
+        metadata["kernel_path"] = "/images/%s" % os.path.basename(filename)
         metadata["initrd_path"] = ""
         metadata["append_line"] = ""
 
