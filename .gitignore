@@ -12,6 +12,7 @@ MANIFEST
 TAGS
 .project
 .pydevproject
+.coverage
 
 # docs - ignore pod output
 docs/*.gz
