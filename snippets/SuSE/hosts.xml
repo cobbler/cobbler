@@ -1,23 +1,23 @@
 <host>
-  <hosts config:type="list">
-    <hosts_entry>
-      <host_address>127.0.0.1</host_address>
-      <names config:type="list">
-        <name>localhost</name>
-      </names>
-    </hosts_entry>
-    #set $ikeys = $interfaces.keys()
-    #for $iface in $ikeys
-    #set $idata = $interfaces[$iface]
-    #if $idata["interface_type"].lower() in ["","na","bridge","bond"]
-    <hosts_entry>
-      <host_address>$idata["ip_address"]</host_address>
-      <names config:type="list">
-        #set $my_interface_hostname_short = $idata["dns_name"].split('.',1)[:1][0]
-        <name>$idata["dns_name"].lower() $my_interface_hostname_short.lower()</name>
-      </names>
-    </hosts_entry>
-    #end if
-    #end for
-  </hosts>
-</host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      #set $ikeys = $interfaces.keys()
+      #for $iface in $ikeys
+      #set $idata = $interfaces[$iface]
+      #if $idata["interface_type"].lower() in ["","na","bridge","bond"]
+      <hosts_entry>
+        <host_address>$idata["ip_address"]</host_address>
+        <names config:type="list">
+          #set $my_interface_hostname_short = $idata["dns_name"].split('.',1)[:1][0]
+          <name>$idata["dns_name"].lower() $my_interface_hostname_short.lower()</name>
+        </names>
+      </hosts_entry>
+      #end if
+      #end for
+    </hosts>
+  </host>

@@ -1,30 +1,33 @@
-<!--
-
- Copyright (c) 2011 Novell
- Uwe Gansert ug@suse.de
-
- This software is licensed to you under the GNU General Public License,
- version 2 (GPLv2). There is NO WARRANTY for this software, express or
- implied, including the implied warranties of MERCHANTABILITY or FITNESS
- FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
- along with this software; if not, see
- http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
-
--->
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-  <networking>
-    <keep_install_network config:type="boolean">true</keep_install_network>
-  </networking>
-  <software>
-    <patterns config:type="list">
-      <pattern>base</pattern>
-    </patterns>
-  </software>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  ## without the next 6 lines autoyast will ask for confirmation bevore installation
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <final_reboot config:type="boolean">true</final_reboot>	
+    </mode>
+  </general>
+  $SNIPPET('hosts.xml')
+  $SNIPPET('kdump.xml')
+  <keyboard>
+    <keymap>english</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages></languages>
+  </language>
+  <login_settings/>
+  $SNIPPET('networking.xml')
+  <runlevel>
+    <default>3</default>
+  </runlevel>
   <users config:type="list">
     <user>
-      <encrypted config:type="boolean">false</encrypted>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
       <home>/root</home>
@@ -38,8 +41,28 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>s3cr3t</user_password>
+	## password: cobbler
+	<user_password>$2a$05$OByGoYrDs05U3L62Sy0G4uMPsIx3JcUM5SBshs0xL0H6VYDFAvvGy</user_password>
       <username>root</username>
     </user>
   </users>
+  <scripts>
+    ## we have to include the pre-scripts tag to get kickstart_start included
+    <pre-scripts config:type="list">
+    </pre-scripts>
+    <post-scripts config:type="list">
+
+	## This plugin wrapper provides the flexibility to call pure shell
+	## snippets which can be used directly on kickstart and with with
+	## wrapper on SuSE.
+	##
+	## To use it
+	## - exchange name_of_pure_shell_snippet with the name of this shell snippet
+	## - and remove the '##' in front of the line with suse_scriptwrapper.xml
+	##
+	#set global $wrappedscript = 'name_of_pure_shell_snippet'
+	## $SNIPPET('suse_scriptwrapper.xml')
+
+    </post-scripts>
+  </scripts>
 </profile>
