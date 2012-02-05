@@ -1,0 +1,12 @@
+      <script>
+##        <debug config:type="boolean">true</debug>
+##        <feedback config:type="boolean">false</feedback>
+##        <location></location>
+##        <network_needed config:type="boolean">true</network_needed>
+        <interpreter>shell</interpreter>
+#set $filename = $wrappedscript.replace('/', '_')
+        <filename>$filename</filename>
+        <source><![CDATA[
+$SNIPPET($wrappedscript)
+]]></source>
+      </script>

@@ -1,0 +1,35 @@
+<kdump>
+    <!-- memory reservation -->
+    <!-- reserve 64 MB with 256MB to 2GB Memory and 128MB with more then 2GB Memory -->
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel>256M-2G:64M,2G-:128M</crash_kernel>
+  
+    <general>
+      <!-- dump target settings -->
+      <KDUMP_SAVEDIR>file:///var/crash</KDUMP_SAVEDIR>
+      <KDUMP_COPY_KERNEL>true</KDUMP_COPY_KERNEL>
+      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
+      <KDUMP_KEEP_OLD_DUMPS>4</KDUMP_KEEP_OLD_DUMPS>
+  
+      <!-- filtering and compression -->
+      <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+      <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
+  
+      <!-- notification -->
+      <KDUMP_NOTIFICATION_TO></KDUMP_NOTIFICATION_TO>
+      <KDUMP_NOTIFICATION_CC></KDUMP_NOTIFICATION_CC>
+      <KDUMP_SMTP_SERVER></KDUMP_SMTP_SERVER>
+      <KDUMP_SMTP_USER></KDUMP_SMTP_USER>
+      <KDUMP_SMTP_PASSWORD></KDUMP_SMTP_PASSWORD>
+  
+      <!-- kdump kernel -->
+      <KDUMP_KERNELVER></KDUMP_KERNELVER>
+      <KDUMP_COMMANDLINE></KDUMP_COMMANDLINE>
+      <KDUMP_COMMANDLINE_APPEND></KDUMP_COMMANDLINE_APPEND>
+  
+      <!-- expert settings -->
+      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
+      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
+      <KEXEC_OPTIONS></KEXEC_OPTIONS>
+    </general>
+  </kdump> 
