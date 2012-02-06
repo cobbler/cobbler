@@ -137,7 +137,7 @@ class Replicate:
 
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
-            obj_types = OBJ_TYPES
+            obj_types = OBJ_TYPES[:]
             if len(self.system_patterns) == 0 and "system" in obj_types:
                 obj_types.remove("system")
             for what in obj_types:
