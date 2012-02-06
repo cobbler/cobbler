@@ -109,3 +109,25 @@ class KoanVirtInstallTest(unittest.TestCase):
              "--disk path=/dev/foo1,bus=virtio "
              "--network bridge=br0,model=virtio --wait 0 --noautoconsole")
         )
+
+    def testImage(self):
+        cmd = build_commandline("import",
+            name="foo",
+            ram=256,
+            vcpus=1,
+            fullvirt=True,
+            bridge="br0,br2",
+            disks=[],
+            qemu_driver_type="virtio",
+            qemu_net_type="virtio",
+            profile_data = {
+                "file" : "/some/install/image.img",
+                "network_count" : 2,
+            })
+
+        cmd = " ".join(cmd)
+        self.assertEquals(cmd,
+            ("virt-install --name foo --ram 256 --vcpus 1 --vnc --import "
+             "--disk path=/some/install/image.img --network bridge=br0 "
+             "--network bridge=br2 --wait 0 --noautoconsole")
+        )
