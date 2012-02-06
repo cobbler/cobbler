@@ -47,8 +47,18 @@ def _sanitize_disks(disks):
 
     return ret
 
-def _sanitize_nics(nics, bridge, profile_bridge):
+def _sanitize_nics(nics, bridge, profile_bridge, network_count):
     ret = []
+
+    if network_count is not None and not nics:
+        # Fill in some stub nics so we can take advantage of the loop logic
+        nics = {}
+        for i in range(int(network_count)):
+            nics["foo%s" % i] = {
+                "interface_type" : "na",
+                "mac_address": None,
+                "virt_bridge": None,
+            }
 
     if not nics:
         return ret
@@ -104,6 +114,14 @@ def build_commandline(uri,
                       qemu_driver_type=None,
                       qemu_net_type=None):
 
+    is_import = uri.startswith("import")
+    if is_import:
+        # We use the special value 'import' for imagecreate.py. Since
+        # it is connection agnostic, just let virt-install choose the
+        # best hypervisor.
+        uri = ""
+        fullvirt = None
+
     is_xen = uri.startswith("xen")
     is_qemu = uri.startswith("qemu")
     if is_qemu:
@@ -112,8 +130,15 @@ def build_commandline(uri,
     floppy = None
     cdrom = None
     location = None
+    importpath = None
 
-    if profile_data.has_key("file"):
+    if is_import:
+        importpath = profile_data.get("file")
+        if not importpath:
+            raise koan.InfoException("Profile 'file' required for image "
+                                     "install")
+
+    elif profile_data.has_key("file"):
         if is_xen:
             raise koan.InfoException("Xen does not work with --image yet")
 
@@ -147,7 +172,8 @@ def build_commandline(uri,
     disks = _sanitize_disks(disks)
     nics = _sanitize_nics(profile_data.get("interfaces"),
                           bridge,
-                          profile_data.get("virt_bridge"))
+                          profile_data.get("virt_bridge"),
+                          profile_data.get("network_count"))
     if not nics:
         # for --profile you get one NIC, go define a system if you want more.
         # FIXME: can mac still be sent on command line in this case?
@@ -173,7 +199,9 @@ def build_commandline(uri,
         net_model = qemu_net_type
         disk_bus = qemu_driver_type
 
-    cmd = "virt-install --connect %s " % uri
+    cmd = "virt-install "
+    if uri:
+        cmd += "--connect %s " % uri
 
     cmd += "--name %s " % name
     cmd += "--ram %s " % ram
@@ -193,8 +221,9 @@ def build_commandline(uri,
     if is_qemu and virt_type:
         cmd += "--virt-type %s " % virt_type
 
-    if fullvirt or is_qemu:
-        cmd += "--hvm "
+    if fullvirt or is_qemu or is_import:
+        if fullvirt is not None:
+            cmd += "--hvm "
         if is_xen:
             cmd += "--pxe "
 
@@ -202,6 +231,8 @@ def build_commandline(uri,
             cmd += "--cdrom %s " % cdrom
         elif location:
             cmd += "--location %s " % location
+        elif importpath:
+            cmd += "--import "
 
         if arch:
             cmd += "--arch %s " % arch
@@ -221,6 +252,10 @@ def build_commandline(uri,
                 distro = "windows"
 
             cmd += "--os-type %s " % distro
+
+    if importpath:
+        # This needs to be the first disk for import to work
+        cmd += "--disk path=%s " % importpath
 
     for path, size, driver_type in disks:
         print ("- adding disk: %s of size %s (driver type=%s)" %
