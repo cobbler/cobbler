@@ -21,14 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-import os, sys, time, stat
-import tempfile
+import os
 import random
-from optparse import OptionParser
 import exceptions
-import errno
-import re
-import virtinst
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"
