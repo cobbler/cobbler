@@ -1,0 +1,8 @@
+# Subscribe (register) the system
+subscription-manager register --autosubscribe --username=xxxxxx --password=xxxxxx
+
+# Add what used to be called channels
+yum -y install yum-utils
+yum-config-manager --enable  rhel-6-server-optional-rpms
+yum-config-manager --enable  rhel-6-server-supplementary
+
