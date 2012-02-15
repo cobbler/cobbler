@@ -4,6 +4,6 @@
 /usr/sbin/puppetd --test --waitforcert 0
 
 # turn puppet service on for reboot
-/sbin/chkconfig --level 345 puppet on
+/sbin/chkconfig puppet on
 
 #end if
