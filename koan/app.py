@@ -1221,8 +1221,8 @@ class Koan:
         initrd = self.safe_load(profile_data,'initrd')
         kernel_short = os.path.basename(kernel)
         initrd_short = os.path.basename(initrd)
-        kernel_save = "%s/%s" % (download_root, kernel_short)
-        initrd_save = "%s/%s" % (download_root, initrd_short)
+        kernel_save = "%s/%s_koan" % (download_root, kernel_short)
+        initrd_save = "%s/%s_koan" % (download_root, initrd_short)
 
         if self.server:
             if kernel[0] == "/":
