@@ -1,10 +1,8 @@
 # ******************************************************************
 # Cobbler managed rsyncd.conf file
 #
-# generated from cobbler rsyncd.conf template ($date)
-# Do NOT make changes to /etc/rsyncd.conf. Instead, make your changes
-# in /etc/cobbler/rsyncd.template, as /etc/rsyncd.conf will be
-# overwritten.
+# Do NOT make changes to /etc/rsyncd.conf directly. 
+# Instead, make your changes to /etc/cobbler/rsync.template.
 #
 # ******************************************************************
 
