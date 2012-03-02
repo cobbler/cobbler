@@ -18,6 +18,7 @@ insmod /lib/ext3.o
 
 mkdir -p /tmp/$TEMPDIR
 
+
 function findkeys
 {
  for disk in $DISKS; do
@@ -30,14 +31,12 @@ function findkeys
       continue                                                           
     fi                                                                   
     # Copy current host keys out to be reused
-    if [ -d /tmp/$tmpdir$SEARCHDIR ]; then
-        cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR
+    if [ -d /tmp/$tmpdir$SEARCHDIR ] &&  cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR; then 
         keys_found="yes"
 	umount /tmp/$tmpdir
 	rm -r /tmp/$tmpdir
 	break
-    elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ]; then
-	cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR
+    elif [ -n "$SHORTDIR" ] && [ -d /tmp/$tmpdir$SHORTDIR ] && cp -a /tmp/$tmpdir$SHORTDIR/${PATTERN}* /tmp/$TEMPDIR; then 
 	keys_found="yes"
         umount /tmp/$tmpdir
 	rm -r /tmp/$tmpdir
