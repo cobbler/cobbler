@@ -323,8 +323,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
-%dir /var/lib/cobbler/webui_sessions
-%attr(700,apache,root) /var/lib/cobbler/webui_sessions
+%dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
 /var/www/cobbler_webui_content/
 
 %changelog
