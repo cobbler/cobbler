@@ -177,7 +177,6 @@ class Collection:
         Allows an object "ref" to be given a newname without affecting the rest
         of the object tree. 
         """
-        self.api.logger.debug("in collection.py rename()")
 
         # Nothing to do when it is the same name
         if newname == ref.name:
@@ -199,7 +198,6 @@ class Collection:
 
         # for a distro, rename the mirror and references to it
         if ref.COLLECTION_TYPE == 'distro':
-            self.api.logger.debug("in collection.py rename(): collection type is a distro")
             path = utils.find_distro_path(self.api.settings(), ref)
 
             # create a symlink for the new distro name
