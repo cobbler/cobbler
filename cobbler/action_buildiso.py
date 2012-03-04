@@ -82,6 +82,9 @@ class BuildIso:
 
 
     def make_shorter(self,distname):
+        """
+        Return a short distro identifier
+        """
         if self.distmap.has_key(distname):
             return self.distmap[distname]
         else:
@@ -151,7 +154,7 @@ class BuildIso:
              cfg.write("  MENU LABEL %s\n" % profile.name)
              cfg.write("  kernel %s.krn\n" % distname)
 
-             data = utils.blender(self.api, True, profile)
+             data = utils.blender(self.api, False, profile)
              if data["kickstart"].startswith("/"):
                  data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
                      data["server"], self.api.settings().http_port, profile.name
@@ -161,6 +164,13 @@ class BuildIso:
              if dist.breed == "suse":
                  if data["proxy"] != "":
                      append_line += " proxy=%s" % data["proxy"]
+                 if data["kernel_options"].has_key("install") and data["kernel_options"]["install"] != "":
+                     append_line += " install=%s" % data["kernel_options"]["install"]
+                     del data["kernel_options"]["install"]
+                 else:
+                     append_line += " install=http://%s:%s/cblr/links/%s" % (
+                         data["server"], self.api.settings().http_port, dist.name
+                     )
                  append_line += " autoyast=%s" % data["kickstart"]
              if dist.breed == "redhat":
                  append_line += " ks=%s" % data["kickstart"]
@@ -168,7 +178,7 @@ class BuildIso:
                  append_line += " auto-install/enable=true url=%s" % data["kickstart"]
                  if data["proxy"] != "":
                      append_line += " mirror/http/proxy=%s" % data["proxy"]
-             append_line = append_line + " %s\n" % data["kernel_options"]
+             append_line += self.add_remaining_kopts(data["kernel_options"])
              cfg.write(append_line)
 
              length=len(append_line)
@@ -191,23 +201,28 @@ class BuildIso:
              cfg.write("  MENU LABEL %s\n" % system.name)
              cfg.write("  kernel %s.krn\n" % distname)
 
-             bdata = utils.blender(self.api, True, system)
-             if bdata["kickstart"].startswith("/"):
-                 bdata["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
-                     bdata["server"], self.api.settings().http_port, system.name
+             data = utils.blender(self.api, False, system)
+             if data["kickstart"].startswith("/"):
+                 data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
+                     data["server"], self.api.settings().http_port, system.name
                  )
 
              append_line = " append initrd=%s.img" % distname
              if dist.breed == "suse":
-                if bdata["proxy"] != "":
-                    append_line += " proxy=%s" % bdata["proxy"]
-                append_line += " autoyast=%s" % bdata["kickstart"]
+                if data["proxy"] != "":
+                    append_line += " proxy=%s" % data["proxy"]
+                if data["kernel_options"].has_key("install") and data["kernel_options"]["install"] != "":
+                    append_line += " install=%s" % data["kernel_options"]["install"]
+                    del data["kernel_options"]["install"]
+                else:
+                    append_line += " install=http://%s:%s/cblr/links/%s" % (data["server"], self.api.settings().http_port, dist.name)
+                append_line += " autoyast=%s" % data["kickstart"]
              if dist.breed == "redhat":
-                append_line += " ks=%s" % bdata["kickstart"]
+                append_line += " ks=%s" % data["kickstart"]
              if dist.breed in ["ubuntu","debian"]:
-                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % bdata["kickstart"]
-                if bdata["proxy"] != "":
-                    append_line += " mirror/http/proxy=%s" % bdata["proxy"]
+                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["kickstart"]
+                if data["proxy"] != "":
+                    append_line += " mirror/http/proxy=%s" % data["proxy"]
                 # hostname is required as a parameter, the one in the preseed is not respected
                 my_domain = "local.lan"
                 if system.hostname != "":
@@ -230,7 +245,6 @@ class BuildIso:
 
              # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
              # check for overrides first and clear them from kernel_options
-             data = utils.blender(self.api, False, system) # don't collapse!
              my_int = None;  my_ip = None; my_mask = None; my_gw = None; my_dns = None
              if dist.breed in ["suse", "redhat"]:
                 if data["kernel_options"].has_key("netmask") and data["kernel_options"]["netmask"] != "":
