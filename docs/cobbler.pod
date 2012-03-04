@@ -232,7 +232,7 @@ System commands have a wider variety of control offered over network details.  I
 
 Read more about networking setup at: https://github.com/cobbler/cobbler/wiki/Advanced-networking
 
-B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N] [--server-override=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-password=string] [--power-id=string]>
+B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N] [--server-override=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-pass=string] [--power-id=string]>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
@@ -292,7 +292,7 @@ This field corresponds to the hostname set in a systems /etc/sysconfig/network f
 
 This parameter is assigned once per system, it is not a per-interface setting.
 
-=item --power-address, --power-type, --power-user, --power-password, --power-id
+=item --power-address, --power-type, --power-user, --power-pass, --power-id
 
 Cobbler contains features that enable integration with power management for easier installation, reinstallation, and management of machines in a datacenter environment.  These parameters are described online at https://github.com/cobbler/cobbler/wiki/Power-management.  If you have a power-managed datacenter/lab setup, usage of these features may be something you are interested in.
 
