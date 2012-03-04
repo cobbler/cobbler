@@ -432,12 +432,12 @@ def find_kickstart(url):
     """
     if url is None:
         return None
-    x = url.lower()
+    x = url.lower().lstrip()
     for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
-           if x.startswith("/") and not os.path.isfile(url):
+           if x.startswith("/") and not os.path.isfile(x):
                return None
-           return url
+           return x
     return None
 
 
