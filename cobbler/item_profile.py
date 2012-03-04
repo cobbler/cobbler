@@ -196,7 +196,8 @@ class Profile(item.Item):
         if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
-        if utils.find_kickstart(kickstart):
+        kickstart = utils.find_kickstart(kickstart)
+        if kickstart:
             self.kickstart = kickstart
             return True
         raise CX(_("kickstart not found: %s") % kickstart)
