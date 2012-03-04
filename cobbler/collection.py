@@ -198,8 +198,15 @@ class Collection:
 
         # for a distro, rename the mirror and references to it
         if ref.COLLECTION_TYPE == 'distro':
-            path = "/var/www/cobbler/ks_mirror/%s" % ref.name
-            if os.path.exists(path):
+            path = utils.find_distro_path(self.api.settings(), ref)
+
+            # create a symlink for the new distro name
+            utils.link_distro(self.api.settings(), newref)
+
+            # test to see if the distro path is based directly
+            # on the name of the distro. If it is, things need
+            # to updated accordingly
+            if os.path.exists(path) and path == "/var/www/cobbler/ks_mirror/%s" % ref.name:
                 newpath = "/var/www/cobbler/ks_mirror/%s" % newref.name
                 os.renames(path, newpath)
 
