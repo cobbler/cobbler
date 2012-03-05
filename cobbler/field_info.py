@@ -48,6 +48,7 @@ USES_SELECT = [
    "profile",
    "distro",
    "image",
+   "image_type",
    "virt_type",
    "arch",
    "*interface_type",
