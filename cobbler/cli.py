@@ -279,7 +279,12 @@ class BootCLI:
             if opt(options, "name") == "":
                 print "--name is required"
                 sys.exit(1)
-            self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+            try:
+                self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+            except xmlrpclib.Fault, (err):
+                (etype, emsg) = err.faultString.split(":",1)
+                print emsg[1:-1] # don't print the wrapping quotes
+                sys.exit(1)
         elif object_action == "getks":
             if object_type == "profile":
                 data = self.remote.generate_kickstart(options.name,"")

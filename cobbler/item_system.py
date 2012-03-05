@@ -586,7 +586,8 @@ class System(item.Item):
         if kickstart is None or kickstart in [ "", "delete", "<<inherit>>" ]:
             self.kickstart = "<<inherit>>"
             return True
-        if utils.find_kickstart(kickstart):
+        kickstart = utils.find_kickstart(kickstart)
+        if kickstart:
             self.kickstart = kickstart
             return True
         raise CX(_("kickstart not found: %s" % kickstart))

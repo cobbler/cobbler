@@ -432,12 +432,12 @@ def find_kickstart(url):
     """
     if url is None:
         return None
-    x = url.lower()
+    x = url.lower().lstrip()
     for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
-           if x.startswith("/") and not os.path.isfile(url):
+           if x.startswith("/") and not os.path.isfile(x):
                return None
-           return url
+           return x
     return None
 
 
@@ -2104,7 +2104,10 @@ def dhcpconf_location(api):
 
 def link_distro(settings, distro):
     # find the tree location
-    base = os.path.join(settings.webdir, "ks_mirror", distro.name)
+    base = find_distro_path(settings, distro)
+    if not base:
+        return
+
     dest_link = os.path.join(settings.webdir, "links", distro.name)
 
     # create the links directory only if we are mirroring because with
@@ -2117,6 +2120,12 @@ def link_distro(settings, distro):
             # this shouldn't happen but I've seen it ... debug ...
             print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
 
+def find_distro_path(settings, distro):
+    possible_dirs = glob.glob(settings.webdir+"/ks_mirror/*")
+    for dir in possible_dirs:
+        if os.path.dirname(distro.kernel).find(dir) != -1:
+            return os.path.join(settings.webdir, "ks_mirror", dir)
+    return None
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
