@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import string
 import utils
 import item
 import time
@@ -39,7 +40,7 @@ FIELDS = [
   ['mtime',0,0,"",False,"",0,"float"],
   ['file','',0,"File",True,"Path to local file or nfs://user@host:path",0,"str"],
   ['depth',0,0,"",False,"",0,"int"],
-  ['image_type',"iso",0,"Image Type",True,"", ["iso","direct","virt-image"],"str"], #FIXME:complete?
+  ['image_type',"iso",0,"Image Type",True,"", ["iso","direct","memdisk","virt-image"],"str"], #FIXME:complete?
   ['network_count',1,0,"Virt NICs",True,"",0,"int"],
   ['os_version','',0,"OS Version",True,"ex: rhel4",codes.get_all_os_versions(),"str"],
   ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
@@ -156,8 +157,8 @@ class Image(item.Item):
         virt-clone = a cloned virtual disk (FIXME: not yet supported), virtual only
         memdisk    = hdd image (physical only)
         """
-        if not image_type in [ "direct", "iso", "memdisk", "virt-clone" ]:
-           raise CX(_("image type must be 'direct', 'iso', or 'virt-clone'"))
+        if not image_type in self.get_valid_image_types():
+           raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(),", "))
         self.image_type = image_type
         return True
 
@@ -193,6 +194,9 @@ class Image(item.Item):
 
     def set_virt_path(self,path):
         return utils.set_virt_path(self,path)
+
+    def get_valid_image_types(self):
+        return ["direct","iso","memdisk","virt-clone"]
 
     def get_parent(self):
         """
