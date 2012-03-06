@@ -118,6 +118,7 @@ class RepoSync:
                 try:
                     self.sync(repo) 
                     success = True
+                    break
                 except:
                     utils.log_exc(self.logger)
                     self.logger.warning("reposync failed, tries left: %s" % (x-2))
