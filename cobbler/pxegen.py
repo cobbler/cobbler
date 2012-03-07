@@ -595,7 +595,7 @@ class PXEGen:
                 image, arch, kickstart_path)
         metadata["kernel_options"] = kernel_options
 
-        if distro.os_version.startswith("esxi") and filename is not None:
+        if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
         elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64", "arm"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
