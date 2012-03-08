@@ -48,7 +48,7 @@ VALID_OS_VERSIONS = {
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "other" ],
-    "vmware"  : [ "esx4", "esxi4" ],
+    "vmware"  : [ "esx4", "esxi4", "esxi5" ],
     "freebsd" : [ "7.3", "7.4", "8.1", "8.2", "8.3", "9.0", "9.1" ],
     "other"   : [ "msdos", "netware4", "netware5", "netware6", "generic", "other" ]
 }

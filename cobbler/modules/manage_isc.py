@@ -158,6 +158,8 @@ class IscManager:
                 interface["next_server"] = blended_system["server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
+                interface["owner"] = blended_system["name"]
+                interface["enable_gpxe"] = blended_system["enable_gpxe"]
 
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore

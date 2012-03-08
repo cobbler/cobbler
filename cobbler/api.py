@@ -646,6 +646,24 @@ class BootAPI:
 
     # ==========================================================================
 
+    def generate_gpxe(self,profile,system):
+        self.log("generate_gpxe")
+        if system:
+            return self.pxegen.generate_gpxe("system",system)
+        else:
+            return self.pxegen.generate_gpxe("profile",profile)
+
+    # ==========================================================================
+
+    def generate_bootcfg(self,profile,system):
+        self.log("generate_bootcfg")
+        if system:
+            return self.pxegen.generate_bootcfg("system",system)
+        else:
+            return self.pxegen.generate_bootcfg("profile",profile)
+
+    # ==========================================================================
+
     def check(self, logger=None):
         """
         See if all preqs for network booting are valid.  This returns

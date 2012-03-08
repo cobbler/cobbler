@@ -54,6 +54,7 @@ DEFAULTS = {
     "default_virt_disk_driver"    : "raw",
     "default_virt_ram"            : "512",
     "default_ownership"           : [ "admin" ],
+    "enable_gpxe"                 : 0,
     "enable_menu"                 : 1,
     "func_master"                 : "overlord.example.org",
     "func_auto_setup"             : 0,
