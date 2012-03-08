@@ -116,6 +116,13 @@ default_virt_ram: 512
 # (NOTE: this does not change what virt_type is chosen by import)
 default_virt_type: xenpv
 
+# enable gPXE booting? Enabling this option will cause cobbler
+# to copy the undionly.kpxe file to the tftp root directory, 
+# and if a profile/system is configured to boot via gpxe it will 
+# chain load off pxelinux.0.
+# Default: 0
+enable_gpxe: 0
+
 # controls whether cobbler will add each new profile entry to the default
 # PXE boot menu.  This can be over-ridden on a per-profile
 # basis when adding/editing profiles with --enable-menu=0/1.  Users
