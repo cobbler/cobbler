@@ -13,7 +13,7 @@ Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://fedorahosted.org/cobbler
+Url: http://cobbler.github.com/
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git
@@ -299,7 +299,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: cobbler
-Requires: Django
+Requires: Django >= 1.1.2
 Requires: mod_wsgi
 Requires: mod_ssl
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
@@ -323,8 +323,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
-%dir /var/lib/cobbler/webui_sessions
-%attr(700,apache,root) /var/lib/cobbler/webui_sessions
+%dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
 /var/www/cobbler_webui_content/
 
 %changelog
@@ -1328,5 +1327,5 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 * Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
 - Upstream changes (see CHANGELOG)
 
-* Tue Sep 15 2009 Michael DeHaan <mdehaan@redhat.com> - 2.0.0-1
+* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail> - 2.0.0-1
 - First release with unified spec files

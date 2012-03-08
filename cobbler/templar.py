@@ -3,8 +3,8 @@ Cobbler uses Cheetah templates for lots of stuff, but there's
 some additional magic around that to deal with snippets/etc.
 (And it's not spelled wrong!)
 
-Copyright 2008-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2008-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,6 +35,14 @@ import Cheetah
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = int(major) >= 2 and int(minor) >=4 and int(release) >= 2
 
+jinja2_available = False
+try: 
+    import jinja2
+    jinja2_available = True
+except:
+    """ FIXME: log a message here """
+    pass
+    
 try:
     import functools
 except:
@@ -70,7 +78,7 @@ class Templar:
                if rest not in self.settings.cheetah_import_whitelist:
                    raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input, search_table, out_path, subject=None):
+    def render(self, data_input, search_table, out_path, subject=None, template_type=None):
         """
         Render data_input back into a file.
         data_input is either a string or a filename
@@ -84,6 +92,69 @@ class Templar:
            raw_data = data_input.read()
         else:
            raw_data = data_input
+        lines = raw_data.split('\n')
+
+        if not template_type:
+            # Assume we're using the default template type, if set in
+            # the settinigs file or use cheetah as the last resort
+            if self.settings.default_template_type:
+                template_type = self.settings.default_template_type
+            else:
+                template_type = "cheetah"
+
+        if len(lines) > 0 and lines[0].find("#template=") == 0:
+            # pull the template type out of the first line and then drop 
+            # it and rejoin them to pass to the template language
+            template_type = lines[0].split("=")[1].strip().lower()
+            del lines[0]
+            raw_data = string.join(lines,"\n")
+
+        if template_type == "cheetah":
+            data_out = self.render_cheetah(raw_data, search_table, subject)
+        elif template_type == "jinja2":
+            if jinja2_available:
+                data_out = self.render_jinja2(raw_data, search_table, subject)
+            else:
+                return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
+        else:
+            return "# ERROR: UNSUPPORTED TEMPLATE TYPE (%s)" % str(template_type)
+
+        # now apply some magic post-filtering that is used by cobbler import and some
+        # other places.  Forcing folks to double escape things would be very unwelcome.
+        hp = search_table.get("http_port","80")
+        server = search_table.get("server","server.example.org")
+        if hp not in (80, '80'):
+            repstr = "%s:%s" % (server, hp)
+        else:
+            repstr = server
+        search_table["http_server"] = repstr
+
+        for x in search_table.keys():
+           if type(x) == str:
+               data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+
+        # remove leading newlines which apparently breaks AutoYAST ?
+        if data_out.startswith("\n"):
+            data_out = data_out.lstrip()
+
+        # if requested, write the data out to a file
+        if out_path is not None:
+            utils.mkdir(os.path.dirname(out_path))
+            fd = open(out_path, "w+")
+            fd.write(data_out)
+            fd.close()
+
+        return data_out
+
+    def render_cheetah(self, raw_data, search_table, subject=None):
+        """
+        Render data_input back into a file.
+        data_input is either a string or a filename
+        search_table is a hash of metadata keys and values
+        out_path if not-none writes the results to a file
+        (though results are always returned)
+        subject is a profile or system object, if available (for snippet eval)
+        """
 
         self.check_for_invalid_imports(raw_data)
 
@@ -142,30 +213,23 @@ class Templar:
                self.logger.error(utils.cheetah_exc(e))
                raise CX("Error templating file: %s" % out_path)
 
-        # now apply some magic post-filtering that is used by cobbler import and some
-        # other places, but doesn't use Cheetah.  Forcing folks to double escape
-        # things would be very unwelcome.
+        return data_out
 
-        hp = search_table.get("http_port","80")
-        server = search_table.get("server","server.example.org")
-        if hp not in (80, '80'):
-            repstr = "%s:%s" % (server, hp)
-        else:
-            repstr = server
-        search_table["http_server"] = repstr
 
-        for x in search_table.keys():
-           if type(x) == str:
-               data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
- 
-        # remove leading newlines which apparently breaks AutoYAST ?
-        if data_out.startswith("\n"):
-            data_out = data_out.lstrip()
+    def render_jinja2(self, raw_data, search_table, subject=None):
+        """
+        Render data_input back into a file.
+        data_input is either a string or a filename
+        search_table is a hash of metadata keys and values
+        out_path if not-none writes the results to a file
+        (though results are always returned)
+        subject is a profile or system object, if available (for snippet eval)
+        """
 
-        if out_path is not None:
-            utils.mkdir(os.path.dirname(out_path))
-            fd = open(out_path, "w+")
-            fd.write(data_out)
-            fd.close()
+        try:
+            template = jinja2.Template(raw_data)
+            data_out = template.render(search_table)
+        except:
+            data_out = "# EXCEPTION OCCURRED DURING JINJA2 TEMPLATE PROCESSING\n"
 
         return data_out

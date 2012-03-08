@@ -1,8 +1,14 @@
-Cobbler, Koan, and Cobbler-Web are written & maintained by:
+Cobbler was originally created by:
+    
+    Michael DeHaan <michael.dehaan@gmail.com>
 
-    Michael DeHaan <mdehaan@redhat.com>
+And is maintained by:
 
-Patches and other contributions from:
+    Michael DeHaan <michael.dehaan@gmail.com>
+    Scott Henson <sjh@foolishpride.org>
+    James Cammarata <jimi@sgnx.net>
+
+With patches and other contributions from (alphabetically, by last name):
 
     Partha Aji <paji@redhat.com>
     Anton Arapov <aarapov@redhat.com>
@@ -20,6 +26,7 @@ Patches and other contributions from:
     Carsten Clasohm <cclasohm@redhat.com>
     Ian Ward Comfort <icomfort@rescomp.stanford.edu>
     Rob Crittenden <rcritten@redhat.com>
+    Michael DeHaan <michael.dehaan@gmail.com>
     Scott Dodson <sdodson@redhat.com>
     Charles Duffy <Charles_Duffy@messageone.com>
     Máirín Duffy <duffy@redhat.com>
@@ -32,11 +39,12 @@ Patches and other contributions from:
     Peter Halliday <phalliday@excelsiorsystems.net>
     Niels Hasse <haase.niels@googlemail.com>
     Dave Hatton <dave@davehatton.it>
-    Scott Henson <shenson@redhat.com>
+    Scott Henson <sjh@foolishpride.org>
     Garrett Holmstrom <garett.holmstrom@gmail.com>
     Stephan Hauiser <stephan@huiser.nl>
     Tru Huynh <tru@pasteur.fr>
     Matt Hyclak <hyclak@math.ohiou.edu>
+    Kelsey Hightower <kelsey.hightower@gmail.com>
     Mihai Ibanescu <mihai.ibanescu@gmail.com>
     Shuichi Ihara <ihara@sun.com>
     Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
@@ -44,6 +52,7 @@ Patches and other contributions from:
     Henry Kemp <henrykemp@gmail.com>
     Ruben Kerkhof <ruben@rubenkerkhof.com>
     Don Khan <khan_don@emc.com>
+    Douglas Kilpatrick <dkilpatrick@verisign.com>
     Dominic LoBue <git.20.dlobue@neverbox.com>
     Gavin Romig-Koch <gavin@redhat.com>
     James Laska <jlaska@redhat.com>
@@ -51,6 +60,7 @@ Patches and other contributions from:
     Adrian Likins <alikins@redhat.com>
     David Lutterkort <dlutter@redhat.com>
     Lester M. <needwork@gmail.com>
+    Jorgen Maas <jorgen.maas@gmail.com>
     Bryan Mason <bjmason@redhat.com>
     Mike McCune <mmccune@redhat.com>
     Mark McLoughlin <markmc@redhat.com>
@@ -67,11 +77,13 @@ Patches and other contributions from:
     Ben Riggs <rigg0022@umn.edu>
     Jeremy Rosengren <jeremy@rosengren.org>
     Adam Rosenwald <thestrider@gmail.com>
+    Jonathan Sabo <jonathan.sabo@gmail.com>
     Christophe Sahut <csahut@nogoa.org>
     Satoru Satoh <ssato@redhat.com>
     Jeff Schroeder <jeffschroeder@computer.org>
     Scott Seago <sseago@redhat.com>
     Justin Sherill <jsherril@redhat.com>
+    Chuck Short <chuck.short@canonical.com>
     Anderson Silva <ansilva@redhat.com>
     Joe Smith <yasumoto7@gmail.com>
     Michael Stahnke <mastahnke@gmail.com>
@@ -85,10 +97,6 @@ Patches and other contributions from:
     Adam Wolf <adamwolf@feelslikeburning.com>
     Simon Woolsgrove <simon@woolsgrove.com>
     Todd Zullinger <tmz@pobox.com>
-    Kelsey Hightower <kelsey.hightower@gmail.com>
-    Chuck Short <chuck.short@canonical.com>
-    Jonathan Sabo <jonathan.sabo@gmail.com>
-    Douglas Kilpatrick <dkilpatrick@verisign.com>
 
     [...send patches to get your name here...]
 

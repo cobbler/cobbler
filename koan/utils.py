@@ -2,8 +2,8 @@
 koan = kickstart over a network
 general usage functions
 
-Copyright 2006-2008 Red Hat, Inc.
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2008 Red Hat, Inc and Others.
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -459,12 +459,20 @@ def create_xendomains_symlink(name):
     """
     src = "/etc/xen/%s" % name
     dst = "/etc/xen/auto/%s" % name
+    
+    # Make sure symlink does not already exist.
+    if os.path.exists(dst):
+        raise InfoException("Could not create %s symlink. File already exists in this location." % dst)
+
+    # Verify that the destination is writable
+    if not os.access(os.path.dirname(dst), os.W_OK):
+        raise InfoException("Could not create %s symlink. Please check write permissions and ownership." % dst)
 
     # check that xen config file exists and create symlink
-    if os.path.exists(src) and os.access(os.path.dirname(dst), os.W_OK):
+    if os.path.exists(src):
         os.symlink(src, dst)
     else:
-        raise InfoException("Could not create /etc/xen/auto/%s symlink.  Please check write permissions and ownership" % name)
+        raise InfoException("Could not create %s symlink. Source file %s is missing." % (dst, src))
 
 def libvirt_enable_autostart(domain_name):
    import libvirt

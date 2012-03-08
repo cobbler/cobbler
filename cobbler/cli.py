@@ -1,8 +1,8 @@
 """
 Command line interface for cobbler.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -179,7 +179,8 @@ class BootCLI:
         try:
             s.ping()
         except:
-            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler"
+            print >> sys.stderr, "httpd does not appear to be running and proxying cobbler, or SELinux is in the way. Original traceback:"
+            traceback.print_exc()
             sys.exit(411)
 
         if not os.path.exists("/var/lib/cobbler/web.ss"):
@@ -278,7 +279,12 @@ class BootCLI:
             if opt(options, "name") == "":
                 print "--name is required"
                 sys.exit(1)
-            self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+            try:
+                self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+            except xmlrpclib.Fault, (err):
+                (etype, emsg) = err.faultString.split(":",1)
+                print emsg[1:-1] # don't print the wrapping quotes
+                sys.exit(1)
         elif object_action == "getks":
             if object_type == "profile":
                 data = self.remote.generate_kickstart(options.name,"")

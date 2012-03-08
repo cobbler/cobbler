@@ -2,8 +2,8 @@
 Builds bootable CD images that have PXE-equivalent behavior
 for all Cobbler distros/profiles/systems currently in memory.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

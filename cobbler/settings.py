@@ -1,8 +1,8 @@
 """
 Cobbler app-wide settings
 
-Copyright 2006-2008, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2008, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ DEFAULTS = {
     "default_name_servers"        : [],
     "default_name_servers_search" : [],
     "default_password_crypted"    : "\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.",
+    "default_template_type"       : "cheetah",
     "default_virt_bridge"         : "xenbr0",
     "default_virt_type"           : "auto",
     "default_virt_file_size"      : "5",
@@ -103,6 +104,7 @@ DEFAULTS = {
     "scm_track_enabled"           : 0,
     "scm_track_mode"              : "git",
     "server"                      : "127.0.0.1",
+    "client_use_localhost"        : "",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
     "template_remote_kickstarts"  : 0,
     "virt_auto_boot"              : 0,

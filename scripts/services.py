@@ -2,7 +2,7 @@
 This module is a mod_wsgi application used to serve up the Cobbler 
 service URLs.
 
-Copyright 2010, Red Hat, Inc
+Copyright 2010, Red Hat, Inc and Others
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -56,6 +56,10 @@ def application(environ, start_response):
     # kssendmac kernel option. The field will appear here as something 
     # like: eth0 XX:XX:XX:XX:XX:XX
     form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
+
+    # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume
+    # it's always present in this context.
+    form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
 
     # Read config for the XMLRPC port to connect to:
     fd = open("/etc/cobbler/settings")

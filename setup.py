@@ -1,13 +1,18 @@
 #!/usr/bin/env python
-import glob, os, time, yaml
-from distutils.core import setup
+import glob, os, sys, time, yaml
+from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
+import unittest
 
 try:
     import subprocess
 except:
     import cobbler.sub_process as subprocess
 
+try:
+    import coverage
+except:
+    converage = None
 
 VERSION = "2.3.1"
 OUTPUT_DIR = "config"
@@ -107,6 +112,46 @@ class build_py(_build_py):
         gen_build_version()
         _build_py.run(self)
 
+#####################################################################
+## Test Command #####################################################
+#####################################################################
+
+class test_command(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        testfiles = []
+        testdirs = ["koan"]
+
+        for d in testdirs:
+            testdir = os.path.join(os.getcwd(), "tests", d)
+
+            for t in glob.glob(os.path.join(testdir, '*.py')):
+                if t.endswith('__init__.py'):
+                    continue
+                testfile = '.'.join(['tests', d,
+                                     os.path.splitext(os.path.basename(t))[0]])
+                testfiles.append(testfile)
+
+        tests = unittest.TestLoader().loadTestsFromNames(testfiles)
+        runner = unittest.TextTestRunner(verbosity = 1)
+
+        if coverage:
+            coverage.erase()
+            coverage.start()
+
+        result = runner.run(tests)
+
+        if coverage:
+            coverage.stop()
+        sys.exit(int(bool(len(result.failures) > 0 or
+                          len(result.errors) > 0)))
+
 
 #####################################################################
 ## Actual Setup.py Script ###########################################
@@ -136,14 +181,14 @@ if __name__ == "__main__":
 
 
     setup(
-        cmdclass={'build_py': build_py},
+        cmdclass={'build_py': build_py, 'test': test_command},
         name = "cobbler",
         version = VERSION,
         description = "Network Boot and Update Server",
         long_description = "Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
         author = "Team Cobbler",
         author_email = "cobbler@lists.fedorahosted.org",
-        url = "http://fedorahosted.org/cobbler/",
+        url = "http://cobbler.github.com/",
         license = "GPLv2+",
         requires = [
             "mod_python",

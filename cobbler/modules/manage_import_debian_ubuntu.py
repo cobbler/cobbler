@@ -1,8 +1,8 @@
 """
 This is some of the code behind 'cobbler sync'.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 John Eckersberg <jeckersb@redhat.com>
 
 This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,14 @@ import item_repo
 import item_system
 
 from utils import _
+
+# Import aptsources module if available to obtain repo mirror.
+try:
+    from aptsources import distro
+    from aptsources import sourceslist
+    apt_available = True
+except:
+    apt_available = False
 
 def register():
    """
@@ -156,7 +164,7 @@ class ImportDebianUbuntuManager:
 
     # required function for import modules
     def get_valid_arches(self):
-        return ["i386", "ppc", "x86_64", "x86",]
+        return ["i386", "ppc", "x86_64", "x86", "arm",]
 
     # required function for import modules
     def get_valid_breeds(self):
@@ -227,12 +235,28 @@ class ImportDebianUbuntuManager:
                 self.logger.info("descent into %s" % top)
                 dists_path = os.path.join(self.path, "dists")
                 if not os.path.isdir(dists_path):
-                    self.process_repos()
+                    self.process_repos(self, distro)
             else:
                 self.logger.info("this distro isn't mirrored")
 
-    def process_repos(self):
-        pass
+    def get_repo_mirror_from_apt(self):
+        """
+        This tries to determine the apt mirror/archive to use (when processing repos)
+        if the host machine is Debian or Ubuntu.
+        """
+        try:
+            sources = sourceslist.SourcesList()
+            release = distro.get_distro()
+            release.get_sources(sources)
+            mirrors = release.get_server_list()
+            for mirror in mirrors:
+                if mirror[2] == True:
+                    mirror = mirror[1]
+                    break
+        except:
+            return False
+
+        return mirror
 
     def distro_adder(self,distros_added,dirname,fnames):
         """
@@ -257,9 +281,9 @@ class ImportDebianUbuntuManager:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") ) and x != "initrd.size":
+            if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") or x.startswith("vmkboot.gz") or x.startswith("uInitrd") ) and x != "initrd.size":
                 initrd = os.path.join(dirname,x)
-            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") ) and x.find("initrd") == -1:
+            if ( x.startswith("vmlinu") or x.startswith("kernel.img") or x.startswith("linux") or x.startswith("mboot.c32") or x.startswith("uImage") ) and x.find("initrd") == -1:
                 kernel = os.path.join(dirname,x)
 
             # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
@@ -411,7 +435,7 @@ class ImportDebianUbuntuManager:
         name = name.replace("chrp","ppc64")
 
         for separator in [ '-' , '_'  , '.' ] :
-            for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd" ]:
+            for arch in [ "i386" , "x86_64" , "ia64" , "ppc64", "ppc32", "ppc", "x86" , "s390x", "s390" , "386" , "amd", "arm" ]:
                 name = name.replace("%s%s" % ( separator , arch ),"")
 
         return name
@@ -643,6 +667,16 @@ class ImportDebianUbuntuManager:
         #
         # NOTE : We cannot use ks_meta nor os_version because they get fixed at a later stage
 
+        # Obtain repo mirror from APT if available
+        mirror = False
+        if apt_available:
+            # Example returned URL: http://us.archive.ubuntu.com/ubuntu
+            mirror = self.get_repo_mirror_from_apt()
+            if mirror:
+                mirror = mirror + "/dists"
+        if not mirror:
+            mirror = "http://archive.ubuntu.com/ubuntu/dists/"
+
         repo = item_repo.Repo(main_importer.config)
         repo.set_breed( "apt" )
         repo.set_arch( distro.arch )
@@ -651,8 +685,12 @@ class ImportDebianUbuntuManager:
         repo.yumopts["--verbose"] = None
         repo.set_name( distro.name )
         repo.set_os_version( distro.os_version )
-        # NOTE : The location of the mirror should come from timezone
-        repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , '@@suite@@' ) )
+
+        if distro.breed == "ubuntu":
+            repo.set_mirror( "%s/%s" % (mirror, distro.os_version) )
+        else:
+            # NOTE : The location of the mirror should come from timezone
+            repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , distro.os_version ) )
 
         security_repo = item_repo.Repo(main_importer.config)
         security_repo.set_breed( "apt" )
@@ -663,7 +701,10 @@ class ImportDebianUbuntuManager:
         security_repo.set_name( distro.name + "-security" )
         security_repo.set_os_version( distro.os_version )
         # There are no official mirrors for security updates
-        security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % '@@suite@@' )
+        if distro.breed == "ubuntu":
+            security_repo.set_mirror( "%s/%s-security" % (mirror, distro.os_version) )
+        else:
+            security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % distro.os_version )
 
         self.logger.info("Added repos for %s" % distro.name)
         repos  = main_importer.config.repos()

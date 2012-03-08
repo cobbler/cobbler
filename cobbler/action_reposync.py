@@ -2,8 +2,8 @@
 Builds out and synchronizes yum repo mirrors.
 Initial support for rsync, perhaps reposync coming later.
 
-Copyright 2006-2007, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2007, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -221,7 +221,7 @@ class RepoSync:
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "rsync -rltDv %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
+        cmd = "rsync -rltDv --copy-unsafe-links --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc !=0:
@@ -446,7 +446,11 @@ class RepoSync:
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
          
         if repo.mirror_locally:
-            mirror = repo.mirror.replace("@@suite@@",repo.os_version)
+            # NOTE: Dropping @@suite@@ replace as it is also dropped from
+            # from manage_import_debian_ubuntu.py due that repo has no os_version
+            # attribute. If it is added again it will break the Web UI!
+            #mirror = repo.mirror.replace("@@suite@@",repo.os_version)
+            mirror = repo.mirror
 
             idx = mirror.find("://")
             method = mirror[:idx]
@@ -481,6 +485,11 @@ class RepoSync:
                    arch = "amd64" # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
                     
+            # Set's an environment variable for subprocess, otherwise debmirror will fail
+            # as it needs this variable to exist.
+            # FIXME: might this break anything? So far it doesn't
+            os.putenv("HOME", "/var/lib/cobbler")
+
             rc = utils.subprocess_call(self.logger, cmd)
             if rc !=0:
                 utils.die(self.logger,"cobbler reposync failed")

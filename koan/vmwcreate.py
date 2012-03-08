@@ -1,8 +1,8 @@
 """
 Virtualization installation functions.  
 
-Copyright 2007-2008 Red Hat, Inc.
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2007-2008 Red Hat, Inc and Others.
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,14 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-import os, sys, time, stat
-import tempfile
+import os
 import random
-from optparse import OptionParser
 import exceptions
-import errno
-import re
-import virtinst
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"

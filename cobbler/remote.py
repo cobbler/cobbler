@@ -1,8 +1,8 @@
 """
 Code for Cobbler's XMLRPC API
 
-Copyright 2007-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2007-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
  
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -868,6 +868,8 @@ class CobblerXMLRPCInterface:
 
         if edit_type == "add":
             is_subobject = object_type == "profile" and "parent" in attributes
+            if object_type == "system" and "profile" not in attributes:
+                raise CX("--profile is required for new systems")
             handle = self.new_item(object_type, token, is_subobject=is_subobject)
         else:
             handle = self.get_item_handle(object_type, object_name)

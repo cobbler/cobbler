@@ -2,8 +2,8 @@
 A Cobbler Image.  Tracks a virtual or physical image, as opposed to a answer
 file (kickstart) led installation.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ from utils import _
 
 FIELDS = [
   ['name','',0,"Name",True,"",0,"str"],
-  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc"],"str"],
+  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc", "arm"],"str"],
   ['breed','redhat',0,"Breed",True,"",codes.VALID_OS_BREEDS,"str"],
   ['comment','',0,"Comment",True,"Free form text description",0,"str"],
   ['ctime',0,0,"",False,"",0,"float"],
@@ -87,7 +87,8 @@ class Image(item.Item):
         if kickstart is None or kickstart == "" or kickstart == "delete":
             self.kickstart = ""
             return True
-        if utils.find_kickstart(kickstart):
+        kickstart = utils.find_kickstart(kickstart)
+        if kickstart:
             self.kickstart = kickstart
             return True
         raise CX(_("kickstart not found for image"))

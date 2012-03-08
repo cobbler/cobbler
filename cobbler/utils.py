@@ -1,8 +1,8 @@
 """
 Misc heavy lifting functions for cobbler
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -432,12 +432,12 @@ def find_kickstart(url):
     """
     if url is None:
         return None
-    x = url.lower()
+    x = url.lower().lstrip()
     for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
-           if x.startswith("/") and not os.path.isfile(url):
+           if x.startswith("/") and not os.path.isfile(x):
                return None
-           return url
+           return x
     return None
 
 
@@ -1282,7 +1282,7 @@ def mkdir(path,mode=0755,logger=None):
        if not oe.errno == 17: # already exists (no constant for 17?)
            if logger is not None:
                log_exc(logger)
-           raise CX(_("Error creating") % path)
+           raise CX(_("Error creating %s") % path)
 
 def path_tail(apath, bpath):
     """
@@ -1310,9 +1310,9 @@ def set_arch(self,arch,repo=False):
        arch = "i386"
 
    if repo:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src", "arm" ]
    else:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "arm" ]
 
    if arch in valids:
        self.arch = arch
@@ -1963,6 +1963,7 @@ def get_power_types():
     power_template = re.compile(r'power_(.*).template')
     for x in glob.glob("/etc/cobbler/power/power_*.template"):
         power_types.append(power_template.search(x).group(1))
+    power_types.sort()
     return power_types
 
 def get_power(powertype=None):
@@ -2000,7 +2001,11 @@ def local_get_cobbler_api_url():
     except:
        traceback.print_exc()
        raise CX("/etc/cobbler/settings is not a valid YAML file")
-    return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+
+    if data.get("client_use_localhost", False):
+      return "http://%s:%s/cobbler_api" % ("127.0.0.1",data.get("http_port","80"))
+    else:
+      return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
 
 def get_ldap_template(ldaptype=None):
     """
@@ -2099,7 +2104,10 @@ def dhcpconf_location(api):
 
 def link_distro(settings, distro):
     # find the tree location
-    base = os.path.join(settings.webdir, "ks_mirror", distro.name)
+    base = find_distro_path(settings, distro)
+    if not base:
+        return
+
     dest_link = os.path.join(settings.webdir, "links", distro.name)
 
     # create the links directory only if we are mirroring because with
@@ -2112,6 +2120,12 @@ def link_distro(settings, distro):
             # this shouldn't happen but I've seen it ... debug ...
             print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
 
+def find_distro_path(settings, distro):
+    possible_dirs = glob.glob(settings.webdir+"/ks_mirror/*")
+    for dir in possible_dirs:
+        if os.path.dirname(distro.kernel).find(dir) != -1:
+            return os.path.join(settings.webdir, "ks_mirror", dir)
+    return None
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3

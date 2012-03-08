@@ -1,8 +1,8 @@
 """
 A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel options, possibly some Virt options, and some kickstart data.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -204,7 +204,8 @@ class Profile(item.Item):
         if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
-        if utils.find_kickstart(kickstart):
+        kickstart = utils.find_kickstart(kickstart)
+        if kickstart:
             self.kickstart = kickstart
             return True
         raise CX(_("kickstart not found: %s") % kickstart)

@@ -87,6 +87,15 @@ default_ownership:
 # this is not changed.
 default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 
+# the default template type to use in the absence of any
+# other detected template. If you do not specify the template 
+# with '#template=<template_type>' on the first line of your
+# templates/snippets, cobbler will assume try to use the
+# following template engine to parse the templates.
+#
+# Current valid values are: cheetah, jinja2
+default_template_type: "cheetah"
+
 # for libvirt based installs in koan, if no virt bridge
 # is specified, which bridge do we try?  For EL 4/5 hosts
 # this should be xenbr0, for all versions of Fedora, try
@@ -127,9 +136,9 @@ enable_menu: 1
 # to use func out of the box, which is a powerful way to script and control
 # remote machines.  
 # Func lives at http://fedorahosted.org/func
-# read more at https://fedorahosted.org/cobbler/wiki/FuncIntegration
+# read more at https://github.com/cobbler/cobbler/wiki/Func-integration
 # you will need to mirror Fedora/EPEL packages for this feature, so see
-# https://fedorahosted.org/cobbler/wiki/ManageYumRepos if you want cobbler
+# https://github.com/cobbler/cobbler/wiki/Manage-yum-repos if you want cobbler
 # to help you with this
 func_auto_setup: 0
 func_master: overlord.example.org
@@ -171,7 +180,7 @@ ldap_search_prefix: 'uid='
 # cobbler has a feature that allows for integration with config management
 # systems such as Puppet.  The following parameters work in conjunction with 
 # --mgmt-classes  and are described in furhter detail at:
-# https://fedorahosted.org/cobbler/wiki/UsingCobblerWithConfigManagementSystem
+# https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system
 mgmt_classes: []
 mgmt_parameters:
    from_cobbler: 1
@@ -218,7 +227,7 @@ manage_rsync: 0
 
 # if using BIND (named) for DNS management in /etc/cobbler/modules.conf
 # and manage_dns is enabled (above), this lists which zones are managed
-# See the Wiki (https://fedorahosted.org/cobbler/wiki/ManageDns) for more info
+# See the Wiki (https://github.com/cobbler/cobbler/wiki/Dns-management) for more info
 manage_forward_zones: []
 manage_reverse_zones: []
 
@@ -228,10 +237,10 @@ manage_reverse_zones: []
 next_server: 127.0.0.1
 
 # settings for power management features.  optional.
-# see https://fedorahosted.org/cobbler/wiki/PowerManagement to learn more
-# choices:
-#    bullpap wti apc apc_snmp ether-wake ipmilan
-#    drac ipmitool ilo rsa lpar bladecenter virsh
+# see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
+# choices (refer to codes.py):
+#    apc_snmp bladecenter bullpap drac ether_wake ilo integrity
+#    ipmilan ipmitool lpar rsa virsh wti
 power_management_default_type: 'ipmitool'
 
 # the commands used by the power management module are sourced
@@ -259,7 +268,7 @@ consoles: "/var/consoles"
 #   "off"    : I'm not using Red Hat Network, Satellite, or Spacewalk
 #   "hosted" : I'm using Red Hat Network
 #   "site"   : I'm using Red Hat Satellite Server or Spacewalk
-# You will also want to read: https://fedorahosted.org/cobbler/wiki/TipsForRhn
+# You will also want to read: https://github.com/cobbler/cobbler/wiki/Tips-for-RHN
 redhat_management_type: "off"
 
 # if redhat_management_type is enabled, choose your server
@@ -338,6 +347,12 @@ scm_track_mode: "git"
 # (dual homed, etc), you need to read the --server-override section
 # of the manpage for how that works.
 server: 127.0.0.1
+
+# If set to 1, all commands will be forced to use the localhost address
+# instead of using the above value which can force commands like
+# cobbler sync to open a connection to a remote address if one is in the
+# configuration and would traceback.
+client_use_localhost: 0
 
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing

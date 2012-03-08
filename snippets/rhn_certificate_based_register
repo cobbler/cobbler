@@ -1,0 +1,12 @@
+# begin Red Hat Network certificate-based server registration
+#if $redhat_management_type == "cert" and $redhat_register_user != "" and $redhat_register_password != ""
+# Subscribe (register) the system
+subscription-manager register --autosubscribe --username=$redhat_register_user --password=$redhat_register_password
+# Add what used to be called channels
+yum -y install yum-utils
+yum-config-manager --enable  rhel-6-server-optional-rpms
+yum-config-manager --enable  rhel-6-server-supplementary
+#else
+# not configured to use Certificate-based RHN (ok)
+#end if
+# end Red Hat Network certificate-based server registration

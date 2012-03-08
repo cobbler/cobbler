@@ -2,8 +2,8 @@
 A cobbler distribution.  A distribution is a kernel, and initrd, and potentially
 some kernel options.
 
-Copyright 2006-2009, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others
+Michael DeHaan <michael.dehaan AT gmail>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ FIELDS = [
    [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
    [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
    [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0,"dict"],
-   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390'],"str"],
+   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','s390', 'arm'],"str"],
    [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",codes.VALID_OS_BREEDS,"str"],
    [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",codes.get_all_os_versions(),"str"],
    [ "source_repos",[],0,"Source Repos", False,"",0,"list"],
