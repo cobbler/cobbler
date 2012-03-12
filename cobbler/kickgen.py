@@ -175,6 +175,9 @@ class KickGen:
             # see if this is a source_repo or not
             repo_obj = self.api.find_repo(repo)
             if repo_obj is not None:
+                yumopts=''
+                for opt in repo_obj.yumopts:
+                    yumopts = yumopts + " %s=%s" % (opt,repo_obj.yumopts[opt])
                 if not repo_obj.yumopts.has_key('enabled') or repo_obj.yumopts['enabled'] == '1':
                    if repo_obj.mirror_locally:
                        baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
@@ -183,7 +186,7 @@ class KickGen:
                        included[baseurl] = 1
                    else:
                        if not included.has_key(repo_obj.mirror):
-                           buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, repo_obj.mirror)
+                           buf = buf + "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
                        included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
