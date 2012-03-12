@@ -468,7 +468,8 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
             f.close()
             return data
         except:
-            log_exc(logger)
+            if logger:
+                log_exc(logger)
             raise
 
     # Remote files:
