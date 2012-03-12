@@ -35,6 +35,7 @@ DEFAULTS = {
     "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
+    "bind_master"                 : "1.1.1.1",
     "build_reporting_enabled"     : 0,
     "build_reporting_to_address"  : "",
     "build_reporting_sender"      : "",
@@ -75,6 +76,7 @@ DEFAULTS = {
         "ksdevice"                : "eth0"
     },
     "kernel_options_s390x"        : {},
+    "manage_bind_chroot"          : 0,
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
     "manage_tftp"                 : 1,
