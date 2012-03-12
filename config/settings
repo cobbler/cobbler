@@ -218,6 +218,13 @@ manage_dhcp: 0
 # the choice of DNS mangement engine is in /etc/cobbler/modules.conf
 manage_dns: 0
 
+# set to 1 to create bind-chroot compatible bind configuration files
+manage_bind_chroot: 0
+
+# set to the ip address of the master bind DNS server for creating secondary
+# bind configuration files
+bind_master: 1.1.1.1
+
 # set to 1 to enable Cobbler's TFTP management features.
 # the choice of TFTP mangement engine is in /etc/cobbler/modules.conf
 manage_tftpd: 1
