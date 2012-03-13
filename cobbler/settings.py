@@ -35,7 +35,7 @@ DEFAULTS = {
     "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
-    "bind_master"                 : "1.1.1.1",
+    "bind_master"                 : "127.0.0.1",
     "build_reporting_enabled"     : 0,
     "build_reporting_to_address"  : "",
     "build_reporting_sender"      : "",
