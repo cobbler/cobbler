@@ -25,6 +25,7 @@ from utils import _
 
 import os.path
 import glob
+import re
 import sys
 
 TESTMODE = False
@@ -130,27 +131,29 @@ if os.path.exists("/srv/www/"):
 # Autodetect bind chroot configuration
 # RHEL/Fedora
 if os.path.exists("/etc/sysconfig/named"):
-    bind_config_file = "/etc/sysconfig/named"
+    bind_config_filename = "/etc/sysconfig/named"
 # Debian
-else
+else:
     bind_config_files = glob.glob("/etc/default/bind*")
-    for filename in bind_config_files:
+    for filename in bind_config_filename:
         if os.path.exists(filename):
-            bind_config_file = filename
+            bind_config_filename = filename
 # Parse the config file
-if bind_config_file:
+if bind_config_filename:
     bind_config = {}
+    bind_config_file = open(bind_config_filename,"r")
     for line in bind_config_file:
         if re.match("[a-zA-Z]+=", line):
             (name, value) = line.split("=")
             bind_config[name] = value.strip('"')
     # RHEL, SysV Fedora
-    if bind_config["ROOTDIR"]:
+    if "ROOTDIR" in bind_config:
         DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
-      
     # Debian, Systemd Fedora
-    if rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"]):
-        DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
+    if "OPTIONS" in bind_config:
+        rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"])
+        if rootdirmatch is not None:
+            DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
 class Settings:
 
