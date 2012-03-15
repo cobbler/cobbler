@@ -144,7 +144,7 @@ if bind_config_filename:
     bind_config_file = open(bind_config_filename,"r")
     for line in bind_config_file:
         if re.match("[a-zA-Z]+=", line):
-            (name, value) = line.split("=")
+            (name, value) = line.rstrip().split("=")
             bind_config[name] = value.strip('"')
     # RHEL, SysV Fedora
     if "ROOTDIR" in bind_config:
