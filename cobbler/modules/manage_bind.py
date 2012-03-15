@@ -180,10 +180,7 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        if self.settings.bind_chroot_path:
-            settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
-        else:
-            settings_file = "/etc/named.conf"
+        settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
         template_file = "/etc/cobbler/named.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
@@ -230,10 +227,7 @@ zone "%(arpa)s." {
         """
         Write out the secondary.conf secondary config file from the template.
         """
-        if self.settings.bind_chroot_path:
-            settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
-        else:
-            settings_file = "/etc/secondary.conf"
+        settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
         template_file = "/etc/cobbler/secondary.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
@@ -333,10 +327,7 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
-        if self.settings.bind_chroot_path:
-            zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
-        else:
-            zonefileprefix = '/var/named/'
+        zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
 
         for (zone, hosts) in forward.iteritems():
             metadata = {
