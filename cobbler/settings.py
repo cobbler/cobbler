@@ -24,6 +24,8 @@ import utils
 from utils import _
 
 import os.path
+import glob
+import sys
 
 TESTMODE = False
 
@@ -35,6 +37,7 @@ DEFAULTS = {
     "allow_duplicate_hostnames"   : 0,
     "allow_duplicate_macs"        : 0,
     "allow_duplicate_ips"         : 0,
+    "bind_chroot_path"            : "", 
     "bind_master"                 : "127.0.0.1",
     "build_reporting_enabled"     : 0,
     "build_reporting_to_address"  : "",
@@ -76,7 +79,6 @@ DEFAULTS = {
         "ksdevice"                : "eth0"
     },
     "kernel_options_s390x"        : {},
-    "manage_bind_chroot"          : 0,
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
     "manage_tftp"                 : 1,
@@ -124,6 +126,31 @@ DEFAULTS = {
 
 if os.path.exists("/srv/www/"):
     DEFAULTS["webdir"] = "/srv/www/cobbler"
+
+# Autodetect bind chroot configuration
+# RHEL/Fedora
+if os.path.exists("/etc/sysconfig/named"):
+    bind_config_file = "/etc/sysconfig/named"
+# Debian
+else
+    bind_config_files = glob.glob("/etc/default/bind*")
+    for filename in bind_config_files:
+        if os.path.exists(filename):
+            bind_config_file = filename
+# Parse teh config file
+if bind_config_file:
+    bind_config = {}
+    for line in bind_config_file:
+        if re.match("[a-zA-Z]+=", line):
+            (name, value) = line.split("=")
+            bind_config[name] = value.strip('"')
+    # RHEL, SysV Fedora
+    if bind_config["ROOTDIR"]:
+        DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
+      
+    # Debian, Systemd Fedora
+    if rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"]):
+        DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
 class Settings:
 
