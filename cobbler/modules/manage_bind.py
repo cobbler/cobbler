@@ -180,8 +180,8 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        if self.settings.manage_bind_chroot:
-            settings_file = "/var/named/chroot/etc/named.conf"
+        if self.settings.bind_chroot_path:
+            settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
         else:
             settings_file = "/etc/named.conf"
         template_file = "/etc/cobbler/named.template"
@@ -230,8 +230,8 @@ zone "%(arpa)s." {
         """
         Write out the secondary.conf secondary config file from the template.
         """
-        if self.settings.manage_bind_chroot:
-            settings_file = "/var/named/chroot/etc/secondary.conf"
+        if self.settings.bind_chroot_path:
+            settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
         else:
             settings_file = "/etc/secondary.conf"
         template_file = "/etc/cobbler/secondary.template"
@@ -333,8 +333,8 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
-        if self.settings.manage_bind_chroot:
-            zonefileprefix = '/var/named/chroot/var/named/'
+        if self.settings.bind_chroot_path:
+            zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
         else:
             zonefileprefix = '/var/named/'
 
