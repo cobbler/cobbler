@@ -137,7 +137,7 @@ else
     for filename in bind_config_files:
         if os.path.exists(filename):
             bind_config_file = filename
-# Parse teh config file
+# Parse the config file
 if bind_config_file:
     bind_config = {}
     for line in bind_config_file:
