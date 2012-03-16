@@ -180,7 +180,7 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        settings_file = "/etc/named.conf"
+        settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
         template_file = "/etc/cobbler/named.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
@@ -209,6 +209,59 @@ zone "%(arpa)s." {
     file "%(zone)s";
 };
 """ % {'arpa': arpa, 'zone': zone}
+                metadata['zone_include'] = metadata['zone_include'] + txt
+
+        try:
+            f2 = open(template_file,"r")
+        except:
+            raise CX(_("error reading template from file: %s") % template_file)
+        template_data = ""
+        template_data = f2.read()
+        f2.close()
+
+        if self.logger is not None:
+            self.logger.info("generating %s" % settings_file)
+        self.templar.render(template_data, metadata, settings_file, None)
+
+    def __write_secondary_conf(self):
+        """
+        Write out the secondary.conf secondary config file from the template.
+        """
+        settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
+        template_file = "/etc/cobbler/secondary.template"
+        forward_zones = self.settings.manage_forward_zones
+        reverse_zones = self.settings.manage_reverse_zones
+
+        metadata = {'forward_zones': self.__forward_zones().keys(),
+                    'reverse_zones': [],
+                    'zone_include': ''}
+
+        for zone in metadata['forward_zones']:
+                txt =  """
+zone "%(zone)s." {
+    type slave;
+    masters {
+        %(master)s;
+    }; 
+    file "data/%(zone)s";
+};
+""" % {'zone': zone, 'master': self.settings.bind_master}
+                metadata['zone_include'] = metadata['zone_include'] + txt
+
+        for zone in self.__reverse_zones().keys():
+                tokens = zone.split('.')
+                tokens.reverse()
+                arpa = '.'.join(tokens) + '.in-addr.arpa'
+                metadata['reverse_zones'].append((zone, arpa))
+                txt = """
+zone "%(arpa)s." {
+    type slave;
+    masters {
+        %(master)s;
+    }; 
+    file "data/%(zone)s";
+};
+""" % {'arpa': arpa, 'zone': zone, 'master': self.settings.bind_master}
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
         try:
@@ -274,6 +327,8 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
+        zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
+
         for (zone, hosts) in forward.iteritems():
             metadata = {
                 'cobbler_server': cobbler_server,
@@ -291,7 +346,7 @@ zone "%(arpa)s." {
 
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
 
-            zonefilename='/var/named/' + zone
+            zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (forward) %s" % zonefilename)
             self.templar.render(template_data, metadata, zonefilename, None)
@@ -313,7 +368,7 @@ zone "%(arpa)s." {
 
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
 
-            zonefilename='/var/named/' + zone
+            zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (reverse) %s" % zonefilename)
             self.templar.render(template_data, metadata, zonefilename, None)
@@ -326,6 +381,7 @@ zone "%(arpa)s." {
         """
 
         self.__write_named_conf()
+        self.__write_secondary_conf()
         self.__write_zone_files()
 
 def get_manager(config,logger):
