@@ -39,7 +39,7 @@ import item_mgmtclass
 import item_package
 import item_file
 
-OBJECT_ACTIONS   = {
+OBJECT_ACTIONS_MAP   = {
    "distro"    : "add copy edit find list remove rename report".split(" "),
    "profile"   : "add copy dumpvars edit find getks list remove rename report".split(" "),
    "system"    : "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
@@ -49,7 +49,11 @@ OBJECT_ACTIONS   = {
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
 } 
-OBJECT_TYPES = OBJECT_ACTIONS.keys()
+OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
+# would like to use from_iterable here, but have to support python 2.4
+OBJECT_ACTIONS = []
+for actions in OBJECT_ACTIONS_MAP.values():
+   OBJECT_ACTIONS += actions
 DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version".split()
 
 ####################################################
@@ -142,7 +146,7 @@ class BootCLI:
         """
         if object_type is None or len(args) < 3:
             return None
-        if args[2] in OBJECT_ACTIONS[object_type]:
+        if args[2] in OBJECT_ACTIONS_MAP[object_type]:
             return args[2]
         return None
 
@@ -275,38 +279,8 @@ class BootCLI:
             self.parser.add_option("--name", dest="name", help="name of object")
         (options, args) = self.parser.parse_args()
 
-        if object_action in [ "add", "edit", "copy", "rename", "remove", "reboot" ]:
-            if opt(options, "name") == "":
-                print "--name is required"
-                sys.exit(1)
-            try:
-                self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
-            except xmlrpclib.Fault, (err):
-                (etype, emsg) = err.faultString.split(":",1)
-                print emsg[1:-1] # don't print the wrapping quotes
-                sys.exit(1)
-        elif object_action == "getks":
-            if object_type == "profile":
-                data = self.remote.generate_kickstart(options.name,"")
-            elif object_type == "system":
-                data = self.remote.generate_kickstart("",options.name)
-            print data
-        elif object_action == "dumpvars":
-            if object_type == "profile":
-                data = self.remote.get_blended_data(options.name,"")
-            elif object_type == "system":
-                data = self.remote.get_blended_data("",options.name)
-            # FIXME: pretty-printing and sorting here
-            keys = data.keys()
-            keys.sort()
-            for x in keys:
-               print "%s : %s" % (x, data[x])
-        elif object_action in [ "poweron", "poweroff", "powerstatus", "reboot" ]:
-            power={}
-            power["power"] = object_action.replace("power","")
-            power["systems"] = [options.name]
-            task_id = self.remote.background_power_system(power, self.token)
-        elif object_action == "report":
+        # the first three don't require a name
+        if object_action == "report":
             if options.name is not None:
                 report_item(self.remote,object_type,None,options.name)
             else:
@@ -317,6 +291,40 @@ class BootCLI:
             items = self.remote.find_items(object_type, utils.strip_none(vars(options), omit_none=True), "name", False)
             for item in items:
                 print item
+        elif object_action in OBJECT_ACTIONS:
+            if opt(options, "name") == "":
+                print "--name is required"
+                sys.exit(1)
+            if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
+                try:
+                    self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+                except xmlrpclib.Fault, (err):
+                    (etype, emsg) = err.faultString.split(":",1)
+                    print emsg[1:-1] # don't print the wrapping quotes
+                    sys.exit(1)
+            elif object_action == "getks":
+                if object_type == "profile":
+                    data = self.remote.generate_kickstart(options.name,"")
+                elif object_type == "system":
+                    data = self.remote.generate_kickstart("",options.name)
+                print data
+            elif object_action == "dumpvars":
+                if object_type == "profile":
+                    data = self.remote.get_blended_data(options.name,"")
+                elif object_type == "system":
+                    data = self.remote.get_blended_data("",options.name)
+                # FIXME: pretty-printing and sorting here
+                keys = data.keys()
+                keys.sort()
+                for x in keys:
+                   print "%s : %s" % (x, data[x])
+            elif object_action in [ "poweron", "poweroff", "powerstatus", "reboot" ]:
+                power={}
+                power["power"] = object_action.replace("power","")
+                power["systems"] = [options.name]
+                task_id = self.remote.background_power_system(power, self.token)
+            else:
+                raise exceptions.NotImplementedError()
         else:
             raise exceptions.NotImplementedError() 
             
@@ -523,7 +531,7 @@ class BootCLI:
         """
         Prints the subcommands for a given object, e.g. "cobbler distro --help"
         """
-        commands = OBJECT_ACTIONS[object_type]
+        commands = OBJECT_ACTIONS_MAP[object_type]
         commands.sort()
         print "usage\n====="
         for c in commands:
