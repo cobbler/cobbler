@@ -134,8 +134,9 @@ if os.path.exists("/etc/sysconfig/named"):
     bind_config_filename = "/etc/sysconfig/named"
 # Debian
 else:
+    bind_config_filename = None
     bind_config_files = glob.glob("/etc/default/bind*")
-    for filename in bind_config_filename:
+    for filename in bind_config_files:
         if os.path.exists(filename):
             bind_config_filename = filename
 # Parse the config file
