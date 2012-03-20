@@ -141,19 +141,24 @@ else:
 # Parse the config file
 if bind_config_filename:
     bind_config = {}
-    bind_config_file = open(bind_config_filename,"r")
-    for line in bind_config_file:
-        if re.match("[a-zA-Z]+=", line):
-            (name, value) = line.rstrip().split("=")
-            bind_config[name] = value.strip('"')
-    # RHEL, SysV Fedora
-    if "ROOTDIR" in bind_config:
-        DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
-    # Debian, Systemd Fedora
-    if "OPTIONS" in bind_config:
-        rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"])
-        if rootdirmatch is not None:
-            DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
+    # When running as a webapp we can't access this, but don't need it
+    try:
+        bind_config_file = open(bind_config_filename,"r")
+    except (IOError, OSError):
+        pass
+    else:
+        for line in bind_config_file:
+            if re.match("[a-zA-Z]+=", line):
+                (name, value) = line.rstrip().split("=")
+                bind_config[name] = value.strip('"')
+        # RHEL, SysV Fedora
+        if "ROOTDIR" in bind_config:
+            DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
+        # Debian, Systemd Fedora
+        if "OPTIONS" in bind_config:
+            rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"])
+            if rootdirmatch is not None:
+                DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
 class Settings:
 
