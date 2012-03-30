@@ -432,8 +432,11 @@ def find_kickstart(url):
     """
     if url is None:
         return None
-    x = url.lower().lstrip()
+    x = url.lstrip()
     for y in ["http://", "nfs://", "ftp://", "/"]:
+       # make sure we get a lower-case protocol without 
+       # affecting the rest of the string
+       x = re.sub(r"(?i)%s" % y, y, x, count=1)
        if x.startswith(y):
            if x.startswith("/") and not os.path.isfile(x):
                return None
