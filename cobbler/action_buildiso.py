@@ -485,7 +485,7 @@ class BuildIso:
         return
 
 
-    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
+    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None,mkisofs_opts=None):
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
@@ -559,8 +559,13 @@ class BuildIso:
         else:
             self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns)
 
+        if mkisofs_opts == None:
+            mkisofs_opts = ""
+        else:
+            mkisofs_opts = mkisofs_opts.strip()
+
         # removed --quiet
-        cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
+        cmd = "mkisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso,mkisofs_opts)
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
         cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
 
