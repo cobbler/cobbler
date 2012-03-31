@@ -152,6 +152,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("standalone",False),
                 self.options.get("source",None),
                 self.options.get("exclude_dns",False),
+                self.options.get("mkisofs_opts",None),
                 self.logger
             )
         def on_done(self):
