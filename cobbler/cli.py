@@ -38,6 +38,7 @@ import item_image
 import item_mgmtclass
 import item_package
 import item_file
+import settings
 
 OBJECT_ACTIONS_MAP   = {
    "distro"    : "add copy edit find list remove rename report".split(" "),
@@ -48,6 +49,7 @@ OBJECT_ACTIONS_MAP   = {
    "mgmtclass" : "add copy edit find list remove rename report".split(" "),
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
+   "settings"  : "edit report".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
@@ -59,9 +61,13 @@ DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync v
 ####################################################
 
 def report_items(remote, otype):
-   items = remote.get_items(otype)
-   for x in items:
-      report_item(remote,otype,item=x)
+   if otype == "settings":
+       settings = remote.get_settings()
+       print settings
+   else:
+       items = remote.get_items(otype)
+       for x in items:
+           report_item(remote,otype,item=x)
 
 def report_item(remote,otype,item=None,name=None):
    if item is None:
@@ -263,6 +269,8 @@ class BootCLI:
             return item_package.FIELDS
         elif object_type == "file":
             return item_file.FIELDS
+        elif object_type == "settings":
+            return settings.FIELDS
 
     def object_command(self, object_type, object_action):
         """
@@ -297,10 +305,17 @@ class BootCLI:
                 sys.exit(1)
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
                 try:
-                    self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+                    if object_type == "settings":        
+                        if self.remote.modify_setting(options.name,options.value,self.token):
+                            raise RuntimeError("Changing the setting failed")
+                    else:
+                        self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
                 except xmlrpclib.Fault, (err):
                     (etype, emsg) = err.faultString.split(":",1)
                     print emsg[1:-1] # don't print the wrapping quotes
+                    sys.exit(1)
+                except RuntimeError, (err):
+                    print err.args[0]
                     sys.exit(1)
             elif object_action == "getks":
                 if object_type == "profile":
