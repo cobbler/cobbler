@@ -125,6 +125,11 @@ DEFAULTS = {
     "consoles"                     : "/var/consoles"
 }
 
+FIELDS = [
+   ["name","",0,"Name",True,"Ex: server",0,"str"],
+   ["value","",0,"Value",True,"Ex: 127.0.0.1",0,"str"],
+]
+
 if os.path.exists("/srv/www/"):
     DEFAULTS["webdir"] = "/srv/www/cobbler"
 
@@ -176,19 +181,22 @@ class Settings:
        """
        Reset this object to reasonable default values.
        """
-       self._attributes = DEFAULTS
+       self.__dict__ = DEFAULTS
+
+   def set(self,name,value):
+       return self.__setattr__(name,value)
 
    def printable(self):
        buf = ""
        buf = buf + _("defaults\n")
-       buf = buf + _("kernel options  : %s\n") % self._attributes['kernel_options']
+       buf = buf + _("kernel options  : %s\n") % self.__dict__['kernel_options']
        return buf
 
    def to_datastruct(self):
        """
        Return an easily serializable representation of the config.
        """
-       return self._attributes
+       return self.__dict__
 
    def from_datastruct(self,datastruct):
        """
@@ -198,23 +206,32 @@ class Settings:
           print _("warning: not loading empty structure for %s") % self.filename()
           return
   
-       self._attributes = DEFAULTS
-       self._attributes.update(datastruct)
+       self.__dict__ = DEFAULTS
+       self.__dict__.update(datastruct)
 
        return self
 
-   def __getattr__(self,name):
-       if self._attributes.has_key(name):
-           if name == "kernel_options":
-               # backwards compatibility -- convert possible string value to hash
-               (success, result) = utils.input_string_or_hash(self._attributes[name], " ",allow_multiples=False)
-               self._attributes[name] = result
-               return result
-           return self._attributes[name]
-       elif DEFAULTS.has_key(name):
-           lookup = DEFAULTS[name]
-           self._attributes[name] = lookup
-           return lookup
+   def __setattr__(self,name,value):
+       print "SETTING %s TO %s" % (name,value)
+       if self.__dict__.has_key(name):
+           # FIXME: validate type of field here (string, bool, list, hash, etc.)
+           self.__dict__[name] = value
+           return 0
        else:
            raise AttributeError, name
 
+   def __getattr__(self,name):
+       try:
+           if name == "kernel_options":
+               # backwards compatibility -- convert possible string value to hash
+               (success, result) = utils.input_string_or_hash(self.__dict__[name], " ",allow_multiples=False)
+               self.__dict__[name] = result
+               return result
+           return self.__dict__[name]
+       except:
+           if DEFAULTS.has_key(name):
+               lookup = DEFAULTS[name]
+               self.__dict__[name] = lookup
+               return lookup
+           else:
+               raise AttributeError, name

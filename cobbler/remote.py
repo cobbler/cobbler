@@ -836,6 +836,12 @@ class CobblerXMLRPCInterface:
         return self.modify_item("package",object_id,attribute,arg,token)
     def modify_file(self,object_id,attribute,arg,token):
         return self.modify_item("file",object_id,attribute,arg,token)
+    def modify_setting(self,setting_name,value,token):
+        try:
+            self.api.settings().set(setting_name, value)
+            return 0
+        except:
+            return 1
    
     def __is_interface_field(self,f):
         k = "*%s" % f
