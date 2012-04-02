@@ -216,6 +216,7 @@ class Settings:
        if self.__dict__.has_key(name):
            # FIXME: validate type of field here (string, bool, list, hash, etc.)
            self.__dict__[name] = value
+           utils.update_settings_file(name,value)
            return 0
        else:
            raise AttributeError, name

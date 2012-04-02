@@ -69,6 +69,11 @@ try:
 except ImportError:
     NETADDR_PRE_0_7 = False
 
+try:
+    import augeas
+except:
+    pass
+
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -590,6 +595,15 @@ def input_boolean(value):
        return True
     else:
        return False
+
+def update_settings_file(name,value):
+    if 1: #try:
+        a = augeas.Augeas()
+        a.set('/files/etc/cobbler/settings/%s' % name, value)
+        a.save()
+        return True
+    #except:
+    #    return False
 
 def grab_tree(api_handle, obj):
     """
