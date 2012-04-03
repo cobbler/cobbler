@@ -8,6 +8,10 @@ from views import *
 urlpatterns = patterns('',
     (r'^$', index),
 
+    (r'^setting/list$', setting_list),
+    (r'^setting/edit/(?P<setting_name>.+)$', setting_edit),
+    (r'^setting/save$', setting_save),
+
     (r'^ksfile/list(/(?P<page>\d+))?$', ksfile_list),
     (r'^ksfile/edit$', ksfile_edit, {'editmode':'new'}),
     (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', ksfile_edit, {'editmode':'edit'}),
@@ -30,7 +34,6 @@ urlpatterns = patterns('',
     (r'^(?P<what>\w+)/multi/(?P<multi_mode>.+)/(?P<multi_arg>.+)$', generic_domulti),
     (r'^utils/random_mac$', random_mac),
     (r'^utils/random_mac/virttype/(?P<virttype>.+)$', random_mac),
-    (r'^settings$', settings),
     (r'^events$', events),
     (r'^eventlog/(?P<event>.+)$', eventlog),
     (r'^task_created$', task_created),
