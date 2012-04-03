@@ -126,8 +126,8 @@ DEFAULTS = {
 }
 
 FIELDS = [
-   ["name","",0,"Name",True,"Ex: server",0,"str"],
-   ["value","",0,"Value",True,"Ex: 127.0.0.1",0,"str"],
+   ["name","","","Name",True,"Ex: server",0,"str"],
+   ["value","","","Value",True,"Ex: 127.0.0.1",0,"str"],
 ]
 
 if os.path.exists("/srv/www/"):

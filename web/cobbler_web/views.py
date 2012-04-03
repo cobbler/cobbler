@@ -41,6 +41,7 @@ import cobbler.item_image     as item_image
 import cobbler.item_mgmtclass as item_mgmtclass
 import cobbler.item_package   as item_package
 import cobbler.item_file      as item_file
+import cobbler.settings       as item_settings
 import cobbler.field_info     as field_info
 import cobbler.utils          as utils
 
@@ -123,6 +124,8 @@ def get_fields(what, is_subobject, seed_item=None):
         field_data = item_package.FIELDS
     if what == "file":
         field_data = item_file.FIELDS
+    if what == "setting":
+        field_data = item_settings.FIELDS
 
     settings = remote.get_settings()
 
@@ -149,12 +152,13 @@ def get_fields(what, is_subobject, seed_item=None):
             "html_element"            : "generic",
         }
 
-
         if not elem["editable"]:
             continue
 
         if seed_item is not None:
-            if row[0].startswith("*"):
+            if what == "setting":
+                elem["value"] = seed_item[row[0]]
+            elif row[0].startswith("*"):
                 # system interfaces are loaded by javascript, not this
                 elem["value"]             = ""
                 elem["name"]              = row[0].replace("*","")
@@ -798,26 +802,76 @@ def snippet_save(request):
 
 # ======================================================================
 
-def settings(request):
-   """
-   This page presents a list of all the settings to the user.  They are not editable.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/settings")
-   settings = remote.get_settings()
-   skeys = settings.keys()
-   skeys.sort()
+def setting_list(request):
+    """
+    This page presents a list of all the settings to the user.  They are not editable.
+    """
+    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list")
+    settings = remote.get_settings()
+    skeys = settings.keys()
+    skeys.sort()
 
-   results = []
-   for k in skeys:
-      results.append([k,settings[k]])
+    results = []
+    for k in skeys:
+        results.append([k,settings[k]])
 
-   t = get_template('settings.tmpl')
-   html = t.render(RequestContext(request,{
-        'settings' : results,
-        'version'  : remote.version(request.session['token']),
-        'username' : username,
-   }))
-   return HttpResponse(html)
+    t = get_template('settings.tmpl')
+    html = t.render(RequestContext(request,{
+         'settings' : results,
+         'version'  : remote.version(request.session['token']),
+         'username' : username,
+    }))
+    return HttpResponse(html)
+
+@csrf_protect
+def setting_edit(request, setting_name=None):
+    if not setting_name:
+        return HttpResponseRedirect('/cobbler_web/setting/list')
+    if not test_user_authenticated(request): return login(request, next="/cobbler_web/settings/edit/%s" % setting_name)
+
+    settings = remote.get_settings()
+    if not settings.has_key(setting_name):
+        return error_page(request,"Unknown setting: %s" % setting_name)
+
+    cur_setting = {
+        'name'  : setting_name,
+        'value' : settings[setting_name],
+    }
+
+    fields = get_fields('setting', False, seed_item=cur_setting)
+
+    t = get_template('generic_edit.tmpl')
+    html = t.render(RequestContext(request,{
+        'what'            : 'setting',
+        'fields'          : fields,
+        'subobject'       : False,
+        'editmode'        : 'edit',
+        'editable'        : True,
+        'version'         : remote.version(request.session['token']),
+        'username'        : username,
+        'name'            : setting_name,
+    }))
+    return HttpResponse(html)
+
+@csrf_protect
+def setting_save(request):
+    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list")
+
+    # load request fields and see if they are valid
+    setting_name = request.POST.get('name', "")
+    setting_value = request.POST.get('value', None)
+
+    if setting_name == "":
+        return error_page(request,"The setting name was not specified")
+
+    settings = remote.get_settings()
+    if not settings.has_key(setting_name):
+        return error_page(request,"Unknown setting: %s" % setting_name)
+
+    if remote.modify_setting(setting_name, setting_value, request.session['token']):
+        return error_page(request,"There was an error saving the setting")
+
+    return HttpResponseRedirect("/cobbler_web/setting/list")
 
 # ======================================================================
 
