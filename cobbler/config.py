@@ -260,10 +260,10 @@ class Config:
            self._packages,
            self._files,
            ]:
-           if 1:#try:
+           try:
                if not serializer.deserialize(item): raise ""
-           #except:
-           #    raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
+           except:
+               raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
        return True
 
    def deserialize_raw(self,collection_type):
