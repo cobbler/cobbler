@@ -1953,7 +1953,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
 
 
     # FIXME: not supported in 2.0?
-    if not object_action in ["dumpvars","find","remove","report","list"]: 
+    if not object_action in ["dumpvars","find","remove","report","list"] and object_type != "settings": 
         # FIXME: implement
         parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
