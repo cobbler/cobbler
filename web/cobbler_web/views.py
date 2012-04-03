@@ -827,7 +827,7 @@ def setting_list(request):
 def setting_edit(request, setting_name=None):
     if not setting_name:
         return HttpResponseRedirect('/cobbler_web/setting/list')
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/settings/edit/%s" % setting_name)
+    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/edit/%s" % setting_name)
 
     settings = remote.get_settings()
     if not settings.has_key(setting_name):
