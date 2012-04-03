@@ -597,13 +597,27 @@ def input_boolean(value):
        return False
 
 def update_settings_file(name,value):
-    if 1: #try:
+    try:
+        clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
         a = augeas.Augeas()
-        a.set('/files/etc/cobbler/settings/%s' % name, value)
+        if isinstance(value,list):
+            a.remove('/files/etc/cobbler/settings/%s/list' % name)
+            for item in value:
+                a.set('/files/etc/cobbler/settings/%s/list/value[last()+1]' % name, item)
+        elif isinstance(value,dict):
+            keys = value.keys()
+            keys.sort()
+            a.remove('/files/etc/cobbler/settings/%s/*' % name)
+            for key in keys:
+                if str(value[key]).strip() == "":
+                    value[key] = '~'
+                a.set('/files/etc/cobbler/settings/%s/%s' % (name,key), str(value[key]))
+        else:
+            a.set('/files/etc/cobbler/settings/%s' % name, value)
         a.save()
         return True
-    #except:
-    #    return False
+    except:
+        return False
 
 def grab_tree(api_handle, obj):
     """
