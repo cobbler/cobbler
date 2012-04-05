@@ -135,6 +135,10 @@ class ImportVMWareManager:
         # FIXME : search below self.path for isolinux configurations or known directories from TRY_LIST
         os.path.walk(self.path, self.distro_adder, distros_added)
 
+        if len(distros_added) == 0:
+            self.logger.warning("No distros imported, bailing out")
+            return False
+
         # find the most appropriate answer files for each profile object
 
         self.logger.info("associating kickstarts")
