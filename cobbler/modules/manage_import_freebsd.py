@@ -135,6 +135,10 @@ class ImportFreeBSDManager:
         # FIXME : search below self.path for isolinux configurations or known directories from TRY_LIST
         os.path.walk(self.path, self.distro_adder, distros_added)
 
+        if len(distros_added) == 0:
+            self.logger.warning("No distros imported, bailing out")
+            return False
+
         # find out if we can auto-create any repository records from the install tree
 
         if self.network_root is None:
