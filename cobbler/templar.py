@@ -50,20 +50,19 @@ except:
 
 class Templar:
 
-    def __init__(self,config=None,logger=None):
+    def __init__(self,config,logger=None):
         """
         Constructor
         """
 
+        self.config      = config
+        self.api         = config.api
+        self.settings    = config.settings()
+        self.last_errors = []
+
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
-
-        if config is not None:
-            self.config      = config
-            self.api         = config.api
-            self.settings    = config.settings()
-        self.last_errors = []
 
     def check_for_invalid_imports(self,data):
         """
