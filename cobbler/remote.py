@@ -87,7 +87,10 @@ class CobblerThread(Thread):
         time.sleep(1)
         try:
             rc = self._run(self)
-            self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
+            if not rc:
+                self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+            else:
+                self.remote._set_task_state(self,self.event_id,EVENT_COMPLETE)
             self.on_done()
             return rc
         except:
