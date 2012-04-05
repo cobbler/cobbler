@@ -1,0 +1,2 @@
+nvsetenv boot-device "$(cat /root/inst-sys/boot-device.bak)"
+
