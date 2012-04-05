@@ -1,0 +1,1 @@
+cat /proc/device-tree/options/boot-device > /root/boot-device.bak

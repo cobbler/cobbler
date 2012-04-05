@@ -49,6 +49,13 @@
   <scripts>
     ## we have to include the pre-scripts tag to get kickstart_start included
     <pre-scripts config:type="list">
+	## SuSE has an annoying habit on ppc64 of changing the system
+	## boot order after installation. This makes it non-trivial to
+	## automatically re-install future OS. If you want to workaround
+	## this, un-comment out the following two lines and the two
+	## lines in the post-scripts section:
+	#set global $wrappedscript = 'save_boot_device'
+	## $SNIPPET('suse_scriptwrapper.xml')
     </pre-scripts>
     <post-scripts config:type="list">
 
@@ -61,6 +68,13 @@
 	## - and remove the '##' in front of the line with suse_scriptwrapper.xml
 	##
 	#set global $wrappedscript = 'name_of_pure_shell_snippet'
+	## $SNIPPET('suse_scriptwrapper.xml')
+	## SuSE has an annoying habit on ppc64 of changing the system
+	## boot order after installation. This makes it non-trivial to
+	## automatically re-install future OS. If you want to workaround
+	## this, un-comment out the following two lines and the two
+	## lines in the pre-scripts section:
+	#set global $wrappedscript = 'restore_boot_device'
 	## $SNIPPET('suse_scriptwrapper.xml')
 
     </post-scripts>
