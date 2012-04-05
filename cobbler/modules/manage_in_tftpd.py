@@ -77,7 +77,7 @@ class InTftpdManager:
                                     utils.tftpboot_location(),
                                     "images",distro.name)
 	# Create the templar instance.  Used to template the target directory
-	templater = templar.Templar()
+	templater = templar.Templar(self.config)
 
         # Loop through the hash of boot files,
         # executing a cp for each one
