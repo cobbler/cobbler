@@ -720,6 +720,15 @@ class BootAPI:
 
     # ==========================================================================
 
+    def sync_dhcp(self, verbose=False, logger=None):
+        """
+        Only build out the DHCP configuration
+        """
+        self.log("sync_dhcp")
+        sync = self.get_sync(verbose=verbose, logger=logger)
+        return sync.sync_dhcp()
+    # ==========================================================================
+
     def get_sync(self,verbose=False,logger=None):
         self.dhcp = self.get_module_from_file(
            "dhcp",

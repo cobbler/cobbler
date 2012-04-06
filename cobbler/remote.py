@@ -1170,6 +1170,8 @@ class CobblerXMLRPCInterface:
         obj.set_netboot_enabled(0)
         # disabling triggers and sync to make this extremely fast.
         systems.add(obj,save=True,with_triggers=False,with_sync=False,quick_pxe_update=True)
+        # re-generate dhcp configuration
+        self.api.sync_dhcp()
         return True
 
     def upload_log_data(self, sys_name, file, size, offset, data, token=None,**rest):
@@ -1777,6 +1779,16 @@ class CobblerXMLRPCInterface:
         Checks to make sure a token is valid or not
         """
         return self.__validate_token(token)
+
+    def sync_dhcp(self,token):
+        """
+        Run sync code, which should complete before XMLRPC timeout.  We can't
+        do reposync this way.  Would be nice to send output over AJAX/other
+        later.
+        """
+        self._log("sync_dhcp",token=token)
+        self.check_access(token,"sync")
+        return self.api.sync_dhcp()
 
     def sync(self,token):
         """

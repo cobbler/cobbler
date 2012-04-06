@@ -161,6 +161,9 @@ class IscManager:
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
 
+                if not interface["netboot_enabled"]:
+                    continue
+
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro is not None:
