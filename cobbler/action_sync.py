@@ -42,6 +42,7 @@ import item_system
 from Cheetah.Template import Template
 import clogger
 from utils import _
+import cobbler.module_loader as module_loader
 
 
 class BootSync:
@@ -127,10 +128,7 @@ class BootSync:
         # make the default pxe menu anyway...
         self.pxegen.make_pxe_menu()
 
-        if self.settings.manage_dhcp:
-            self.logger.info("rendering DHCP files")
-            self.dhcp.write_dhcp_file()
-            self.dhcp.regen_ethers()
+        self.write_dhcp()
         if self.settings.manage_dns:
             self.logger.info("rendering DNS files")
             self.dns.regen_hosts()
@@ -213,6 +211,30 @@ class BootSync:
         utils.rmtree_contents(self.yaboot_bin_dir,logger=self.logger)
         utils.rmtree_contents(self.yaboot_cfg_dir,logger=self.logger)
         utils.rmtree_contents(self.rendered_dir,logger=self.logger)
+
+    def write_dhcp(self):
+        if self.settings.manage_dhcp:
+            self.logger.info("rendering DHCP files")
+            self.dhcp.write_dhcp_file()
+            self.dhcp.regen_ethers()
+
+    def sync_dhcp(self):
+        self.write_dhcp()
+        restart_dhcp = str(self.settings.restart_dhcp).lower()
+        which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
+
+        if self.settings.manage_dhcp:
+            if which_dhcp_module == "manage_isc":
+                if restart_dhcp != "0":
+                    rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
+                    if rc != 0:
+                       self.logger.error("dhcpd -t failed")
+                       return 1
+                    rc = utils.subprocess_call(self.logger,"service dhcpd restart", shell=True)
+            elif which_dhcp_module == "manage_dnsmasq":
+                if restart_dhcp != "0":
+                    rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
+                    has_restarted_dnsmasq = True
 
     def clean_link_cache(self):
         for dirtree in [os.path.join(self.bootloc,'images'), self.settings.webdir]:
