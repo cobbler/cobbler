@@ -1680,29 +1680,34 @@ def is_remote_file(file):
     else:
        return False
 
-def subprocess_sp(logger, cmd, shell=True):
+def subprocess_sp(logger, cmd, shell=True, input=None):
     if logger is not None:
         logger.info("running: %s" % cmd)
+
+    stdin = None
+    if input:
+        stdin = sub_process.PIPE
+
     try:
-        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
+        sp = sub_process.Popen(cmd, shell=shell, stdin=stdin, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out,err) = sp.communicate()
+    (out,err) = sp.communicate(input)
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
         logger.debug("received on stderr: %s" % err)
     return out, rc
 
-def subprocess_call(logger, cmd, shell=True):
-    data, rc = subprocess_sp(logger, cmd, shell=shell)
+def subprocess_call(logger, cmd, shell=True, input=None):
+    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return rc
 
-def subprocess_get(logger, cmd, shell=True):
-    data, rc = subprocess_sp(logger, cmd, shell=shell)
+def subprocess_get(logger, cmd, shell=True, input=None):
+    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return data
 
 def popen2(args, **kwargs):
