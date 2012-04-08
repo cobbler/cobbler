@@ -38,15 +38,13 @@ build:
 # Assume we're on RedHat by default ('apache' user),
 # otherwise Debian / Ubuntu ('www-data' user)
 install: build
-	python setup.py install -f
 	if [ -n "`getent passwd apache`" ] ; then \
+		python setup.py install -f; \
 		chown -R apache /usr/share/cobbler/web; \
 	else \
+		python setup.py install -f --install-layout=deb; \
 		chown -R www-data /usr/share/cobbler/web; \
 	fi
-
-debinstall:
-	python setup.py install -f --root $(DESTDIR)
 
 devinstall:
 	-rm -rf /usr/share/cobbler
