@@ -88,7 +88,8 @@ class Replicate:
                  newobj.from_datastruct(rdata)
                  try:
                      self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
-                     self.api.add_item(obj_type, newobj)
+                     if not self.api.add_item(obj_type, newobj):
+                         self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
                  except Exception, e:
                      utils.log_exc(self.logger)
 
@@ -116,7 +117,8 @@ class Replicate:
                      newobj.from_datastruct(rdata)
                      try:
                          self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
-                         self.api.add_item(obj_type, newobj)
+                         if not self.api.add_item(obj_type, newobj):
+                             self.logger.error("failed to update %s %s" % (obj_type, rdata["name"]))
                      except Exception, e:
                          utils.log_exc(self.logger)
 
