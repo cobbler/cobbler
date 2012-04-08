@@ -92,10 +92,12 @@ restorestate:
 	else \
 		chown -R www-data /usr/share/cobbler/webroot/cobbler; \
 	fi
-	if [ -d /var/www/cobbler/web ] ; then \
+	if [ -d /var/www/cobbler ] ; then \
 		chmod -R +x /var/www/cobbler/web; \
+		chmod -R +x /var/www/cobbler/svc; \
 	fi
-	if [ -d /var/www/cobbler/svc ] ; then \
+	if [ -d /usr/share/cobbler/webroot ] ; then \
+		chmod -R +x /usr/share/cobbler/webroot/cobbler/web; \
 		chmod -R +x /usr/share/cobbler/webroot/cobbler/svc; \
 	fi
 	rm -rf $(statepath)
