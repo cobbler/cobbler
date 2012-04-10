@@ -128,7 +128,7 @@ def build_commandline(uri,
         if virt_type != "kvm":
             fullvirt = True
         else:
-	    fullvirt = None
+            fullvirt = None
 
     floppy = None
     cdrom = None
