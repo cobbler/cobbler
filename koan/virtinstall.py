@@ -125,10 +125,10 @@ def build_commandline(uri,
     is_xen = uri.startswith("xen")
     is_qemu = uri.startswith("qemu")
     if is_qemu:
-	if virt_type != "kvm":
-        	fullvirt = True
-	else:
-		fullvirt = None
+        if virt_type != "kvm":
+            fullvirt = True
+        else:
+	    fullvirt = None
 
     floppy = None
     cdrom = None
@@ -227,7 +227,7 @@ def build_commandline(uri,
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:
             cmd += "--hvm "
-	else:
+        else:
             cmd += ("--extra-args=\"%s\" " % (extra))
         if is_xen:
             cmd += "--pxe "
