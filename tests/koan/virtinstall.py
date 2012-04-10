@@ -110,6 +110,34 @@ class KoanVirtInstallTest(unittest.TestCase):
              "--network bridge=br0,model=virtio --wait 0 --noautoconsole")
         )
 
+    def testKvmURL(self):
+        cmd = build_commandline("qemu:///system",
+            name="foo",
+            ram=256,
+            vcpus=1,
+            disks=[("/tmp/foo1.img", 8), ("/dev/foo1", 0)],
+            fullvirt=None,
+            arch="i686",
+            bridge="br0",
+            qemu_driver_type="virtio",
+            qemu_net_type="virtio",
+            profile_data = {
+                "breed" : "ubuntu",
+                "os_version" : "natty",
+                "install_tree" : "http://example.com/some/install/tree",
+            })
+
+        cmd = " ".join(cmd)
+        self.assertEquals(cmd,
+            ("virt-install --connect qemu:///system --name foo --ram 256 "
+             "--vcpus 1 --vnc --kvm "
+             "--location http://example.com/some/install/tree/ --arch i686 "
+             "--os-variant ubuntunatty "
+             "--disk path=/tmp/foo1.img,size=8,bus=virtio "
+             "--disk path=/dev/foo1,bus=virtio "
+             "--network bridge=br0,model=virtio --wait 0 --noautoconsole")
+        )
+
     def testImage(self):
         cmd = build_commandline("import",
             name="foo",
