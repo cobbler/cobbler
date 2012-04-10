@@ -49,7 +49,7 @@ OBJECT_ACTIONS_MAP   = {
    "mgmtclass" : "add copy edit find list remove rename report".split(" "),
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
-   "settings"  : "edit report".split(" "),
+   "setting"   : "edit report".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
@@ -61,7 +61,7 @@ DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync v
 ####################################################
 
 def report_items(remote, otype):
-   if otype == "settings":
+   if otype == "setting":
        items = remote.get_settings()
        keys = items.keys()
        keys.sort()
@@ -75,7 +75,7 @@ def report_items(remote, otype):
 
 def report_item(remote,otype,item=None,name=None):
    if item is None:
-      if otype == "settings":
+      if otype == "setting":
           cur_settings = remote.get_settings()
           try:
               item = {'name':name, 'value':cur_settings[name]}
@@ -104,7 +104,7 @@ def report_item(remote,otype,item=None,name=None):
       data = utils.printable_from_fields(item,item_package.FIELDS)
    elif otype == "file":
       data = utils.printable_from_fields(item,item_file.FIELDS)
-   elif otype == "settings":
+   elif otype == "setting":
       data = "%-40s: %s" % (item['name'],item['value'])
    print data
 
@@ -284,7 +284,7 @@ class BootCLI:
             return item_package.FIELDS
         elif object_type == "file":
             return item_file.FIELDS
-        elif object_type == "settings":
+        elif object_type == "setting":
             return settings.FIELDS
 
     def object_command(self, object_type, object_action):
@@ -320,7 +320,7 @@ class BootCLI:
                 sys.exit(1)
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
                 try:
-                    if object_type == "settings":        
+                    if object_type == "setting":        
                         if self.remote.modify_setting(options.name,options.value,self.token):
                             raise RuntimeError("Changing the setting failed")
                     else:
