@@ -229,12 +229,18 @@ class BootSync:
                     rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
                     if rc != 0:
                        self.logger.error("dhcpd -t failed")
-                       return 1
+                       return False
                     rc = utils.subprocess_call(self.logger,"service dhcpd restart", shell=True)
+                    if rc != 0:
+                       self.logger.error("service dhcpd restart failed")
+                       return False
             elif which_dhcp_module == "manage_dnsmasq":
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
-                    has_restarted_dnsmasq = True
+                    if rc != 0:
+                       self.logger.error("service dnsmasq restart failed")
+                       return False
+        return True
 
     def clean_link_cache(self):
         for dirtree in [os.path.join(self.bootloc,'images'), self.settings.webdir]:
