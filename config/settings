@@ -19,6 +19,12 @@ allow_duplicate_ips: 0
 # this is undesirable.
 allow_duplicate_macs: 0
 
+# if 1, cobbler will allow settings to be changed dynamically without
+# a restart of the cobblerd daemon. You can only change this variable
+# by manually editing the settings file, and you MUST restart cobblerd
+# after changing it.
+allow_dynamic_settings: 0
+
 # by default, installs are *not* set to send installation logs to the cobbler
 # # # server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
 # # # snippet to allow remote live monitoring of their installations from the
