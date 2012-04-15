@@ -321,7 +321,12 @@ class BootCLI:
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
                 try:
                     if object_type == "setting":        
-                        if self.remote.modify_setting(options.name,options.value,self.token):
+                        settings = self.remote.get_settings()
+                        if not settings.get('allow_dynamic_settings',False):
+                            raise RuntimeError("Dynamic settings changes are not enabled. Change the allow_dynamic_settings to 1 and restart cobblerd to enable dynamic settings changes")
+                        elif options.name == 'allow_dynamic_settings':
+                            raise RuntimeError("Cannot modify that setting live")
+                        elif self.remote.modify_setting(options.name,options.value,self.token):
                             raise RuntimeError("Changing the setting failed")
                     else:
                         self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)

@@ -38,6 +38,7 @@ DEFAULTS = {
     "allow_duplicate_hostnames"   : [0,"bool"],
     "allow_duplicate_macs"        : [0,"bool"],
     "allow_duplicate_ips"         : [0,"bool"],
+    "allow_dynamic_settings"      : [0,"bool"],
     "bind_chroot_path"            : ["","str"],
     "bind_master"                 : ["127.0.0.1","str"],
     "build_reporting_enabled"     : [0,"bool"],
