@@ -59,9 +59,9 @@ build_reporting_subject: ""
 # allow access to the filesystem as Cheetah templates are evaluated
 # by cobblerd as code.
 cheetah_import_whitelist:
-   - "random"
-   - "re"
-   - "time"
+ - "random"
+ - "re"
+ - "time"
 
 # Default createrepo_flags to use for new repositories. If you have
 # createrepo >= 0.4.10, consider "-c cache --update -C", which can
@@ -83,7 +83,7 @@ default_name_servers: []
 # created without specifying an owner are assigned to this
 # owner and/or group.  Can be a comma seperated list.
 default_ownership:
-    - "admin"
+ - "admin"
 
 # cobbler has various sample kickstart templates stored
 # in /var/lib/cobbler/kickstarts/.  This controls
@@ -157,19 +157,19 @@ http_port: 80
 # kernel options can also be applied at the distro/profile/system
 # level.
 kernel_options:
-    ksdevice: bootif
-    lang: ' '
-    text: ~
+ ksdevice: bootif
+ lang: ' '
+ text: ~
 
 # s390 systems require additional kernel options in addition to the
 # above defaults
 kernel_options_s390x:
-    RUNKS: 1
-    ramdisk_size: 40000
-    root: /dev/ram0
-    ro: ~
-    ip: off
-    vnc: ~
+ RUNKS: 1
+ ramdisk_size: 40000
+ root: /dev/ram0
+ ro: ~
+ ip: off
+ vnc: ~
 
 # configuration options if using the authn_ldap module. See the
 # the Wiki for details.  This can be ignored if you are not using
@@ -189,7 +189,7 @@ ldap_search_prefix: 'uid='
 # https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system
 mgmt_classes: []
 mgmt_parameters:
-   from_cobbler: 1
+ from_cobbler: 1
 
 # if enabled, this setting ensures that puppet is installed during
 # machine provision, a client certificate is generated and a
