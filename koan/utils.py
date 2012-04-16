@@ -462,17 +462,21 @@ def create_xendomains_symlink(name):
     
     # Make sure symlink does not already exist.
     if os.path.exists(dst):
-        raise InfoException("Could not create %s symlink. File already exists in this location." % dst)
+        print "Could not create %s symlink. File already exists in this location." % dst
+        return False
 
     # Verify that the destination is writable
     if not os.access(os.path.dirname(dst), os.W_OK):
-        raise InfoException("Could not create %s symlink. Please check write permissions and ownership." % dst)
+        print "Could not create %s symlink. Please check write permissions and ownership." % dst
+        return False
 
     # check that xen config file exists and create symlink
     if os.path.exists(src):
         os.symlink(src, dst)
+        return True
     else:
-        raise InfoException("Could not create %s symlink. Source file %s is missing." % (dst, src))
+        print "Could not create %s symlink, source file %s is missing." % (dst, src)
+        return False
 
 def libvirt_enable_autostart(domain_name):
    import libvirt
