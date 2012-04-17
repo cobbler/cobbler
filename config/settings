@@ -409,4 +409,5 @@ yum_distro_priority: 1
 # --resolve.
 yumdownloader_flags: "--resolve"
 
-
+# sort and indent JSON output to make it more human-readable
+serializer_pretty_json: 0
