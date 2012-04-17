@@ -122,7 +122,8 @@ DEFAULTS = {
     "yumdownloader_flags"         : "--resolve",
     "reposync_flags"              : "-l -m -d",
     "ldap_management_default_type": "authconfig",
-    "consoles"                     : "/var/consoles"
+    "consoles"                    : "/var/consoles",
+    "serializer_pretty_json"      : 0
 }
 
 if os.path.exists("/srv/www/"):
