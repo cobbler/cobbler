@@ -84,7 +84,7 @@ def serialize_item(obj, item):
             indent = 4
         else:
             sort_keys = False
-            indent = 0
+            indent = None
 
         # avoid using JSON on python 2.3 where we can encounter
         # unicode problems with simplejson pre 2.0
