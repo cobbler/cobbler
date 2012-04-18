@@ -275,6 +275,8 @@ class BuildIso:
              if dist.breed == "redhat":
                 if data["kernel_options"].has_key("ksdevice") and data["kernel_options"]["ksdevice"] != "":
                    my_int = data["kernel_options"]["ksdevice"]
+                   if my_int == "bootif":
+                      my_int = None
                    del data["kernel_options"]["ksdevice"]
                 if data["kernel_options"].has_key("ip") and data["kernel_options"]["ip"] != "":
                    my_ip = data["kernel_options"]["ip"]
