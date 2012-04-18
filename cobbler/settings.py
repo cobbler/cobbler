@@ -120,6 +120,7 @@ DEFAULTS = {
     "reposync_flags"              : ["-l -m -d","str"],
     "ldap_management_default_type": ["authconfig","str"],
     "consoles"                    : ["/var/consoles","str"],
+    "serializer_pretty_json"      : [0,"bool"],
 }
 
 FIELDS = [
