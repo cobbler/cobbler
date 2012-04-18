@@ -171,9 +171,17 @@ class BuildIso:
                      append_line += " install=http://%s:%s/cblr/links/%s" % (
                          data["server"], self.api.settings().http_port, dist.name
                      )
-                 append_line += " autoyast=%s" % data["kickstart"]
+                 if data["kernel_options"].has_key("autoyast") and data["kernel_options"]["autoyast"] != "":
+                     append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
+                     del data["kernel_options"]["autoyast"]
+                 else:
+                     append_line += " autoyast=%s" % data["kickstart"]
+
              if dist.breed == "redhat":
+                 if data["proxy"] != "":
+                    append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
                  append_line += " ks=%s" % data["kickstart"]
+
              if dist.breed in ["ubuntu","debian"]:
                  append_line += " auto-install/enable=true url=%s" % data["kickstart"]
                  if data["proxy"] != "":
@@ -215,10 +223,20 @@ class BuildIso:
                     append_line += " install=%s" % data["kernel_options"]["install"]
                     del data["kernel_options"]["install"]
                 else:
-                    append_line += " install=http://%s:%s/cblr/links/%s" % (data["server"], self.api.settings().http_port, dist.name)
-                append_line += " autoyast=%s" % data["kickstart"]
+                    append_line += " install=http://%s:%s/cblr/links/%s" % (
+                        data["server"], self.api.settings().http_port, dist.name
+                    )
+                if data["kernel_options"].has_key("autoyast") and data["kernel_options"]["autoyast"] != "":
+                    append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
+                    del data["kernel_options"]["autoyast"]
+                else:
+                    append_line += " autoyast=%s" % data["kickstart"]
+
              if dist.breed == "redhat":
+                if data["proxy"] != "":
+                    append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
                 append_line += " ks=%s" % data["kickstart"]
+
              if dist.breed in ["ubuntu","debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["kickstart"]
                 if data["proxy"] != "":
