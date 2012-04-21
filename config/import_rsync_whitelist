@@ -1,5 +1,9 @@
 #-----------------------------------------------
 # RHEL/CentOS/SciLinux
+# Ex: cobbler import \
+#     --name=fedora-16-remote \
+#     --path=rsync://mirrors.kernel.org/mirrors/fedora/releases/16/Fedora/x86_64/os/ \
+#     --available-as=http://mirrors.kernel.org/fedora/releases/16/Fedora/x86_64/os/
 #-----------------------------------------------
 + RedHat/
 + RedHat/RPMS/
