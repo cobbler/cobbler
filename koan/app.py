@@ -357,21 +357,21 @@ class Koan:
         # if --virt-type was specified and invalid, then fail
         if self.virt_type is not None:
             self.virt_type = self.virt_type.lower()
-            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "vmwarew", "auto" ]:
+            if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "vmwarew", "auto", "kvm" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
+               raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, kvm, or auto"
 
         # if --qemu-disk-type was called without --virt-type=qemu, then fail
         if (self.qemu_disk_type is not None):
             self.qemu_disk_type = self.qemu_disk_type.lower()
-            if self.virt_type not in [ "qemu", "auto" ]:
+            if self.virt_type not in [ "qemu", "auto", "kvm" ]:
                raise InfoException, "--qemu-disk-type must use with --virt-type=qemu"
 
         # if --qemu-net-type was called without --virt-type=qemu, then fail
         if (self.qemu_net_type is not None):
             self.qemu_net_type = self.qemu_net_type.lower()
-            if self.virt_type not in [ "qemu", "auto" ]:
+            if self.virt_type not in [ "qemu", "auto", "kvm" ]:
                raise InfoException, "--qemu-net-type must use with --virt-type=qemu"
 
 
@@ -585,7 +585,7 @@ class Koan:
                    raise InfoException("xend needs to be started")
 
             # for qemu
-            if self.virt_type == "qemu":
+            if self.virt_type in [ "qemu", "kvm" ]:
                 # qemu package installed?
                 if not os.path.exists("/usr/bin/qemu-img"):
                     raise InfoException("qemu package needs to be installed")
@@ -1377,9 +1377,10 @@ class Koan:
 
         if virt_auto_boot:
             if self.virt_type in [ "xenpv", "xenfv" ]:
-                utils.create_xendomains_symlink(virtname)
-            elif self.virt_type == "qemu":
-               utils.libvirt_enable_autostart(virtname)
+                if not utils.create_xendomains_symlink(virtname):
+                    print "- warning: failed to setup autoboot for %s, it will have to be configured manually" % virtname
+            elif self.virt_type in [ "qemu", "kvm" ]:
+                utils.libvirt_enable_autostart(virtname)
             else:
                 print "- warning: don't know how to autoboot this virt type yet"
             # else...
@@ -1413,7 +1414,7 @@ class Koan:
             if self.virt_type == "xenfv":
                fullvirt = True 
             can_poll = "xen"
-        elif self.virt_type == "qemu":
+        elif self.virt_type in [ "qemu", "kvm" ] :
             fullvirt = True
             uuid    = None
             import qcreate
@@ -1619,7 +1620,7 @@ class Koan:
            # not set in cobbler either? then assume reasonable defaults
            if self.virt_type in [ "xenpv", "xenfv" ]:
                prefix = "/var/lib/xen/images/"
-           elif self.virt_type == "qemu":
+           elif self.virt_type in [ "qemu", "kvm" ]:
                prefix = "/var/lib/libvirt/images/"
            elif self.virt_type == "vmwarew":
                prefix = "/var/lib/vmware/%s/" % name

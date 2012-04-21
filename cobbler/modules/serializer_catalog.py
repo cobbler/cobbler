@@ -43,6 +43,8 @@ import utils
 from cexceptions import *
 import os
 
+import cobbler.api as capi
+
 def can_use_json():
     version = sys.version[:3]
     version = float(version)
@@ -77,6 +79,12 @@ def serialize_item(obj, item):
     jsonable = can_use_json()
 
     if jsonable:
+        if capi.BootAPI().settings().serializer_pretty_json:
+            sort_keys = True
+            indent = 4
+        else:
+            sort_keys = False
+            indent = None
 
         # avoid using JSON on python 2.3 where we can encounter
         # unicode problems with simplejson pre 2.0
@@ -87,7 +95,7 @@ def serialize_item(obj, item):
         filename = filename + ".json"
         datastruct = item.to_datastruct()
         fd = open(filename,"w+")
-        data = simplejson.dumps(datastruct, encoding="utf-8")
+        data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys = sort_keys, indent = indent)
         #data = data.encode('utf-8')
         fd.write(data)
 

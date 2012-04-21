@@ -53,7 +53,7 @@ FIELDS = [
   ["virt_disk_driver","SETTINGS:default_virt_disk_driver",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
   ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00",0,"str"],
   ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,"",0,"int"],
-  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,"",["xenpv","xenfv","qemu","vmware"],"str"],
+  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,"",["xenpv","xenfv","qemu","kvm", "vmware"],"str"],
   ['uid',"",0,"",False,"",0,"str"]
 ]
 
