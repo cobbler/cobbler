@@ -328,9 +328,9 @@ class ImportSuseManager:
             archs = [ proposed_arch ]
 
         if len(archs)>1:
-            if self.breed in [ "suse" ]:
-                self.logger.warning("directory %s holds multiple arches : %s" % (dirname, archs))
-                return
+            #if self.breed in [ "suse" ]:
+            #    self.logger.warning("directory %s holds multiple arches : %s" % (dirname, archs))
+            #    return
             self.logger.warning("- Warning : Multiple archs found : %s" % (archs))
 
         distros_added = []
@@ -431,7 +431,7 @@ class ImportSuseManager:
         """
 
         if self.network_root is not None:
-            name = self.name + "-".join(utils.path_tail(os.path.dirname(self.path),dirname).split("/"))
+            name = self.name
         else:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])
