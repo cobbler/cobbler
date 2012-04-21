@@ -49,19 +49,21 @@
 
 #-----------------------------------------------
 # SuSE
+# Ex: cobbler import \
+#     --name=suse-11.4-remote \
+#     --path=rsync://mirrors.kernel.org/mirrors/opensuse/distribution/11.4/repo/oss/ \
+#     --available-as=http://mirrors.kernel.org/opensuse/distribution/11.4/repo/oss/
 #-----------------------------------------------
-+ repo/
-+ oss/
-+ oss/boot/
-+ oss/boot/i386/
-+ oss/boot/i386/loader/
-+ oss/boot/i386/loader/initrd
-+ oss/boot/i386/loader/linux
-+ oss/boot/x86_64/
-+ oss/boot/x86_64/loader/
-+ oss/boot/x86_64/loader/initrd
-+ oss/boot/x86_64/loader/linux
-+ oss/suse/
++ boot/
++ boot/i386/
++ boot/i386/loader/
++ boot/i386/loader/initrd
++ boot/i386/loader/linux
++ boot/x86_64/
++ boot/x86_64/loader/
++ boot/x86_64/loader/initrd
++ boot/x86_64/loader/linux
++ suse/
 
 #-----------------------------------------------
 # Exclude everything else
