@@ -202,39 +202,6 @@ class ImportRedhatManager:
                 data2.append(x)
         return data2
 
-    def get_tree_location(self, distro):
-        """
-        Once a distribution is identified, find the part of the distribution
-        that has the URL in it that we want to use for kickstarting the
-        distribution, and create a ksmeta variable $tree that contains this.
-        """
-
-        base = self.get_rootdir()
-
-        if self.network_root is None:
-            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-            # create the links directory only if we are mirroring because with
-            # SELinux Apache can't symlink to NFS (without some doing)
-            if not os.path.exists(dest_link):
-                try:
-                    os.symlink(base, dest_link)
-                except:
-                    # this shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
-            # how we set the tree depends on whether an explicit network_root was specified
-            tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
-            self.set_install_tree(distro, tree)
-        else:
-            # where we assign the kickstart source is relative to our current directory
-            # and the input start directory in the crawl.  We find the path segments
-            # between and tack them on the network source path to find the explicit
-            # network path to the distro that Anaconda can digest.
-            tail = utils.path_tail(self.path, base)
-            tree = self.network_root[:-1] + tail
-            self.set_install_tree(distro, tree)
-
-        return
-
     def repo_finder(self, distros_added):
         """
         This routine looks through all distributions and tries to find
@@ -371,8 +338,6 @@ class ImportRedhatManager:
         # make sure we don't mismatch PAE and non-PAE types
         pae_initrd = None
         pae_kernel = None
-
-        print "in distro_adder(), directory is %s" % dirname
 
         for x in fnames:
             adtls = []

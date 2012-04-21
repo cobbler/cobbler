@@ -1322,8 +1322,8 @@ def path_tail(apath, bpath):
     position = bpath.find(apath)
     if position != 0:
         return ""
-    #rposition = position + len(mirror)
-    result = bpath[position:]
+    rposition = position + len(apath)
+    result = bpath[rposition:]
     if not result.startswith("/"):
         result = "/" + result
     return result
