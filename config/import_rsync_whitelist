@@ -1,0 +1,69 @@
+#-----------------------------------------------
+# RHEL/CentOS/SciLinux
+#-----------------------------------------------
++ RedHat/
++ RedHat/RPMS/
++ RedHat/rpms/
++ RedHat/Base/
++ Fedora/
++ Fedora/RPMS/
++ Fedora/rpms/
++ CentOS/
++ CentOS/RPMS/
++ CentOS/rpms/
++ CentOS/
++ Packages/
++ Server/
++ Client/
++ SL/
++ images/
++ images/pxeboot/
++ images/pxeboot/*
++ isolinux/
++ isolinux/*
++ */*-release*
+- */kernel-debug*.rpm
+- */kernel-devel*.rpm
+- */kernel-doc*.rpm
+- */kernel-headers*.rpm
++ */kernel-*.rpm
+
+#-----------------------------------------------
+# Debian/Ubuntu
+#-----------------------------------------------
++ pool/
++ dists/
++ dists/*/
++ main/
++ main/debian-installer/
++ main/installer*/
++ main/installer*/current/
++ main/installer*/current/images/
+# all of these should be under the current/images directory...
++ netboot/
++ netboot/ubuntu-installer/
++ netboot/ubuntu-installer/amd64/
++ netboot/ubuntu-installer/i386/
++ netboot/ubuntu-installer/*/initrd*
++ netboot/ubuntu-installer/*/linu*
+
+#-----------------------------------------------
+# SuSE
+#-----------------------------------------------
++ repo/
++ oss/
++ oss/boot/
++ oss/boot/i386/
++ oss/boot/i386/loader/
++ oss/boot/i386/loader/initrd
++ oss/boot/i386/loader/linux
++ oss/boot/x86_64/
++ oss/boot/x86_64/loader/
++ oss/boot/x86_64/loader/initrd
++ oss/boot/x86_64/loader/linux
++ oss/suse/
+
+#-----------------------------------------------
+# Exclude everything else
+#-----------------------------------------------
+- *
