@@ -1307,7 +1307,7 @@ class CobblerXMLRPCInterface:
         See api.py for documentation.
         """
         self._log("version",token=token)
-        return self.api.version(extended=True)['version']
+        return self.api.version()
 
     def extended_version(self,token=None,**rest):
         """
