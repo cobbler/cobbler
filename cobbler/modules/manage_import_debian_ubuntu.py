@@ -84,6 +84,7 @@ class ImportDebianUbuntuManager:
     def check_for_signature(self,path,cli_breed):
        signatures = [
            'pool',
+           'main/debian-installer',
        ]
 
        #self.logger.info("scanning %s for a debian/ubuntu distro signature" % path)

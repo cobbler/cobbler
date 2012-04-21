@@ -59,7 +59,7 @@ def index(request):
 
    t = get_template('index.tmpl')
    html = t.render(RequestContext(request,{
-        'version' : remote.version(request.session['token']),
+        'version' : remote.extended_version(request.session['token'])['version'],
         'username': username,
    }))
    return HttpResponse(html)
@@ -73,7 +73,7 @@ def task_created(request):
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/task_created")
    t = get_template("task_created.tmpl")
    html = t.render(RequestContext(request,{
-       'version'  : remote.version(request.session['token']),
+       'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
    }))
    return HttpResponse(html)
@@ -91,7 +91,7 @@ def error_page(request,message):
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
    message = message.replace("'\">","")
    html = t.render(RequestContext(request,{
-       'version' : remote.version(request.session['token']),
+       'version' : remote.extended_version(request.session['token'])['version'],
        'message' : message,
        'username': username
    }))
@@ -364,7 +364,7 @@ def genlist(request, what, page=None):
         'items'          : __format_items(pageditems["items"],columns),
         'pageinfo'       : pageditems["pageinfo"],
         'filters'        : filters,
-        'version'        : remote.version(request.session['token']),
+        'version'        : remote.extended_version(request.session['token'])['version'],
         'username'       : username,
         'limit'          : limit,
         'batchactions'   : batchactions,
@@ -579,7 +579,7 @@ def import_prompt(request):
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt")
    t = get_template('import.tmpl')
    html = t.render(RequestContext(request,{
-       'version'  : remote.version(request.session['token']),
+       'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username,
    }))
    return HttpResponse(html)
@@ -594,7 +594,7 @@ def check(request):
    results = remote.check(request.session['token'])
    t = get_template('check.tmpl')
    html = t.render(RequestContext(request,{
-       'version': remote.version(request.session['token']),
+       'version': remote.extended_version(request.session['token'])['version'],
        'username' : username,
        'results'  : results
    }))
@@ -646,7 +646,7 @@ def ksfile_list(request, page=None):
    html = t.render(RequestContext(request,{
        'what':'ksfile',
        'ksfiles': ksfile_list,
-       'version': remote.version(request.session['token']),
+       'version': remote.extended_version(request.session['token'])['version'],
        'username': username,
        'item_count': len(ksfile_list[0]),
    }))
@@ -678,7 +678,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
        'ksdata'      : ksdata,
        'editable'    : editable,
        'editmode'    : editmode,
-       'version'     : remote.version(request.session['token']),
+       'version'     : remote.extended_version(request.session['token'])['version'],
        'username'    : username
    }))
    return HttpResponse(html)
@@ -733,7 +733,7 @@ def snippet_list(request, page=None):
    html = t.render(RequestContext(request,{
        'what'     : 'snippet',
        'snippets' : snippet_list,
-       'version'  : remote.version(request.session['token']),
+       'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
    }))
    return HttpResponse(html)
@@ -764,7 +764,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
        'snippetdata'  : snippetdata,
        'editable'     : editable,
        'editmode'     : editmode,
-       'version'      : remote.version(request.session['token']),
+       'version'      : remote.extended_version(request.session['token'])['version'],
        'username'     : username
    }))
    return HttpResponse(html)
@@ -818,7 +818,7 @@ def setting_list(request):
     t = get_template('settings.tmpl')
     html = t.render(RequestContext(request,{
          'settings' : results,
-         'version'  : remote.version(request.session['token']),
+         'version'  : remote.extended_version(request.session['token'])['version'],
          'username' : username,
     }))
     return HttpResponse(html)
@@ -847,7 +847,7 @@ def setting_edit(request, setting_name=None):
         'subobject'       : False,
         'editmode'        : 'edit',
         'editable'        : True,
-        'version'         : remote.version(request.session['token']),
+        'version'         : remote.extended_version(request.session['token'])['version'],
         'username'        : username,
         'name'            : setting_name,
     }))
@@ -894,7 +894,7 @@ def events(request):
    t = get_template('events.tmpl')
    html = t.render(RequestContext(request,{
        'results'  : events2,
-       'version'  : remote.version(request.session['token']),
+       'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
    }))
    return HttpResponse(html)
@@ -923,7 +923,7 @@ def eventlog(request, event=0):
       'eventstate' : eventstate,
       'eventid'    : event,
       'eventtime'  : eventtime,
-      'version'    : remote.version(request.session['token']),
+      'version'    : remote.extended_version(request.session['token'])['version'],
       'username'  : username
    }
    html = t.render(RequestContext(request,vars))
@@ -1091,7 +1091,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'interfaces'      : interfaces,
        'interface_names' : inames,
        'interface_length': len(inames),
-       'version'         : remote.version(request.session['token']),
+       'version'         : remote.extended_version(request.session['token'])['version'],
        'username'        : username,
        'name'            : obj_name
    }))
