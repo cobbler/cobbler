@@ -1968,8 +1968,8 @@ def get_power_types():
     Return all possible power types
     """
     power_types = []
-    power_template = re.compile(r'power_(.*).template')
-    for x in glob.glob("/etc/cobbler/power/power_*.template"):
+    power_template = re.compile(r'fence_(.*)')
+    for x in glob.glob("/usr/sbin/fence_*"):
         power_types.append(power_template.search(x).group(1))
     power_types.sort()
     return power_types
@@ -1979,10 +1979,24 @@ def get_power(powertype=None):
     Return power command for type
     """
     if powertype:
-        powerpath = "/etc/cobbler/power/power_%s.template" % powertype
-        if os.path.isfile(powerpath):
+        powerpath = "/usr/sbin/fence_%s" % powertype
+        if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
             return powerpath
     return None
+
+def get_power_template(powertype=None):
+    """
+    Return power template for type
+    """
+    if powertype:
+        powertemplate = "/etc/cobbler/power/fence_%s.template" % powertype
+        if os.path.isfile(powertemplate):
+            f = open(powertemplate)
+            template = f.read()
+            f.close()
+            return template
+    # return a generic template if a specific one wasn't found
+    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
 def get_shared_secret():
     """
