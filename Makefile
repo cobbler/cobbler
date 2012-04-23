@@ -28,9 +28,10 @@ test:
 	/sbin/service cobblerd restart
 	-(make nosetests)
 	make restorestate prefix=test
+	/sbin/service cobblerd restart
 
 nosetests:
-	nosetests cobbler/*.py -v | tee test.log
+	nosetests cobbler/*.py -v 2>&1 | tee test.log
 
 build:
 	python setup.py build -f
