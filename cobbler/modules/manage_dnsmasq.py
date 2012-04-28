@@ -121,24 +121,28 @@ class DnsmasqManager:
                     continue 
  
                 counter = counter + 1
-                systxt = "" 
 
-                # dnsmasq.  don't have to write IP and other info here, but we do tag
-                # each MAC based on the arch of it's distro, if it needs something other
-                # than pxelinux.0 -- for these arches, and these arches only, a dnsmasq
-                # reload (full "cobbler sync") would be required after adding the system
-                # to cobbler, just to tag this relationship.
+                # In many reallife situations there is a need to control the IP address 
+                # and hostname for a specific client when only the MAC address is available.
+                # In addition to that in some scenarios there is a need to explicitly 
+                # label a host with the applicable architecture in order to correctly 
+                # handle situations where we need something other than pxelinux.0.
+                # So we always write a dhcp-host entry with as much info as possible
+                # to allow maximum control and flexibility within the dnsmasq config
+
+                systxt = "dhcp-host=net:" + distro.arch.lower() + "," + mac
+
+                if host is not None and host != "":
+                    systxt = systxt + "," + host
 
                 if ip is not None and ip != "":
-                    if distro.arch.lower() == "ia64":
-                        systxt = "dhcp-host=net:ia64," + ip + "\n"
-                    # support for other arches needs modifications here
-                    else:
-                        systxt = ""
+                    systxt = systxt + "," + ip
+
+                systxt = systxt + "\n" 
 
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":
-                   dhcp_tag = "default"
+                    dhcp_tag = "default"
 
                 if not system_definitions.has_key(dhcp_tag):
                     system_definitions[dhcp_tag] = ""
