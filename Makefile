@@ -31,7 +31,7 @@ test:
 	/sbin/service cobblerd restart
 
 nosetests:
-	nosetests cobbler/*.py -v 2>&1 | tee test.log
+	PYTHONPATH=./cobbler/ nosetests -v -w newtests/ 2>&1 | tee test.log
 
 build:
 	python setup.py build -f
