@@ -38,6 +38,7 @@ import item_image
 import item_mgmtclass
 import item_package
 import item_file
+import settings
 
 OBJECT_ACTIONS_MAP   = {
    "distro"    : "add copy edit find list remove rename report".split(" "),
@@ -48,6 +49,7 @@ OBJECT_ACTIONS_MAP   = {
    "mgmtclass" : "add copy edit find list remove rename report".split(" "),
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
+   "setting"   : "edit report".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
@@ -59,16 +61,33 @@ DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync v
 ####################################################
 
 def report_items(remote, otype):
-   items = remote.get_items(otype)
-   for x in items:
-      report_item(remote,otype,item=x)
+   if otype == "setting":
+       items = remote.get_settings()
+       keys = items.keys()
+       keys.sort()
+       for key in keys:
+           item = {'name':key, 'value':items[key]}
+           report_item(remote,otype,item=item)
+   else:
+       items = remote.get_items(otype)
+       for x in items:
+           report_item(remote,otype,item=x)
 
 def report_item(remote,otype,item=None,name=None):
    if item is None:
-      item = remote.get_item(otype, name)
-      if item == "~":
-          print "No %s found: %s" % (otype, name)
-          sys.exit(1)
+      if otype == "setting":
+          cur_settings = remote.get_settings()
+          try:
+              item = {'name':name, 'value':cur_settings[name]}
+          except:
+              print "Setting not found: %s" % name
+              sys.exit(1)
+      else:
+          item = remote.get_item(otype, name)
+          if item == "~":
+              print "No %s found: %s" % (otype, name)
+              sys.exit(1)
+
    if otype == "distro":
       data = utils.printable_from_fields(item, item_distro.FIELDS)
    elif otype == "profile":
@@ -85,6 +104,8 @@ def report_item(remote,otype,item=None,name=None):
       data = utils.printable_from_fields(item,item_package.FIELDS)
    elif otype == "file":
       data = utils.printable_from_fields(item,item_file.FIELDS)
+   elif otype == "setting":
+      data = "%-40s: %s" % (item['name'],item['value'])
    print data
 
 def list_items(remote,otype):
@@ -263,6 +284,8 @@ class BootCLI:
             return item_package.FIELDS
         elif object_type == "file":
             return item_file.FIELDS
+        elif object_type == "setting":
+            return settings.FIELDS
 
     def object_command(self, object_type, object_action):
         """
@@ -297,10 +320,22 @@ class BootCLI:
                 sys.exit(1)
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
                 try:
-                    self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
+                    if object_type == "setting":        
+                        settings = self.remote.get_settings()
+                        if not settings.get('allow_dynamic_settings',False):
+                            raise RuntimeError("Dynamic settings changes are not enabled. Change the allow_dynamic_settings to 1 and restart cobblerd to enable dynamic settings changes")
+                        elif options.name == 'allow_dynamic_settings':
+                            raise RuntimeError("Cannot modify that setting live")
+                        elif self.remote.modify_setting(options.name,options.value,self.token):
+                            raise RuntimeError("Changing the setting failed")
+                    else:
+                        self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
                 except xmlrpclib.Fault, (err):
                     (etype, emsg) = err.faultString.split(":",1)
                     print emsg[1:-1] # don't print the wrapping quotes
+                    sys.exit(1)
+                except RuntimeError, (err):
+                    print err.args[0]
                     sys.exit(1)
             elif object_action == "getks":
                 if object_type == "profile":

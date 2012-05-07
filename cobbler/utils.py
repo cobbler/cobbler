@@ -69,6 +69,11 @@ try:
 except ImportError:
     NETADDR_PRE_0_7 = False
 
+try:
+    import augeas
+except:
+    pass
+
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -590,6 +595,29 @@ def input_boolean(value):
        return True
     else:
        return False
+
+def update_settings_file(name,value):
+    try:
+        clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
+        a = augeas.Augeas()
+        if isinstance(value,list):
+            a.remove('/files/etc/cobbler/settings/%s/list' % name)
+            for item in value:
+                a.set('/files/etc/cobbler/settings/%s/list/value[last()+1]' % name, item)
+        elif isinstance(value,dict):
+            keys = value.keys()
+            keys.sort()
+            a.remove('/files/etc/cobbler/settings/%s/*' % name)
+            for key in keys:
+                if str(value[key]).strip() == "":
+                    value[key] = '~'
+                a.set('/files/etc/cobbler/settings/%s/%s' % (name,key), str(value[key]))
+        else:
+            a.set('/files/etc/cobbler/settings/%s' % name, value)
+        a.save()
+        return True
+    except:
+        return False
 
 def grab_tree(api_handle, obj):
     """
@@ -1930,7 +1958,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
 
 
     # FIXME: not supported in 2.0?
-    if not object_action in ["dumpvars","find","remove","report","list"]: 
+    if not object_action in ["dumpvars","find","remove","report","list"] and object_type != "setting": 
         # FIXME: implement
         parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
