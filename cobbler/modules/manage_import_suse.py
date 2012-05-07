@@ -556,7 +556,7 @@ class ImportSuseManager:
             # SELinux Apache can't symlink to NFS (without some doing)
             if not os.path.exists(dest_link):
                 try:
-                    os.symlink(base + "-" + distro.arch, dest_link)
+                    os.symlink(base, dest_link)
                 except:
                     # this shouldn't happen but I've seen it ... debug ...
                     self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }

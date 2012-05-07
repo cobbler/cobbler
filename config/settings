@@ -91,6 +91,9 @@ default_ownership:
 # systems that reference this variable.  The factory
 # default is "cobbler" and cobbler check will warn if
 # this is not changed.
+# The simplest way to change the password is to run 
+# openssl passwd -1
+# and put the output between the "" below.
 default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 
 # the default template type to use in the absence of any

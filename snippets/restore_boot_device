@@ -1,2 +1,5 @@
-nvsetenv boot-device "$(cat /root/inst-sys/boot-device.bak)"
-
+if [ "$os_version" == "sles11" ]; then
+    nvsetenv boot-device "$(cat /root/inst-sys/boot-device.bak)"
+elif
+    nvsetenv boot-device "$(cat /root/boot-device.bak)"
+fi
