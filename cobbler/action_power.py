@@ -69,8 +69,9 @@ class PowerTool:
         interested in maximum security should take that route.
         """
 
-        template = self.get_command_template()
-        template_file = open(template, "r")
+        power_command = utils.get_power(self.system.power_type)
+        if not power_command:
+            utils.die(self.logger,"no power type set for system")
 
         meta = utils.blender(self.api, False, self.system)
         meta["power_mode"] = desired_state
@@ -81,43 +82,34 @@ class PowerTool:
         if self.force_pass is not None:
            meta["power_pass"] = self.force_pass
 
-        tmp = templar.Templar(self.api._config)
-        cmd = tmp.render(template_file, meta, None, self.system)
-        template_file.close()
-
-        cmd = cmd.strip()
-
         self.logger.info("cobbler power configuration is:")
-
         self.logger.info("      type   : %s" % self.system.power_type)
         self.logger.info("      address: %s" % self.system.power_address)
         self.logger.info("      user   : %s" % self.system.power_user)
         self.logger.info("      id     : %s" % self.system.power_id)
 
         # if no username/password data, check the environment
-
         if meta.get("power_user","") == "":
             meta["power_user"] = os.environ.get("COBBLER_POWER_USER","")
         if meta.get("power_pass","") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS","")
 
-        self.logger.info("- %s" % cmd)
-
-        # use shell so we can have mutliple power commands chained together
-        cmd = ['/bin/sh','-c', cmd]
+        template = utils.get_power_template(self.system.power_type)
+        tmp = templar.Templar(self.api._config)
+        template_data = tmp.render(template, meta, None, self.system)
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
         for x in range(0,5):
-            output, rc = utils.subprocess_sp(self.logger, cmd, shell=False)
+            output, rc = utils.subprocess_sp(self.logger, power_command, shell=False, input=template_data)
             if rc == 0:
                 # If the desired state is actually a query for the status
                 # return different information than command return code
                 if desired_state == 'status':
-                    match = re.match('(^Status:\s)(ON|OFF)', output)
+                    match = re.match('(^Status:\s)(on|off)', output, re.IGNORECASE)
                     if match:
                         power_status = match.groups()[1]
-                        if power_status == 'ON':
+                        if power_status.lower() == 'on':
                             return True
                         else:
                             return False
@@ -131,20 +123,4 @@ class PowerTool:
            utils.die(self.logger,"command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 
         return rc
-
-    def get_command_template(self):
-
-        """
-        In case the user wants to customize the power management commands, 
-        we source the code for each command from /etc/cobbler and run
-        them through Cheetah.
-        """
-
-        if self.system.power_type in [ "", "none" ]:
-            utils.die(self.logger,"Power management is not enabled for this system")
-
-        result = utils.get_power(self.system.power_type)
-        if not result:
-            utils.die(self.logger, "Invalid power management type for this system (%s, %s)" % (self.system.power_type, self.system.name))
-        return result
 

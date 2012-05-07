@@ -1680,29 +1680,34 @@ def is_remote_file(file):
     else:
        return False
 
-def subprocess_sp(logger, cmd, shell=True):
+def subprocess_sp(logger, cmd, shell=True, input=None):
     if logger is not None:
         logger.info("running: %s" % cmd)
+
+    stdin = None
+    if input:
+        stdin = sub_process.PIPE
+
     try:
-        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
+        sp = sub_process.Popen(cmd, shell=shell, stdin=stdin, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out,err) = sp.communicate()
+    (out,err) = sp.communicate(input)
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
         logger.debug("received on stderr: %s" % err)
     return out, rc
 
-def subprocess_call(logger, cmd, shell=True):
-    data, rc = subprocess_sp(logger, cmd, shell=shell)
+def subprocess_call(logger, cmd, shell=True, input=None):
+    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return rc
 
-def subprocess_get(logger, cmd, shell=True):
-    data, rc = subprocess_sp(logger, cmd, shell=shell)
+def subprocess_get(logger, cmd, shell=True, input=None):
+    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return data
 
 def popen2(args, **kwargs):
@@ -1964,8 +1969,8 @@ def get_power_types():
     Return all possible power types
     """
     power_types = []
-    power_template = re.compile(r'power_(.*).template')
-    for x in glob.glob("/etc/cobbler/power/power_*.template"):
+    power_template = re.compile(r'fence_(.*)')
+    for x in glob.glob("/usr/sbin/fence_*"):
         power_types.append(power_template.search(x).group(1))
     power_types.sort()
     return power_types
@@ -1975,10 +1980,24 @@ def get_power(powertype=None):
     Return power command for type
     """
     if powertype:
-        powerpath = "/etc/cobbler/power/power_%s.template" % powertype
-        if os.path.isfile(powerpath):
+        powerpath = "/usr/sbin/fence_%s" % powertype
+        if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
             return powerpath
     return None
+
+def get_power_template(powertype=None):
+    """
+    Return power template for type
+    """
+    if powertype:
+        powertemplate = "/etc/cobbler/power/fence_%s.template" % powertype
+        if os.path.isfile(powertemplate):
+            f = open(powertemplate)
+            template = f.read()
+            f.close()
+            return template
+    # return a generic template if a specific one wasn't found
+    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
 def get_shared_secret():
     """
