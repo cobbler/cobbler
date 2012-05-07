@@ -14,14 +14,14 @@
     <tr>
       <th></th>
       <th>Setting</th>
-      <th>Value (read-only)</th>
+      <th>Value</th>
     </tr>
   </thead>
   <tbody>
   {% for setting,value in settings %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
       <td></td>
-      <td>{{ setting }}</td>
+      <td><a href="/cobbler_web/setting/edit/{{ setting }}">{{ setting }}</a></td>
       <td>{% if value %}{{ value }}{% else %}None{% endif %}</td>
     </tr>
   {% endfor %}

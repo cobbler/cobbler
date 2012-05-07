@@ -295,6 +295,8 @@ class Config:
             result=self._packages
         elif collection_type == "file":
             result=self._files
+        elif collection_type == "settings":
+            result=self._settings
         else:
             raise CX("internal error, collection name %s not supported" % collection_type)
         return result
