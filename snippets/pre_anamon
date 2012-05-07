@@ -1,4 +1,4 @@
 #if $str($getVar('anamon_enabled','')) == "1"
-wget -O /tmp/anamon "http://$server/cobbler/aux/anamon"
+wget -O /tmp/anamon "http://$server:$http_port/cobbler/aux/anamon"
 python /tmp/anamon --name "$name" --server "$server" --port "$http_port"
 #end if

@@ -2148,7 +2148,9 @@ def find_distro_path(settings, distro):
     for dir in possible_dirs:
         if os.path.dirname(distro.kernel).find(dir) != -1:
             return os.path.join(settings.webdir, "ks_mirror", dir)
-    return None
+    # non-standard directory, assume it's the same as the
+    # directory in which the given distro's kernel is
+    return os.path.dirname(distro.kernel)
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
