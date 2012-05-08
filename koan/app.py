@@ -1443,7 +1443,10 @@ class Koan:
                 size = sizes[-1]
             else:
                 size = sizes[counter]
-            driver = drivers[counter]
+            if counter >= len(drivers): 
+                driver = drivers[-1]
+            else:
+                driver = drivers[counter]
             disks.append([path,size,driver])
             counter = counter + 1
         if len(disks) == 0:
