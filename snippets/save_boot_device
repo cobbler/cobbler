@@ -1,12 +1,5 @@
 if [ "$os_version" == "sles11" ]; then
-    cat /proc/device-tree/options/boot-device > /root/boot-device.bak
+    nvram --print-config=boot-device > /root/boot-device.bak
 elif [ "$os_version" == "fedora17" ]; then
-    while : ; do
-        sleep 10
-        if [ -d /mnt/sysimage/root ]; then
-            cat /proc/device-tree/options/boot-device > /mnt/sysimage/root/boot-device.bak
-            logger "Copied boot-device.bak to system"
-            break
-        fi
-    done &
+    nvram --print-config=boot-device > /tmp/boot-device.bak
 fi
