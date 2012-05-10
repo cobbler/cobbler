@@ -1,5 +1,6 @@
 if [ "$os_version" == "sles11" ]; then
     nvsetenv boot-device "$(cat /root/inst-sys/boot-device.bak)"
-elif
-    nvsetenv boot-device "$(cat /root/boot-device.bak)"
+elif [ "$os_version" == "fedora17" ]; then
+    # must be run from a %post --nochroot section
+    nvsetenv boot-device "$(cat /tmp/boot-device.bak)"
 fi
