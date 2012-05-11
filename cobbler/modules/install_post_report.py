@@ -84,7 +84,10 @@ def run(api, args, logger):
     input_data = input_template.read()
     input_template.close()
 
-    message = templar.Templar(self.api._config).render(input_data, metadata, None)
+    #message = templar.Templar(self.api._config).render(input_data, metadata, None)
+    #There is no need for this formatting
+    message = ""
+    
     # for debug, call
     # print message
 
