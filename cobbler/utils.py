@@ -526,7 +526,6 @@ def input_string_or_list(options):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
     """
-    delim = None
     if options == "<<inherit>>":
        return "<<inherit>>"
     if options is None or options == "" or options == "delete":
@@ -534,7 +533,7 @@ def input_string_or_list(options):
     elif isinstance(options,list):
        return options
     elif isinstance(options,basestring):
-       tokens = options.split(delim)
+       tokens = shlex.split(options)
        return tokens
     else:
        raise CX(_("invalid input type"))
