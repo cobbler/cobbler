@@ -160,9 +160,9 @@ class Collection:
 
     def copy(self,ref,newname,logger=None): 
         ref       = ref.make_clone()
-        ref.name  = newname
         ref.uid   = self.config.generate_uid()
         ref.ctime = 0
+        ref.set_name(newname)
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
             for iname in ref.interfaces.keys():
