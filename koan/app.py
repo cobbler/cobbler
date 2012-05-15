@@ -194,7 +194,11 @@ def main():
     p.add_option("", "--kexec",
                  dest="use_kexec",
                  action="store_true",
-                 help="Instead of writing a new bootloader config when using --replace_self, just kexec the new kernel and initrd")
+                 help="Instead of writing a new bootloader config when using --replace-self, just kexec the new kernel and initrd")
+    p.add_option("", "--no-copy-default",
+                 dest="no_copy_default",
+                 action="store_true",
+                 help="Do not copy the kernel args from the default kernel entry when using --replace-self")
     p.add_option("", "--embed",
                  dest="embed_kickstart",
                  action="store_true",
@@ -232,6 +236,7 @@ def main():
         k.kopts_override      = options.kopts_override
         k.static_interface    = options.static_interface
         k.use_kexec           = options.use_kexec
+        k.no_copy_default     = options.no_copy_default
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
@@ -301,7 +306,7 @@ class Koan:
         # which uses the default boot entry in the grub.conf
         # as template for the new entry being added to that file.
         # look at /sbin/grubby --help for more info
-        self.grubby_copy_default  =  1
+        self.no_copy_default   = None
 
     #---------------------------------------------------
 
@@ -1011,7 +1016,7 @@ class Koan:
                         "--args", "\"%s\"" % k_args
                 ]
 
-                if self.grubby_copy_default:
+                if not self.no_copy_default:
                     cmd.append("--copy-default")
 
                 boot_probe_ret_code, probe_output = self.get_boot_loader_info()
