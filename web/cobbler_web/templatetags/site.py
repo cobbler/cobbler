@@ -1,5 +1,6 @@
 from django import template
 from django.template import Node, NodeList
+from django.utils.datastructures import SortedDict
 
 register = template.Library()
 
@@ -359,3 +360,28 @@ def smart_if(parser, token):
 #==========================
 
 ifinlist = register.tag(smart_if)
+
+#==========================
+
+# Based on code found here:
+# http://stackoverflow.com/questions/2024660/django-sort-dict-in-template
+#
+# Required since dict.items|dictsort doesn't seem to work 
+# when iterating over the keys with a for loop
+
+@register.filter(name='sort')
+def listsort(value):
+        if isinstance(value, dict):
+            new_dict = SortedDict()
+            key_list = value.keys()
+            key_list.sort()
+            for key in key_list:
+                new_dict[key] = value[key]
+            return new_dict
+        elif isinstance(value, list):
+            new_list = list(value)
+            new_list.sort()
+            return new_list
+        else:
+            return value
+        listsort.is_safe = True
