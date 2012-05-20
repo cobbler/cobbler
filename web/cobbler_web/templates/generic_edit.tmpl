@@ -363,15 +363,17 @@ function on_form_submit()
 {% endifequal %}
     // we have to select all items all multiselects
     // so they'll be submitted and saved correctly
-{% for item in fields %}
-  {% ifequal item.html_element "multiselect" %}
+{% for key,value in sections.items|sort %}
+  {% for item in value.fields %}
+    {% ifequal item.html_element "multiselect" %}
     var cur_multi = document.getElementById("{{ item.dname }}");
     if (cur_multi) {
         for (i=0; i <= cur_multi.options.length - 1; i++) {
             cur_multi.options[i].selected = true;
         }
     }
-  {% endifequal %}
+    {% endifequal %}
+  {% endfor %}
 {% endfor %}
     document.editform.submit()
 }
