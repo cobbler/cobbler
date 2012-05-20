@@ -48,8 +48,8 @@ h1 { font-size: 1.5em; }
 h2,legend { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
 input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
-input[type=text], input[type=password], select { width: 200px; }
-input[type=submit], input[type=reset] { margin-top: 10px; }
+input[type=text], input[type=password], select { width: 350px; }
+input[type=submit], input[type=reset] { margin-top: 5px; margin-bottom: 5px; }
 input[type=checkbox] { background: none;  border: none; margin-right: 196px; margin-top: 5px; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
@@ -82,6 +82,7 @@ pre textarea { height: 60em; width: 60em; }
 body.loginscreen { background-image: none; }
 input.action { height: 22px; }
 ol.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
+ol label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
 div.multiselect label { width: auto; font-weight: normal; display: inline; }
 div.multileft { float: left; text-align: left; width: auto; }
@@ -92,6 +93,7 @@ div.multiright { float: left; text-align: right; width: auto; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
 span.context-tip {
+  display: none;
   background-repeat: no-repeat;
   background-image: url('/cobbler_webui_content/tooltip.png');
   padding-left: 30px;
@@ -108,6 +110,7 @@ span.context-tip:hover {
 /* Now for the 'id' specific statements */
 #login { width: 250px; margin: auto; text-align: center;}
 #login input { text-align: center;}
+#login input[type=text], #login input[type=password] { width: 200px; }
 
 #container { width: 98%; margin: 0; padding: 0; min-height: 100%; }
 #user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
@@ -155,3 +158,8 @@ span.context-tip:hover {
 #edit input[type=text] { width: 300px; }
 */
 
+/* jQuery UI formatting for tabs */
+.ui-tabs .ui-tabs-nav li a {
+  padding: 0.25em 0.25em;
+  font-size: 12pt;
+}

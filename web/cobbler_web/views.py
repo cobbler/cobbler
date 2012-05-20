@@ -1032,21 +1032,13 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if what == "subprofile":
       what = "profile"
       child = True
-   
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
       obj = remote.get_item(what, obj_name, True)
-   #
-   #   if obj.has_key('ctime'):
-   #      obj['ctime'] = time.ctime(obj['ctime'])
-   #   if obj.has_key('mtime'):
-   #      obj['mtime'] = time.ctime(obj['mtime'])
-
    else:
        editable = remote.check_access_no_fail(request.session['token'], "new_%s" % what, None)
        obj = None
-
 
    interfaces = {}
    if what == "system":
@@ -1079,12 +1071,24 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if editmode == "edit":
        request.session['%s_%s' % (what,obj_name)] = fields
 
+   sections = {}
+   for field in fields:
+       bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
+       fkey = "%d_%s" % (bmo,field['block_section'])
+       if not sections.has_key(fkey):
+           sections[fkey] = {}
+           sections[fkey]['name'] = field['block_section']
+           sections[fkey]['fields'] = []
+       sections[fkey]['fields'].append(field)
+
+   #raise ""
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
    html = t.render(RequestContext(request,{
        'what'            : what, 
-       'fields'          : fields, 
+       #'fields'          : fields, 
+       'sections'        : sections,
        'subobject'       : child,
        'editmode'        : editmode, 
        'editable'        : editable,
