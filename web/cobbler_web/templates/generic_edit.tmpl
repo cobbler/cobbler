@@ -421,6 +421,7 @@ $(document).ready(function()
   <div>
 {% if editable %}
     <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save" />
+    <input class="button" type="button" onClick="window.location='/cobbler_web/{{ what }}/list';" value="Cancel" />
 {% else %}
     This user does not have permissions to edit this object.
 {% endif %}
