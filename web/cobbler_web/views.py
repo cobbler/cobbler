@@ -839,11 +839,21 @@ def setting_edit(request, setting_name=None):
     }
 
     fields = get_fields('setting', False, seed_item=cur_setting)
+    sections = {}
+    for field in fields:
+        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
+        fkey = "%d_%s" % (bmo,field['block_section'])
+        if not sections.has_key(fkey):
+            sections[fkey] = {}
+            sections[fkey]['name'] = field['block_section']
+            sections[fkey]['fields'] = []
+        sections[fkey]['fields'].append(field)
 
     t = get_template('generic_edit.tmpl')
     html = t.render(RequestContext(request,{
         'what'            : 'setting',
-        'fields'          : fields,
+        #'fields'          : fields,
+        'sections'        : sections,
         'subobject'       : False,
         'editmode'        : 'edit',
         'editable'        : True,
@@ -1081,7 +1091,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
            sections[fkey]['fields'] = []
        sections[fkey]['fields'].append(field)
 
-   #raise ""
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
