@@ -256,6 +256,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /tftpboot/images
 %endif
 
+/usr/share/augeas/lenses/cobblersettings.aug
+
 %doc AUTHORS CHANGELOG README COPYING
 
 %package -n koan
