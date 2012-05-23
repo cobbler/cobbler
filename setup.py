@@ -311,6 +311,8 @@ if __name__ == "__main__":
             ("%scobbler/links" % webroot,               []),
             ("%scobbler/aux" % webroot,                 []),
             ("%scobbler/pub" % webroot,                 []),
+            ("%scobbler/rendered" % webroot,            []),
+            ("%scobbler/images" % webroot,              []),
 
             #A script that isn't really data, wsgi script
             ("%scobbler/svc/" % webroot,     ["scripts/services.py"]),
