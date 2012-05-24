@@ -181,11 +181,9 @@ class BootAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            old = os.umask(0x777)
-            fd = open("/var/lib/cobbler/.mtime","w")
-            fd.write("0")
-            fd.close()
-            os.umask(old)
+            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT|os.O_RDWR, 0200)
+            os.write(fd, "0")
+            os.close(fd)
             return 0
         fd = open("/var/lib/cobbler/.mtime")
         data = fd.read().strip()
