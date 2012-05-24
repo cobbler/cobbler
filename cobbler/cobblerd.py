@@ -58,20 +58,17 @@ def regen_ss_file():
     data = fd.read(512)
     fd.close()
     if not os.path.isfile(ssfile):
-        um = os.umask(int('0027',16))
-        fd = open(ssfile,"w+")
-        fd.write(binascii.hexlify(data))
-        fd.close()
-        os.umask(um)
-        utils.os_system("chmod 700 /var/lib/cobbler/web.ss")
+        fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
+        os.write(fd,binascii.hexlify(data))
+        os.close(fd)
         http_user = "apache"
         if utils.check_dist() in [ "debian", "ubuntu" ]:
             http_user = "www-data"
         utils.os_system("chown %s /var/lib/cobbler/web.ss"%http_user )
     else:
-        fd = open(ssfile,"w+")
-        fd.write(binascii.hexlify(data))
-        fd.close()
+        fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
+        os.write(fd,binascii.hexlify(data))
+        os.close(fd)
 
     return 1
 
