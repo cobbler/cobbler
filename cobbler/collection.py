@@ -194,7 +194,9 @@ class Collection:
             for what in ["distro","profile","system"]:
                 items = self.api.find_items(what,{"mgmt_classes":oldname})
                 for item in items:
-                    item.mgmt_classes = map(lambda x:x if x != oldname else newname,item.mgmt_classes)
+                    for i in range(0,len(item.mgmt_classes)):
+                        if item.mgmt_classes[i] == oldname:
+                            item.mgmt_classes[i] = newname
                     self.api.add_item(what,item,save=True)
 
         # for a repo, rename the mirror directory
