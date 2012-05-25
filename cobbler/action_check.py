@@ -197,52 +197,7 @@ class BootCheck:
 
        enabled = self.config.api.is_selinux_enabled()
        if enabled:
-           data2 = utils.subprocess_get(self.logger,"/usr/sbin/getsebool -a",shell=True)
-           for line in data2.split("\n"):
-              if line.find("httpd_can_network_connect ") != -1:
-                  if line.find("off") != -1:
-                      status.append(_("Must enable a selinux boolean to enable vital web services components, run: setsebool -P httpd_can_network_connect true"))
-              if line.find("rsync_disable_trans ") != -1:
-                  if line.find("on") != -1:
-                      status.append(_("Must enable the cobbler import and replicate commands, run: setsebool -P rsync_disable_trans=1"))
-
-           data3 = utils.subprocess_get(self.logger,"/usr/sbin/semanage fcontext -l | grep public_content_t",shell=True)
-
-           rule1 = False
-           rule2 = False
-           rule3 = False
-           selinux_msg = "/usr/sbin/semanage fcontext -a -t public_content_t \"%s\""
-           for line in data3.split("\n"):
-               if line.startswith("/tftpboot/.*"):
-                   rule1 = True
-               if line.startswith("/var/lib/tftpboot/.*"):
-                   rule2 = True
-               if line.startswith(self.settings.webdir+"/images/.*"):
-                   rule3 = True
-
-           rules = []
-           if os.path.exists("/tftpboot") and not rule1:
-               rules.append(selinux_msg % "/tftpboot/.*")
-           else:
-               if not rule2:
-                   rules.append(selinux_msg % "/var/lib/tftpboot/.*")
-           if not rule3:
-               rules.append(selinux_msg % self.settings.webdir+"/images/.*")
-           if len(rules) > 0:
-               status.append("you need to set some SELinux content rules to ensure cobbler serves content correctly in your SELinux environment, run the following: %s" % " && ".join(rules))
-
-           # now check to see that the Django sessions path is accessible
-           # by Apache
-           
-           data4 = utils.subprocess_get(self.logger,"/usr/sbin/semanage fcontext -l | grep httpd_sys_content_rw_t",shell=True)
-           selinux_msg = "you need to set some SELinux rules if you want to use cobbler-web (an optional package), run the following: /usr/sbin/semanage fcontext -a -t httpd_sys_content_rw_t \"%s\""
-           rule4 = False
-           for line in data4.split("\n"):
-               if line.startswith("/var/lib/cobbler/webui_sessions/.*"):
-                   rule4 = True
-           if not rule4:
-               status.append(selinux_msg % "/var/lib/cobbler/webui_sessions/.*")
-
+           status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
 
    def check_for_default_password(self,status):
        default_pass = self.settings.default_password_crypted
