@@ -189,6 +189,16 @@ class Collection:
 
         self.add(newref, with_triggers=with_triggers,save=True)
 
+        # for mgmt classes, update all objects that use it
+        if ref.COLLECTION_TYPE == "mgmtclass":
+            for what in ["distro","profile","system"]:
+                items = self.api.find_items(what,{"mgmt_classes":oldname})
+                for item in items:
+                    for i in range(0,len(item.mgmt_classes)):
+                        if item.mgmt_classes[i] == oldname:
+                            item.mgmt_classes[i] = newname
+                    self.api.add_item(what,item,save=True)
+
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
             path = "/var/www/cobbler/repo_mirror/%s" % ref.name
