@@ -120,20 +120,24 @@ span.context-tip:hover {
 #menubar ul { padding-left: 2px; margin: 0px; margin-bottom: 8px; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
 
-#submenubar { width: 100%; display: inline; }
-#submenubar li { float: left; display: inline; height: 26px; margin-left: 8px; }
-#submenubar li:first-child { margin-left: 0px; margin-top: 4px; }
+#submenubar { width: 100%; }
+#submenubar li { float: left; height: 26px; margin-left: 8px; }
+#submenubar li:first-child { margin-left: 0px; margin-top: 3px; }
 #submenubar li.paginate { float: right; }
 #submenubar li.paginate select { width: auto; }
+#submenubar input { margin: 0px; }
+#submenubar .action, #submenu .button { height: 26px; }
 
 #content { float: left; width: 850px; }
 #spacer { clear: both; }
 
 #footer { font-size: .8em; text-align: center; position: absolute; width: 100%; bottom: 0px; height: 25px; }
 
-#batchactions { font-weight: bold; }
+#batchactions { font-weight: normal; width: auto; }
 #batchactions option { padding-left: 1em; font-weight: normal; }
 #batchactions option:first-child { font-weight: bold; padding-left: 0; }
+
+#filter_field { width: auto; }
 
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
