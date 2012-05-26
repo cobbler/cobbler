@@ -363,15 +363,17 @@ function on_form_submit()
 {% endifequal %}
     // we have to select all items all multiselects
     // so they'll be submitted and saved correctly
-{% for item in fields %}
-  {% ifequal item.html_element "multiselect" %}
+{% for key,value in sections.items|sort %}
+  {% for item in value.fields %}
+    {% ifequal item.html_element "multiselect" %}
     var cur_multi = document.getElementById("{{ item.dname }}");
     if (cur_multi) {
         for (i=0; i <= cur_multi.options.length - 1; i++) {
             cur_multi.options[i].selected = true;
         }
     }
-  {% endifequal %}
+    {% endifequal %}
+  {% endfor %}
 {% endfor %}
     document.editform.submit()
 }
@@ -393,14 +395,20 @@ $(document).ready(function()
   //make some stuff resizeable
   $("select.edit").resizable();
   //hide the all of the element with class msg_body
-  $(".sectionbody").hide();
-  $("#block_General").show();
+  //$(".sectionbody").hide();
+  //$("#block_General").show();
   //toggle the componenet with class sectionbody
-  $(".sectionheader").click(function()
-  {
-    $(this).next(".sectionbody").slideToggle(500);
-  });
+  //$(".sectionheader").click(function()
+  //{
+  //  $(this).next(".sectionbody").slideToggle(500);
+  //});
 });
+</script>
+
+<script>
+  $(function() {
+    $("#tabs").tabs();
+  });
 </script>
 
 <h1>{% ifequal editmode 'edit'  %}Editing{% else %}Adding{% endifequal %} a {{ what|capfirst }}{%ifequal editmode 'edit' %}: {{ name }}{% endifequal %}</h1>
@@ -409,68 +417,80 @@ $(document).ready(function()
   {% csrf_token %}
   <input type="hidden" name="editmode" value="{{ editmode }}" />
   <input type="hidden" name="subobject" value="{{ subobject }}" />
-  <ol>
-    <li class="hidden"></li>
-{% for item in fields %}
-  {% ifchanged item.block_section %}
-  </ol>
-  <fieldset><legend class="sectionheader">&rArr; {{ item.block_section }}</legend>
-  <ol class="sectionbody" id="block_{{ item.block_section }}">
-  {% endifchanged %}
-    <li id="{{ item.dname  }}_row" class="editrow">
+
+  <div>
+{% if editable %}
+    <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save" />
+    <input class="button" type="button" onClick="window.location='/cobbler_web/{{ what }}/list';" value="Cancel" />
+{% else %}
+    This user does not have permissions to edit this object.
+{% endif %}
+  </div>
+
+  <div id="tabs">
+    <ul>
+{% for key,value in sections.items|sort %}
+      <li><a href="#tabs-{{ forloop.counter }}">{{ value.name }}</a></li>
+{% endfor %}
+    </ul>
+{% for key,value in sections.items|sort %}
+    <div id="tabs-{{ forloop.counter }}">
+    <ol>
+  {% for item in value.fields %}
+    <li id="{{ item.dname }}_row" class="editrow">
       <label for="{{ item.dname }}" id="{{ item.dname }}_caption">{{ item.caption }}</label>
-  {% ifequal item.html_element "widget" %}
+    {% ifequal item.html_element "widget" %}
       <span id="widget_{{ item.dname }}"></span>
-  {% else %}
-    {% ifequal item.html_element "text" %}
-      {% smart_if editmode == "edit" and item.dname == "name" %}
+    {% else %}
+      {% ifequal item.html_element "text" %}
+        {% smart_if editmode == "edit" and item.dname == "name" %}
       {{ item.value }} (editing, value is read-only)
       <input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}" />
-      {% else %}
+        {% else %}
       <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}" />
-      {% endsmart_if %}
-    {% endifequal %}
-    {% ifequal item.html_element "textarea" %}
-      <textarea name="{{ item.dname }}" id="{{ item.dname }}">{{ item.value }}</textarea>
-    {% endifequal %}
-    {% ifequal item.html_element "radio" %}
-      {% for choice in item.choices %}
-        {% ifequal item.value choice %}
-      <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
-        {% else %}
-      <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}">{{ choice }}&nbsp;
-        {% endifequal %}
-      {% endfor %}
-    {% endifequal %}
-    {% ifequal item.html_element "checkbox" %}
-      {% ifequal item.value 1 %}
-      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" />
-      {% else %}
-      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" />
+        {% endsmart_if %}
       {% endifequal %}
-    {% endifequal %}
-    {% ifequal item.html_element "select" %}
-      <select id="{{ item.dname }}" name="{{ item.dname }}">
-      {% for choice in item.choices %}
-        {% ifequal item.value choice %}
-        <option value="{{ choice }}" selected>{{ choice }}</A>
+      {% ifequal item.html_element "textarea" %}
+      <textarea name="{{ item.dname }}" id="{{ item.dname }}">{{ item.value }}</textarea>
+      {% endifequal %}
+      {% ifequal item.html_element "radio" %}
+        {% for choice in item.choices %}
+          {% ifequal item.value choice %}
+      <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}" checked="checked">{{ choice }}&nbsp;
+          {% else %}
+      <input type="radio" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ choice }}">{{ choice }}&nbsp;
+          {% endifequal %}
+        {% endfor %}
+      {% endifequal %}
+      {% ifequal item.html_element "checkbox" %}
+        {% ifequal item.value 1 %}
+      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" checked="checked" />
         {% else %}
-        <option value="{{ choice }}">{{ choice }}</A>
+      <input type="checkbox" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.dname }}" />
         {% endifequal %}
-      {% endfor %} 
+      {% endifequal %}
+      {% ifequal item.html_element "select" %}
+      <select id="{{ item.dname }}" name="{{ item.dname }}">
+        {% for choice in item.choices %}
+          {% ifequal item.value choice %}
+        <option value="{{ choice }}" selected>{{ choice }}</A>
+          {% else %}
+        <option value="{{ choice }}">{{ choice }}</A>
+          {% endifequal %}
+        {% endfor %} 
       </select>
-    {% endifequal %}
-    {% ifequal item.html_element "multiselect" %}
+      {% endifequal %}
+      {% ifequal item.html_element "multiselect" %}
       <div class="multiselect">
         <div class="multileft">
           <label for="from_{{ item.dname }}">Available:</label>
           <br />
           <select multiple id="from_{{ item.dname }}" name="from_{{ item.dname }}" class="edit">
-      {% for choice in item.choices %}
-        {% smart_if choice not in item.value_raw %}
+        {% for choice in item.choices %}
+          {% smart_if choice not in item.value_raw %}
             <option value="{{ choice }}">{{ choice }}</a>
-        {% endsmart_if %}
-      {% endfor %} 
+          {% endsmart_if %}
+        {% endfor %} 
           </select>
         </div>
         <div class="multibuttons">
@@ -481,40 +501,33 @@ $(document).ready(function()
           <label for="{{ item.dname }}">Selected:</label>
           <br />
           <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
-      {% for choice in item.choices %}
-        {% smart_if choice in item.value_raw %}
+        {% for choice in item.choices %}
+          {% smart_if choice in item.value_raw %}
             <option value="{{ choice }}">{{ choice }}</a>
-        {% endsmart_if %}
-      {% endfor %}
+          {% endsmart_if %}
+        {% endfor %}
           </select>
         </div>
       </div>
-    {% endifequal %}
-    {% smart_if editmode == "edit" and item.dname != "name" %}
-      {% if item.tooltip %}
+      {% endifequal %}
+      {% smart_if editmode == "edit" and item.dname != "name" %}
+        {% if item.tooltip %}
       <span class="context-tip">{{ item.tooltip }}</span>
-      {% endif %}
-    {% endsmart_if %}
+        {% endif %}
+      {% endsmart_if %}
     </li>
-  {% endifequal %}
+    {% endifequal %}
+  {% endfor %}
+    </ol>
+    </div>
 {% endfor %}
-  </ol>
-  </fieldset>
+  </div>
 
 {% ifequal what "system" %}
   <input type="hidden" id="interface_list" name="interface_list" value="1" />
   <input type="hidden" id="present" name="present" value="1" />
   <input type="hidden" id="original" name="original" value="1" />
 {% endifequal %}
-
-  <div>
-{% if editable %}
-    <input class="button" type="submit" name="submit" onClick="on_form_submit();" value="Save" />
-    <input class="button" type="reset" name="reset" value="Reset" />
-{% else %}
-    This user does not have permissions to edit this object.
-{% endif %}
-  </div>
 
 </form>
 {% endblock content %}
