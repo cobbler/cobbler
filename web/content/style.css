@@ -158,8 +158,35 @@ span.context-tip:hover {
 #edit input[type=text] { width: 300px; }
 */
 
-/* jQuery UI formatting for tabs */
+/* 
+  jQuery UI formatting for tabs, some styling based on examples here:
+  http://keith-wood.name/uiTabs.html 
+*/
 .ui-tabs .ui-tabs-nav li a {
-  padding: 0.25em 0.25em;
-  font-size: 12pt;
+  padding: 0.5em 0.5em;
+  font-size: 0.95em;
+  font-weight: bold;
+}
+.ui-widget {
+  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  font-size: 0.85em;
+  font-weight: normal;
+}
+#tabs {
+  padding: 0px;
+  background: none;
+  border-width: 0px;
+}
+#tabs .ui-tabs-nav {
+  padding-left: 0px;
+  background: transparent;
+  border-width: 0px 0px 1px 0px;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0px;
+}
+#tabs .ui-tabs-panel {
+  /*background: url(images/ui-bg_highlight-hard_100_f5f3e5_1x100.png) repeat-x scroll 50% top #f5f3e5;*/
+  border-width: 0px 1px 1px 1px;
+  background-color: white;
 }
