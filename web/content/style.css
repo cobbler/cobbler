@@ -1,8 +1,8 @@
 /*Reset to a sane default across browsers*/
-html{
+html, body{
+  margin: 0;
+  padding: 0;
   height: 100%;
-  overflow-y: scroll;
-  font-size: 1em;
 }
 
 a,blockquote,body,div,dl,dt,dd,form,fieldset,h1,h2,h3,h4,h5,h6,html,img,input,label,li,ul,ol,p,pre,span,textarea,table,tbody,td,th,thead,tr {
@@ -29,15 +29,10 @@ table{
 
 /* Lets set the primary styles and feel for the app */
 body {
-  height: 100%;
   font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   color: #333333;
   background-color: #EEEEEE;
-  background-image: url('/cobbler_webui_content/logo-cobbler.png');
-  background-repeat: no-repeat;
-  background-position: 0% 0%;
-  padding-top: 80px;
-  position: relative;
+  font-size: 1em;
 }
 
 a { color: #333333; text-decoration: none; }
@@ -48,8 +43,8 @@ h1 { font-size: 1.5em; }
 h2,legend { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
 input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
-input[type=text], input[type=password], select { width: 200px; }
-input[type=submit], input[type=reset] { margin-top: 10px; }
+input[type=text], input[type=password], select { width: 350px; }
+input[type=submit], input[type=reset], input[type=button] { width: auto; margin-top: 5px; margin-bottom: 5px; }
 input[type=checkbox] { background: none;  border: none; margin-right: 196px; margin-top: 5px; }
 label { font-weight: bold; }
 ol, ul { list-style: none; }
@@ -82,6 +77,7 @@ pre textarea { height: 60em; width: 60em; }
 body.loginscreen { background-image: none; }
 input.action { height: 22px; }
 ol.sectionbody label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
+ol label { width: 300px; vertical-align: top; display: inline-block; line-height: 1.8; }
 div.multiselect { display: -moz-inline-box; display:inline-block; vertical-align:top; clear: both; margin-bottom: 4px;}
 div.multiselect label { width: auto; font-weight: normal; display: inline; }
 div.multileft { float: left; text-align: left; width: auto; }
@@ -92,6 +88,7 @@ div.multiright { float: left; text-align: right; width: auto; }
 li.paginate { float:right; }
 li.paginate select { width: auto; }
 span.context-tip {
+  display: none;
   background-repeat: no-repeat;
   background-image: url('/cobbler_webui_content/tooltip.png');
   padding-left: 30px;
@@ -106,29 +103,41 @@ span.context-tip:hover {
 }
 
 /* Now for the 'id' specific statements */
-#login { width: 250px; margin: auto; text-align: center;}
+#login { width: 250px; margin: auto; padding-top: 100px; text-align: center;}
 #login input { text-align: center;}
+#login input[type=text], #login input[type=password] { width: 200px; }
 
-#container { width: 98%; margin: 0; padding: 0; min-height: 100%; }
-#user { margin-top: -75px; height: 80px; width: 98%; text-align: right; }
-#content { position: relative; margin-left: 200px; overflow: auto; padding-bottom: 25px;}
-#filter-adder { margin-top: 5px; }
-#footer { font-size: .8em; text-align: center; position: relative; height: 25px; margin-top: -25px; clear: both; }
+#container { position: relative; min-height: 100%; }
 
-#menubar { float:left; padding-left: 11px; width: 200px; }
+#header { height: 80px; width: 100%; }
+#logo { float: left; }
+#logo img { width: 180px; height: 60px; padding: 10px; }
+#user { margin: 10px; text-align: right; font-size: 0.85em; float: right; }
+
+#body { width: 1050px; padding: 5px; padding-bottom: 25px; }
+#menubar { float: left; padding-left: 10px; width: 190px; }
 #menubar h1 { font-size: 1.0em; margin-bottom: 4px; }
 #menubar ul { padding-left: 2px; margin: 0px; margin-bottom: 8px; }
 #menubar ul li { font-size: .8em; padding-left: 8px; }
 
-#submenubar { width: 100%; display: inline; }
-#submenubar li { float: left; display: inline; height: 26px; margin-left: 8px; }
-#submenubar li:first-child { margin-left: 0px; margin-top: 4px; }
+#submenubar { width: 100%; }
+#submenubar li { float: left; height: 26px; margin-left: 8px; }
+#submenubar li:first-child { margin-left: 0px; margin-top: 3px; }
 #submenubar li.paginate { float: right; }
 #submenubar li.paginate select { width: auto; }
+#submenubar input { margin: 0px; }
+#submenubar .action, #submenu .button { height: 26px; }
 
-#batchactions { font-weight: bold; }
+#content { float: left; width: 850px; }
+#spacer { clear: both; }
+
+#footer { font-size: .8em; text-align: center; position: absolute; width: 100%; bottom: 0px; height: 25px; }
+
+#batchactions { font-weight: normal; width: auto; }
 #batchactions option { padding-left: 1em; font-weight: normal; }
 #batchactions option:first-child { font-weight: bold; padding-left: 0; }
+
+#filter_field { width: auto; }
 
 #listitems { clear: both; }
 #listitems thead { background-color: #306CAC; color: #dddddd; font-weight: bold; text-align: left; }
@@ -146,12 +155,37 @@ span.context-tip:hover {
 #ksform li, #snippetform li { margin-top: 4px; }
 #ksform input[type=checkbox], #snippetform input[type=checkbox] { margin-right: 0px; }
 
-/* Old styles
-#import li { padding: 8px; }
-#import label { width: 60px; float: left; }
+#filter-adder { margin-top: 5px; }
 
-#edit h3 { border-width: 0px 0px 1px 0px; border-style: solid; padding-bottom: 2px;}
-#edit select { width: 175px; }
-#edit input[type=text] { width: 300px; }
+/* 
+  jQuery UI formatting for tabs, some styling based on examples here:
+  http://keith-wood.name/uiTabs.html 
 */
-
+.ui-tabs .ui-tabs-nav li a {
+  padding: 0.5em 0.5em;
+  font-size: 0.95em;
+  font-weight: bold;
+}
+.ui-widget {
+  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  font-size: 0.85em;
+  font-weight: normal;
+}
+#tabs {
+  width:100%;
+  padding: 0px;
+  background: none;
+  border-width: 0px;
+}
+#tabs .ui-tabs-nav {
+  padding-left: 0px;
+  background: transparent;
+  border-width: 0px 0px 1px 0px;
+  -moz-border-radius: 0px;
+  -webkit-border-radius: 0px;
+  border-radius: 0px;
+}
+#tabs .ui-tabs-panel {
+  border-width: 0px 1px 1px 1px;
+  background-color: white;
+}
