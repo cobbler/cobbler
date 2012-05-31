@@ -48,7 +48,8 @@ def authenticate(api_handle,username,password):
     """
     Validate an ldap bind, returning True/False
     """
- 
+    if (not password):
+        return False
     import ldap
 
     server    = api_handle.settings().ldap_server
