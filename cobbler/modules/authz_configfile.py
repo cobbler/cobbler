@@ -57,7 +57,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
 
     data = __parse_config()
     for g in data:
-        if user in data[g]:
+        if user.lower() in data[g]:
            return 1
     return 0
 
