@@ -50,7 +50,7 @@ FIELDS = [
   ["virt_disk_driver","SETTINGS:default_virt_disk_driver",'<<inherit>>',"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
   ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0,"int"],
   ["depth",1,1,"",False,"",0,"int"],
-  ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "kvm", "vmware"],"str"],
+  ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "kvm", "vmware", "openvz"],"str"],
   ["virt_path","",'<<inherit>>',"Virt Path",True,"Ex: /directory OR VolGroup00",0,"str"],
   ["virt_bridge","SETTINGS:default_virt_bridge",'<<inherit>>',"Virt Bridge",True,"",0,"str"],
   ["dhcp_tag","default",'<<inherit>>',"DHCP Tag",True,"See manpage or leave blank",0,"str"],
