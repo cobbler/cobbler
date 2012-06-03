@@ -174,7 +174,7 @@ If your nameservers are not provided by DHCP, you can specify a space seperated 
 =item virt-file-size
 
 (Virt-only) How large the disk image should be in Gigabytes.  The default is "5".
-This can be a space seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
+This can be a comma seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
 depending on what is given to --virt-path.  This should be input as a integer or decimal value without units.
 
 =item virt-ram
