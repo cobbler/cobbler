@@ -49,8 +49,14 @@ class Replicate:
         self.logger   = logger
 
     def rsync_it(self,from_path,to_path):
+        default_rsync_options = "-avzH "
+        rsync_options = ""
+        if self.settings.replicate_use_default_rsync_options:
+            rsync_options = default_rsync_options
+        rsync_options += self.settings.replicate_rsync_options
+
         from_path = "%s::%s" % (self.host, from_path)
-        cmd = "rsync -avzH %s %s" % (from_path, to_path)
+        cmd = "rsync %s %s %s" % (rsync_options, from_path, to_path)
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             self.logger.info("rsync failed")
