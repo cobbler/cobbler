@@ -326,16 +326,8 @@ register_new_installs: 0
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -m -d"
 
-# When ths option is set to 1 the default rsync options will be used during
-# a replication in addition to any options specified by replicate_rsync_options
-# If the option is set to 0 only replicate_rysnc_options will be used 
-replicate_use_default_rsync_options: 1
-
-# These options will be appended to the standard rsync options while performing
-# a replicate as long as replicate_use_default_rsync_options is set to 1. If 
-# replicate_use_default_rsync_options is set to 0 this setting will be the only
-# only options used by rsync
-replicate_rsync_options: ""
+# These options will be used for an rsync initiated by cobbler replicate
+replicate_rsync_options: "-avzH"
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
