@@ -1433,6 +1433,10 @@ class Koan:
             import vmwwcreate
             uuid = None
             creator = vmwwcreate.start_install
+        elif self.virt_type == "openvz":
+            import openvzcreate
+            uuid = None
+            creator = openvzcreate.start_install
         else:
             raise InfoException, "Unspecified virt type: %s" % self.virt_type
         return (uuid, creator, fullvirt, can_poll)
