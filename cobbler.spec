@@ -25,6 +25,7 @@ Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
 Requires: createrepo
+Requires: python-augeas
 Requires: python-cheetah
 Requires: python-netaddr
 Requires: python-simplejson
@@ -255,6 +256,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %else
 /tftpboot/images
 %endif
+
+/usr/share/augeas/lenses/cobblersettings.aug
 
 %doc AUTHORS CHANGELOG README COPYING
 
