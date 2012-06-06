@@ -256,8 +256,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /tftpboot/images
 %endif
 
-/usr/share/augeas/lenses/cobblersettings.aug
-
 %doc AUTHORS CHANGELOG README COPYING
 
 %package -n koan
@@ -268,6 +266,7 @@ Requires: python >= 2.0
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: python-simplejson
+Requires: python-virtinst
 %endif
 
 
