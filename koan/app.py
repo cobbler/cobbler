@@ -1332,7 +1332,10 @@ class Koan:
         path_list           = self.calc_virt_path(pd, virtname)
         size_list           = self.calc_virt_filesize(pd)
         driver_list         = self.calc_virt_drivers(pd)
-        disks               = self.merge_disk_data(path_list,size_list,driver_list)
+        if self.virt_type == 'openvz':
+            disks = None
+        else:
+            disks           = self.merge_disk_data(path_list,size_list,driver_list)
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
@@ -1353,7 +1356,7 @@ class Koan:
                 qemu_net_type    =  self.qemu_net_type
         )
 
-        print results
+        #print results
 
         if can_poll is not None and self.should_poll:
             import libvirt
@@ -1389,6 +1392,8 @@ class Koan:
                     print "- warning: failed to setup autoboot for %s, it will have to be configured manually" % virtname
             elif self.virt_type in [ "qemu", "kvm" ]:
                 utils.libvirt_enable_autostart(virtname)
+            elif self.virt_type in [ "openvz" ]:
+                pass
             else:
                 print "- warning: don't know how to autoboot this virt type yet"
             # else...
@@ -1709,7 +1714,7 @@ class Koan:
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
-            freespace_str = freespace_str.lower().replace("g","") # remove gigabytes
+            freespace_str = freespace_str.lower().replace("g","").replace(',', '.') # remove gigabytes
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 
