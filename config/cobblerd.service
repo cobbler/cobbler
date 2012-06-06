@@ -3,10 +3,9 @@ Description=Cobbler Helper Daemon
 After=syslog.target network.target
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/cobblerd
-RemainAfterExit=yes
+ExecStart=/usr/bin/cobblerd -F
 PrivateTmp=yes
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
