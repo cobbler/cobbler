@@ -1,0 +1,136 @@
+#!/bin/sh
+
+PROFILE_NAME=$1
+KICKSTART_URL=$2
+ROOTDIR=$3
+if [ -z $PROFILE_NAME -o -z $ROOTDIR -o -z $KICKSTART_URL ] ; then
+    echo "Some arguments missing!"
+    echo "Usage: $0 system_name kickstart_url private_dir"
+    echo "Exiting..."
+    exit 1
+fi
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+KICKSTART="/tmp/$PROFILE_NAME-kickstart.cfg"
+# get the kickstart
+wget $KICKSTART_URL -q -O $KICKSTART
+# get the package list (with groups) from kickstart
+PKGS=`cat $KICKSTART| awk '/^\%packages/,/^\%post/{ print $0 }'|egrep -v '^#|^$|^%'`
+# get the root password hash from kickstart
+ROOTPW=`cat $KICKSTART| awk '/^rootpw/{ print $NF }'`
+# what shell will be used for post-install script? get it from kickstart
+POST_INSTALL_SHELL=`cat $KICKSTART | grep '^%post.*--interpreter' | sed -n 's/^.*--interpreter \([^ ][^ ]*\).*/\1/;p'`
+# if not defined in kickstart, then use /bin/sh
+[ -z $POST_INSTALL_SHELL ] && POST_INSTALL_SHELL="/bin/sh"
+# where to store post-install script
+POST_INSTALL_SCRIPT="/tmp/$PROFILE_NAME-post-install"
+# create the postinstall script
+cat $KICKSTART | sed -n '0,/\%post/d;p' >$POST_INSTALL_SCRIPT
+# repos we don't need to use
+DISABLED_REPOS="lxc,cobbler-centos6-openvz,cobbler-centos6-openvz-tools"
+# packages we don't need to install (but included in installed groups)
+EXCLUDED_PKGS="selinux-policy-targeted *firmware* b43*"
+# packages we want to be installed, besides of listed in kickstart
+PKGS_LIST="vim-minimal ssh-clients openssh-server logrotate"
+# package groups to be installed
+GROUP_LIST=""
+# process package list, extract groups and excluded packages
+for line in  $PKGS ; do
+    echo $line|grep '^@' >/dev/null
+    # if name starts with @ - it's a group
+    if [ $? -eq 0 ] ; then
+        GROUP_LIST="$GROUP_LIST `echo $line|sed 's/^@//'`"
+    else
+        # if package name can start with '-' sign, that means we have to exclude it
+        echo $line|grep '^-'>/dev/null
+        if [ $? -eq 0 ] ; then
+            EXCLUDED_PKGS="$EXCLUDED_PKGS `echo $line|sed 's/^-//'`"
+        else
+            PKGS_LIST="$PKGS_LIST $line"
+        fi
+    fi
+done
+#echo groups $GROUP_LIST
+#echo packages $PKGS_LIST
+#echo excludes $EXCLUDED_PKGS
+
+# clear the installation directory
+[ -d $ROOTDIR ] && rm -rf $ROOTDIR/*
+
+# install all packages in one pass by using yum shell
+#### THIS IS LONG-RUNNING TASK! ######
+echo Start installing packages
+yum shell --quiet --installroot=$ROOTDIR<<EOD
+config assumeyes True
+config gpgcheck False
+repo disable lxc,cobbler-centos6-openvz,cobbler-centos6-openvz-tools
+config exclude selinux-policy-targeted *firmware* b43* $EXCLUDED_PKGS
+groupinstall $GROUP_LIST
+install $PKGS_LIST
+run
+EOD
+echo Packages installed
+
+# remove all *.repo files, cobbler will install it's own repo-file with needed repos
+rm -f $ROOTDIR/etc/yum.repos.d/*.repo
+
+# move postinstall script in container root, to be reachable inside of chroot
+mv $POST_INSTALL_SCRIPT $ROOTDIR/$POST_INSTALL_SCRIPT
+# run the postinstall actions in chroot
+echo Perform post-installation actions
+chroot $ROOTDIR $POST_INSTALL_SHELL $POST_INSTALL_SCRIPT
+
+# tune the installations to be suitable for OpenVZ as environment
+echo Make the tree container-ready
+cd $ROOTDIR
+# remove unneeded upstart scripts
+rm -f $ROOTDIR/etc/init/control-alt-delete.conf
+rm -f $ROOTDIR/etc/init/plymouth-shutdown.conf
+rm -f $ROOTDIR/etc/init/prefdm.conf
+rm -f $ROOTDIR/etc/init/quit-plymouth.conf
+rm -f $ROOTDIR/etc/init/rcS-sulogin.conf
+rm -f $ROOTDIR/etc/init/serial.conf
+rm -f $ROOTDIR/etc/init/start-ttys.conf
+rm -f $ROOTDIR/etc/init/tty.conf
+sed -i -e 's/^console/#console/' $ROOTDIR/etc/init/rc.conf
+sed -i -e 's/^console/#console/' $ROOTDIR/etc/init/rcS.conf
+
+# tune sshd
+sed -i -e 's/GSSAPIAuthentication\ yes/GSSAPIAuthentication\ no/g' $ROOTDIR/etc/ssh/sshd_config
+# turn off SELinux
+mkdir -p $ROOTDIR/etc/selinux
+echo SELINUX=disabled>$ROOTDIR/etc/selinux/config
+
+# we use ! as the delimiter for sed, because $ROOTPW hash is full of garbage ;)
+sed -i -e "s!root:.:!root:$ROOTPW:!" $ROOTDIR/etc/shadow
+
+# who needs it?!
+#echo "PS1='[\u@\h \W]\$'" >> /etc/profile
+
+# link mtab from outer space
+[ -f $ROOTDIR/etc/mtab ] && rm $ROOTDIR/etc/mtab
+ln -s /proc/mounts etc/mtab
+
+# some point to fstab
+echo "none  /dev/pts    devpts  rw,gid=5,mode=620   0   0">$ROOTDIR/etc/fstab
+
+# here is plain file dev/null, so we remove it
+rm -f $ROOTDIR/dev/null
+# create neccessary device files
+for dir in $ROOTDIR/dev $ROOTDIR/etc/udev/devices ; do
+    /sbin/MAKEDEV -d $dir -x {p,t}ty{a,p}{0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f} console core full kmem kmsg mem null port ptmx random urandom zero ram0
+    ln -s /proc/self/fd $dir/fd
+    ln -s /proc/self/fd/2 $dir/stderr
+    ln -s /proc/self/fd/0 $dir/stdin
+    ln -s /proc/self/fd/1 $dir/stdout
+done 
+
+# ajust permissions
+chmod 1777 $ROOTDIR/tmp
+chmod 1777 $ROOTDIR/var/tmp
+
+#tar --numeric-owner -czf /home/$PROFILE_NAME.tar.gz ./
+[ -f /home/$PROFILE_NAME.tar.gz ] && echo Container template created: /home/$PROFILE_NAME.tar.gz
+echo All done
+exit 0
