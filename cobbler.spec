@@ -329,6 +329,211 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Tue Jun 05 2012 James Cammarata <jimi@sngx.net> 2.2.3-1
+- [BUGFIX] add dns to kernel commandline when using static interface
+  (frido@enu.zolder.org)
+- [BUGFIX] issue #196 - repo environment variables bleed into other repos
+  during sync process This patch has reposync cleanup/restore any environment
+  variables that were changed during the process (jimi@sngx.net)
+- BUGFIX quick dirty fix to work around an issue where cobbler would not log in ldap
+  usernames which contain uppercase characters. at line 60 instead of "if user
+  in data", "if user.lower() in data" is used. It would appear the parser puts
+  the usernames in data[] in lowercase, and the comparison fails because "user"
+  does hold capitalizations. (matthiasvandegaer@hotmail.com)
+- [BUGFIX] simplify SELinux check reporting 
+  * Remove calls to semanage, policy prevents apps from running that directly 
+    (and speeds up check immensely) 
+  * Point users at a wiki page which will contain details on ensuring cobbler
+    works with SELinux properly (jimi@sngx.net)
+- [BUGFIX] issue #117 - incorrect permissions on files in /var/lib/cobbler
+  (j-nomura@ce.jp.nec.com)
+- [BUGFIX] issue #183 - update objects mgmt classes field when a mgmt class is
+  renamed (jimi@sngx.net)
+- [BUGFIX] adding some untracked directories and the new augeas lense to the
+  setup.py and cobbler.spec files (jimi@sngx.net)
+- [FEATURE] Added ability to disable grubby --copy-default behavior for distros that may
+  have problems with it (jimi@sngx.net)
+- [SECURITY] Major changes to power commands: 
+  * Fence options are now based on /usr/sbin/fence_* - so basically anything the 
+    fence agents package provides.
+  * Templates will now be sourced from /etc/cobbler/power/fence_<powertype>.template.  
+    These templates are optional, and are only required if you want to do extra 
+    options for a given command. - All options for the fence agent command are sent 
+    over STDIN. 
+  * Support for ipmitool is gone, use fence_ipmilan instead (which uses ipmitool 
+    under the hood anyway). This may apply to other power types if they were provided 
+    by a fence_ command. 
+  * Modified labels for the power options to be more descriptive. (jimi@sngx.net)
+- [BUGFIX] issue #136 - don't allow invalid characters in names when copying
+  objects (jimi@sngx.net)
+- [BUGFIX] issue #168 - change input_string_or_list to use shlex for split This
+  function was using a regular string split, which did not allow quoted or
+  escaped strings to be preserved. (jimi@sngx.net)
+- [BUGFIX] Correct method to process the template file. This Fixes the previous issue
+  and process the template. (charlesrg@gmail.com)
+- [BUGFIX] issue #170 - koan now checks length of drivers list before indexing
+  (daniel@defreez.com)
+- [BUGFIX] Issue #153 - distro delete doesn't remove link from
+  /var/www/cobbler/links Link was being created incorrectly during the import
+  (jimi@sngx.net)
+- [FEATURE] snippets: save/restore boot-device on ppc64 on fedora17 (nacc@us.ibm.com)
+- [BUGFIX] Fixed typo in pre_anamon (brandor5@gmail.com)
+- [BUGFIX] Added use of $http_port to server URL in pre_anamon and post_anamon
+  (brandor5@gmail.com)
+- [BUGFIX] Fixed dnsmasq issue regarding missing dhcp-host entries (cobbler@basjes.nl)
+- [BUGFIX] in buildiso for RedHat based systems. The interface->ip resolution was
+  broken when ksdevice=bootif (default) (jorgen.maas@gmail.com)
+- [BUGFIX] rename failed for distros that did not live under ks_mirror
+  (jimi@sngx.net)
+- [BUGFIX] Partial revert of commit 3c81dd3081 - incorrectly removed the 'extends'
+  template directive, breaking rendering in django (jimi@sngx.net)
+- [BUGFIX] Reverting commit 1d6c53a97, which was breaking spacewalk Changed the web
+  interface stuff to use the existing extended_version() remote call
+  (jimi@sngx.net)
+- [BUGFIX] Minor fix for serializer_pretty_json change, setting indent to 0 was still
+  causing more formatted JSON to be output (jimi@sngx.net)
+- [SECURITY] Adding PrivateTmp=yes to the cobblerd.service file for systemd
+  (jimi@sngx.net)
+- [FEATURE] add a config option to enable pretty JSON output (disabled by default)
+  (aronparsons@gmail.com)
+- [BUGFIX] issue #107 - creating xendomains link for autoboot fails Changing an
+  exception to a printed warning, there's no need to completely bomb out on the
+  process for this (jimi@sngx.net)
+- [BUGFIX] issue #28 - Cobbler drops errors on the floor during a replicate
+  Added additional logging to add_ functions to report an error if the add_item
+  call returns False (jimi@sngx.net)
+- [BUGFIX] add requirement for python-simplejson to koan's package
+  (jimi@sngx.net)
+- [BUGFIX] action_sync: fix sync_dhcp remote calls (nacc@us.ibm.com)
+- [BUGFIX] Add support for KVM paravirt (justin@thespies.org)
+- [BUGFIX] Makefile updates for debian/ubuntu systems (jimi@sngx.net)
+- [BUGFIX] fix infinite netboot cycle with ppc64 systems (nacc@us.ibm.com)
+- [BUGFIX] Don't allow Templar classes to be created without a valid config
+  There are a LOT of places in the templar.py code that use self.settings
+  without checking to make sure a valid config was passed in. This could cause
+  random stack dumps when templating, so it's better to force a config to be
+  passed in. Thankfully, there were only two pieces of code that actually did
+  this, one of which was the tftpd management module which was fixed elsewhere.
+  (jimi@sngx.net)
+- [BUGFIX] instance of Templar() was being created without a config passed in
+  This caused a stack dump when the manage_in_tftpd module tried to access the
+  config settings (jimi@sngx.net)
+- [BUGFIX] Fix for issue #17 - Make cobbler import be more squeaky when it doesn't
+  import anything (jimi@sngx.net)
+- [FEATURE] autoyast_sample: save and restore boot device order (nacc@us.ibm.com)
+- [BUGFIX] Fix for issue #105 - buildiso fails Added a new option for buildiso:
+  --mkisofs-opts, which allows specifying extra options to mkisofs TODO: add
+  input box to web interface for this option (jimi@sngx.net)
+- [BUGFIX] incorrect lower-casing of kickstart paths - regression from issue
+  #43 (jimi@sngx.net)
+- [FEATURE] Automatically detect and support bind chroot (orion@cora.nwra.com)
+- [FEATURE] Add yumopts to kickstart repos (orion@cora.nwra.com)
+- [BUGFIX] Fix issue with cobbler system reboot (nacc@us.ibm.com)
+- [BUGFIX] fix stack trace in write_pxe_file if distro==None (smoser@brickies.net)
+- [BUGFIX] Changed findkeys function to be consisten with keep_ssh_host_keys snippet
+  (flaks@bnl.gov)
+- [BUGFIX] Fix for issue #15 - cobbler image command does not recognize
+  --image-type=memdisk (jimi@sngx.net)
+- [BUGFIX] Issue #13 - reposync with --tries > 1 always repeats, even on
+  success The success flag was being set when the reposync ran, but didn't
+  break out of the retry loop - easy fix (jimi@sngx.net)
+- [BUGFIX] Fix for issue #42 - kickstart not found error when path has leading
+  space (jimi@sngx.net)
+- [BUGFIX] Fix for issue #26 - Web Interface: Profile Edit
+  * Added jquery UI stuff 
+  * Added javascript to generic_edit template to make all selects in the 
+    class "edit" resizeable
+  (jimi@sngx.net)
+- [BUGFIX] Fix for issue #53 - cobbler system add without --profile exits 0,
+  but does nothing (jimi@sngx.net)
+- [BUGFIX] Issue #73 - Broken symlinks on distro rename from web_gui
+  (jimi@sngx.net)
+- regular OS version maintenance (jorgen.maas@gmail.com)
+- [BUGFIX] let koan not overwrite existing initrd+kernel (ug@suse.de)
+- [FEATURE] koan: 
+  * Port imagecreate to virt-install (crobinso@redhat.com)
+  * Port qcreate to virt-install (crobinso@redhat.com)
+  * Port xen creation to virt-install (crobinso@redhat.com)
+- [FEATURE] new snippet allows for certificate-based RHN registration
+  (jim.nachlin@gawker.com)
+- [FEATURE] Have autoyast by default behave more like RHEL, regarding networking etc.
+  (chorn@fluxcoil.net)
+- [BUGFIX] sles patches (chorn@fluxcoil.net)
+- [BUGFIX] Simple fix for issue where memtest entries were not getting created after
+  installing memtest86+ and doing a cobbler sync (rharriso@redhat.com)
+- [BUGFIX] REMOTE_ADDR was not being set in the arguments in calls to CobblerSvc
+  instance causing ip address not to show up in install.log.
+  (jweber@cofront.net)
+- [BUGFIX] add missing import of shutil (aparsons@redhat.com)
+- [BUGFIX] add a sample kickstart file for ESXi (aparsons@redhat.com)
+- [BUGFIX] the ESXi installer allows two nameservers to be defined (aparsons@redhat.com)
+- [BUGFIX] close file descriptors on backgrounded processes to avoid hanging %%pre
+  (aparsons@redhat.com)
+- [BUGFIX] rsync copies the repositories with --delete hence deleting everyhting local
+  that isn't on the source server. The createrepo then creates (following the
+  default settings) a cache directory ... which is deleted by the next rsync
+  run. Putting the cache directory in the rsync exclude list avoids this
+  deletion and speeds up running reposync dramatically. (niels@basjes.nl)
+- [BUGFIX] Properly blame SELinux for httpd_can_network_connect type errors on initial
+  setup. (michael.dehaan@gmail.com)
+- fix install=... kernel parameter when importing a SUSE distro (ug@suse.de)
+- [BUGFIX] Force Django to use the system's TIME_ZONE by default.
+  (jorgen.maas@gmail.com)
+- [FEATURE] Separated check for permissions from file existence check.
+  (aaron.peschel@gmail.com)
+- [BUGFIX] If the xendomain symlink already exists, a clearer error will be produced.
+  (aaron.peschel@gmail.com)
+- [FEATURE] Adding support for ESXi5, and fixing a few minor things (like not having a
+  default kickstart for esxi4) Todos:   * The esxi*-ks.cfg files are empty, and
+  need proper kickstart templates   * Import bug testing and general kickstart
+  testing (jimi@sngx.net)
+- [FEATURE] Adding basic support for gPXE (jimi@sngx.net)
+- [FEATURE] Add arm as a valid architecture. (chuck.short@canonical.com)
+- [SECURITY] Changes PYTHON_EGG_CACHE to a safer path owned just by the webserver.
+  (chuck.short@canonical.com)
+- [BUGFIX] koan: do not include ks_meta args when obtaining tree When obtaining the tree
+  for Ubuntu machines, ensure that ks_meta args are not passed as part of the
+  tree if they exist. (chuck.short@canonical.com)
+- [FEATURE] koan: Use grub2 for --replace-self instead of grubby The koan option
+  '--replace-self' uses grubby, which relies on grub1, to replace a local
+  installation by installing the new kernel/initrd into grub menu entries.
+  Ubuntu/Debian no longer uses it grub1. This patch adds the ability to use
+  grub2 to add the kernel/initrd downloaded to a menuentry. On reboot, it will
+  boot from the install kernel reinstalling the system. Fixes (LP: #766229)
+  (chuck.short@canonical.com)
+- [BUGFIX] Fix reposync missing env variable for debmirror  Fixes missing HOME env
+  variable for debmirror by hardcoding the environment variable  to
+  /var/lib/cobbler (chuck.short@canonical.com)
+- [BUGFIX] Fix creation of repo mirror when importing iso. Fixes the creation of a
+  disabled repo mirror when importing ISO's such as the mini.iso that does not
+  contain any mirror/packages. Additionally, really enables 'apt' as possible
+  repository. (chuck.short@canonical.com)
+- [BUGFIX] adding default_template_type to settings.py, caused some issues with
+  templar when the setting was not specified in the /etc/cobbler/settings
+  (jimi@sngx.net)
+- [BUGFIX] fix for following issue: can't save networking options of a system
+  in cobbler web interface. (#8) (jimi@sngx.net)
+- [BUGFIX] Add a new setting to force CLI commands to use the localhost for xmlrpc
+  (chjohnst@gmail.com)
+- [BUGFIX] Don't blow up on broken links under /var/www/cobbler/links
+  (jeffschroeder@computer.org)
+- [SECURITY] Making https the default for the cobbler web GUI. Also modifying the cobbler-
+  web RPM build to require mod_ssl and mod_wsgi (missing wsgi was an oversight,
+  just correcting it now) (jimi@sngx.net)
+- [FEATURE] Adding authn_pam. This also creates a new setting - authn_pam_service, which
+  allows the user to configure which PAM service they want to use for cobblerd.
+  The default is the 'login' service (jimi@sngx.net)
+- [SECURITY] Change in cobbler.spec to modify permissions on webui sessions directory to
+  prevent non-privileged user acccess to the session keys (jimi@sngx.net)
+- [SECURITY] Enabling CSRF protection for the web interface (jimi@sngx.net)
+- [SECURITY] Convert all yaml loads to safe_loads for security/safety reasons.
+  https://bugs.launchpad.net/ubuntu/+source/cobbler/+bug/858883 (jimi@sngx.net)
+- [FEATURE] Added the setting 'default_template_type' to the settings file, and created
+  logic to use that in Templar().render(). Also added an option to the same
+  function to pass the template type in as an argument. (jimi@sngx.net)
+- [FEATURE] Initial commit for adding support for other template languages, namely jinja2
+  in this case (jimi@sngx.net)
+
 * Tue Nov 15 2011 Scott Henson <shenson@redhat.com> 2.2.2-1
 - Changelog update (shenson@redhat.com)
 - Fixed indentation on closing tr tag (gregswift@gmail.com)
