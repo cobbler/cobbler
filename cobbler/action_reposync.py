@@ -87,14 +87,6 @@ class RepoSync:
 
         report_failure = False
         for repo in self.repos:
-
-            env = repo.environment
-
-            for k in env.keys():
-                self.logger.info("environment: %s=%s" % (k,env[k]))
-                if env[k] is not None:
-                    os.putenv(k,env[k])
-
             if name is not None and repo.name != name:
                 # invoked to sync only a specific repo, this is not the one
                 continue
@@ -109,7 +101,21 @@ class RepoSync:
 
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
-            
+
+            # set the environment keys specified for this repo, 
+            # save the old ones if they modify an existing variable
+
+            env = repo.environment
+            old_env = {}
+
+            for k in env.keys():
+                self.logger.debug("setting repo environment: %s=%s" % (k,env[k]))
+                if env[k] is not None:
+                    if os.getenv(k):
+                        old_env[k] = os.getenv(k)
+                    else:
+                        os.environ[k] = env[k]
+
             # which may actually NOT reposync if the repo is set to not mirror locally
             # but that's a technicality
 
@@ -122,6 +128,18 @@ class RepoSync:
                 except:
                     utils.log_exc(self.logger)
                     self.logger.warning("reposync failed, tries left: %s" % (x-2))
+
+            # cleanup/restore any environment variables that were 
+            # added or changed above
+
+            for k in env.keys():
+                if env[k] is not None:
+                    if old_env.has_key(k):
+                        self.logger.debug("resetting repo environment: %s=%s" % (k,old_env[k]))
+                        os.environ[k] = old_env[k]
+                    else:
+                        self.logger.debug("removing repo environment: %s=%s" % (k,env[k]))
+                        del os.environ[k]
 
             if not success:
                 report_failure = True

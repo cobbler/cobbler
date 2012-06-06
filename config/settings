@@ -326,6 +326,9 @@ register_new_installs: 0
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -m -d"
 
+# These options will be used for an rsync initiated by cobbler replicate
+replicate_rsync_options: "-avzH"
+
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.
