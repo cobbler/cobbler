@@ -1,14 +1,7 @@
 """
-Virtualization installation functions.
-Currently somewhat Xen/paravirt specific, will evolve later.
+OpenVZ container-type virtualization installation functions.
 
-Copyright 2006-2008 Red Hat, Inc and Others.
-Michael DeHaan <michael.dehaan AT gmail>
-
-Original version based on virtguest-install
-Jeremy Katz <katzj@redhat.com>
-Option handling added by Andrew Puch <apuch@redhat.com>
-Simplified for use as library by koan, Michael DeHaan <michael.dehaan AT gmail>
+Copyright 2012 Artem Kanarev <kanarev AT tncc.ru>, Sergey Podushkin <psv AT tncc.ru>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
