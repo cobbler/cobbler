@@ -282,6 +282,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %dir /var/spool/koan
 %dir /var/lib/koan/config
 %{_bindir}/koan
+%{_bindir}/ovz-install
 %{_bindir}/cobbler-register
 %{python_sitelib}/koan
 
