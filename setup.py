@@ -208,6 +208,7 @@ if __name__ == "__main__":
             "scripts/cobblerd",
             "scripts/cobbler-ext-nodes",
             "scripts/koan",
+            "scripts/ovz-install",
             "scripts/cobbler-register",
         ],
         data_files = proc_data_files([
