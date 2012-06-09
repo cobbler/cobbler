@@ -36,9 +36,6 @@ KICKSTART="/tmp/$PROFILE_NAME-kickstart.cfg"
 # get the kickstart
 wget $KICKSTART_URL -q -O $KICKSTART
 
-# get the package list (with groups) from kickstart
-PKGS=`cat $KICKSTART| awk '/^\%packages/,/^\%post/{ print $0 }'|egrep -v '^#|^$|^%'`
-
 # get the root password hash from kickstart
 ROOTPW=`cat $KICKSTART| awk '/^rootpw/{ print $NF }'`
 
@@ -70,7 +67,16 @@ done
 
 # temporary yum config
 YUM_CONFIG="/tmp/$PROFILE_NAME-yum.cfg"
-echo -e "[main]\ncachedir=/var/cache/yum/\$basearch/\$releasever\nkeepcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=0\nplugins=1\ndistroverpkg=centos-release\nreposdir=/dev/null\n\n" >$YUM_CONFIG 
+echo -e "[main]\ncachedir=/var/cache/yum/\$basearch/\$releasever\nkeepcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=0\nplugins=1\ndistroverpkg=centos-release\nreposdir=/dev/null\n" >$YUM_CONFIG 
+echo -e "groupremove_leaf_only=1\ngroup_package_types=mandatory\ntsflags=nodocs\n" >>$YUM_CONFIG
+
+# --ignoremissing processing
+cat $KICKSTART| grep '\-\-ignoremissing'>/dev/null
+if [ $? -eq 0 ] ; then echo -e "skip_broken=1\n" >>$YUM_CONFIG ; fi
+
+# just new line
+echo >>$YUM_CONFIG
+
 # base package set we get from kickstart's url option (this option used only for http/ftp install, that is in use by cobbler, if kickstart use other method we'll FAIL!!!)
 BASE_REPO_URL=`cat $KICKSTART| grep ^url | sed 's/^url.*--url=//'`
 # put in to our config
@@ -84,49 +90,55 @@ cat $KICKSTART | grep ^repo | \
 	done
 
 # packages we don't need to install (but included in installed groups)
-EXCLUDED_PKGS="selinux-policy-targeted b43*"
+EXCLUDED_PKGS="selinux-policy-targeted kernel* *firmware* b43*"
 
 # packages we want to be installed, besides of listed in kickstart
 PKGS_LIST="vim-minimal ssh-clients openssh-server logrotate"
 
-# package groups to be installed
-GROUP_LIST=""
+# temporary yum script
+YUM_SCRIPT="/tmp/$PROFILE_NAME-yum.yum"
+cp /dev/null $YUM_SCRIPT
+(echo config assumeyes True
+echo config gpgcheck False
+echo install $PKGS_LIST
+) >>$YUM_SCRIPT
 
-# process package list, extract groups and excluded packages
-for line in  $PKGS ; do
+if [ -n "$EXCLUDED_PKGS" ] ; then echo config exclude \"$EXCLUDED_PKGS\" >>$YUM_SCRIPT ; fi
+
+cat $KICKSTART| awk '/^\%packages/,/^\%post/{ print $0 }'|egrep -v '^#|^$|^%' | \
+while read line ; do
+    # if package name can start with '-' sign, that means we have to exclude it
+    ACTION="install"
+    IS_GROUP=""
+    echo $line|grep '^-'>/dev/null
+    if [ $? -eq 0 ] ; then
+        line=`echo $line|sed 's/^-//'`
+        ACTION="remove"
+    fi
     echo $line|grep '^@' >/dev/null
     # if name starts with @ - it's a group
     if [ $? -eq 0 ] ; then
-        GROUP_LIST="$GROUP_LIST `echo $line|sed 's/^@//'`"
-    else
-        # if package name can start with '-' sign, that means we have to exclude it
-        echo $line|grep '^-'>/dev/null
-        if [ $? -eq 0 ] ; then
-            EXCLUDED_PKGS="$EXCLUDED_PKGS `echo $line|sed 's/^-//'`"
-        else
-            PKGS_LIST="$PKGS_LIST $line"
-        fi
+        line=`echo $line|sed 's/^@//'`
+        IS_GROUP="group"
     fi
+    line=`echo $line | sed 's/^\s*//'`
+    echo ${IS_GROUP}${ACTION} \"$line\" >>$YUM_SCRIPT
 done
-#echo groups $GROUP_LIST
-#echo packages $PKGS_LIST
-#echo excludes $EXCLUDED_PKGS
 
-# clear the installation directory
-[ -d $ROOTDIR ] && rm -rf $ROOTDIR/*
+cat $KICKSTART| grep '\-\-nobase'>/dev/null
+if [ $? -eq 0 ] ; then echo groupremove base >>$YUM_SCRIPT ; fi
+echo run >>$YUM_SCRIPT
 
 # install all packages in one pass by using yum shell
 #### THIS IS LONG-RUNNING TASK! ######
 echo Start installing packages
-yum shell --quiet --config=$YUM_CONFIG --installroot=$ROOTDIR >/dev/null 2>&1 <<EOD
-config assumeyes True
-config gpgcheck False
-config exclude $EXCLUDED_PKGS
-groupinstall $GROUP_LIST
-install $PKGS_LIST
-run
-EOD
+yum shell --quiet --config=$YUM_CONFIG --installroot=$ROOTDIR $YUM_SCRIPT
+## >/dev/null 2>&1
+
+# some optimization
+yum remove kernel kernel-firmware dracut dracut-kernel dracut-network fcoe-utils libdrm lldpad plymouth -y --quiet --config=$YUM_CONFIG --installroot=$ROOTDIR
 echo Packages installed
+
 
 # remove all *.repo files, cobbler will install it's own repo-file with needed repos
 rm -f $ROOTDIR/etc/yum.repos.d/*.repo
@@ -164,7 +176,7 @@ sed -i -e 's/GSSAPIAuthentication\ yes/GSSAPIAuthentication\ no/g' $ROOTDIR/etc/
 mkdir -p $ROOTDIR/etc/selinux
 echo SELINUX=disabled>$ROOTDIR/etc/selinux/config
 
-# we use ! as the delimiter for sed, because $ROOTPW hash is full of garbage ;)
+# we use ! as the delimiter for sed, because $ROOTPW hash is full of weird signs ;)
 sed -i -e "s!root:.:!root:$ROOTPW:!" $ROOTDIR/etc/shadow
 
 # who needs it?!
@@ -192,7 +204,5 @@ done
 chmod 1777 $ROOTDIR/tmp
 chmod 1777 $ROOTDIR/var/tmp
 
-#tar --numeric-owner -czf /home/$PROFILE_NAME.tar.gz ./
-[ -f /home/$PROFILE_NAME.tar.gz ] && echo Container template created: /home/$PROFILE_NAME.tar.gz
 echo All done
 exit 0
