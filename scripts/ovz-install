@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ## OpenVZ container-type virtualization installation functions.
 ## 
@@ -35,26 +35,63 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 KICKSTART="/tmp/$PROFILE_NAME-kickstart.cfg"
 # get the kickstart
 wget $KICKSTART_URL -q -O $KICKSTART
+
 # get the package list (with groups) from kickstart
 PKGS=`cat $KICKSTART| awk '/^\%packages/,/^\%post/{ print $0 }'|egrep -v '^#|^$|^%'`
+
 # get the root password hash from kickstart
 ROOTPW=`cat $KICKSTART| awk '/^rootpw/{ print $NF }'`
+
 # what shell will be used for post-install script? get it from kickstart
 POST_INSTALL_SHELL=`cat $KICKSTART | grep '^%post.*--interpreter' | sed -n 's/^.*--interpreter \([^ ][^ ]*\).*/\1/;p'`
 # if not defined in kickstart, then use /bin/sh
 [ -z $POST_INSTALL_SHELL ] && POST_INSTALL_SHELL="/bin/sh"
 # where to store post-install script
 POST_INSTALL_SCRIPT="/tmp/$PROFILE_NAME-post-install"
-# create the postinstall script
+# add postinstall script from kickstart
 cat $KICKSTART | sed -n '0,/\%post/d;p' >$POST_INSTALL_SCRIPT
-# repos we don't need to use
-DISABLED_REPOS="lxc,cobbler-centos6-openvz,cobbler-centos6-openvz-tools"
+
+# get list of services that should be enabled after installation (anaconda-like behaviour)
+SERVICES_ENABLED=`cat $KICKSTART| grep '^services.*--enabled' | sed 's/^services.*--enabled//; s/,/ /g'`
+# get list of services that should be disabled after installation (anaconda-like behaviour)
+SERVICES_DISABLED=`cat $KICKSTART| grep '^services.*--disabled' | sed 's/^services.*--disabled//; s/,/ /g'`
+# some our anaconda-like actions before postinstall script execution
+SERVICES_SCRIPT="/tmp/$PROFILE_NAME-services.sh"
+cat /dev/null >$SERVICES_SCRIPT
+# disable+enable service as directed in kickstart options
+# first disable services
+for serv in $SERVICES_DISABLED ; do
+	echo chkconfig --level 345 $serv off >>$SERVICES_SCRIPT
+done
+# then enable services
+for serv in $SERVICES_ENABLED ; do
+	echo chkconfig --level 345 $serv on >>$SERVICES_SCRIPT
+done
+
+# temporary yum config
+YUM_CONFIG="/tmp/$PROFILE_NAME-yum.cfg"
+echo -e "[main]\ncachedir=/var/cache/yum/\$basearch/\$releasever\nkeepcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=0\nplugins=1\ndistroverpkg=centos-release\nreposdir=/dev/null\n\n" >$YUM_CONFIG 
+# base package set we get from kickstart's url option (this option used only for http/ftp install, that is in use by cobbler, if kickstart use other method we'll FAIL!!!)
+BASE_REPO_URL=`cat $KICKSTART| grep ^url | sed 's/^url.*--url=//'`
+# put in to our config
+echo -e "[base-os]\nname=base-os\nbaseurl=$BASE_REPO_URL\nenabled=1\npriority=1\ngpgcheck=0\n\n" >>$YUM_CONFIG
+# get additional repos from kickstart and put it to config too
+cat $KICKSTART | grep ^repo | \
+	sed 's/^repo\ //; s/--//g' | \
+	while read repo_name repo_url ; do 
+		repo_tag=`echo $repo_name | sed 's/name=//'`
+		echo -e "[$repo_tag]\n$repo_name\n$repo_url\nenabled=1\npriority=99\ngpgcheck=0\n" >>$YUM_CONFIG
+	done
+
 # packages we don't need to install (but included in installed groups)
-EXCLUDED_PKGS="selinux-policy-targeted *firmware* b43*"
+EXCLUDED_PKGS="selinux-policy-targeted b43*"
+
 # packages we want to be installed, besides of listed in kickstart
 PKGS_LIST="vim-minimal ssh-clients openssh-server logrotate"
+
 # package groups to be installed
 GROUP_LIST=""
+
 # process package list, extract groups and excluded packages
 for line in  $PKGS ; do
     echo $line|grep '^@' >/dev/null
@@ -81,11 +118,10 @@ done
 # install all packages in one pass by using yum shell
 #### THIS IS LONG-RUNNING TASK! ######
 echo Start installing packages
-yum shell --quiet --installroot=$ROOTDIR<<EOD
+yum shell --quiet --config=$YUM_CONFIG --installroot=$ROOTDIR >/dev/null 2>&1 <<EOD
 config assumeyes True
 config gpgcheck False
-repo disable lxc,cobbler-centos6-openvz,cobbler-centos6-openvz-tools
-config exclude selinux-policy-targeted *firmware* b43* $EXCLUDED_PKGS
+config exclude $EXCLUDED_PKGS
 groupinstall $GROUP_LIST
 install $PKGS_LIST
 run
@@ -95,11 +131,17 @@ echo Packages installed
 # remove all *.repo files, cobbler will install it's own repo-file with needed repos
 rm -f $ROOTDIR/etc/yum.repos.d/*.repo
 
+# move services setup script in container root, to be reachable inside of chroot
+mv $SERVICES_SCRIPT $ROOTDIR/$SERVICES_SCRIPT
+# turn off and on services in chroot
+echo Disabling and enabling services as needed
+chroot $ROOTDIR /bin/bash $SERVICES_SCRIPT
+
 # move postinstall script in container root, to be reachable inside of chroot
 mv $POST_INSTALL_SCRIPT $ROOTDIR/$POST_INSTALL_SCRIPT
 # run the postinstall actions in chroot
 echo Perform post-installation actions
-chroot $ROOTDIR $POST_INSTALL_SHELL $POST_INSTALL_SCRIPT
+(chroot $ROOTDIR $POST_INSTALL_SHELL $POST_INSTALL_SCRIPT )>/dev/null 2>&1
 
 # tune the installations to be suitable for OpenVZ as environment
 echo Make the tree container-ready
