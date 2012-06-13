@@ -1490,7 +1490,7 @@ def set_virt_auto_boot(self,num):
             return True
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
-        return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+        return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
 def set_virt_ram(self,num):
