@@ -329,6 +329,9 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Sun Jun 17 2012 James Cammarata <jimi@sngx.net> 2.2.3-2
+- [BUGFIX] re-enable writing of DHCP entries for non-pxeboot-enabled systems
+  unless they're static (jimi@sngx.net)
 * Tue Jun 05 2012 James Cammarata <jimi@sngx.net> 2.2.3-1
 - [BUGFIX] add dns to kernel commandline when using static interface
   (frido@enu.zolder.org)
