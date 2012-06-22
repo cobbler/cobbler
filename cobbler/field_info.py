@@ -111,11 +111,11 @@ BLOCK_MAPPINGS = {
    "*virt_type"      : "Virtualization",
    "*virt_file_size" : "Virtualization",
    "*virt_disk_driver" : "Virtualization",
-   "power_id"        : "Power Management",
-   "power_address"   : "Power Management",
-   "power_user"      : "Power Management",
-   "power_pass"      : "Power Management",
-   "power_type"      : "Power Management",
+   "power_id"        : "Power management",
+   "power_address"   : "Power management",
+   "power_user"      : "Power management",
+   "power_pass"      : "Power management",
+   "power_type"      : "Power management",
    "address"         : "Networking", # from network
    "cidr"            : "Networking", # ditto
    "broadcast"       : "Networking", # ..
@@ -170,17 +170,6 @@ BLOCK_MAPPINGS = {
    "ldap_enabled"  : "Management",
    "ldap_type"     : "Management",
    "monit_enabled" : "Management",
-}
-
-BLOCK_MAPPINGS_ORDER = {
-   "General"             : 0,
-   "Advanced"            : 1,
-   "Networking (Global)" : 2,
-   "Networking"          : 3,
-   "Management"          : 4,
-   "Virtualization"      : 5,
-   "Power Management"    : 6,
-   "Resources"           : 7,
 }
    
 # Certain legacy fields need to have different CLI options than the direct translation of their

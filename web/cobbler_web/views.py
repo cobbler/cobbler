@@ -41,7 +41,6 @@ import cobbler.item_image     as item_image
 import cobbler.item_mgmtclass as item_mgmtclass
 import cobbler.item_package   as item_package
 import cobbler.item_file      as item_file
-import cobbler.settings       as item_settings
 import cobbler.field_info     as field_info
 import cobbler.utils          as utils
 
@@ -124,8 +123,6 @@ def get_fields(what, is_subobject, seed_item=None):
         field_data = item_package.FIELDS
     if what == "file":
         field_data = item_file.FIELDS
-    if what == "setting":
-        field_data = item_settings.FIELDS
 
     settings = remote.get_settings()
 
@@ -152,13 +149,12 @@ def get_fields(what, is_subobject, seed_item=None):
             "html_element"            : "generic",
         }
 
+
         if not elem["editable"]:
             continue
 
         if seed_item is not None:
-            if what == "setting":
-                elem["value"] = seed_item[row[0]]
-            elif row[0].startswith("*"):
+            if row[0].startswith("*"):
                 # system interfaces are loaded by javascript, not this
                 elem["value"]             = ""
                 elem["name"]              = row[0].replace("*","")
@@ -802,86 +798,26 @@ def snippet_save(request):
 
 # ======================================================================
 
-def setting_list(request):
-    """
-    This page presents a list of all the settings to the user.  They are not editable.
-    """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list")
-    settings = remote.get_settings()
-    skeys = settings.keys()
-    skeys.sort()
+def settings(request):
+   """
+   This page presents a list of all the settings to the user.  They are not editable.
+   """
+   if not test_user_authenticated(request): return login(request, next="/cobbler_web/settings")
+   settings = remote.get_settings()
+   skeys = settings.keys()
+   skeys.sort()
 
-    results = []
-    for k in skeys:
-        results.append([k,settings[k]])
+   results = []
+   for k in skeys:
+      results.append([k,settings[k]])
 
-    t = get_template('settings.tmpl')
-    html = t.render(RequestContext(request,{
-         'settings' : results,
-         'version'  : remote.extended_version(request.session['token'])['version'],
-         'username' : username,
-    }))
-    return HttpResponse(html)
-
-@csrf_protect
-def setting_edit(request, setting_name=None):
-    if not setting_name:
-        return HttpResponseRedirect('/cobbler_web/setting/list')
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/edit/%s" % setting_name)
-
-    settings = remote.get_settings()
-    if not settings.has_key(setting_name):
-        return error_page(request,"Unknown setting: %s" % setting_name)
-
-    cur_setting = {
-        'name'  : setting_name,
-        'value' : settings[setting_name],
-    }
-
-    fields = get_fields('setting', False, seed_item=cur_setting)
-    sections = {}
-    for field in fields:
-        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo,field['block_section'])
-        if not sections.has_key(fkey):
-            sections[fkey] = {}
-            sections[fkey]['name'] = field['block_section']
-            sections[fkey]['fields'] = []
-        sections[fkey]['fields'].append(field)
-
-    t = get_template('generic_edit.tmpl')
-    html = t.render(RequestContext(request,{
-        'what'            : 'setting',
-        #'fields'          : fields,
-        'sections'        : sections,
-        'subobject'       : False,
-        'editmode'        : 'edit',
-        'editable'        : True,
-        'version'         : remote.extended_version(request.session['token'])['version'],
-        'username'        : username,
-        'name'            : setting_name,
-    }))
-    return HttpResponse(html)
-
-@csrf_protect
-def setting_save(request):
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list")
-
-    # load request fields and see if they are valid
-    setting_name = request.POST.get('name', "")
-    setting_value = request.POST.get('value', None)
-
-    if setting_name == "":
-        return error_page(request,"The setting name was not specified")
-
-    settings = remote.get_settings()
-    if not settings.has_key(setting_name):
-        return error_page(request,"Unknown setting: %s" % setting_name)
-
-    if remote.modify_setting(setting_name, setting_value, request.session['token']):
-        return error_page(request,"There was an error saving the setting")
-
-    return HttpResponseRedirect("/cobbler_web/setting/list")
+   t = get_template('settings.tmpl')
+   html = t.render(RequestContext(request,{
+        'settings' : results,
+        'version'  : remote.extended_version(request.session['token'])['version'],
+        'username' : username,
+   }))
+   return HttpResponse(html)
 
 # ======================================================================
 
@@ -1042,13 +978,21 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if what == "subprofile":
       what = "profile"
       child = True
+   
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
       obj = remote.get_item(what, obj_name, True)
+   #
+   #   if obj.has_key('ctime'):
+   #      obj['ctime'] = time.ctime(obj['ctime'])
+   #   if obj.has_key('mtime'):
+   #      obj['mtime'] = time.ctime(obj['mtime'])
+
    else:
        editable = remote.check_access_no_fail(request.session['token'], "new_%s" % what, None)
        obj = None
+
 
    interfaces = {}
    if what == "system":
@@ -1081,23 +1025,12 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    if editmode == "edit":
        request.session['%s_%s' % (what,obj_name)] = fields
 
-   sections = {}
-   for field in fields:
-       bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-       fkey = "%d_%s" % (bmo,field['block_section'])
-       if not sections.has_key(fkey):
-           sections[fkey] = {}
-           sections[fkey]['name'] = field['block_section']
-           sections[fkey]['fields'] = []
-       sections[fkey]['fields'].append(field)
-
    t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
    html = t.render(RequestContext(request,{
        'what'            : what, 
-       #'fields'          : fields, 
-       'sections'        : sections,
+       'fields'          : fields, 
        'subobject'       : child,
        'editmode'        : editmode, 
        'editable'        : editable,

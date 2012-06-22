@@ -339,6 +339,8 @@ class ImportRedhatManager:
         pae_initrd = None
         pae_kernel = None
 
+        print "in distro_adder(), directory is %s" % dirname
+
         for x in fnames:
             adtls = []
 

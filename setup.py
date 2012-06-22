@@ -14,7 +14,7 @@ try:
 except:
     converage = None
 
-VERSION = "2.3.1"
+VERSION = "2.2.3"
 OUTPUT_DIR = "config"
 
 
@@ -166,7 +166,6 @@ if __name__ == "__main__":
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
-    augeaspath  = "/usr/share/augeas/lenses/"
 
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
@@ -240,9 +239,6 @@ if __name__ == "__main__":
             ("%spower" % etcpath,           ["templates/power/*"]),
             ("%sldap" % etcpath,            ["templates/ldap/*"]),
 
-            #Miscellaneous Files
-            ("%s" % augeaspath,                ["misc/augeas/*"]),
-
             #Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath,       []),
             ("%striggers/add/distro/post" % libpath,      []),
@@ -312,8 +308,6 @@ if __name__ == "__main__":
             ("%scobbler/links" % webroot,               []),
             ("%scobbler/aux" % webroot,                 []),
             ("%scobbler/pub" % webroot,                 []),
-            ("%scobbler/rendered" % webroot,            []),
-            ("%scobbler/images" % webroot,              []),
 
             #A script that isn't really data, wsgi script
             ("%scobbler/svc/" % webroot,     ["scripts/services.py"]),

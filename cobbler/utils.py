@@ -69,11 +69,6 @@ try:
 except ImportError:
     NETADDR_PRE_0_7 = False
 
-try:
-    import augeas
-except:
-    pass
-
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -594,29 +589,6 @@ def input_boolean(value):
        return True
     else:
        return False
-
-def update_settings_file(name,value):
-    try:
-        clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
-        a = augeas.Augeas()
-        if isinstance(value,list):
-            a.remove('/files/etc/cobbler/settings/%s/list' % name)
-            for item in value:
-                a.set('/files/etc/cobbler/settings/%s/list/value[last()+1]' % name, item)
-        elif isinstance(value,dict):
-            keys = value.keys()
-            keys.sort()
-            a.remove('/files/etc/cobbler/settings/%s/*' % name)
-            for key in keys:
-                if str(value[key]).strip() == "":
-                    value[key] = '~'
-                a.set('/files/etc/cobbler/settings/%s/%s' % (name,key), str(value[key]))
-        else:
-            a.set('/files/etc/cobbler/settings/%s' % name, value)
-        a.save()
-        return True
-    except:
-        return False
 
 def grab_tree(api_handle, obj):
     """
@@ -1322,8 +1294,8 @@ def path_tail(apath, bpath):
     position = bpath.find(apath)
     if position != 0:
         return ""
-    rposition = position + len(apath)
-    result = bpath[rposition:]
+    #rposition = position + len(mirror)
+    result = bpath[position:]
     if not result.startswith("/"):
         result = "/" + result
     return result
@@ -1707,34 +1679,29 @@ def is_remote_file(file):
     else:
        return False
 
-def subprocess_sp(logger, cmd, shell=True, input=None):
+def subprocess_sp(logger, cmd, shell=True):
     if logger is not None:
         logger.info("running: %s" % cmd)
-
-    stdin = None
-    if input:
-        stdin = sub_process.PIPE
-
     try:
-        sp = sub_process.Popen(cmd, shell=shell, stdin=stdin, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
+        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out,err) = sp.communicate(input)
+    (out,err) = sp.communicate()
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
         logger.debug("received on stderr: %s" % err)
     return out, rc
 
-def subprocess_call(logger, cmd, shell=True, input=None):
-    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
+def subprocess_call(logger, cmd, shell=True):
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return rc
 
-def subprocess_get(logger, cmd, shell=True, input=None):
-    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
+def subprocess_get(logger, cmd, shell=True):
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return data
 
 def popen2(args, **kwargs):
@@ -1957,7 +1924,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
 
 
     # FIXME: not supported in 2.0?
-    if not object_action in ["dumpvars","find","remove","report","list"] and object_type != "setting": 
+    if not object_action in ["dumpvars","find","remove","report","list"]: 
         # FIXME: implement
         parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
         parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
@@ -1996,8 +1963,8 @@ def get_power_types():
     Return all possible power types
     """
     power_types = []
-    power_template = re.compile(r'fence_(.*)')
-    for x in glob.glob("/usr/sbin/fence_*"):
+    power_template = re.compile(r'power_(.*).template')
+    for x in glob.glob("/etc/cobbler/power/power_*.template"):
         power_types.append(power_template.search(x).group(1))
     power_types.sort()
     return power_types
@@ -2007,24 +1974,10 @@ def get_power(powertype=None):
     Return power command for type
     """
     if powertype:
-        powerpath = "/usr/sbin/fence_%s" % powertype
-        if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
+        powerpath = "/etc/cobbler/power/power_%s.template" % powertype
+        if os.path.isfile(powerpath):
             return powerpath
     return None
-
-def get_power_template(powertype=None):
-    """
-    Return power template for type
-    """
-    if powertype:
-        powertemplate = "/etc/cobbler/power/fence_%s.template" % powertype
-        if os.path.isfile(powertemplate):
-            f = open(powertemplate)
-            template = f.read()
-            f.close()
-            return template
-    # return a generic template if a specific one wasn't found
-    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
 def get_shared_secret():
     """
@@ -2181,5 +2134,3 @@ def find_distro_path(settings, distro):
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
-
-

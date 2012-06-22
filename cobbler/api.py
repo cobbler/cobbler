@@ -69,7 +69,7 @@ INFO  = 10
 DEBUG = 5
 
 # FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -aL %s '%s' %s --progress"
+RSYNC_CMD =  "rsync -a %s '%s' %s --exclude-from=/etc/cobbler/rsync.exclude --progress"
 
 # notes on locking:
 # BootAPI is a singleton object
@@ -181,9 +181,11 @@ class BootAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT|os.O_RDWR, 0200)
-            os.write(fd, "0")
-            os.close(fd)
+            old = os.umask(0x777)
+            fd = open("/var/lib/cobbler/.mtime","w")
+            fd.write("0")
+            fd.close()
+            os.umask(old)
             return 0
         fd = open("/var/lib/cobbler/.mtime")
         data = fd.read().strip()
@@ -818,12 +820,6 @@ class BootAPI:
             rsync_cmd = RSYNC_CMD
             if rsync_flags:
                 rsync_cmd = rsync_cmd + " " + rsync_flags
-
-            # if --available-as was specified, limit the files we 
-            # pull down via rsync to just those that are critical
-            # to detecting what the distro is
-            if network_root is not None:
-                rsync_cmd = rsync_cmd + " --include-from=/etc/cobbler/import_rsync_whitelist"
 
             # kick off the rsync now
             utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
