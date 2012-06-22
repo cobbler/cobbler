@@ -150,7 +150,6 @@ class Templar:
         Render data_input back into a file.
         data_input is either a string or a filename
         search_table is a hash of metadata keys and values
-        out_path if not-none writes the results to a file
         (though results are always returned)
         subject is a profile or system object, if available (for snippet eval)
         """
@@ -205,12 +204,8 @@ class Templar:
             data_out = t.respond()
             self.last_errors = t.errorCatcher().listErrors()
         except Exception, e:
-            if out_path is None:
-               return utils.cheetah_exc(e)
-            else:
-               # FIXME: log this
-               self.logger.error(utils.cheetah_exc(e))
-               raise CX("Error templating file: %s" % out_path)
+            self.logger.error(utils.cheetah_exc(e))
+            raise CX("Error templating file, check cobbler.log for more details")
 
         return data_out
 
