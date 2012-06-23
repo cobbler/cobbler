@@ -251,8 +251,10 @@ def build_commandline(uri,
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:
             cmd += "--hvm "
-        else:
+
+        if is_qemu and extra:
             cmd += ("--extra-args=\"%s\" " % (extra))
+
         if is_xen:
             cmd += "--pxe "
 
