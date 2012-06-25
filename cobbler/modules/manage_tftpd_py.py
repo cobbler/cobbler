@@ -19,9 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import traceback
 import errno
-import re
 import clogger
-from shlex import shlex
 
 
 import utils

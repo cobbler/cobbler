@@ -16,15 +16,9 @@
 
 import os
 import os.path
-import shutil
-import time
-import sys
 import glob
 import traceback
 import errno
-from utils import popen2
-from shlex import shlex
-
 
 import utils
 from cexceptions import *
