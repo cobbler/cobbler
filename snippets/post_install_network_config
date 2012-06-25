@@ -318,7 +318,9 @@ echo "nameserver $nameserver" >>/etc/resolv.conf
 sed -i 's/ONBOOT=yes/ONBOOT=no/g' /etc/sysconfig/network-scripts/ifcfg-eth*
 
 ## Move all staged files to their final location
-rm -f /etc/sysconfig/network-scripts/ifcfg-*
+    #for $iname in $ikeys
+rm -f /etc/sysconfig/network-scripts/ifcfg-$iname
+    #end for
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
 if [ -f "/etc/modprobe.conf" ]; then

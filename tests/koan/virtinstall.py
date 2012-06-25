@@ -11,6 +11,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             vcpus=1,
             bridge="br0",
             disks=[("/tmp/foo1.img", 8), ("/dev/foo1", 0)],
+            virt_type="xenpv",
             qemu_driver_type="virtio",
             qemu_net_type="virtio",
             profile_data={
@@ -37,6 +38,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             fullvirt=True,
             arch="x86_64",
             bridge="br0,br1",
+            virt_type="xenfv",
             profile_data = {
                 "breed" : "redhat",
                 "os_version" : "fedora14",
@@ -67,6 +69,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             vcpus=1,
             disks=[("/tmp/foo1.img", 8), ("/dev/foo1", 0)],
             fullvirt=True,
+            virt_type="qemu",
             bridge="br0",
             profile_data = {
                 "breed" : "windows",
@@ -76,7 +79,7 @@ class KoanVirtInstallTest(unittest.TestCase):
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --hvm --cdrom /some/cdrom/path.iso "
+             "--vcpus 1 --vnc --virt-type qemu --hvm --cdrom /some/cdrom/path.iso "
              "--os-type windows --disk path=/tmp/foo1.img,size=8 "
              "--disk path=/dev/foo1 --network bridge=br0 "
              "--wait 0 --noautoconsole")
@@ -91,18 +94,21 @@ class KoanVirtInstallTest(unittest.TestCase):
             fullvirt=True,
             arch="i686",
             bridge="br0",
+            virt_type="qemu",
             qemu_driver_type="virtio",
             qemu_net_type="virtio",
             profile_data = {
                 "breed" : "ubuntu",
                 "os_version" : "natty",
                 "install_tree" : "http://example.com/some/install/tree",
-            })
+            },
+            extra="ks=http://example.com/ks.ks text kssendmac")
 
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --hvm "
+             "--vcpus 1 --vnc --virt-type qemu --hvm "
+             "--extra-args=ks=http://example.com/ks.ks text kssendmac "
              "--location http://example.com/some/install/tree/ --arch i686 "
              "--os-variant ubuntunatty "
              "--disk path=/tmp/foo1.img,size=8,bus=virtio "
@@ -119,18 +125,21 @@ class KoanVirtInstallTest(unittest.TestCase):
             fullvirt=None,
             arch="i686",
             bridge="br0",
+            virt_type="kvm",
             qemu_driver_type="virtio",
             qemu_net_type="virtio",
             profile_data = {
                 "breed" : "ubuntu",
                 "os_version" : "natty",
                 "install_tree" : "http://example.com/some/install/tree",
-            })
+            },
+            extra="ks=http://example.com/ks.ks text kssendmac")
 
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --kvm "
+             "--vcpus 1 --vnc --virt-type kvm "
+             "--extra-args=ks=http://example.com/ks.ks text kssendmac "
              "--location http://example.com/some/install/tree/ --arch i686 "
              "--os-variant ubuntunatty "
              "--disk path=/tmp/foo1.img,size=8,bus=virtio "

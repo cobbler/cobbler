@@ -33,6 +33,12 @@ import shlex
 import app as koan
 import utils
 
+try:
+    from virtinst import version as vi_version
+    virtinst_version = vi_version.__version__.split('.')
+except:
+    virtinst_version = None
+
 def _sanitize_disks(disks):
     ret = []
     for d in disks:
@@ -113,6 +119,23 @@ def build_commandline(uri,
                       virt_auto_boot=False,
                       qemu_driver_type=None,
                       qemu_net_type=None):
+
+    # Set flags for CLI arguments based on the virtinst_version
+    # tuple above. Older versions of python-virtinst don't have
+    # a version easily accessible, so it will be None and we can
+    # easily disable features based on that (RHEL5 and older usually)
+
+    disable_virt_type = False
+    disable_driver_type = False
+    disable_net_model = False
+    oldstyle_macs = False
+
+    if not virtinst_version:
+        print ("- warning: old python-virtinst detected, a lot of features will be disabled")
+        disable_virt_type = True
+        disable_driver_type = True
+        disable_net_model = True
+        oldstyle_macs = True
 
     is_import = uri.startswith("import")
     if is_import:
@@ -222,13 +245,16 @@ def build_commandline(uri,
         cmd += "--vnc "
 
     if is_qemu and virt_type:
-        cmd += "--virt-type %s " % virt_type
+        if not disable_virt_type:
+            cmd += "--virt-type %s " % virt_type
 
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:
             cmd += "--hvm "
-        else:
+
+        if is_qemu and extra:
             cmd += ("--extra-args=\"%s\" " % (extra))
+
         if is_xen:
             cmd += "--pxe "
 
@@ -270,7 +296,7 @@ def build_commandline(uri,
             cmd += ",size=%s" % size
         if disk_bus:
             cmd += ",bus=%s" % disk_bus
-        if driver_type:
+        if driver_type and not disable_driver_type:
             cmd += ",driver_type=%s" % driver_type
         cmd += " "
 
@@ -279,10 +305,13 @@ def build_commandline(uri,
 
     for bridge, mac in nics:
         cmd += "--network bridge=%s" % bridge
-        if mac:
-            cmd += ",mac=%s" % mac
-        if net_model:
+        if net_model and not disable_net_model:
             cmd += ",model=%s" % net_model
+        if mac:
+            if oldstyle_macs:
+                cmd += " --mac=%s" % mac
+            else:
+                cmd += ",mac=%s" % mac
         cmd += " "
 
     cmd += "--wait 0 "

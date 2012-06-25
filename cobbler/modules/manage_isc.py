@@ -161,7 +161,7 @@ class IscManager:
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
 
-                if not interface["netboot_enabled"]:
+                if not interface["netboot_enabled"] and interface['static']:
                     continue
 
                 interface["filename"] = "/pxelinux.0"

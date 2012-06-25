@@ -51,7 +51,7 @@ in network booting via PXE and just want to use koan to install virtual systems 
 
 =head2 DISTRIBUTIONS
 
-This first step towards configurating what you want to install is to add a distribution record to cobbler's configuration.  
+This first step towards configuring what you want to install is to add a distribution record to cobbler's configuration.  
 
 If there is an rsync mirror, DVD, NFS, or filesystem tree available that you would rather import instead, skip down to the documentation about the "import" command.  It's really a lot easier to follow the import workflow -- it only requires waiting for the mirror content to be copied and/or scanned.  Imported mirrors also save time during install since they don't have to hit external install sources.
 
@@ -75,7 +75,7 @@ An absolute filesystem path to a initrd image
 
 =item kopts
 
-Sets kernel command-line arguments that the distro, and profiles/systems dependant
+Sets kernel command-line arguments that the distro, and profiles/systems depending
 on it, will use.  To remove a kernel argument that may be added by a higher cobbler object
 (or in the global settings), you can prefix it with a "!".
 
@@ -129,7 +129,7 @@ provisioning guests with koan.  The valid options for --os-version vary dependin
 
 =item owners
 
-Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a space seperated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf. 
+Users with small sites and a limited number of admins can probably ignore this option.  All cobbler objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what cobbler users can edit particular objects.  This only applies to the Cobbler WebUI and XMLRPC interface, not the "cobbler" command line tool run from the shell.  Furthermore, this is only respected by the "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.  The value for --owners is a space separated list of users and groups as specified in /etc/cobbler/users.conf.  For more information see the users.conf file as well as the Cobbler Wiki.  In the default Cobbler configuration, this value is completely ignored, as is users.conf. 
 
 =item template-files
 
@@ -169,12 +169,12 @@ When using kickstart files, they can be placed anywhere on the filesystem, but t
 
 =item nameservers
 
-If your nameservers are not provided by DHCP, you can specify a space seperated list of addresses here to configure each of the installed nodes to use them (provided the kickstarts used are installed on a per-system basis).   Users with DHCP setups should not need to use this option.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
+If your nameservers are not provided by DHCP, you can specify a space separated list of addresses here to configure each of the installed nodes to use them (provided the kickstarts used are installed on a per-system basis).   Users with DHCP setups should not need to use this option.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
 
 =item virt-file-size
 
 (Virt-only) How large the disk image should be in Gigabytes.  The default is "5".
-This can be a space seperated list (ex: "5,6,7") to allow for multiple disks of different sizes
+This can be a comma separated list (ex: "5,6,7") to allow for multiple disks of different sizes
 depending on what is given to --virt-path.  This should be input as a integer or decimal value without units.
 
 =item virt-ram
@@ -193,7 +193,7 @@ depending on what is given to --virt-path.  This should be input as a integer or
 
 (Virt-only) Where to store the virtual image on the host system.  Except for advanced cases, this parameter can usually be omitted. For disk images, the value is usually an absolute path to an existing directory with an optional file name component.  There is support for specifying partitions "/dev/sda4" or volume groups "VolGroup00", etc.
 
-For multiple disks, seperate the values with commas such as "VolGroup00,VolGroup00" or "/dev/sda4,/dev/sda5".  Both those examples would create two disks for the VM.
+For multiple disks, separate the values with commas such as "VolGroup00,VolGroup00" or "/dev/sda4,/dev/sda5".  Both those examples would create two disks for the VM.
 
 =item virt-bridge
 
@@ -209,7 +209,7 @@ can make use of during kickstart installation.  For example, an example might be
 
 This is an advanced feature. 
 
-Profiles may inherit from other profiles in lieu of specifing --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmeta (templating) and --kopts (kernel options), which will be blended together.  
+Profiles may inherit from other profiles in lieu of specifying --distro.  Inherited profiles will override any settings specified in their parent, with the exception of --ksmeta (templating) and --kopts (kernel options), which will be blended together.  
 
 Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2", the actual kernel options that will be used for B are "x=9 y=2 z=2". 
 
@@ -218,15 +218,15 @@ Example:  If profile A has a --virt-file-size of 5 and B does not specify a size
 
 =item server-override
 
-This parameter should be useful only in select circumstances.  If machines are on a subnet that cannot access the cobbler server using the name/IP as configured in the cobbler settings file, use this parameter to override that server name.   See also --dhcp-tag for configuring the next server and DHCP informmation of the system if you are also using Cobbler to help manage your DHCP configuration.
+This parameter should be useful only in select circumstances.  If machines are on a subnet that cannot access the cobbler server using the name/IP as configured in the cobbler settings file, use this parameter to override that server name.   See also --dhcp-tag for configuring the next server and DHCP information of the system if you are also using Cobbler to help manage your DHCP configuration.
 
 =back
 
 =head2 SYSTEMS
 
-System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as chosing a role for a specific system.
+System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it.  This may be thought of as choosing a role for a specific system.
 
-Note that if provisioning via koan and PXE menus alone, it is not required to create system records in cobbler, though they are useful when system specific customizations are required.   One such customization would be defining the MAC address.  If there is a specific role inteded for a given machine, system records should be created for it.
+Note that if provisioning via koan and PXE menus alone, it is not required to create system records in cobbler, though they are useful when system specific customizations are required.   One such customization would be defining the MAC address.  If there is a specific role intended for a given machine, system records should be created for it.
 
 System commands have a wider variety of control offered over network details.  In order to use these to the fullest possible extent, the kickstart template used by cobbler must contain certain kickstart snippets (sections of code specifically written for Cobbler to make these values become reality).   Compare your kickstart templates with the stock ones in /var/lib/cobbler/kickstarts if you have upgraded, to make sure you can take advantage of all options to their fullest potential.  If you are a new cobbler user, base your kickstarts off of these templates.  Non-kickstart based distributions, while supported by Cobbler, may not be able to use all of these features.
 
@@ -253,13 +253,13 @@ When using "default" name, don't specify any other arguments than --profile ... 
 
 Specifying a mac address via --mac allows the system object to boot directly to a specific profile via PXE, bypassing cobbler's PXE menu.  If the name of the cobbler system already looks like a mac address, this is inferred from the system name and does not need to be specified.  
 
-MAC addresses have the format AA:BB:CC:DD:EE:FF. It's higly recommended to register your MAC-addresses in Cobbler if you're using static adressing with multiple interfaces, or if you are using any of the advanced networking features like bonding, bridges or VLANs.
+MAC addresses have the format AA:BB:CC:DD:EE:FF. It's highly recommended to register your MAC-addresses in Cobbler if you're using static addressing with multiple interfaces, or if you are using any of the advanced networking features like bonding, bridges or VLANs.
 
 Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add new system records when it finds profiles being provisioned on hardware it has seen before.  This may help if you do not have a report of all the MAC addresses in your datacenter/lab configuration.
 
 =item --ip
 
-If cobbler is configured to generate a DHCP configuratition (see advanced section), use this
+If cobbler is configured to generate a DHCP configuration (see advanced section), use this
 setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP management for this particular system.
 
 Example: --ip=192.168.1.50
@@ -284,7 +284,7 @@ This is a per-interface parameter.  If you have multiple interfaces, it may be d
 
 If you are using static IP configurations and the interface is flagged --static=1, these will be applied.
 
-Subnet is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may usse --static-routes for per-interface customizations if required.
+Subnet is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may use --static-routes for per-interface customizations if required.
 
 =item --hostname
 
@@ -317,7 +317,7 @@ This is a per-interface setting.
 
 =item --kickstart
 
-While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are limited scenarios when an install base switching to cobbler may have legacy kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifing a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
+While it is recommended that the --kickstart parameter is only used within for the "profile add" command, there are limited scenarios when an install base switching to cobbler may have legacy kickstarts created on a per-system basis (one kickstart for each system, nothing shared) and may not want to immediately make use of the cobbler templating system.  This allows specifying a kickstart for use on a per-system basis.  Creation of a parent profile is still required.  If the kickstart is a filesystem location, it will still be treated as a cobbler template.
 
 =item --netboot-enabled
 
@@ -338,7 +338,7 @@ If set true, koan can reconfigure repositories after installation. This is descr
 
 =item --dhcp-tag
 
-If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will probably want to use this option.  If not, it canbe ignored.
+If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will probably want to use this option.  If not, it can be ignored.
 
 By default, the dhcp tag for all systems is "default" and means that in the DHCP template files the systems will expand out where $insert_cobbler_systems_definitions is found in the DHCP template.  However, you may want certain systems to expand out in other places in the DHCP config file.  Setting --dhcp-tag=subnet2 for instance, will cause that system to expand out where $insert_cobbler_system_definitions_subnet2 is found, allowing you to insert directives to specify different subnets (or other parameters) before the DHCP configuration entries for those particular systems.
 
@@ -400,12 +400,12 @@ B<cobbler repo add --mirror=url --name=string [--rpmlist=list] [--creatrepo-flag
 
 =item mirror
 
-The addresss of the yum mirror.  This can be an rsync:// URL, an ssh location, or
+The address of the yum mirror.  This can be an rsync:// URL, an ssh location, or
 a http:// or ftp:// mirror location.  Filesystem paths also work.
 
 The mirror address should specify an exact repository to mirror -- just one architecture
-and just one distribution.  If you have a seperate repo to mirror for a different arch, add that
-repo seperately.  
+and just one distribution.  If you have a separate repo to mirror for a different arch, add that
+repo separately.  
 
 Here's an example of what looks like a good URL:
 
@@ -795,7 +795,7 @@ If the association between a system (MAC address) and a profile is already known
 
 If this behavior is not desired, run "cobbler system add --name=default --profile=plugh" to default all PXE booting machines to get a new copy of the profile "plugh".  To go back to the menu system, run "cobbler system remove --name=default" and then "cobbler sync" to regenerate the menus.
 
-When using PXE menu deployment exclusively, it is not neccessary to make cobbler system records, although the two can easily be mixed.
+When using PXE menu deployment exclusively, it is not necessary to make cobbler system records, although the two can easily be mixed.
 
 Additionally, note that all files generated for the pxe menu configurations are templatable, so if you wish to change the color scheme or equivalent, see the files in /etc/cobbler.
 
@@ -967,7 +967,7 @@ https://github.com/cobbler/cobbler/wiki/Cobbler-web-interface
 
 =head2 BOOT CD
 
-Cobbler can build all of it's profiles into a bootable CD image using the "cobbler buildiso" command.  This allows for PXE-menu like bringup of bare metal in evnvironments where PXE is not possible.  Another more advanced method is described in the koan manpage, though this method is easier and sufficient for most applications.
+Cobbler can build all of it's profiles into a bootable CD image using the "cobbler buildiso" command.  This allows for PXE-menu like bringup of bare metal in environments where PXE is not possible.  Another more advanced method is described in the koan manpage, though this method is easier and sufficient for most applications.
 
 =head2 POWER MANAGEMENT
 
