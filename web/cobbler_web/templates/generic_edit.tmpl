@@ -17,10 +17,10 @@ function intf_update_visibility()
     is_slave  = false
     is_master = false
     value = document.getElementById("interface_type").value
-    if (value == "slave" || value == "bond_slave" || value == "bridge_slave") {
+    if (value == "bond_slave" || value == "bridge_slave") {
         is_slave = true;
     }    
-    else if (value == "master" || value == "bond" || value == "bridge") {
+    else if (value == "bond" || value == "bridge") {
         is_master = true;
     }
 
@@ -176,10 +176,10 @@ function save_intf(which)
     var type = document.getElementById("interface_type").value
     var is_slave  = false;
     var is_master = false;
-    if (type == "master" || type == "bond" || type == "bridge") {
+    if (type == "bond" || type == "bridge") {
         is_master  = true;
     }
-    if (type == "slave" || type == "bond_slave" || type == "bridge_slave") {
+    if (type == "bond_slave" || type == "bridge_slave") {
         is_slave   = true;
     }
     is_static=document.getElementById("static").checked

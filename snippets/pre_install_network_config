@@ -10,7 +10,7 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("master","bond","bridge")
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("bond","bridge")
             #set $configbymac = False
         #end if
     #end for
@@ -38,14 +38,14 @@
         #else
             #set $is_vlan = "false"
         #end if
-        #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("slave","bond_slave","bridge_slave")) or $iface_type.lower() in ("master","bond","bridge")
+        #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("bond_slave","bridge_slave")) or $iface_type.lower() in ("bond","bridge")
             ## This is a physical interface, hand it to anaconda. Do not
             ## process slave interface here.
-            #if $iface_type.lower() in ("master","bond","bridge")
+            #if $iface_type.lower() in ("bond","bridge")
                 ## Find a slave for this interface
                 #for $tiname in $ikeys
                     #set $tidata = $interfaces[$tiname]
-                    #if $tidata["interface_type"].lower() in ("slave","bond_slave","bridge_slave") and $tidata["interface_master"].lower() == $iname
+                    #if $tidata["interface_type"].lower() in ("bond_slave","bridge_slave") and $tidata["interface_master"].lower() == $iname
                         #set $mac = $tidata["mac_address"]
 #  Found a slave for this interface: $tiname ($mac)
                         #break
@@ -91,7 +91,7 @@ then
             #end for
 fi
         #else
-            #if $iface_type.lower() in ("slave","bond_slave","bridge_slave")
+            #if $iface_type.lower() in ("bond_slave","bridge_slave")
 #  Skipping (slave-interface)
             #else
 #  Skipping (not a physical interface)...
