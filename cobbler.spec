@@ -239,6 +239,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler
 
 %config(noreplace) /var/lib/cobbler
+%exclude /var/lib/cobbler/webui_sessions
 
 /var/log/cobbler
 /var/www/cobbler
