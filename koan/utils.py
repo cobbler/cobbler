@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import random
 import os
 import traceback
 import tempfile
@@ -35,18 +34,12 @@ try:
     import urllib2
 except:
     ANCIENT_PYTHON = 1
-import time
 import shutil
 import errno
 import re
 import sys
 import xmlrpclib
 import string
-import re
-import glob
-import socket
-import shutil
-import tempfile
 import urlgrabber
 
 VIRT_STATE_NAME_MAP = {

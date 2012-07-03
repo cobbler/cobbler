@@ -13,6 +13,7 @@ TAGS
 .project
 .pydevproject
 .coverage
+.metadata
 
 # docs - ignore pod output
 docs/*.gz

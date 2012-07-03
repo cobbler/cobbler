@@ -46,7 +46,7 @@ FIELDS = [
   ["depth",2,0,"",False,"",0,"int"],
   ["server","<<inherit>>",0,"Server Override",True,"See manpage or leave blank",0,"str"],
   ["virt_path","<<inherit>>",0,"Virt Path",True,"Ex: /directory or VolGroup00",0,"str"],
-  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","kvm","vmware"],"str"],
+  ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","kvm","vmware","openvz"],"str"],
   ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,"",0,"int"],
   ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0,"float"],
   ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],

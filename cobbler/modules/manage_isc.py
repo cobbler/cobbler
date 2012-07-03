@@ -21,17 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
-import shutil
 import time
-import sys
 import glob
 import traceback
 import errno
-from utils import popen2
-from shlex import shlex
-
 
 import utils
 from cexceptions import *
@@ -161,7 +154,7 @@ class IscManager:
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
 
-                if not interface["netboot_enabled"]:
+                if not interface["netboot_enabled"] and interface['static']:
                     continue
 
                 interface["filename"] = "/pxelinux.0"
