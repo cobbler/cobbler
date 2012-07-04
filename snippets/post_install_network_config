@@ -26,7 +26,7 @@
                 #set $configbymac = False
         #end if
         ## count the number of bonding devices we have.
-        #if $idata.get("interface_type", "").lower() in ("master","bond")
+        #if $idata.get("interface_type", "").lower() in ("master","bond","bonded_bridge_slave")
             #set $numbondingdevs += 1
         #end if
         ## enable IPv6 networking if we set an ipv6 address or turn on autoconfiguration
@@ -130,12 +130,16 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #else
             #set $is_vlan = "false"
         #end if
+        ## slave interfaces are assumed to be static
+        #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+            #set $static = 1
+        #end if 
         ## ===================================================================
         ## Things every interface get, no matter what
         ## ===================================================================
 echo "DEVICE=$iname" > $devfile
 echo "ONBOOT=yes" >> $devfile
-            #if $mac != "" and $iface_type not in ("master","bond","bridge")
+            #if $mac != "" and $iface_type not in ("master","bond","bridge","bonded_bridge_slave")
             ## virtual interfaces don't get MACs
 echo "HWADDR=$mac" >> $devfile
 IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
@@ -151,7 +155,7 @@ fi
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
-        #if $iface_type in ("master","bond")
+        #if $iface_type in ("master","bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
 if [ -f "/etc/modprobe.conf" ]; then
@@ -169,22 +173,22 @@ BONDING_OPTS="$bonding_opts"
 EOF
             #end if
         #elif $iface_type in ("slave","bond_slave") and $iface_master != ""
-echo "TYPE=Ethernet" >> $devfile
 echo "SLAVE=yes" >> $devfile
 echo "MASTER=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
-        #elif $iface_type == "bridge"
+        #end if
+        #if $iface_type == "bridge"
 echo "TYPE=Bridge" >> $devfile
         #for $bridge_opt in $bridge_opts
             #if $bridge_opt.strip() != ""
 echo "$bridge_opt" >> $devfile
             #end if
         #end for
-        #elif $iface_type == "bridge_slave" and $iface_master != ""
-echo "TYPE=Ethernet" >> $devfile
+        #elif ($iface_type == "bridge_slave" or $iface_type == "bonded_bridge_slave") and $iface_master != ""
 echo "BRIDGE=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
-        #else
+        #end if
+        #if $iface_type != "bridge"
 echo "TYPE=Ethernet" >> $devfile
         #end if
         ## ===================================================================
@@ -197,7 +201,7 @@ echo "TYPE=Ethernet" >> $devfile
 #          the kernel gives an interface a different name
 #          following a reboot/hardware changes.
             #end if
-            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave")
+            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
                 ## Only configure static networking if an IP-address is configured
                 ## and if the interface isn't slaved to another interface (bridging or bonding)
 echo "BOOTPROTO=static" >> $devfile
@@ -250,7 +254,7 @@ echo "MTU=$mtu" >> $devfile
         ## Non-slave DNS configuration, when applicable
         ## ===================================================================
         ## If the interface is anything but a slave then add DNSn entry
-        #if $iface_type.lower() not in ("slave","bond_slave","bridge_slave")
+        #if $iface_type.lower() not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
             #set $nct = 0
             #for $nameserver in $name_servers
                 #set $nct = $nct + 1
