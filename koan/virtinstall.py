@@ -78,7 +78,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
         counter = counter + 1
         intf = nics[iname]
 
-        if (intf["interface_type"] in ("master","bond","bridge") or
+        if (intf["interface_type"] in ("master","bond","bridge","bonded_bridge_slave") or
             vlanpattern.match(iname) or iname.find(":") != -1):
             continue
 
