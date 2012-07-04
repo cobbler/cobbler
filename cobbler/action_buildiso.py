@@ -322,7 +322,7 @@ class BuildIso:
                       if idata["management"] == True and idata["interface_type"] in ["master","bond","bridge"]:
                          # bonded/bridged management interface
                          mgmt_ints_multi.append(iname)
-                      if idata["management"] == True and idata["interface_type"] not in ["master","bond","bridge","slave","bond_slave","bridge_slave"]:
+                      if idata["management"] == True and idata["interface_type"] not in ["master","bond","bridge","slave","bond_slave","bridge_slave","bonded_bridge_slave"]:
                          # single management interface
                          mgmt_ints.append(iname)
 
@@ -330,7 +330,7 @@ class BuildIso:
                    # bonded/bridged management interface, find a slave interface
                    # if eth0 is a slave use that (it's what people expect)
                    for (iname, idata) in data["interfaces"].iteritems():
-                      if idata["interface_type"] in ["slave","bond_slave","bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
+                      if idata["interface_type"] in ["slave","bond_slave","bridge_slave","bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
                          slave_ints.append(iname)
 
                    if "eth0" in slave_ints:
