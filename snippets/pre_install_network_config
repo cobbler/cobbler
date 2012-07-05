@@ -89,6 +89,9 @@
 if ifconfig -a | grep -i $mac
 then
   IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d " " -f 1)
+  if [ -z \$IFNAME ]; then
+    IFNAME=\$(ifconfig -a | grep -i -B 2 '$mac' | sed -n '/flags/s/:.*$//p')
+  fi
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
             #for $route in $static_routes
                 #if $routepattern.match($route)
