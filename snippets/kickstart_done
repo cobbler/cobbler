@@ -20,8 +20,6 @@
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'vmware' and $os_version == 'esxi4'
             #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
-        #else if $breed == 'debian'
-            #set nopxe = "\nd-i preseed/late_command string wget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
         #end if
     #end if
 
