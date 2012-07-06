@@ -218,6 +218,8 @@ def build_commandline(uri,
     os_version = profile_data.get("os_version")
     if os_version and breed == "ubuntu":
         os_version = "ubuntu%s" % os_version
+    if os_version and breed == "debian":
+        os_version = "debian%s" % os_version
 
     net_model = None
     disk_bus = None
