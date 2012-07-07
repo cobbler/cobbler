@@ -1,6 +1,14 @@
 import unittest
+import koan
 
 from koan.virtinstall import build_commandline
+
+def setup():
+    try:
+        from virtinst import version as vi_version
+        koan.virtinstall.virtinst_version = vi_version.__version__.split('.')
+    except:
+        koan.virtinstall.virtinst_version = 6
 
 class KoanVirtInstallTest(unittest.TestCase):
     def testXenPVBasic(self):
