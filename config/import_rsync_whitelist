@@ -17,6 +17,7 @@
 + CentOS/rpms/
 + CentOS/
 + Packages/
++ Packages/*/
 + Server/
 + Client/
 + SL/
