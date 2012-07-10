@@ -125,6 +125,7 @@ def build_commandline(uri,
     # a version easily accessible, so it will be None and we can
     # easily disable features based on that (RHEL5 and older usually)
 
+    disable_autostart = False
     disable_virt_type = False
     disable_driver_type = False
     disable_net_model = False
@@ -132,6 +133,7 @@ def build_commandline(uri,
 
     if not virtinst_version:
         print ("- warning: old python-virtinst detected, a lot of features will be disabled")
+        disable_autostart = True
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
@@ -238,7 +240,7 @@ def build_commandline(uri,
     if uuid:
         cmd += "--uuid %s " % uuid
 
-    if virt_auto_boot:
+    if virt_auto_boot and not disable_autostart:
         cmd += "--autostart "
 
     if no_gfx:
