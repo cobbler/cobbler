@@ -226,6 +226,8 @@ class PXEGen:
                 utils.rmfile(f2)
             return
 
+        pxe_metadata = {'pxe_menu_items': self.get_menu_items()['pxe'] }
+ 
         # generate one record for each described NIC ..
  
         for (name,interface) in system.interfaces.iteritems():
@@ -278,12 +280,12 @@ class PXEGen:
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2, system, profile, distro, working_arch)
+                    self.write_pxe_file(f2, system, profile, distro, working_arch, metadata=pxe_metadata)
                     if grub_path:
                         self.write_pxe_file(grub_path, system, profile, distro, 
                                 working_arch, format="grub")
                 else:
-                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile)
+                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile, metadata=pxe_metadata)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
