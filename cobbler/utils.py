@@ -2122,7 +2122,7 @@ def dhcpconf_location(api):
     elif dist == "suse":
         return "/etc/dhcpd.conf"
     else:
-        return "/etc/dhcp/dhcpd.conf"
+        return "/etc/dhcpd.conf.d/dhcpd.vm24-pdmz.conf"
 
 def link_distro(settings, distro):
     # find the tree location
