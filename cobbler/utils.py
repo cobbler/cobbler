@@ -1997,7 +1997,8 @@ def get_power_types():
     """
     power_types = []
     power_template = re.compile(r'fence_(.*)')
-    for x in glob.glob("/usr/sbin/fence_*"):
+    fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
+    for x in fence_files:
         power_types.append(power_template.search(x).group(1))
     power_types.sort()
     return power_types
@@ -2007,9 +2008,12 @@ def get_power(powertype=None):
     Return power command for type
     """
     if powertype:
-        powerpath = "/usr/sbin/fence_%s" % powertype
-        if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
-            return powerpath
+        # try /sbin, then /usr/sbin
+        powerpath1 = "/sbin/fence_%s" % powertype
+        powerpath2 = "/usr/sbin/fence_%s" % powertype
+        for powerpath in (powerpath1,powerpath2):
+            if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
+                return powerpath
     return None
 
 def get_power_template(powertype=None):
