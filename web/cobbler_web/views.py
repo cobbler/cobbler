@@ -564,7 +564,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             return error_page(request,"You can only select one distro at a time to build an ISO for")
         options = { "standalone" : True, "distro": str(names[0]) }
         remote.background_buildiso(options, request.session['token'])
-    elif what == "profile" and multi_mode == "reposync":
+    elif what == "repo" and multi_mode == "reposync":
         options = { "repos" : names, "tries" : 3 }
         remote.background_reposync(options,request.session['token'])
     else:
