@@ -111,35 +111,7 @@ class ImportSignatureManager:
             self.logger.error("Failed to load distro signatures")
             return False
 
-        # loop through the signatures, looking for a match for both 
-        # the signature directory and the version file
-        def scan_signatures():
-            for breed in self.sigdata["breeds"].keys():
-                if self.breed and self.breed != breed: 
-                    continue
-                for version in self.sigdata["breeds"][breed].keys():
-                    if self.os_version and self.os_version != version:
-                        continue
-                    for sig in self.sigdata["breeds"][breed][version]["signatures"]:
-                        d = os.path.join(path,sig)
-                        if os.path.exists(d):
-                            self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed,version))
-                            f_re = re.compile(self.sigdata["breeds"][breed][version]["version_file"])
-                            dfiles = glob.glob(os.path.join(d,"*.*"))
-                            for f in dfiles:
-                                if f_re.match(os.path.basename(f)):
-                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed,version))
-                                    if not self.breed:
-                                        self.breed = breed
-                                    if not self.os_version:
-                                        self.os_version = version
-                                    if not self.kickstart_file:
-                                        self.kickstart_file = self.sigdata["breeds"][breed][version]["default_kickstart"]
-                                    self.pkgdir = os.path.join(self.path,sig)
-                                    return self.sigdata["breeds"][breed][version]
-            return None
-
-        self.signature = scan_signatures()
+        self.signature = self.scan_signatures()
         if not self.signature:
             self.logger.error("No signature matched in %s" % path)
             return False
@@ -154,6 +126,36 @@ class ImportSignatureManager:
             return False
 
         return True
+
+    def scan_signatures(self):
+        """
+        loop through the signatures, looking for a match for both
+        the signature directory and the version file
+        """
+        for breed in self.sigdata["breeds"].keys():
+            if self.breed and self.breed != breed:
+                continue
+            for version in self.sigdata["breeds"][breed].keys():
+                if self.os_version and self.os_version != version:
+                    continue
+                for sig in self.sigdata["breeds"][breed][version]["signatures"]:
+                    pkgdir = os.path.join(self.path,sig)
+                    if os.path.exists(pkgdir):
+                        self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed,version))
+                        f_re = re.compile(self.sigdata["breeds"][breed][version]["version_file"])
+                        for (root,subdir,fnames) in os.walk(pkgdir):
+                            for fname in fnames:
+                                if f_re.match(fname):
+                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed,version))
+                                    if not self.breed:
+                                        self.breed = breed
+                                    if not self.os_version:
+                                        self.os_version = version
+                                    if not self.kickstart_file:
+                                        self.kickstart_file = self.sigdata["breeds"][breed][version]["default_kickstart"]
+                                    self.pkgdir = pkgdir
+                                    return self.sigdata["breeds"][breed][version]
+        return None
 
     # required function for import modules
     def get_valid_arches(self):
@@ -193,13 +195,13 @@ class ImportSignatureManager:
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
 
-            if re_krn.match(x):
+            if re_img.match(x):
                 if x.find("PAE") == -1:
                     initrd = os.path.join(dirname,x)
                 else:
                     pae_initrd = os.path.join(dirname, x)
 
-            if re_img.match(x):
+            if re_krn.match(x):
                 if x.find("PAE") == -1:
                     kernel = os.path.join(dirname,x)
                 else:
@@ -261,16 +263,10 @@ class ImportSignatureManager:
             distro.set_arch(pxe_arch)
             distro.set_breed(self.breed)
             distro.set_os_version(self.os_version)
+            distro.set_kernel_options(self.signature["kernel_options"])
+            distro.set_kernel_options_post(self.signature["kernel_options_post"])
 
             self.configure_tree_location(distro)
-
-            # Run the signature kopts and kopts_post fields through
-            # Templar to convert variables to actual strings, then 
-            # use util functions to convert strings to proper dicts
-
-            data = utils.blender(self.api,True,distro)
-            distro.set_kernel_options(self.templar.render(self.signature["kernel_options"],data,None))
-            distro.set_kernel_options_post(self.templar.render(self.signature["kernel_options_post"],data,None))
 
             self.distros.add(distro,save=True)
             distros_added.append(distro)
