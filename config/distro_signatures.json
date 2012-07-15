@@ -1,0 +1,92 @@
+{"breeds":
+ {
+  "redhat": {
+   "rhel4": {
+    "signatures":["RedHat/RPMS","CentOS/RPMS"],
+    "version_file":"",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"",
+    "initrd_file":"",
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   },
+   "rhel5": {
+    "signatures":[],
+    "version_file":"",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"",
+    "initrd_file":"",
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   },
+   "rhel6": {
+    "signatures":[],
+    "version_file":"",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"",
+    "initrd_file":"",
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   },
+   "fedora16": {
+    "signatures":["Packages"],
+    "version_file":"fedora-release-16-(.*)\\.noarch\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   },
+   "fedora17": {
+    "signatures":["Packages"],
+    "version_file":"fedora-release-17-(.*)\\.noarch\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"repo=$tree",
+    "kernel_options_post":"",
+    "boot-files":""
+   }
+  },
+  "debian": {
+  },
+  "ubuntu": {
+  },
+  "suse": {
+  },
+  "vmware": {
+  },
+  "freebsd": {
+  },
+  "unix": {
+  },
+  "windows": {
+  },
+  "generic": {
+  }
+ }
+}
