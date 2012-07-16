@@ -327,7 +327,7 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
-        zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
+        zonefileprefix = self.settings.bind_chroot_path + '/var/named/master'
 
         for (zone, hosts) in forward.iteritems():
             metadata = {
