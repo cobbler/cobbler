@@ -1728,7 +1728,7 @@ class Koan:
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
-                args = "lvs -o lv_name %s" % location
+                args = "lvs --noheadings -o lv_name %s" % location
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
@@ -1736,7 +1736,13 @@ class Koan:
                 name = "%s-disk%s" % (name,offset)
  
                 # have to create it?
-                if lvs_str.find(name) == -1:
+                found_lvs = False
+                for lvs in lvs_str.split("\n"):
+                    if lvs.strip() == name:
+                        found_lvs = True
+                        break
+
+                if not found_lvs:
                     args = "lvcreate -L %sG -n %s %s" % (virt_size, name, location)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
