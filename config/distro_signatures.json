@@ -3,49 +3,49 @@
   "redhat": {
    "rhel4": {
     "signatures":["RedHat/RPMS","CentOS/RPMS"],
-    "version_file":"",
+    "version_file":"(redhat|sl|centos)-release-4[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "supported_arches":["i386","x86_64","ppc","ppc64"],
     "supported_repo_breeds":["rsync", "rhn", "yum"],
-    "kernel_file":"",
-    "initrd_file":"",
-    "default_kickstart":"",
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot-files":""
    },
    "rhel5": {
-    "signatures":[],
-    "version_file":"",
+    "signatures":["RedHat","CentOS"],
+    "version_file":"(redhat|sl|centos)-release-5[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "supported_arches":["i386","x86_64","ppc","ppc64"],
     "supported_repo_breeds":["rsync", "rhn", "yum"],
-    "kernel_file":"",
-    "initrd_file":"",
-    "default_kickstart":"",
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot-files":""
    },
    "rhel6": {
-    "signatures":[],
-    "version_file":"",
+    "signatures":["Packages"],
+    "version_file":"(redhat|sl|centos)-release-6[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "supported_arches":["i386","x86_64","ppc","ppc64"],
     "supported_repo_breeds":["rsync", "rhn", "yum"],
-    "kernel_file":"",
-    "initrd_file":"",
-    "default_kickstart":"",
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot-files":""
    },
    "fedora16": {
     "signatures":["Packages"],
-    "version_file":"fedora-release-16-(.*)\\.noarch\\.rpm",
+    "version_file":"(fedora)-release-16-(.*)\\.noarch\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*)\\.rpm",
     "supported_arches":["i386","x86_64","ppc","ppc64"],
@@ -59,7 +59,7 @@
    },
    "fedora17": {
     "signatures":["Packages"],
-    "version_file":"fedora-release-17-(.*)\\.noarch\\.rpm",
+    "version_file":"(fedora)-release-17-(.*)\\.noarch\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*)\\.rpm",
     "supported_arches":["i386","x86_64","ppc","ppc64"],
@@ -73,8 +73,36 @@
    }
   },
   "debian": {
+   "squeeze": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: squeeze",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   }
   },
   "ubuntu": {
+   "oneiric": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: oneiric",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot-files":""
+   }
   },
   "suse": {
   },

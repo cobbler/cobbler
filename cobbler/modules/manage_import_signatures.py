@@ -117,7 +117,7 @@ class ImportSignatureManager:
             return False
 
         # now walk the filesystem looking for distributions that match certain patterns
-        self.logger.info("adding distros")
+        self.logger.info("Adding distros from path %s:"%self.path)
         distros_added = []
         os.path.walk(self.path, self.distro_adder, distros_added)
 
@@ -146,6 +146,19 @@ class ImportSignatureManager:
                         for (root,subdir,fnames) in os.walk(pkgdir):
                             for fname in fnames:
                                 if f_re.match(fname):
+                                    # if the version file regex exists, we use it 
+                                    # to scan the contents of the target version file
+                                    # to ensure it's the right version
+                                    if self.sigdata["breeds"][breed][version]["version_file_regex"]:
+                                        vf_re = re.compile(self.sigdata["breeds"][breed][version]["version_file_regex"])
+                                        vf = open(os.path.join(root,fname),"r")
+                                        vf_lines = vf.read().split("\n")
+                                        vf.close()
+                                        for line in vf_lines:
+                                            if vf_re.match(line):
+                                                break
+                                        else:
+                                            continue
                                     self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed,version))
                                     if not self.breed:
                                         self.breed = breed
@@ -236,9 +249,12 @@ class ImportSignatureManager:
             archs.append( self.arch )
         else:
             if self.arch and self.arch not in archs:
-                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,self.pkgdir))
+                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,self.path))
 
-        if len(archs)>1:
+        if len(archs) == 0:
+            self.logger.error("No arch could be detected in %s, and none was specified via the --arch option" % dirname)
+            return []
+        elif len(archs) > 1:
             self.logger.warning("- Warning : Multiple archs found : %s" % (archs))
 
         distros_added = []
@@ -311,7 +327,7 @@ class ImportSignatureManager:
         result = {}
 
         # FIXME : this is called only once, should not be a walk
-        os.path.walk(self.pkgdir, self.arch_walker, result)
+        os.path.walk(self.path, self.arch_walker, result)
 
         if result.pop("amd64",False):
             result["x86_64"] = 1
