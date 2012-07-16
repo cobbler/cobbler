@@ -69,7 +69,7 @@ INFO  = 10
 DEBUG = 5
 
 # FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -aL %s '%s' %s --progress"
+RSYNC_CMD =  "rsync -al %s '%s' %s --progress"
 
 # notes on locking:
 # BootAPI is a singleton object
