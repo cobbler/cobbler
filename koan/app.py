@@ -1779,9 +1779,17 @@ class Koan:
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
          
-                # have to create logical volume?
-                if lvs_str.find(lvname) == -1:
-                    args = "lvcreate -L %sG -n %s %s" % (virt_size, lvname, vgname)
+                name = "%s-disk%s" % (name,offset)
+ 
+                # have to create it?
+                found_lvs = False
+                for lvs in lvs_str.split("\n"):
+                    if lvs.strip() == name:
+                        found_lvs = True
+                        break
+
+                if not found_lvs:
+                    args = "lvcreate -L %sG -n %s %s" % (virt_size, name, location)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
                     if lv_create != 0:
