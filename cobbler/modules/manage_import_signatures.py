@@ -143,8 +143,8 @@ class ImportSignatureManager:
                     if os.path.exists(pkgdir):
                         self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed,version))
                         f_re = re.compile(self.sigdata["breeds"][breed][version]["version_file"])
-                        for (root,subdir,fnames) in os.walk(pkgdir):
-                            for fname in fnames:
+                        for (root,subdir,fnames) in os.walk(self.path):
+                            for fname in fnames+subdir:
                                 if f_re.match(fname):
                                     # if the version file regex exists, we use it 
                                     # to scan the contents of the target version file
@@ -203,7 +203,7 @@ class ImportSignatureManager:
             if os.path.islink(fullname) and os.path.isdir(fullname):
                 if fullname.startswith(self.path):
                     # Prevent infinite loop with Sci Linux 5
-                    self.logger.warning("avoiding symlink loop")
+                    #self.logger.warning("avoiding symlink loop")
                     continue
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)
@@ -350,12 +350,24 @@ class ImportSignatureManager:
         # try to find a kernel header RPM and then look at it's arch.
         for x in fnames:
             if re_krn.match(x):
-                for arch in self.get_valid_arches():
-                    if x.find(arch) != -1:
-                        foo[arch] = 1
-                for arch in [ "i686" , "amd64" ]:
-                    if x.find(arch) != -1:
-                        foo[arch] = 1
+                if self.signature["kernel_arch_regex"]:
+                    re_krn2 = re.compile(self.signature["kernel_arch_regex"])
+                    f_krn = open(os.path.join(dirname,x),"r")
+                    krn_lines = f_krn.readlines()
+                    f_krn.close()
+                    for line in krn_lines:
+                        m = re_krn2.match(line)
+                        if m:
+                            for group in m.groups():
+                                if group in self.get_valid_arches():
+                                    foo[group] = 1
+                else:
+                    for arch in self.get_valid_arches():
+                        if x.find(arch) != -1:
+                            foo[arch] = 1
+                    for arch in [ "i686" , "amd64" ]:
+                        if x.find(arch) != -1:
+                            foo[arch] = 1
 
     def get_proposed_name(self,dirname,kernel=None):
         """
@@ -375,7 +387,7 @@ class ImportSignatureManager:
         # Clear out some cruft from the proposed name
         name = name.replace("--","-")
         for x in ("-netboot","-ubuntu-installer","-amd64","-i386", \
-                  "-images","-pxeboot","-install","-isolinux", \
+                  "-images","-pxeboot","-install","-isolinux", "-boot", \
                   "-os","-tree","var-www-cobbler-","ks_mirror-"):
             name = name.replace(x,"")
 
