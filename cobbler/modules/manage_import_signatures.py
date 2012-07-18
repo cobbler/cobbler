@@ -69,6 +69,26 @@ class ImportSignatureManager:
     def what(self):
         return "import/signatures"
 
+    def get_file_lines(self,filename):
+        """
+        Get lines from a file, which may or may not be compressed
+        """
+        lines = None
+        ftype = utils.subprocess_get(self.logger, "/usr/bin/file %s" % filename)
+        if ftype.find("gzip") != -1:
+            try:
+                import gzip
+                f = gzip.open(filename,'r')
+                lines = f.readlines()
+                f.close()
+            except:
+                pass
+        elif ftype.find("text") != -1:
+            f = open(filename,'r')
+            lines = f.readlines()
+            f.close()
+        return lines
+
     # required function for import modules
     def run(self,path,name,network_root=None,kickstart_file=None,arch=None,breed=None,os_version=None):
         """
@@ -151,9 +171,7 @@ class ImportSignatureManager:
                                     # to ensure it's the right version
                                     if self.sigdata["breeds"][breed][version]["version_file_regex"]:
                                         vf_re = re.compile(self.sigdata["breeds"][breed][version]["version_file_regex"])
-                                        vf = open(os.path.join(root,fname),"r")
-                                        vf_lines = vf.read().split("\n")
-                                        vf.close()
+                                        vf_lines = self.get_file_lines(os.path.join(root,fname))
                                         for line in vf_lines:
                                             if vf_re.match(line):
                                                 break
@@ -199,6 +217,12 @@ class ImportSignatureManager:
         for x in fnames:
             adtls = []
 
+            # most of the time we just want to ignore isolinux 
+            # directories, unless this is one of the oddball 
+            # distros where we do want it
+            if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
+                continue
+
             fullname = os.path.join(dirname,x)
             if os.path.islink(fullname) and os.path.isdir(fullname):
                 if fullname.startswith(self.path):
@@ -221,11 +245,11 @@ class ImportSignatureManager:
                     pae_kernel = os.path.join(dirname, x)
 
             # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
-            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
+            if initrd is not None and kernel is not None:
                 adtls.append(self.add_entry(dirname,kernel,initrd))
                 kernel = None
                 initrd = None
-            elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
+            elif pae_initrd is not None and pae_kernel is not None:
                 adtls.append(self.add_entry(dirname,pae_kernel,pae_initrd))
                 pae_kernel = None
                 pae_initrd = None
@@ -281,6 +305,11 @@ class ImportSignatureManager:
             distro.set_os_version(self.os_version)
             distro.set_kernel_options(self.signature["kernel_options"])
             distro.set_kernel_options_post(self.signature["kernel_options_post"])
+
+            boot_files = ''
+            for boot_file in self.signature["boot_files"]:
+                boot_files += '$img_path/%s=%s/%s ' % (boot_file,self.path,boot_file)
+            distro.set_boot_files(boot_files.strip())
 
             self.configure_tree_location(distro)
 
@@ -352,13 +381,12 @@ class ImportSignatureManager:
             if re_krn.match(x):
                 if self.signature["kernel_arch_regex"]:
                     re_krn2 = re.compile(self.signature["kernel_arch_regex"])
-                    f_krn = open(os.path.join(dirname,x),"r")
-                    krn_lines = f_krn.readlines()
-                    f_krn.close()
+                    krn_lines = self.get_file_lines(os.path.join(dirname,x))
                     for line in krn_lines:
                         m = re_krn2.match(line)
                         if m:
                             for group in m.groups():
+                                group = group.lower()
                                 if group in self.get_valid_arches():
                                     foo[group] = 1
                 else:
