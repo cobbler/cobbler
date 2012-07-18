@@ -904,14 +904,15 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
                     raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
             elif arch.startswith("s390"):
                 if len(k_args) > 895:
                     raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-            elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+            elif len(k_args) > 2048:
+                raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             utils.subprocess_call([
                 'kexec',
@@ -999,6 +1000,7 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if not ANCIENT_PYTHON:
                 if arch.startswith("ppc") or arch.startswith("ia64"):
                     if len(k_args) > 511:
@@ -1006,8 +1008,8 @@ class Koan:
                 elif arch.startswith("s390"):
                     if len(k_args) > 895:
                         raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-                elif len(k_args) > 255:
-                    raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+                elif len(k_args) > 2048:
+                    raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             if use_grubby:
                 cmd = [ "/sbin/grubby",
@@ -1274,7 +1276,7 @@ class Koan:
 
         hashv = utils.input_string_or_hash(kextra)
 
-        if self.static_interface is not None and (breed is None or breed == "redhat"):
+        if self.static_interface is not None and (breed == "redhat" or breed == "suse"):
             interface_name = self.static_interface
             interfaces = self.safe_load(pd, "interfaces")
             if interface_name.startswith("eth"):
@@ -1288,15 +1290,24 @@ class Koan:
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
 
-            hashv["ksdevice"] = self.static_interface
+            if breed == "suse":
+                hashv["netdevice"] = self.static_interface
+            else:
+                hashv["ksdevice"] = self.static_interface
             if ip is not None:
-                hashv["ip"] = ip
+                if breed == "suse":
+                    hashv["hostip"] = ip
+                else:
+                    hashv["ip"] = ip
             if netmask is not None:
                 hashv["netmask"] = netmask
             if gateway is not None:
                 hashv["gateway"] = gateway
             if dns is not None:
-                hashv["dns"] = ",".join(dns)
+                if breed == "suse":
+                    hashv["nameserver"] = dns[0]
+                else:
+                    hashv["dns"] = ",".join(dns)
 
         if replace_self and self.embed_kickstart:
            hashv["ks"] = "file:ks.cfg"
