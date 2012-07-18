@@ -1274,7 +1274,7 @@ class Koan:
 
         hashv = utils.input_string_or_hash(kextra)
 
-        if self.static_interface is not None and (breed is None or breed == "redhat"):
+        if self.static_interface is not None and (breed == "redhat" or breed == "suse"):
             interface_name = self.static_interface
             interfaces = self.safe_load(pd, "interfaces")
             if interface_name.startswith("eth"):
@@ -1288,15 +1288,24 @@ class Koan:
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
 
-            hashv["ksdevice"] = self.static_interface
+            if breed == "suse":
+                hashv["netdevice"] = self.static_interface
+            else:
+                hashv["ksdevice"] = self.static_interface
             if ip is not None:
-                hashv["ip"] = ip
+                if breed == "suse":
+                    hashv["hostip"] = ip
+                else:
+                    hashv["ip"] = ip
             if netmask is not None:
                 hashv["netmask"] = netmask
             if gateway is not None:
                 hashv["gateway"] = gateway
             if dns is not None:
-                hashv["dns"] = ",".join(dns)
+                if breed == "suse":
+                    hashv["nameserver"] = dns[0]
+                else:
+                    hashv["dns"] = ",".join(dns)
 
         if replace_self and self.embed_kickstart:
            hashv["ks"] = "file:ks.cfg"
