@@ -904,14 +904,15 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
                     raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
             elif arch.startswith("s390"):
                 if len(k_args) > 895:
                     raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-            elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+            elif len(k_args) > 2048:
+                raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             utils.subprocess_call([
                 'kexec',
@@ -999,6 +1000,7 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if not ANCIENT_PYTHON:
                 if arch.startswith("ppc") or arch.startswith("ia64"):
                     if len(k_args) > 511:
@@ -1006,8 +1008,8 @@ class Koan:
                 elif arch.startswith("s390"):
                     if len(k_args) > 895:
                         raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-                elif len(k_args) > 255:
-                    raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+                elif len(k_args) > 2048:
+                    raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             if use_grubby:
                 cmd = [ "/sbin/grubby",
