@@ -98,12 +98,14 @@
       #set $idata = $interfaces[$iface]
       #set $mac            = $idata["mac_address"]
       #set $interface_type = $idata["interface_type"]
+      #if $mac.lower() != ""
       #if $interface_type.lower() not in ["bond","bridge"]
       <rule>
         <name>$iface</name>
         <rule>ATTR{address}</rule>
         <value>$mac.lower()</value>
       </rule>
+      #end if
       #end if
     #end for
     </net-udev>
