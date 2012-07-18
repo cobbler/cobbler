@@ -3,7 +3,7 @@
 #end if
 #if $getVar("dns_name_eth0","") != ""
 	#set $my_hostname = $hostname.split('.',1)[:1][0]
-	#set $my_domainname = $dns_name_eth0
+	#set $my_domainname = $dns_name_eth0.split('.',1)[1:][0]
 #else
 	#set $my_hostname = $hostname
 	#set $my_domainname = "site"
