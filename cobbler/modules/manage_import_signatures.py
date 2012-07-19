@@ -409,14 +409,17 @@ class ImportSignatureManager:
             # remove the part that says /var/www/cobbler/ks_mirror/name
             name = "-".join(dirname.split("/")[5:])
 
-        if kernel is not None and kernel.find("PAE") != -1:
-            name = name + "-PAE"
+        if kernel is not None:
+            if kernel.find("PAE") != -1:
+                name = name + "-PAE"
+            if kernel.find("xen") != -1:
+                name = name + "-xen"
 
         # Clear out some cruft from the proposed name
         name = name.replace("--","-")
         for x in ("-netboot","-ubuntu-installer","-amd64","-i386", \
-                  "-images","-pxeboot","-install","-isolinux", "-boot", \
-                  "-os","-tree","var-www-cobbler-","ks_mirror-"):
+                  "-images","-pxeboot","-install","-isolinux","-boot", \
+                  "-loader","-os","-tree","var-www-cobbler-","ks_mirror-"):
             name = name.replace(x,"")
 
         # remove any architecture name related string, as real arch will be appended later

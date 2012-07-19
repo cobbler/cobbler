@@ -135,6 +135,38 @@
    }
   },
   "suse": {
+   "opensuse11.4": {
+    "signatures":["suse"],
+    "version_file":"openSUSE-release-11.4-(.*).rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64"],
+    "supported_repo_breeds":["yum"],
+    "kernel_file":"(linux|vmlinuz(.*))",
+    "initrd_file":"initrd(.*)",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
+   "opensuse12.1": {
+    "signatures":["suse"],
+    "version_file":"openSUSE-release-12.1-(.*).rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64"],
+    "supported_repo_breeds":["yum"],
+    "kernel_file":"(linux|vmlinuz(.*))",
+    "initrd_file":"initrd(.*)",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   }
   },
   "vmware": {
    "esx4": {
