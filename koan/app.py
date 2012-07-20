@@ -209,6 +209,9 @@ def main():
     p.add_option("", "--qemu-net-type",
                  dest="qemu_net_type",
                  help="when used with --virt_type=qemu, select type of network device to use: e1000, ne2k_pci, pcnet, rtl8139, virtio")
+    p.add_option("", "--qemu-machine-type",
+                 dest="qemu_machine_type",
+                 help="when used with --virt_type=qemu, select type of machine type to emulate: pc, pc-1.0, pc-0.15")
 
     (options, args) = p.parse_args()
 
@@ -242,6 +245,7 @@ def main():
         k.virt_auto_boot      = options.virt_auto_boot
         k.qemu_disk_type      = options.qemu_disk_type
         k.qemu_net_type       = options.qemu_net_type
+        k.qemu_machine_type   = options.qemu_machine_type
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -300,6 +304,7 @@ class Koan:
         self.force_path        = None
         self.qemu_disk_type    = None
         self.qemu_net_type     = None
+        self.qemu_machine_type = None
         self.virt_auto_boot    = None
 
         # This option adds the --copy-default argument to /sbin/grubby
@@ -379,6 +384,11 @@ class Koan:
             if self.virt_type not in [ "qemu", "auto", "kvm" ]:
                raise InfoException, "--qemu-net-type must use with --virt-type=qemu"
 
+        # if --qemu-machine-type was called without --virt-type=qemu, then fail
+        if (self.qemu_machine_type is not None):
+            self.qemu_machine_type = self.qemu_machine_type.lower()
+            if self.virt_type not in [ "qemu", "auto", "kvm" ]:
+               raise InfoException, "--qemu-machine-type must use with --virt-type=qemu"
 
 
         # if --static-interface and --profile was called together, then fail
@@ -1350,21 +1360,22 @@ class Koan:
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
-                name             =  virtname,
-                ram              =  ram,
-                disks            =  disks,
-                uuid             =  uuid,
-                extra            =  kextra,
-                vcpus            =  vcpus,
-                profile_data     =  profile_data,
-                arch             =  arch,
-                no_gfx           =  self.no_gfx,
-                fullvirt         =  fullvirt,
-                bridge           =  self.virt_bridge,
-                virt_type        =  self.virt_type,
-                virt_auto_boot   =  virt_auto_boot,
-                qemu_driver_type =  self.qemu_disk_type,
-                qemu_net_type    =  self.qemu_net_type
+                name              =  virtname,
+                ram               =  ram,
+                disks             =  disks,
+                uuid              =  uuid,
+                extra             =  kextra,
+                vcpus             =  vcpus,
+                profile_data      =  profile_data,
+                arch              =  arch,
+                no_gfx            =  self.no_gfx,
+                fullvirt          =  fullvirt,
+                bridge            =  self.virt_bridge,
+                virt_type         =  self.virt_type,
+                virt_auto_boot    =  virt_auto_boot,
+                qemu_driver_type  =  self.qemu_disk_type,
+                qemu_net_type     =  self.qemu_net_type,
+                qemu_machine_type =  self.qemu_machine_type
         )
 
         #print results
