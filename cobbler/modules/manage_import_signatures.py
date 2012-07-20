@@ -62,7 +62,6 @@ class ImportSignatureManager:
         self.repos         = config.repos()
         self.templar       = templar.Templar(config)
 
-        self.sigdata       = None
         self.signature     = None
 
     # required function for import modules
@@ -121,16 +120,6 @@ class ImportSignatureManager:
         if self.os_version and not self.breed:
             utils.die(self.logger,"OS version can only be specified when a specific breed is selected")
 
-        # load the signature data
-        try:
-            f = open('/var/lib/cobbler/distro_signatures.json')
-            sigjson = f.read()
-            f.close()
-            self.sigdata = simplejson.loads(sigjson)
-        except:
-            self.logger.error("Failed to load distro signatures")
-            return False
-
         self.signature = self.scan_signatures()
         if not self.signature:
             self.logger.error("No signature matched in %s" % path)
@@ -152,25 +141,25 @@ class ImportSignatureManager:
         loop through the signatures, looking for a match for both
         the signature directory and the version file
         """
-        for breed in self.sigdata["breeds"].keys():
+        for breed in self.api.signatures["breeds"].keys():
             if self.breed and self.breed != breed:
                 continue
-            for version in self.sigdata["breeds"][breed].keys():
+            for version in self.api.signatures["breeds"][breed].keys():
                 if self.os_version and self.os_version != version:
                     continue
-                for sig in self.sigdata["breeds"][breed][version]["signatures"]:
+                for sig in self.api.signatures["breeds"][breed][version]["signatures"]:
                     pkgdir = os.path.join(self.path,sig)
                     if os.path.exists(pkgdir):
                         self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed,version))
-                        f_re = re.compile(self.sigdata["breeds"][breed][version]["version_file"])
+                        f_re = re.compile(self.api.signatures["breeds"][breed][version]["version_file"])
                         for (root,subdir,fnames) in os.walk(self.path):
                             for fname in fnames+subdir:
                                 if f_re.match(fname):
                                     # if the version file regex exists, we use it 
                                     # to scan the contents of the target version file
                                     # to ensure it's the right version
-                                    if self.sigdata["breeds"][breed][version]["version_file_regex"]:
-                                        vf_re = re.compile(self.sigdata["breeds"][breed][version]["version_file_regex"])
+                                    if self.api.signatures["breeds"][breed][version]["version_file_regex"]:
+                                        vf_re = re.compile(self.api.signatures["breeds"][breed][version]["version_file_regex"])
                                         vf_lines = self.get_file_lines(os.path.join(root,fname))
                                         for line in vf_lines:
                                             if vf_re.match(line):
@@ -183,9 +172,9 @@ class ImportSignatureManager:
                                     if not self.os_version:
                                         self.os_version = version
                                     if not self.kickstart_file:
-                                        self.kickstart_file = self.sigdata["breeds"][breed][version]["default_kickstart"]
+                                        self.kickstart_file = self.api.signatures["breeds"][breed][version]["default_kickstart"]
                                     self.pkgdir = pkgdir
-                                    return self.sigdata["breeds"][breed][version]
+                                    return self.api.signatures["breeds"][breed][version]
         return None
 
     # required function for import modules
