@@ -49,6 +49,7 @@ from utils import _
 import logging
 import time
 import random
+import simplejson
 import os
 import xmlrpclib
 import traceback
@@ -121,6 +122,11 @@ class BootAPI:
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
+
+            # import signatures
+            self.signatures = self.load_signatures()
+            if not self.signatures:
+                return
 
             BootAPI.__has_loaded   = True
 
@@ -1048,6 +1054,21 @@ class BootAPI:
         """
         return action_power.PowerTool(self._config, system, self, user, password, logger = logger).power("status")
 
+
+    # ==========================================================================
+
+    def load_signatures(self):
+        """
+        Loads the import signatures for distros
+        """
+        try:
+            f = open('/var/lib/cobbler/distro_signatures.json')
+            sigjson = f.read()
+            f.close()
+            return simplejson.loads(sigjson)
+        except:
+            self.logger.error("Failed to load distro signatures")
+            return None
 
     # ==========================================================================
 
