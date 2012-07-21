@@ -55,45 +55,4 @@ VALID_OS_VERSIONS = {
 
 VALID_REPO_BREEDS = [
     "rsync", "rhn", "yum", "apt"
-#   "rsync", "rhn", "yum"
 ]
-
-def uniquify(seq, idfun=None):
-
-    # this is odd (older mod_python scoping bug?) but we can't use 
-    # utils.uniquify here because on older distros (RHEL4/5) 
-    # mod_python gets another utils.  As a result,
-    # it is duplicated here for now.  Bad, but ... now you know.
-    #
-    # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
-    # FIXME: if this is actually slower than some other way, overhaul it
-
-    if idfun is None:
-        def idfun(x):
-           return x
-    seen = {}
-    result = []
-    for item in seq:
-        marker = idfun(item)
-        if marker in seen:
-            continue
-        seen[marker] = 1
-        result.append(item)
-    return result
-
-
-def get_all_os_versions():
-   """
-   Collapse the above list of OS versions for usage/display by the CLI/webapp.
-   """
-   results = ['']
-   for x in VALID_OS_VERSIONS.keys():
-      for y in VALID_OS_VERSIONS[x]:
-         results.append(y)
-
-   results = uniquify(results)
-
-   results.sort()
-   return results
-
-
