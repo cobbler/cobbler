@@ -117,23 +117,27 @@ class BootAPI:
                 # perms_ok is False
                 return
 
-            # FIMXE: conslidate into 1 server instance
+            # FIXME: conslidate into 1 server instance
 
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
-            # import signatures
-            self.signatures = self.load_signatures()
-            if not self.signatures:
-                return
-
             BootAPI.__has_loaded   = True
 
+            # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            self._config         = config.Config(self)
+            self._config = config.Config(self)
             self.deserialize()
+
+            # import signatures
+            if not utils.load_signatures(self.settings().signature_path):
+                return
+            else:
+                self.log("%d breeds and %d OS versions read from the signature file" % ( \
+                         len(utils.get_valid_breeds()), \
+                         len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -145,7 +149,7 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
-        
+
             # FIXME: pass more loggers around, and also see that those
             # using things via tasks construct their own kickgen/yumgen/
             # pxegen versus reusing this one, which has the wrong logger
@@ -571,6 +575,11 @@ class BootAPI:
     
     def get_files_since(self,mtime,collapse=False):
         return self.__since(mtime,self.files,collapse=collapse)
+
+    # ==========================================================================
+
+    def get_signatures(self):
+        return utils.SIGNATURE_CACHE
 
     # ==========================================================================
 
@@ -1053,22 +1062,6 @@ class BootAPI:
         @return: 0  the system is powered on, False if it's not or None on error
         """
         return action_power.PowerTool(self._config, system, self, user, password, logger = logger).power("status")
-
-
-    # ==========================================================================
-
-    def load_signatures(self):
-        """
-        Loads the import signatures for distros
-        """
-        try:
-            f = open('/var/lib/cobbler/distro_signatures.json')
-            sigjson = f.read()
-            f.close()
-            return simplejson.loads(sigjson)
-        except:
-            self.logger.error("Failed to load distro signatures")
-            return None
 
     # ==========================================================================
 

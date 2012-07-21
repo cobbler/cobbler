@@ -34,7 +34,7 @@ from utils import _
 FIELDS = [
   ['name','',0,"Name",True,"",0,"str"],
   ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc", "arm"],"str"],
-  ['breed','redhat',0,"Breed",True,"",codes.VALID_OS_BREEDS,"str"],
+  ['breed','redhat',0,"Breed",True,"",utils.get_valid_breeds(),"str"],
   ['comment','',0,"Comment",True,"Free form text description",0,"str"],
   ['ctime',0,0,"",False,"",0,"float"],
   ['mtime',0,0,"",False,"",0,"float"],
@@ -42,7 +42,7 @@ FIELDS = [
   ['depth',0,0,"",False,"",0,"int"],
   ['image_type',"iso",0,"Image Type",True,"", ["iso","direct","memdisk","virt-image"],"str"], #FIXME:complete?
   ['network_count',1,0,"Virt NICs",True,"",0,"int"],
-  ['os_version','',0,"OS Version",True,"ex: rhel4",codes.get_all_os_versions(),"str"],
+  ['os_version','',0,"OS Version",True,"ex: rhel4",utils.get_valid_os_versions(),"str"],
   ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
   ['parent','',0,"",False,"",0,"str"],
   ['kickstart','',0,"Kickstart",True,"Path to kickstart/answer file template",0,"str"],
