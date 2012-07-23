@@ -701,7 +701,7 @@ class Koan:
             tree = profile_data["ks_meta"].split("@@")[-1].strip()
             # Ensure we only take the tree in case ks_meta args are passed
             tree = tree.split()[0]
-            profile_data["install_tree"] = tree
+            profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
 
             if self.safe_load(profile_data,"install_tree"):
                 print "install_tree:", profile_data["install_tree"]
@@ -1261,7 +1261,7 @@ class Koan:
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
             elif breed is not None and breed == "debian" or breed =="ubuntu":
-                kextra = "auto url=" + kickstart
+                kextra = "auto-install/enable=true priority=critical url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
