@@ -92,6 +92,7 @@ DEFAULTS = {
     "puppet_auto_setup"                   : [0,"bool"],
     "sign_puppet_certs_automatically"     : [0,"bool"],
     "signature_path"                      : ["/var/lib/cobbler/distro_signatures.json","str"],
+    "signature_url"                       : ["http://cobbler.github.com/signatures/latest.json","str"],
     "pxe_just_once"                       : [0,"bool"],
     "iso_template_dir"                    : ["/etc/cobbler/iso","str"],
     "pxe_template_dir"                    : ["/etc/cobbler/pxe","str"],
