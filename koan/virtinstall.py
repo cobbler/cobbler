@@ -118,7 +118,8 @@ def build_commandline(uri,
                       virt_type=None,
                       virt_auto_boot=False,
                       qemu_driver_type=None,
-                      qemu_net_type=None):
+                      qemu_net_type=None,
+                      qemu_machine_type=None):
 
     # Set flags for CLI arguments based on the virtinst_version
     # tuple above. Older versions of python-virtinst don't have
@@ -225,9 +226,15 @@ def build_commandline(uri,
 
     net_model = None
     disk_bus = None
+    machine_type = None
+
     if is_qemu:
         net_model = qemu_net_type
         disk_bus = qemu_driver_type
+        machine_type = qemu_machine_type
+
+    if machine_type is None:
+        machine_type = "pc"
 
     cmd = "virt-install "
     if uri:
@@ -251,6 +258,9 @@ def build_commandline(uri,
     if is_qemu and virt_type:
         if not disable_virt_type:
             cmd += "--virt-type %s " % virt_type
+
+    if is_qemu and machine_type:
+        cmd += "--machine %s " % machine_type
 
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:

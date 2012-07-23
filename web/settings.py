@@ -43,6 +43,7 @@ if django.VERSION[0] == 1 and django.VERSION[1] < 4:
     )
 else:
     TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.Loader',
         'django.template.loaders.app_directories.Loader',
     )
 
