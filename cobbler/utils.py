@@ -2041,7 +2041,7 @@ def get_power_template(powertype=None):
     # return a generic template if a specific one wasn't found
     return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
-def load_signatures(filename):
+def load_signatures(filename,cache=True):
     """
     Loads the import signatures for distros
     """
@@ -2050,7 +2050,9 @@ def load_signatures(filename):
         f = open(filename,"r")
         sigjson = f.read()
         f.close()
-        SIGNATURE_CACHE = simplejson.loads(sigjson)
+        sigdata = simplejson.loads(sigjson)
+        if cache:
+            SIGNATURE_CACHE = sigdata
         return True
     except:
         return False

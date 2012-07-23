@@ -55,6 +55,8 @@ import xmlrpclib
 import traceback
 import exceptions
 import clogger
+import tempfile
+import urllib2
 
 import item_distro
 import item_profile
@@ -580,6 +582,32 @@ class BootAPI:
 
     def get_signatures(self):
         return utils.SIGNATURE_CACHE
+
+    def signature_update(self, logger):
+        try:
+            tmpfile = tempfile.NamedTemporaryFile(delete=False)
+            response = urllib2.urlopen(self.settings().signature_url)
+            sigjson = response.read()
+            tmpfile.write(sigjson)
+            tmpfile.close()
+
+            logger.debug("Successfully got file from %s" % self.settings().signature_url)
+            # test the import without caching it
+            if not utils.load_signatures(tmpfile.name,cache=False):
+                logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
+                return False
+
+            # rewrite the real signature file and import it for real
+            f = open(self.settings().signature_path,"w")
+            f.write(sigjson)
+            f.close()
+
+            return utils.load_signatures(self.settings().signature_path)
+        except:
+            utils.log_exc(logger)
+            return False
+        finally:
+            tmpfile.close()
 
     # ==========================================================================
 
