@@ -701,8 +701,12 @@ class Koan:
             tree = profile_data["ks_meta"].split("@@")[-1].strip()
             # Ensure we only take the tree in case ks_meta args are passed
             tree = tree.split()[0]
-            profile_data["install_tree"] = tree
-
+            # If tree starts with http, leave it, otherwise turn local path into URL
+            tree_re = re.compile ('http:')
+            if tree_re.match(tree):
+                profile_data["install_tree"] = tree
+            else:
+                profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
             if self.safe_load(profile_data,"install_tree"):
                 print "install_tree:", profile_data["install_tree"]
             else:
