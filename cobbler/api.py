@@ -585,11 +585,11 @@ class BootAPI:
 
     def signature_update(self, logger):
         try:
-            tmpfile = tempfile.NamedTemporaryFile(delete=False)
+            tmpfile = tempfile.NamedTemporaryFile()
             response = urllib2.urlopen(self.settings().signature_url)
             sigjson = response.read()
             tmpfile.write(sigjson)
-            tmpfile.close()
+            tmpfile.flush()
 
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
@@ -606,8 +606,6 @@ class BootAPI:
         except:
             utils.log_exc(logger)
             return False
-        finally:
-            tmpfile.close()
 
     # ==========================================================================
 
