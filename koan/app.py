@@ -702,7 +702,7 @@ class Koan:
             # Ensure we only take the tree in case ks_meta args are passed
             tree = tree.split()[0]
             # If tree starts with http, leave it, otherwise turn local path into URL
-            tree_re = re.compile ('http:')
+            tree_re = re.compile ('(http|ftp|nfs):')
             if tree_re.match(tree):
                 profile_data["install_tree"] = tree
             else:
