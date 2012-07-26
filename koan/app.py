@@ -1694,10 +1694,10 @@ class Koan:
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
-        #   Ex:   /foo
-        #   Ex:   partition:/dev/foo
-        #   Ex:   volume-group:/dev/foo/
-            
+        #   file Ex:         /foo
+        #   partition Ex:    /dev/foo
+        #   volume-group Ex: vg-name(:lv-name)
+        #
         # chosing the disk image name (if applicable) is somewhat
         # complicated ...
 
@@ -1722,16 +1722,22 @@ class Koan:
                 raise InfoException, "virt path is not a valid block device"
         else:
             # it's a volume group, verify that it exists
+            if location.find(':') == -1:
+                vgname = location
+                lvname = "%s-disk%s" % (name,offset)
+            else:
+                vgname, lvname = location.split(':')[:2]
+
             args = "vgs -o vg_name"
             print "%s" % args
             vgnames = sub_process.Popen(args, shell=True, stdout=sub_process.PIPE).communicate()[0]
             print vgnames
 
-            if vgnames.find(location) == -1:
-                raise InfoException, "The volume group [%s] does not exist." % location
+            if vgnames.find(vgname) == -1:
+                raise InfoException, "The volume group [%s] does not exist." % vgname
             
             # check free space
-            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % location
+            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % vgname
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
@@ -1750,23 +1756,21 @@ class Koan:
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
-                args = "lvs -o lv_name %s" % location
+                args = "lvs -o lv_name %s" % vgname
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
          
-                name = "%s-disk%s" % (name,offset)
- 
-                # have to create it?
-                if lvs_str.find(name) == -1:
-                    args = "lvcreate -L %sG -n %s %s" % (virt_size, name, location)
+                # have to create logical volume?
+                if lvs_str.find(lvname) == -1:
+                    args = "lvcreate -L %sG -n %s %s" % (virt_size, lvname, vgname)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
                     if lv_create != 0:
                         raise InfoException, "LVM creation failed"
 
                 # partition location
-                partition_location = "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
+                partition_location = "/dev/mapper/%s-%s" % (vgname,lvname.replace('-','--'))
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
