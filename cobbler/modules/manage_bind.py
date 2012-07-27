@@ -315,7 +315,21 @@ zone "%(arpa)s." {
         """
         default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
-        serial = int(time.time())
+        #need a counter for new bind format
+        serial = int(time.strftime("%Y%m%d00"))
+        try:
+           counterf = open("/etc/cobbler/bind_counter","r")
+           old_serial = int(counterf.readline())
+           if serial <= old_serial:
+              serial = old_serial + 1
+           counterf.close()
+        except:
+           pass
+
+        counterf = open("/etc/cobbler/bind_counter","w")
+        counterf.write(str(serial))
+        counterf.close()
+
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
 
