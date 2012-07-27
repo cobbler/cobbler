@@ -708,10 +708,28 @@ class Koan:
         """
 
         try:
-            tree = profile_data["ks_meta"].split("@@")[-1].strip()
+            tree = profile_data["ks_meta"].split()
             # Ensure we only take the tree in case ks_meta args are passed
-            tree = tree.split()[0]
-            profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
+            # First check for tree= in ks_meta arguments
+            meta_re=re.compile('tree=')
+            tree_found=''
+            for entry in tree:
+                if meta_re.match(entry):
+                    tree_found=entry.split("=")[-1]
+                    break
+ 
+            if tree_found=='':
+                # assume tree information as first argument
+                tree = tree.split()[0]
+            else:
+                tree=tree_found
+            tree_re = re.compile ('(http|ftp|nfs):')
+            # Next check for installation tree on remote server
+            if tree_re.match(tree):
+                profile_data["install_tree"] = tree
+            else:
+            # Now take the first parameter as the local path
+                profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
 
             if self.safe_load(profile_data,"install_tree"):
                 print "install_tree:", profile_data["install_tree"]
