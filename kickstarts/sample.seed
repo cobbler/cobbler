@@ -114,7 +114,8 @@ d-i finish-install/reboot_in_progress note
 
 # This first command is run as early as possible, just after preseeding is read.
 # d-i preseed/early_command string [command]
-
+d-i preseed/early_command string \
+$SNIPPET('kickstart_start')
 # This command is run immediately before the partitioner starts. It may be
 # useful to apply dynamic partitioner preseeding that depends on the state
 # of the disks (which may not be visible when preseed/early_command runs).
@@ -126,3 +127,8 @@ d-i finish-install/reboot_in_progress note
 # directly, or use the apt-install and in-target commands to easily install
 # packages and run commands in the target system.
 # d-i preseed/late_command string [command]
+d-i preseed/late_command string chroot /target sh -c ' \
+$SNIPPET('download_config_files_deb')
+$SNIPPET('post_run_deb')
+'; \
+$SNIPPET('kickstart_done')
