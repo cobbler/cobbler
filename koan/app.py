@@ -1589,7 +1589,7 @@ class Koan:
             #        the virtinst VirtualDisk class, but
             #        not all versions of virtinst have a 
             #        nice list to use
-            if t in ('raw','qcow','aio'):
+            if t in ('raw','qcow','qcow2','aio'):
                accum.append(t)
             else:
                print "invalid disk driver specified, defaulting to 'raw'"
