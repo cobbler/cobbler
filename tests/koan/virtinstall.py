@@ -2,6 +2,8 @@ import unittest
 import koan
 
 from koan.virtinstall import build_commandline
+from koan.virtinstall import create_image_file
+from mock import patch
 
 def setup():
     try:
@@ -9,6 +11,25 @@ def setup():
         koan.virtinstall.virtinst_version = vi_version.__version__.split('.')
     except:
         koan.virtinstall.virtinst_version = 6
+
+class OsPathMock:
+    _dir_path = [
+            '/path/to/imagedir',
+            ]
+    _exist_files = [
+            '/path/to/imagedir/existfile',
+            ]
+
+    def isdir(self, path):
+        if path in self._dir_path:
+            return True
+        return False
+
+    def exists(self, path):
+        if path in self._exist_files:
+            return True
+        return False
+
 
 class KoanVirtInstallTest(unittest.TestCase):
     def testXenPVBasic(self):
@@ -177,3 +198,27 @@ class KoanVirtInstallTest(unittest.TestCase):
              "--disk path=/some/install/image.img --network bridge=br0 "
              "--network bridge=br2 --wait 0 --noautoconsole")
         )
+
+    @patch('koan.virtinstall.os.path', new_callable=OsPathMock)
+    def test_create_qcow_file(self, mock):
+        disks = [
+                    ( '/path/to/imagedir/new_qcow_file', '30', 'qcow' ),
+                    ( '/path/to/imagedir/new_qcow2_file', '30', 'qcow2' ),
+                    ( '/path/to/imagedir/new_raw_file', '30', 'raw' ),
+                    ( '/path/to/imagedir/new_qcow2_file', '0', 'qcow2' ),
+                    ( '/path/to/imagedir/existfile', '30', 'qcow2' ),
+                    ( '/path/to/imagedir', '30', 'qcow2' ),
+                ]
+
+        commands = create_image_file(disks)
+        res = []
+        for cmd in commands:
+            res.append(" ".join(cmd))
+
+        self.assertEquals(res,
+                [
+                    'qemu-img create -f qcow /path/to/imagedir/new_qcow_file 30G',
+                    'qemu-img create -f qcow2 /path/to/imagedir/new_qcow2_file 30G',
+                ]
+        )
+
