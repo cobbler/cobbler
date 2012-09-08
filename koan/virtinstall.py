@@ -130,6 +130,7 @@ def build_commandline(uri,
     disable_virt_type = False
     disable_driver_type = False
     disable_net_model = False
+    disable_boot_opt = False
     oldstyle_macs = False
 
     if not virtinst_version:
@@ -138,6 +139,7 @@ def build_commandline(uri,
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
+        disable_boot_opt = True
         oldstyle_macs = True
 
     is_import = uri.startswith("import")
@@ -283,8 +285,12 @@ def build_commandline(uri,
             cmd += "--arch %s " % arch
     else:
         cmd += "--paravirt "
-        cmd += ("--boot kernel=%s,initrd=%s,kernel_args=\"%s\" " %
-                (kernel, initrd, extra))
+        if not disable_boot_opt:
+            cmd += ("--boot kernel=%s,initrd=%s,kernel_args=\"%s\" " %
+                    (kernel, initrd, extra))
+        else:
+            cmd += ("--location %s --extra-args=\"%s\" " % 
+                    (location,extra))
 
     if breed and breed != "other":
         if os_version and os_version != "other":
