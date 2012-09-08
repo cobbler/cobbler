@@ -36,10 +36,16 @@ SECRET_KEY = ''
 
 # code config
 
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-)
+if django.VERSION[0] == 1 and django.VERSION[1] < 4:
+    TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.load_template_source',
+        'django.template.loaders.app_directories.load_template_source',
+    )
+else:
+    TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    )
 
 if django.VERSION[0] == 1 and django.VERSION[1] < 2:
     # Legacy django had a different CSRF method, which also had 

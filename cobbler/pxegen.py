@@ -226,6 +226,8 @@ class PXEGen:
                 utils.rmfile(f2)
             return
 
+        pxe_metadata = {'pxe_menu_items': self.get_menu_items()['pxe'] }
+ 
         # generate one record for each described NIC ..
  
         for (name,interface) in system.interfaces.iteritems():
@@ -278,12 +280,12 @@ class PXEGen:
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2, system, profile, distro, working_arch)
+                    self.write_pxe_file(f2, system, profile, distro, working_arch, metadata=pxe_metadata)
                     if grub_path:
                         self.write_pxe_file(grub_path, system, profile, distro, 
                                 working_arch, format="grub")
                 else:
-                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile)
+                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile, metadata=pxe_metadata)
             else:
                 # ensure the file doesn't exist
                 utils.rmfile(f2)
@@ -335,18 +337,10 @@ class PXEGen:
 
         listfile.close()
 
-    def make_actual_pxe_menu(self):
+    def get_menu_items(self):
         """
-        Generates both pxe and grub boot menus.
+        Generates menu items for pxe and grub
         """
-        # only do this if there is NOT a system named default.
-        default = self.systems.find(name="default")
-
-        if default is None:
-            timeout_action = "local"
-        else:
-            timeout_action = default.profile
-
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
         def sort_name(a,b):
@@ -403,8 +397,24 @@ class PXEGen:
                 contents = self.write_memtest_pxe("/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
               
+        return {'pxe' : pxe_menu_items, 'grub' : grub_menu_items}
+
+    def make_actual_pxe_menu(self):
+        """
+        Generates both pxe and grub boot menus.
+        """
+        # only do this if there is NOT a system named default.
+        default = self.systems.find(name="default")
+
+        if default is None:
+            timeout_action = "local"
+        else:
+            timeout_action = default.profile
+
+        menu_items = self.get_menu_items()
+              
         # Write the PXE menu:
-        metadata = { "pxe_menu_items" : pxe_menu_items, "pxe_timeout_profile" : timeout_action}
+        metadata = { "pxe_menu_items" : menu_items['pxe'], "pxe_timeout_profile" : timeout_action}
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         template_src = open(os.path.join(self.settings.pxe_template_dir,"pxedefault.template"))
         template_data = template_src.read()
@@ -412,7 +422,7 @@ class PXEGen:
         template_src.close()
 
         # Write the grub menu:
-        metadata = { "grub_menu_items" : grub_menu_items }
+        metadata = { "grub_menu_items" : menu_items['grub'] }
         outfile = os.path.join(self.bootloc, "grub", "efidefault")
         template_src = open(os.path.join(self.settings.pxe_template_dir, "efidefault.template"))
         template_data = template_src.read()
@@ -685,7 +695,7 @@ class PXEGen:
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true url=%s" % (append_line, kickstart_path)
+                append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, kickstart_path)
 
                 # rework kernel options for debian distros
                 translations = { 'ksdevice':"interface" , 'lang':"locale" }

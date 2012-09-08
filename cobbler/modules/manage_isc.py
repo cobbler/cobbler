@@ -110,7 +110,7 @@ class IscManager:
                 interface["gateway"] = system.gateway
 
                 mac  = interface["mac_address"]
-                if interface["interface_type"] in ("slave","bond_slave","bridge_slave"):
+                if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
                     if interface["interface_master"] not in system.interfaces:
                         # Can't write DHCP entry; master interface does not
                         # exist

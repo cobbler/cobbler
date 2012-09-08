@@ -1,6 +1,14 @@
 import unittest
+import koan
 
 from koan.virtinstall import build_commandline
+
+def setup():
+    try:
+        from virtinst import version as vi_version
+        koan.virtinstall.virtinst_version = vi_version.__version__.split('.')
+    except:
+        koan.virtinstall.virtinst_version = 6
 
 class KoanVirtInstallTest(unittest.TestCase):
     def testXenPVBasic(self):
@@ -79,7 +87,7 @@ class KoanVirtInstallTest(unittest.TestCase):
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --virt-type qemu --hvm --cdrom /some/cdrom/path.iso "
+             "--vcpus 1 --vnc --virt-type qemu --machine pc --hvm --cdrom /some/cdrom/path.iso "
              "--os-type windows --disk path=/tmp/foo1.img,size=8 "
              "--disk path=/dev/foo1 --network bridge=br0 "
              "--wait 0 --noautoconsole")
@@ -107,7 +115,7 @@ class KoanVirtInstallTest(unittest.TestCase):
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --virt-type qemu --hvm "
+             "--vcpus 1 --vnc --virt-type qemu --machine pc --hvm "
              "--extra-args=ks=http://example.com/ks.ks text kssendmac "
              "--location http://example.com/some/install/tree/ --arch i686 "
              "--os-variant ubuntunatty "
@@ -128,6 +136,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             virt_type="kvm",
             qemu_driver_type="virtio",
             qemu_net_type="virtio",
+            qemu_machine_type="pc-1.0",
             profile_data = {
                 "breed" : "ubuntu",
                 "os_version" : "natty",
@@ -138,7 +147,7 @@ class KoanVirtInstallTest(unittest.TestCase):
         cmd = " ".join(cmd)
         self.assertEquals(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
-             "--vcpus 1 --vnc --virt-type kvm "
+             "--vcpus 1 --vnc --virt-type kvm --machine pc-1.0 "
              "--extra-args=ks=http://example.com/ks.ks text kssendmac "
              "--location http://example.com/some/install/tree/ --arch i686 "
              "--os-variant ubuntunatty "

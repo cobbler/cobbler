@@ -10,7 +10,7 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
-        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("master","bond","bridge")
+        #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("master","bond","bridge","bonded_bridge_slave")
             #set $configbymac = False
         #end if
     #end for
@@ -38,10 +38,10 @@
         #else
             #set $is_vlan = "false"
         #end if
-        #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("slave","bond_slave","bridge_slave")) or $iface_type.lower() in ("master","bond","bridge")
+        #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")) or $iface_type.lower() in ("master","bond","bridge")
             ## This is a physical interface, hand it to anaconda. Do not
             ## process slave interface here.
-            #if $iface_type.lower() in ("master","bond","bridge")
+            #if $iface_type.lower() in ("master","bond","bridge","bonded_bridge_slave")
                 ## Find a slave for this interface
                 #for $tiname in $ikeys
                     #set $tidata = $interfaces[$tiname]
@@ -49,6 +49,16 @@
                         #set $mac = $tidata["mac_address"]
 #  Found a slave for this interface: $tiname ($mac)
                         #break
+                    #else if $tidata["interface_type"].lower() == "bonded_bridge_slave" and $tidata["interface_master"].lower() == $iname
+                        ## find a slave for this slave interface...
+                        #for $stiname in $ikeys
+                            #set $stidata = $interfaces[$stiname]
+                            #if $stidata["interface_type"].lower() in ("slave","bond_slave","bridge_slave") and $stidata["interface_master"].lower() == $tiname
+                                #set $mac = $stidata["mac_address"]
+#  Found a slave for this interface: $tiname -> $stiname ($mac)
+                                #break
+                            #end if
+                        #end for
                     #end if
                 #end for
             #end if
@@ -79,6 +89,9 @@
 if ifconfig -a | grep -i $mac
 then
   IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d " " -f 1)
+  if [ -z \$IFNAME ]; then
+    IFNAME=\$(ifconfig -a | grep -i -B 2 '$mac' | sed -n '/flags/s/:.*$//p')
+  fi
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
             #for $route in $static_routes
                 #if $routepattern.match($route)
@@ -91,7 +104,7 @@ then
             #end for
 fi
         #else
-            #if $iface_type.lower() in ("slave","bond_slave","bridge_slave")
+            #if $iface_type.lower() in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
 #  Skipping (slave-interface)
             #else
 #  Skipping (not a physical interface)...

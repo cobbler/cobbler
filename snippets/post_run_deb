@@ -1,0 +1,6 @@
+## for this script to work put the file somewhere on the cobbler server 
+## and in 'Template Files' field put /path/to/the/file/some_shell_script.sh=/tmp/some_shell_script.sh
+## That will work with 'download_config_files_deb' snippet
+#set $run_cmd = '/tmp/some_shell_script.sh; \\'
+## put more commands here
+#echo $run_cmd

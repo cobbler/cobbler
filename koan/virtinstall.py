@@ -78,7 +78,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
         counter = counter + 1
         intf = nics[iname]
 
-        if (intf["interface_type"] in ("master","bond","bridge") or
+        if (intf["interface_type"] in ("master","bond","bridge","bonded_bridge_slave") or
             vlanpattern.match(iname) or iname.find(":") != -1):
             continue
 
@@ -118,13 +118,15 @@ def build_commandline(uri,
                       virt_type=None,
                       virt_auto_boot=False,
                       qemu_driver_type=None,
-                      qemu_net_type=None):
+                      qemu_net_type=None,
+                      qemu_machine_type=None):
 
     # Set flags for CLI arguments based on the virtinst_version
     # tuple above. Older versions of python-virtinst don't have
     # a version easily accessible, so it will be None and we can
     # easily disable features based on that (RHEL5 and older usually)
 
+    disable_autostart = False
     disable_virt_type = False
     disable_driver_type = False
     disable_net_model = False
@@ -132,6 +134,7 @@ def build_commandline(uri,
 
     if not virtinst_version:
         print ("- warning: old python-virtinst detected, a lot of features will be disabled")
+        disable_autostart = True
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
@@ -218,12 +221,20 @@ def build_commandline(uri,
     os_version = profile_data.get("os_version")
     if os_version and breed == "ubuntu":
         os_version = "ubuntu%s" % os_version
+    if os_version and breed == "debian":
+        os_version = "debian%s" % os_version
 
     net_model = None
     disk_bus = None
+    machine_type = None
+
     if is_qemu:
         net_model = qemu_net_type
         disk_bus = qemu_driver_type
+        machine_type = qemu_machine_type
+
+    if machine_type is None:
+        machine_type = "pc"
 
     cmd = "virt-install "
     if uri:
@@ -236,7 +247,7 @@ def build_commandline(uri,
     if uuid:
         cmd += "--uuid %s " % uuid
 
-    if virt_auto_boot:
+    if virt_auto_boot and not disable_autostart:
         cmd += "--autostart "
 
     if no_gfx:
@@ -247,6 +258,9 @@ def build_commandline(uri,
     if is_qemu and virt_type:
         if not disable_virt_type:
             cmd += "--virt-type %s " % virt_type
+
+    if is_qemu and machine_type:
+        cmd += "--machine %s " % machine_type
 
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:

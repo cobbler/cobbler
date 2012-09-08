@@ -127,16 +127,10 @@ def do_xmlrpc_rw(bootapi,settings,port):
 
 if __name__ == "__main__":
 
-    #main()
+    bootapi  = cobbler_api.BootAPI()
+    settings = bootapi.settings()
 
-    #bootapi      = cobbler_api.BootAPI()
-    #settings     = bootapi.settings()
-    #syslog_port  = settings.syslog_port
-    #xmlrpc_port  = settings.xmlrpc_port
-    #xmlrpc_port2 = settings.xmlrpc_rw_port
-    #logger       = bootapi.logger_remote
-    #do_xmlrpc_unix(bootapi, settings, logger)
-   
     regen_ss_file()
 
+    do_xmlrpc_rw(bootapi, settings, 25151)
 
