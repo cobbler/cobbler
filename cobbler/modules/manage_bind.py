@@ -329,6 +329,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonetype': 'forward',
                 'host_record': ''
             }
 
@@ -351,6 +352,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonetype': 'reverse',
                 'host_record': ''
             }
 
