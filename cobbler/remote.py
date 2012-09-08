@@ -872,7 +872,7 @@ class CobblerXMLRPCInterface:
                 handle = self.get_item_handle(object_type, object_name)
             except:
                 utils.log_exc(self.logger)
-                pass
+                return False
             if handle != 0:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
