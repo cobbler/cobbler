@@ -708,10 +708,28 @@ class Koan:
         """
 
         try:
-            tree = profile_data["ks_meta"].split("@@")[-1].strip()
+            tree = profile_data["ks_meta"].split()
             # Ensure we only take the tree in case ks_meta args are passed
-            tree = tree.split()[0]
-            profile_data["install_tree"] = tree
+            # First check for tree= in ks_meta arguments
+            meta_re=re.compile('tree=')
+            tree_found=''
+            for entry in tree:
+                if meta_re.match(entry):
+                    tree_found=entry.split("=")[-1]
+                    break
+ 
+            if tree_found=='':
+                # assume tree information as first argument
+                tree = tree.split()[0]
+            else:
+                tree=tree_found
+            tree_re = re.compile ('(http|ftp|nfs):')
+            # Next check for installation tree on remote server
+            if tree_re.match(tree):
+                profile_data["install_tree"] = tree
+            else:
+            # Now take the first parameter as the local path
+                profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
 
             if self.safe_load(profile_data,"install_tree"):
                 print "install_tree:", profile_data["install_tree"]
@@ -1273,7 +1291,7 @@ class Koan:
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
             elif breed is not None and breed == "debian" or breed =="ubuntu":
-                kextra = "auto url=" + kickstart
+                kextra = "auto-install/enable=true priority=critical url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
@@ -1571,7 +1589,7 @@ class Koan:
             #        the virtinst VirtualDisk class, but
             #        not all versions of virtinst have a 
             #        nice list to use
-            if t in ('raw','qcow','aio'):
+            if t in ('raw','qcow','qcow2','aio'):
                accum.append(t)
             else:
                print "invalid disk driver specified, defaulting to 'raw'"
@@ -1694,10 +1712,10 @@ class Koan:
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
-        #   Ex:   /foo
-        #   Ex:   partition:/dev/foo
-        #   Ex:   volume-group:/dev/foo/
-            
+        #   file Ex:         /foo
+        #   partition Ex:    /dev/foo
+        #   volume-group Ex: vg-name(:lv-name)
+        #
         # chosing the disk image name (if applicable) is somewhat
         # complicated ...
 
@@ -1722,16 +1740,22 @@ class Koan:
                 raise InfoException, "virt path is not a valid block device"
         else:
             # it's a volume group, verify that it exists
+            if location.find(':') == -1:
+                vgname = location
+                lvname = "%s-disk%s" % (name,offset)
+            else:
+                vgname, lvname = location.split(':')[:2]
+
             args = "vgs -o vg_name"
             print "%s" % args
             vgnames = sub_process.Popen(args, shell=True, stdout=sub_process.PIPE).communicate()[0]
             print vgnames
 
-            if vgnames.find(location) == -1:
-                raise InfoException, "The volume group [%s] does not exist." % location
+            if vgnames.find(vgname) == -1:
+                raise InfoException, "The volume group [%s] does not exist." % vgname
             
             # check free space
-            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % location
+            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % vgname
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
@@ -1750,7 +1774,7 @@ class Koan:
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
-                args = "lvs -o lv_name %s" % location
+                args = "lvs --noheadings -o lv_name %s" % location
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
@@ -1758,7 +1782,13 @@ class Koan:
                 name = "%s-disk%s" % (name,offset)
  
                 # have to create it?
-                if lvs_str.find(name) == -1:
+                found_lvs = False
+                for lvs in lvs_str.split("\n"):
+                    if lvs.strip() == name:
+                        found_lvs = True
+                        break
+
+                if not found_lvs:
                     args = "lvcreate -L %sG -n %s %s" % (virt_size, name, location)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
@@ -1766,7 +1796,7 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # partition location
-                partition_location = "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
+                partition_location = "/dev/mapper/%s-%s" % (vgname,lvname.replace('-','--'))
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
