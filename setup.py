@@ -173,7 +173,7 @@ if __name__ == "__main__":
         webroot     = "/srv/www/"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
-        webroot     = "/usr/share/cobbler/webroot/"
+        webroot     = "/srv/www/"
     else:
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
