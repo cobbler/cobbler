@@ -9,6 +9,8 @@ import xmlrpclib
 from cobbler import utils
 from cobbler import item_distro
 
+from newtests.server import TestXMLRPCThread
+
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
 FAKE_INITRD3="initrd-1.8.18-3.9999_FAKE.img"
@@ -19,14 +21,18 @@ FAKE_KERNEL3="vmlinuz-1.8.18-3.9999_FAKE"
 cleanup_dirs = []
 
 class CobblerXMLRPCTest(unittest.TestCase):
+   server = None
    def setUp(self):
       """
       Sets up Cobbler API connection and logs in
       """
-      self.secret = utils.get_shared_secret()
-      self.remote = xmlrpclib.Server(utils.local_get_cobbler_api_url())
-      self.token  = self.remote.login("", self.secret)
+      self.server = TestXMLRPCThread()
+      self.server.start()
+
+      self.remote = xmlrpclib.Server("http://127.0.0.1:55555")
+      self.token  = self.remote.login("testing", "testing")
       if not self.token:
+         self.server.stop()
          sys.exit(1)
 
       # Create temp dir
@@ -56,6 +62,8 @@ class CobblerXMLRPCTest(unittest.TestCase):
       """
       Cleanup here
       """
+      self.server.stop()
+      time.sleep(0.5)
       return
 
 class Test_A_Create(CobblerXMLRPCTest):
