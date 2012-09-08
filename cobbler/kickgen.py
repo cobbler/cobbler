@@ -29,6 +29,7 @@ import sys
 import glob
 import traceback
 import errno
+import urlparse
 
 import utils
 from cexceptions import *
@@ -265,6 +266,10 @@ class KickGen:
         meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
         meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
         # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
+
+        # add extra variables for other distro types
+        urlparts = urlparse.urlsplit(meta["tree"])
+        meta["install_source_directory"] = urlparts[2]
 
         try:
             raw_data = utils.read_file_contents(kickstart_path, self.api.logger,

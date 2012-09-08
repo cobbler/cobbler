@@ -209,6 +209,9 @@ def main():
     p.add_option("", "--qemu-net-type",
                  dest="qemu_net_type",
                  help="when used with --virt_type=qemu, select type of network device to use: e1000, ne2k_pci, pcnet, rtl8139, virtio")
+    p.add_option("", "--qemu-machine-type",
+                 dest="qemu_machine_type",
+                 help="when used with --virt_type=qemu, select type of machine type to emulate: pc, pc-1.0, pc-0.15")
 
     (options, args) = p.parse_args()
 
@@ -242,6 +245,7 @@ def main():
         k.virt_auto_boot      = options.virt_auto_boot
         k.qemu_disk_type      = options.qemu_disk_type
         k.qemu_net_type       = options.qemu_net_type
+        k.qemu_machine_type   = options.qemu_machine_type
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -300,6 +304,7 @@ class Koan:
         self.force_path        = None
         self.qemu_disk_type    = None
         self.qemu_net_type     = None
+        self.qemu_machine_type = None
         self.virt_auto_boot    = None
 
         # This option adds the --copy-default argument to /sbin/grubby
@@ -379,6 +384,11 @@ class Koan:
             if self.virt_type not in [ "qemu", "auto", "kvm" ]:
                raise InfoException, "--qemu-net-type must use with --virt-type=qemu"
 
+        # if --qemu-machine-type was called without --virt-type=qemu, then fail
+        if (self.qemu_machine_type is not None):
+            self.qemu_machine_type = self.qemu_machine_type.lower()
+            if self.virt_type not in [ "qemu", "auto", "kvm" ]:
+               raise InfoException, "--qemu-machine-type must use with --virt-type=qemu"
 
 
         # if --static-interface and --profile was called together, then fail
@@ -698,10 +708,28 @@ class Koan:
         """
 
         try:
-            tree = profile_data["ks_meta"].split("@@")[-1].strip()
+            tree = profile_data["ks_meta"].split()
             # Ensure we only take the tree in case ks_meta args are passed
-            tree = tree.split()[0]
-            profile_data["install_tree"] = tree
+            # First check for tree= in ks_meta arguments
+            meta_re=re.compile('tree=')
+            tree_found=''
+            for entry in tree:
+                if meta_re.match(entry):
+                    tree_found=entry.split("=")[-1]
+                    break
+ 
+            if tree_found=='':
+                # assume tree information as first argument
+                tree = tree.split()[0]
+            else:
+                tree=tree_found
+            tree_re = re.compile ('(http|ftp|nfs):')
+            # Next check for installation tree on remote server
+            if tree_re.match(tree):
+                profile_data["install_tree"] = tree
+            else:
+            # Now take the first parameter as the local path
+                profile_data["install_tree"] = "http://" + profile_data["http_server"] + tree
 
             if self.safe_load(profile_data,"install_tree"):
                 print "install_tree:", profile_data["install_tree"]
@@ -904,14 +932,15 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
                     raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
             elif arch.startswith("s390"):
                 if len(k_args) > 895:
                     raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-            elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+            elif len(k_args) > 2048:
+                raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             utils.subprocess_call([
                 'kexec',
@@ -999,6 +1028,7 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
+            #   arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if not ANCIENT_PYTHON:
                 if arch.startswith("ppc") or arch.startswith("ia64"):
                     if len(k_args) > 511:
@@ -1006,8 +1036,8 @@ class Koan:
                 elif arch.startswith("s390"):
                     if len(k_args) > 895:
                         raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-                elif len(k_args) > 255:
-                    raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+                elif len(k_args) > 2048:
+                    raise InfoException, "Kernel options are too long, 2048 chars exceeded: %s" % k_args
 
             if use_grubby:
                 cmd = [ "/sbin/grubby",
@@ -1261,7 +1291,7 @@ class Koan:
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
             elif breed is not None and breed == "debian" or breed =="ubuntu":
-                kextra = "auto url=" + kickstart
+                kextra = "auto-install/enable=true priority=critical url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
@@ -1274,7 +1304,7 @@ class Koan:
 
         hashv = utils.input_string_or_hash(kextra)
 
-        if self.static_interface is not None and (breed is None or breed == "redhat"):
+        if self.static_interface is not None and (breed == "redhat" or breed == "suse"):
             interface_name = self.static_interface
             interfaces = self.safe_load(pd, "interfaces")
             if interface_name.startswith("eth"):
@@ -1288,15 +1318,24 @@ class Koan:
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
 
-            hashv["ksdevice"] = self.static_interface
+            if breed == "suse":
+                hashv["netdevice"] = self.static_interface
+            else:
+                hashv["ksdevice"] = self.static_interface
             if ip is not None:
-                hashv["ip"] = ip
+                if breed == "suse":
+                    hashv["hostip"] = ip
+                else:
+                    hashv["ip"] = ip
             if netmask is not None:
                 hashv["netmask"] = netmask
             if gateway is not None:
                 hashv["gateway"] = gateway
             if dns is not None:
-                hashv["dns"] = ",".join(dns)
+                if breed == "suse":
+                    hashv["nameserver"] = dns[0]
+                else:
+                    hashv["dns"] = ",".join(dns)
 
         if replace_self and self.embed_kickstart:
            hashv["ks"] = "file:ks.cfg"
@@ -1339,21 +1378,22 @@ class Koan:
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
-                name             =  virtname,
-                ram              =  ram,
-                disks            =  disks,
-                uuid             =  uuid,
-                extra            =  kextra,
-                vcpus            =  vcpus,
-                profile_data     =  profile_data,
-                arch             =  arch,
-                no_gfx           =  self.no_gfx,
-                fullvirt         =  fullvirt,
-                bridge           =  self.virt_bridge,
-                virt_type        =  self.virt_type,
-                virt_auto_boot   =  virt_auto_boot,
-                qemu_driver_type =  self.qemu_disk_type,
-                qemu_net_type    =  self.qemu_net_type
+                name              =  virtname,
+                ram               =  ram,
+                disks             =  disks,
+                uuid              =  uuid,
+                extra             =  kextra,
+                vcpus             =  vcpus,
+                profile_data      =  profile_data,
+                arch              =  arch,
+                no_gfx            =  self.no_gfx,
+                fullvirt          =  fullvirt,
+                bridge            =  self.virt_bridge,
+                virt_type         =  self.virt_type,
+                virt_auto_boot    =  virt_auto_boot,
+                qemu_driver_type  =  self.qemu_disk_type,
+                qemu_net_type     =  self.qemu_net_type,
+                qemu_machine_type =  self.qemu_machine_type
         )
 
         #print results
@@ -1549,7 +1589,7 @@ class Koan:
             #        the virtinst VirtualDisk class, but
             #        not all versions of virtinst have a 
             #        nice list to use
-            if t in ('raw','qcow','aio'):
+            if t in ('raw','qcow','qcow2','aio'):
                accum.append(t)
             else:
                print "invalid disk driver specified, defaulting to 'raw'"
@@ -1672,10 +1712,10 @@ class Koan:
 
         # Parse the command line to determine if this is a 
         # path, a partition, or a volume group parameter
-        #   Ex:   /foo
-        #   Ex:   partition:/dev/foo
-        #   Ex:   volume-group:/dev/foo/
-            
+        #   file Ex:         /foo
+        #   partition Ex:    /dev/foo
+        #   volume-group Ex: vg-name(:lv-name)
+        #
         # chosing the disk image name (if applicable) is somewhat
         # complicated ...
 
@@ -1700,16 +1740,22 @@ class Koan:
                 raise InfoException, "virt path is not a valid block device"
         else:
             # it's a volume group, verify that it exists
+            if location.find(':') == -1:
+                vgname = location
+                lvname = "%s-disk%s" % (name,offset)
+            else:
+                vgname, lvname = location.split(':')[:2]
+
             args = "vgs -o vg_name"
             print "%s" % args
             vgnames = sub_process.Popen(args, shell=True, stdout=sub_process.PIPE).communicate()[0]
             print vgnames
 
-            if vgnames.find(location) == -1:
-                raise InfoException, "The volume group [%s] does not exist." % location
+            if vgnames.find(vgname) == -1:
+                raise InfoException, "The volume group [%s] does not exist." % vgname
             
             # check free space
-            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % location
+            args = "LANG=C vgs --noheadings -o vg_free --units g %s" % vgname
             print args
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
@@ -1750,7 +1796,7 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # partition location
-                partition_location = "/dev/mapper/%s-%s" % (location,name.replace('-','--'))
+                partition_location = "/dev/mapper/%s-%s" % (vgname,lvname.replace('-','--'))
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
