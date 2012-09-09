@@ -872,7 +872,7 @@ class CobblerXMLRPCInterface:
                 handle = self.get_item_handle(object_type, object_name)
             except:
                 utils.log_exc(self.logger)
-                pass
+                return False
             if handle != 0:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
@@ -1201,8 +1201,7 @@ class CobblerXMLRPCInterface:
         obj = systems.find(name=sys_name)
         if obj == None:
             # system not found!
-            self._log("upload_log_data - system '%s' not found" % sys_name, token=token, name=sys_name)
-            return False
+            self._log("upload_log_data - WARNING - system '%s' not found in cobbler" % sys_name, token=token, name=sys_name)
 
         return self.__upload_file(sys_name, file, size, offset, data)
 
