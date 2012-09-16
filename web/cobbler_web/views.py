@@ -195,7 +195,8 @@ def get_fields(what, is_subobject, seed_item=None):
             else:
                 tokens = []
                 for (x,y) in elem["value"].items():
-                   if y is not None:
+                   if y is not None and y.strip() != "~":
+                      y = y.replace(" ","\\ ")
                       tokens.append("%s=%s" % (x,y))
                    else:
                       tokens.append("%s" % x)
@@ -1036,8 +1037,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    obj = None
 
-   settings = remote.get_settings()
-
    child = False
    if what == "subprofile":
       what = "profile"
@@ -1045,7 +1044,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    if not obj_name is None:
       editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
-      obj = remote.get_item(what, obj_name, True)
+      obj = remote.get_item(what, obj_name, False)
    else:
        editable = remote.check_access_no_fail(request.session['token'], "new_%s" % what, None)
        obj = None
