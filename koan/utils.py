@@ -52,6 +52,8 @@ VIRT_STATE_NAME_MAP = {
    6 : "crashed"
 }
 
+VALID_DRIVER_TYPES = ['raw', 'qcow', 'qcow2', 'vmdk']
+
 class InfoException(exceptions.Exception):
     """
     Custom exception for tracking of fatal errors.
@@ -551,6 +553,9 @@ def __try_connect(url):
         return None
 
 def create_qemu_image_file(path, size, driver_type):
+    if driver_type not in VALID_DRIVER_TYPES:
+        raise InfoException, "Invalid QEMU image type: %s" % driver_type
+   
     cmd = ["qemu-img", "create", "-f", driver_type, path, "%sG" % size]
     try:
         subprocess_call(cmd)
