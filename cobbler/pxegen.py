@@ -893,9 +893,9 @@ class PXEGen:
        blended['initrd_name'] = os.path.basename(distro.initrd)
 
        if what == "profile":
-           blended['append_line'] = self.build_kernel_options(obj,None,distro,None,None,blended['kickstart'])
-       else:
            blended['append_line'] = self.build_kernel_options(None,obj,distro,None,None,blended['kickstart'])
+       else:
+           blended['append_line'] = self.build_kernel_options(obj,None,distro,None,None,blended['kickstart'])
 
        template = None
        if distro.breed in ['redhat','debian','ubuntu','suse']:
