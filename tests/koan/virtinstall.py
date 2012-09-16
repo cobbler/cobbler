@@ -199,29 +199,31 @@ class KoanVirtInstallTest(unittest.TestCase):
              "--network bridge=br2 --wait 0 --noautoconsole")
         )
 
-    @patch('koan.virtinstall.os.path', new_callable=OsPathMock)
-    def test_create_qcow_file(self, mock):
+    @patch('koan.virtinstall.utils.subprocess_call')
+    @patch('koan.virtinstall.utils.os.path', new_callable=OsPathMock)
+    def test_create_qcow_file(self, mock_path, mock_subprocess):
         disks = [
                     ( '/path/to/imagedir/new_qcow_file', '30', 'qcow' ),
                     ( '/path/to/imagedir/new_qcow2_file', '30', 'qcow2' ),
                     ( '/path/to/imagedir/new_raw_file', '30', 'raw' ),
                     ( '/path/to/imagedir/new_vmdk_file', '30', 'vmdk' ),
+                    ( '/path/to/imagedir/new_qcow_file', '30'),
                     ( '/path/to/imagedir/new_qcow2_file', '0', 'qcow2' ),
                     ( '/path/to/imagedir/existfile', '30', 'qcow2' ),
                     ( '/path/to/imagedir', '30', 'qcow2' ),
                 ]
 
-        commands = create_image_file(disks)
+        create_image_file(disks)
         res = []
-        for cmd in commands:
-            res.append(" ".join(cmd))
+        for args, kargs in mock_subprocess.call_args_list:
+            res.append(" ".join(args[0]))
 
         self.assertEquals(res,
-                [
-                    'qemu-img create -f qcow /path/to/imagedir/new_qcow_file 30G',
-                    'qemu-img create -f qcow2 /path/to/imagedir/new_qcow2_file 30G',
-                    'qemu-img create -f raw /path/to/imagedir/new_raw_file 30G',
-                    'qemu-img create -f vmdk /path/to/imagedir/new_vmdk_file 30G',
-                ]
+            [
+                'qemu-img create -f qcow /path/to/imagedir/new_qcow_file 30G',
+                'qemu-img create -f qcow2 /path/to/imagedir/new_qcow2_file 30G',
+                'qemu-img create -f raw /path/to/imagedir/new_raw_file 30G',
+                'qemu-img create -f vmdk /path/to/imagedir/new_vmdk_file 30G',
+            ]
         )
 

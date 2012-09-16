@@ -24,12 +24,8 @@ requires python-virtinst-0.200.
 """
 
 import virtinstall
-import utils
 
 def start_install(*args, **kwargs):
-    image_commands = virtinstall.create_image_file(*args, **kwargs)
-    for command in image_commands:
-        utils.subprocess_call(command)
-
+    virtinstall.create_image_file(*args, **kwargs)
     cmd = virtinstall.build_commandline("qemu:///system", *args, **kwargs)
     utils.subprocess_call(cmd)
