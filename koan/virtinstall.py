@@ -106,7 +106,7 @@ def create_image_file(disks=None, **kwargs):
     disks = _sanitize_disks(disks)
     commands = []
     for path, size, driver_type in disks:
-        if not driver_type in ['raw', 'qcow', 'qcow2', 'vmdk']:
+        if driver_type is None:
             continue
         if os.path.isdir(path) or os.path.exists(path):
             continue
