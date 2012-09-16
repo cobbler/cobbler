@@ -23,6 +23,7 @@ module for creating fullvirt guests via KVM/kqemu/qemu
 requires python-virtinst-0.200.
 """
 
+import utils
 import virtinstall
 
 def start_install(*args, **kwargs):
