@@ -102,6 +102,16 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
 
     return ret
 
+def create_image_file(disks=None, **kwargs):
+    disks = _sanitize_disks(disks)
+    for path, size, driver_type in disks:
+        if driver_type is None:
+            continue
+        if os.path.isdir(path) or os.path.exists(path):
+            continue
+        if str(size) == "0":
+            continue
+        utils.create_qemu_image_file(path, size, driver_type)
 
 def build_commandline(uri,
                       name=None,

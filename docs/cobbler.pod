@@ -145,7 +145,7 @@ If you're using Red Hat Network, Red Hat Satellite Server, or Spacewalk, you can
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server-override] [--parent=profile]>
+B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile]>
 
 Arguments are the same as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -232,7 +232,7 @@ System commands have a wider variety of control offered over network details.  I
 
 Read more about networking setup at: https://github.com/cobbler/cobbler/wiki/Advanced-networking
 
-B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N] [--server-override=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-pass=string] [--power-id=string]>
+B<cobbler system add --name=string --profile=string [--mac=macaddress] [--ip-address=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--kickstart=path] [--netboot-enabled=Y/N] [--server=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-pass=string] [--power-id=string]>
 
 Adds a cobbler System to the configuration.  Arguments are specified as per "profile add" with
 the following changes:
@@ -257,12 +257,12 @@ MAC addresses have the format AA:BB:CC:DD:EE:FF. It's highly recommended to regi
 
 Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add new system records when it finds profiles being provisioned on hardware it has seen before.  This may help if you do not have a report of all the MAC addresses in your datacenter/lab configuration.
 
-=item --ip
+=item --ip-address
 
 If cobbler is configured to generate a DHCP configuration (see advanced section), use this
 setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP management for this particular system.
 
-Example: --ip=192.168.1.50
+Example: --ip-address=192.168.1.50
 
 Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
@@ -354,8 +354,8 @@ Additional interfaces can be specified (for example: eth1, or any name you like,
 
 Example:  
 
-cobbler system edit --name=foo --ip=192.168.1.50 --mac=AA:BB:CC:DD:EE:A0
-cobbler system edit --name=foo --interface=eth0 --ip=192.168.1.51 --mac=AA:BB:CC:DD:EE:A1
+cobbler system edit --name=foo --ip-address=192.168.1.50 --mac=AA:BB:CC:DD:EE:A0
+cobbler system edit --name=foo --interface=eth0 --ip-address=192.168.1.51 --mac=AA:BB:CC:DD:EE:A1
 cobbler system report foo
 
 Interfaces can be deleted using the --delete-interface option.
@@ -375,7 +375,7 @@ Example:
 
 cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --interface-type=bond_slave --interface-master=bond0
 cobbler system edit --name=foo --interface=eth1 --mac=AA:BB:CC:DD:EE:01 --interface-type=bond_slave --interface-master=bond0
-cobbler system edit --name=foo --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1
+cobbler system edit --name=foo --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip-address=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1
 
 More information about networking setup is available at https://github.com/cobbler/cobbler/wiki/Advanced-networking
 
@@ -905,7 +905,7 @@ B<cobbler system remove --name=default>
 
 As mentioned in earlier sections, it is also possible to control the default behavior for a specific network:
 
-B<cobbler system add --name=network1 --ip=192.168.0.0/24 --profile=boot_this>
+B<cobbler system add --name=network1 --ip-address=192.168.0.0/24 --profile=boot_this>
 
 =head2 REPO MANAGEMENT
 

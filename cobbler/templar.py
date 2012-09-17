@@ -55,9 +55,12 @@ class Templar:
         Constructor
         """
 
-        self.config      = config
-        self.api         = config.api
-        self.settings    = config.settings()
+        self.config   = None
+        self.settings = None
+        if config:
+            self.config   = config
+            self.settings = config.settings()
+
         self.last_errors = []
 
         if logger is None:
@@ -74,7 +77,7 @@ class Templar:
         for line in lines:
             if line.find("#import") != -1:
                rest=line.replace("#import","").replace(" ","").strip()
-               if rest not in self.settings.cheetah_import_whitelist:
+               if self.settings and rest not in self.settings.cheetah_import_whitelist:
                    raise CX("potentially insecure import in template: %s" % rest)
 
     def render(self, data_input, search_table, out_path, subject=None, template_type=None):
@@ -96,7 +99,7 @@ class Templar:
         if not template_type:
             # Assume we're using the default template type, if set in
             # the settinigs file or use cheetah as the last resort
-            if self.settings.default_template_type:
+            if self.settings and self.settings.default_template_type:
                 template_type = self.settings.default_template_type
             else:
                 template_type = "cheetah"
