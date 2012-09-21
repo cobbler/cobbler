@@ -353,6 +353,8 @@ class ImportSignatureManager:
             result["x86_64"] = 1
         if result.pop("i686",False):
             result["i386"] = 1
+        if result.pop("i586",False):
+            result["i386"] = 1
         if result.pop("x86",False):
             result["i386"] = 1
 
