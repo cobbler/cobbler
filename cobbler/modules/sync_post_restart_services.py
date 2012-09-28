@@ -27,6 +27,8 @@ def run(api,args,logger):
     manage_tftpd       = str(settings.manage_tftpd).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
+    service_name_dns   = str(settings.service_name_dns).lower()
+    service_name_dhcp  = str(settings.service_name_dhcp).lower()
 
     which_dhcp_module = module_loader.get_module_from_file("dhcp","module",just_name=True).strip()
     which_dns_module  = module_loader.get_module_from_file("dns","module",just_name=True).strip()
@@ -42,10 +44,12 @@ def run(api,args,logger):
                 if rc != 0:
                    logger.error("dhcpd -t failed")
                    return 1
-                rc = utils.subprocess_call(logger,"service dhcpd restart", shell=True)
+                dhcp_restart_command = "service %s restart" % service_name_dhcp
+                rc = utils.subprocess_call(logger, dhcp_restart_command, shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
             if restart_dhcp != "0":
-                rc = utils.subprocess_call(logger, "service dnsmasq restart")
+                dhcp_restart_command = "service %s restart" % service_name_dhcp
+                rc = utils.subprocess_call(logger, dhcp_restart_command)
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
@@ -53,9 +57,11 @@ def run(api,args,logger):
 
     if manage_dns != "0" and restart_dns != "0":
         if which_dns_module == "manage_bind":
-            rc = utils.subprocess_call(logger, "service named restart", shell=True)
+            dns_restart_command = "service %s restart" % service_name_dns
+            rc = utils.subprocess_call(logger, dns_restart_command, shell=True)
         elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.subprocess_call(logger, "service dnsmasq restart", shell=True)
+            dns_restart_command = "service %s restart" % service_name_dns
+            rc = utils.subprocess_call(logger, dns_restart_command, shell=True)
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         else:

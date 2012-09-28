@@ -343,6 +343,15 @@ replicate_rsync_options: "-avzH"
 restart_dns: 1
 restart_dhcp: 1
 
+# If DHCP and DNS management is enabled, the provided service name will be 
+# used when restarting the service. For example, BIND on RHEL based distros
+# is "named", but on Debian based distros it's "bind9". ISC DHCPD on RHEL
+# based distros is "dhcpd", but "isc-dhcp-server" on Debian based distros.
+# If using dnsmasq, both values would most likely be "dnsmasq", or whatever
+# name is for the service command on your system.
+service_name_dns: "named"
+service_name_dhcp: "dhcpd"
+
 # install triggers are scripts in /var/lib/cobbler/triggers/install
 # that are triggered in kickstart pre and post sections.  Any
 # executable script in those directories is run.  They can be used
