@@ -57,15 +57,17 @@ class BindManager:
         """
         Constructor
         """
-        self.logger      = logger
-        self.config      = config
-        self.api         = config.api
-        self.distros     = config.distros()
-        self.profiles    = config.profiles()
-        self.systems     = config.systems()
-        self.settings    = config.settings()
-        self.repos       = config.repos()
-        self.templar     = templar.Templar(config)
+        self.logger        = logger
+        self.config        = config
+        self.api           = config.api
+        self.distros       = config.distros()
+        self.profiles      = config.profiles()
+        self.systems       = config.systems()
+        self.settings      = config.settings()
+        self.repos         = config.repos()
+        self.templar       = templar.Templar(config)
+        self.settings_file = utils.namedconf_location(self.api)
+        self.zonefile_base = utils.zonefile_base(self.api)
 
     def regen_hosts(self):
         pass # not used
@@ -176,7 +178,7 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
+        settings_file = self.settings.bind_chroot_path + self.settings_file
         template_file = "/etc/cobbler/named.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
@@ -343,7 +345,7 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
-        zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
+        zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
         for (zone, hosts) in forward.iteritems():
             metadata = {
