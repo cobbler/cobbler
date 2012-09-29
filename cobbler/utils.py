@@ -2172,7 +2172,7 @@ def dhcpconf_location(api):
 
 def namedconf_location(api):
     (dist, ver) = api.os_version
-    if dist == "debian":
+    if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/named.conf"
     else:
         return "/etc/named.conf"
