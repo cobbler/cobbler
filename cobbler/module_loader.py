@@ -102,5 +102,5 @@ def get_modules_in_category(category):
     return MODULES_BY_CATEGORY[category].values()
 
 if __name__ == "__main__":
-    print load_modules(module_path)
+    print load_modules(mod_path)
 
