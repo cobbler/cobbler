@@ -207,8 +207,8 @@ puppet_auto_setup: 0
 # puppet_auto_setup above to be enabled
 sign_puppet_certs_automatically: 0
 
-# location of the puppet signing utility puppetca
-puppetca_path: "/usr/sbin/puppetca"
+# location of the puppet executable, used for revoking certificates
+puppetca_path: "/usr/bin/puppet"
 
 # when a puppet managed machine is reinstalled it is necessary to
 # remove the puppet certificate from the puppet master server before a
