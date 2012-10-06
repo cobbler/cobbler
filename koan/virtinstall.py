@@ -141,7 +141,6 @@ def build_commandline(uri,
     disable_boot_opt = False
     disable_driver_type = False
     disable_net_model = False
-    disable_boot_opt = False
     oldstyle_macs = False
 
     if not virtinst_version:
@@ -151,7 +150,6 @@ def build_commandline(uri,
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
-        disable_boot_opt = True
         oldstyle_macs = True
 
     is_import = uri.startswith("import")
