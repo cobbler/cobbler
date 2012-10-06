@@ -138,6 +138,7 @@ def build_commandline(uri,
 
     disable_autostart = False
     disable_virt_type = False
+    disable_boot_opt = False
     disable_driver_type = False
     disable_net_model = False
     oldstyle_macs = False
@@ -145,6 +146,7 @@ def build_commandline(uri,
     if not virtinst_version:
         print ("- warning: old python-virtinst detected, a lot of features will be disabled")
         disable_autostart = True
+        disable_boot_opt = True
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
@@ -198,6 +200,12 @@ def build_commandline(uri,
             print "I want to make a floppy for %s" % kickstart
             floppy = utils.make_floppy(kickstart)
     elif is_qemu:
+        # images don't need to source this
+        if not profile_data.has_key("install_tree"):
+            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
+
+        if not profile_data["install_tree"].endswith("/"):
+    elif disable_boot_opt:
         # images don't need to source this
         if not profile_data.has_key("install_tree"):
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
@@ -293,8 +301,12 @@ def build_commandline(uri,
             cmd += "--arch %s " % arch
     else:
         cmd += "--paravirt "
-        cmd += ("--boot kernel=%s,initrd=%s,kernel_args=\"%s\" " %
-                (kernel, initrd, extra))
+        if not disable_boot_opt:
+            cmd += ("--boot kernel=%s,initrd=%s,kernel_args=\"%s\" " %
+                    (kernel, initrd, extra))
+        else:
+            cmd += ("--location %s --extra-args=\"%s\" " % 
+                    (location,extra))
 
     if breed and breed != "other":
         if os_version and os_version != "other":
