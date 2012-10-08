@@ -1076,11 +1076,21 @@ def tftpboot_location():
         return "/var/lib/tftpboot"
     elif make =="redhat" and version >= 6:
         return "/var/lib/tftpboot"
-    elif make == "debian" or make == "ubuntu":
-        return "/var/lib/tftpboot"
-    if make == "suse":
+    elif make == "suse":
         return "/srv/tftpboot"
-    return "/tftpboot"
+    # As of Ubuntu 12.04, while they seem to have settled on sticking with 
+    # /var/lib/tftpboot, they haven't scrubbed all of the packages that came 
+    # from Debian that use /srv/tftp by default.
+    elif make == "ubuntu" and os.path.exists("/var/lib/tftpboot"):
+        return "/var/lib/tftpboot"
+    elif make == "ubuntu" and os.path.exists("/srv/tftp"):
+        return "/srv/tftp"
+    elif make == "debian" and int(version.split('.')[0]) < 6:
+        return "/var/lib/tftpboot"
+    elif make == "debian" and int(version.split('.')[0]) >= 6:
+        return "/srv/tftp"
+    else:
+        return "/tftpboot"
 
 def can_do_public_content(api):
     """
@@ -2153,8 +2163,46 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     elif dist == "suse":
         return "/etc/dhcpd.conf"
+    elif dist == "debian" and int(version[1].split('.')[0]) < 6:
+        return "/etc/dhcp3/dhcpd.conf"
+    elif dist == "ubuntu" and version[1] < 11.10:
+        return "/etc/dhcp3/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"
+
+def namedconf_location(api):
+    (dist, ver) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "/etc/bind/named.conf"
+    else:
+        return "/etc/named.conf"
+
+def zonefile_base(api):
+    (dist, version) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "/etc/bind/db."
+    else:
+        return "/var/named/"
+
+def dhcp_service_name(api):
+    (dist, version) = api.os_version
+    if dist == "debian" and int(version.split('.')[0]) < 6:
+        return "dhcp3-server"
+    elif dist == "debian" and int(version.split('.')[0]) >= 6:
+        return "isc-dhcp-server"
+    elif dist == "ubuntu" and version < 11.10:
+        return "dhcp3-server"
+    elif dist == "ubuntu" and version >= 11.10:
+        return "isc-dhcp-server"
+    else:
+        return "dhcpd"
+
+def named_service_name(api):
+    (dist, ver) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "bind9"
+    else:
+        return "named"
 
 def link_distro(settings, distro):
     # find the tree location

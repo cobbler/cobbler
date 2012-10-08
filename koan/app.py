@@ -1589,7 +1589,7 @@ class Koan:
             #        the virtinst VirtualDisk class, but
             #        not all versions of virtinst have a 
             #        nice list to use
-            if t in ('raw','qcow','qcow2','aio'):
+            if t in ('raw','qcow','qcow2','aio', 'vmdk'):
                accum.append(t)
             else:
                print "invalid disk driver specified, defaulting to 'raw'"
@@ -1774,13 +1774,19 @@ class Koan:
             if freespace >= int(virt_size):
             
                 # look for LVM partition named foo, create if doesn't exist
-                args = "lvs -o lv_name %s" % vgname
+                args = "lvs --noheadings -o lv_name %s" % vgname
                 print "%s" % args
                 lvs_str=sub_process.Popen(args, stdout=sub_process.PIPE, shell=True).communicate()[0]
                 print lvs_str
          
-                # have to create logical volume?
-                if lvs_str.find(lvname) == -1:
+                # have to create it?
+                found_lvs = False
+                for lvs in lvs_str.split("\n"):
+                    if lvs.strip() == lvname:
+                        found_lvs = True
+                        break
+
+                if not found_lvs:
                     args = "lvcreate -L %sG -n %s %s" % (virt_size, lvname, vgname)
                     print "%s" % args
                     lv_create = sub_process.call(args, shell=True)
