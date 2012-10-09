@@ -864,6 +864,9 @@ class CobblerXMLRPCInterface:
 
         Ex: xapi_object_edit("distro","el5","add",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
+        if object_name.strip() == "":
+            raise CX("xapi_object_edit() called without an object name")
+
         self.check_access(token,"xedit_%s" % object_type, token)
 
         if edit_type == "add" and not attributes.has_key("clobber"):
@@ -871,8 +874,7 @@ class CobblerXMLRPCInterface:
             try:
                 handle = self.get_item_handle(object_type, object_name)
             except:
-                utils.log_exc(self.logger)
-                return False
+                pass
             if handle != 0:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
