@@ -374,6 +374,11 @@ server: 127.0.0.1
 # configuration and would traceback.
 client_use_localhost: 0
 
+# If set to 1, all commands to the API (not directly to the XMLRPC
+# server) will go over HTTPS instead of plaintext. Be sure to change
+# the http_port setting to the correct value for the web server
+client_use_https: 0
+
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.

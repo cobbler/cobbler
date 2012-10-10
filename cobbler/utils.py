@@ -2104,10 +2104,16 @@ def local_get_cobbler_api_url():
        traceback.print_exc()
        raise CX("/etc/cobbler/settings is not a valid YAML file")
 
+    ip = data.get("server","127.0.0.1")
     if data.get("client_use_localhost", False):
-      return "http://%s:%s/cobbler_api" % ("127.0.0.1",data.get("http_port","80"))
-    else:
-      return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+        # this overrides the server setting 
+        ip = "127.0.0.1"
+    port = data.get("http_port","80")
+    protocol = "http"
+    if data.get("client_use_https", False):
+        protocol = "https"
+
+    return "%s://%s:%s/cobbler_api" % (protocol,ip,port)
 
 def get_ldap_template(ldaptype=None):
     """
