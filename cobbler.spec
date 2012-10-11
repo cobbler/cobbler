@@ -334,6 +334,10 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Thu Oct 11 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta2
+- Modified spec version/release to be 2.4.0-beta2 (jimi@sngx.net)
+- fixing up a bad commit merge (jimi@sngx.net)
+
 * Thu Oct 11 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta1
 - Beta Release 1 of 2.4.0
 - BUGFIX - Issue #329 - Systems no longer allow an add with an image for a
