@@ -334,6 +334,209 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Thu Oct 11 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta1
+- Beta Release 1 of 2.4.0
+- BUGFIX - Issue #329 - Systems no longer allow an add with an image for a
+  parent (jimi@sngx.net)
+- BUGFIX - Issue #327 - revert 5afcff7 and fix in a more sane way
+  (jimi@sngx.net)
+- Removed some duplicates created by reapplying a patch (jimi@sngx.net)
+- BUGFIX - Issue #267 - old python-virtinst does not support --boot
+  (jimi@sngx.net)
+- Revise install_post_puppet.py to use newer puppet syntax
+  (stephen@esstec.co.uk)
+- Get rid of deprecated Puppet syntax so that cobbler works with Puppet 3.0
+  (stephen@esstec.co.uk)
+- Added ubuntu to dist check for named.conf location
+  (daniel.givens@rackspace.com)
+- Expanded automatic determination of tftpboot path, isc dhcp and bind service
+  names and config files based on distro. (daniel@givenstx.com)
+- Make the service name for DHCP and DNS restarts configurable for better
+  portable between distros. (daniel.givens@rackspace.com)
+- Serial based on formatted date and revision number (alevy@mobitv.com)
+- Correct undefined variable name (jbd@jbdenis.net)
+- fix merge Issue #252 BUGFIX and #262 (daikame@gmail.com)
+- Add check for valid driver_type before executing qemu-img (jimi@sngx.net)
+- fix mistake remove import. (daikame@gmail.com)
+- move exec method to utils.py, and catch unexpected exception.
+  (daikame@gmail.com)
+- not check driver type on create method. (daikame@gmail.com)
+- BUGFIX - Issue #305 - Incorrect Kickstart file when gPXE enabled
+  (jimi@sngx.net)
+- BUGFIX - Issue #304 - Cobbler does not store values correctly for ksmeta
+  Objects were getting flattened improperly, so it was losing escapes/quoting
+  for values with spaces (jimi@sngx.net)
+- add vmdk and raw file create support. (daikame@gmail.com)
+- BUGFIX - Issue #267 - old python-virtinst does not support --boot
+  (jimi@sngx.net)
+- Modified spec version/release to be 2.4.0-beta-1 (jimi@sngx.net)
+- Initial commit for mysql backend support (jimi@sngx.net)
+- BUGFIX - Issue #277 - move webroot to /srv/www for debian/ubuntu
+  (jimi@sngx.net)
+- FEATURE - adding 'zonetype' variable for DNS zone rendering (jimi@sngx.net)
+- BUGFIX - Issue #278 - cobbler import fails for ubuntu images due to rsync
+  args (jimi@sngx.net)
+- BUGFIX - Issue #285 - update cobbler man page for incorrect options
+  (jimi@sngx.net)
+- BUGFIX - Issue #241 - adding distro with blank name via XMLRPC should not
+  work (jimi@sngx.net)
+- BUGFIX - Issue #272 - allow anamon to log entries when building systems based
+  on profiles (no corresponding system record) (jimi@sngx.net)
+- BUGFIX - Issue #252 - fuzzy match on lvs name returns a false match
+  preventing LV creation (jimi@sngx.net)
+- BUGFIX - Issue #287 - patch to allow templar to work without a config, which
+  was breaking the tftpd.py script (jimi@sngx.net)
+- add qcow2 driver type (daikame@gmail.com)
+- fix koan qemu-machine-type param test. (daikame@gmail.com)
+- Only cosmetic cleanup - removed commands that were commented out, added
+  spaces for more clear code (flaks@bnl.gov)
+- Modified sample.seed to make use kickstart_start and kickstart_done snippets
+  for debian. As a result the following cobbler features work for debian:   -
+  prevent net boot looping   - cobbler status reflects debian installations   -
+  preseed file is downloaded a nd saved on the installed system as
+  /var/log/cobbler.seed Also made download_config_files_deb snippet, make use
+  of late_command New post_run_deb snippet allows to execute post installation
+  script. (flaks@bnl.gov)
+- Some changes for testing (jimi@sngx.net)
+- Minor fix for urlparse on older pythons (>2.5) (jimi@sngx.net)
+- FEATURE - Issue #253 - Use PEERDNS=no for DHCP interfaces when name servers
+  are specified (jimi@sngx.net)
+- install-tree for debian/ubuntu modified to take tree= from meta data. http,
+  ftp and nfs remote tree locations supported (flaks@bnl.gov)
+- add support of custom logical volume name (daikame@gmail.com)
+- Partial revert of 87acfc8b, and a minor change to bring the koan extra-args
+  inline with the PXE args (jimi@sngx.net)
+- New default preseed, and a few minor changes to make ubuntu auto install work
+  better (jimi@sngx.net)
+- Add support for qemu machine type to emulate (option --qemu-machine-type).
+  (isaoshimizu@gmail.com)
+- Modern x86 kernels have 2048 char limit and this is needed to support
+  configurations with kickstart+NIC kernel params. Otherwise koan refuses to
+  accept the param list. (oliver@cpan.org)
+- Allow koan's -S option to work for SuSE breed. Also remove -S for breed=None,
+  as I assume "Red Hat" is not a sane assumption for all Distros without a
+  breed. (oliver@cpan.org)
+- Only add a udev net rule for an interface if the MAC is set. This fixes
+  behaviour whereby a dummy udev rule at eth0 forces the first NIC to get eth1
+  post-install. (oliver@cpan.org)
+- Make the domainname setting be the full eth0 DNS Name, minus the first dotted
+  part (and not the FQDN). (oliver@cpan.org)
+- BUGFIX - Issue #252 - fuzzy match on lvs name returns a false match
+  preventing LV creation (jimi@sngx.net)
+- Added back in the filesystem loader. (oliver@cpan.org)
+- BUGFIX - Issue #247 - Reposync does not work from the web interface
+  (jimi@sngx.net)
+- BUGFIX - Issue #246 - CentOS 5.x install fence_tools to /sbin/
+  (jimi@sngx.net)
+- Fix post_report trigger typo (jimi@sngx.net)
+- Some fixes for koan running with an old virt-install (jimi@sngx.net)
+- Define pxe_menu_items variable when creating PXE files for systems
+  (jthiltges2@unl.edu)
+- Refactor PXE and GRUB menu item creation into a separate function
+  (jthiltges2@unl.edu)
+- django 1.4 and later have deprecated the old TEMPLATE_LOADERS and replaced
+  them with a new app_directories.Loader (oliver@cpan.org)
+- Add support for UEFI boot to the subnet, but not for defined systems yet.
+  (erinn.looneytriggs@gmail.com)
+- Fix redhat import whitelist for Fedora 17 (jimi@sngx.net)
+- Fix unittest on the case of haven't virt-install libs. (daikame@gmail.com)
+- os_version for debian should be similar to ubunty for virt-install to work
+  changed tree in app.py so that I can use debian mirror different from cobbler
+  server (flaks@bnl.gov)
+- fedora 17 changed the output of ifconfig command. This will make IFNAME set
+  in snippets again (flaks@bnl.gov)
+- remove edit for now (flaks@bnl.gov)
+- Fixed snippets for bonded_bridge_slave and a few other fixes for koan/web GUI
+  (jimi@sngx.net)
+- Initial support for bonded_bridge_slave type. TODO: modifying snippets to
+  actually make it work... (jimi@sngx.net)
+- The webui_sessions directory belongs only to cobbler-web
+  (chutzimir@gmail.com)
+- RPM: put cobbler*.conf files only in /etc/httpd/conf.d
+  (cristian.ciupitu@yahoo.com)
+- better fix for pull request #228 (jorgen.maas@gmail.com)
+- make rpms failed because the misc/ directory containing the augeas lense
+  could not be found. this simple diff fixes that. (jorgen.maas@gmail.com)
+- Ubuntu actually requires auto=true in kopts See
+  http://serverfault.com/a/144290/39018 (ekirpichov@gmail.com)
+- Whitespace cleanup for the new openvz stuff (jimi@sngx.net)
+- Remove dead code (useless imports) (cristian.ciupitu@yahoo.com)
+- BUGFIX extra-args option problems (daikame@gmail.com)
+- FIX koan virt-install tests. (daikame@gmail.com)
+- added debian support to prevent net boot looping (flaks@bnl.gov)
+- README.openvz: - added (nvrhood@gmail.com)
+- scripts/ovz-install: - added support for "services" kickstart option -
+  corrected repos and installation source processing (nvrhood@gmail.com)
+- cobbler.spec, setup.py: - added scripts/ovz-install (nvrhood@gmail.com)
+- koan/openvzcreate.py, scripts/ovz-install: - changes in copyright notice
+  (nvrhood@gmail.com)
+- koan/app.py: - bug in koan: size of freespace on VG expressed as float with
+  comma, but need fload with point (nvrhood@gmail.com)
+- koan/app.py: - added type "openvz" (nvrhood@gmail.com)
+- cobbler/collection.py: - openvz containers doesn't need to boot from PXE, so
+  we prevent PXE-menu creation for such profiles. (nvrhood@gmail.com)
+- cobbler/item_profile.py, cobbler/utils.py: - added "openvz" virtualization
+  type (nvrhood@gmail.com)
+- cobbler/item_system.py: - added openvz for virt_type (nvrhood@gmail.com)
+- [BUGFIX] template errors can hit an exception path that references an
+  undefined variable (jimi@sngx.net)
+- If the call to int() fails, inum has no value, thus the reference to inum in
+  the except clause causes an UnboundLocalError when it tries to reference
+  inum. (joshua@azariah.com)
+- Add new ubuntu (alpha) version to codes.py (jorgen.maas@gmail.com)
+- Not all remove current ifcfg- post_install_network_config (me@n0ts.org)
+- Update systemctl script to resolve some issues (jimi@sngx.net)
+- More spec fixes (jimi@sngx.net)
+- Removing replicate_use_default_rsync_options setting and setting
+  replicate_rsync_options to existing rsync default.  Issue #58
+  (john@julienfamily.com)
+- Commit for RFE: Expose rsync options during replication.  Issue #58
+  (john@julienfamily.com)
+- Yet more HTML/CSS fixes, cleaning up some overly large inputs caused by other
+  CSS changes (jimi@sngx.net)
+- More HTML/CSS improvements for new weblayout (jimi@sngx.net)
+- CSS improvements for the tabbed layout (jimi@sngx.net)
+- Fix for settings edit using the new tab format (jimi@sngx.net)
+- Added a cancel button to replace the reset button (jimi@sngx.net)
+- Fix saving of multiselect fields (jimi@sngx.net)
+- Modification to generic_edit template to use tabs for categories plus some
+  miscellaneous cleanup (jimi@sngx.net)
+- Adding an example line for redhat imports to the whitelist file
+  (jimi@sngx.net)
+- Another minor fix for suse imports - fixing up name when using --available-as
+  (already done in other import modules) - allowing multiple arch imports (also
+  already done in other imports) (jimi@sngx.net)
+- Some fixups for suse using --available-as (jimi@sngx.net)
+- Fix for import when using --available-as - currently rsyncs full remote tree,
+  changing that to only import files in a white list - some modifications to
+  import modules to clean some things up and make available-as work better -
+  fix in utils.py for path_tail, which was not working right and appending the
+  full path (jimi@sngx.net)
+- Run the same sed command on the default distributed config file to ensure
+  consistent indentation (jimi@sngx.net)
+- Add setting to enable/disable dynamic settings changes Adding
+  cobblersettings.aug to distributed files, since we need a copy that doesn't
+  insert tabs Added a "cobbler check" that checks if dynamic settings is
+  enabled and prints a sed command to cleanup the settings file spacing/indents
+  (jimi@sngx.net)
+- Change cli command "settings" to "setting" to match other commands (which are
+  not plurarlized) (jimi@sngx.net)
+- Removing commented-out try/except block in config.py, didn't mean to commit
+  this (jimi@sngx.net)
+- Fixed/improved CLI reporting for settings (jimi@sngx.net)
+- Added support for validating setting type when saving Also fixed up the
+  augeas stuff to save lists and hashes correctly (jimi@sngx.net)
+- Fix for incorrect redirect when login times out when looking at a setting
+  edit (jimi@sngx.net)
+- Dynamic settings edit support for the web GUI (jimi@sngx.net)
+- Added ability to write settings file via augeas (jimi@sngx.net)
+- Initial support for modifying settings live Changed settings do not survive a
+  reboot and revert to what's in /etc/cobbler/settings TODO:  * report --name
+  show a single setting  * validate settings based on type (string, list, bool,
+  etc.)  * web support for editing  * persisting settings after change
+  (jimi@sngx.net)
+- Branch for 2.4.0, updated spec and setup.py (jimi@sngx.net)
+
 * Sun Jun 17 2012 James Cammarata <jimi@sngx.net> 2.2.3-2
 - [BUGFIX] re-enable writing of DHCP entries for non-pxeboot-enabled systems
   unless they're static (jimi@sngx.net)
