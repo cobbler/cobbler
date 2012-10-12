@@ -141,7 +141,9 @@ def build_commandline(uri,
     disable_boot_opt = False
     disable_driver_type = False
     disable_net_model = False
+    disable_machine_type = False
     oldstyle_macs = False
+    oldstyle_accelerate = False
 
     if not virtinst_version:
         print ("- warning: old python-virtinst detected, a lot of features will be disabled")
@@ -150,7 +152,9 @@ def build_commandline(uri,
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
+        disable_machine_type = True
         oldstyle_macs = True
+        oldstyle_accelerate = True
 
     is_import = uri.startswith("import")
     if is_import:
@@ -271,12 +275,14 @@ def build_commandline(uri,
         if not disable_virt_type:
             cmd += "--virt-type %s " % virt_type
 
-    if is_qemu and machine_type:
+    if is_qemu and machine_type and not disable_machine_type:
         cmd += "--machine %s " % machine_type
 
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:
             cmd += "--hvm "
+        elif oldstyle_accelerate:
+            cmd += "--accelerate "
 
         if is_qemu and extra:
             cmd += ("--extra-args=\"%s\" " % (extra))
