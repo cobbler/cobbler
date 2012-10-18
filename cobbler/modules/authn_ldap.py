@@ -59,11 +59,23 @@ def authenticate(api_handle,username,password):
     anon_bind = api_handle.settings().ldap_anonymous_bind
     prefix    = api_handle.settings().ldap_search_prefix
 
+    # Support for LDAP client certificates
+    tls_cacertfile = api_handle.settings().ldap_tls_cacertfile
+    tls_keyfile = api_handle.settings().ldap_tls_keyfile
+    tls_certfile = api_handle.settings().ldap_tls_certfile
+
     # allow multiple servers split by a space
     if server.find(" "):
         servers = server.split()
     else:
         servers = [server]
+
+    if tls_cacertfile:
+      ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
+    if tls_keyfile:
+      ldap.set_option(ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+    if tls_certfile:
+      ldap.set_option(ldap.OPT_X_TLS_CERTFILE, tls_certfile)
 
     uri = ""
     for server in servers:
@@ -74,7 +86,7 @@ def authenticate(api_handle,username,password):
             uri += 'ldaps://' + server
         else:
             uri += 'ldap://' + "%s:%s" % (server,port)
-	uri += ' '
+        uri += ' '
 
     uri = uri.strip()
 
