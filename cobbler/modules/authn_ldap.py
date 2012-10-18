@@ -86,7 +86,7 @@ def authenticate(api_handle,username,password):
             uri += 'ldaps://' + server
         else:
             uri += 'ldap://' + "%s:%s" % (server,port)
-	uri += ' '
+        uri += ' '
 
     uri = uri.strip()
 
