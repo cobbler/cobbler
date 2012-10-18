@@ -92,13 +92,13 @@ class InTftpdManager:
                                 shutil.copyfile(f, filedst)
                         self.config.api.log("copied file %s to %s for %s" % (
                                 target["boot_files"][file],
-                                file_dst,
+                                filedst,
                                 distro.name))
 
             except:
                 self.logger.error("failed to copy file %s to %s for %s" % (
                         target["boot_files"][file],
-                        file_dst,
+                        filedst,
                     distro.name))
                 # Continue on to sync what you can
 
