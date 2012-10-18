@@ -22,6 +22,7 @@ import re
 import clogger
 import pxegen
 import shutil
+import glob
 
 import utils
 from cexceptions import *
@@ -84,11 +85,16 @@ class InTftpdManager:
         for file in target["boot_files"].keys():
             file_dst = templater.render(file,metadata,None)
             try:
-                shutil.copyfile(target["boot_files"][file], file_dst)
-                self.config.api.log("copied file %s to %s for %s" % (
-                        target["boot_files"][file],
-                        file_dst,
-                        distro.name))
+                for f in glob.glob(target["boot_files"][file]):
+                        rawpath,rawfile=os.path.split(f)
+                        filedst = file_dst+rawfile
+                        if not os.path.isfile(filedst) :
+                                shutil.copyfile(f, filedst)
+                        self.config.api.log("copied file %s to %s for %s" % (
+                                target["boot_files"][file],
+                                file_dst,
+                                distro.name))
+
             except:
                 self.logger.error("failed to copy file %s to %s for %s" % (
                         target["boot_files"][file],
