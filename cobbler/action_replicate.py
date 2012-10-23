@@ -173,7 +173,7 @@ class Replicate:
                             if not os.path.isdir(parentdir):
                                 os.makedirs(parentdir)
                             self.rsync_it("distro-%s"%distro["name"], dest)
-                    elif distro["breed"] == 'vmware' and distro["os_version"] == 'esxi4':
+                    elif distro["breed"] == 'vmware' and distro["os_version"] in ('esxi4', 'esxi5'):
                         dest = distro["kernel"]
                         parentdir = os.path.split(dest)[0]
                         if not os.path.isdir(parentdir):
