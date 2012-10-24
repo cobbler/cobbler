@@ -30,6 +30,11 @@ from utils import _, log_exc
 from cexceptions import *
 import ConfigParser
 
+# python 2.3 compat.  If we don't need that, drop this test
+try:
+    set()
+except:
+    from sets import Set as set
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
@@ -49,7 +54,7 @@ def load_modules(module_path=mod_path, blacklist=None):
     filenames = filenames + glob.glob("%s/*.pyc" % module_path)
     filenames = filenames + glob.glob("%s/*.pyo" % module_path)
 
-    mods = {}
+    mods = set()
 
 
     for fn in filenames:
@@ -61,6 +66,11 @@ def load_modules(module_path=mod_path, blacklist=None):
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
+        # No need to try importing the same module over and over if
+        # we have a .py, .pyc, and .pyo
+        if modname in mods:
+            continue
+        mods.add(modname)
 
         try:
             blip =  __import__("modules.%s" % ( modname), globals(), locals(), [modname])
