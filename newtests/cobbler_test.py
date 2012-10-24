@@ -26,11 +26,13 @@ class CobblerXMLRPCTest(unittest.TestCase):
       """
       Sets up Cobbler API connection and logs in
       """
-      self.server = TestXMLRPCThread()
-      self.server.start()
 
-      self.remote = xmlrpclib.Server("http://127.0.0.1:55555")
-      self.token  = self.remote.login("testing", "testing")
+      self.url_api = utils.local_get_cobbler_api_url()
+      self.url_xmlrpc = utils.local_get_cobbler_xmlrpc_url()
+      self.remote = xmlrpclib.Server(self.url_api)
+      self.shared_secret = utils.get_shared_secret()
+
+      self.token  = self.remote.login("", self.shared_secret)
       if not self.token:
          self.server.stop()
          sys.exit(1)
@@ -62,8 +64,6 @@ class CobblerXMLRPCTest(unittest.TestCase):
       """
       Cleanup here
       """
-      self.server.stop()
-      time.sleep(0.5)
       return
 
 class Test_A_Create(CobblerXMLRPCTest):
