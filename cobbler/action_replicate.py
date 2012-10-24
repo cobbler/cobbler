@@ -30,7 +30,6 @@ from utils import _
 from cexceptions import *
 import clogger
 import fnmatch
-import codes
 
 OBJ_TYPES = [ "distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file" ]
 
@@ -174,7 +173,7 @@ class Replicate:
                             if not os.path.isdir(parentdir):
                                 os.makedirs(parentdir)
                             self.rsync_it("distro-%s"%distro["name"], dest)
-                    elif distro["breed"] == 'vmware' and distro["os_version"] in codes.VALID_OS_VERSIONS["vmware"]:
+                    elif distro["breed"] == 'vmware' and distro["os_version"] in ('esxi4', 'esxi5'):
                         dest = distro["kernel"]
                         parentdir = os.path.split(dest)[0]
                         if not os.path.isdir(parentdir):
