@@ -25,9 +25,11 @@ import distutils.sysconfig
 import os
 import sys
 import glob
-from utils import _
+import clogger
+from utils import _, log_exc
 from cexceptions import *
 import ConfigParser
+
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
@@ -41,6 +43,8 @@ sys.path.insert(0, mod_path)
 sys.path.insert(1, "%s/cobbler" % plib)
 
 def load_modules(module_path=mod_path, blacklist=None):
+    logger = clogger.Logger()
+
     filenames = glob.glob("%s/*.py" % module_path)
     filenames = filenames + glob.glob("%s/*.pyc" % module_path)
     filenames = filenames + glob.glob("%s/*.pyo" % module_path)
@@ -71,9 +75,9 @@ def load_modules(module_path=mod_path, blacklist=None):
             if not MODULES_BY_CATEGORY.has_key(category):
                 MODULES_BY_CATEGORY[category] = {}
             MODULES_BY_CATEGORY[category][modname] = blip
-        except ImportError, e:
-            print e
-            raise
+        except Exception, e:
+            logger.info('Exception raised when loading module %s' % modname)
+            log_exc(logger)
 
     return (MODULE_CACHE, MODULES_BY_CATEGORY)
 
