@@ -1504,6 +1504,24 @@ def set_virt_auto_boot(self,num):
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
+def set_virt_pxe_boot(self,num):
+    """
+    For Virt only.
+    Specifies whether the VM should use PXE for booting
+    0 tells Koan not to PXE boot virtuals
+    """
+
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if (inum == 0) or (inum == 1):
+            self.virt_pxe_boot = inum
+            return True
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+    except:
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+    return True
+
 def set_virt_ram(self,num):
     """
     For Virt only.

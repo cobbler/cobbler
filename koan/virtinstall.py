@@ -34,8 +34,8 @@ import app as koan
 import utils
 
 try:
-    from virtinst import version as vi_version
-    virtinst_version = vi_version.__version__.split('.')
+    import virtinst
+    virtinst_version = virtinst.__version__.split('.')
 except:
     virtinst_version = None
 
@@ -127,6 +127,7 @@ def build_commandline(uri,
                       bridge=None,
                       virt_type=None,
                       virt_auto_boot=False,
+                      virt_pxe_boot=False,
                       qemu_driver_type=None,
                       qemu_net_type=None,
                       qemu_machine_type=None):
@@ -290,12 +291,11 @@ def build_commandline(uri,
         elif oldstyle_accelerate:
             cmd += "--accelerate "
 
-        if is_qemu and extra:
+        if is_qemu and extra and not virt_pxe_boot:
             cmd += ("--extra-args=\"%s\" " % (extra))
 
-        if is_xen:
+        if virt_pxe_boot or is_xen:
             cmd += "--pxe "
-
         elif cdrom:
             cmd += "--cdrom %s " % cdrom
         elif location:
