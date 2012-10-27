@@ -1056,32 +1056,30 @@ def os_release():
       return ("unknown",0)
 
 def tftpboot_location():
-
-    # if possible, read from TFTP config file to get the location
-    if os.path.exists("/etc/xinetd.d/tftp"):
-        fd = open("/etc/xinetd.d/tftp")
-        lines = fd.read().split("\n")
-        for line in lines:
-           if line.find("server_args") != -1:
-              tokens = line.split(None)
-              mark = False
-              for t in tokens:
-                 if t == "-s":    
-                    mark = True
-                 elif mark:
-                    return t
-
-    # otherwise, guess based on the distro
+    """
+    Guesses the location of the tftpboot directory,
+    based on the distro on which cobblerd is running
+    """
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
         return "/var/lib/tftpboot"
     elif make =="redhat" and version >= 6:
         return "/var/lib/tftpboot"
-    elif make == "debian" or make == "ubuntu":
-        return "/var/lib/tftpboot"
-    if make == "suse":
+    elif make == "suse":
         return "/srv/tftpboot"
-    return "/tftpboot"
+    # As of Ubuntu 12.04, while they seem to have settled on sticking with 
+    # /var/lib/tftpboot, they haven't scrubbed all of the packages that came 
+    # from Debian that use /srv/tftp by default.
+    elif make == "ubuntu" and os.path.exists("/var/lib/tftpboot"):
+        return "/var/lib/tftpboot"
+    elif make == "ubuntu" and os.path.exists("/srv/tftp"):
+        return "/srv/tftp"
+    elif make == "debian" and int(version.split('.')[0]) < 6:
+        return "/var/lib/tftpboot"
+    elif make == "debian" and int(version.split('.')[0]) >= 6:
+        return "/srv/tftp"
+    else:
+        return "/tftpboot"
 
 def can_do_public_content(api):
     """
@@ -1492,6 +1490,24 @@ def set_virt_auto_boot(self,num):
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+    return True
+
+def set_virt_pxe_boot(self,num):
+    """
+    For Virt only.
+    Specifies whether the VM should use PXE for booting
+    0 tells Koan not to PXE boot virtuals
+    """
+
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if (inum == 0) or (inum == 1):
+            self.virt_pxe_boot = inum
+            return True
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+    except:
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
 def set_virt_ram(self,num):
@@ -2094,10 +2110,16 @@ def local_get_cobbler_api_url():
        traceback.print_exc()
        raise CX("/etc/cobbler/settings is not a valid YAML file")
 
+    ip = data.get("server","127.0.0.1")
     if data.get("client_use_localhost", False):
-      return "http://%s:%s/cobbler_api" % ("127.0.0.1",data.get("http_port","80"))
-    else:
-      return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+        # this overrides the server setting 
+        ip = "127.0.0.1"
+    port = data.get("http_port","80")
+    protocol = "http"
+    if data.get("client_use_https", False):
+        protocol = "https"
+
+    return "%s://%s:%s/cobbler_api" % (protocol,ip,port)
 
 def get_ldap_template(ldaptype=None):
     """
@@ -2191,8 +2213,46 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     elif dist == "suse":
         return "/etc/dhcpd.conf"
+    elif dist == "debian" and int(version[1].split('.')[0]) < 6:
+        return "/etc/dhcp3/dhcpd.conf"
+    elif dist == "ubuntu" and version[1] < 11.10:
+        return "/etc/dhcp3/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"
+
+def namedconf_location(api):
+    (dist, ver) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "/etc/bind/named.conf"
+    else:
+        return "/etc/named.conf"
+
+def zonefile_base(api):
+    (dist, version) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "/etc/bind/db."
+    else:
+        return "/var/named/"
+
+def dhcp_service_name(api):
+    (dist, version) = api.os_version
+    if dist == "debian" and int(version.split('.')[0]) < 6:
+        return "dhcp3-server"
+    elif dist == "debian" and int(version.split('.')[0]) >= 6:
+        return "isc-dhcp-server"
+    elif dist == "ubuntu" and version < 11.10:
+        return "dhcp3-server"
+    elif dist == "ubuntu" and version >= 11.10:
+        return "isc-dhcp-server"
+    else:
+        return "dhcpd"
+
+def named_service_name(api):
+    (dist, ver) = api.os_version
+    if dist == "debian" or dist == "ubuntu":
+        return "bind9"
+    else:
+        return "named"
 
 def link_distro(settings, distro):
     # find the tree location

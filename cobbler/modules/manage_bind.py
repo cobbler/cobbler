@@ -57,15 +57,17 @@ class BindManager:
         """
         Constructor
         """
-        self.logger      = logger
-        self.config      = config
-        self.api         = config.api
-        self.distros     = config.distros()
-        self.profiles    = config.profiles()
-        self.systems     = config.systems()
-        self.settings    = config.settings()
-        self.repos       = config.repos()
-        self.templar     = templar.Templar(config)
+        self.logger        = logger
+        self.config        = config
+        self.api           = config.api
+        self.distros       = config.distros()
+        self.profiles      = config.profiles()
+        self.systems       = config.systems()
+        self.settings      = config.settings()
+        self.repos         = config.repos()
+        self.templar       = templar.Templar(config)
+        self.settings_file = utils.namedconf_location(self.api)
+        self.zonefile_base = utils.zonefile_base(self.api)
 
     def regen_hosts(self):
         pass # not used
@@ -176,7 +178,7 @@ class BindManager:
         """
         Write out the named.conf main config file from the template.
         """
-        settings_file = self.settings.bind_chroot_path + '/etc/named.conf'
+        settings_file = self.settings.bind_chroot_path + self.settings_file
         template_file = "/etc/cobbler/named.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
@@ -311,7 +313,27 @@ zone "%(arpa)s." {
         """
         default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
-        serial = int(time.time())
+        #this could be a config option too
+        serial_filename="/var/lib/cobbler/bind_serial"
+        #need a counter for new bind format
+        serial = time.strftime("%Y%m%d00")
+        try:
+           serialfd = open(serial_filename,"r")
+           old_serial = serialfd.readline()
+           #same date
+           if serial[0:8] == old_serial[0:8]:
+              if int(old_serial[8:10]) < 99 :
+                 serial= "%s%.2i" % (serial[0:8],int(old_serial[8:10]) +1)
+           else:
+              pass
+           serialfd.close()
+        except:
+           pass
+
+        serialfd = open(serial_filename,"w")
+        serialfd.write(serial)
+        serialfd.close()
+
         forward = self.__forward_zones()
         reverse = self.__reverse_zones()
 
@@ -323,7 +345,7 @@ zone "%(arpa)s." {
         default_template_data = f2.read()
         f2.close()
 
-        zonefileprefix = self.settings.bind_chroot_path + '/var/named/'
+        zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
         for (zone, hosts) in forward.iteritems():
             metadata = {

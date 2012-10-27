@@ -25,9 +25,16 @@ import distutils.sysconfig
 import os
 import sys
 import glob
-from utils import _
+import clogger
+from utils import _, log_exc
 from cexceptions import *
 import ConfigParser
+
+# python 2.3 compat.  If we don't need that, drop this test
+try:
+    set()
+except:
+    from sets import Set as set
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
@@ -41,11 +48,13 @@ sys.path.insert(0, mod_path)
 sys.path.insert(1, "%s/cobbler" % plib)
 
 def load_modules(module_path=mod_path, blacklist=None):
+    logger = clogger.Logger()
+
     filenames = glob.glob("%s/*.py" % module_path)
     filenames = filenames + glob.glob("%s/*.pyc" % module_path)
     filenames = filenames + glob.glob("%s/*.pyo" % module_path)
 
-    mods = {}
+    mods = set()
 
 
     for fn in filenames:
@@ -57,6 +66,11 @@ def load_modules(module_path=mod_path, blacklist=None):
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
+        # No need to try importing the same module over and over if
+        # we have a .py, .pyc, and .pyo
+        if modname in mods:
+            continue
+        mods.add(modname)
 
         try:
             blip =  __import__("modules.%s" % ( modname), globals(), locals(), [modname])
@@ -71,9 +85,9 @@ def load_modules(module_path=mod_path, blacklist=None):
             if not MODULES_BY_CATEGORY.has_key(category):
                 MODULES_BY_CATEGORY[category] = {}
             MODULES_BY_CATEGORY[category][modname] = blip
-        except ImportError, e:
-            print e
-            raise
+        except Exception, e:
+            logger.info('Exception raised when loading module %s' % modname)
+            log_exc(logger)
 
     return (MODULE_CACHE, MODULES_BY_CATEGORY)
 
@@ -102,5 +116,5 @@ def get_modules_in_category(category):
     return MODULES_BY_CATEGORY[category].values()
 
 if __name__ == "__main__":
-    print load_modules(module_path)
+    print load_modules(mod_path)
 

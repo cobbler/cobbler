@@ -52,6 +52,7 @@ FIELDS = [
   ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
   ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0,"int"],
   ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
+  ["virt_pxe_boot",0,0,"Virt PXE Boot",True,"Use PXE to build this VM?",0,"bool"],
   ["ctime",0,0,"",False,"",0,"float"],
   ["mtime",0,0,"",False,"",0,"float"],
   ["power_type","SETTINGS:power_management_default_type",0,"Power Management Type",True,"Power management script to use",utils.get_power_types(),"str"],
@@ -552,6 +553,9 @@ class System(item.Item):
  
     def set_virt_auto_boot(self,num):
         return utils.set_virt_auto_boot(self,num)
+
+    def set_virt_pxe_boot(self,num):
+        return utils.set_virt_pxe_boot(self,num)
 
     def set_virt_ram(self,num):
         return utils.set_virt_ram(self,num)
