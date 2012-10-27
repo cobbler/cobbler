@@ -1055,22 +1055,10 @@ def os_release():
       return ("unknown",0)
 
 def tftpboot_location():
-
-    # if possible, read from TFTP config file to get the location
-    if os.path.exists("/etc/xinetd.d/tftp"):
-        fd = open("/etc/xinetd.d/tftp")
-        lines = fd.read().split("\n")
-        for line in lines:
-           if line.find("server_args") != -1:
-              tokens = line.split(None)
-              mark = False
-              for t in tokens:
-                 if t == "-s":    
-                    mark = True
-                 elif mark:
-                    return t
-
-    # otherwise, guess based on the distro
+    """
+    Guesses the location of the tftpboot directory,
+    based on the distro on which cobblerd is running
+    """
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
         return "/var/lib/tftpboot"
