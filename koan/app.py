@@ -84,6 +84,7 @@ DISPLAY_PARAMS = [
    "virt_type",
    "virt_path",
    "virt_auto_boot",
+   "virt_pxe_boot",
 ]
 
 
@@ -183,6 +184,10 @@ def main():
                  action="store_true", 
                  dest="virt_auto_boot",
                  help="set VM for autoboot")
+    p.add_option("", "--virt-pxe-boot",
+                 action="store_true",
+                 dest="virt_pxe_boot",
+                 help="PXE boot for installation override")
     p.add_option("", "--add-reinstall-entry",
                  dest="add_reinstall_entry",
                  action="store_true",
@@ -243,6 +248,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
+        k.virt_pxe_boot       = options.virt_pxe_boot
         k.qemu_disk_type      = options.qemu_disk_type
         k.qemu_net_type       = options.qemu_net_type
         k.qemu_machine_type   = options.qemu_machine_type
@@ -306,6 +312,7 @@ class Koan:
         self.qemu_net_type     = None
         self.qemu_machine_type = None
         self.virt_auto_boot    = None
+        self.virt_pxe_boot     = None
 
         # This option adds the --copy-default argument to /sbin/grubby
         # which uses the default boot entry in the grub.conf
@@ -726,6 +733,7 @@ class Koan:
             tree_re = re.compile ('(http|ftp|nfs):')
             # Next check for installation tree on remote server
             if tree_re.match(tree):
+                tree = tree.replace("@@http_server@@", profile_data["http_server"])
                 profile_data["install_tree"] = tree
             else:
             # Now take the first parameter as the local path
@@ -1376,6 +1384,7 @@ class Koan:
         else:
             disks           = self.merge_disk_data(path_list,size_list,driver_list)
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
+        virt_pxe_boot       = self.calc_virt_pxeboot(pd, self.virt_pxe_boot)
 
         results = create_func(
                 name              =  virtname,
@@ -1391,6 +1400,7 @@ class Koan:
                 bridge            =  self.virt_bridge,
                 virt_type         =  self.virt_type,
                 virt_auto_boot    =  virt_auto_boot,
+                virt_pxe_boot     =  virt_pxe_boot,
                 qemu_driver_type  =  self.qemu_disk_type,
                 qemu_net_type     =  self.qemu_net_type,
                 qemu_machine_type =  self.qemu_machine_type
@@ -1541,6 +1551,20 @@ class Koan:
         autoboot = str(autoboot).lower()
 
         if autoboot in [ "1", "true", "y", "yes" ]:
+           return True
+
+        return False
+
+    #--------------------------------------------------
+
+    def calc_virt_pxeboot(self,data,override_pxeboot=False):
+        if override_pxeboot:
+           return True
+
+        pxeboot = self.safe_load(data,'virt_pxe_boot',0)
+        pxeboot = str(pxeboot).lower()
+
+        if pxeboot in [ "1", "true", "y", "yes" ]:
            return True
 
         return False
