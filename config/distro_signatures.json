@@ -148,6 +148,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "quantal": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: quantal",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "suse": {
