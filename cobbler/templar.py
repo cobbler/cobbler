@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import glob
+import pprint
 from cexceptions import *
 from template_api import Template
 from utils import *
@@ -197,7 +198,7 @@ class Templar:
         })
 
         # now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=raw_data, errorCatcher="Echo", searchList=[search_table], compilerSettings={'useStackFrame':False})
+        t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame':False})
 
         if fix_cheetah_class and functools is not None:
             t.SNIPPET = functools.partial(t.SNIPPET, t)
@@ -206,6 +207,9 @@ class Templar:
         try:
             data_out = t.respond()
             self.last_errors = t.errorCatcher().listErrors()
+            if self.last_errors:
+                self.logger.warning("errors were encountered rendering the template")
+                self.logger.warning("\n" + pprint.pformat(self.last_errors))
         except Exception, e:
             self.logger.error(utils.cheetah_exc(e))
             raise CX("Error templating file, check cobbler.log for more details")
