@@ -86,12 +86,9 @@
                 #set $netinfo = "%s --hostname=%s" % ($netinfo, $hostname)
             #end if
 # Configuring $iname ($mac)
-if ifconfig -a | grep -i $mac
+if ip link | grep -i $mac
 then
-  IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d " " -f 1)
-  if [ -z \$IFNAME ]; then
-    IFNAME=\$(ifconfig -a | grep -i -B 2 '$mac' | sed -n '/flags/s/:.*$//p')
-  fi
+  IFNAME=\$(ip -o link | grep -i '$mac' | sed -e 's/^[0-9]*: //' -e 's/:.*//')
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
             #for $route in $static_routes
                 #if $routepattern.match($route)
