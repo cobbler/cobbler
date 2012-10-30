@@ -142,10 +142,7 @@ echo "ONBOOT=yes" >> $devfile
             #if $mac != "" and $iface_type not in ("master","bond","bridge","bonded_bridge_slave")
             ## virtual interfaces don't get MACs
 echo "HWADDR=$mac" >> $devfile
-IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d ' ' -f 1)
-if [ -z \$IFNAME ]; then
-    IFNAME=\$(ifconfig -a | grep -i -B 2 '$mac' | sed -n '/flags/s/:.*$//p')
-fi
+IFNAME=\$(ip -o link | grep -i '$mac' | sed -e 's/^[0-9]*: //' -e 's/:.*//')
             ## Rename this interface in modprobe.conf
             ## FIXME: if both interfaces startwith eth this is wrong
 if [ -f "/etc/modprobe.conf" ] && [ \$IFNAME ]; then
