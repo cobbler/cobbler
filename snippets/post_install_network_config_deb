@@ -1,0 +1,207 @@
+# Start post_install_network_config generated code \
+#if $getVar("system_name","") != ""
+    ## this is being provisioned by system records, not profile records
+    ## so we can do the more complex stuff
+    ## get the list of interface names
+    #set ikeys = $interfaces.keys()
+    #set osversion = $getVar("os_version","")
+    #import re
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.:][0-9]+")
+    ## Determine if we should use the MAC address to configure the interfaces first
+    ## Only physical interfaces are required to have a MAC address
+    ## Also determine the number of bonding devices we have, so we can set the
+    ## max-bonds option in modprobe.conf accordingly. -- jcapel
+    #set $configbymac = True
+    #set $bridge_slaves = {}
+    #set $numbondingdevs = 0
+    #set $enableipv6 = False
+    ## =============================================================================
+    #for $iname in $ikeys
+        ## look at the interface hash data for the specific interface
+        #set $idata = $interfaces[$iname]
+        ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
+        ## as opposed to a "real" physical interface
+        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("master","bond","bridge"):
+                ## we have to globally turn off the config by mac feature as we can't
+                ## use it now
+                #set $configbymac = False
+        #end if
+        ## count the number of bonding devices we have.
+        #if $idata.get("interface_type", "").lower() in ("master","bond","bonded_bridge_slave")
+            #set $numbondingdevs += 1
+        #end if
+        ## build a mapping of bridge slaves, since deb/ubuntu bridge slaves do not
+        ## get interface entries of their own
+        #if $idata.get("interface_type","").lower() == "bridge_slave"
+            #set $this_master = $idata.get("interface_master", None)
+            #if $this_master and not $bridge_slaves.has_key($this_master)
+               #set $bridge_slaves[$this_master] = []
+            #end if
+            <% bridge_slaves[this_master].append(iname) %>
+        #end if
+        ## enable IPv6 networking if we set an ipv6 address or turn on autoconfiguration
+        #if $idata.get("ipv6_address", "") != "" or $ipv6_autoconfiguration == True
+            #set $enableipv6 = True
+        #end if
+    #end for
+    ## end looping through the interfaces to see which ones we need to configure.
+    ## =============================================================================
+    ## Rewrite the interfaces file and make sure we preserve the loopback device
+rm -f /etc/network/interfaces \
+touch /etc/network/interfaces \
+echo "auto lo" >> /etc/network/interfaces \
+echo "iface lo inet loopback" >> /etc/network/interfaces \
+echo "" >> /etc/network/interfaces \
+    ## =============================================================================
+    ## now create the config file for each interface
+    #for $iname in $ikeys
+        ## create lots of variables to use later
+        #set $idata                = $interfaces[$iname]
+        #set $mac                  = $idata.get("mac_address", "").upper()
+        #set $mtu                  = $idata.get("mtu", "")
+        #set $static               = $idata.get("static", "")
+        #set $ip                   = $idata.get("ip_address", "")
+        #set $netmask              = $idata.get("netmask", "")
+        #set $static_routes        = $idata.get("static_routes", "")
+        #set $iface_type           = $idata.get("interface_type", "").lower()
+        #set $iface_master         = $idata.get("interface_master", "")
+        #set $bonding_opts         = $idata.get("bonding_opts", "")
+        #set $bridge_opts          = $idata.get("bridge_opts", "").split(" ")
+        #set $ipv6_address         = $idata.get("ipv6_address", "")
+        #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
+        #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
+        #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+        #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+        #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
+        #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
+        #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
+        ## determine if this interface is for a VLAN
+        #if $vlanpattern.match($iname)
+            #set $is_vlan = "true"
+        #else
+            #set $is_vlan = "false"
+        #end if
+        ## slave interfaces are assumed to be static
+        #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+            #set $static = 1
+        #end if 
+        ## ===================================================================
+        ## Things every interface get, no matter what
+        ## ===================================================================
+echo "auto $iname" >> /etc/network/interfaces \
+        ## ===================================================================
+        ## Actions based on interface_type
+        ## ===================================================================
+        #if $iface_type in ("master","bond","bonded_bridge_slave")
+          #pass
+        #elif $iface_type in ("slave","bond_slave") and $iface_master != ""
+          #pass
+        #elif $iface_type == "bridge"
+          #set $slave_ports = " ".join($bridge_slaves.get($iname,[]))
+          #if $slave_ports != ""
+echo "  bridge_ports $slave_ports" >> /etc/network/interfaces \
+          #end if
+          #for $bridge_opt in $bridge_opts
+            #if $bridge_opt.strip() != ""
+echo "  $bridge_opt" >> /etc/network/interfaces \
+            #end if
+          #end for
+        #end if
+        ## ===================================================================
+        ## Actions based on static configuration
+        ## ===================================================================
+        #if $static
+            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+echo "iface $iname inet static" >> /etc/network/interfaces \
+echo "   address $ip" >> /etc/network/interfaces \
+                #if $netmask != ""
+echo "   netmask $netmask" >> /etc/network/interfaces \
+                #end if
+            #else
+echo "iface $iname inet manual" >> /etc/network/interfaces \
+            #end if
+            #if $enableipv6 == True and $ipv6_autoconfiguration == False
+                #if $ipv6_address != ""
+                  #pass
+                #end if
+                #if $ipv6_secondaries != ""
+                    #set ipv6_secondaries = ' '.join(ipv6_secondaries)
+                #end if
+                #if $ipv6_mtu != ""
+                  #pass
+                #end if
+                #if $ipv6_default_gateway != ""
+                  #pass
+                #end if
+            #end if
+        #else
+echo "iface $iname inet dhcp" >> /etc/network/interfaces \
+        #end if
+        ## ===================================================================
+        ## VLAN configuration
+        ## ===================================================================
+        #if $is_vlan == "true"
+          #pass
+        #end if
+        ## ===================================================================
+        ## Optional configuration stuff
+        ## ===================================================================
+        #if $mtu != ""
+          #pass
+        #end if
+        ## ===================================================================
+        ## Interface route configuration
+        ## ===================================================================
+        #for $route in $static_routes
+            #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
+            #if $routepattern.match($route)
+                #set $routebits = $route.split(":")
+                #set [$network, $router] = $route.split(":")
+            #else
+              #pass
+            #end if
+        #end for
+        #if $enableipv6 == True
+            #for $route in $ipv6_static_routes
+                #set routepattern = $re.compile("[0-9a-fA-F:/]+,[0-9a-fA-F:]+")
+                #if $routepattern.match($route)
+                    #set $routebits = $route.split(",")
+                    #set [$network, $router] = $route.split(",")
+                #else
+                    #pass
+                #end if
+            #end for
+        #end if
+        ## ===================================================================
+        ## Done with this interface
+        ## ===================================================================
+    #end for
+    ## =============================================================================
+    ## Configure the system's primary hostname. This is also passed to anaconda, but
+    ## anaconda doesn't seem to honour it in DHCP-setups.
+    #if $hostname != ""
+echo "$hostname" > /etc/hostname \
+/bin/hostname $hostname \
+    #end if
+    ## =============================================================================
+    ## Configure name server search path in /etc/resolv.conf
+    #set $num_ns = $len($name_servers)
+    #set $num_ns_search = $len($name_servers_search)
+    #if $num_ns_search > 0
+sed -i -e "/^search /d" /etc/resolv.conf \
+echo -n "search " >>/etc/resolv.conf \
+        #for $nameserversearch in $name_servers_search
+echo -n "$nameserversearch " >>/etc/resolv.conf \
+        #end for
+echo "" >>/etc/resolv.conf \
+    #end if
+    ## =============================================================================
+    ## Configure name servers in /etc/resolv.conf
+    #if $num_ns > 0
+sed -i -e "/^nameserver /d" /etc/resolv.conf \
+        #for $nameserver in $name_servers
+echo "nameserver $nameserver" >>/etc/resolv.conf \
+        #end for
+    #end if
+#end if
+# End post_install_network_config generated code \
