@@ -37,6 +37,14 @@ import item_repo
 import item_system
 import codes
 
+# Import aptsources module if available to obtain repo mirror.
+try:
+    from aptsources import distro
+    from aptsources import sourceslist
+    apt_available = True
+except:
+    apt_available = False
+
 from utils import _
 
 def register():
@@ -63,6 +71,8 @@ class ImportSignatureManager:
         self.templar       = templar.Templar(config)
 
         self.signature     = None
+        self.found_repos   = {}
+
 
     # required function for import modules
     def what(self):
@@ -133,6 +143,12 @@ class ImportSignatureManager:
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
             return False
+
+        # find out if we can auto-create any repository records from the install tree
+        if self.network_root is None:
+            self.logger.info("associating repos")
+            # FIXME: this automagic is not possible (yet) without mirroring
+            self.repo_finder(distros_added)
 
         return True
 
@@ -459,6 +475,227 @@ class ImportSignatureManager:
         Simple helper function to set the tree ksmeta
         """
         distro.ks_meta["tree"] = url
+
+# ==========================================================================
+# Repo Functions
+
+    def repo_finder(self, distros_added):
+        """
+        This routine looks through all distributions and tries to find
+        any applicable repositories in those distributions for post-install
+        usage.
+        """
+        for repo_breed in self.get_valid_repo_breeds():
+            self.logger.info("checking for %s repo(s)" % repo_breed)
+            repo_adder = None
+            if repo_breed == "yum":
+                repo_adder = self.yum_repo_adder
+            elif repo_breed == "rhn":
+                repo_adder = self.rhn_repo_adder
+            elif repo_breed == "rsync":
+                repo_adder = self.rsync_repo_adder
+            elif repo_breed == "apt":
+                repo_adder = self.apt_repo_adder
+            else:
+                self.logger.warning("skipping unknown/unsupported repo breed: %s" % repo_breed)
+                continue
+
+            for distro in distros_added:
+                if distro.kernel.find("ks_mirror") != -1:
+                    repo_adder(distro)
+                else:
+                    self.logger.info("skipping distro %s since it isn't mirrored locally" % distro.name)
+
+    # ==========================================================================
+    # yum-specific
+
+    def yum_repo_adder(self,distro):
+        """
+        For yum, we recursively scan the rootdir for repos to add
+        """
+        self.logger.info("starting descent into %s for %s" % (self.rootdir,distro.name))
+        os.path.walk(self.rootdir, self.yum_repo_scanner, distro)
+
+    def yum_repo_scanner(self,distro,dirname,fnames):
+        """
+        This is an os.path.walk routine that looks for potential yum repositories
+        to be added to the configuration for post-install usage.
+        """
+
+        matches = {}
+        for x in fnames:
+            if x == "base" or x == "repodata":
+                self.logger.info("processing repo at : %s" % dirname)
+                # only run the repo scanner on directories that contain a comps.xml
+                gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname,x))
+                if len(gloob1) >= 1:
+                    if matches.has_key(dirname):
+                        self.logger.info("looks like we've already scanned here: %s" % dirname)
+                        continue
+                    self.logger.info("need to process repo/comps: %s" % dirname)
+                    self.yum_process_comps_file(dirname, distro)
+                    matches[dirname] = 1
+                else:
+                    self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
+                    continue
+
+    def yum_process_comps_file(self,comps_path,distro):
+        """
+        When importing Fedora/EL certain parts of the install tree can also be used
+        as yum repos containing packages that might not yet be available via updates
+        in yum.  This code identifies those areas.
+        """
+
+        masterdir = "repodata"
+        if not os.path.exists(os.path.join(comps_path, "repodata")):
+            # older distros...
+            masterdir = "base"
+
+        # figure out what our comps file is ...
+        self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % { "p1" : comps_path, "p2" : masterdir })
+        files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
+        if len(files) == 0:
+            self.logger.info("no comps found here: %s" % os.path.join(comps_path, masterdir))
+            return # no comps xml file found
+
+        # pull the filename from the longer part
+        comps_file = files[0].split("/")[-1]
+
+        try:
+            # store the yum configs on the filesystem so we can use them later.
+            # and configure them in the kickstart post, etc
+
+            counter = len(distro.source_repos)
+
+            # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
+            seg = comps_path.rfind("ks_mirror")
+            urlseg = comps_path[seg+10:]
+
+            # write a yum config file that shows how to use the repo.
+            if counter == 0:
+                dotrepo = "%s.repo" % distro.name
+            else:
+                dotrepo = "%s-%s.repo" % (distro.name, counter)
+
+            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
+
+            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
+            repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
+
+            distro.source_repos.append([repo_url,repo_url2])
+
+            # NOTE: the following file is now a Cheetah template, so it can be remapped
+            # during sync, that's why we have the @@http_server@@ left as templating magic.
+            # repo_url2 is actually no longer used. (?)
+
+            config_file = open(fname, "w+")
+            config_file.write("[core-%s]\n" % counter)
+            config_file.write("name=core-%s\n" % counter)
+            config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
+            config_file.write("enabled=1\n")
+            config_file.write("gpgcheck=0\n")
+            config_file.write("priority=$yum_distro_priority\n")
+            config_file.close()
+
+            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
+            # they'll share same repo files.
+
+            if not self.found_repos.has_key(comps_path):
+                utils.remove_yum_olddata(comps_path)
+                cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags,os.path.join(comps_path, masterdir, comps_file), comps_path)
+                utils.subprocess_call(self.logger, cmd, shell=True)
+                self.found_repos[comps_path] = 1
+                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
+                p1 = os.path.join(comps_path, "repodata", "comps.xml")
+                p2 = os.path.join(comps_path, "base", "comps.xml")
+                if os.path.exists(p1) and os.path.exists(p2):
+                    shutil.copyfile(p1,p2)
+
+        except:
+            self.logger.error("error launching createrepo (not installed?), ignoring")
+            utils.log_exc(self.logger)
+
+    # ==========================================================================
+    # apt-specific
+
+    def apt_repo_adder(self,distro):
+        self.logger.info("adding apt repo for %s" % distro.name)
+        # Obtain repo mirror from APT if available
+        mirror = False
+        if apt_available:
+            # Example returned URL: http://us.archive.ubuntu.com/ubuntu
+            mirror = self.get_repo_mirror_from_apt()
+            if mirror:
+                mirror = mirror + "/dists"
+        if not mirror:
+            mirror = "http://archive.ubuntu.com/ubuntu/dists/"
+
+        repo = item_repo.Repo(self.config)
+        repo.set_breed( "apt" )
+        repo.set_arch( distro.arch )
+        repo.set_keep_updated( False )
+        repo.yumopts["--ignore-release-gpg"] = None
+        repo.yumopts["--verbose"] = None
+        repo.set_name( distro.name )
+        repo.set_os_version( distro.os_version )
+
+        if distro.breed == "ubuntu":
+            repo.set_mirror( "%s/%s" % (mirror, distro.os_version) )
+        else:
+            # NOTE : The location of the mirror should come from timezone
+            repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , distro.os_version ) )
+
+        security_repo = item_repo.Repo(self.config)
+        security_repo.set_breed( "apt" )
+        security_repo.set_arch( distro.arch )
+        security_repo.set_keep_updated( False )
+        security_repo.yumopts["--ignore-release-gpg"] = None
+        security_repo.yumopts["--verbose"] = None
+        security_repo.set_name( distro.name + "-security" )
+        security_repo.set_os_version( distro.os_version )
+        # There are no official mirrors for security updates
+        if distro.breed == "ubuntu":
+            security_repo.set_mirror( "%s/%s-security" % (mirror, distro.os_version) )
+        else:
+            security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % distro.os_version )
+
+        self.logger.info("Added repos for %s" % distro.name)
+        repos  = self.config.repos()
+        repos.add(repo,save=True)
+        repos.add(security_repo,save=True)
+
+    def get_repo_mirror_from_apt(self):
+        """
+        This tries to determine the apt mirror/archive to use (when processing repos)
+        if the host machine is Debian or Ubuntu.
+        """
+        try:
+            sources = sourceslist.SourcesList()
+            release = distro.get_distro()
+            release.get_sources(sources)
+            mirrors = release.get_server_list()
+            for mirror in mirrors:
+                if mirror[2] == True:
+                    mirror = mirror[1]
+                    break
+        except:
+            return False
+
+        return mirror
+
+    # ==========================================================================
+    # rhn-specific
+
+    def rhn_repo_adder(self,distro):
+        """ not currently used """
+        return
+
+    # ==========================================================================
+    # rsync-specific
+
+    def rsync_repo_adder(self,distro):
+        """ not currently used """
+        return
 
 # ==========================================================================
 
