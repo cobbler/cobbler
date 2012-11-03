@@ -671,10 +671,6 @@ class PXEGen:
             append_line = ",%s" % kopts.pop("initrd")
         hkopts = utils.hash_to_string(kopts)
         append_line = "%s %s" % (append_line, hkopts)
-        # FIXME - the append_line length limit is architecture specific
-        # TODO: why is this checked here, before we finish adding everything?
-        if len(append_line) >= 255:
-            self.logger.warning("warning: kernel option length exceeds 255")
 
         # kickstart path rewriting (get URLs for local files)
         if kickstart_path is not None and kickstart_path != "":
@@ -749,6 +745,17 @@ class PXEGen:
         # append necessary kernel args for arm architectures
         if arch is not None and arch.startswith("arm"):
             append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
+
+        # do variable substitution on the append line
+        # FIXME: should we just promote all of the ksmeta 
+        #        variables instead of just the tree?
+        if blended.has_key("ks_meta") and blended["ks_meta"].has_key("tree"):
+            blended["tree"] = blended["ks_meta"]["tree"]
+        append_line = self.templar.render(append_line,utils.flatten(blended),None)
+
+        # FIXME - the append_line length limit is architecture specific
+        if len(append_line) >= 255:
+            self.logger.warning("warning: kernel option length exceeds 255")
 
         return append_line
 
