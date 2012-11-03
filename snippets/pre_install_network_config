@@ -7,7 +7,7 @@ mac_exists() {
     ip -o link | grep -i "$1" &> /dev/null
     return $?
   else
-    ifconfig -a | grep -i "$1"
+    ifconfig -a | grep -i "$1" &> /dev/null
     return $?
   fi
 }
