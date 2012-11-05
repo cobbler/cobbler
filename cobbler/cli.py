@@ -50,7 +50,7 @@ OBJECT_ACTIONS_MAP   = {
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
    "setting"   : "edit report".split(" "),
-   "signature" : "report update".split(" "),
+   "signature" : "reload report update".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
@@ -169,7 +169,7 @@ def n2s(data):
        return ""
    return data
 
-def opt(options, k):
+def opt(options, k, defval=""):
    """
    Returns an option from an Optparse values instance
    """
@@ -177,8 +177,8 @@ def opt(options, k):
       data = getattr(options, k) 
    except:
       # FIXME: debug only
-      traceback.print_exc()
-      return ""
+      # traceback.print_exc()
+      return defval
    return n2s(data)
 
 class BootCLI:
@@ -345,8 +345,10 @@ class BootCLI:
             utils.add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass
-        elif object_action != "update":
+        elif object_action not in ("reload","update"):
             self.parser.add_option("--name", dest="name", help="name of object")
+        elif object_action == "reload":
+            self.parser.add_option("--filename", dest="filename", help="filename to load data from")
         (options, args) = self.parser.parse_args()
 
         # the first three don't require a name
@@ -362,7 +364,7 @@ class BootCLI:
             for item in items:
                 print item
         elif object_action in OBJECT_ACTIONS:
-            if opt(options, "name") == "" and object_action != "update":
+            if opt(options, "name") == "" and object_action not in ("reload","update"):
                 print "--name is required"
                 sys.exit(1)
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
@@ -407,6 +409,14 @@ class BootCLI:
                 task_id = self.remote.background_power_system(power, self.token)
             elif object_action == "update":
                 task_id = self.remote.background_signature_update(utils.strip_none(vars(options),omit_none=True), self.token)
+            elif object_action == "reload":
+                filename = opt(options,"filename","/var/lib/cobbler/distro_signatures.json")
+                if not utils.load_signatures(filename,cache=True):
+                    print "There was an error loading the signature data in %s." % filename
+                    print "Please check the JSON file or run 'cobbler signature update'."
+                    return False
+                else:
+                    print "Signatures were successfully loaded"
             else:
                 raise exceptions.NotImplementedError()
         else:
