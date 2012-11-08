@@ -86,7 +86,12 @@ def handler(req):
     mode = form.get('op','index')
 
     func = getattr( cw, mode )
-    content = func( **form )
+    try:
+        content = func( **form )
+    except Exception, (err):
+        req.status = apache.HTTP_INTERNAL_SERVER_ERROR
+        req.write(err.faultString)
+        return apache.OK
 
     # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
     req.content_type = "text/plain;charset=utf-8"
