@@ -88,7 +88,7 @@ def handler(req):
     func = getattr( cw, mode )
     try:
         content = func( **form )
-    except Exception, (err):
+    except xmlrpclib.Fault, (err):
         req.status = apache.HTTP_INTERNAL_SERVER_ERROR
         req.write(err.faultString)
         return apache.OK

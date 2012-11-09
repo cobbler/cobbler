@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 import yaml
 import os
+import xmlrpclib
 
 from cobbler.services import CobblerSvc
 
@@ -91,7 +92,7 @@ def application(environ, start_response):
                 content.find("# object not found") != -1:
             print("content not found: %s" % my_uri)
             status = "404 NOT FOUND"
-    except Exception, (err):
+    except xmlrpclib.Fault, (err):
         status = '500 SERVER ERROR'
         content = err.faultString
 	
