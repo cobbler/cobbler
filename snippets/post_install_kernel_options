@@ -1,6 +1,13 @@
 #if $getVar('kernel_options_post','') != ''
 # Start post install kernel options update
-/sbin/grubby --update-kernel=`/sbin/grubby --default-kernel` --args="$kernel_options_post"
+if [ -f /etc/default/grub ]; then
+  TMP_GRUB=\$(gawk 'match(\$0,/^GRUB_CMDLINE_LINUX="([^"]+)"/,a) {printf("%s\n",a[1])}' /etc/default/grub)
+  sed -i '/^GRUB_CMDLINE_LINUX=/d' /etc/default/grub
+  echo "GRUB_CMDLINE_LINUX=\"\$TMP_GRUB $kernel_options_post\"" >> /etc/default/grub
+  grub2-mkconfig -o /boot/grub2/grub.cfg
+else
+  /sbin/grubby --update-kernel=\$(/sbin/grubby --default-kernel) --args="$kernel_options_post"
+fi
 # End post install kernel options update
 #end if
 
