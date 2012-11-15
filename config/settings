@@ -327,7 +327,7 @@ register_new_installs: 0
 
 # Flags to use for yum's reposync.  If your version of yum reposync
 # does not support -l, you may need to remove that option.
-reposync_flags: "-l -m -d"
+reposync_flags: "-l -n -d"
 
 # These options will be used for an rsync initiated by cobbler replicate
 replicate_rsync_options: "-avzH"
