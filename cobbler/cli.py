@@ -50,6 +50,7 @@ OBJECT_ACTIONS_MAP   = {
    "package"   : "add copy edit find list remove rename report".split(" "),
    "file"      : "add copy edit find list remove rename report".split(" "),
    "setting"   : "edit report".split(" "),
+   "signature" : "reload report update".split(" "),
 } 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
@@ -68,6 +69,29 @@ def report_items(remote, otype):
        for key in keys:
            item = {'name':key, 'value':items[key]}
            report_item(remote,otype,item=item)
+   elif otype == "signature":
+       items = remote.get_signatures()
+       total_breeds = 0
+       total_sigs = 0
+       if items.has_key("breeds"):
+           print "Currently loaded signatures:"
+           bkeys = items["breeds"].keys()
+           bkeys.sort()
+           total_breeds = len(bkeys)
+           for breed in bkeys:
+               print "%s:" % breed
+               oskeys = items["breeds"][breed].keys()
+               oskeys.sort()
+               if len(oskeys) > 0:
+                   total_sigs += len(oskeys)
+                   for osversion in oskeys:
+                       print "\t%s" % osversion
+               else:
+                   print "\t(none)"
+           print "\n%d breeds with %d total signatures loaded" % (total_breeds,total_sigs)
+       else:
+           print "No breeds found in the signature, a signature update is recommended"
+           sys.exit(1)
    else:
        items = remote.get_items(otype)
        for x in items:
@@ -82,6 +106,29 @@ def report_item(remote,otype,item=None,name=None):
           except:
               print "Setting not found: %s" % name
               sys.exit(1)
+      elif otype == "signature":
+          items = remote.get_signatures()
+          total_sigs = 0
+          if items.has_key("breeds"):
+              print "Currently loaded signatures:"
+              if items["breeds"].has_key(name):
+                  print "%s:" % name
+                  oskeys = items["breeds"][name].keys()
+                  oskeys.sort()
+                  if len(oskeys) > 0:
+                      total_sigs += len(oskeys)
+                      for osversion in oskeys:
+                          print "\t%s" % osversion
+                  else:
+                      print "\t(none)"
+                  print "\nBreed '%s' has %d total signatures" % (name,total_sigs)
+              else:
+                  print "No breed named '%s' found" % name
+                  sys.exit(1)
+          else:
+              print "No breeds found in the signature, a signature update is recommended"
+              sys.exit(1)
+          return
       else:
           item = remote.get_item(otype, name)
           if item == "~":
@@ -122,7 +169,7 @@ def n2s(data):
        return ""
    return data
 
-def opt(options, k):
+def opt(options, k, defval=""):
    """
    Returns an option from an Optparse values instance
    """
@@ -130,8 +177,8 @@ def opt(options, k):
       data = getattr(options, k) 
    except:
       # FIXME: debug only
-      traceback.print_exc()
-      return ""
+      # traceback.print_exc()
+      return defval
    return n2s(data)
 
 class BootCLI:
@@ -298,8 +345,10 @@ class BootCLI:
             utils.add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass
-        else:
+        elif object_action not in ("reload","update"):
             self.parser.add_option("--name", dest="name", help="name of object")
+        elif object_action == "reload":
+            self.parser.add_option("--filename", dest="filename", help="filename to load data from")
         (options, args) = self.parser.parse_args()
 
         # the first three don't require a name
@@ -315,7 +364,7 @@ class BootCLI:
             for item in items:
                 print item
         elif object_action in OBJECT_ACTIONS:
-            if opt(options, "name") == "":
+            if opt(options, "name") == "" and object_action not in ("reload","update"):
                 print "--name is required"
                 sys.exit(1)
             if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
@@ -358,6 +407,16 @@ class BootCLI:
                 power["power"] = object_action.replace("power","")
                 power["systems"] = [options.name]
                 task_id = self.remote.background_power_system(power, self.token)
+            elif object_action == "update":
+                task_id = self.remote.background_signature_update(utils.strip_none(vars(options),omit_none=True), self.token)
+            elif object_action == "reload":
+                filename = opt(options,"filename","/var/lib/cobbler/distro_signatures.json")
+                if not utils.load_signatures(filename,cache=True):
+                    print "There was an error loading the signature data in %s." % filename
+                    print "Please check the JSON file or run 'cobbler signature update'."
+                    return False
+                else:
+                    print "Signatures were successfully loaded"
             else:
                 raise exceptions.NotImplementedError()
         else:

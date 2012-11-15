@@ -49,11 +49,14 @@ from utils import _
 import logging
 import time
 import random
+import simplejson
 import os
 import xmlrpclib
 import traceback
 import exceptions
 import clogger
+import tempfile
+import urllib2
 
 import item_distro
 import item_profile
@@ -116,7 +119,7 @@ class BootAPI:
                 # perms_ok is False
                 return
 
-            # FIMXE: conslidate into 1 server instance
+            # FIXME: conslidate into 1 server instance
 
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist = utils.check_dist()
@@ -124,10 +127,19 @@ class BootAPI:
 
             BootAPI.__has_loaded   = True
 
+            # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            self._config         = config.Config(self)
+            self._config = config.Config(self)
             self.deserialize()
+
+            # import signatures
+            if not utils.load_signatures(self.settings().signature_path):
+                return
+            else:
+                self.log("%d breeds and %d OS versions read from the signature file" % ( \
+                         len(utils.get_valid_breeds()), \
+                         len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -139,7 +151,7 @@ class BootAPI:
                 "module",
                 "authz_allowall"
             )
-        
+
             # FIXME: pass more loggers around, and also see that those
             # using things via tasks construct their own kickgen/yumgen/
             # pxegen versus reusing this one, which has the wrong logger
@@ -568,6 +580,35 @@ class BootAPI:
 
     # ==========================================================================
 
+    def get_signatures(self):
+        return utils.SIGNATURE_CACHE
+
+    def signature_update(self, logger):
+        try:
+            tmpfile = tempfile.NamedTemporaryFile()
+            response = urllib2.urlopen(self.settings().signature_url)
+            sigjson = response.read()
+            tmpfile.write(sigjson)
+            tmpfile.flush()
+
+            logger.debug("Successfully got file from %s" % self.settings().signature_url)
+            # test the import without caching it
+            if not utils.load_signatures(tmpfile.name,cache=False):
+                logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
+                return False
+
+            # rewrite the real signature file and import it for real
+            f = open(self.settings().signature_path,"w")
+            f.write(sigjson)
+            f.close()
+
+            return utils.load_signatures(self.settings().signature_path)
+        except:
+            utils.log_exc(logger)
+            return False
+
+    # ==========================================================================
+
     def dump_vars(self, obj, format=False):
         return obj.dump_vars(format)
 
@@ -855,22 +896,24 @@ class BootAPI:
                     self.log("Network root given to --available-as is missing a colon, please see the manpage example.")
                     return False
 
-        importer_modules = self.get_modules_in_category("manage/import")
-        for importer_module in importer_modules:
-            manager = importer_module.get_import_manager(self._config,logger)
-            try:
-                (found,pkgdir) = manager.check_for_signature(path,breed)
-                if found: 
-                    self.log("running import manager: %s" % manager.what())
-                    return manager.run(pkgdir,mirror_name,path,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
-            except:
-                self.log("an exception occured while running the import manager")
-                self.log("error was: %s" % sys.exc_info()[1])
-                continue
-        self.log("No import managers found a valid signature at the location specified")
-        # FIXME: since we failed, we should probably remove the 
-        # path tree we created above so we don't leave cruft around
-        return False
+        #importer_modules = self.get_modules_in_category("manage/import")
+        #for importer_module in importer_modules:
+        #    manager = importer_module.get_import_manager(self._config,logger)
+        #    try:
+        #        (found,pkgdir) = manager.check_for_signature(path,breed)
+        #        if found: 
+        #            self.log("running import manager: %s" % manager.what())
+        #            return manager.run(pkgdir,mirror_name,path,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
+        #    except:
+        #        self.log("an exception occured while running the import manager")
+        #        self.log("error was: %s" % sys.exc_info()[1])
+        #        continue
+        #self.log("No import managers found a valid signature at the location specified")
+        ## FIXME: since we failed, we should probably remove the 
+        ## path tree we created above so we don't leave cruft around
+        #return False
+        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._config,logger)
+        return import_module.run(path,mirror_name,network_root,kickstart_file,arch,breed,os_version)
 
     # ==========================================================================
 
@@ -1045,7 +1088,6 @@ class BootAPI:
         @return: 0  the system is powered on, False if it's not or None on error
         """
         return action_power.PowerTool(self._config, system, self, user, password, logger = logger).power("status")
-
 
     # ==========================================================================
 

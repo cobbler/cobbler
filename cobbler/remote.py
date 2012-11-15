@@ -260,7 +260,12 @@ class CobblerXMLRPCInterface:
             return True
         self.check_access(token, "power")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power",""), options)
-    
+
+    def background_signature_update(self, options, token):
+        def runner(self):
+            return self.remote.api.signature_update(self.logger)
+        self.check_access(token, "sigupdate")
+        return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
     def get_events(self, for_user=""):
         """
@@ -1036,6 +1041,14 @@ class CobblerXMLRPCInterface:
         self._log("get_settings",token=token)
         results = self.api.settings().to_datastruct()
         self._log("my settings are: %s" % results, debug=True)
+        return self.xmlrpc_hacks(results)
+
+    def get_signatures(self,token=None,**rest):
+        """
+        Return the contents of the API signatures
+        """
+        self._log("get_signatures",token=token)
+        results = self.api.get_signatures()
         return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
