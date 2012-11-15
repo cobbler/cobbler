@@ -58,7 +58,7 @@ def __parse_config():
            alldata[g][o] = 1
     return alldata 
 
-def __authorize_kickstart(api_handle, group, user, kickstart):
+def __authorize_kickstart(api_handle, groups, user, kickstart):
     # the authorization rules for kickstart editing are a bit
     # of a special case.  Non-admin users can edit a kickstart
     # only if all objects that depend on that kickstart are
@@ -80,23 +80,25 @@ def __authorize_kickstart(api_handle, group, user, kickstart):
     lst = api_handle.find_profile(kickstart=kickstart, return_list=True)
     lst.extend(api_handle.find_system(kickstart=kickstart, return_list=True))
     for obj in lst:
-       if not __is_user_allowed(obj, group, user, "write_kickstart", kickstart, None):
+       if not __is_user_allowed(obj, groups, user, "write_kickstart", kickstart, None):
           return 0
     return 1
 
-def __authorize_snippet(api_handle, group, user, kickstart):
+def __authorize_snippet(api_handle, groups, user, kickstart):
     # only allow admins to edit snippets -- since we don't have detection to see
     # where each snippet is in use
-    if group not in [ "admins", "admin" ]:
-       return False
+    for group in groups:
+        if group not in [ "admins", "admin" ]:
+            return False
     return True
 
-def __is_user_allowed(obj, group, user, resource, arg1, arg2):
+def __is_user_allowed(obj, groups, user, resource, arg1, arg2):
     if user == "<DIRECT>":
         # system user, logged in via web.ss
         return True
-    if group in [ "admins", "admin" ]:
-        return True
+    for group in groups:
+        if group in [ "admins", "admin" ]:
+            return True
     if obj.owners == []:
         return True
     for allowed in obj.owners:
@@ -104,8 +106,9 @@ def __is_user_allowed(obj, group, user, resource, arg1, arg2):
            # user match
            return True
         # else look for a group match
-        if group == allowed:
-           return True
+	for group in groups:
+	    if group == allowed:
+                return True
     return 0
 
 
@@ -139,18 +142,17 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     # FIXME: deal with the problem of deleted parents and promotion
 
     found_user = False
-    found_group = None
+    found_groups = []
     grouplist = user_groups.keys()
     for g in grouplist:
         for x in user_groups[g]:
            if x == user:
-               found_group = g
+               found_groups.append(g)
                found_user = True
                # if user is in the admin group, always authorize
                # regardless of the ownership of the object.
                if g == "admins" or g == "admin":
                    return True
-               break
 
     if not found_user:
         # if the user isn't anywhere in the file, reject regardless
@@ -168,7 +170,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     # function, rather than going through the rest of the code here.
 
     if resource.find("write_kickstart") != -1:
-        return __authorize_kickstart(api_handle,found_group,user,arg1)
+        return __authorize_kickstart(api_handle,found_groups,user,arg1)
     elif resource.find("read_kickstart") != -1:
         return True
 
@@ -177,7 +179,7 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     # restrictive   
  
     if resource.find("write_snippet") != -1:
-        return __authorize_snippet(api_handle,found_group,user,arg1)
+        return __authorize_snippet(api_handle,found_groups,user,arg1)
     elif resource.find("read_snipppet") != -1:
         return True
 
@@ -200,6 +202,6 @@ def authorize(api_handle,user,resource,arg1=None,arg2=None):
     if obj is None or obj.owners is None or obj.owners == []:
         return True
      
-    return __is_user_allowed(obj,found_group,user,resource,arg1,arg2)
+    return __is_user_allowed(obj,found_groups,user,resource,arg1,arg2)
            
 
