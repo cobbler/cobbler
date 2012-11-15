@@ -112,6 +112,7 @@ def _(foo):
    return foo
 
 MODULE_CACHE = {}
+SIGNATURE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
@@ -1356,9 +1357,9 @@ def set_os_version(self,os_version):
    self.os_version = os_version.lower()
    if self.breed is None or self.breed == "":
       raise CX(_("cannot set --os-version without setting --breed first"))
-   if not self.breed in codes.VALID_OS_BREEDS:
+   if not self.breed in get_valid_breeds():
       raise CX(_("fix --breed first before applying this setting"))
-   matched = codes.VALID_OS_VERSIONS[self.breed]
+   matched = SIGNATURE_CACHE["breeds"][self.breed]
    if not os_version in matched:
       nicer = ", ".join(matched)
       raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
@@ -1366,7 +1367,7 @@ def set_os_version(self,os_version):
    return True
 
 def set_breed(self,breed):
-   valid_breeds = codes.VALID_OS_BREEDS
+   valid_breeds = get_valid_breeds()
    if breed is not None and breed.lower() in valid_breeds:
        self.breed = breed.lower()
        return True
@@ -2045,6 +2046,43 @@ def get_power_template(powertype=None):
             return template
     # return a generic template if a specific one wasn't found
     return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
+
+def load_signatures(filename,cache=True):
+    """
+    Loads the import signatures for distros
+    """
+    global SIGNATURE_CACHE
+    try:
+        f = open(filename,"r")
+        sigjson = f.read()
+        f.close()
+        sigdata = simplejson.loads(sigjson)
+        if cache:
+            SIGNATURE_CACHE = sigdata
+        return True
+    except:
+        return False
+
+def get_valid_breeds():
+    """
+    Return a list of valid breeds found in the import signatures
+    """
+    if SIGNATURE_CACHE.has_key("breeds"):
+        return SIGNATURE_CACHE["breeds"].keys()
+    else:
+        return []
+
+def get_valid_os_versions():
+    """
+    Return a list of valid os-versions found in the import signatures
+    """
+    os_versions = []
+    try:
+        for breed in get_valid_breeds():
+            os_versions += SIGNATURE_CACHE["breeds"][breed].keys()
+    except:
+        pass
+    return uniquify(os_versions)
 
 def get_shared_secret():
     """
