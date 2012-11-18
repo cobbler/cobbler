@@ -46,7 +46,7 @@ class ContentDownloader:
        they can still source their cross-arch bootloader content manually.
        """
 
-       content_server = "http://dgoodwin.fedorapeople.org/loaders"
+       content_server = "http://cobbler.github.com/loaders"
        dest = "/var/lib/cobbler/loaders"
 
        files = (
