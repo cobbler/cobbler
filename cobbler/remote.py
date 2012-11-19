@@ -260,7 +260,12 @@ class CobblerXMLRPCInterface:
             return True
         self.check_access(token, "power")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power",""), options)
-    
+
+    def background_signature_update(self, options, token):
+        def runner(self):
+            return self.remote.api.signature_update(self.logger)
+        self.check_access(token, "sigupdate")
+        return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
     def get_events(self, for_user=""):
         """
@@ -864,6 +869,9 @@ class CobblerXMLRPCInterface:
 
         Ex: xapi_object_edit("distro","el5","add",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
+        if object_name.strip() == "":
+            raise CX("xapi_object_edit() called without an object name")
+
         self.check_access(token,"xedit_%s" % object_type, token)
 
         if edit_type == "add" and not attributes.has_key("clobber"):
@@ -871,15 +879,15 @@ class CobblerXMLRPCInterface:
             try:
                 handle = self.get_item_handle(object_type, object_name)
             except:
-                utils.log_exc(self.logger)
-                return False
+                pass
             if handle != 0:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
         if edit_type == "add":
             is_subobject = object_type == "profile" and "parent" in attributes
-            if object_type == "system" and "profile" not in attributes:
-                raise CX("--profile is required for new systems")
+            if object_type == "system":
+                if "profile" not in attributes and "image" not in attributes:
+                    raise CX("You must specify a --profile or --image for new systems")
             handle = self.new_item(object_type, token, is_subobject=is_subobject)
         else:
             handle = self.get_item_handle(object_type, object_name)
@@ -1033,6 +1041,14 @@ class CobblerXMLRPCInterface:
         self._log("get_settings",token=token)
         results = self.api.settings().to_datastruct()
         self._log("my settings are: %s" % results, debug=True)
+        return self.xmlrpc_hacks(results)
+
+    def get_signatures(self,token=None,**rest):
+        """
+        Return the contents of the API signatures
+        """
+        self._log("get_signatures",token=token)
+        results = self.api.get_signatures()
         return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):

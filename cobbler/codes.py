@@ -44,7 +44,7 @@ VALID_OS_VERSIONS = {
     "redhat"  : [ "rhel3", "rhel4", "rhel5", "rhel6", "fedora14", "fedora15", "fedora16", "fedora17", "fedora18", "rawhide", "generic24", "generic26", "virtio26", "other" ],
     "suse"    : [ "sles9", "sles10", "sles11", "opensuse11.2", "opensuse11.3", "opensuse11.4", "opensuse12.1", "opensuse12.2", "generic24", "generic26", "virtio26", "other" ],
     "debian"  : [ "lenny", "squeeze", "stable", "testing", "unstable", "generic24", "generic26", "other" ],
-    "ubuntu"  : [ "hardy", "lucid", "maverick", "natty", "precise", "quantal" ],
+    "ubuntu"  : [ "hardy", "lucid", "maverick", "natty", "oneiric", "precise", "quantal" ],
     "generic" : [ "generic24", "generic26", "other" ],
     "windows" : [ "winxp", "win2k", "win2k3", "vista", "other" ],
     "unix"    : [ "solaris9", "solaris10", "other" ],
@@ -55,45 +55,4 @@ VALID_OS_VERSIONS = {
 
 VALID_REPO_BREEDS = [
     "rsync", "rhn", "yum", "apt"
-#   "rsync", "rhn", "yum"
 ]
-
-def uniquify(seq, idfun=None):
-
-    # this is odd (older mod_python scoping bug?) but we can't use 
-    # utils.uniquify here because on older distros (RHEL4/5) 
-    # mod_python gets another utils.  As a result,
-    # it is duplicated here for now.  Bad, but ... now you know.
-    #
-    # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
-    # FIXME: if this is actually slower than some other way, overhaul it
-
-    if idfun is None:
-        def idfun(x):
-           return x
-    seen = {}
-    result = []
-    for item in seq:
-        marker = idfun(item)
-        if marker in seen:
-            continue
-        seen[marker] = 1
-        result.append(item)
-    return result
-
-
-def get_all_os_versions():
-   """
-   Collapse the above list of OS versions for usage/display by the CLI/webapp.
-   """
-   results = ['']
-   for x in VALID_OS_VERSIONS.keys():
-      for y in VALID_OS_VERSIONS[x]:
-         results.append(y)
-
-   results = uniquify(results)
-
-   results.sort()
-   return results
-
-

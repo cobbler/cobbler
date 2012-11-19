@@ -185,6 +185,9 @@ ldap_anonymous_bind: 1
 ldap_search_bind_dn: ''
 ldap_search_passwd: ''
 ldap_search_prefix: 'uid='
+ldap_tls_cacertfile: ''
+ldap_tls_keyfile: ''
+ldap_tls_certfile: ''
 
 # cobbler has a feature that allows for integration with config management
 # systems such as Puppet.  The following parameters work in conjunction with 
@@ -207,8 +210,8 @@ puppet_auto_setup: 0
 # puppet_auto_setup above to be enabled
 sign_puppet_certs_automatically: 0
 
-# location of the puppet signing utility puppetca
-puppetca_path: "/usr/sbin/puppetca"
+# location of the puppet executable, used for revoking certificates
+puppetca_path: "/usr/bin/puppet"
 
 # when a puppet managed machine is reinstalled it is necessary to
 # remove the puppet certificate from the puppet master server before a
@@ -324,7 +327,7 @@ register_new_installs: 0
 
 # Flags to use for yum's reposync.  If your version of yum reposync
 # does not support -l, you may need to remove that option.
-reposync_flags: "-l -m -d"
+reposync_flags: "-l -n -d"
 
 # These options will be used for an rsync initiated by cobbler replicate
 replicate_rsync_options: "-avzH"
@@ -373,6 +376,11 @@ server: 127.0.0.1
 # cobbler sync to open a connection to a remote address if one is in the
 # configuration and would traceback.
 client_use_localhost: 0
+
+# If set to 1, all commands to the API (not directly to the XMLRPC
+# server) will go over HTTPS instead of plaintext. Be sure to change
+# the http_port setting to the correct value for the web server
+client_use_https: 0
 
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing

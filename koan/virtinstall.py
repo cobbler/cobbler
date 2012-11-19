@@ -34,8 +34,8 @@ import app as koan
 import utils
 
 try:
-    from virtinst import version as vi_version
-    virtinst_version = vi_version.__version__.split('.')
+    import virtinst
+    virtinst_version = virtinst.__version__.split('.')
 except:
     virtinst_version = None
 
@@ -127,6 +127,7 @@ def build_commandline(uri,
                       bridge=None,
                       virt_type=None,
                       virt_auto_boot=False,
+                      virt_pxe_boot=False,
                       qemu_driver_type=None,
                       qemu_net_type=None,
                       qemu_machine_type=None):
@@ -141,7 +142,9 @@ def build_commandline(uri,
     disable_boot_opt = False
     disable_driver_type = False
     disable_net_model = False
+    disable_machine_type = False
     oldstyle_macs = False
+    oldstyle_accelerate = False
 
     if not virtinst_version:
         print ("- warning: old python-virtinst detected, a lot of features will be disabled")
@@ -150,7 +153,9 @@ def build_commandline(uri,
         disable_virt_type = True
         disable_driver_type = True
         disable_net_model = True
+        disable_machine_type = True
         oldstyle_macs = True
+        oldstyle_accelerate = True
 
     is_import = uri.startswith("import")
     if is_import:
@@ -200,12 +205,6 @@ def build_commandline(uri,
             print "I want to make a floppy for %s" % kickstart
             floppy = utils.make_floppy(kickstart)
     elif is_qemu:
-        # images don't need to source this
-        if not profile_data.has_key("install_tree"):
-            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
-
-        if not profile_data["install_tree"].endswith("/"):
-    elif disable_boot_opt:
         # images don't need to source this
         if not profile_data.has_key("install_tree"):
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
@@ -277,19 +276,20 @@ def build_commandline(uri,
         if not disable_virt_type:
             cmd += "--virt-type %s " % virt_type
 
-    if is_qemu and machine_type:
+    if is_qemu and machine_type and not disable_machine_type:
         cmd += "--machine %s " % machine_type
 
     if fullvirt or is_qemu or is_import:
         if fullvirt is not None:
             cmd += "--hvm "
+        elif oldstyle_accelerate:
+            cmd += "--accelerate "
 
-        if is_qemu and extra:
+        if is_qemu and extra and not virt_pxe_boot:
             cmd += ("--extra-args=\"%s\" " % (extra))
 
-        if is_xen:
+        if virt_pxe_boot or is_xen:
             cmd += "--pxe "
-
         elif cdrom:
             cmd += "--cdrom %s " % cdrom
         elif location:

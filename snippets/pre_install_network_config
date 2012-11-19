@@ -1,5 +1,27 @@
 #if $getVar("system_name","") != ""
 # Start pre_install_network_config generated code
+#raw
+# generic functions to be used later for discovering NICs
+mac_exists() {
+  if which ip &> /dev/null; then
+    ip -o link | grep -i "$1" &> /dev/null
+    return $?
+  else
+    ifconfig -a | grep -i "$1" &> /dev/null
+    return $?
+  fi
+}
+get_ifname() {
+  if which ip &> /dev/null; then
+    IFNAME=$(ip -o link | grep -i "$1" | sed -e 's/^[0-9]*: //' -e 's/:.*//')
+  else
+    IFNAME=$(ifconfig -a | grep -i "$1" | cut -d " " -f 1)
+    if [ -z $IFNAME ]; then
+      IFNAME=$(ifconfig -a | grep -i -B 2 "$1" | sed -n '/flags/s/:.*$//p')
+    fi
+  fi
+}
+#end raw
     #set ikeys = $interfaces.keys()
     #import re
     #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.:][0-9]+")
@@ -86,12 +108,9 @@
                 #set $netinfo = "%s --hostname=%s" % ($netinfo, $hostname)
             #end if
 # Configuring $iname ($mac)
-if ifconfig -a | grep -i $mac
+if mac_exists $mac
 then
-  IFNAME=\$(ifconfig -a | grep -i '$mac' | cut -d " " -f 1)
-  if [ -z \$IFNAME ]; then
-    IFNAME=\$(ifconfig -a | grep -i -B 2 '$mac' | sed -n '/flags/s/:.*$//p')
-  fi
+  get_ifname $mac
   echo "network --device=\$IFNAME $netinfo" >> /tmp/pre_install_network_config
             #for $route in $static_routes
                 #if $routepattern.match($route)

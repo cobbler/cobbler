@@ -112,6 +112,7 @@ def _(foo):
    return foo
 
 MODULE_CACHE = {}
+SIGNATURE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
@@ -1055,22 +1056,10 @@ def os_release():
       return ("unknown",0)
 
 def tftpboot_location():
-
-    # if possible, read from TFTP config file to get the location
-    if os.path.exists("/etc/xinetd.d/tftp"):
-        fd = open("/etc/xinetd.d/tftp")
-        lines = fd.read().split("\n")
-        for line in lines:
-           if line.find("server_args") != -1:
-              tokens = line.split(None)
-              mark = False
-              for t in tokens:
-                 if t == "-s":    
-                    mark = True
-                 elif mark:
-                    return t
-
-    # otherwise, guess based on the distro
+    """
+    Guesses the location of the tftpboot directory,
+    based on the distro on which cobblerd is running
+    """
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
         return "/var/lib/tftpboot"
@@ -1368,9 +1357,9 @@ def set_os_version(self,os_version):
    self.os_version = os_version.lower()
    if self.breed is None or self.breed == "":
       raise CX(_("cannot set --os-version without setting --breed first"))
-   if not self.breed in codes.VALID_OS_BREEDS:
+   if not self.breed in get_valid_breeds():
       raise CX(_("fix --breed first before applying this setting"))
-   matched = codes.VALID_OS_VERSIONS[self.breed]
+   matched = SIGNATURE_CACHE["breeds"][self.breed]
    if not os_version in matched:
       nicer = ", ".join(matched)
       raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
@@ -1378,7 +1367,7 @@ def set_os_version(self,os_version):
    return True
 
 def set_breed(self,breed):
-   valid_breeds = codes.VALID_OS_BREEDS
+   valid_breeds = get_valid_breeds()
    if breed is not None and breed.lower() in valid_breeds:
        self.breed = breed.lower()
        return True
@@ -1501,6 +1490,24 @@ def set_virt_auto_boot(self,num):
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+    return True
+
+def set_virt_pxe_boot(self,num):
+    """
+    For Virt only.
+    Specifies whether the VM should use PXE for booting
+    0 tells Koan not to PXE boot virtuals
+    """
+
+    # num is a non-negative integer (0 means default)
+    try:
+        inum = int(num)
+        if (inum == 0) or (inum == 1):
+            self.virt_pxe_boot = inum
+            return True
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+    except:
+        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
 def set_virt_ram(self,num):
@@ -2040,6 +2047,43 @@ def get_power_template(powertype=None):
     # return a generic template if a specific one wasn't found
     return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
+def load_signatures(filename,cache=True):
+    """
+    Loads the import signatures for distros
+    """
+    global SIGNATURE_CACHE
+    try:
+        f = open(filename,"r")
+        sigjson = f.read()
+        f.close()
+        sigdata = simplejson.loads(sigjson)
+        if cache:
+            SIGNATURE_CACHE = sigdata
+        return True
+    except:
+        return False
+
+def get_valid_breeds():
+    """
+    Return a list of valid breeds found in the import signatures
+    """
+    if SIGNATURE_CACHE.has_key("breeds"):
+        return SIGNATURE_CACHE["breeds"].keys()
+    else:
+        return []
+
+def get_valid_os_versions():
+    """
+    Return a list of valid os-versions found in the import signatures
+    """
+    os_versions = []
+    try:
+        for breed in get_valid_breeds():
+            os_versions += SIGNATURE_CACHE["breeds"][breed].keys()
+    except:
+        pass
+    return uniquify(os_versions)
+
 def get_shared_secret():
     """
     The 'web.ss' file is regenerated each time cobblerd restarts and is
@@ -2066,10 +2110,16 @@ def local_get_cobbler_api_url():
        traceback.print_exc()
        raise CX("/etc/cobbler/settings is not a valid YAML file")
 
+    ip = data.get("server","127.0.0.1")
     if data.get("client_use_localhost", False):
-      return "http://%s:%s/cobbler_api" % ("127.0.0.1",data.get("http_port","80"))
-    else:
-      return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+        # this overrides the server setting 
+        ip = "127.0.0.1"
+    port = data.get("http_port","80")
+    protocol = "http"
+    if data.get("client_use_https", False):
+        protocol = "https"
+
+    return "%s://%s:%s/cobbler_api" % (protocol,ip,port)
 
 def get_ldap_template(ldaptype=None):
     """

@@ -44,7 +44,7 @@ def run(api, args, logger):
         if search_domains:
             hostname += '.' + search_domains[0]
     puppetca_path = settings.puppetca_path
-    cmd = [puppetca_path, '--clean', hostname]
+    cmd = [puppetca_path, 'cert', 'clean', hostname]
 
     rc = 0
 

@@ -46,7 +46,7 @@ class ContentDownloader:
        they can still source their cross-arch bootloader content manually.
        """
 
-       content_server = "http://dgoodwin.fedorapeople.org/loaders"
+       content_server = "http://cobbler.github.com/loaders"
        dest = "/var/lib/cobbler/loaders"
 
        files = (
@@ -64,10 +64,13 @@ class ContentDownloader:
 
        proxies = {}
        if os.environ.has_key("HTTP_PROXY"):
-          proxies['http'] = os.environ[var]
+          proxies['http'] = os.environ["HTTP_PROXY"]
+
+       if os.environ.has_key("HTTPS_PROXY"):
+          proxies['https'] = os.environ["HTTPS_PROXY"]
 
        if os.environ.has_key("FTP_PROXY"):
-          proxies['ftp'] = os.environ[var]
+          proxies['ftp'] = os.environ["FTP_PROXY"]
 
        if len(proxies) == 0:
           proxies = None
