@@ -204,7 +204,7 @@ def build_commandline(uri,
             # to the ISO.
             print "I want to make a floppy for %s" % kickstart
             floppy = utils.make_floppy(kickstart)
-    elif is_qemu:
+    elif disable_boot_opt:
         # images don't need to source this
         if not profile_data.has_key("install_tree"):
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
