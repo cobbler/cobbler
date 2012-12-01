@@ -8,7 +8,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 2.4.0
-Release: beta2%{?dist}
+Release: beta3%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
