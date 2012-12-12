@@ -18,7 +18,10 @@
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'vmware' and $os_version == 'esxi4'
             #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
-        #else if $breed == 'debian' 
+        #else if $breed == 'debian' or $breed == 'ubuntu'
+            #set nopxe = "wget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null;" % (srv, system_name)
+        #else
+            ## default to wget
             #set nopxe = "wget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null;" % (srv, system_name)
         #end if
     #end if
@@ -30,7 +33,7 @@
             #set saveks = "\ncurl \"http://%s/cblr/svc/op/ks/%s/%s\" -o /root/cobbler.ks" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esxi4'
             #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /var/log/cobbler.ks" % (srv, "system", system_name)
-        #else if $breed == 'debian'
+        #else if $breed == 'debian' or $breed == 'ubuntu'
             #set saveks = "wget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /target/var/log/cobbler.seed;" % (srv, "system", system_name)
         #end if
     #end if
