@@ -50,7 +50,7 @@ class Distros(collection.Collection):
         # first see if any Groups use this distro
         if not recursive:
             for v in self.config.profiles():
-                if v.distro.lower() == name:
+                if v.distro and v.distro.lower() == name:
                     raise CX(_("removal would orphan profile: %s") % v.name)
 
         obj = self.find(name=name)
