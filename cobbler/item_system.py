@@ -25,6 +25,7 @@ import item
 import time
 from cexceptions import *
 from utils import _
+import sys
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
@@ -71,23 +72,23 @@ FIELDS = [
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["network_widget_c","",0,"",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mtu","",0,"MTU",True,"",0,"str"],
-  ["*ip_address","",0,"IP Address",True,"",0,"str"],
-  ["*interface_type","na",0,"Interface Type",True,"",["na","master","slave","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
-  ["*interface_master","",0,"Master Interface",True,"",0,"str"],
-  ["*bonding_opts","",0,"Bonding Opts",True,"",0,"str"],
-  ["*bridge_opts","",0,"Bridge Opts",True,"",0,"str"],
-  ["*management",False,0,"Management Interface",True,"Is this the management interface?",0,"bool"],
-  ["*static",False,0,"Static",True,"Is this interface static?",0,"bool"],
-  ["*netmask","",0,"Subnet Mask",True,"",0,"str"],
-  ["*dhcp_tag","",0,"DHCP Tag",True,"",0,"str"],
-  ["*dns_name","",0,"DNS Name",True,"",0,"str"],
-  ["*static_routes",[],0,"Static Routes",True,"",0,"list"],
-  ["*virt_bridge","",0,"Virt Bridge",True,"",0,"str"],
-  ["*ipv6_address","",0,"IPv6 Address",True,"",0,"str"],
-  ["*ipv6_secondaries",[],0,"IPv6 Secondaries",True,"space delimited",0,"list"],
-  ["*ipv6_mtu","",0,"IPv6 MTU",True,"",0,"str"],
-  ["*ipv6_static_routes",[],0,"IPv6 Static Routes",True,"",0,"list"],
-  ["*ipv6_default_gateway","",0,"IPv6 Default Gateway",True,"",0,"str"],
+  ["*ip_address","",0,"IP Address",True,"Should be used with --interface",0,"str"],
+  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","master","slave","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
+  ["*interface_master","",0,"Master Interface",True,"Should be used with --interface",0,"str"],
+  ["*bonding_opts","",0,"Bonding Opts",True,"Should be used with --interface",0,"str"],
+  ["*bridge_opts","",0,"Bridge Opts",True,"Should be used with --interface",0,"str"],
+  ["*management",False,0,"Management Interface",True,"Is this the management interface? Should be used with --interface",0,"bool"],
+  ["*static",False,0,"Static",True,"Is this interface static? Should be used with --interface",0,"bool"],
+  ["*netmask","",0,"Subnet Mask",True,"Should be used with --interface",0,"str"],
+  ["*dhcp_tag","",0,"DHCP Tag",True,"Should be used with --interface",0,"str"],
+  ["*dns_name","",0,"DNS Name",True,"Should be used with --interface",0,"str"],
+  ["*static_routes",[],0,"Static Routes",True,"Should be used with --interface",0,"list"],
+  ["*virt_bridge","",0,"Virt Bridge",True,"Should be used with --interface",0,"str"],
+  ["*ipv6_address","",0,"IPv6 Address",True,"Should be used with --interface",0,"str"],
+  ["*ipv6_secondaries",[],0,"IPv6 Secondaries",True,"Space delimited. Should be used with --interface",0,"list"],
+  ["*ipv6_mtu","",0,"IPv6 MTU",True,"Should be used with --interface",0,"str"],
+  ["*ipv6_static_routes",[],0,"IPv6 Static Routes",True,"Should be used with --interface",0,"list"],
+  ["*ipv6_default_gateway","",0,"IPv6 Default Gateway",True,"Should be used with --interface",0,"str"],
   ["mgmt_classes",[],0,"Management Classes",True,"For external config management",0,"list"],
   ["mgmt_parameters","<<inherit>>",0,"Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
   [ "boot_files",{},'<<inherit>>',"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
@@ -130,11 +131,14 @@ class System(item.Item):
                 raise CX(_("At least one interface needs to be defined."))
 
         return True
-        
 
     def __get_interface(self,name):
 
-        if not self.interfaces.has_key(name):
+        if len(self.interfaces.keys()) == 1:
+            name = self.interfaces.keys()[0]
+        elif len(self.interfaces.keys()) > 1:
+            raise CX(_("Multiple interfaces defined. Please use --interface <interface_name>"))
+        elif not self.interfaces.has_key(name):
             self.interfaces[name] = {
                 "mac_address"          : "",
                 "mtu"                  : "",
