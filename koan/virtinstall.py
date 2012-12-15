@@ -210,12 +210,6 @@ def build_commandline(uri,
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):
-    elif disable_boot_opt:
-        # images don't need to source this
-        if not profile_data.has_key("install_tree"):
-            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
-
-        if not profile_data["install_tree"].endswith("/"):
             profile_data["install_tree"] = profile_data["install_tree"] + "/"
 
         location = profile_data["install_tree"]
