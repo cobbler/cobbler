@@ -543,7 +543,7 @@ class RepoSync:
         optgpgcheck = False
         if output:
             if repo.mirror_locally:
-                line = "baseurl=http://${server}/cobbler/repo_mirror/%s\n" % (repo.name)
+                line = "baseurl=http://${http_server}/cobbler/repo_mirror/%s\n" % (repo.name)
             else:
                 mstr = repo.mirror
                 if mstr.startswith("/"):
