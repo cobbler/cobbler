@@ -134,9 +134,9 @@ class System(item.Item):
 
     def __get_interface(self,name):
 
-        if len(self.interfaces.keys()) == 1:
+        if name == "" and len(self.interfaces.keys()) == 1:
             name = self.interfaces.keys()[0]
-        elif len(self.interfaces.keys()) > 1:
+        elif name == "" and len(self.interfaces.keys()) > 1:
             raise CX(_("Multiple interfaces defined. Please use --interface <interface_name>"))
         elif not self.interfaces.has_key(name):
             self.interfaces[name] = {

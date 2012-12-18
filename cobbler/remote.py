@@ -927,12 +927,12 @@ class CobblerXMLRPCInterface:
                     self.modify_item(object_type,handle,k,v,token)
 
                 else:
-                    modkey = "%s-%s" % (k, attributes.get("interface","eth0"))
+                    modkey = "%s-%s" % (k, attributes.get("interface",""))
                     imods[modkey] = v
             if object_type == "system" and not attributes.has_key("delete_interface"):
                 self.modify_system(handle, 'modify_interface', imods, token)
             elif object_type == "system":
-                self.modify_system(handle, 'delete_interface', attributes.get("interface", "eth0"), token)
+                self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
 
 
         else:
