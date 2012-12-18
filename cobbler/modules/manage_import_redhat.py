@@ -26,7 +26,7 @@ import os.path
 import shutil
 import glob
 import traceback
-
+import string
 
 import utils
 from cexceptions import *
