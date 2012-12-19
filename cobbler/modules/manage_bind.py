@@ -290,10 +290,7 @@ zone "%(arpa)s." {
         Format host records by order and with consistent indentation
         """
         
-        # This loop currently warns ONLY
-        
-        # FIXME! Add skip support, if the host without dns_name is specified, skip the record instead of outright exiting,
-        # which results in empty records without any warning to the users, need to iterate over system to name the
+        # Warns on hosts without dns_name, need to iterate over system to name the
         # particular system
                  
         for system in self.systems:
