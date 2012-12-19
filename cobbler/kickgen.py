@@ -268,8 +268,9 @@ class KickGen:
         # meta["config_template_files"] = self.generate_template_files_stanza(g, False)
 
         # add extra variables for other distro types
-        urlparts = urlparse.urlsplit(meta["tree"])
-        meta["install_source_directory"] = urlparts[2]
+        if "tree" in meta:
+            urlparts = urlparse.urlsplit(meta["tree"])
+            meta["install_source_directory"] = urlparts[2]
 
         try:
             raw_data = utils.read_file_contents(kickstart_path, self.api.logger,

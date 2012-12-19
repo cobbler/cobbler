@@ -913,23 +913,26 @@ class CobblerXMLRPCInterface:
 
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
-                    if k in [ "ks_meta", "kernel_options", "kernel_options_post", "template_files", "boot_files", "fetchable_files"] and attributes.has_key("in_place") and attributes["in_place"]:
+                    if k in ["ks_meta","kernel_options","kernel_options_post","template_files","boot_files","fetchable_files"] and attributes.has_key("in_place") and attributes["in_place"]:
                         details = self.get_item(object_type,object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_hash(v)
                         for (a,b) in input.iteritems():
-                           v2[a] = b
+                            if a.startswith("~") and len(a) > 1:
+                                del v2[a[1:]]
+                            else:
+                                v2[a] = b
                         v = v2
 
                     self.modify_item(object_type,handle,k,v,token)
 
                 else:
-                    modkey = "%s-%s" % (k, attributes.get("interface","eth0"))
+                    modkey = "%s-%s" % (k, attributes.get("interface",""))
                     imods[modkey] = v
             if object_type == "system" and not attributes.has_key("delete_interface"):
                 self.modify_system(handle, 'modify_interface', imods, token)
             elif object_type == "system":
-                self.modify_system(handle, 'delete_interface', attributes.get("interface", "eth0"), token)
+                self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
 
 
         else:

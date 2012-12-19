@@ -419,9 +419,9 @@ class ImportSignatureManager:
             name = "-".join(dirname.split("/")[5:])
 
         if kernel is not None:
-            if kernel.find("PAE") != -1:
+            if kernel.find("PAE") != -1 and name.find("PAE") == -1:
                 name = name + "-PAE"
-            if kernel.find("xen") != -1:
+            if kernel.find("xen") != -1 and name.find("xen") == -1:
                 name = name + "-xen"
 
         # Clear out some cruft from the proposed name
@@ -455,10 +455,11 @@ class ImportSignatureManager:
             # SELinux Apache can't symlink to NFS (without some doing)
             if not os.path.exists(dest_link):
                 try:
+                    self.logger.info("trying symlink: %s -> %s" % (str(base),str(dest_link)))
                     os.symlink(base, dest_link)
                 except:
                     # this shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % { "base" : base, "dest" : dest_link })
             tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
             self.set_install_tree(distro, tree)
         else:
