@@ -134,6 +134,7 @@ BLOCK_MAPPINGS = {
    "*bridge_opts"    : "Networking",
    "*management"     : "Networking",
    "*dns_name"       : "Networking",
+   "cname"           : "Networking",
    "*static_routes"  : "Networking",
    "*netmask"        : "Networking",
    "*gateway"        : "Networking",

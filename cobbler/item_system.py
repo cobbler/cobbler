@@ -102,6 +102,7 @@ FIELDS = [
   ["ldap_enabled",False,0,"LDAP Enabled",True,"(re)configure LDAP on this machine at next config update?",0,"bool"],
   ["ldap_type","SETTINGS:ldap_management_default_type",0,"LDAP Management Type",True,"Ex: authconfig",0,"str"],
   ["monit_enabled",False,0,"Monit Enabled",True,"(re)configure monit on this machine at next config update?",0,"bool"],
+  ["*cnames",[],0,"CNAMES",True,"Cannonical Name Records, should be used with --interface, In quotes, space delimited",0,"list"],
 ]
 
 class System(item.Item):
@@ -178,6 +179,7 @@ class System(item.Item):
                 "ipv6_mtu"             : "",
                 "ipv6_static_routes"   : [],
                 "ipv6_default_gateway" : "",
+                "cnames"               : [],
             }
 
         return self.interfaces[name]
@@ -261,7 +263,7 @@ class System(item.Item):
             return intf["mac_address"].strip()
         else:
             return None
-
+        
     def get_ip_address(self,interface):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
@@ -308,11 +310,17 @@ class System(item.Item):
            for x in matched:
                if x.name != self.name:
                    raise CX("dns-name duplicated: %s" % dns_name)
-
+               
 
         intf["dns_name"] = dns_name
         return True
  
+    def set_cnames(self,cnames,interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(cnames)
+        intf["cnames"] = data        
+        return True
+    
     def set_static_routes(self,routes,interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
@@ -693,6 +701,7 @@ class System(item.Item):
             if field == "ipv6mtu"             : self.set_ipv6_mtu(value, interface)
             if field == "ipv6staticroutes"    : self.set_ipv6_static_routes(value, interface)
             if field == "ipv6defaultgateway"  : self.set_ipv6_default_gateway(value, interface)
+            if field == "cnames"              : self.set_cnames(value, interface)
 
         return True
 

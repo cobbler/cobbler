@@ -429,6 +429,21 @@ zone "%(arpa)s." {
                     my_rectype = 'A   '
               s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
         return s
+    
+    def __pretty_print_cname_records(self, hosts, rectype='CNAME'):
+        """
+        Format CNAMEs and with consistent indentation
+        """
+        s = ""
+        
+        for system in self.systems:
+            for (name, interface) in system.interfaces.iteritems():
+                cnames = interface["cnames"]
+                dnsname = interface["dns_name"].split('.')[0]
+                for cname in cnames:
+                    s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)                       
+        return s
+    
 
     def __write_zone_files(self):
         """
@@ -475,7 +490,9 @@ zone "%(arpa)s." {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
                 'zonetype': 'forward',
+                'cname_record': '',
                 'host_record': ''
+                
             }
 
 
@@ -504,8 +521,10 @@ zone "%(arpa)s." {
                else:
                   template_data = default_template_data
 
+            metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
-
+            
+            
             zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (forward) %s" % zonefilename)
@@ -516,6 +535,7 @@ zone "%(arpa)s." {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
                 'zonetype': 'reverse',
+                'cname_record': '',
                 'host_record': ''
             }
 
@@ -527,8 +547,10 @@ zone "%(arpa)s." {
             except:
                template_data = default_template_data
 
+            metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
-
+            
+            
             zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (reverse) %s" % zonefilename)

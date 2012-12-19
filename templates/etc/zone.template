@@ -10,4 +10,6 @@
                         IN      NS      $cobbler_server.
 
 
+$cname_record
+
 $host_record
