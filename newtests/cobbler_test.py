@@ -141,6 +141,8 @@ class Test_A_Create(CobblerXMLRPCTest):
       """Tests creation of a repo object"""
       repo = self.remote.new_repo(self.token)
       self.assertTrue(self.remote.modify_repo(repo,"name","testrepo0",self.token))
+      self.assertTrue(self.remote.modify_repo(repo,"mirror","http://www.sample.com/path/to/some/repo",self.token))
+      self.assertTrue(self.remote.modify_repo(repo,"mirror_locally","0",self.token))
       # test fields
       #for field in item_repo.FIELDS:
       #   (fname,def1,def2,display,editable,tooltip,values,type) = field
@@ -440,41 +442,3 @@ class Test_H_RegularCalls(CobblerXMLRPCTest):
       # phase went ok
       assert self.remote.last_modified_time(self.token) != 0
 
-   def test_09_background_imports(self):
-      """Tests background imports"""
-      imports = json.load(file('imports.json'))
-      for i in imports:
-         event_id = self.remote.background_import(i,self.token)
-         assert(event_id)
-         while True:
-            # keeps token alive since get_task_status() doesn't 
-            # require one and we don't want the token to timeout
-            self.remote.last_modified_time(self.token)
-            status = self.remote.get_task_status(event_id)
-            assert(status[2] in ["running","complete","failed"])
-            assert(status[2] != "failed")
-            if status[2] == "complete":
-               break
-            else:
-               time.sleep(1)
-
-         # validate the expected distro/profile pairs were created,
-         # and then remove them to cleanup
-         expected_distros = len(i["expected_results"])
-         expected_profiles = len(i["expected_results"])
-         imported_distros = 0
-         imported_profiles = 0
-         for res in i["expected_results"]:
-            try:
-               if self.remote.get_distro(res,self.token):
-                  imported_distros += 1
-            except: pass
-            try:
-               if self.remote.get_profile(res,self.token):
-                  imported_profiles += 1
-            except: pass
-            try:
-               self.remote.remove_distro(res,self.token)
-            except: pass
-         assert(imported_distros == expected_distros)
-         assert(imported_profiles == expected_profiles)
