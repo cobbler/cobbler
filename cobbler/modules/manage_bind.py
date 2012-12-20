@@ -406,7 +406,7 @@ zone "%(arpa)s." {
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
                 if interface["dns_name"] == "":
-                    self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.get_name())                       
+                    self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)                       
                 
         names = [k for k,v in hosts.iteritems()]
         if not names: return '' # zones with no hosts
@@ -458,7 +458,7 @@ zone "%(arpa)s." {
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)                    
                     else:
-                        self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing cname records") % system.get_name())
+                        self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing cname records") % system.name)
                         continue
                 except:
                     pass

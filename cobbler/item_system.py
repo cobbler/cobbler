@@ -229,9 +229,6 @@ class System(item.Item):
 
         return True
     
-    def get_name(self):
-        return self.name
-    
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
 
