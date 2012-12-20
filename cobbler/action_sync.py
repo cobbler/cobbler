@@ -225,14 +225,16 @@ class BootSync:
         if self.settings.manage_dhcp:
             self.write_dhcp()
             if which_dhcp_module == "manage_isc":
+                service_name = dhcp_service_name(self.api)
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
                     if rc != 0:
                        self.logger.error("dhcpd -t failed")
                        return False
-                    rc = utils.subprocess_call(self.logger,"service dhcpd restart", shell=True)
+                    service_restart = "service %s restart" % service_name
+                    rc = utils.subprocess_call(self.logger, service_restart, shell=True)
                     if rc != 0:
-                       self.logger.error("service dhcpd restart failed")
+                       self.logger.error("%s failed" % service_name)
                        return False
             elif which_dhcp_module == "manage_dnsmasq":
                 if restart_dhcp != "0":
