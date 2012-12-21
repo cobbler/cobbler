@@ -1,9 +1,0 @@
-[{"name":"centos5.8",
-  "path":"/data/imports/centos5.8",
-  "expected_results":["centos5.8-i386","centos5.8-xen-i386","centos5.8-x86_64","centos5.8-xen-x86_64"]
- },
- {"name":"centos6.2",
-  "path":"/data/imports/centos6.2",
-  "expected_results":["centos6.2-i386","centos6.2-xen-i386","centos6.2-x86_64","centos6.2-xen-x86_64"]
- }
-]
