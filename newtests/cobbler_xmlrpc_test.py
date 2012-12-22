@@ -1,4 +1,3 @@
-import json
 import os
 import random
 import sys
@@ -8,8 +7,6 @@ import xmlrpclib
 
 from cobbler import utils
 from cobbler import item_distro
-
-from newtests.server import TestXMLRPCThread
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
