@@ -35,3 +35,7 @@ class Test_A_Direct(CobblerCLITest):
       """Runs 'cobbler version'"""
       (data,rc) = utils.subprocess_sp(None,["cobbler","version"],shell=False)
       self.assertEqual(rc,0)
+   def test_01_cobbler_status(self):
+      """Runs 'cobbler status'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","status"],shell=False)
+      self.assertEqual(rc,0)
