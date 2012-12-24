@@ -427,7 +427,7 @@ class ImportSignatureManager:
         # Clear out some cruft from the proposed name
         name = name.replace("--","-")
         for x in ("-netboot","-ubuntu-installer","-amd64","-i386", \
-                  "-images","-pxeboot","-install","-isolinux","-boot", \
+                  "-images","-pxeboot","-install","-isolinux","-boot", "-suseboot", \
                   "-loader","-os","-tree","var-www-cobbler-","ks_mirror-"):
             name = name.replace(x,"")
 
