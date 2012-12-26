@@ -1,0 +1,106 @@
+# ******************************************************************
+# Cobbler managed dhcpd.conf file
+#
+# generated from cobbler dhcp.conf template ($date)
+# Do NOT make changes to /etc/dhcpd.conf. Instead, make your changes
+# in /etc/cobbler/dhcp_primary.template, as /etc/dhcpd.conf will be
+# overwritten.
+#
+# dhcp primary server configuration template
+# ******************************************************************
+
+ddns-update-style interim;
+
+allow booting;
+allow bootp;
+
+ignore client-updates;
+set vendorclass = option vendor-class-identifier;
+
+option pxe-system-type code 93 = unsigned integer 16;
+
+failover peer "dhcp-failover" {
+  primary; # declare this to be the primary server
+  address 192.168.1.1; #IP-Address of primary dhcp server
+  port 520;
+  peer address 192.168.1.2; #IP-Address of secondary dhcp server
+  peer port 520;
+  max-response-delay 30;
+  max-unacked-updates 10;
+  load balance max seconds 3;
+  mclt 1800;
+  split 128;
+}
+
+subnet 192.168.1.0 netmask 255.255.255.0 {
+     option routers             192.168.1.5;
+     option domain-name-servers 192.168.1.1;
+     option subnet-mask         255.255.255.0;
+     range dynamic-bootp        192.168.1.100 192.168.1.254;
+     default-lease-time         21600;
+     max-lease-time             43200;
+     next-server                $next_server;
+     
+     class "pxeclients" {
+          match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+          if option pxe-system-type = 00:02 {
+                  filename "ia64/elilo.efi";
+          } else if option pxe-system-type = 00:06 {
+                  filename "grub/grub-x86.efi";
+          } else if option pxe-system-type = 00:07 {
+                  filename "grub/grub-x86_64.efi";
+          } else {
+                  filename "pxelinux.0";
+          }
+     }
+
+    pool {
+        failover peer "dhcp-failover";
+        max-lease-time 1800; # 30 minutes
+        deny dynamic bootp clients;
+        range 192.168.1.90 192.168.1.200;
+    }
+
+}
+
+#for dhcp_tag in $dhcp_tags.keys():
+    ## group could be subnet if your dhcp tags line up with your subnets
+    ## or really any valid dhcpd.conf construct ... if you only use the
+    ## default dhcp tag in cobbler, the group block can be deleted for a
+    ## flat configuration
+# group for Cobbler DHCP tag: $dhcp_tag
+group {
+        #for mac in $dhcp_tags[$dhcp_tag].keys():
+            #set iface = $dhcp_tags[$dhcp_tag][$mac]
+    host $iface.name {
+        hardware ethernet $mac;
+        #if $iface.ip_address:
+        fixed-address $iface.ip_address;
+        #end if
+        #if $iface.hostname:
+        option host-name "$iface.hostname";
+        #end if
+        #if $iface.netmask:
+        option subnet-mask $iface.netmask;
+        #end if
+        #if $iface.gateway:
+        option routers $iface.gateway;
+        #end if
+        #if $iface.enable_gpxe:
+        if exists user-class and option user-class = "gPXE" {
+            filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+        } else {
+            filename "undionly.kpxe";
+        }
+        #else
+        filename "$iface.filename";
+        #end if
+        ## Cobbler defaults to $next_server, but some users
+        ## may like to use $iface.system.server for proxied setups
+        next-server $next_server;
+        ## next-server $iface.next_server;
+    }
+        #end for
+}
+#end for
+
