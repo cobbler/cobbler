@@ -225,7 +225,7 @@ zone "%(arpa)s." {
         """
         Write out the secondary.conf secondary config file from the template.
         """
-        settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
+        settings_file = "/etc/cobbler_generated/dns/named_secondary.conf"
         template_file = "/etc/cobbler/secondary.template"
         forward_zones = self.settings.manage_forward_zones
         reverse_zones = self.settings.manage_reverse_zones
