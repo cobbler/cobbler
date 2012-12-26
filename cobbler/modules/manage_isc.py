@@ -72,15 +72,32 @@ class IscManager:
         """
 
         template_file = "/etc/cobbler/dhcp.template"
+        template_primary_file = "/etc/cobbler/dhcp_primary.template"
+        template_secondary_file = "/etc/cobbler/dhcp_secondary.template"
+        
+        settings_file_primary = "/etc/cobbler_generated/dhcp/dhcpd_primary.conf"
+        settings_file_secondary = "/etc/cobbler_generated/dhcp/dhcpd_secondary.conf"
+        
         blender_cache = {}
 
         try:
             f2 = open(template_file,"r")
+            f_primary = open(template_primary_file,"r")
+            f_secondary = open(template_secondary_file,"r")
         except:
             raise CX(_("error reading template: %s") % template_file)
         template_data = ""
+        template_data_primary = ""
+        template_data_secondary = ""
+        
         template_data = f2.read()
         f2.close()
+
+        template_data_primary = f_primary.read()
+        f_primary.close()
+
+        template_data_secondary = f_secondary.read()
+        f_secondary.close()
 
         # use a simple counter for generating generic names where a hostname
         # is not available
@@ -190,260 +207,14 @@ class IscManager:
         if self.logger is not None:
             self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
-        
            
-    def write_dhcp_primary_file(self):
-        """
-        DHCP files are written when manage_dhcp is set in
-        /var/lib/cobbler/settings.
-        """
-        settings_file = "/etc/cobbler_generated/dhcp/dhcpd_primary.conf"
-        template_file = "/etc/cobbler/dhcp_primary.template"
-        blender_cache = {}
-
-        try:
-            f2 = open(template_file,"r")
-        except:
-            raise CX(_("error reading template: %s") % template_file)
-        template_data = ""
-        template_data = f2.read()
-        f2.close()
-
-        # use a simple counter for generating generic names where a hostname
-        # is not available
-        counter = 0
-
-        # we used to just loop through each system, but now we must loop
-        # through each network interface of each system.
-        dhcp_tags = { "default": {} }
-        elilo = "/elilo-3.6-ia64.efi"
-        yaboot = "/yaboot-1.3.14"
-
-        for system in self.systems:
-            if not system.is_management_supported(cidr_ok=False):
-                continue
-
-            profile = system.get_conceptual_parent()
-            distro  = profile.get_conceptual_parent()
-
-            # if distro is None then the profile is really an image
-            # record!
-
-            for (name, interface) in system.interfaces.iteritems():
-
-                # this is really not a per-interface setting
-                # but we do this to make the templates work
-                # without upgrade
-                interface["gateway"] = system.gateway
-
-                mac  = interface["mac_address"]
-                if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
-                    if interface["interface_master"] not in system.interfaces:
-                        # Can't write DHCP entry; master interface does not
-                        # exist
-                        continue
-                    ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    interface["ip_address"] = ip
-                    host = system.interfaces[interface["interface_master"]]["dns_name"]
-                else:
-                    ip   = interface["ip_address"]
-                    host = interface["dns_name"]
-
-                if distro is not None:
-                    interface["distro"]  = distro.to_datastruct()
-
-                if mac is None or mac == "":
-                    # can't write a DHCP entry for this system
-                    continue
-
-                counter = counter + 1
-
-                # the label the entry after the hostname if possible
-                if host is not None and host != "":
-                    if name != "eth0":
-                        interface["name"] = "%s_%s" % (host,name)
-                    else:
-                        interface["name"] = "%s" % (host)
-                else:
-                    interface["name"] = "generic%d" % counter
-
-                # add references to the system, profile, and distro
-                # for use in the template
-                if blender_cache.has_key(system.name):
-                    blended_system = blender_cache[system.name]
-                else:
-                    blended_system  = utils.blender( self.api, False, system )
-                    blender_cache[system.name] = blended_system
-
-                interface["next_server"] = blended_system["server"]
-                interface["netboot_enabled"] = blended_system["netboot_enabled"]
-                interface["hostname"] = blended_system["hostname"]
-                interface["owner"] = blended_system["name"]
-                interface["enable_gpxe"] = blended_system["enable_gpxe"]
-
-                if not interface["netboot_enabled"] and interface['static']:
-                    continue
-
-                interface["filename"] = "/pxelinux.0"
-                # can't use pxelinux.0 anymore
-                if distro is not None:
-                    if distro.arch == "ia64":
-                        interface["filename"] = elilo
-                    elif distro.arch.startswith("ppc"):
-                        interface["filename"] = yaboot
-
-                dhcp_tag = interface["dhcp_tag"]
-                if dhcp_tag == "":
-                   dhcp_tag = "default"
-
-
-                if not dhcp_tags.has_key(dhcp_tag):
-                    dhcp_tags[dhcp_tag] = {
-                       mac: interface
-                    }
-                else:
-                    dhcp_tags[dhcp_tag][mac] = interface
-
-        # we are now done with the looping through each interface of each system
-        metadata = {
-           "date"           : time.asctime(time.gmtime()),
-           "cobbler_server" : self.settings.server,
-           "next_server"    : self.settings.next_server,
-           "elilo"          : elilo,
-           "yaboot"         : yaboot,
-           "dhcp_tags"      : dhcp_tags
-        }
-
         if self.logger is not None:
-            self.logger.info("generating %s" % settings_file)
-        self.templar.render(template_data, metadata, settings_file, None)    
-
-    
-    def write_dhcp_secondary_file(self):
-        """
-        DHCP files are written when manage_dhcp is set in
-        /var/lib/cobbler/settings.
-        """
-        settings_file = "/etc/cobbler_generated/dhcp/dhcpd_secondary.conf"
-        template_file = "/etc/cobbler/dhcp_secondary.template"
-        blender_cache = {}
-
-        try:
-            f2 = open(template_file,"r")
-        except:
-            raise CX(_("error reading template: %s") % template_file)
-        template_data = ""
-        template_data = f2.read()
-        f2.close()
-
-        # use a simple counter for generating generic names where a hostname
-        # is not available
-        counter = 0
-
-        # we used to just loop through each system, but now we must loop
-        # through each network interface of each system.
-        dhcp_tags = { "default": {} }
-        elilo = "/elilo-3.6-ia64.efi"
-        yaboot = "/yaboot-1.3.14"
-
-        for system in self.systems:
-            if not system.is_management_supported(cidr_ok=False):
-                continue
-
-            profile = system.get_conceptual_parent()
-            distro  = profile.get_conceptual_parent()
-
-            # if distro is None then the profile is really an image
-            # record!
-
-            for (name, interface) in system.interfaces.iteritems():
-
-                # this is really not a per-interface setting
-                # but we do this to make the templates work
-                # without upgrade
-                interface["gateway"] = system.gateway
-
-                mac  = interface["mac_address"]
-                if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
-                    if interface["interface_master"] not in system.interfaces:
-                        # Can't write DHCP entry; master interface does not
-                        # exist
-                        continue
-                    ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    interface["ip_address"] = ip
-                    host = system.interfaces[interface["interface_master"]]["dns_name"]
-                else:
-                    ip   = interface["ip_address"]
-                    host = interface["dns_name"]
-
-                if distro is not None:
-                    interface["distro"]  = distro.to_datastruct()
-
-                if mac is None or mac == "":
-                    # can't write a DHCP entry for this system
-                    continue
-
-                counter = counter + 1
-
-                # the label the entry after the hostname if possible
-                if host is not None and host != "":
-                    if name != "eth0":
-                        interface["name"] = "%s_%s" % (host,name)
-                    else:
-                        interface["name"] = "%s" % (host)
-                else:
-                    interface["name"] = "generic%d" % counter
-
-                # add references to the system, profile, and distro
-                # for use in the template
-                if blender_cache.has_key(system.name):
-                    blended_system = blender_cache[system.name]
-                else:
-                    blended_system  = utils.blender( self.api, False, system )
-                    blender_cache[system.name] = blended_system
-
-                interface["next_server"] = blended_system["server"]
-                interface["netboot_enabled"] = blended_system["netboot_enabled"]
-                interface["hostname"] = blended_system["hostname"]
-                interface["owner"] = blended_system["name"]
-                interface["enable_gpxe"] = blended_system["enable_gpxe"]
-
-                if not interface["netboot_enabled"] and interface['static']:
-                    continue
-
-                interface["filename"] = "/pxelinux.0"
-                # can't use pxelinux.0 anymore
-                if distro is not None:
-                    if distro.arch == "ia64":
-                        interface["filename"] = elilo
-                    elif distro.arch.startswith("ppc"):
-                        interface["filename"] = yaboot
-
-                dhcp_tag = interface["dhcp_tag"]
-                if dhcp_tag == "":
-                   dhcp_tag = "default"
-
-
-                if not dhcp_tags.has_key(dhcp_tag):
-                    dhcp_tags[dhcp_tag] = {
-                       mac: interface
-                    }
-                else:
-                    dhcp_tags[dhcp_tag][mac] = interface
-
-        # we are now done with the looping through each interface of each system
-        metadata = {
-           "date"           : time.asctime(time.gmtime()),
-           "cobbler_server" : self.settings.server,
-           "next_server"    : self.settings.next_server,
-           "elilo"          : elilo,
-           "yaboot"         : yaboot,
-           "dhcp_tags"      : dhcp_tags
-        }
-
+            self.logger.info("generating %s" % settings_file_primary)
+        self.templar.render(template_data_primary, metadata, settings_file_primary, None)
+        
         if self.logger is not None:
-            self.logger.info("generating %s" % settings_file)
-        self.templar.render(template_data, metadata, settings_file, None)    
+            self.logger.info("generating %s" % settings_file_secondary)
+        self.templar.render(template_data_secondary, metadata, settings_file_secondary, None)   
 
     def regen_ethers(self):
         pass # ISC/BIND do not use this

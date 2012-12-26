@@ -216,8 +216,6 @@ class BootSync:
     def write_dhcp(self):
         self.logger.info("rendering DHCP files")
         self.dhcp.write_dhcp_file()
-	self.dhcp.write_dhcp_primary_file()
-	self.dhcp.write_dhcp_secondary_file()
         self.dhcp.regen_ethers()
 
     def sync_dhcp(self):

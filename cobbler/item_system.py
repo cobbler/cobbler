@@ -212,7 +212,7 @@ class System(item.Item):
         self.name = name 
 
         return True
-
+    
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
 
