@@ -225,7 +225,7 @@ class BootSync:
         if self.settings.manage_dhcp:
             self.write_dhcp()
             if which_dhcp_module == "manage_isc":
-                service_name = dhcp_service_name(self.api)
+                service_name = utils.dhcp_service_name(self.api)
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
                     if rc != 0:
