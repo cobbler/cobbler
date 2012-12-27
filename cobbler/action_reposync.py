@@ -477,11 +477,11 @@ class RepoSync:
 
             idx = mirror.find("/")
             host = mirror[:idx]
-            mirror = mirror[idx+1:]
+            mirror = mirror[idx:]
 
             idx = mirror.rfind("/dists/")
             suite = mirror[idx+7:]
-            mirror = mirror[:idx]
+            mirror = mirror[:idx+1]
 
             mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
 
