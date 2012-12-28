@@ -45,7 +45,7 @@ class CobblerImportTest(unittest.TestCase):
       """
       Set up, mounts NFS share
       """
-      (data,rc) = utils.subprocess_sp(None,["mount","-t","nfs4","192.168.1.100:/data","/mnt"],shell=False)
+      (data,rc) = utils.subprocess_sp(None,["mount","-t","nfs4","jenkins.sngx.net:/home/shared/distros","/mnt"],shell=False)
       self.assertEqual(rc,0)
    def tearDown(self):
       """
