@@ -45,8 +45,8 @@ class CobblerImportTest(unittest.TestCase):
       """
       Set up, mounts NFS share
       """
-      (data,rc) = utils.subprocess_sp(None,["mount","-t","nfs4","jenkins.sngx.net:/home/shared/distros","/mnt"],shell=False)
-      self.assertEqual(rc,0)
+      #(data,rc) = utils.subprocess_sp(None,["mount","-t","nfs4","jenkins.sngx.net:/home/shared/distros","/mnt"],shell=False)
+      #self.assertEqual(rc,0)
    def tearDown(self):
       """
       Cleanup here
@@ -56,8 +56,8 @@ class CobblerImportTest(unittest.TestCase):
              (data,rc) = utils.subprocess_sp(None,["cobbler","distro","remove","--name=%s" % d],shell=False)
          except:
              print "Failed to remove distro '%s' during cleanup" % d
-      (data,rc) = utils.subprocess_sp(None,["umount","/mnt"],shell=False)
-      self.assertEqual(rc,0)
+      #(data,rc) = utils.subprocess_sp(None,["umount","/mnt"],shell=False)
+      #self.assertEqual(rc,0)
 
 class Test_B_Imports(CobblerImportTest):
    """
