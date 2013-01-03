@@ -1,53 +1,52 @@
-from django.conf.urls.defaults import *
-from views import *
+from django.conf.urls import *
+from django.views.generic.simple import redirect_to
 
-# Uncomment the next two lines to enable the admin:
-# from cobbler_web.contrib import admin
-# admin.autodiscover()
+cobbler_web_urls = patterns("",
+                            url(r'^$', 'cobbler_web.views.index'),
+
+                            url(r'^setting/list$', 'cobbler_web.views.setting_list'),
+                            url(r'^setting/edit/(?P<setting_name>.+)$', 'cobbler_web.views.setting_edit'),
+                            url(r'^setting/save$', 'cobbler_web.views.setting_save'),
+
+                            url(r'^ksfile/list(/(?P<page>\d+))?$', 'cobbler_web.views.ksfile_list'),
+                            url(r'^ksfile/edit$', 'cobbler_web.views.ksfile_edit', {'editmode':'new'}),
+                            url(r'^ksfile/edit/file:(?P<ksfile_name>.+)$', 'cobbler_web.views.ksfile_edit', {'editmode':'edit'}),
+                            url(r'^ksfile/save$', 'cobbler_web.views.ksfile_save'),
+
+                            url(r'^snippet/list(/(?P<page>\d+))?$', 'cobbler_web.views.snippet_list'),
+                            url(r'^snippet/edit$', 'cobbler_web.views.snippet_edit', {'editmode':'new'}),
+                            url(r'^snippet/edit/file:(?P<snippet_name>.+)$', 'cobbler_web.views.snippet_edit', {'editmode':'edit'}),
+                            url(r'^snippet/save$', 'cobbler_web.views.snippet_save'),
+
+                            url(r'^(?P<what>\w+)/list(/(?P<page>\d+))?', 'cobbler_web.views.genlist'),
+                            url(r'^(?P<what>\w+)/modifylist/(?P<pref>[!\w]+)/(?P<value>.+)$', 'cobbler_web.views.modify_list'),
+                            url(r'^(?P<what>\w+)/edit/(?P<obj_name>.+)$', 'cobbler_web.views.generic_edit', {'editmode': 'edit'}),
+                            url(r'^(?P<what>\w+)/edit$', 'cobbler_web.views.generic_edit', {'editmode': 'new'}),
+
+                            url(r'^(?P<what>\w+)/rename/(?P<obj_name>.+)/(?P<obj_newname>.+)$', 'cobbler_web.views.generic_rename'),
+                            url(r'^(?P<what>\w+)/copy/(?P<obj_name>.+)/(?P<obj_newname>.+)$', 'cobbler_web.views.generic_copy'),
+                            url(r'^(?P<what>\w+)/delete/(?P<obj_name>.+)$', 'cobbler_web.views.generic_delete'),
+
+                            url(r'^(?P<what>\w+)/multi/(?P<multi_mode>.+)/(?P<multi_arg>.+)$', 'cobbler_web.views.generic_domulti'),
+                            url(r'^utils/random_mac$', 'cobbler_web.views.random_mac'),
+                            url(r'^utils/random_mac/virttype/(?P<virttype>.+)$', 'cobbler_web.views.random_mac'),
+                            url(r'^events$', 'cobbler_web.views.events'),
+                            url(r'^eventlog/(?P<event>.+)$', 'cobbler_web.views.eventlog'),
+                            url(r'^task_created$', 'cobbler_web.views.task_created'),
+                            url(r'^sync$', 'cobbler_web.views.sync'),
+                            url(r'^reposync$', 'cobbler_web.views.reposync'),
+                            url(r'^replicate$', 'cobbler_web.views.replicate'),
+                            url(r'^hardlink', 'cobbler_web.views.hardlink'),
+                            url(r'^(?P<what>\w+)/save$', 'cobbler_web.views.generic_save'),
+                            url(r'^import/prompt$', 'cobbler_web.views.import_prompt'),
+                            url(r'^import/run$', 'cobbler_web.views.import_run'),
+                            url(r'^buildiso$', 'cobbler_web.views.buildiso'),
+                            url(r'^check$', 'cobbler_web.views.check'),
+
+                            url(r'^login$', 'cobbler_web.views.login'),
+                            url(r'^do_login$', 'cobbler_web.views.do_login'),
+                            url(r'^logout$', 'cobbler_web.views.do_logout'))
 
 urlpatterns = patterns('',
-    (r'^$', index),
-
-    (r'^setting/list$', setting_list),
-    (r'^setting/edit/(?P<setting_name>.+)$', setting_edit),
-    (r'^setting/save$', setting_save),
-
-    (r'^ksfile/list(/(?P<page>\d+))?$', ksfile_list),
-    (r'^ksfile/edit$', ksfile_edit, {'editmode':'new'}),
-    (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', ksfile_edit, {'editmode':'edit'}),
-    (r'^ksfile/save$', ksfile_save),
-
-    (r'^snippet/list(/(?P<page>\d+))?$', snippet_list),
-    (r'^snippet/edit$', snippet_edit, {'editmode':'new'}),
-    (r'^snippet/edit/file:(?P<snippet_name>.+)$', snippet_edit, {'editmode':'edit'}),
-    (r'^snippet/save$', snippet_save),
-
-    (r'^(?P<what>\w+)/list(/(?P<page>\d+))?', genlist),
-    (r'^(?P<what>\w+)/modifylist/(?P<pref>[!\w]+)/(?P<value>.+)$', modify_list),
-    (r'^(?P<what>\w+)/edit/(?P<obj_name>.+)$', generic_edit, {'editmode': 'edit'}),
-    (r'^(?P<what>\w+)/edit$', generic_edit, {'editmode': 'new'}),
-
-    (r'^(?P<what>\w+)/rename/(?P<obj_name>.+)/(?P<obj_newname>.+)$', generic_rename),
-    (r'^(?P<what>\w+)/copy/(?P<obj_name>.+)/(?P<obj_newname>.+)$', generic_copy),
-    (r'^(?P<what>\w+)/delete/(?P<obj_name>.+)$', generic_delete),
-
-    (r'^(?P<what>\w+)/multi/(?P<multi_mode>.+)/(?P<multi_arg>.+)$', generic_domulti),
-    (r'^utils/random_mac$', random_mac),
-    (r'^utils/random_mac/virttype/(?P<virttype>.+)$', random_mac),
-    (r'^events$', events),
-    (r'^eventlog/(?P<event>.+)$', eventlog),
-    (r'^task_created$', task_created),
-    (r'^sync$', sync),
-    (r'^reposync$',reposync),
-    (r'^replicate$',replicate),
-    (r'^hardlink', hardlink),
-    (r'^(?P<what>\w+)/save$', generic_save),
-    (r'^import/prompt$', import_prompt),
-    (r'^import/run$', import_run),
-    (r'^buildiso$', buildiso),
-    (r'^check$', check),
-
-    (r'^login$', login),
-    (r'^do_login$', do_login),
-    (r'^logout$', do_logout),
-)
+                       url(r"^$", redirect_to, {"url": "/cobbler_web/"}),
+                       url(r"^cobbler_web/", include(cobbler_web_urls)))
