@@ -130,7 +130,9 @@ def build_commandline(uri,
                       virt_pxe_boot=False,
                       qemu_driver_type=None,
                       qemu_net_type=None,
-                      qemu_machine_type=None):
+                      qemu_machine_type=None,
+                      wait=0,
+                      noreboot=False):
 
     # Set flags for CLI arguments based on the virtinst_version
     # tuple above. Older versions of python-virtinst don't have
@@ -350,7 +352,9 @@ def build_commandline(uri,
                 cmd += ",mac=%s" % mac
         cmd += " "
 
-    cmd += "--wait 0 "
+    cmd += "--wait %d " % int(wait)
+    if noreboot:
+        cmd += "--noreboot "
     cmd += "--noautoconsole "
 
     return shlex.split(cmd.strip())

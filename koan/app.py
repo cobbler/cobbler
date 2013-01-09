@@ -217,6 +217,13 @@ def main():
     p.add_option("", "--qemu-machine-type",
                  dest="qemu_machine_type",
                  help="when used with --virt_type=qemu, select type of machine type to emulate: pc, pc-1.0, pc-0.15")
+    p.add_option("", "--wait",
+                 dest="wait", type='int', default=0,	# default to 0 for koan backwards compatibility
+                 help="pass the --wait=<INT> argument to virt-install")
+    p.add_option("", "--noreboot",
+                 dest="noreboot", default=False,	# default to False for koan backwards compatibility
+                 action="store_true",
+                 help="pass the --noreboot argument to virt-install")
 
     (options, args) = p.parse_args()
 
@@ -252,6 +259,8 @@ def main():
         k.qemu_disk_type      = options.qemu_disk_type
         k.qemu_net_type       = options.qemu_net_type
         k.qemu_machine_type   = options.qemu_machine_type
+        k.virtinstall_wait    = options.wait
+        k.virtinstall_noreboot= options.noreboot
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -313,6 +322,8 @@ class Koan:
         self.qemu_machine_type = None
         self.virt_auto_boot    = None
         self.virt_pxe_boot     = None
+        self.virtinstall_wait  = None
+        self.virtinstall_noreboot = None
 
         # This option adds the --copy-default argument to /sbin/grubby
         # which uses the default boot entry in the grub.conf
@@ -1403,7 +1414,9 @@ class Koan:
                 virt_pxe_boot     =  virt_pxe_boot,
                 qemu_driver_type  =  self.qemu_disk_type,
                 qemu_net_type     =  self.qemu_net_type,
-                qemu_machine_type =  self.qemu_machine_type
+                qemu_machine_type =  self.qemu_machine_type,
+                wait              =  self.virtinstall_wait,
+                noreboot          =  self.virtinstall_noreboot
         )
 
         #print results
