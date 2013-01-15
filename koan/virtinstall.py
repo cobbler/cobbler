@@ -333,7 +333,7 @@ def build_commandline(uri,
         if disk_bus:
             cmd += ",bus=%s" % disk_bus
         if driver_type and not disable_driver_type:
-            cmd += ",driver_type=%s" % driver_type
+            cmd += ",formar=%s" % driver_type # makes it better work with formats. so qcow2 works too
         cmd += " "
 
     if floppy:
