@@ -38,4 +38,44 @@ class Test_Direct(CobblerCLITest):
       """Runs 'cobbler status'"""
       (data,rc) = utils.subprocess_sp(None,["cobbler","status"],shell=False)
       self.assertEqual(rc,0)
+   def test_02_cobbler_sync(self):
+      """Runs 'cobbler sync'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","sync"],shell=False)
+      self.assertEqual(rc,0)
+   def test_03_cobbler_signature_report(self):
+      """Runs 'cobbler signature report'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","signature","report"],shell=False)
+      self.assertEqual(rc,0)
+   def test_04_cobbler_signature_update(self):
+      """Runs 'cobbler signature update'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","signature","update"],shell=False)
+      self.assertEqual(rc,0)
+   def test_05_cobbler_acl_adduser(self):
+      """Runs 'cobbler aclsetup --adduser'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","aclsetup","--adduser=vagrant"],shell=False)
+      self.assertEqual(rc,0)
+      # TODO: verify user acl exists on directories
+   def test_06_cobbler_acl_addgroup(self):
+      """Runs 'cobbler aclsetup --addgroup'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","aclsetup","--addgroup=vagrant"],shell=False)
+      self.assertEqual(rc,0)
+      # TODO: verify group acl exists on directories
+   def test_07_cobbler_acl_removeuser(self):
+      """Runs 'cobbler aclsetup --removeuser'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","aclsetup","--removeuser=vagrant"],shell=False)
+      self.assertEqual(rc,0)
+      # TODO: verify user acl no longer exists on directories
+   def test_08_cobbler_acl_removegroup(self):
+      """Runs 'cobbler aclsetup --removegroup'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","aclsetup","--removegroup=vagrant"],shell=False)
+      self.assertEqual(rc,0)
+      # TODO: verify group acl no longer exists on directories
+   def test_09_cobbler_reposync(self):
+      """Runs 'cobbler reposync'"""
+      (data,rc) = utils.subprocess_sp(None,["cobbler","reposync"],shell=False)
+      self.assertEqual(rc,0)
+      (data,rc) = utils.subprocess_sp(None,["cobbler","reposync","--tries=3"],shell=False)
+      self.assertEqual(rc,0)
+      (data,rc) = utils.subprocess_sp(None,["cobbler","reposync","--no-fail"],shell=False)
+      self.assertEqual(rc,0)
 
