@@ -1063,7 +1063,7 @@ def tftpboot_location():
     (make,version) = os_release()
     if make == "fedora" and version >= 9:
         return "/var/lib/tftpboot"
-    elif make =="redhat" and version >= 6:
+    elif make in ("redhat","centos") and version >= 6:
         return "/var/lib/tftpboot"
     elif make == "suse":
         return "/srv/tftpboot"
