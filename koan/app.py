@@ -920,7 +920,7 @@ class Koan:
 
             (make, version) = utils.os_release()
 
-            if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
+            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
 
                 # embed the initrd in the kickstart file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
@@ -1010,7 +1010,7 @@ class Koan:
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
+            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
 
                 # embed the initrd in the kickstart file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
@@ -1159,7 +1159,7 @@ class Koan:
         return r"""
         cd /var/spool/koan
         mkdir initrd
-        gzip -dc %s > initrd.tmp
+        gzip -dc %s > initrd.tmp || xz -dc %s > initrd.tmp
         if mount -o loop -t ext2 initrd.tmp initrd >&/dev/null ; then
             cp ks.cfg initrd/
             ln initrd/ks.cfg initrd/tmp/ks.cfg
