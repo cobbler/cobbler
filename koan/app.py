@@ -1831,7 +1831,7 @@ class Koan:
                         raise InfoException, "LVM creation failed"
 
                 # partition location
-                partition_location = "/dev/mapper/%s-%s" % (vgname,lvname.replace('-','--'))
+                partition_location = "/dev/mapper/%s-%s" % (vgname.replace('-','--'),lvname.replace('-','--'))
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
