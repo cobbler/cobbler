@@ -16,6 +16,7 @@
             ## about VLANs.
             #set $is_vlan = "true"
             #set $vlanid = " --vlanid=" + $iname.split('.')[1]
+            #set $iname = $iname.split('.')[0]
         #else
             #set $is_vlan = "false"
         #end if
