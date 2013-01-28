@@ -10,10 +10,13 @@
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["netmask"]
         #set $type     = $idata["interface_type"]
+        #set $vlanid   = ""
         #if $vlanpattern.match($iname) or $type in ("master","bond","bridge")
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
             #set $is_vlan = "true"
+            #set $vlanid = " --vlanid=" + $iname.split('.')[1]
+            #set $iname = $iname.split('.')[0]
         #else
             #set $is_vlan = "false"
         #end if
@@ -43,6 +46,10 @@
             #end if
         #else
             #set $network_str = "--bootproto=dhcp"
+
+        #end if
+        #if $vlanid != ""
+            #set $network_str = $network_str + $vlanid
         #end if
 network $network_str --device=$iname
     #end for
