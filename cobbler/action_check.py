@@ -84,6 +84,7 @@ class BootCheck:
        self.check_service(status, "cobblerd")
     
        self.check_bootloaders(status)
+       self.check_for_wget_curl(status)
        self.check_rsync_conf(status)
        self.check_httpd(status)
        self.check_iptables(status)
@@ -269,6 +270,15 @@ class BootCheck:
        if rc.find("BIND") == -1:
            status.append("named is not installed and/or in path")
        
+   def check_for_wget_curl(self,status):
+       """
+       Check to make sure wget or curl is installed
+       """
+       rc1 = utils.subprocess_call(self.logger,"which wget")
+       rc2 = utils.subprocess_call(self.logger,"which curl")
+       if rc1 != 0 and rc2 != 0:
+           status.append("Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one of these utilities be installed.")
+
    def check_bootloaders(self,status):
        """
        Check if network bootloaders are installed
