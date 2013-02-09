@@ -157,6 +157,54 @@ span.context-tip:hover {
 
 #filter-adder { margin-top: 5px; }
 
+/* menu classes */
+#contextmenu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #888;
+  padding: 3px 3px 3px 3px;
+}
+
+.menu {
+}
+.menu ul {
+  margin: 0px;
+  padding: 0px;
+  padding-left: 5px;
+  list-style-type: none;
+  width: 90%;
+}
+.menu li {
+ width: 100%;
+}
+.menu li:not(.first) {
+ border-top: 1px solid #c9c9c9;
+}
+.menu a {
+ display: block;
+ padding-top:2px;
+ padding-left:5px;
+ padding-right:5px;
+ padding-bottom:2px;
+ font-size:0.9em;
+ font-weight:normal;
+ width:100%
+ color: #0b044b;
+}
+.menu a:link, .menu a:visited {
+ font-weight:normal;
+ text-decoration: none;
+ color: #0b044b;
+}
+.menu a:hover {
+ color: #fff;
+ background-color: #444;
+}
+.menu a.current {
+ font-weight:bolder;
+}
+
 /* 
   jQuery UI formatting for tabs, some styling based on examples here:
   http://keith-wood.name/uiTabs.html 
