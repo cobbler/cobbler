@@ -19,7 +19,7 @@ distros = [
  {"name":"sl62-x86_64", "desc":"Scientific Linux 6.2 x86_64", "path":"/vagrant/distros/sl62_x86_64"},
  {"name":"f16-x86_64", "desc":"Fedora 16 x86_64", "path":"/vagrant/distros/f16_x86_64"},
  {"name":"f17-x86_64", "desc":"Fedora 17 x86_64", "path":"/vagrant/distros/f17_x86_64"},
- {"name":"f18beta-x86_64", "desc":"Fedora 18 BETA(TC6) x86_64", "path":"/vagrant/distros/f18_beta_tc6_x86_64"},
+ {"name":"f18-x86_64", "desc":"Fedora 18 x86_64", "path":"/vagrant/distros/f18_x86_64"},
 ]
 
 for i in range(0,len(distros)):
