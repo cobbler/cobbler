@@ -1746,6 +1746,13 @@ class CobblerXMLRPCInterface:
             raise CX("authorization failure for user %s" % user) 
         return rc
 
+    def get_authn_module_name(self, token):
+        validated = self.__validate_token(token)
+        user = self.get_user_from_token(token)
+        if user != "<DIRECT>":
+          raise CX("authorization failure for user %s attempting to access authn module name" %user)
+        return self.api.get_module_name_from_file("authentication", "module")
+
     def login(self,login_user,login_password):
         """
         Takes a username and password, validates it, and if successful

@@ -938,6 +938,13 @@ class BootAPI:
         """
         return module_loader.get_module_from_file(section,name,fallback)
 
+    def get_module_name_from_file(self,section,name,fallback=None):
+        """
+        Looks up a module the same as get_module_from_file but returns
+        the module name rather than the module itself
+        """
+        return module_loader.get_module_from_file(section,name,fallback,just_name=True)
+
     def get_modules_in_category(self,category):
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
