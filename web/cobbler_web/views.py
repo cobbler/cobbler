@@ -1250,6 +1250,22 @@ def test_user_authenticated(request):
 
     remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
 
+    token = remote.login("", utils.get_shared_secret())
+    if ( (remote.get_authn_module_name(token) == 'authn_passthru' and 
+          request.META.has_key('REMOTE_USER')) and
+         ( (request.session.has_key('username') and
+            request.META['REMOTE_USER'] != request.session['username']) or
+           (not request.session.has_key('username')))):
+              try:
+                  username = request.META['REMOTE_USER'] 
+                  password = utils.get_shared_secret()
+                  token = remote.login(username, password)
+              except:
+                  token = None
+              if token:
+                  request.session['username'] = username
+                  request.session['token'] = token 
+  
     # if we have a token, get the associated username from
     # the remote server via XMLRPC. We then compare that to 
     # the value stored in the session.  If everything matches up,
