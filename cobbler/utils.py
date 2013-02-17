@@ -269,7 +269,7 @@ def is_mac(strdata):
     # needs testcase
     if strdata is None:
         return False
-    if re.search(r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',strdata, re.IGNORECASE):
+    if re.search(r'^[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}$',strdata, re.IGNORECASE):
         return True
     return False
 
