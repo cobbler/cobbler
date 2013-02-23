@@ -116,6 +116,7 @@ SIGNATURE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
+_re_is_mac = re.compile(':'.join(('[0-9A-F][0-9A-F]',)*6) + '$', re.IGNORECASE)
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
@@ -266,12 +267,9 @@ def is_mac(strdata):
     """
     Return whether the argument is a mac address.
     """
-    # needs testcase
     if strdata is None:
         return False
-    if re.search(r'^[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}$',strdata, re.IGNORECASE):
-        return True
-    return False
+    return bool(_re_is_mac.match(strdata))
 
 def get_random_mac(api_handle,virt_type="xenpv"):
     """
