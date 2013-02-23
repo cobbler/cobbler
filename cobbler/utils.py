@@ -116,7 +116,7 @@ SIGNATURE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
-_re_is_mac = re.compile(':'.join(('[0-9A-F][0-9A-F]',)*6) + '$', re.IGNORECASE)
+_re_is_mac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',)*6) + '$')
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
