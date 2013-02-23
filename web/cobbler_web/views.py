@@ -195,10 +195,14 @@ def get_fields(what, is_subobject, seed_item=None):
             else:
                 tokens = []
                 for (x,y) in elem["value"].items():
-                   if y is not None and y.strip() != "~":
+                   if isinstance(y,str) and y.strip() != "~":
                       y = y.replace(" ","\\ ")
                       tokens.append("%s=%s" % (x,y))
-                   else:
+                   elif isinstance(y,list):
+                      for l in y:
+                         l = l.replace(" ","\\ ")
+                         tokens.append("%s=%s" % (x,l))
+                   elif y != None:
                       tokens.append("%s" % x)
                 elem["value"] = " ".join(tokens)
 

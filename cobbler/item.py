@@ -174,7 +174,7 @@ class Item:
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=True)
         if not success:
             raise CX(_("invalid kernel options"))
         else:
@@ -193,7 +193,7 @@ class Item:
         Post kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a hash.
         """
-        (success, value) = utils.input_string_or_hash(options,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=True)
         if not success:
             raise CX(_("invalid post kernel options"))
         else:
@@ -213,7 +213,7 @@ class Item:
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(options,allow_multiples=True)
         if not success:
             return False
         else:
@@ -257,7 +257,7 @@ class Item:
         A comma seperated list of source=destination templates
         that should be generated during a sync.
         """
-        (success, value) = utils.input_string_or_hash(template_files,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(template_files,allow_multiples=False)
         if not success:
             return False
         else:
@@ -276,7 +276,7 @@ class Item:
         A comma seperated list of req_name=source_file_path
         that should be fetchable via tftp 
         """
-        (success, value) = utils.input_string_or_hash(boot_files,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(boot_files,allow_multiples=False)
         if not success:
             return False
         else:
@@ -296,7 +296,7 @@ class Item:
         A comma seperated list of virt_name=path_to_template
         that should be fetchable via tftp or a webserver
         """
-        (success, value) = utils.input_string_or_hash(fetchable_files,allow_multiples=inplace)
+        (success, value) = utils.input_string_or_hash(fetchable_files,allow_multiples=False)
         if not success:
             return False
         else:
