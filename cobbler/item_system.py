@@ -133,6 +133,21 @@ class System(item.Item):
 
         return True
 
+    def rename_interface(self,names):
+        """
+        Used to rename an interface.
+        """
+        (name,newname) = names
+        if not self.interfaces.has_key(name):
+            raise CX(_("Interface %s does not exist" % name))
+        if self.interfaces.has_key(newname):
+            raise CX(_("Interface %s already exists" % newname))
+        else:
+            self.interfaces[newname] = self.interfaces[name]
+            del self.interfaces[name]
+
+        return True
+
     def __get_interface(self,name):
 
         if name == "" and len(self.interfaces.keys()) == 1:

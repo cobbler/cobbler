@@ -1992,6 +1992,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         # system object
         parser.add_option("--interface", dest="interface", help="which interface to edit")
         parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
+        parser.add_option("--rename-interface", dest="rename_interface")
 
 
 def get_remote_methods_from_fields(obj,fields):
@@ -2006,6 +2007,7 @@ def get_remote_methods_from_fields(obj,fields):
     if obj.COLLECTION_TYPE == "system":
        ds["modify_interface"] = getattr(obj,"modify_interface")
        ds["delete_interface"] = getattr(obj,"delete_interface")
+       ds["rename_interface"] = getattr(obj,"rename_interface")
     return ds
 
 def get_power_types():
