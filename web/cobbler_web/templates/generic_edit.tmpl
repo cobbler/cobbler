@@ -73,6 +73,7 @@ function populate_widgets()
     buf = buf + "<select name='interfaces' id='interfaces' onchange='javascript:on_interface_change()'>";
     buf = buf + "</select>";
     buf = buf + "<input class='button' type='button' name='deleteinterface' value='Delete' onclick='javascript:on_interface_delete()' />";
+    buf = buf + "<input class='button' type='button' name='renameinterface' value='Rename' onclick='javascript:on_interface_rename()' />";
     document.getElementById("widget_network_widget_b").innerHTML = buf;
 
     buf = "";
@@ -151,6 +152,26 @@ function on_interface_delete()
     interfaces.selectedIndex = 0
     load_intf()
 } 
+
+function on_interface_rename()
+{
+    selected = get_selected_interface();
+    var newname = window.prompt("Rename Interface",selected);
+    if (newname == null || newname == selected) {
+        return;
+    }
+
+    interface_table[newname] = jQuery.extend(true, {}, interface_table[selected]);
+    interface_table[selected]["present"] = 0
+
+    interfaces = document.getElementById("interfaces");
+    for (i = interfaces.options.length - 1; i>=0; i--) {
+        if (interfaces.options[i].value == selected) {
+            interfaces.options[i].text = newname;
+            interfaces.options[i].value = newname;
+        }
+    }
+}
 
 function get_enabled_field(field,enabled)
 {
