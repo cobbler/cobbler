@@ -852,6 +852,9 @@ class CobblerXMLRPCInterface:
             return 1
    
     def __is_interface_field(self,f):
+        if f in ("delete_interface","rename_interface"):
+           return True
+
         k = "*%s" % f
         for x in item_system.FIELDS:
            if k == x[0]:
@@ -909,8 +912,7 @@ class CobblerXMLRPCInterface:
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
             for (k,v) in attributes.iteritems():
-                if not object_type == "system" or not self.__is_interface_field(k):
-
+                if object_type != "system" or not self.__is_interface_field(k):
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
                     if k in ["ks_meta","kernel_options","kernel_options_post","template_files","boot_files","fetchable_files"] and attributes.has_key("in_place") and attributes["in_place"]:
@@ -929,12 +931,15 @@ class CobblerXMLRPCInterface:
                 else:
                     modkey = "%s-%s" % (k, attributes.get("interface",""))
                     imods[modkey] = v
-            if object_type == "system" and not attributes.has_key("delete_interface"):
-                self.modify_system(handle, 'modify_interface', imods, token)
-            elif object_type == "system":
-                self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
 
-
+            if object_type == "system":
+                if not attributes.has_key("delete_interface") and not attributes.has_key("rename_interface"):
+                    self.modify_system(handle, 'modify_interface', imods, token)
+                elif attributes.has_key("delete_interface"):
+                    self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
+                elif attributes.has_key("rename_interface"):
+                    ifargs = [attributes.get("interface",""),attributes.get("rename_interface","")]
+                    self.modify_system(handle, 'rename_interface', ifargs, token)
         else:
            self.remove_item(object_type, object_name, token, recursive=True)
            return True
