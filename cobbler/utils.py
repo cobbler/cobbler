@@ -1445,7 +1445,7 @@ def set_virt_file_size(self,num):
     try:
         inum = int(num)
         if inum != float(num):
-            return CX(_("invalid virt file size (%s)" % num))
+            raise CX(_("invalid virt file size (%s)" % num))
         if inum >= 0:
             self.virt_file_size = inum
             return True
@@ -1485,9 +1485,9 @@ def set_virt_auto_boot(self,num):
         if (inum == 0) or (inum == 1):
             self.virt_auto_boot = inum
             return True
-        return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+        raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
-        return CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+        raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
 def set_virt_pxe_boot(self,num):
@@ -1503,9 +1503,9 @@ def set_virt_pxe_boot(self,num):
         if (inum == 0) or (inum == 1):
             self.virt_pxe_boot = inum
             return True
-        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+        raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
-        return CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+        raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
     return True
 
 def set_virt_ram(self,num):
@@ -1523,13 +1523,13 @@ def set_virt_ram(self,num):
     try:
         inum = int(num)
         if inum != float(num):
-            return CX(_("invalid virt ram size (%s)" % num))
+            raise CX(_("invalid virt ram size (%s)" % num))
         if inum >= 0:
             self.virt_ram = inum
             return True
-        return CX(_("invalid virt ram size (%s)" % num))
+        raise CX(_("invalid virt ram size (%s)" % num))
     except:
-        return CX(_("invalid virt ram size (%s)" % num))
+        raise CX(_("invalid virt ram size (%s)" % num))
     return True
 
 def set_virt_type(self,vtype):
