@@ -2,7 +2,8 @@
 
 # Set the language and language support
 lang en_US
-langsupport en_US
+# uncomment for legacy system (e.g. RHEL4)
+# langsupport en_US
 
 # Set the keyboard
 keyboard "us"
