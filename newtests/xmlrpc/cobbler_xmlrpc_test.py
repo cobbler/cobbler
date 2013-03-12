@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 import sys
@@ -7,6 +8,7 @@ import xmlrpclib
 
 from cobbler import utils
 from cobbler import item_distro
+import cexceptions
 
 FAKE_INITRD="initrd-2.6.15-1.2054_FAKE.img"
 FAKE_INITRD2="initrd-2.5.16-2.2055_FAKE.img"
@@ -19,10 +21,15 @@ cleanup_dirs = []
 
 class CobblerXMLRPCTest(unittest.TestCase):
    server = None
+
    def setUp(self):
       """
       Sets up Cobbler API connection and logs in
       """
+
+      logging.basicConfig( stream=sys.stderr )
+      self.logger = logging.getLogger( self.__class__.__name__ )
+      self.logger.setLevel( logging.DEBUG )
 
       self.url_api = utils.local_get_cobbler_api_url()
       self.url_xmlrpc = utils.local_get_cobbler_xmlrpc_url()
@@ -49,14 +56,72 @@ class CobblerXMLRPCTest(unittest.TestCase):
       self.fk_kernel2 = os.path.join(self.topdir, FAKE_KERNEL2)
       self.fk_kernel3 = os.path.join(self.topdir, FAKE_KERNEL3)
 
+      self.redhat_kickstart = os.path.join(self.topdir, "test.ks")
+      self.ubuntu_preseed = os.path.join(self.topdir, "test.seed")
+
       create = [ 
          self.fk_initrd, self.fk_initrd2, self.fk_initrd3,
          self.fk_kernel, self.fk_kernel2, self.fk_kernel3, 
+         self.redhat_kickstart, self.ubuntu_preseed,
       ]
       for fn in create:
          f = open(fn,"w+")
          f.close()
 
+      self.distro_fields = [
+        # TODO: fetchable files, boot files, etc.
+        # field_name, good value(s), bad value(s)
+        # ["",["",],["",]],
+        ["name",["testdistro0",],[]],
+        ["kernel",[self.fk_kernel,],["",]],
+        ["initrd",[self.fk_initrd,],["",]],
+        ["breed",["generic",],["badversion",]],
+        ["os_version",["generic26",],["bados",]],
+        ["arch",["i386","x86_64","ppc","ppc64"],["badarch",]],
+        ["comment",["test comment",],[]],
+        ["owners",["user1 user2 user3",],[]],
+        ["kernel_options",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["kernel_options_post",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["ks_meta",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["mgmt_classes",["one two three",],[]],
+        ["redhat_management_key",["abcd1234",],[]],
+        ["redhat_management_server",["1.1.1.1",],[]],
+      ]
+
+      self.profile_fields = [
+        # TODO: fetchable files, boot files, etc.
+        #       repos, which have to exist
+        # field_name, good value(s), bad value(s)
+        # ["",["",],["",]],
+        ["name",["testprofile0",],[]],
+        ["distro",["testdistro0",],["baddistro",]],
+        ["enable_gpxe",["yes","YES","1","0","no"],[]],
+        ["enable_menu",["yes","YES","1","0","no"],[]],
+        ["comment",["test comment",],[]],
+        ["owners",["user1 user2 user3",],[]],
+        ["kernel_options",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["kernel_options_post",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["ks_meta",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
+        ["kickstart",[self.redhat_kickstart,self.ubuntu_preseed],["/path/to/bad/kickstart",]],
+        ["proxy",["testproxy",],[]],
+        ["virt_auto_boot",["1","0"],["yes","no"]],
+        ["virt_cpus",["<<inherit>>","1","2"],["a",]],
+        ["virt_file_size",["<<inherit>>","5","10"],["a",]],
+        ["virt_disk_driver",["<<inherit>>","raw","qcow2","vmdk"],[]],
+        ["virt_ram",["<<inherit>>","256","1024"],["a",]],
+        ["virt_type",["<<inherit>>","xenpv","xenfv","qemu","kvm","vmware","openvz"],["bad",]],
+        ["virt_bridge",["<<inherit>>","br0","virbr0","xenbr0"],[]],
+        ["virt_path",["<<inherit>>","/path/to/test",],[]],
+        ["dhcp_tag",["","foo"],[]],
+        ["server",["1.1.1.1",],[]],
+        ["name_servers",["1.1.1.1 1.1.1.2 1.1.1.3",],[]],
+        ["name_servers_search",["example.com foo.bar.com",],[]],
+        ["mgmt_classes",["one two three",],[]],
+        ["mgmt_parameters",["<<inherit>>",],["badyaml",]], # needs more test cases that are valid yaml
+        ["redhat_management_key",["abcd1234",],[]],
+        ["redhat_management_server",["1.1.1.1",],[]],
+        ["template_remote_kickstarts",["yes","YES","1","0","no"],[]],
+      ]
    def tearDown(self):
       """
       Cleanup here
@@ -70,36 +135,39 @@ class Test_A_Create(CobblerXMLRPCTest):
    def test_00_create_distro(self):
       """Tests creation of a distro object"""
       distro = self.remote.new_distro(self.token)
-      self.assertTrue(self.remote.modify_distro(distro,"name","testdistro0",self.token))
-      self.assertTrue(self.remote.modify_distro(distro,"kernel",self.fk_kernel,self.token))
-      self.assertTrue(self.remote.modify_distro(distro,"initrd",self.fk_initrd,self.token))
-      self.assertTrue(self.remote.modify_distro(distro,"breed","generic",self.token))
-      self.assertTrue(self.remote.modify_distro(distro,"os_version","generic26",self.token))
-      # test fields
-      #for field in item_distro.FIELDS:
-      #   (fname,def1,def2,display,editable,tooltip,values,type) = field
-      #   if fname not in ["name","kernel","initrd","breed","os_version","boot_files"] and editable:
-      #      if values and isinstance(values,list):
-      #         fvalue = random.choice(values)
-      #      else:
-      #          fvalue = "testing_" + fname
-      #      self.assertTrue(self.remote.modify_distro(distro,fname,fvalue,self.token))
+      for field in self.distro_fields:
+         (fname,fgood,fbad) = field
+         for fb in fbad:
+             try:
+                self.remote.modify_distro(distro,fname,fb,self.token)
+             except:
+                pass
+             else:
+                self.fail("bad field (%s=%s) did not raise an exception" % (fname,fb))
+         for fg in fgood:
+             try:
+                self.assertTrue(self.remote.modify_distro(distro,fname,fg,self.token))
+             except:
+                self.fail("good field (%s=%s) raised an exception" % (fname,fg))
       self.assertTrue(self.remote.save_distro(distro,self.token))
 
    def test_01_create_profile(self):
       """Tests creation of a profile object"""
       profile = self.remote.new_profile(self.token)
-      self.assertTrue(self.remote.modify_profile(profile,"name","testprofile0",self.token))
-      self.assertTrue(self.remote.modify_profile(profile,"distro","testdistro0",self.token))
-      # test fields
-      #for field in item_profile.FIELDS:
-      #   (fname,def1,def2,display,editable,tooltip,values,type) = field
-      #   if fname not in ["name","distro","parent"] and editable:
-      #      if values and isinstance(values,list):
-      #         fvalue = random.choice(values)
-      #      else:
-      #          fvalue = "testing_" + fname
-      #      self.assertTrue(self.remote.modify_profile(profile,fname,fvalue,self.token))
+      for field in self.profile_fields:
+         (fname,fgood,fbad) = field
+         for fb in fbad:
+             try:
+                self.remote.modify_profile(profile,fname,fb,self.token)
+             except:
+                pass
+             else:
+                self.fail("bad field (%s=%s) did not raise an exception" % (fname,fb))
+         for fg in fgood:
+             try:
+                self.assertTrue(self.remote.modify_profile(profile,fname,fg,self.token))
+             except:
+                self.fail("good field (%s=%s) raised an exception" % (fname,fg))
       self.assertTrue(self.remote.save_profile(profile,self.token))
 
    def test_02_create_subprofile(self):
