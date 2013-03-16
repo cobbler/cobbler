@@ -224,6 +224,10 @@ def main():
                  dest="noreboot", default=False,	# default to False for koan backwards compatibility
                  action="store_true",
                  help="pass the --noreboot argument to virt-install")
+    p.add_option("", "--import",
+                 dest="osimport", default=False,	# default to False for koan backwards compatibility
+                 action="store_true",
+                 help="pass the --import argument to virt-install")
 
     (options, args) = p.parse_args()
 
@@ -261,6 +265,7 @@ def main():
         k.qemu_machine_type   = options.qemu_machine_type
         k.virtinstall_wait    = options.wait
         k.virtinstall_noreboot= options.noreboot
+        k.virtinstall_osimport= options.osimport
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -324,6 +329,7 @@ class Koan:
         self.virt_pxe_boot     = None
         self.virtinstall_wait  = None
         self.virtinstall_noreboot = None
+        self.virtinstall_osimport = None
 
         # This option adds the --copy-default argument to /sbin/grubby
         # which uses the default boot entry in the grub.conf
@@ -1416,7 +1422,8 @@ class Koan:
                 qemu_net_type     =  self.qemu_net_type,
                 qemu_machine_type =  self.qemu_machine_type,
                 wait              =  self.virtinstall_wait,
-                noreboot          =  self.virtinstall_noreboot
+                noreboot          =  self.virtinstall_noreboot,
+                osimport          =  self.virtinstall_osimport,
         )
 
         #print results
@@ -1768,7 +1775,7 @@ class Koan:
                 if self.force_path:
                     return location
                 else:
-		    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
+                    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):
