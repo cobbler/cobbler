@@ -132,7 +132,8 @@ def build_commandline(uri,
                       qemu_net_type=None,
                       qemu_machine_type=None,
                       wait=0,
-                      noreboot=False):
+                      noreboot=False,
+                      osimport=False):
 
     # Set flags for CLI arguments based on the virtinst_version
     # tuple above. Older versions of python-virtinst don't have
@@ -158,6 +159,11 @@ def build_commandline(uri,
         disable_machine_type = True
         oldstyle_macs = True
         oldstyle_accelerate = True
+
+    import_exists = False # avoid duplicating --import parameter
+    disable_extra = False # disable --extra-args on --import
+    if osimport:
+        disable_extra = True
 
     is_import = uri.startswith("import")
     if is_import:
@@ -287,7 +293,7 @@ def build_commandline(uri,
         elif oldstyle_accelerate:
             cmd += "--accelerate "
 
-        if is_qemu and extra and not virt_pxe_boot:
+        if is_qemu and extra and not(virt_pxe_boot) and not(disable_extra):
             cmd += ("--extra-args=\"%s\" " % (extra))
 
         if virt_pxe_boot or is_xen:
@@ -298,6 +304,7 @@ def build_commandline(uri,
             cmd += "--location %s " % location
         elif importpath:
             cmd += "--import "
+            import_exists = True
 
         if arch:
             cmd += "--arch %s " % arch
@@ -357,6 +364,8 @@ def build_commandline(uri,
     cmd += "--wait %d " % int(wait)
     if noreboot:
         cmd += "--noreboot "
+    if osimport and not(import_exists):
+        cmd += "--import "
     cmd += "--noautoconsole "
 
     return shlex.split(cmd.strip())
