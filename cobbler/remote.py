@@ -255,8 +255,11 @@ class CobblerXMLRPCInterface:
     def background_power_system(self, options, token):
         def runner(self):
             for x in self.options.get("systems",[]):
-                object_id = self.remote.get_system_handle(x,token)
-                self.remote.power_system(object_id,self.options.get("power",""),token,logger=self.logger)
+                try:
+                    object_id = self.remote.get_system_handle(x,token)
+                    self.remote.power_system(object_id,self.options.get("power",""),token,logger=self.logger)
+                except:
+                    self.logger.warning("failed to execute power task on %s" % str(x))
             return True
         self.check_access(token, "power")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power",""), options)
