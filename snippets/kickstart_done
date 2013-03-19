@@ -45,7 +45,7 @@
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esxi4'
             #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
-        #else if $breed == 'debian'
+        #else if $breed == 'debian' or $breed == 'ubuntu'
             #set runpost = "wget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null;" % (srv, "system", system_name)
         #end if
     #end if
