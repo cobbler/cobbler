@@ -1937,61 +1937,64 @@ def matches_args(args, list_of):
     return False
 
 def add_options_from_fields(object_type, parser, fields, object_action):
-    for elem in fields:
-        k = elem[0] 
-        if k.find("widget") != -1:
-            continue
-        # scrub interface tags so all fields get added correctly.
-        k = k.replace("*","")
-        default = elem[1]
-        nicename = elem[3]
-        tooltip = elem[5]
-        choices = elem[6]
-        if field_info.ALTERNATE_OPTIONS.has_key(k):
-            niceopt = field_info.ALTERNATE_OPTIONS[k]
-        else:
-            niceopt = "--%s" % k.replace("_","-")
-        desc = nicename
-        if tooltip != "":
-            desc = nicename + " (%s)" % tooltip
+    if object_action in ["add","edit","find","copy","rename"]:
+        for elem in fields:
+            k = elem[0] 
+            if k.find("widget") != -1:
+                continue
+            # scrub interface tags so all fields get added correctly.
+            k = k.replace("*","")
+            default = elem[1]
+            nicename = elem[3]
+            tooltip = elem[5]
+            choices = elem[6]
+            if field_info.ALTERNATE_OPTIONS.has_key(k):
+                niceopt = field_info.ALTERNATE_OPTIONS[k]
+            else:
+                niceopt = "--%s" % k.replace("_","-")
+            desc = nicename
+            if tooltip != "":
+                desc = nicename + " (%s)" % tooltip
 
-        aliasopt = []
-        for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
-            if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
-                aliasopt.append("--%s" % deprecated_field)
+            aliasopt = []
+            for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+                if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
+                    aliasopt.append("--%s" % deprecated_field)
 
-        if isinstance(choices, list) and len(choices) != 0:
-            desc = desc + " (valid options: %s)" % ",".join(choices)    
-            parser.add_option(niceopt, dest=k, help=desc, choices=choices)
-            for alias in aliasopt:
-                parser.add_option(alias, dest=k, help=desc, choices=choices)
-        else:
-            parser.add_option(niceopt, dest=k, help=desc)
-            for alias in aliasopt:
-                parser.add_option(alias, dest=k, help=desc)
+            if isinstance(choices, list) and len(choices) != 0:
+                desc = desc + " (valid options: %s)" % ",".join(choices)    
+                parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+                for alias in aliasopt:
+                    parser.add_option(alias, dest=k, help=desc, choices=choices)
+            else:
+                parser.add_option(niceopt, dest=k, help=desc)
+                for alias in aliasopt:
+                    parser.add_option(alias, dest=k, help=desc)
 
+        if object_type == "system":
+            # system object
+            parser.add_option("--interface", dest="interface", help="the interface to operate on (can only be specified once per command line)")
+            if object_action in ["add","edit"]:
+                parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
+                parser.add_option("--rename-interface", dest="rename_interface")
 
-    # FIXME: not supported in 2.0?
-    if not object_action in ["dumpvars","find","remove","report","list"] and object_type != "setting": 
-        # FIXME: implement
-        parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-        parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
-    if object_action in ["copy","rename"]:
-        parser.add_option("--newname", help="new object name")
+        if object_action in ["copy","rename"]:
+            parser.add_option("--newname", help="new object name")
+
+        if object_action not in ["find",] and object_type != "setting": 
+            parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+            parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
+
+    elif object_action == "remove":
+        parser.add_option("--name", help="%s name to remove" % object_type)
+        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+
     # FIXME: not supported in 2.0 ?
     #if not object_action in ["dumpvars","find","remove","report","list"]: 
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
     # FIXME: not supported in 2.0 ?
     # if not matches_args(args,["dumpvars","report","list"]):
     #    parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
-    if object_action in ["remove"]:
-        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
-    if object_type == "system":
-        # system object
-        parser.add_option("--interface", dest="interface", help="which interface to edit")
-        parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
-        parser.add_option("--rename-interface", dest="rename_interface")
-
 
 def get_remote_methods_from_fields(obj,fields):
     """
