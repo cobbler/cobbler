@@ -16,7 +16,7 @@ class CobblerImportTest(unittest.TestCase):
       """
       for d in self.imported_distros:
          try:
-             (data,rc) = utils.subprocess_sp(None,["cobbler","distro","remove","--name=%s" % d],shell=False)
+             (data,rc) = utils.subprocess_sp(None,["cobbler","distro","remove","--recursive","--name=%s" % d],shell=False)
          except:
              print "Failed to remove distro '%s' during cleanup" % d
 
