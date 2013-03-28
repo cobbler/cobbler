@@ -341,7 +341,7 @@ class BootCLI:
         task_id = -1 # if assigned, we must tail the logfile
         
         fields = self.get_fields(object_type)
-        if object_action in [ "add", "edit", "copy", "rename", "find" ]:
+        if object_action in [ "add", "edit", "copy", "rename", "find", "remove" ]:
             utils.add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in [ "list" ]:
             pass

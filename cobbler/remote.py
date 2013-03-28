@@ -944,8 +944,8 @@ class CobblerXMLRPCInterface:
                     ifargs = [attributes.get("interface",""),attributes.get("rename_interface","")]
                     self.modify_system(handle, 'rename_interface', ifargs, token)
         else:
-           self.remove_item(object_type, object_name, token, recursive=True)
-           return True
+           recursive = attributes.get("recursive",False)
+           return self.remove_item(object_type, object_name, token, recursive=recursive)
 
         # FIXME: use the bypass flag or not?
         return self.save_item(object_type, handle, token)
