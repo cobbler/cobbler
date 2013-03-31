@@ -54,7 +54,7 @@ def authenticate(api_handle,username,password):
 
     server    = api_handle.settings().ldap_server
     basedn    = api_handle.settings().ldap_base_dn
-    port      = api_handle.settings().ldap_port
+    port      = str(api_handle.settings().ldap_port)
     tls       = api_handle.settings().ldap_tls
     anon_bind = api_handle.settings().ldap_anonymous_bind
     prefix    = api_handle.settings().ldap_search_prefix
