@@ -14,7 +14,7 @@ try:
 except:
     converage = None
 
-VERSION = "2.3.1"
+VERSION = "2.5.0"
 OUTPUT_DIR = "config"
 
 
