@@ -201,20 +201,16 @@ echo "TYPE=Ethernet" >> $devfile
 #          the kernel gives an interface a different name
 #          following a reboot/hardware changes.
             #end if
+echo "BOOTPROTO=none" >> $devfile
             #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
                 ## Only configure static networking if an IP-address is configured
                 ## and if the interface isn't slaved to another interface (bridging or bonding)
-echo "BOOTPROTO=static" >> $devfile
 echo "IPADDR=$ip" >> $devfile
                 #if $netmask == ""
                     ## Default to 255.255.255.0?
                     #set $netmask = "255.255.255.0"
                 #end if
 echo "NETMASK=$netmask" >> $devfile
-            #else
-                ## Leave the interface unconfigured
-                ## we don't have enough info for static configuration
-echo "BOOTPROTO=none" >> $devfile
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
                 #if $ipv6_address != ""
