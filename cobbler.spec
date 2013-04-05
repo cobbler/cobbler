@@ -334,6 +334,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Wed Apr 03 2013 James Cammarata <jimi@sngx.net> 2.4.0-beta4
+- 2.4.0-beta4 release
 * Wed Dec 12 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta3
 - New release 2.4.0-beta3
 * Thu Oct 11 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta2
