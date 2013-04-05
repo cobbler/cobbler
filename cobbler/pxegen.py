@@ -547,7 +547,7 @@ class PXEGen:
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_arm.template")
-                    elif distro.os_version.startswith("esxi"):
+                    elif distro and distro.os_version.startswith("esxi"):
                         # ESXi uses a very different pxe method, using more files than
                         # a standard kickstart and different options - so giving it a dedicated
                         # PXE template makes more sense than shoe-horning it into the existing
