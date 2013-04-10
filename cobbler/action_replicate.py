@@ -48,9 +48,13 @@ class Replicate:
            logger     = clogger.Logger()
         self.logger   = logger
 
-    def rsync_it(self,from_path,to_path):
+    def rsync_it(self,from_path,to_path,type=None):
         from_path = "%s::%s" % (self.host, from_path)
-        cmd = "rsync %s %s %s" % (self.settings.replicate_rsync_options, from_path, to_path)
+        if type == 'repo':
+           cmd = "rsync %s %s %s" % (self.settings.replicate_repo_rsync_options, from_path, to_path)
+        else:
+           cmd = "rsync %s %s %s" % (self.settings.replicate_rsync_options, from_path, to_path)
+
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             self.logger.info("rsync failed")
@@ -190,7 +194,7 @@ class Replicate:
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
-                    self.rsync_it("repo-%s"%repo, os.path.join(self.settings.webdir,"repo_mirror",repo))
+                    self.rsync_it("repo-%s"%repo, os.path.join(self.settings.webdir,"repo_mirror",repo),"repo")
                     
             self.logger.info("Rsyncing distro repo configs")
             self.rsync_it("cobbler-distros/config", os.path.join(self.settings.webdir,"ks_mirror"))
