@@ -688,10 +688,15 @@ class PXEGen:
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
+                gpxe = blended["enable_gpxe"]
+                if gpxe:
+                    append_line = append_line.replace('ksdevice=bootif','ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, kickstart_path)
+            elif distro.breed == "freebsd":
+                append_line = "%s ks=%s" % (append_line, kickstart_path)
 
                 # rework kernel options for debian distros
                 translations = { 'ksdevice':"interface" , 'lang':"locale" }
@@ -875,6 +880,7 @@ class PXEGen:
        else:
            obj = self.api.find_system(name=name)
            distro = obj.get_conceptual_parent().get_conceptual_parent()
+           netboot_enabled = obj.netboot_enabled
 
        # For multi-arch distros, the distro name in ks_mirror
        # may not contain the arch string, so we need to figure out
@@ -917,6 +923,13 @@ class PXEGen:
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi4.template" % what.lower())
            elif distro.os_version == 'esxi5':
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi5.template" % what.lower())
+       elif distro.breed == 'freebsd':
+           template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
+
+       if what == "system":
+           if not netboot_enabled:
+               template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_local.template" % what.lower())
+
 
        if not template:
            return "# unsupported breed/os version"
