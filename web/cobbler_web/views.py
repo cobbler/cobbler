@@ -6,6 +6,9 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.views.decorators.http import require_POST
 
+import logging
+logger = logging.getLogger("cobbler")
+
 try:
     from django.views.decorators.csrf import csrf_protect
 except:
@@ -1250,21 +1253,25 @@ def test_user_authenticated(request):
 
     remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
 
+    logger.info("in test_user_authenticated()")
     token = remote.login("", utils.get_shared_secret())
     if ( (remote.get_authn_module_name(token) == 'authn_passthru' and 
           request.META.has_key('REMOTE_USER')) and
          ( (request.session.has_key('username') and
             request.META['REMOTE_USER'] != request.session['username']) or
            (not request.session.has_key('username')))):
+              logger.debug("attempting passthru auth of REMOTE_USER=%s" % request.META['REMOTE_USER'])
               try:
                   username = request.META['REMOTE_USER'] 
                   password = utils.get_shared_secret()
                   token = remote.login(username, password)
               except:
+                  logger.debug("passthru of REMOTE_USER=%s failed" % request.META['REMOTE_USER'])
                   token = None
               if token:
                   request.session['username'] = username
                   request.session['token'] = token 
+                  logger.debug("passthru of REMOTE_USER=%s OK!" % request.META['REMOTE_USER'])
   
     # if we have a token, get the associated username from
     # the remote server via XMLRPC. We then compare that to 
@@ -1322,6 +1329,7 @@ def do_login(request):
 @require_POST
 @csrf_protect
 def do_logout(request):
+    logger.info("logging out")
     request.session['username'] = ""
     request.session['token'] = ""
     return HttpResponseRedirect("/cobbler_web")
