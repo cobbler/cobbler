@@ -26,7 +26,7 @@ The main advantage of cobbler is that it glues together many disjoint technologi
 
 This manpage will focus on the cobbler command line tool for use in configuring cobbler.  There is also mention
 of the Cobbler WebUI which is usable for day-to-day operation of Cobbler once installed/configured.  Docs on
-the API and XMLRPC components are available online at http://cobbler.github.com.
+the API and XMLRPC components are available online at http://www.cobblerd.org.
 
 Most users will be interested in the Web UI and should set it up, though the command line is needed for initial configuration -- in particular "cobbler check" and "cobbler import", as well as the repo mirroring features.  All of these are described later in the documentation.
 
@@ -957,7 +957,7 @@ Triggers provide a way to integrate cobbler with arbitrary 3rd party software wi
 
 =head2 API
 
-Cobbler also makes itself available as an XMLRPC API for use by higher level management software.  Learn more at http://cobbler.github.com.  
+Cobbler also makes itself available as an XMLRPC API for use by higher level management software.  Learn more at http://www.cobblerd.org.  
 
 =head2 WEB USER INTERFACE
 
@@ -987,7 +987,7 @@ Cobbler has a mailing list for user and development-related questions/comments a
 
 IRC channel:  irc.freenode.net (#cobbler)
 
-Official web site, bug tracker, and Wiki: http://cobbler.github.com
+Official web site, bug tracker, and Wiki: http://www.cobblerd.org
 
 =head1 AUTHOR
 
