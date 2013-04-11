@@ -86,7 +86,7 @@ class BuildIso:
             return str(self.distctr)
 
   
-    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
+    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None,force_server=None):
         self.logger.info("copying kernels and initrds for profiles")
         # copy all images in included profiles to images dir
         for profile in self.api.profiles():
@@ -152,6 +152,8 @@ class BuildIso:
                 if dist.name.find("-xen") != -1:
                     continue
                 data = utils.blender(self.api, True, profile)
+                if force_server:
+                    data["server"] = force_server
                 distname = self.make_shorter(dist.name)
 
                 cfg.write("\n")
@@ -164,6 +166,12 @@ class BuildIso:
                         data["server"],
                         profile.name
                     )
+                else:
+                    if force_server:
+                        # replace configured hostname with the forced one
+                        data["kickstart"] = re.sub(r'://.*?/',
+                                '://' + data["server"] + '/',
+                                data["kickstart"])
 
                 append_line = "  append initrd=%s.img" % distname
                 append_line = append_line + " ks=%s " % data["kickstart"]
@@ -199,6 +207,8 @@ class BuildIso:
                    if dist.name.find("-xen") != -1:
                        continue
                    data = utils.blender(self.api, True, system)
+                   if force_server:
+                       data["server"] = force_server
                    distname = self.make_shorter(dist.name)
 
                    cfg.write("\n")
@@ -211,6 +221,12 @@ class BuildIso:
                            data["server"],
                            system.name
                        )
+                   else:
+                       if force_server:
+                           # replace configured hostname with the forced one
+                           data["kickstart"] = re.sub(r'://.*?/',
+                                   '://' + data["server"] + '/',
+                                   data["kickstart"])
 
                    append_line = "  append initrd=%s.img" % distname
                    append_line = append_line + " ks=%s" % data["kickstart"]
@@ -352,7 +368,7 @@ class BuildIso:
         return
 
 
-    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None):
+    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None,force_server=None):
 
         self.settings = self.config.settings()
 
@@ -417,14 +433,14 @@ class BuildIso:
         files = [ isolinuxbin, menu, chain ]
         for f in files:
             if not os.path.exists(f):
-               utils.die(self.logger,"Required file not found: %s" % f)
+               utils.die(self.logger,"Required file not found: %s. Try 'yum install cobbler-loaders'." % f)
             else:
                utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
 
         if standalone:
             self.generate_standalone_iso(imagesdir,isolinuxdir,distro,source)
         else:
-            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns)
+            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns,force_server)
 
         # removed --quiet
         cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
