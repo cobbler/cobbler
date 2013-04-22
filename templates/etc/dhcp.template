@@ -67,6 +67,8 @@ group {
         #if $iface.enable_gpxe:
         if exists user-class and option user-class = "gPXE" {
             filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+        } else if exists user-class and option user-class = "iPXE" {
+            filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
         } else {
             filename "undionly.kpxe";
         }
