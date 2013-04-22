@@ -166,7 +166,6 @@ if __name__ == "__main__":
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
-    augeaspath  = "/usr/share/augeas/lenses/"
 
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
@@ -240,9 +239,6 @@ if __name__ == "__main__":
             ("%sreporting" % etcpath,       ["templates/reporting/*"]),
             ("%spower" % etcpath,           ["templates/power/*"]),
             ("%sldap" % etcpath,            ["templates/ldap/*"]),
-
-            #Miscellaneous Files
-            ("%s" % augeaspath,                ["misc/augeas/*"]),
 
             #Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath,       []),

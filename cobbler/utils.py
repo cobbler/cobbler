@@ -69,11 +69,6 @@ try:
 except ImportError:
     NETADDR_PRE_0_7 = False
 
-try:
-    import augeas
-except:
-    pass
-
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -594,28 +589,15 @@ def input_boolean(value):
     else:
        return False
 
-def update_settings_file(name,value):
-    try:
-        clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
-        a = augeas.Augeas()
-        if isinstance(value,list):
-            a.remove('/files/etc/cobbler/settings/%s/list' % name)
-            for item in value:
-                a.set('/files/etc/cobbler/settings/%s/list/value[last()+1]' % name, item)
-        elif isinstance(value,dict):
-            keys = value.keys()
-            keys.sort()
-            a.remove('/files/etc/cobbler/settings/%s/*' % name)
-            for key in keys:
-                if str(value[key]).strip() == "":
-                    value[key] = '~'
-                a.set('/files/etc/cobbler/settings/%s/%s' % (name,key), str(value[key]))
-        else:
-            a.set('/files/etc/cobbler/settings/%s' % name, value)
-        a.save()
+def update_settings_file(data):
+    if 1:#try:
+        #clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
+        settings_file = file("/etc/cobbler/settings","w")
+        yaml.safe_dump(data,settings_file)
+        settings_file.close()
         return True
-    except:
-        return False
+    #except:
+    #    return False
 
 def grab_tree(api_handle, obj):
     """
