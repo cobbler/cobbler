@@ -180,7 +180,7 @@ class IscManager:
         # we are now done with the looping through each interface of each system
         metadata = {
            "date"           : time.asctime(time.gmtime()),
-           "cobbler_server" : self.settings.server,
+           "cobbler_server" : "%s:%s" % (self.settings.server,self.settings.http_port),
            "next_server"    : self.settings.next_server,
            "elilo"          : elilo,
            "yaboot"         : yaboot,
