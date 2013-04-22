@@ -95,7 +95,6 @@ class BootCheck:
        self.check_for_unreferenced_repos(status)
        self.check_for_unsynced_repos(status)
        self.check_for_cman(status)
-       self.check_dynamic_settings(status)
 
        return status
 
@@ -446,18 +445,3 @@ class BootCheck:
        else:
            status.append(_("missing file: %(file)s") % { "file" : self.settings.dhcpd_conf })
 
-   def check_dynamic_settings(self,status):
-       """
-       Checks to see if the settings file is spaced cleanly
-       so that the augeas lens will rewrite it without corrupting
-       the YAML format. Only applies if the setting 
-       allow_dynamic_settings = 1
-       """
-       try:
-           if self.settings.allow_dynamic_settings != 1:
-               return
-           else:
-               status.append(_("Dynamic settings changes are enabled, be sure you run \"sed -i 's/^[[:space:]]\+/ /' /etc/cobbler/settings\" to ensure the settings file is properly indented"))
-       except:
-           pass
-       return

@@ -240,7 +240,9 @@ class Settings:
                raise AttributeError, "failed to set %s to %s" % (name,str(value))
            
            self.__dict__[name] = value
-           utils.update_settings_file(name,value)
+           if not utils.update_settings_file(self.to_datastruct()):
+               raise AttributeError, "failed to save the settings file!"
+               
            return 0
        else:
            raise AttributeError, name
