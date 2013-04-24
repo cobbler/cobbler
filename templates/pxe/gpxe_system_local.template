@@ -1,0 +1,4 @@
+#!gpxe
+# Boot from local hard disk
+iseq ${smbios/manufacturer} HP && exit ||
+sanboot --no-describe --drive 0x80
