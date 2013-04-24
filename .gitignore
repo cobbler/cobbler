@@ -27,3 +27,4 @@ config/version
 cobbler4j/src/main/java/org/fedorahosted/cobbler/autogen
 cobbler4j/user.properties
 cobbler4j/target
+/cobbler-2.4.0.tar.gz

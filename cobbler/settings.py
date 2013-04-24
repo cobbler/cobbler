@@ -107,6 +107,7 @@ DEFAULTS = {
     "redhat_management_server"            : ["xmlrpc.rhn.redhat.com","str"],
     "register_new_installs"               : [0,"bool"],
     "replicate_rsync_options"             : ["-avzH", "str"],
+    "replicate_repo_rsync_options"        : ["-avzH", "str"],
     "reposync_flags"                      : ["-l -m -d","str"],
     "restart_dns"                         : [1,"bool"],
     "restart_dhcp"                        : [1,"bool"],

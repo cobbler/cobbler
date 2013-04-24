@@ -8,7 +8,7 @@ Name: cobbler
 License: GPLv2+
 AutoReq: no
 Version: 2.4.0
-Release: beta4%{?dist}
+Release: beta5%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -334,6 +334,10 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Mon Apr 22 2013 James Cammarata <jimi@sngx.net> 2.4.0-beta5
+- A few bugfixes and rebuilding the RPM because of a goof
+  (jimi@sngx.net)
+
 * Wed Apr 03 2013 James Cammarata <jimi@sngx.net> 2.4.0-beta4
 - 2.4.0-beta4 release
 * Wed Dec 12 2012 James Cammarata <jimi@sngx.net> 2.4.0-beta3
