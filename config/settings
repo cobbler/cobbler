@@ -431,3 +431,9 @@ yumdownloader_flags: "--resolve"
 
 # sort and indent JSON output to make it more human-readable
 serializer_pretty_json: 0
+
+# replication rsync options for distros, kickstarts, snippets set to override default value of "-avzH"
+replicate_rsync_options: "-avzH"
+
+# replication rsync options for repos set to override default value of "-avzH"
+replicate_repo_rsync_options: "-avzH"
