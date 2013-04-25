@@ -42,7 +42,7 @@ import utils
 import string
 import pprint
 
-# usage: cobbler-register [--server=server] [--hostname=hostname] --profile=foo
+# usage: cobbler-register [--server=server] [--fqdn=hostname] --profile=foo
 
 
 def main():
