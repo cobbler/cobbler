@@ -4,7 +4,7 @@ cobbler-register - create a cobbler system record
 
 =head1 SYNOPSIS
 
-cobbler-register [--server=<cobbler.example.org>] --profile=<cobbler-profile-name> [--hostname=<hostname>] 
+cobbler-register [--server=<cobbler.example.org>] --profile=<cobbler-profile-name> [--fqdn=<hostname>] 
 
 =head1 DESCRIPTION
  
@@ -14,7 +14,7 @@ Running cobbler-register on a system will create a cobbler system record for tha
 
 When installing new machines into a cobbler managed datacenter/lab, it helps to not have to manually enter in the network information for those systems.  Using cobbler register either from a kickstart or a live environment (or even SSH) can help seed the cobbler database.
 
-Network information is discovered automatically for all physical interfaces.  cobbler-register will attempt to discover the hostname, though if 'localhost.localdomain' is found, it will have to use some other data for the cobbler system record.  This is probably not what you want, so specify --hostname in this instance to override that registration value.
+Network information is discovered automatically for all physical interfaces.  cobbler-register will attempt to discover the hostname, though if 'localhost.localdomain' is found, it will have to use some other data for the cobbler system record.  This is probably not what you want, so specify --fqdn in this instance to override that registration value.
 
 For this to work, the "register_new_installs" setting must be enabled on the remote cobbler server. 
 
