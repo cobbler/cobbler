@@ -277,8 +277,9 @@ class Replicate:
              self.logger.debug("* Adding Repos Required By Profiles")
              for p in self.must_include["profile"].keys():
                  repos = self.remote_dict["profile"][p].get("repos",[])
-                 for r in repos:
-                     self.must_include["repo"][r] = 1
+                 if repos != "<<inherit>>":
+                     for r in repos:
+                         self.must_include["repo"][r] = 1
 
              # include all images that systems require
              # whether they are explicitly included or not
