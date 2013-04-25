@@ -232,7 +232,7 @@ class Distro(item.Item):
 
         if utils.file_is_remote(self.kernel):
             if not utils.remote_file_exists(self.kernel):
-                raise CX("Error with distro %s - kernel not found" % (self.name))
+                raise CX("Error with distro %s - kernel '%s' not found" % (self.name,self.kernel))
         elif not os.path.exists(self.kernel):
             raise CX("Error with distro %s - kernel not found" % (self.name))
 

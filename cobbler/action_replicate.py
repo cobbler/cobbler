@@ -92,7 +92,7 @@ class Replicate:
                  newobj.from_datastruct(rdata)
                  try:
                      self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
-                     if not self.api.add_item(obj_type, newobj):
+                     if not self.api.add_item(obj_type, newobj,logger=self.logger):
                          self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
                  except Exception, e:
                      utils.log_exc(self.logger)
@@ -132,12 +132,12 @@ class Replicate:
 
         self.local_data  = {}
         self.remote_data = {}
+        self.remote_settings = self.remote.get_settings()
 
         self.logger.info("Querying Both Servers")
         for what in OBJ_TYPES:
             self.remote_data[what] = self.remote.get_items(what)
             self.local_data[what]  = self.local.get_items(what)
-
 
         self.generate_include_map()
 
@@ -155,41 +155,23 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    distro = self.remote.get_item('distro',distro)
-                    self.logger.info("Rsyncing distro %s" % distro["name"]) 
-                    if distro["breed"] == 'redhat':
-                        dest = distro["kernel"]
-                        top = None
-                        while top != 'images' and top != '':
-                            dest, top = os.path.split(dest)
-                        if not dest == os.path.sep and len(dest) > 1:
-                            parentdir = os.path.split(dest)[0]
-                            if not os.path.isdir(parentdir):
-                                os.makedirs(parentdir)
-                            self.rsync_it("distro-%s"%distro["name"], dest)
-                    elif distro["breed"] == 'vmware' and distro["os_version"] == 'esx4':
-                        dest = distro["kernel"]
-                        top = None
-                        while top != 'isolinux' and top != '':
-                            dest, top = os.path.split(dest)
-                        if not dest == os.path.sep and len(dest) > 1:
-                            parentdir = os.path.split(dest)[0]
-                            if not os.path.isdir(parentdir):
-                                os.makedirs(parentdir)
-                            self.rsync_it("distro-%s"%distro["name"], dest)
-                    elif distro["breed"] == 'vmware' and distro["os_version"] in ('esxi4', 'esxi5'):
-                        dest = distro["kernel"]
-                        parentdir = os.path.split(dest)[0]
-                        if not os.path.isdir(parentdir):
-                            os.makedirs(parentdir)
-                        self.rsync_it("distro-%s"%distro["name"], parentdir)
-                    elif distro["breed"] == 'freebsd':
-                        dest = os.path.join(self.settings.webdir, "ks_mirror", distro["name"])
-                        if not os.path.isdir(dest):
-                            os.makedirs(dest)
-                        self.rsync_it("distro-%s"%distro["name"], dest)
-
-
+                    self.logger.info("Rsyncing distro %s" % distro) 
+                    target = self.remote.get_distro(distro)
+                    target_webdir = os.path.join(self.remote_settings["webdir"],"ks_mirror")
+                    tail = utils.path_tail(target_webdir,target["kernel"])
+                    if tail != "":
+                        try:
+                            # path_tail(a,b) returns something that looks like
+                            # an absolute path, but it's really the sub-path
+                            # from a that is contained in b. That means we want
+                            # the first element of the path
+                            dest = os.path.join(self.settings.webdir,"ks_mirror",tail.split("/")[1])
+                            self.rsync_it("distro-%s" % target["name"], dest)
+                        except:
+                            self.logger.error("Failed to rsync distro %s" % distro)
+                            continue
+                    else:
+                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under ks_mirror" % distro)
 
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
@@ -197,7 +179,7 @@ class Replicate:
                     self.rsync_it("repo-%s"%repo, os.path.join(self.settings.webdir,"repo_mirror",repo),"repo")
                     
             self.logger.info("Rsyncing distro repo configs")
-            self.rsync_it("cobbler-distros/config", os.path.join(self.settings.webdir,"ks_mirror"))
+            self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir,"ks_mirror","config"))
             self.logger.info("Rsyncing kickstart templates & snippets")
             self.rsync_it("cobbler-kickstarts","/var/lib/cobbler/kickstarts")
             self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
