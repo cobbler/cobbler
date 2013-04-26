@@ -42,9 +42,11 @@ install: build
 	if [ -n "`getent passwd apache`" ] ; then \
 		python setup.py install -f; \
 		chown -R apache /usr/share/cobbler/web; \
+		chown -R apache /var/lib/cobbler/webui_sessions; \
 	else \
 		python setup.py install -f --install-layout=deb; \
 		chown -R www-data /usr/share/cobbler/web; \
+		chown -R www-data /var/lib/cobbler/webui_sessions; \
 	fi
 
 devinstall:
