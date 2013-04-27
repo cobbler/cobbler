@@ -369,7 +369,9 @@ class BootCLI:
                 try:
                     if object_type == "setting":        
                         settings = self.remote.get_settings()
-                        if not settings.get('allow_dynamic_settings',False):
+                        if options.value == None:
+                            raise RuntimeError("You must specify a --value when editing a setting")
+                        elif not settings.get('allow_dynamic_settings',False):
                             raise RuntimeError("Dynamic settings changes are not enabled. Change the allow_dynamic_settings to 1 and restart cobblerd to enable dynamic settings changes")
                         elif options.name == 'allow_dynamic_settings':
                             raise RuntimeError("Cannot modify that setting live")
