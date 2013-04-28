@@ -921,7 +921,7 @@ class PXEGen:
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_linux.template" % what.lower())
            elif distro.os_version == 'esxi4':
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi4.template" % what.lower())
-           elif distro.os_version == 'esxi5':
+           elif distro.os_version.startswith('esxi5'):
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi5.template" % what.lower())
        elif distro.breed == 'freebsd':
            template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
@@ -974,6 +974,11 @@ class PXEGen:
        blended.update(ksmeta) # make available at top level
 
        blended['distro'] = ks_mirror_name
+
+       if obj.enable_gpxe:
+           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+       else:
+           blended['img_path'] = os.path.join("/images",distro.name)
 
        template = os.path.join(self.settings.pxe_template_dir,"bootcfg_%s_%s.template" % (what.lower(),distro.os_version))
        if not os.path.exists(template):
