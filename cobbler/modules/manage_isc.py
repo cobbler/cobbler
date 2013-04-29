@@ -72,15 +72,32 @@ class IscManager:
         """
 
         template_file = "/etc/cobbler/dhcp.template"
+        template_primary_file = "/etc/cobbler/dhcp_primary.template"
+        template_secondary_file = "/etc/cobbler/dhcp_secondary.template"
+        
+        settings_file_primary = "/etc/cobbler_generated/dhcp/dhcpd_primary.conf"
+        settings_file_secondary = "/etc/cobbler_generated/dhcp/dhcpd_secondary.conf"
+        
         blender_cache = {}
 
         try:
             f2 = open(template_file,"r")
+            f_primary = open(template_primary_file,"r")
+            f_secondary = open(template_secondary_file,"r")
         except:
             raise CX(_("error reading template: %s") % template_file)
         template_data = ""
+        template_data_primary = ""
+        template_data_secondary = ""
+        
         template_data = f2.read()
         f2.close()
+
+        template_data_primary = f_primary.read()
+        f_primary.close()
+
+        template_data_secondary = f_secondary.read()
+        f_secondary.close()
 
         # use a simple counter for generating generic names where a hostname
         # is not available
@@ -190,10 +207,18 @@ class IscManager:
         if self.logger is not None:
             self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
+           
+        if self.logger is not None:
+            self.logger.info("generating %s" % settings_file_primary)
+        self.templar.render(template_data_primary, metadata, settings_file_primary, None)
+        
+        if self.logger is not None:
+            self.logger.info("generating %s" % settings_file_secondary)
+        self.templar.render(template_data_secondary, metadata, settings_file_secondary, None)   
 
     def regen_ethers(self):
         pass # ISC/BIND do not use this
-
-
+    
 def get_manager(config,logger):
     return IscManager(config,logger)
+

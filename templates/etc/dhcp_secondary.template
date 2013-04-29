@@ -3,9 +3,10 @@
 #
 # generated from cobbler dhcp.conf template ($date)
 # Do NOT make changes to /etc/dhcpd.conf. Instead, make your changes
-# in /etc/cobbler/dhcp.template, as /etc/dhcpd.conf will be
+# in /etc/cobbler/dhcp_secondary.template, as /etc/dhcpd.conf will be
 # overwritten.
 #
+# dhcp secondary server configuration template
 # ******************************************************************
 
 ddns-update-style interim;
@@ -17,6 +18,17 @@ ignore client-updates;
 set vendorclass = option vendor-class-identifier;
 
 option pxe-system-type code 93 = unsigned integer 16;
+
+failover peer "dhcp-failover" {
+  secondary; # declare this to be the primary server
+  address 192.168.1.2; #IP-Address of secondary dhcp server
+  port 520;
+  peer address 192.168.1.1; #IP-Address of primary dhcp server
+  peer port 520;
+  max-response-delay 30;
+  max-unacked-updates 10;
+  load balance max seconds 3;
+}
 
 subnet 192.168.1.0 netmask 255.255.255.0 {
      option routers             192.168.1.5;
@@ -39,6 +51,13 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
                   filename "pxelinux.0";
           }
      }
+
+    pool {
+        failover peer "dhcp-failover";
+        max-lease-time 1800; # 30 minutes
+        deny dynamic bootp clients;
+        range 192.168.1.90 192.168.1.200;
+    }
 
 }
 
@@ -67,8 +86,6 @@ group {
         #end if
         #if $iface.enable_gpxe:
         if exists user-class and option user-class = "gPXE" {
-            filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
-        } else if exists user-class and option user-class = "iPXE" {
             filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
         } else {
             filename "undionly.kpxe";
