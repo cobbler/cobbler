@@ -6,6 +6,9 @@ mac_exists() {
   if which ip &> /dev/null; then
     ip -o link | grep -i "$1" &> /dev/null
     return $?
+  elif which esxcfg-nics &> /dev/null; then
+    esxcfg-nics -l | grep -i "$1" &> /dev/null
+    return $?
   else
     ifconfig -a | grep -i "$1" &> /dev/null
     return $?
@@ -14,6 +17,8 @@ mac_exists() {
 get_ifname() {
   if which ip &> /dev/null; then
     IFNAME=$(ip -o link | grep -i "$1" | sed -e 's/^[0-9]*: //' -e 's/:.*//')
+  elif which esxcfg-nics &> /dev/null; then
+    IFNAME=$(esxcfg-nics -l | grep -i "$1" | cut -d " " -f 1)
   else
     IFNAME=$(ifconfig -a | grep -i "$1" | cut -d " " -f 1)
     if [ -z $IFNAME ]; then
