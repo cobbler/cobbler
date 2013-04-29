@@ -229,6 +229,9 @@ echo "IPV6MTU=$ipv6_mtu" >> $devfile
 echo "IPV6_DEFAULTGW=$ipv6_default_gateway" >> $devfile
                 #end if
             #end if
+            #if $len($name_servers) > 0
+echo "PEERDNS=no" >> $devfile
+            #end if
         #else
             ## this is a DHCP interface, much less work to do
 echo "BOOTPROTO=dhcp" >> $devfile
