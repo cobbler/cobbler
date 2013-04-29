@@ -83,24 +83,23 @@ class InTftpdManager:
         # Loop through the hash of boot files,
         # executing a cp for each one
         for file in target["boot_files"].keys():
-            file_dst = templater.render(file,metadata,None)
+            rendered_file = templater.render(file,metadata,None)
             try:
                 for f in glob.glob(target["boot_files"][file]):
-                        rawpath,rawfile=os.path.split(f)
-                        filedst = file_dst+rawfile
-                        if not os.path.isfile(filedst) :
-                                shutil.copyfile(f, filedst)
-                        self.config.api.log("copied file %s to %s for %s" % (
-                                target["boot_files"][file],
-                                filedst,
-                                distro.name))
-
+                    if f == target["boot_files"][file]:
+                        # this wasn't really a glob, so just copy it as is
+                        filedst = rendered_file
+                    else:
+                        # this was a glob, so figure out what the destination
+                        # file path/name should be
+                        tgt_path,tgt_file=os.path.split(f)
+                        rnd_path,rnd_file=os.path.split(rendered_file)
+                        filedst = os.path.join(rnd_path,tgt_file)
+                    if not os.path.isfile(filedst):
+                        shutil.copyfile(f, filedst)
+                    self.config.api.log("copied file %s to %s for %s" % (f,filedst,distro.name))
             except:
-                self.logger.error("failed to copy file %s to %s for %s" % (
-                        target["boot_files"][file],
-                        filedst,
-                    distro.name))
-                # Continue on to sync what you can
+                self.logger.error("failed to copy file %s to %s for %s" % (f,filedst,distro.name))
 
         return 0
 

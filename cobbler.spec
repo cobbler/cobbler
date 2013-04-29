@@ -24,7 +24,6 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
-Requires: mod_ssl
 Requires: createrepo
 Requires: python-cheetah
 Requires: python-netaddr
