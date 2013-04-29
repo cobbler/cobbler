@@ -117,6 +117,10 @@ class PXEGen:
             utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst,
                     require_match=False, api=self.api, cache=False, logger=self.logger)
 
+        # Copy gPXE/iPXE bootloader if it exists
+        utils.copyfile_pattern('/usr/share/*pxe/undionly.kpxe', dst,
+                require_match=False, api=self.api, cache=False, logger=self.logger)
+
         # Copy grub EFI bootloaders if possible:
         utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
