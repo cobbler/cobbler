@@ -13,6 +13,8 @@
             #set runpre = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "system", system_name)
         #else if $breed == 'debian' or $breed == 'ubuntu'
             #set runpre = "wget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "system", system_name)
+        #else if $breed == 'vmware'
+            #set runpre = "wget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null" % (srv, "system", system_name)
         #end if
     #end if
 #else if $profile_name != ''
