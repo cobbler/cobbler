@@ -112,6 +112,7 @@ SIGNATURE_CACHE = {}
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 _re_is_mac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',)*6) + '$')
+_re_is_ibmac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',)*20) + '$')
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
@@ -264,7 +265,7 @@ def is_mac(strdata):
     """
     if strdata is None:
         return False
-    return bool(_re_is_mac.match(strdata))
+    return bool(_re_is_mac.match(strdata) or _re_is_ibmac.match(strdata))
 
 def get_random_mac(api_handle,virt_type="xenpv"):
     """
