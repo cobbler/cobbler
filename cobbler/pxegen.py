@@ -826,9 +826,9 @@ class PXEGen:
             # Run the source and destination files through 
             # templar first to allow for variables in the path 
             template = self.templar.render(template, blended, None).strip()
-            dest     = self.templar.render(dest, blended, None).strip()
+            dest     = os.path.normpath(self.templar.render(dest, blended, None).strip())
             # Get the path for the destination output
-            dest_dir = os.path.dirname(dest)
+            dest_dir = os.path.normpath(os.path.dirname(dest))
 
             # If we're looking for a single template, skip if this ones
             # destination is not it.
@@ -842,7 +842,7 @@ class PXEGen:
             # arbitrary system files (This also makes cleanup easier).
             if os.path.isabs(dest_dir) and write_file:
                 if dest_dir.find(utils.tftpboot_location()) != 0:
-                   raise CX(" warning: template destination (%s) is an absolute path, skipping." % dest)
+                   raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir,utils.tftpboot_location()))
                    continue
             else:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
