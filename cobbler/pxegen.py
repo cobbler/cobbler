@@ -490,6 +490,11 @@ class PXEGen:
 
         if metadata is None:
             metadata = {}
+
+        (rval,settings) = utils.input_string_or_hash(self.settings.to_datastruct())
+        if rval:
+            for key in settings.keys():
+                metadata[key] = settings[key]
         # ---
         # just some random variables
         template = None
@@ -780,6 +785,7 @@ class PXEGen:
         names (after variable substitution is done) and the
         data in the file.
         """
+        self.logger.info("Writing template files for %s" % obj.name)
 
         results = {}
 
@@ -809,6 +815,8 @@ class PXEGen:
         if not success:
             return results
 
+        blended['img_path'] = os.path.join("/images",blended["distro_name"])
+        blended['local_img_path'] = os.path.join(utils.tftpboot_location(),"images",blended["distro_name"])
 
         for template in templates.keys():
             dest = templates[template]
@@ -827,13 +835,14 @@ class PXEGen:
             if not path is None and path != dest:
                continue
 
-            # If we are writing output to a file, force all templated 
-            # configs into the rendered directory to ensure that a user 
-            # granted cobbler privileges via sudo can't overwrite 
+            # If we are writing output to a file, we allow files tobe 
+            # written into the tftpboot directory, otherwise force all 
+            # templated configs into the rendered directory to ensure that 
+            # a user granted cobbler privileges via sudo can't overwrite 
             # arbitrary system files (This also makes cleanup easier).
-            if os.path.isabs(dest_dir):
-               if write_file:
-                   raise CX(" warning: template destination (%s) is an absolute path, skipping." % dest_dir)
+            if os.path.isabs(dest_dir) and write_file:
+                if dest_dir.find(utils.tftpboot_location()) != 0:
+                   raise CX(" warning: template destination (%s) is an absolute path, skipping." % dest)
                    continue
             else:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)

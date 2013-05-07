@@ -71,12 +71,10 @@ class InTftpdManager:
         target      = utils.blender(self.config.api, False, distro)
 
         # Create metadata for the templar function
-        # Right now, just using img_path, but adding more
+        # Right now, just using local_img_path, but adding more
         # cobbler variables here would probably be good
         metadata = {}
-        metadata["img_path"] = os.path.join(
-                                    utils.tftpboot_location(),
-                                    "images",distro.name)
+        metadata["local_img_path"] = os.path.join(utils.tftpboot_location(),"images",distro.name)
 	# Create the templar instance.  Used to template the target directory
 	templater = templar.Templar(self.config)
 
