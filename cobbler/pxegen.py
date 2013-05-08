@@ -895,11 +895,11 @@ class PXEGen:
                blended['file'] = obj.file.replace(self.settings.webdir,"cobbler")
                if not os.path.exists(template):
                    return "# gpxe template not found for the %s named %s (filename=%s)" % (what,name,template)
+
                template_fh = open(template)
                template_data = template_fh.read()
                template_fh.close()
 
-               #return "Image:%s Selected\nFile:%s\nImage Type:%s\nTemplate:%s" % (image,file,image_type,template)
                return self.templar.render(template_data, blended, None)
 
        # For multi-arch distros, the distro name in ks_mirror
