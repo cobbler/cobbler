@@ -881,6 +881,26 @@ class PXEGen:
            obj = self.api.find_system(name=name)
            distro = obj.get_conceptual_parent().get_conceptual_parent()
            netboot_enabled = obj.netboot_enabled
+           image = obj.image
+           if image != "":
+               if netboot_enabled:
+                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_image.template" % what.lower())
+               else:
+                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_local.template" % what.lower())
+
+               obj = self.api.find_image(name=image)
+               image_type = obj.image_type
+               blended = utils.blender(self.api, False, obj)
+               blended['image_type'] = obj.image_type
+               blended['file'] = obj.file.replace(self.settings.webdir,"cobbler")
+               if not os.path.exists(template):
+                   return "# gpxe template not found for the %s named %s (filename=%s)" % (what,name,template)
+               template_fh = open(template)
+               template_data = template_fh.read()
+               template_fh.close()
+
+               #return "Image:%s Selected\nFile:%s\nImage Type:%s\nTemplate:%s" % (image,file,image_type,template)
+               return self.templar.render(template_data, blended, None)
 
        # For multi-arch distros, the distro name in ks_mirror
        # may not contain the arch string, so we need to figure out
