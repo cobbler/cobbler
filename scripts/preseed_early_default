@@ -1,0 +1,4 @@
+# Start preseed_early_default
+# This script is not run in the chroot /target by default
+$SNIPPET('kickstart_start')
+# End preseed_early_default
