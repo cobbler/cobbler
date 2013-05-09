@@ -202,7 +202,7 @@ if __name__ == "__main__":
         package_dir = {
             "cobbler_web": "web/cobbler_web",
         },
-        binscripts = [
+        scripts = [
             "bin/cobbler",
             "bin/cobblerd",
             "bin/cobbler-ext-nodes",
