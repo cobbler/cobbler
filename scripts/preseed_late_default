@@ -1,0 +1,3 @@
+$SNIPPET('post_run_deb')
+$SNIPPET('download_config_files')
+$SNIPPET('kickstart_done')

@@ -93,6 +93,16 @@ class CobblerSvc(object):
         data = self.remote.generate_bootcfg(profile,system)
         return u"%s" % data
 
+    def script(self,profile=None,system=None,**rest):
+        """
+        Generate a script based on snippets. Useful for post
+        or late-action scripts where it's difficult to embed
+        the script in the response file.
+        """
+        self.__xmlrpc_setup()
+        data = self.remote.generate_script(profile,system,rest['query_string']['script'][0])
+        return u"%s" % data
+
     def events(self,user="",**rest):
         self.__xmlrpc_setup()
         if user == "":

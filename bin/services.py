@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import yaml
 import os
 import urllib
+import cgi
 
 from cobbler.services import CobblerSvc
 
@@ -31,26 +32,21 @@ def application(environ, start_response):
     
     form = {}
 
-    if my_uri.find("?") == -1:
-       # support fake query strings
-       # something log /cobbler/web/op/ks/server/foo
-       # which is needed because of xend parser errors
-       # not tolerating ";" and also libvirt on 5.1 not
-       # tolerating "&amp;" (nor "&").
+    # canonicalizes uri, mod_python does this, mod_wsgi does not
+    my_uri = os.path.realpath(my_uri)
 
-       # canonicalizes uri, mod_python does this, mod_wsgi does not
-       my_uri = os.path.realpath(my_uri)
+    tokens = my_uri.split("/")
+    tokens = tokens[3:]
+    label = True
+    field = ""
+    for t in tokens:
+       if label:
+          field = t
+       else:
+          form[field] = t
+       label = not label
 
-       tokens = my_uri.split("/")
-       tokens = tokens[3:]
-       label = True
-       field = ""
-       for t in tokens:
-          if label:
-             field = t
-          else:
-             form[field] = t
-          label = not label
+    form["query_string"] = cgi.parse_qs(environ['QUERY_STRING'])
 
     # This MAC header is set by anaconda during a kickstart booted with the 
     # kssendmac kernel option. The field will appear here as something 
