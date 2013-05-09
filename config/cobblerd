@@ -49,7 +49,7 @@ fi
 RETVAL=0
 
 start() {
-    echo -n $"Starting cobbler daemon: "
+    echo -n "Starting cobbler daemon: "
     if [ -f $SUSE_RELEASE ]; then
         startproc -f -p /var/run/$SERVICE.pid /usr/bin/cobblerd $CONFIG_ARGS
         rc_status -v
@@ -71,7 +71,7 @@ start() {
 }
 
 stop() {
-    echo -n $"Stopping cobbler daemon: "
+    echo -n "Stopping cobbler daemon: "
     if [ -f $SUSE_RELEASE ]; then
         killproc -TERM /usr/bin/cobblerd
         rc_status -v
@@ -132,7 +132,7 @@ case "$1" in
         RETVAL=$?
         ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+        echo "Usage: $0 {start|stop|status|restart|condrestart|reload}"
         exit 1
         ;;
 esac

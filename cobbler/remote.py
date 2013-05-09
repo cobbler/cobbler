@@ -1035,6 +1035,10 @@ class CobblerXMLRPCInterface:
         self._log("generate_bootcfg")
         return self.api.generate_bootcfg(profile,system)
 
+    def generate_script(self,profile=None,system=None,name=None,**rest):
+        self._log("generate_script, name is %s" % str(name))
+        return self.api.generate_script(profile,system,name)
+
     def get_blended_data(self,profile=None,system=None):
         if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
