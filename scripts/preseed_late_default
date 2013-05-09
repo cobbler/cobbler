@@ -1,3 +1,7 @@
+# Start preseed_late_default
+# This script runs in the chroot /target by default
+$SNIPPET('post_install_network_config_deb')
 $SNIPPET('post_run_deb')
 $SNIPPET('download_config_files')
 $SNIPPET('kickstart_done')
+# End preseed_late_default
