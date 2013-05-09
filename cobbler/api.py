@@ -703,6 +703,15 @@ class BootAPI:
 
     # ==========================================================================
 
+    def generate_script(self,profile,system,name):
+        self.log("generate_script")
+        if system:
+            return self.pxegen.generate_script("system",system,name)
+        else:
+            return self.pxegen.generate_script("profile",profile,name)
+
+    # ==========================================================================
+
     def check(self, logger=None):
         """
         See if all preqs for network booting are valid.  This returns
