@@ -33,6 +33,12 @@ d-i mirror/http/hostname string $http_server
 d-i mirror/http/directory string $install_source_directory
 d-i mirror/http/proxy string
 
+#set $os_v = $getVar('os_version','')
+#if $os_v and $os_v.lower()[0] > 'p'
+# Required at least for 12.10+
+d-i live-installer/net-image string http://$http_server/cobbler/links/$distro_name/install/filesystem.squashfs
+#end if
+
 # Suite to install.
 # d-i mirror/suite string precise
 # d-i mirror/udeb/suite string precise
@@ -115,10 +121,19 @@ d-i debian-installer/add-kernel-opts string $kernel_options_post
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
 
+## Figure out if we're kickstarting a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+
 # This first command is run as early as possible, just after preseeding is read.
 # d-i preseed/early_command string [command]
-d-i preseed/early_command string \
-$SNIPPET('kickstart_start')
+d-i preseed/early_command string wget -O- \
+   http://$http_server/cblr/svc/op/script/$what/$name/?script=preseed_early_default | \
+   /bin/sh -s
+
 # This command is run immediately before the partitioner starts. It may be
 # useful to apply dynamic partitioner preseeding that depends on the state
 # of the disks (which may not be visible when preseed/early_command runs).
@@ -130,11 +145,6 @@ $SNIPPET('kickstart_start')
 # directly, or use the apt-install and in-target commands to easily install
 # packages and run commands in the target system.
 # d-i preseed/late_command string [command]
-#if $getVar('system_name','') != ''
-#set $what = "system"
-#else
-#set $what = "profile"
-#end if
 d-i preseed/late_command string wget -O- \
    http://$http_server/cblr/svc/op/script/$what/$name/?script=preseed_late_default | \
    chroot /target /bin/sh -s
