@@ -745,7 +745,11 @@ class PXEGen:
                 else:
                     hostname = system.name
             else:
-                hostname = profile.name
+                # ubuntu at the very least does not like having underscores
+                # in the hostname. 
+                # FIXME: Really this should remove all characters that are 
+                # forbidden in hostnames
+                hostname = profile.name.replace("_","")
 
             # At least for debian deployments configured for DHCP networking
             # this values are not used, but specifying here avoids questions
@@ -1002,4 +1006,41 @@ class PXEGen:
        template_fh.close()
 
        return self.templar.render(template_data, blended, None)
+
+    def generate_script(self,what,objname,script_name):
+       if what == "profile":
+           obj = self.api.find_profile(name=objname)
+       else:
+           obj = self.api.find_system(name=objname)
+
+       if not obj:
+           return "# %s named %s not found" % (what,objname)
+
+       distro = obj.get_conceptual_parent()
+       while distro.get_conceptual_parent():
+           distro = distro.get_conceptual_parent()
+
+       blended = utils.blender(self.api, False, obj)
+
+       ksmeta = blended.get("ks_meta",{})
+       try:
+           del blended["ks_meta"]
+       except:
+           pass
+       blended.update(ksmeta) # make available at top level
+
+       if obj.enable_gpxe:
+           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+       else:
+           blended['img_path'] = os.path.join("/images",distro.name)
+
+       template = os.path.normpath(os.path.join("/var/lib/cobbler/scripts",script_name))
+       if not os.path.exists(template):
+           return "# script template %s not found" % script_name
+
+       template_fh = open(template)
+       template_data = template_fh.read()
+       template_fh.close()
+
+       return self.templar.render(template_data, blended, None, obj)
 

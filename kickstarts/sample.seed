@@ -12,9 +12,9 @@ d-i keyboard-configuration/variantcode string
 
 # netcfg will choose an interface that has link if possible. This makes it
 # skip displaying a list if there is more than one interface.
+#set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
 d-i netcfg/choose_interface select auto
-d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/get_hostname string $myhostname
 
 # If non-free firmware is needed for the network or other hardware, you can
 # configure the installer to always try to load it, without prompting. Or
@@ -29,7 +29,7 @@ d-i clock-setup/ntp-server  string ntp.ubuntu.com
 
 # Setup the installation source
 d-i mirror/country string manual
-d-i mirror/http/hostname string $http_server:$http_port
+d-i mirror/http/hostname string $http_server
 d-i mirror/http/directory string $install_source_directory
 d-i mirror/http/proxy string
 
@@ -102,6 +102,11 @@ d-i passwd/make-user boolean false
 # authentication. Warning: Insecure, not recommended.
 # d-i debian-installer/allow_unauthenticated boolean true
 
+# Individual additional packages to install
+# wget is REQUIRED otherwise quite a few things won't work
+# later in the build (like late-command scripts)
+d-i pkgsel/include string wget
+
 # Use the following option to add additional boot parameters for the
 # installed system (if supported by the bootloader installer).
 # Note: options passed to the installer will be added automatically.
@@ -125,8 +130,11 @@ $SNIPPET('kickstart_start')
 # directly, or use the apt-install and in-target commands to easily install
 # packages and run commands in the target system.
 # d-i preseed/late_command string [command]
-d-i preseed/late_command string chroot /target sh -c ' \
-$SNIPPET('download_config_files_deb')
-$SNIPPET('post_run_deb')
-'; \
-$SNIPPET('kickstart_done')
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+d-i preseed/late_command string wget -O- \
+   http://$http_server/cblr/svc/op/script/$what/$name/?script=preseed_late_default | \
+   chroot /target /bin/sh -s
