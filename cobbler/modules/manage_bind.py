@@ -516,19 +516,28 @@ zone "%(arpa)s." {
                 
             }
 
+
+            if ":" in zone:
+               long_zone = (self.__expand_IPv6(zone + '::1'))[:19]
+               tokens = list(re.sub(':', '', long_zone))
+               tokens.reverse()
+               zone_origin = '.'.join(tokens) + '.ip6.arpa.'
+            else:
+               zone_origin = ''
             # grab zone-specific template if it exists
             try:
                fd = open('/etc/cobbler/zone_templates/%s' % zone)
-               template_data = fd.read()
+               # If this is an IPv6 zone, set the origin to the zone for this
+               # template
+               if zone_origin:
+                  template_data = "\$ORIGIN " + zone_origin + "\n" + fd.read()
+               else:
+                  template_data = fd.read()
                fd.close()
             except:
                # If this is an IPv6 zone, set the origin to the zone for this
                # template
-               if ":" in zone:
-                  long_zone = (self.__expand_IPv6(zone + '::1'))[:19]
-                  tokens = list(re.sub(':', '', long_zone))
-                  tokens.reverse()
-                  zone_origin = '.'.join(tokens) + '.ip6.arpa.'
+               if zone_origin:
                   template_data = "\$ORIGIN " + zone_origin + "\n" + default_template_data
                else:
                   template_data = default_template_data
