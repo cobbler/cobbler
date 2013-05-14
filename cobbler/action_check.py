@@ -171,9 +171,9 @@ class BootCheck:
           re_arches = re.compile(r'@arches=')
           for line in f.readlines():
              if re_dists.search(line) and not line.strip().startswith("#"):
-                 status.append(_("comment 'dists' on /etc/debmirror.conf for proper debian support"))
+                 status.append(_("comment out 'dists' on /etc/debmirror.conf for proper debian support"))
              if re_arches.search(line) and not line.strip().startswith("#"):
-                 status.append(_("comment 'arches' on /etc/debmirror.conf for proper debian support"))
+                 status.append(_("comment out 'arches' on /etc/debmirror.conf for proper debian support"))
        
 
    def check_name(self,status):

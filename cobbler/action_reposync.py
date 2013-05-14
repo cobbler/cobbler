@@ -480,14 +480,14 @@ class RepoSync:
             mirror = mirror[idx:]
 
             idx = mirror.rfind("/dists/")
-            suite = mirror[idx+7:]
-            mirror = mirror[:idx+1]
+            suite = mirror[idx+7:].replace("/","")
+            mirror = mirror[:idx+1].replace("/","")
 
             mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
 
             # FIXME : flags should come from repo instead of being hardcoded
 
-            rflags = "--passive --nocleanup"
+            rflags = "--nocleanup"
             for x in repo.yumopts:
                 if repo.yumopts[x]:
                     rflags += " %s %s" % ( x , repo.yumopts[x] ) 
