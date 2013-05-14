@@ -40,6 +40,7 @@ import item_system
 
 from utils import _
 
+from types import *
 
 def register():
    """
@@ -72,6 +73,42 @@ class BindManager:
     def regen_hosts(self):
         pass # not used
 
+    def __expand_IPv6(self, address):
+        """
+        Expands an IPv6 address to long format i.e.
+        xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx
+        """
+        # Function by Chris Miller, approved for GLP use, taken verbatim from:
+        # http://forrst.com/posts/Python_Expand_Abbreviated_IPv6_Addresses-1kQ
+        fullAddress = "" # All groups
+        expandedAddress = "" # Each group padded with leading zeroes
+        validGroupCount = 8
+        validGroupSize = 4
+        if "::" not in address: # All groups are already present
+            fullAddress = address
+        else: # Consecutive groups of zeroes have been collapsed with "::"
+            sides = address.split("::")
+            groupsPresent = 0
+            for side in sides:
+                if len(side) > 0:
+                    groupsPresent += len(side.split(":"))
+            if len(sides[0]) > 0:
+                fullAddress += sides[0] + ":"
+            for i in range(0,validGroupCount-groupsPresent):
+                fullAddress += "0000:"
+            if len(sides[1]) > 0:
+                fullAddress += sides[1]
+            if fullAddress[-1] == ":":
+                fullAddress = fullAddress[:-1]
+        groups = fullAddress.split(":")
+        for group in groups:
+            while(len(group) < validGroupSize):
+                group = "0" + group
+            expandedAddress += group + ":"
+        if expandedAddress[-1] == ":":
+            expandedAddress = expandedAddress[:-1]
+        return expandedAddress
+
     def __forward_zones(self):
         """
         Returns a map of zones and the records that belong
@@ -91,9 +128,11 @@ class BindManager:
             for (name, interface) in system.interfaces.iteritems():
                 host = interface["dns_name"]
                 ip   = interface["ip_address"]
+                ipv6   = interface["ipv6_address"]
+                ipv6_sec_addrs = interface["ipv6_secondaries"]
                 if not system.is_management_supported(cidr_ok=False):
                     continue
-                if not host or not ip:
+                if not host:
                     # gotsta have some dns_name and ip or else!
                     continue
                 if host.find(".") == -1:
@@ -113,11 +152,25 @@ class BindManager:
                 if best_match == '': # no match
                    continue
 
-                # strip the zone off the dns_name and append the
-                # remainder + ip to the zone list
+                # strip the zone off the dns_name
                 host = re.sub('\.%s$' % best_match, '', host)
 
-                zones[best_match][host] = ip
+                # Create a list of IP addresses for this host
+                ips = []
+                if ip:
+                   ips.append(ip)
+
+                if ipv6:
+                   ips.append(ipv6)
+
+                if ipv6_sec_addrs:
+                   ips = ips + ipv6_sec_addrs
+
+                if ips:
+                    try:
+                       zones[best_match][host] = ips + zones[best_match][host]
+                    except KeyError:
+                       zones[best_match][host] = ips
 
         return zones
 
@@ -134,42 +187,62 @@ class BindManager:
            reverse_zones = [reverse_zones]
 
         for zone in reverse_zones:
+           # expand and IPv6 zones
+           if ":" in zone:
+              zone = (self.__expand_IPv6(zone + '::1'))[:19]
            zones[zone] = {}
 
         for sys in self.systems:
             for (name, interface) in sys.interfaces.iteritems():
                 host = interface["dns_name"]
                 ip   = interface["ip_address"]
+                ipv6 = interface["ipv6_address"]
+                ipv6_sec_addrs = interface["ipv6_secondaries"]
                 if not sys.is_management_supported(cidr_ok=False):
                     continue
-                if not host or not ip:
+                if not host or ( ( not ip ) and ( not ipv6) ):
                     # gotsta have some dns_name and ip or else!
                     continue
 
-                # match the longest zone!
-                # e.g. if you have an ip 1.2.3.4
-                # if manage_reverse_zones has:
-                # - 1.2
-                # - 1.2.3
-                # then 1.2.3.4 should go in 1.2.3
-                best_match = ''
-                for zone in zones.keys():
-                   if re.search('^%s\.' % zone, ip) and len(zone) > len(best_match):
-                      best_match = zone
+                if ip:
+                    # match the longest zone!
+                    # e.g. if you have an ip 1.2.3.4
+                    # if manage_reverse_zones has:
+                    # - 1.2
+                    # - 1.2.3
+                    # then 1.2.3.4 should go in 1.2.3
+                    best_match = ''
+                    for zone in zones.keys():
+                        if re.search('^%s\.' % zone, ip) and len(zone) > len(best_match):
+                            best_match = zone
 
-                if best_match == '': # no match
-                   continue
+                    if best_match != '':
+                        # strip the zone off the front of the ip
+                        # reverse the rest of the octets
+                        # append the remainder + dns_name
+                        ip = ip.replace(best_match, '', 1)
+                        if ip[0] == '.': # strip leading '.' if it's there
+                            ip = ip[1:]
+                        tokens = ip.split('.')
+                        tokens.reverse()
+                        ip = '.'.join(tokens)
+                        zones[best_match][ip] = host + '.'
 
-                # strip the zone off the front of the ip
-                # reverse the rest of the octets
-                # append the remainder + dns_name
-                ip = ip.replace(best_match, '', 1)
-                if ip[0] == '.': # strip leading '.' if it's there
-                   ip = ip[1:]
-                tokens = ip.split('.')
-                tokens.reverse()
-                ip = '.'.join(tokens)
-                zones[best_match][ip] = host + '.'
+                if ipv6 or ipv6_sec_addrs:
+                    ip6s = []
+                    if ipv6:
+                       ip6s.append(ipv6)
+                    for each_ipv6 in ip6s + ipv6_sec_addrs:
+                        # convert the IPv6 address to long format
+                        long_ipv6 = self.__expand_IPv6(each_ipv6)
+                        # All IPv6 zones are forced to have the format
+                        # xxxx:xxxx:xxxx:xxxx
+                        zone = long_ipv6[:19]
+                        ipv6_host_part = long_ipv6[20:]
+                        tokens = list(re.sub(':', '', ipv6_host_part))
+                        tokens.reverse()
+                        ip = '.'.join(tokens)
+                        zones[zone][ip] = host + '.'
 
         return zones
 
@@ -197,9 +270,20 @@ zone "%(zone)s." {
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
         for zone in self.__reverse_zones().keys():
-                tokens = zone.split('.')
-                tokens.reverse()
-                arpa = '.'.join(tokens) + '.in-addr.arpa'
+                # IPv6 zones are : delimited
+                if ":" in zone:
+                  # if IPv6, assume xxxx:xxxx:xxxx:xxxx
+                  #                 0123456789012345678
+                  long_zone = (self.__expand_IPv6(zone + '::1'))[:19]
+                  tokens = list(re.sub(':', '', long_zone))
+                  tokens.reverse()
+                  arpa = '.'.join(tokens) + '.ip6.arpa'
+                else:
+                  # IPv4 address split by '.'
+                  tokens = zone.split('.')
+                  tokens.reverse()
+                  arpa = '.'.join(tokens) + '.in-addr.arpa'
+                  #
                 metadata['reverse_zones'].append((zone, arpa))
                 txt = """
 zone "%(arpa)s." {
@@ -247,9 +331,20 @@ zone "%(zone)s." {
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
         for zone in self.__reverse_zones().keys():
-                tokens = zone.split('.')
-                tokens.reverse()
-                arpa = '.'.join(tokens) + '.in-addr.arpa'
+                # IPv6 zones are : delimited
+                if ":" in zone:
+                  # if IPv6, assume xxxx:xxxx:xxxx:xxxx for the zone
+                  #                 0123456789012345678
+                  long_zone = (self.__expand_IPv6(zone + '::1'))[:19]
+                  tokens = list(re.sub(':', '', long_zone))
+                  tokens.reverse()
+                  arpa = '.'.join(tokens) + '.ip6.arpa'
+                else:
+                  # IPv4 zones split by '.'
+                  tokens = zone.split('.')
+                  tokens.reverse()
+                  arpa = '.'.join(tokens) + '.in-addr.arpa'
+                  #
                 metadata['reverse_zones'].append((zone, arpa))
                 txt = """
 zone "%(arpa)s." {
@@ -276,14 +371,29 @@ zone "%(arpa)s." {
 
     def __ip_sort(self, ips):
         """
-        Sorts IP addresses (or partial addresses) in a numerical fashion per-octet
+        Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
         """
-        # strings to integer octet chunks so we can sort numerically
-        octets = map(lambda x: [int(i) for i in x.split('.')], ips)
+        quartets = []
+        octets = []
+        for each_ip in ips:
+          # IPv6 addresses are ':' delimited
+          if ":" in each_ip:
+             # IPv6
+             # strings to integer quartet chunks so we can sort numerically
+             quartets.append([int(i,16) for i in each_ip.split(':')])
+          else:
+             # IPv4
+             # strings to integer octet chunks so we can sort numerically
+             octets.append([int(i) for i in each_ip.split('.')])
+        quartets.sort()
+        # integers back to four character hex strings
+        quartets = map(lambda x: [format(i, '04x') for i in x], quartets)
+        #
         octets.sort()
         # integers back to strings
         octets = map(lambda x: [str(i) for i in x], octets)
-        return ['.'.join(i) for i in octets]
+        #
+        return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
     def __pretty_print_host_records(self, hosts, rectype='A', rclass='IN'):
         """
@@ -306,14 +416,27 @@ zone "%(arpa)s." {
         else:
            names.sort()
 
+
         max_name = max([len(i) for i in names])
 
         s = ""
         for name in names:
            spacing = " " * (max_name - len(name))
            my_name = "%s%s" % (name, spacing)
-           my_host = hosts[name]
-           s += "%s  %s  %s  %s;\n" % (my_name, rclass, rectype, my_host)
+           my_host_record = hosts[name]
+           my_host_list = []
+           if type( my_host_record ) is StringType:
+              my_host_list = [ my_host_record ]
+           else:
+              my_host_list = my_host_record
+           for my_host in my_host_list:
+              my_rectype = rectype[:]
+              if rectype == 'A':
+                 if ":" in my_host:
+                    my_rectype = 'AAAA'
+                 else:
+                    my_rectype = 'A   '
+              s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
         return s
     
     def __pretty_print_cname_records(self, hosts, rectype='CNAME'):
@@ -399,7 +522,16 @@ zone "%(arpa)s." {
                template_data = fd.read()
                fd.close()
             except:
-               template_data = default_template_data
+               # If this is an IPv6 zone, set the origin to the zone for this
+               # template
+               if ":" in zone:
+                  long_zone = (self.__expand_IPv6(zone + '::1'))[:19]
+                  tokens = list(re.sub(':', '', long_zone))
+                  tokens.reverse()
+                  zone_origin = '.'.join(tokens) + '.ip6.arpa.'
+                  template_data = "\$ORIGIN " + zone_origin + "\n" + default_template_data
+               else:
+                  template_data = default_template_data
 
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
