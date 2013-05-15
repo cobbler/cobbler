@@ -80,6 +80,7 @@ FIELDS = [
   ["*management",False,0,"Management Interface",True,"Is this the management interface? Should be used with --interface",0,"bool"],
   ["*static",False,0,"Static",True,"Is this interface static? Should be used with --interface",0,"bool"],
   ["*netmask","",0,"Subnet Mask",True,"Should be used with --interface",0,"str"],
+  ["*gateway","",0,"Per-Interface Gateway",True,"Should be used with --interface",0,"str"],
   ["*dhcp_tag","",0,"DHCP Tag",True,"Should be used with --interface",0,"str"],
   ["*dns_name","",0,"DNS Name",True,"Should be used with --interface",0,"str"],
   ["*static_routes",[],0,"Static Routes",True,"Should be used with --interface",0,"list"],
