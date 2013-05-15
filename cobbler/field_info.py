@@ -136,6 +136,7 @@ BLOCK_MAPPINGS = {
    "*dns_name"       : "Networking",
    "*static_routes"  : "Networking",
    "*netmask"        : "Networking",
+   "*gateway"        : "Networking",
    "*ipv6_address"   : "Networking",
    "*ipv6_secondaries"      : "Networking",
    "*ipv6_mtu"              : "Networking",
