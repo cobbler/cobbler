@@ -62,6 +62,7 @@ echo "" >> /etc/network/interfaces
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
+        #set $gateway              = $idata.get("gateway", "")
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
@@ -113,6 +114,7 @@ echo "  $bridge_opt" >> /etc/network/interfaces
         #if $static
             #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
 echo "iface $iname inet static" >> /etc/network/interfaces 
+echo "   hwaddress $mac" >> /etc/network/interfaces
 echo "   address $ip" >> /etc/network/interfaces 
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 
@@ -146,8 +148,11 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
+        #if $gateway != ""
+echo "   gateway $gateway" >> /etc/network/interfaces
+        #end if
         #if $mtu != ""
-          #pass
+echo "   mtu $mtu" >> /etc/network/interfaces
         #end if
         ## ===================================================================
         ## Interface route configuration
