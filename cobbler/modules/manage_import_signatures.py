@@ -626,44 +626,32 @@ class ImportSignatureManager:
         if apt_available:
             # Example returned URL: http://us.archive.ubuntu.com/ubuntu
             mirror = self.get_repo_mirror_from_apt()
-            if mirror:
-                mirror = mirror + "/dists"
         if not mirror:
-            mirror = "http://archive.ubuntu.com/ubuntu/dists/"
+            mirror = "http://archive.ubuntu.com/ubuntu"
 
         repo = item_repo.Repo(self.config)
-        repo.set_breed( "apt" )
-        repo.set_arch( distro.arch )
-        repo.set_keep_updated( False )
+        repo.set_breed("apt")
+        repo.set_arch(distro.arch)
+        repo.set_keep_updated(True)
+        repo.set_apt_components("main universe") # TODO: make a setting?
+        repo.set_apt_dists("%s %s-updates %s-security" % (distro.os_version,)*3 )
         repo.yumopts["--ignore-release-gpg"] = None
         repo.yumopts["--verbose"] = None
-        repo.set_name( distro.name )
-        repo.set_os_version( distro.os_version )
+        repo.set_name(distro.name)
+        repo.set_os_version(distro.os_version)
 
         if distro.breed == "ubuntu":
-            repo.set_mirror( "%s/%s" % (mirror, distro.os_version) )
+            repo.set_mirror(mirror)
         else:
             # NOTE : The location of the mirror should come from timezone
             repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , distro.os_version ) )
 
-        security_repo = item_repo.Repo(self.config)
-        security_repo.set_breed( "apt" )
-        security_repo.set_arch( distro.arch )
-        security_repo.set_keep_updated( False )
-        security_repo.yumopts["--ignore-release-gpg"] = None
-        security_repo.yumopts["--verbose"] = None
-        security_repo.set_name( distro.name + "-security" )
-        security_repo.set_os_version( distro.os_version )
-        # There are no official mirrors for security updates
-        if distro.breed == "ubuntu":
-            security_repo.set_mirror( "%s/%s-security" % (mirror, distro.os_version) )
-        else:
-            security_repo.set_mirror( "http://security.debian.org/debian-security/dists/%s/updates" % distro.os_version )
-
         self.logger.info("Added repos for %s" % distro.name)
-        repos  = self.config.repos()
+        repos = self.config.repos()
         repos.add(repo,save=True)
-        repos.add(security_repo,save=True)
+        #FIXME:
+        # Add the found/generated repos to the profiles
+        # that were created during the import process
 
     def get_repo_mirror_from_apt(self):
         """

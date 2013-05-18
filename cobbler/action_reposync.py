@@ -479,13 +479,10 @@ class RepoSync:
             host = mirror[:idx]
             mirror = mirror[idx:]
 
-            idx = mirror.rfind("/dists/")
-            suite = mirror[idx+7:].replace("/","")
-            mirror = mirror[:idx+1].replace("/","")
+            dists = ",".join(repo.apt_dists)
+            components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s " % ( method , host , mirror , suite )
-
-            # FIXME : flags should come from repo instead of being hardcoded
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (method,host,mirror,dists,components)
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
