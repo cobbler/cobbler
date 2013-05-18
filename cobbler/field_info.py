@@ -168,6 +168,8 @@ BLOCK_MAPPINGS = {
    "mirror_locally"           : "Advanced",
    "priority"                 : "Advanced",
    "yumopts"                  : "Advanced",
+   "apt_components"         : "Advanced",
+   "apt_dists"              : "Advanced",
    "packages" : "Resources",
    "files"    : "Resources",
    "repos_enabled" : "Management",

@@ -30,6 +30,8 @@ import codes
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
+  ["apt_components","",0,"Apt Components (apt only)",True,"ex: main restricted universe",[],"list"],
+  ["apt_dists","",0,"Apt Dist Names (apt only)",True,"ex: precise precise-updates",[],"list"],
   ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','ppc64','s390', "arm", 'noarch', 'src'],"str"],
   ["breed","",0,"Breed",True,"",codes.VALID_REPO_BREEDS,"str"],
   ["comment","",0,"Comment",True,"Free form text description",0,"str"],
@@ -42,7 +44,6 @@ FIELDS = [
   ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
   ["parent",None,0,"",False,"",0,"str"],
   ["rpm_list",[],0,"RPM List",True,"Mirror just these RPMs (yum only)",0,"list"],
-#  ["os_version","",0,"OS Version",True,"ex: rhel4"],
   ["uid",None,0,"",False,"",0,"str"],
   ["createrepo_flags",'<<inherit>>',0,"Createrepo Flags",True,"Flags to use with createrepo",0,"dict"],
   ["environment",{},0,"Environment Variables",True,"Use these environment variables during commands (key=value, space delimited)",0,"dict"],
@@ -180,6 +181,14 @@ class Repo(item.Item):
 
     def set_mirror_locally(self,value):
         self.mirror_locally = utils.input_boolean(value)
+        return True
+
+    def set_apt_components(self,value):
+        self.apt_components = utils.input_string_or_list(value)
+        return True
+
+    def set_apt_dists(self,value):
+        self.apt_dists = utils.input_string_or_list(value)
         return True
 
     def get_parent(self):
