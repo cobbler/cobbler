@@ -90,10 +90,7 @@ d-i passwd/make-user boolean false
 # d-i apt-setup/security_host string security.ubuntu.com
 # d-i apt-setup/security_path string /ubuntu
 
-# Additional repositories, local[0-9] available
-# d-i apt-setup/local0/repository string \
-#     http://local.server/ubuntu precise main
-# d-i apt-setup/local0/comment string local server
+$SNIPPET('preseed_apt_repo_config')
 
 # Enable deb-src lines
 # d-i apt-setup/local0/source boolean true
