@@ -1,0 +1,24 @@
+# start late_apt_repo_config
+cat<<EOF>/etc/apt/sources.list
+deb http://$http_server/cblr/links/$distro_name $os_version main
+#set $repo_data = $getVar("repo_data",[])
+#for $repo in $repo_data
+ #for $dist in $repo.apt_dists
+ #set $comps = " ".join($repo.apt_components)
+ #if $repo.comment != ""
+# ${repo.comment}
+ #end if
+ #if $repo.arch == "x86_64"
+ #set $rarch = "[arch=amd64]"
+ #else
+ #set $rarch = "[arch=%s]" % $repo.arch
+ #end if
+ #if $repo.mirror_locally
+deb ${rarch} http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
+ #else
+deb ${rarch} ${repo.mirror} $dist $comps
+ #end if
+ #end for
+#end for
+EOF
+# end late_apt_repo_config
