@@ -8,7 +8,7 @@ d-i apt-setup/local${cur}/repository string \
  #if $repo.mirror_locally
       http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
  #else
-      http://${repo.mirror}/cblr/repo_mirror/${repo.name} $dist $comps
+      ${repo.mirror} $dist $comps
  #end if
  #if $repo.comment != ""
 d-i apt-setup/local${cur}/comment string ${repo.comment}
