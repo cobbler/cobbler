@@ -272,15 +272,6 @@ class KickGen:
             urlparts = urlparse.urlsplit(meta["tree"])
             meta["install_source_directory"] = urlparts[2]
 
-        # add in all repo data for repos that belong to the
-        # object chain
-        repo_data = []
-        for r in meta["repos"]:
-            repo = self.api.find_repo(name=r)
-            if repo:
-                repo_data.append(repo)
-        meta["repo_data"] = repo_data
-
         try:
             raw_data = utils.read_file_contents(kickstart_path, self.api.logger,
                     self.settings.template_remote_kickstarts)
