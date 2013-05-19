@@ -671,6 +671,19 @@ def blender(api_handle,remove_hashes, root_obj):
                     if not results.has_key(key):
                         results[key] = interface[key]
 
+    # if the root object is a profile or system, add in all 
+    # repo data for repos that belong to the object chain
+    if root_obj.COLLECTION_TYPE in ("profile","system"):
+        repo_data = []
+        for r in results["repos"]:
+            repo = api_handle.find_repo(name=r)
+            if repo:
+                repo_data.append(repo)
+        # FIXME: sort the repos in the array based on the 
+        #        repo priority field so that lower priority
+        #        repos come first in the array
+        results["repo_data"] = repo_data
+
     http_port = results.get("http_port",80)
     if http_port not in (80, "80"):
        results["http_server"] = "%s:%s" % (results["server"] , http_port)
