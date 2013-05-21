@@ -119,8 +119,27 @@ echo "   address $ip" >> /etc/network/interfaces
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 
                 #end if
+                #if $iface_type in ("master","bond")
+                  #set $bondslaves = ""
+                  #for $bondiname in $ikeys
+                      #set $bondidata                = $interfaces[$bondiname]
+                      #set $bondiface_type           = $bondidata.get("interface_type", "").lower()
+                      #set $bondiface_master         = $bondidata.get("interface_master", "")
+                      #if $bondiface_master == $iname
+                         #set $bondslaves += $bondiname + " "
+                      #end if
+                  #end for
+echo "   bond-slaves $bondslaves" >> /etc/network/interfaces
+		  #for $bondopts in $bonding_opts.split(" ")
+		      #set [$bondkey, $bondvalue] = $bondopts.split("=")
+echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
+                  #end for
+                #end if
             #else
 echo "iface $iname inet manual" >> /etc/network/interfaces 
+            #end if
+            #if $iface_type in ("slave","bond_slave") and $iface_master != ""
+echo "bond-master $iface_master" >> /etc/network/interfaces
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
                 #if $ipv6_address != ""
