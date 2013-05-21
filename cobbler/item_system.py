@@ -80,7 +80,7 @@ FIELDS = [
   ["*management",False,0,"Management Interface",True,"Is this the management interface? Should be used with --interface",0,"bool"],
   ["*static",False,0,"Static",True,"Is this interface static? Should be used with --interface",0,"bool"],
   ["*netmask","",0,"Subnet Mask",True,"Should be used with --interface",0,"str"],
-  ["*gateway","",0,"Per-Interface Gateway",True,"Should be used with --interface",0,"str"],
+  ["*if_gateway","",0,"Per-Interface Gateway",True,"Should be used with --interface",0,"str"],
   ["*dhcp_tag","",0,"DHCP Tag",True,"Should be used with --interface",0,"str"],
   ["*dns_name","",0,"DNS Name",True,"Should be used with --interface",0,"str"],
   ["*static_routes",[],0,"Static Routes",True,"Should be used with --interface",0,"list"],
@@ -163,6 +163,7 @@ class System(item.Item):
                 "dhcp_tag"             : "",
                 "subnet"               : "", # deprecated
                 "netmask"              : "",
+                "if_gateway"           : "",
                 "virt_bridge"          : "",
                 "static"               : False,
                 "interface_type"       : "",
@@ -415,6 +416,13 @@ class System(item.Item):
         intf["netmask"] = netmask
         return True
     
+    def set_if_gateway(self,gateway,interface):
+        intf = self.__get_interface(interface)
+        if gateway == "" or utils.is_ip(gateway):
+            intf["if_gateway"] = gateway
+            return True
+        raise CX(_("invalid gateway: %s" % gateway))
+
     def set_virt_bridge(self,bridge,interface):
         if bridge == "":
             bridge = self.settings.default_virt_bridge
@@ -687,6 +695,7 @@ class System(item.Item):
             if field == "dhcptag"             : self.set_dhcp_tag(value, interface)
             if field == "netmask"             : self.set_netmask(value, interface)
             if field == "subnet"              : self.set_netmask(value, interface)
+            if field == "ifgateway"           : self.set_if_gateway(value, interface)
             if field == "virtbridge"          : self.set_virt_bridge(value, interface)
             if field == "interfacetype"       : self.set_interface_type(value, interface)
             if field == "interfacemaster"     : self.set_interface_master(value, interface)

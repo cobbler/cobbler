@@ -62,7 +62,7 @@ echo "" >> /etc/network/interfaces
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
-        #set $gateway              = $idata.get("gateway", "")
+        #set $if_gateway           = $idata.get("if_gateway", "")
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
@@ -148,8 +148,8 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
-        #if $gateway != ""
-echo "   gateway $gateway" >> /etc/network/interfaces
+        #if $if_gateway != ""
+echo "   gateway $if_gateway" >> /etc/network/interfaces
         #end if
         #if $mtu != ""
 echo "   mtu $mtu" >> /etc/network/interfaces
