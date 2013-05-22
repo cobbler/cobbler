@@ -882,69 +882,55 @@ class PXEGen:
            distro = obj.get_conceptual_parent().get_conceptual_parent()
            netboot_enabled = obj.netboot_enabled
            image = obj.image
-           if image != "":
-               if netboot_enabled:
-                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_image.template" % what.lower())
-               else:
-                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_local.template" % what.lower())
-
-               obj = self.api.find_image(name=image)
-               image_type = obj.image_type
-               blended = utils.blender(self.api, False, obj)
-               blended['image_type'] = obj.image_type
-               blended['file'] = obj.file.replace(self.settings.webdir,"cobbler")
-               if not os.path.exists(template):
-                   return "# gpxe template not found for the %s named %s (filename=%s)" % (what,name,template)
-
-               template_fh = open(template)
-               template_data = template_fh.read()
-               template_fh.close()
-
-               return self.templar.render(template_data, blended, None)
-
-       # For multi-arch distros, the distro name in ks_mirror
-       # may not contain the arch string, so we need to figure out
-       # the path based on where the kernel is stored. We do this 
-       # because some distros base future downloads on the initial
-       # URL passed in, so all of the files need to be at this location
-       # (which is why we can't use the images link, which just contains
-       # the kernel and initrd).
-       ks_mirror_name = string.join(distro.kernel.split('/')[-2:-1],'')
 
        blended = utils.blender(self.api, False, obj)
-
-       ksmeta = blended.get("ks_meta",{})
-       try:
-           del blended["ks_meta"]
-       except:
-           pass
-       blended.update(ksmeta) # make available at top level
-
-       blended['distro'] = distro.name
-       blended['ks_mirror_name'] = ks_mirror_name
-       blended['kernel_name'] = os.path.basename(distro.kernel)
-       blended['initrd_name'] = os.path.basename(distro.initrd)
-
-       if what == "profile":
-           blended['append_line'] = self.build_kernel_options(None,obj,distro,None,None,blended['kickstart'])
+	   
+       if image != "":
+           obj = self.api.find_image(name=image)
+           blended['image_type'] = obj.image_type
+           blended['file'] = obj.file.replace(self.settings.webdir,"cobbler")
        else:
-           blended['append_line'] = self.build_kernel_options(obj,None,distro,None,None,blended['kickstart'])
+           # For multi-arch distros, the distro name in ks_mirror
+           # may not contain the arch string, so we need to figure out
+           # the path based on where the kernel is stored. We do this 
+           # because some distros base future downloads on the initial
+           # URL passed in, so all of the files need to be at this location
+           # (which is why we can't use the images link, which just contains
+           # the kernel and initrd).
+           ks_mirror_name = string.join(distro.kernel.split('/')[-2:-1],'')
+           ksmeta = blended.get("ks_meta",{})
+           try:
+               del blended["ks_meta"]
+           except:
+               pass
+           blended.update(ksmeta) # make available at top level
+           blended['distro'] = distro.name
+           blended['ks_mirror_name'] = ks_mirror_name
+           blended['kernel_name'] = os.path.basename(distro.kernel)
+           blended['initrd_name'] = os.path.basename(distro.initrd)
+           if what == "profile":
+               blended['append_line'] = self.build_kernel_options(None,obj,distro,None,None,blended['kickstart'])
+           else:
+               blended['append_line'] = self.build_kernel_options(obj,None,distro,None,None,blended['kickstart'])
 
        template = None
-       if distro.breed in ['redhat','debian','ubuntu','suse']:
-           # all of these use a standard kernel/initrd setup so
-           # they all use the same gPXE template
-           template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_linux.template" % what.lower())
-       elif distro.breed == 'vmware':
-           if distro.os_version == 'esx4':
-               # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
+       if image != "":
+           template = os.path.join(self.settings.pxe_template_dir,"gpxe%s_image.template" % what.lower())
+       else: 
+           if distro.breed in ['redhat','debian','ubuntu','suse']:
+               # all of these use a standard kernel/initrd setup so
+               # they all use the same gPXE template
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_linux.template" % what.lower())
-           elif distro.os_version == 'esxi4':
-               template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi4.template" % what.lower())
-           elif distro.os_version == 'esxi5':
-               template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi5.template" % what.lower())
-       elif distro.breed == 'freebsd':
-           template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
+           elif distro.breed == 'vmware':
+               if distro.os_version == 'esx4':
+                   # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
+                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_linux.template" % what.lower())
+               elif distro.os_version == 'esxi4':
+                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi4.template" % what.lower())
+               elif distro.os_version == 'esxi5':
+                   template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi5.template" % what.lower())
+           elif distro.breed == 'freebsd':
+               template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
 
        if what == "system":
            if not netboot_enabled:
