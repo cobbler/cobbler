@@ -24,7 +24,6 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
-Requires: mod_ssl
 Requires: createrepo
 Requires: python-cheetah
 Requires: python-netaddr
@@ -269,7 +268,7 @@ Requires: python >= 2.0
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: python-simplejson
-Requires: python-virtinst
+Requires: virt-install
 %endif
 
 
