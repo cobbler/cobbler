@@ -99,6 +99,8 @@ DEFAULTS = {
     "power_management_default_type"       : ["ipmitool","str"],
     "power_template_dir"                  : ["/etc/cobbler/power","str"],
     "puppet_auto_setup"                   : [0,"bool"],
+    "puppet_server"                       : ["puppet","str"],
+    "puppet_version"                      : [2,"int"],
     "pxe_just_once"                       : [0,"bool"],
     "pxe_template_dir"                    : ["/etc/cobbler/pxe","str"],
     "redhat_management_permissive"        : [0,"bool"],
