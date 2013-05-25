@@ -222,6 +222,13 @@ puppetca_path: "/usr/bin/puppet"
 # requires puppet_auto_setup above to be enabled
 remove_old_puppet_certs_automatically: 0
 
+# choose a --server argument when running puppetd/puppet agent during kickstart
+#puppet_server: 'puppet'
+
+# let cobbler know that you're using a newer version of puppet
+# choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
+#puppet_version: 2
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: 0
