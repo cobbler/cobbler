@@ -1079,6 +1079,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
    if what in ("distro","profile","system"):
        __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
+       __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
+       __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
 
    # if editing save the fields in the session for comparison later
    if editmode == "edit":
