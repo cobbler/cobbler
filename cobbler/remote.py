@@ -1069,6 +1069,26 @@ class CobblerXMLRPCInterface:
         results = self.api.get_signatures()
         return self.xmlrpc_hacks(results)
 
+    def get_valid_breeds(self,token=None,**rest):
+        """
+        Return the list of valid breeds as read in
+        from the distro signatures data
+        """
+        self._log("get_valid_breeds",token=token)
+        results = utils.get_valid_breeds()
+        results.sort()
+        return self.xmlrpc_hacks(results)
+
+    def get_valid_os_versions(self,token=None,**rest):
+        """
+        Return the list of valid os_versions as read
+        in from the distro signatures data
+        """
+        self._log("get_valid_os_versions",token=token)
+        results = utils.get_valid_os_versions()
+        results.sort()
+        return self.xmlrpc_hacks(results)
+
     def get_repo_config_for_profile(self,profile_name,**rest):
         """
         Return the yum configuration a given profile should use to obtain
