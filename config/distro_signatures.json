@@ -227,7 +227,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -243,7 +243,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -259,7 +259,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -275,7 +275,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -291,7 +291,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -307,7 +307,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -323,7 +323,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -339,7 +339,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    }

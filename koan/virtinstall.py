@@ -39,6 +39,8 @@ try:
 except:
     virtinst_version = None
 
+from virtinst import osdict
+
 def _sanitize_disks(disks):
     ret = []
     for d in disks:
@@ -321,7 +323,23 @@ def build_commandline(uri,
 
     if breed and breed != "other":
         if os_version and os_version != "other":
-            cmd += "--os-variant %s " % os_version
+            if breed == "suse":
+                suse_version_re = re.compile("^(opensuse[0-9]+)\.([0-9]+)$")
+                if suse_version_re.match(os_version):
+                    os_version = suse_version_re.match(os_version).groups()[0]
+            # make sure virtinst knows about our os_version,
+            # otherwise default it to generic26
+            found = False
+            for type in osdict.OS_TYPES.keys():
+                for variant in osdict.OS_TYPES[type]["variants"].keys():
+                    if os_version == variant:
+                        found = True
+                        break
+            if found:
+                cmd += "--os-variant %s " % os_version
+            else:
+                print ("- warning: virtinst doesn't know this os_version, defaulting to generic26")
+                cmd += "--os-variant generic26 "
         else:
             distro = "unix"
             if breed in [ "debian", "suse", "redhat" ]:

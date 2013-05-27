@@ -679,6 +679,7 @@ class Koan:
         if profile_data["breed"] == "suse":
             kopts = profile_data["kernel_options"]
             options = kopts.split(" ")
+            profile_data["install_tree"] = ""
             for opt in options:
                 if opt.startswith("install="):
                     profile_data["install_tree"] = opt.replace("install=","")

@@ -1533,6 +1533,11 @@ class CobblerXMLRPCInterface:
         obj = self.api.find_system(name=name)
         if obj is not None:
             hash = utils.blender(self.api,True,obj)
+            # FIXME: hackish fix for now, as this is breaking the 
+            #        xmlrpc return because it is an object that
+            #        needs to be flattened (probably)
+            if hash.has_key("repo_data"):
+                hash["repo_data"] = ""
             # Generate a pxelinux.cfg?
             image_based = False
             profile = obj.get_conceptual_parent()
