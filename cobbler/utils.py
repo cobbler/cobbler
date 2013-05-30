@@ -678,7 +678,7 @@ def blender(api_handle,remove_hashes, root_obj):
         for r in results["repos"]:
             repo = api_handle.find_repo(name=r)
             if repo:
-                repo_data.append(repo)
+                repo_data.append(repo.to_datastruct())
         # FIXME: sort the repos in the array based on the 
         #        repo priority field so that lower priority
         #        repos come first in the array
@@ -817,8 +817,15 @@ def __consolidate(node,results):
              results[field].extend(data_item)
              results[field] = uniquify(results[field])
           else:
-             # just override scalars
-             results[field] = data_item
+             # distro field gets special handling, since we don't
+             # want to overwrite it ever.
+             # FIXME: should the parent's field too? It will be over-
+             #        written if there are multiple sub-profiles in
+             #        the chain of inheritance
+             if field == "distro" and not results.has_key(field):
+                results[field] = data_item
+             else:
+                results[field] = data_item
        else:
           results[field] = data_item
 
