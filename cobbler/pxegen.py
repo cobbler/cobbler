@@ -819,8 +819,12 @@ class PXEGen:
         if not success:
             return results
 
-        blended['img_path'] = os.path.join("/images",blended["distro_name"])
-        blended['local_img_path'] = os.path.join(utils.tftpboot_location(),"images",blended["distro_name"])
+        # FIXME: img_path and local_img_path should probably be moved
+        #        up into the blender function to ensure they're consistently
+        #        available to templates across the board
+        if blended["distro_name"]:
+            blended['img_path'] = os.path.join("/images",blended["distro_name"])
+            blended['local_img_path'] = os.path.join(utils.tftpboot_location(),"images",blended["distro_name"])
 
         for template in templates.keys():
             dest = templates[template]
@@ -992,6 +996,9 @@ class PXEGen:
 
        blended['distro'] = ks_mirror_name
 
+       # FIXME: img_path should probably be moved up into the 
+       #        blender function to ensure they're consistently
+       #        available to templates across the board
        if obj.enable_gpxe:
            blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
        else:
@@ -1029,6 +1036,9 @@ class PXEGen:
            pass
        blended.update(ksmeta) # make available at top level
 
+       # FIXME: img_path should probably be moved up into the
+       #        blender function to ensure they're consistently
+       #        available to templates across the board
        if obj.enable_gpxe:
            blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
        else:
