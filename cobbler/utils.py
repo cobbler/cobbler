@@ -822,9 +822,7 @@ def __consolidate(node,results):
              # FIXME: should the parent's field too? It will be over-
              #        written if there are multiple sub-profiles in
              #        the chain of inheritance
-             if field == "distro" and not results.has_key(field):
-                results[field] = data_item
-             else:
+             if field != "distro":
                 results[field] = data_item
        else:
           results[field] = data_item
