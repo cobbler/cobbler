@@ -666,8 +666,18 @@ class PXEGen:
         Builds the full kernel options line.
         """
 
+        management_interface = None
         if system is not None:
             blended = utils.blender(self.api, False, system)
+            # find the first management interface
+            try:
+                for intf in system.interfaces.keys():
+                    if system.interfaces[intf]["management"]:
+                        management_interface = intf
+                        break
+            except:
+                # just skip this then
+                pass
         elif profile is not None:
             blended = utils.blender(self.api, False, profile)
         else:
@@ -704,6 +714,8 @@ class PXEGen:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, kickstart_path)
+                if management_interface:
+                    append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
 

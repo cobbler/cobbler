@@ -108,7 +108,7 @@ $SNIPPET('preseed_apt_repo_config')
 # Individual additional packages to install
 # wget is REQUIRED otherwise quite a few things won't work
 # later in the build (like late-command scripts)
-d-i pkgsel/include string wget
+d-i pkgsel/include string ntp ssh wget
 
 # Use the following option to add additional boot parameters for the
 # installed system (if supported by the bootloader installer).
