@@ -315,7 +315,7 @@ class ImportSignatureManager:
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
-                boot_files += '$img_path/%s=%s/%s ' % (boot_file,self.path,boot_file)
+                boot_files += '$local_img_path/%s=%s/%s ' % (boot_file,self.path,boot_file)
             distro.set_boot_files(boot_files.strip())
 
             self.configure_tree_location(distro)
