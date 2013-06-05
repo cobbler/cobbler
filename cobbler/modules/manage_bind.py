@@ -450,10 +450,10 @@ zone "%(arpa)s." {
         
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
-                cnames = interface["cnames"]
+                cnames = interface.get("cnames")
         
                 try:
-                    if interface["dns_name"] != "":
+                    if interface.get("dns_name") != "":
                         dnsname = interface["dns_name"].split('.')[0] 
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)                    
