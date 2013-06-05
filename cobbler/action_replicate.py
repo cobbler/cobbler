@@ -237,6 +237,7 @@ class Replicate:
                      for remote in self.remote_names[obj_type]:
                          self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
                          if fnmatch.fnmatch(remote, pat):
+                             self.logger.debug("Adding %s for pattern match %s."%(remote, pat))
                              self.must_include[obj_type][remote] = 1
 
              # include all profiles that systems require
@@ -244,8 +245,9 @@ class Replicate:
              self.logger.debug("* Adding Profiles Required By Systems")
              for sys in self.must_include["system"].keys():
                  pro = self.remote_dict["system"][sys].get("profile","")
-                 self.logger.debug("?: requires profile: %s" % pro)
+                 self.logger.debug("?: system %s requires profile %s."%(sys, pro))
                  if pro != "":
+                    self.logger.debug("Adding profile %s for system %s."%(pro, sys))
                     self.must_include["profile"][pro] = 1
 
              # include all profiles that subprofiles require
@@ -258,6 +260,7 @@ class Replicate:
                      parent = self.remote_dict["profile"][pro].get("parent","")
                      if parent != "":
                          if not self.must_include["profile"].has_key(parent):
+                             self.logger.debug("Adding parent profile %s for profile %s."%(parent, pro))
                              self.must_include["profile"][parent] = 1
                              loop_exit = False
                  if loop_exit:
@@ -269,7 +272,7 @@ class Replicate:
              for p in self.must_include["profile"].keys():
                  distro = self.remote_dict["profile"][p].get("distro","")
                  if not distro == "<<inherit>>" and not distro == "~":
-                     self.logger.info("Adding repo %s for profile %s."%(p, distro))
+                     self.logger.debug("Adding distro %s for profile %s."%(distro, p))
                      self.must_include["distro"][distro] = 1
 
              # require any repos that any profiles in the generated list requires
@@ -279,6 +282,7 @@ class Replicate:
                  repos = self.remote_dict["profile"][p].get("repos",[])
                  if repos != "<<inherit>>":
                      for r in repos:
+                         self.logger.debug("Adding repo %s for profile %s."%(r, p))
                          self.must_include["repo"][r] = 1
 
              # include all images that systems require
@@ -286,8 +290,9 @@ class Replicate:
              self.logger.debug("* Adding Images Required By Systems")
              for sys in self.must_include["system"].keys():
                  img = self.remote_dict["system"][sys].get("image","")
-                 self.logger.debug("?: requires profile: %s" % pro)
+                 self.logger.debug("?: system %s requires image %s."%(sys, img))
                  if img != "":
+                    self.logger.debug("Adding image %s for system %s."%(img, sys))
                     self.must_include["image"][img] = 1
 
         # FIXME: remove debug
