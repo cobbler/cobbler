@@ -43,9 +43,7 @@ class Validate:
 
     def run(self):
         """
-        Returns None if there are no errors, otherwise returns a list
-        of things to correct prior to running application 'for real'.
-        (The CLI usage is "cobbler check" before "cobbler sync")
+        Returns True if there are no errors, otherwise False.
         """
 
         if not os.path.exists("/usr/bin/ksvalidator"):
