@@ -1,5 +1,6 @@
+#set $hostname = $getVar("hostname","")
 #if $hostname == ""
-	#set $hostname = $system_name
+#set $hostname = $getVar("system_name","cobbler")
 #end if
 #if $getVar("dns_name_eth0","") != ""
 	#set $my_hostname = $hostname.split('.',1)[:1][0]
@@ -36,6 +37,7 @@
       </nameservers>
     </dns>
     <interfaces config:type="list">
+    #if $getVar("system_name","") != ""
     #set $ikeys = $interfaces.keys()
     #for $iface in $ikeys
       #set $idata         = $interfaces[$iface]
@@ -90,9 +92,11 @@
       </interface>
       #end if
     #end for
+    #end if
     </interfaces>
     <managed config:type="boolean">false</managed>
     <net-udev config:type="list">
+    #if $getVar("system_name","") != ""
     #set $ikeys = $interfaces.keys()
     #for $iface in $ikeys
       #set $idata = $interfaces[$iface]
@@ -108,9 +112,12 @@
       #end if
       #end if
     #end for
+    #end if
     </net-udev>
     <routing>
       <ip_forward config:type="boolean">false</ip_forward>
+      #if $getVar("system_name","") != ""
+      ## TODO: add in static routes here
       <routes config:type="list">
         <route>
           <destination>default</destination>
@@ -119,5 +126,6 @@
           <gateway>$gateway</gateway>
         </route>
       </routes>
+      #end if
     </routing>
   </networking>

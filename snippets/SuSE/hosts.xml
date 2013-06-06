@@ -6,6 +6,7 @@
           <name>localhost</name>
         </names>
       </hosts_entry>
+      #if $getVar("system_name","") != ""
       #set $ikeys = $interfaces.keys()
       #for $iface in $ikeys
       #set $idata = $interfaces[$iface]
@@ -19,5 +20,6 @@
       </hosts_entry>
       #end if
       #end for
+      #end if
     </hosts>
   </host>

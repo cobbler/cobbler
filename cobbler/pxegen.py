@@ -117,6 +117,10 @@ class PXEGen:
             utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst,
                     require_match=False, api=self.api, cache=False, logger=self.logger)
 
+        # Copy gPXE/iPXE bootloader if it exists
+        utils.copyfile_pattern('/usr/share/*pxe/undionly.kpxe', dst,
+                require_match=False, api=self.api, cache=False, logger=self.logger)
+
         # Copy grub EFI bootloaders if possible:
         utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
@@ -486,6 +490,11 @@ class PXEGen:
 
         if metadata is None:
             metadata = {}
+
+        (rval,settings) = utils.input_string_or_hash(self.settings.to_datastruct())
+        if rval:
+            for key in settings.keys():
+                metadata[key] = settings[key]
         # ---
         # just some random variables
         template = None
@@ -657,8 +666,18 @@ class PXEGen:
         Builds the full kernel options line.
         """
 
+        management_interface = None
         if system is not None:
             blended = utils.blender(self.api, False, system)
+            # find the first management interface
+            try:
+                for intf in system.interfaces.keys():
+                    if system.interfaces[intf]["management"]:
+                        management_interface = intf
+                        break
+            except:
+                # just skip this then
+                pass
         elif profile is not None:
             blended = utils.blender(self.api, False, profile)
         else:
@@ -695,6 +714,8 @@ class PXEGen:
                 append_line = "%s autoyast=%s" % (append_line, kickstart_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, kickstart_path)
+                if management_interface:
+                    append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
 
@@ -736,7 +757,11 @@ class PXEGen:
                 else:
                     hostname = system.name
             else:
-                hostname = profile.name
+                # ubuntu at the very least does not like having underscores
+                # in the hostname. 
+                # FIXME: Really this should remove all characters that are 
+                # forbidden in hostnames
+                hostname = profile.name.replace("_","")
 
             # At least for debian deployments configured for DHCP networking
             # this values are not used, but specifying here avoids questions
@@ -776,6 +801,7 @@ class PXEGen:
         names (after variable substitution is done) and the
         data in the file.
         """
+        self.logger.info("Writing template files for %s" % obj.name)
 
         results = {}
 
@@ -805,6 +831,12 @@ class PXEGen:
         if not success:
             return results
 
+        # FIXME: img_path and local_img_path should probably be moved
+        #        up into the blender function to ensure they're consistently
+        #        available to templates across the board
+        if blended["distro_name"]:
+            blended['img_path'] = os.path.join("/images",blended["distro_name"])
+            blended['local_img_path'] = os.path.join(utils.tftpboot_location(),"images",blended["distro_name"])
 
         for template in templates.keys():
             dest = templates[template]
@@ -814,22 +846,23 @@ class PXEGen:
             # Run the source and destination files through 
             # templar first to allow for variables in the path 
             template = self.templar.render(template, blended, None).strip()
-            dest     = self.templar.render(dest, blended, None).strip()
+            dest     = os.path.normpath(self.templar.render(dest, blended, None).strip())
             # Get the path for the destination output
-            dest_dir = os.path.dirname(dest)
+            dest_dir = os.path.normpath(os.path.dirname(dest))
 
             # If we're looking for a single template, skip if this ones
             # destination is not it.
             if not path is None and path != dest:
                continue
 
-            # If we are writing output to a file, force all templated 
-            # configs into the rendered directory to ensure that a user 
-            # granted cobbler privileges via sudo can't overwrite 
+            # If we are writing output to a file, we allow files tobe 
+            # written into the tftpboot directory, otherwise force all 
+            # templated configs into the rendered directory to ensure that 
+            # a user granted cobbler privileges via sudo can't overwrite 
             # arbitrary system files (This also makes cleanup easier).
-            if os.path.isabs(dest_dir):
-               if write_file:
-                   raise CX(" warning: template destination (%s) is an absolute path, skipping." % dest_dir)
+            if os.path.isabs(dest_dir) and write_file:
+                if dest_dir.find(utils.tftpboot_location()) != 0:
+                   raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir,utils.tftpboot_location()))
                    continue
             else:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
@@ -921,7 +954,7 @@ class PXEGen:
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_linux.template" % what.lower())
            elif distro.os_version == 'esxi4':
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi4.template" % what.lower())
-           elif distro.os_version == 'esxi5':
+           elif distro.os_version.startswith('esxi5'):
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi5.template" % what.lower())
        elif distro.breed == 'freebsd':
            template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
@@ -975,6 +1008,14 @@ class PXEGen:
 
        blended['distro'] = ks_mirror_name
 
+       # FIXME: img_path should probably be moved up into the 
+       #        blender function to ensure they're consistently
+       #        available to templates across the board
+       if obj.enable_gpxe:
+           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+       else:
+           blended['img_path'] = os.path.join("/images",distro.name)
+
        template = os.path.join(self.settings.pxe_template_dir,"bootcfg_%s_%s.template" % (what.lower(),distro.os_version))
        if not os.path.exists(template):
            return "# boot.cfg template not found for the %s named %s (filename=%s)" % (what,name,template)
@@ -984,4 +1025,44 @@ class PXEGen:
        template_fh.close()
 
        return self.templar.render(template_data, blended, None)
+
+    def generate_script(self,what,objname,script_name):
+       if what == "profile":
+           obj = self.api.find_profile(name=objname)
+       else:
+           obj = self.api.find_system(name=objname)
+
+       if not obj:
+           return "# %s named %s not found" % (what,objname)
+
+       distro = obj.get_conceptual_parent()
+       while distro.get_conceptual_parent():
+           distro = distro.get_conceptual_parent()
+
+       blended = utils.blender(self.api, False, obj)
+
+       ksmeta = blended.get("ks_meta",{})
+       try:
+           del blended["ks_meta"]
+       except:
+           pass
+       blended.update(ksmeta) # make available at top level
+
+       # FIXME: img_path should probably be moved up into the
+       #        blender function to ensure they're consistently
+       #        available to templates across the board
+       if obj.enable_gpxe:
+           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+       else:
+           blended['img_path'] = os.path.join("/images",distro.name)
+
+       template = os.path.normpath(os.path.join("/var/lib/cobbler/scripts",script_name))
+       if not os.path.exists(template):
+           return "# script template %s not found" % script_name
+
+       template_fh = open(template)
+       template_data = template_fh.read()
+       template_fh.close()
+
+       return self.templar.render(template_data, blended, None, obj)
 

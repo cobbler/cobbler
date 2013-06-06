@@ -1,0 +1,13 @@
+bootstate=0
+title=Cobbler - Loading ESXi installer
+prefix=$img_path
+kernel=tboot.b00
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+kernelopt=ks=http://$server:$http_port/cblr/svc/op/ks/$what/$name
+modules=b.b00 --- useropts.gz --- k.b00 --- chardevs.b00 --- a.b00 --- user.b00 --- s.v00 --- ata_pata.v00 --- ata_pata.v01 --- ata_pata.v02 --- ata_pata.v03 --- ata_pata.v04 --- ata_pata.v05 --- ata_pata.v06 --- ata_pata.v07 --- block_cc.v00 --- ehci_ehc.v00 --- weaselin.t00 --- esx_dvfi.v00 --- xlibs.v00 --- ima_qla4.v00 --- ipmi_ipm.v00 --- ipmi_ipm.v01 --- ipmi_ipm.v02 --- misc_cni.v00 --- misc_dri.v00 --- net_be2n.v00 --- net_bnx2.v00 --- net_bnx2.v01 --- net_cnic.v00 --- net_e100.v00 --- net_e100.v01 --- net_enic.v00 --- net_forc.v00 --- net_igb.v00 --- net_ixgb.v00 --- net_nx_n.v00 --- net_r816.v00 --- net_r816.v01 --- net_s2io.v00 --- net_sky2.v00 --- net_tg3.v00 --- net_vmxn.v00 --- ohci_usb.v00 --- sata_ahc.v00 --- sata_ata.v00 --- sata_sat.v00 --- sata_sat.v01 --- sata_sat.v02 --- sata_sat.v03 --- sata_sat.v04 --- scsi_aac.v00 --- scsi_adp.v00 --- scsi_aic.v00 --- scsi_bnx.v00 --- scsi_fni.v00 --- scsi_hps.v00 --- scsi_ips.v00 --- scsi_lpf.v00 --- scsi_meg.v00 --- scsi_meg.v01 --- scsi_meg.v02 --- scsi_mpt.v00 --- scsi_mpt.v01 --- scsi_mpt.v02 --- scsi_qla.v00 --- scsi_qla.v01 --- scsi_rst.v00 --- uhci_usb.v00 --- tools.t00 --- xorg.v00 --- imgdb.tgz --- imgpayld.tgz
+build=
+updated=0

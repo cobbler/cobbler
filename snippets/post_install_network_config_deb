@@ -1,4 +1,4 @@
-# Start post_install_network_config generated code \
+# Start post_install_network_config generated code 
 #if $getVar("system_name","") != ""
     ## this is being provisioned by system records, not profile records
     ## so we can do the more complex stuff
@@ -47,11 +47,11 @@
     ## end looping through the interfaces to see which ones we need to configure.
     ## =============================================================================
     ## Rewrite the interfaces file and make sure we preserve the loopback device
-rm -f /etc/network/interfaces \
-touch /etc/network/interfaces \
-echo "auto lo" >> /etc/network/interfaces \
-echo "iface lo inet loopback" >> /etc/network/interfaces \
-echo "" >> /etc/network/interfaces \
+rm -f /etc/network/interfaces 
+touch /etc/network/interfaces 
+echo "auto lo" >> /etc/network/interfaces 
+echo "iface lo inet loopback" >> /etc/network/interfaces 
+echo "" >> /etc/network/interfaces 
     ## =============================================================================
     ## now create the config file for each interface
     #for $iname in $ikeys
@@ -62,6 +62,7 @@ echo "" >> /etc/network/interfaces \
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
+        #set $if_gateway           = $idata.get("if_gateway", "")
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
@@ -88,7 +89,7 @@ echo "" >> /etc/network/interfaces \
         ## ===================================================================
         ## Things every interface get, no matter what
         ## ===================================================================
-echo "auto $iname" >> /etc/network/interfaces \
+echo "auto $iname" >> /etc/network/interfaces 
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
@@ -99,11 +100,11 @@ echo "auto $iname" >> /etc/network/interfaces \
         #elif $iface_type == "bridge"
           #set $slave_ports = " ".join($bridge_slaves.get($iname,[]))
           #if $slave_ports != ""
-echo "  bridge_ports $slave_ports" >> /etc/network/interfaces \
+echo "  bridge_ports $slave_ports" >> /etc/network/interfaces 
           #end if
           #for $bridge_opt in $bridge_opts
             #if $bridge_opt.strip() != ""
-echo "  $bridge_opt" >> /etc/network/interfaces \
+echo "  $bridge_opt" >> /etc/network/interfaces 
             #end if
           #end for
         #end if
@@ -112,13 +113,33 @@ echo "  $bridge_opt" >> /etc/network/interfaces \
         ## ===================================================================
         #if $static
             #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
-echo "iface $iname inet static" >> /etc/network/interfaces \
-echo "   address $ip" >> /etc/network/interfaces \
+echo "iface $iname inet static" >> /etc/network/interfaces 
+echo "   hwaddress $mac" >> /etc/network/interfaces
+echo "   address $ip" >> /etc/network/interfaces 
                 #if $netmask != ""
-echo "   netmask $netmask" >> /etc/network/interfaces \
+echo "   netmask $netmask" >> /etc/network/interfaces 
+                #end if
+                #if $iface_type in ("master","bond")
+                  #set $bondslaves = ""
+                  #for $bondiname in $ikeys
+                      #set $bondidata                = $interfaces[$bondiname]
+                      #set $bondiface_type           = $bondidata.get("interface_type", "").lower()
+                      #set $bondiface_master         = $bondidata.get("interface_master", "")
+                      #if $bondiface_master == $iname
+                         #set $bondslaves += $bondiname + " "
+                      #end if
+                  #end for
+echo "   bond-slaves $bondslaves" >> /etc/network/interfaces
+		  #for $bondopts in $bonding_opts.split(" ")
+		      #set [$bondkey, $bondvalue] = $bondopts.split("=")
+echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
+                  #end for
                 #end if
             #else
-echo "iface $iname inet manual" >> /etc/network/interfaces \
+echo "iface $iname inet manual" >> /etc/network/interfaces 
+            #end if
+            #if $iface_type in ("slave","bond_slave") and $iface_master != ""
+echo "bond-master $iface_master" >> /etc/network/interfaces
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
                 #if $ipv6_address != ""
@@ -135,7 +156,7 @@ echo "iface $iname inet manual" >> /etc/network/interfaces \
                 #end if
             #end if
         #else
-echo "iface $iname inet dhcp" >> /etc/network/interfaces \
+echo "iface $iname inet dhcp" >> /etc/network/interfaces 
         #end if
         ## ===================================================================
         ## VLAN configuration
@@ -146,8 +167,11 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces \
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
+        #if $if_gateway != ""
+echo "   gateway $if_gateway" >> /etc/network/interfaces
+        #end if
         #if $mtu != ""
-          #pass
+echo "   mtu $mtu" >> /etc/network/interfaces
         #end if
         ## ===================================================================
         ## Interface route configuration
@@ -155,20 +179,20 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces \
         #for $route in $static_routes
             #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
             #if $routepattern.match($route)
-                #set $routebits = $route.split(":")
                 #set [$network, $router] = $route.split(":")
+echo "   up ip route add $network via $router dev $iname || true" >> /etc/network/interfaces
             #else
-              #pass
+echo "   # Warning: invalid route: $route" >> /etc/network/interfaces
             #end if
         #end for
         #if $enableipv6 == True
             #for $route in $ipv6_static_routes
                 #set routepattern = $re.compile("[0-9a-fA-F:/]+,[0-9a-fA-F:]+")
                 #if $routepattern.match($route)
-                    #set $routebits = $route.split(",")
                     #set [$network, $router] = $route.split(",")
+echo "   up ip -6 route add $network via $router dev $iname || true" >> /etc/network/interfaces
                 #else
-                    #pass
+echo "   # Warning: invalid route: $route" >> /etc/network/interfaces
                 #end if
             #end for
         #end if
@@ -180,28 +204,28 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces \
     ## Configure the system's primary hostname. This is also passed to anaconda, but
     ## anaconda doesn't seem to honour it in DHCP-setups.
     #if $hostname != ""
-echo "$hostname" > /etc/hostname \
-/bin/hostname $hostname \
+echo "$hostname" > /etc/hostname 
+/bin/hostname $hostname 
     #end if
     ## =============================================================================
     ## Configure name server search path in /etc/resolv.conf
     #set $num_ns = $len($name_servers)
     #set $num_ns_search = $len($name_servers_search)
     #if $num_ns_search > 0
-sed -i -e "/^search /d" /etc/resolv.conf \
-echo -n "search " >>/etc/resolv.conf \
+sed -i -e "/^search /d" /etc/resolv.conf 
+echo -n "search " >>/etc/resolv.conf 
         #for $nameserversearch in $name_servers_search
-echo -n "$nameserversearch " >>/etc/resolv.conf \
+echo -n "$nameserversearch " >>/etc/resolv.conf 
         #end for
-echo "" >>/etc/resolv.conf \
+echo "" >>/etc/resolv.conf 
     #end if
     ## =============================================================================
     ## Configure name servers in /etc/resolv.conf
     #if $num_ns > 0
-sed -i -e "/^nameserver /d" /etc/resolv.conf \
+sed -i -e "/^nameserver /d" /etc/resolv.conf 
         #for $nameserver in $name_servers
-echo "nameserver $nameserver" >>/etc/resolv.conf \
+echo "nameserver $nameserver" >>/etc/resolv.conf 
         #end for
     #end if
 #end if
-# End post_install_network_config generated code \
+# End post_install_network_config generated code 

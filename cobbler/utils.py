@@ -112,6 +112,7 @@ SIGNATURE_CACHE = {}
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 _re_is_mac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',)*6) + '$')
+_re_is_ibmac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',)*20) + '$')
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
@@ -264,7 +265,7 @@ def is_mac(strdata):
     """
     if strdata is None:
         return False
-    return bool(_re_is_mac.match(strdata))
+    return bool(_re_is_mac.match(strdata) or _re_is_ibmac.match(strdata))
 
 def get_random_mac(api_handle,virt_type="xenpv"):
     """
@@ -670,6 +671,19 @@ def blender(api_handle,remove_hashes, root_obj):
                     if not results.has_key(key):
                         results[key] = interface[key]
 
+    # if the root object is a profile or system, add in all 
+    # repo data for repos that belong to the object chain
+    if root_obj.COLLECTION_TYPE in ("profile","system"):
+        repo_data = []
+        for r in results["repos"]:
+            repo = api_handle.find_repo(name=r)
+            if repo:
+                repo_data.append(repo.to_datastruct())
+        # FIXME: sort the repos in the array based on the 
+        #        repo priority field so that lower priority
+        #        repos come first in the array
+        results["repo_data"] = repo_data
+
     http_port = results.get("http_port",80)
     if http_port not in (80, "80"):
        results["http_server"] = "%s:%s" % (results["server"] , http_port)
@@ -803,8 +817,13 @@ def __consolidate(node,results):
              results[field].extend(data_item)
              results[field] = uniquify(results[field])
           else:
-             # just override scalars
-             results[field] = data_item
+             # distro field gets special handling, since we don't
+             # want to overwrite it ever.
+             # FIXME: should the parent's field too? It will be over-
+             #        written if there are multiple sub-profiles in
+             #        the chain of inheritance
+             if field != "distro":
+                results[field] = data_item
        else:
           results[field] = data_item
 

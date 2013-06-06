@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
 
  Copyright (c) 2011 Novell
@@ -10,8 +11,7 @@
  along with this software; if not, see
  http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 
---->
-<?xml version="1.0"?>
+-->
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <deploy_image>
@@ -54,8 +54,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-	## password: cobbler
-	<user_password>$2a$05$OByGoYrDs05U3L62Sy0G4uMPsIx3JcUM5SBshs0xL0H6VYDFAvvGy</user_password>
+	<user_password>$default_password_crypted</user_password>
       <username>root</username>
     </user>
   </users>

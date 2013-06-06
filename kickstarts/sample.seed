@@ -12,9 +12,9 @@ d-i keyboard-configuration/variantcode string
 
 # netcfg will choose an interface that has link if possible. This makes it
 # skip displaying a list if there is more than one interface.
+#set $myhostname = $getVar('hostname',$getVar('name','cobbler')).replace("_","-")
 d-i netcfg/choose_interface select auto
-d-i netcfg/get_hostname string unassigned-hostname
-d-i netcfg/get_domain string unassigned-domain
+d-i netcfg/get_hostname string $myhostname
 
 # If non-free firmware is needed for the network or other hardware, you can
 # configure the installer to always try to load it, without prompting. Or
@@ -29,9 +29,15 @@ d-i clock-setup/ntp-server  string ntp.ubuntu.com
 
 # Setup the installation source
 d-i mirror/country string manual
-d-i mirror/http/hostname string $http_server:$http_port
+d-i mirror/http/hostname string $http_server
 d-i mirror/http/directory string $install_source_directory
 d-i mirror/http/proxy string
+
+#set $os_v = $getVar('os_version','')
+#if $os_v and $os_v.lower()[0] > 'p'
+# Required at least for 12.10+
+d-i live-installer/net-image string http://$http_server/cobbler/links/$distro_name/install/filesystem.squashfs
+#end if
 
 # Suite to install.
 # d-i mirror/suite string precise
@@ -84,10 +90,7 @@ d-i passwd/make-user boolean false
 # d-i apt-setup/security_host string security.ubuntu.com
 # d-i apt-setup/security_path string /ubuntu
 
-# Additional repositories, local[0-9] available
-# d-i apt-setup/local0/repository string \
-#     http://local.server/ubuntu precise main
-# d-i apt-setup/local0/comment string local server
+$SNIPPET('preseed_apt_repo_config')
 
 # Enable deb-src lines
 # d-i apt-setup/local0/source boolean true
@@ -102,6 +105,11 @@ d-i passwd/make-user boolean false
 # authentication. Warning: Insecure, not recommended.
 # d-i debian-installer/allow_unauthenticated boolean true
 
+# Individual additional packages to install
+# wget is REQUIRED otherwise quite a few things won't work
+# later in the build (like late-command scripts)
+d-i pkgsel/include string ntp ssh wget
+
 # Use the following option to add additional boot parameters for the
 # installed system (if supported by the bootloader installer).
 # Note: options passed to the installer will be added automatically.
@@ -110,10 +118,19 @@ d-i debian-installer/add-kernel-opts string $kernel_options_post
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
 
+## Figure out if we're kickstarting a system or a profile
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+
 # This first command is run as early as possible, just after preseeding is read.
 # d-i preseed/early_command string [command]
-d-i preseed/early_command string \
-$SNIPPET('kickstart_start')
+d-i preseed/early_command string wget -O- \
+   http://$http_server/cblr/svc/op/script/$what/$name/?script=preseed_early_default | \
+   /bin/sh -s
+
 # This command is run immediately before the partitioner starts. It may be
 # useful to apply dynamic partitioner preseeding that depends on the state
 # of the disks (which may not be visible when preseed/early_command runs).
@@ -125,8 +142,6 @@ $SNIPPET('kickstart_start')
 # directly, or use the apt-install and in-target commands to easily install
 # packages and run commands in the target system.
 # d-i preseed/late_command string [command]
-d-i preseed/late_command string chroot /target sh -c ' \
-$SNIPPET('download_config_files_deb')
-$SNIPPET('post_run_deb')
-'; \
-$SNIPPET('kickstart_done')
+d-i preseed/late_command string wget -O- \
+   http://$http_server/cblr/svc/op/script/$what/$name/?script=preseed_late_default | \
+   chroot /target /bin/sh -s

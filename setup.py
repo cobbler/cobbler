@@ -203,16 +203,16 @@ if __name__ == "__main__":
             "cobbler_web": "web/cobbler_web",
         },
         scripts = [
-            "scripts/cobbler",
-            "scripts/cobblerd",
-            "scripts/cobbler-ext-nodes",
-            "scripts/koan",
-            "scripts/ovz-install",
-            "scripts/cobbler-register",
+            "bin/cobbler",
+            "bin/cobblerd",
+            "bin/cobbler-ext-nodes",
+            "bin/koan",
+            "bin/ovz-install",
+            "bin/cobbler-register",
         ],
         data_files = proc_data_files([
             # tftpd, hide in /usr/sbin
-            ("/usr/sbin", ["scripts/tftpd.py"]),
+            ("/usr/sbin", ["bin/tftpd.py"]),
 
             ("%s" % webconfig,              ["config/cobbler.conf"]),
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
@@ -221,6 +221,7 @@ if __name__ == "__main__":
             ("installer_templates",         ["installer_templates/*"]),
             ("%skickstarts" % libpath,      ["kickstarts/*"]),
             ("%ssnippets" % libpath,        ["snippets/*"]),
+            ("%sscripts" % libpath,         ["scripts/*"]),
             ("%s" % libpath,                ["config/distro_signatures.json"]),
             ("web",                         ["web/*.*"]),
             ("%s" % webcontent,             ["web/content/*.*"]),
@@ -313,7 +314,7 @@ if __name__ == "__main__":
             ("%scobbler/images" % webroot,              []),
 
             #A script that isn't really data, wsgi script
-            ("%scobbler/svc/" % webroot,     ["scripts/services.py"]),
+            ("%scobbler/svc/" % webroot,     ["bin/services.py"]),
 
             # zone-specific templates directory
             ("%szone_templates" % etcpath,                []),

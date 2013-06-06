@@ -114,6 +114,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "wheezy": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: wheezy",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "ubuntu": {
@@ -180,6 +196,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "raring": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: raring",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "suse": {
@@ -195,7 +227,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -211,7 +243,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -227,7 +259,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -243,7 +275,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -259,7 +291,7 @@
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -275,7 +307,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -291,7 +323,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
@@ -307,7 +339,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    }
@@ -359,7 +391,7 @@
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":["a.b00","ata-pata.v00","ata-pata.v01","ata-pata.v02","ata-pata.v03","ata-pata.v04","ata-pata.v05","ata-pata.v06","ata-pata.v07","b.b00","block-cc.v00","boot.cat","boot.cfg","efiboot.img","ehci-ehc.v00","ima-qla4.v00","imgdb.tgz","imgpayld.tgz","ipmi-ipm.v00","ipmi-ipm.v01","ipmi-ipm.v02","isolinux.bin","isolinux.cfg","k.b00","mboot.c32","menu.c32","misc-cni.v00","misc-dri.v00","net-be2n.v00","net-bnx2.v00","net-bnx2.v01","net-cnic.v00","net-e100.v00","net-e100.v01","net-enic.v00","net-forc.v00","net-igb.v00","net-ixgb.v00","net-nx-n.v00","net-r816.v00","net-r816.v01","net-s2io.v00","net-sky2.v00","net-tg3.v00","ohci-usb.v00","safeboot.c32","sata-ahc.v00","sata-ata.v00","sata-sat.v00","sata-sat.v01","sata-sat.v02","sata-sat.v03","scsi-aac.v00","scsi-adp.v00","scsi-aic.v00","scsi-bnx.v00","scsi-fni.v00","scsi-hps.v00","scsi-ips.v00","scsi-lpf.v00","scsi-meg.v00","scsi-meg.v01","scsi-meg.v02","scsi-mpt.v00","scsi-mpt.v01","scsi-mpt.v02","scsi-qla.v00","scsi-qla.v01","s.v00","tboot.b00","tools.t00","uhci-usb.v00","useropts.gz","vmware-esx-base-osl.txt","vmware-esx-base-readme","weaselin.i00"]
+    "boot_files":["*.*"]
    },
    "esxi51": {
     "signatures":["tboot.b00"],
@@ -375,7 +407,7 @@
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":["a.b00","ata-pata.v00","ata-pata.v01","ata-pata.v02","ata-pata.v03","ata-pata.v04","ata-pata.v05","ata-pata.v06","ata-pata.v07","b.b00","block-cc.v00","boot.cat","boot.cfg","efiboot.img","ehci-ehc.v00","ima-qla4.v00","imgdb.tgz","imgpayld.tgz","ipmi-ipm.v00","ipmi-ipm.v01","ipmi-ipm.v02","isolinux.bin","isolinux.cfg","k.b00","mboot.c32","menu.c32","misc-cni.v00","misc-dri.v00","net-be2n.v00","net-bnx2.v00","net-bnx2.v01","net-cnic.v00","net-e100.v00","net-e100.v01","net-enic.v00","net-forc.v00","net-igb.v00","net-ixgb.v00","net-nx-n.v00","net-r816.v00","net-r816.v01","net-s2io.v00","net-sky2.v00","net-tg3.v00","ohci-usb.v00","safeboot.c32","sata-ahc.v00","sata-ata.v00","sata-sat.v00","sata-sat.v01","sata-sat.v02","sata-sat.v03","scsi-aac.v00","scsi-adp.v00","scsi-aic.v00","scsi-bnx.v00","scsi-fni.v00","scsi-hps.v00","scsi-ips.v00","scsi-lpf.v00","scsi-meg.v00","scsi-meg.v01","scsi-meg.v02","scsi-mpt.v00","scsi-mpt.v01","scsi-mpt.v02","scsi-qla.v00","scsi-qla.v01","s.v00","tboot.b00","tools.t00","uhci-usb.v00","useropts.gz","vmware-esx-base-osl.txt","vmware-esx-base-readme","weaselin.i00"]
+    "boot_files":["*.*"]
    }
   },
   "freebsd": {
