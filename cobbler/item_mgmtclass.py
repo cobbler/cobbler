@@ -33,6 +33,7 @@ FIELDS = [
     ["comment","",0,"Comment",True,"Free form text description",0,"str"],
     ["ctime",0,0,"",False,"",0,"int"],
     ["mtime",0,0,"",False,"",0,"int"],
+    ["params",{},0,"Parameters/Variables",True,"List of parameters/variables",0,"dict"],
     ["packages",[],0,"Packages",True,"Package resources",0,"list"],
     ["files",[],0,"Files",True,"File resources",0,"list"],
 ]
@@ -58,6 +59,21 @@ class Mgmtclass(item.Item):
     def set_files(self,files):
         self.files = utils.input_string_or_list(files)
         return True
+
+    def set_params(self,params,inplace=False):
+        (success, value) = utils.input_string_or_hash(params,allow_multiples=True)
+        if not success:
+            raise CX(_("invalid parameters"))
+        else:
+            if inplace:
+                for key in value.keys():
+                    if key.startswith("~"):
+                        del self.params[key[1:]]
+                    else:
+                        self.params[key] = value[key]
+            else:
+                self.params = value
+            return True
 
     def check_if_valid(self):
         if self.name is None or self.name == "":
