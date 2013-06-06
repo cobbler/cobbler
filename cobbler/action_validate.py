@@ -70,7 +70,7 @@ class Validate:
         else:
             self.logger.info("*** all kickstarts seem to be ok ***")
 
-        return failed
+        return not(failed)
 
     def checkfile(self,obj,is_profile):
         last_errors = []
