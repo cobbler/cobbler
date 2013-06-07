@@ -261,17 +261,29 @@ class CobblerSvc(object):
         if hostname is None:
            return "hostname is required"
          
+        settings = self.remote.get_settings()
         results = self.remote.find_system_by_dns_name(hostname)
 
-        classes = results.get("mgmt_classes", [])
+        classes = results.get("mgmt_classes", {})
         params = results.get("mgmt_parameters",{})
+        environ = results.get("status","production")
+
+        if settings.get("puppet_parameterized_classes",False):
+           for ckey in classes.keys():
+              tmp = {}
+              for pkey in classes[ckey]["params"].keys():
+                 tmp[pkey] = classes[ckey]["params"][pkey]
+              classes[ckey] = tmp
+        else:
+           classes = classes.keys()
 
         newdata = {
            "classes"    : classes,
-           "parameters" : params
+           "parameters" : params,
+           "environment": environ,
         }
         
-        return yaml.dump(newdata)
+        return yaml.dump(newdata,default_flow_style=False)
 
 def __test_setup():
 

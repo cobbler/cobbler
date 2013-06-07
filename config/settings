@@ -229,6 +229,10 @@ remove_old_puppet_certs_automatically: 0
 # choose version 3 to use: 'puppet agent'; version 2 uses status quo: 'puppetd'
 #puppet_version: 2
 
+# choose whether to enable puppet parameterized classes or not.
+# puppet versions prior to 2.6.5 do not support parameters
+#puppet_parameterized_classes: 1
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: 0
