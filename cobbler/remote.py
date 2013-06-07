@@ -1538,6 +1538,17 @@ class CobblerXMLRPCInterface:
             profile = obj.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
             arch = distro.arch
+
+            # the management classes stored in the system are just a list 
+            # of names, so we need to turn it into a full list of hashes 
+            # (right now we just use the params field)
+            mcs = hash["mgmt_classes"]
+            hash["mgmt_classes"] = {}
+            for m in mcs:
+                c = self.api.find_mgmtclass(name=m)
+                if c:
+                    hash["mgmt_classes"][m] = c.to_datastruct()
+
             if distro is None and profile.COLLECTION_TYPE == "profile":
                 image_based = True
                 arch = profile.arch
