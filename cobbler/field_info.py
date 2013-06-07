@@ -79,7 +79,8 @@ USES_CHECKBOX = [
    "*ldap_enabled",
    "ldap_enabled",
    "*monit_enabled",
-   "monit_enabled"
+   "monit_enabled",
+   "is_definition",
 ]
 
 # select killed the radio button

@@ -33,6 +33,8 @@ FIELDS = [
     ["comment","",0,"Comment",True,"Free form text description",0,"str"],
     ["ctime",0,0,"",False,"",0,"int"],
     ["mtime",0,0,"",False,"",0,"int"],
+    ["class_name","",0,"Class Name",True,"Actual Class Name (leave blank to use the name field)",0,"str"],
+    ["is_definition",False,0,"Is Definition?",True,"Treat this class as a definition (puppet only)",0,"bool"],
     ["params",{},0,"Parameters/Variables",True,"List of parameters/variables",0,"dict"],
     ["packages",[],0,"Packages",True,"Package resources",0,"list"],
     ["files",[],0,"Files",True,"File resources",0,"list"],
@@ -74,6 +76,19 @@ class Mgmtclass(item.Item):
             else:
                 self.params = value
             return True
+
+    def set_is_definition(self,isdef):
+        self.is_definition = utils.input_boolean(isdef)
+        return True
+
+    def set_class_name(self,name):
+        if not isinstance(name, basestring):
+            raise CX(_("class name must be a string"))
+        for x in name:
+            if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
+                raise CX(_("invalid characters in class name: '%s'" % name))
+        self.class_name = name
+        return True
 
     def check_if_valid(self):
         if self.name is None or self.name == "":
