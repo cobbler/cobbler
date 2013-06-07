@@ -271,9 +271,26 @@ class CobblerSvc(object):
         if settings.get("puppet_parameterized_classes",False):
            for ckey in classes.keys():
               tmp = {}
-              for pkey in classes[ckey]["params"].keys():
-                 tmp[pkey] = classes[ckey]["params"][pkey]
-              classes[ckey] = tmp
+              class_name = classes[ckey].get("class_name","")
+              if class_name in (None,""):
+                 class_name = ckey              
+              if classes[ckey].get("is_definition",False):
+                 def_tmp = {}
+                 def_name = classes[ckey]["params"].get("name","")
+                 del classes[ckey]["params"]["name"]
+                 if def_name != "":
+                    for pkey in classes[ckey]["params"].keys():
+                       def_tmp[pkey] = classes[ckey]["params"][pkey]
+                    tmp["instances"] = {def_name:def_tmp}
+                 else:
+                    # FIXME: log an error here?
+                    # skip silently...
+                    continue
+              else:
+                 for pkey in classes[ckey]["params"].keys():
+                    tmp[pkey] = classes[ckey]["params"][pkey]
+              del classes[ckey]
+              classes[class_name] = tmp
         else:
            classes = classes.keys()
 
