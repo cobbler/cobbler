@@ -391,6 +391,7 @@
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
+    "template_files":"/etc/cobbler/pxe/bootcfg_esxi5.template=$local_img_path/cobbler-boot.cfg",
     "boot_files":["*.*"]
    },
    "esxi51": {
@@ -407,6 +408,7 @@
     "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
+    "template_files":"/etc/cobbler/pxe/bootcfg_esxi51.template=$local_img_path/cobbler-boot.cfg",
     "boot_files":["*.*"]
    }
   },

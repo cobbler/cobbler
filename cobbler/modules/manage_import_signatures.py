@@ -310,8 +310,9 @@ class ImportSignatureManager:
             distro.set_arch(pxe_arch)
             distro.set_breed(self.breed)
             distro.set_os_version(self.os_version)
-            distro.set_kernel_options(self.signature["kernel_options"])
-            distro.set_kernel_options_post(self.signature["kernel_options_post"])
+            distro.set_kernel_options(self.signature.get("kernel_options",""))
+            distro.set_kernel_options_post(self.signature.get("kernel_options_post",""))
+            distro.set_template_files(self.signature.get("template_files",""))
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
