@@ -1478,10 +1478,11 @@ class CobblerXMLRPCInterface:
             image_based = False
             profile = obj.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
-            arch = distro.arch
-            if distro is None and profile.COLLECTION_TYPE == "profile":
+            if distro is None and profile.COLLECTION_TYPE == "image":
                 image_based = True
                 arch = profile.arch
+            else:
+                arch = distro.arch
 
             if obj.is_management_supported():
                 if not image_based:
