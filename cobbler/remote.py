@@ -1549,9 +1549,11 @@ class CobblerXMLRPCInterface:
                 if c:
                     hash["mgmt_classes"][m] = c.to_datastruct()
 
-            if distro is None and profile.COLLECTION_TYPE == "profile":
+            if distro is None and profile.COLLECTION_TYPE == "image":
                 image_based = True
                 arch = profile.arch
+            else:
+                arch = distro.arch
 
             if obj.is_management_supported():
                 if not image_based:
