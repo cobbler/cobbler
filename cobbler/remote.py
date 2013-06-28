@@ -1024,7 +1024,8 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         try:
             return self.api.generate_kickstart(profile,system)
-        except:
+        except Exception, e:
+            utils.log_exc(self.logger)
             return "# This kickstart had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
     def generate_gpxe(self,profile=None,system=None,**rest):
