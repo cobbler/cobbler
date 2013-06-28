@@ -67,6 +67,20 @@ class BootLiteSync:
                                                   self.settings.webdir,True)
         self.tftpd.add_single_distro(distro)
 
+        # create the symlink for this distro
+        src_dir = utils.find_distro_path(self.settings,distro)
+        dst_dir = os.path.join(self.settings.webdir,"links",name)
+        if os.path.exists(dst_dir):
+            self.logger.warning("skipping symlink, destination (%s) exists" % dst_dir)
+        elif utils.path_tail(os.path.join(self.settings.webdir,"ks_mirror"),src_dir) == "":
+            self.logger.warning("skipping symlink, the source (%s) is not in %s" % (src_dir,os.path.join(self.settings.webdir,"ks_mirror")))
+        else:
+            try:
+                self.logger.info("trying symlink %s -> %s" % (src_dir,dst_dir))
+                os.symlink(src_dir, dst_dir)
+            except (IOError, OSError):
+                self.logger.error("symlink failed (%s -> %s)" % (src_dir,dst_dir))
+
         # generate any templates listed in the distro
         self.sync.pxegen.write_templates(distro)
         # cascade sync
