@@ -1837,9 +1837,12 @@ def clear_from_fields(obj, fields, is_subobject=False):
 
 def from_datastruct_from_fields(obj, seed_data, fields):
 
+    int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
         if elems[0].startswith("*") or elems[0].find("widget") != -1:
+            if elems[0].startswith("*"):
+                int_fields.append(elems)
             continue
         src_k = dst_k = elems[0]
         # deprecated field switcheroo
@@ -1861,7 +1864,10 @@ def from_datastruct_from_fields(obj, seed_data, fields):
                     if not obj.interfaces[interface].has_key(field_info.DEPRECATED_FIELDS[k]) or \
                            obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
                         obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
-
+            # populate fields that might be missing
+            for int_field in int_fields:
+                if not obj.interfaces[interface].has_key(int_field[0][1:]):
+                    obj.interfaces[interface][int_field[0][1:]] = int_field[1]
     return obj
 
 def get_methods_from_fields(obj, fields):
