@@ -1,0 +1,67 @@
+server {
+    listen        80;
+    server_name   YOUR_COBBLER_HOST;
+    access_log    /var/log/nginx/cobbler.access.log;
+    error_log     /var/log/nginx/cobbler.error.log;
+
+    location / {
+      root        /var/www/;
+      autoindex   on;
+      expires     24h;
+    }
+
+    location /cblr {
+      root        /var/www;
+      rewrite     ^/cblr/(.*) /cobbler/$1;
+      autoindex   on;
+    }
+
+    location /cblr/svc {
+      include     /etc/nginx/uwsgi_params;
+      uwsgi_pass  unix:/var/lib/cobbler/uwsgi/cobbler_svc.sock;
+    }
+
+    location /cobbler {
+      root        /var/www;
+      autoindex   on;
+    }
+
+    location /cobbler_api {
+      rewrite                     ^/cobbler_api(.*) /$1 break;
+      proxy_pass                  http://127.0.0.1:25151/;
+      proxy_redirect              off;
+      proxy_set_header            Host             $host;
+      proxy_set_header            X-Scheme         $scheme;
+      proxy_set_header            X-Real-IP        $remote_addr;
+      proxy_set_header            X-Forwarded-For  $proxy_add_x_forwarded_for;
+
+      client_max_body_size        10m;
+      client_body_buffer_size     128k;
+
+      proxy_connect_timeout       5;
+      proxy_send_timeout          5;
+      proxy_read_timeout          5;
+
+      proxy_buffer_size           4k;
+      proxy_buffers               4 32k;
+      proxy_busy_buffers_size     64k;
+      proxy_temp_file_write_size  64k;
+    }
+
+    location /cobbler_track {
+      root        /var/www/cobbler;
+      rewrite     ^/cobbler_track/(.*) /$1 break;
+    }
+
+    location /cobbler_web {
+      include     /etc/nginx/uwsgi_params;
+      uwsgi_pass  unix:/var/lib/cobbler/uwsgi/cobbler_web.sock;
+    }
+
+    location /cobbler_webui_content {
+      root        /var/www;
+      autoindex   on;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+}
