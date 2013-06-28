@@ -685,7 +685,7 @@ class System(item.Item):
         Used by the WUI to modify an interface more-efficiently
         """
         for (key,value) in hash.iteritems():
-            (field,interface) = key.split("-")
+            (field,interface) = key.split("-",1)
             field = field.replace("_","").replace("-","")
             if field == "macaddress"          : self.set_mac_address(value, interface)
             if field == "mtu"                 : self.set_mtu(value, interface)
