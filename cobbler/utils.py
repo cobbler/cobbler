@@ -675,7 +675,7 @@ def blender(api_handle,remove_hashes, root_obj):
     # repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile","system"):
         repo_data = []
-        for r in results["repos"]:
+        for r in results.get("repos",[]):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_datastruct())
