@@ -547,7 +547,7 @@ def input_string_or_hash(options,allow_multiples=True):
         return (True, {})
     elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif isinstance(options, str):
+    elif isinstance(options, str) or isinstance(options, unicode):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
