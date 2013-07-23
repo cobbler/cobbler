@@ -536,6 +536,8 @@ class RepoSync:
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
+	config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
+        self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
         optenabled = False
         optgpgcheck = False
         if output:
