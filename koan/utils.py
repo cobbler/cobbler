@@ -52,7 +52,7 @@ VIRT_STATE_NAME_MAP = {
    6 : "crashed"
 }
 
-VALID_DRIVER_TYPES = ['raw', 'qcow', 'qcow2', 'vmdk']
+VALID_DRIVER_TYPES = ['raw', 'qcow', 'qcow2', 'vmdk', 'qed']
 
 class InfoException(exceptions.Exception):
     """
