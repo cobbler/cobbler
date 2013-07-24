@@ -242,7 +242,7 @@ class BootCheck:
        elif self.checked_dist == "suse":
            rc = utils.subprocess_get(self.logger,"httpd2 -v")
        else:
-           rc = utils.subprocess_get(self.logger,"apache2 -v")
+           rc = utils.subprocess_get(self.logger,"httpd2 -v")
        if rc.find("Server") == -1:
            status.append("Apache (httpd) is not installed and/or in path")
 
