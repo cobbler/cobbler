@@ -461,6 +461,22 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
+   "8.4": {
+    "signatures":["boot"],
+    "version_file":"8\\.4-RELEASE",
+    "version_file_regex":null,
+    "kernel_arch":"device\\.hints",
+    "kernel_arch_regex":"^.*FreeBSD: src/sys/(.*)/conf/GENERIC\\.hints.*$",
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"pxeboot(.*)",
+    "initrd_file":"mfsroot\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },   
    "9.0": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
