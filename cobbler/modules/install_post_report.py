@@ -71,7 +71,6 @@ def run(api, args, logger):
     if subject == "":
         subject = '[Cobbler] install complete '
 
-    to_addr = ", ".join(to_addr)
     metadata = {
         "from_addr" : from_addr,
         "to_addr"   : to_addr,
