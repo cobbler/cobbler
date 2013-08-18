@@ -49,8 +49,6 @@ import utils
 from utils import _
 import configgen
 
-# FIXME: make configurable?
-TOKEN_TIMEOUT = 60*60 # 60 minutes
 EVENT_TIMEOUT = 7*24*60*60 # 1 week
 CACHE_TIMEOUT = 10*60 # 10 minutes
 
@@ -1710,7 +1708,7 @@ class CobblerXMLRPCInterface:
         timenow = time.time()
         for token in self.token_cache.keys():
             (tokentime, user) = self.token_cache[token]
-            if (timenow > tokentime + TOKEN_TIMEOUT):
+            if (timenow > tokentime + self.api.settings().auth_token_expiration):
                 self._log("expiring token",token=token,debug=True)
                 del self.token_cache[token]
         # and also expired objects

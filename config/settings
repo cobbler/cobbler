@@ -39,6 +39,9 @@ anamon_enabled: 0
 # The default value is "login".
 authn_pam_service: "login"
 
+# How long the authentication token is valid for, in seconds
+auth_token_expiration: 3600
+
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
 # sender: optional
