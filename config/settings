@@ -50,6 +50,7 @@ build_reporting_sender: ""
 build_reporting_email: [ 'root@localhost' ]
 build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
+build_reporting_ignorelist: [ "" ]
 
 # Cheetah-language kickstart templates can import Python modules.
 # while this is a useful feature, it is not safe to allow them to 

@@ -46,6 +46,7 @@ DEFAULTS = {
     "build_reporting_sender"              : ["","str"],
     "build_reporting_subject"             : ["","str"],
     "build_reporting_smtp_server"         : ["localhost","str"],
+    "build_reporting_ignorelist"          : ["","str"],
     "buildisodir"                         : ["/var/cache/cobbler/buildiso","str"],
     "cheetah_import_whitelist"            : [["re", "random", "time"],"list"],
     "client_use_localhost"                : ["","str"],
