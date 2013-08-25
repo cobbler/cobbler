@@ -9,8 +9,8 @@ from django.views.decorators.http import require_POST
 try:
     from django.views.decorators.csrf import csrf_protect
 except:
-    # Old Django, fudge the @csrf_protect decorator to be a pass-through 
-    # that does nothing. Django decorator shell based on this page: 
+    # Old Django, fudge the @csrf_protect decorator to be a pass-through
+    # that does nothing. Django decorator shell based on this page:
     # http://passingcuriosity.com/2009/writing-view-decorators-for-django/
     def csrf_protect(f):
         def _dec(view_func):
@@ -315,10 +315,10 @@ def genlist(request, what, page=None):
     pageditems = remote.find_items_paged(what,utils.strip_none(filters),sort_field,page,limit)
 
     # what columns to show for each page?
-    # we also setup the batch actions here since they're dependent 
+    # we also setup the batch actions here since they're dependent
     # on what we're looking at
 
-    # everythng gets batch delete 
+    # everythng gets batch delete
     batchactions = [
         ["Delete","delete","delete"],
     ]
@@ -1100,11 +1100,11 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    inames = interfaces.keys()
    inames.sort()
    html = t.render(RequestContext(request,{
-       'what'            : what, 
-       #'fields'          : fields, 
+       'what'            : what,
+       #'fields'          : fields,
        'sections'        : sections,
        'subobject'       : child,
-       'editmode'        : editmode, 
+       'editmode'        : editmode,
        'editable'        : editable,
        'interfaces'      : interfaces,
        'interface_names' : inames,
@@ -1129,9 +1129,9 @@ def generic_save(request,what):
 
     # load request fields and see if they are valid
     editmode  = request.POST.get('editmode', 'edit')
-    obj_name  = request.POST.get('name', "")    
-    subobject = request.POST.get('subobject', "False")  
-  
+    obj_name  = request.POST.get('name', "")
+    subobject = request.POST.get('subobject', "False")
+
     if subobject == "False":
        subobject = False
     else:
@@ -1139,7 +1139,7 @@ def generic_save(request,what):
 
     if obj_name == "":
         return error_page(request,"Required field name is missing")
-              
+
     prev_fields = []
     if request.session.has_key("%s_%s" % (what,obj_name)) and editmode == "edit":
         prev_fields = request.session["%s_%s" % (what,obj_name)]
@@ -1202,7 +1202,7 @@ def generic_save(request,what):
                     try:
                         remote.modify_item(what,obj_id,field['name'],value,request.session['token'])
                     except Exception, e:
-                        return error_page(request, str(e))                
+                        return error_page(request, str(e))
 
     # special handling for system interface fields
     # which are the only objects in cobbler that will ever work this way
@@ -1221,8 +1221,8 @@ def generic_save(request,what):
                 ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
             ifdata=utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
-            present  = request.POST.get("present-%s" % interface, "") 
-            original = request.POST.get("original-%s" % interface, "") 
+            present  = request.POST.get("present-%s" % interface, "")
+            original = request.POST.get("original-%s" % interface, "")
             try:
                 if present == "0" and original == "1":
                     remote.modify_system(obj_id, 'delete_interface', interface, request.session['token'])
@@ -1253,23 +1253,23 @@ def test_user_authenticated(request):
     remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
 
     token = remote.login("", utils.get_shared_secret())
-    if ( (remote.get_authn_module_name(token) == 'authn_passthru' and 
+    if ( (remote.get_authn_module_name(token) == 'authn_passthru' and
           request.META.has_key('REMOTE_USER')) and
          ( (request.session.has_key('username') and
             request.META['REMOTE_USER'] != request.session['username']) or
            (not request.session.has_key('username')))):
               try:
-                  username = request.META['REMOTE_USER'] 
+                  username = request.META['REMOTE_USER']
                   password = utils.get_shared_secret()
                   token = remote.login(username, password)
               except:
                   token = None
               if token:
                   request.session['username'] = username
-                  request.session['token'] = token 
-  
+                  request.session['token'] = token
+
     # if we have a token, get the associated username from
-    # the remote server via XMLRPC. We then compare that to 
+    # the remote server via XMLRPC. We then compare that to
     # the value stored in the session.  If everything matches up,
     # the user is considered successfully authenticated
     if request.session.has_key('token') and request.session['token'] != '':
@@ -1308,7 +1308,7 @@ def do_login(request):
 
     try:
         token = remote.login(username, password)
-    except: 
+    except:
         token = None
 
     if token:
