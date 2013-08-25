@@ -1252,22 +1252,6 @@ def test_user_authenticated(request):
 
     remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
 
-    token = remote.login("", utils.get_shared_secret())
-    if ( (remote.get_authn_module_name(token) == 'authn_passthru' and
-          request.META.has_key('REMOTE_USER')) and
-         ( (request.session.has_key('username') and
-            request.META['REMOTE_USER'] != request.session['username']) or
-           (not request.session.has_key('username')))):
-              try:
-                  username = request.META['REMOTE_USER']
-                  password = utils.get_shared_secret()
-                  token = remote.login(username, password)
-              except:
-                  token = None
-              if token:
-                  request.session['username'] = username
-                  request.session['token'] = token
-
     # if we have a token, get the associated username from
     # the remote server via XMLRPC. We then compare that to
     # the value stored in the session.  If everything matches up,
@@ -1284,11 +1268,34 @@ def test_user_authenticated(request):
             pass
     return False
 
+use_passthru = -1
 @csrf_protect
 def login(request, next=None, message=None, expired=False):
+    global use_passthru
+    if use_passthru < 0:
+        token = remote.login("", utils.get_shared_secret())
+        auth_module = remote.get_authn_module_name(token)
+        use_passthru = auth_module == 'authn_passthru'
+
+    if use_passthru:
+        return accept_remote_user(request, next)
+
     if expired and not message:
         message = "Sorry, either you need to login or your session expired."
     return render_to_response('login.tmpl', RequestContext(request,{'next':next,'message':message}))
+
+def accept_remote_user(request, nextsite):
+    global username
+
+    username = request.META['REMOTE_USER']
+    token = remote.login(username, utils.get_shared_secret())
+
+    request.session['username'] = username
+    request.session['token'] = token
+    if nextsite:
+       return HttpResponseRedirect(nextsite)
+    else:
+       return HttpResponseRedirect("/cobbler_web")
 
 @require_POST
 @csrf_protect
