@@ -150,9 +150,9 @@
   },
   "ubuntu": {
    "lucid": {
-    "signatures":["dists"],
-    "version_file":"Release",
-    "version_file_regex":"Codename: lucid",
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: lucid|Ubuntu 10.04",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64"],
@@ -182,9 +182,9 @@
     "boot_files":[]
    },
    "precise": {
-    "signatures":["dists"],
-    "version_file":"Release",
-    "version_file_regex":"Codename: precise",
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: precise|Ubuntu 12.04",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64"],
@@ -198,9 +198,9 @@
     "boot_files":[]
    },
    "quantal": {
-    "signatures":["dists"],
-    "version_file":"Release",
-    "version_file_regex":"Codename: quantal",
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: quantal|Ubuntu 12.10",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64"],
@@ -214,9 +214,25 @@
     "boot_files":[]
    },
    "raring": {
-    "signatures":["dists"],
-    "version_file":"Release",
-    "version_file_regex":"Codename: raring",
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: raring|Ubuntu 13.04",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
+   "saucy": {
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: saucy|Ubuntu 13.10",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64"],
