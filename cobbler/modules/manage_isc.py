@@ -134,7 +134,7 @@ class IscManager:
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
                     if name != "eth0":
-                        interface["name"] = "%s_%s" % (host,name)
+                        interface["name"] = "%s-%s" % (host,name)
                     else:
                         interface["name"] = "%s" % (host)
                 else:
