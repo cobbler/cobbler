@@ -46,4 +46,26 @@ function go_go_gadget() {
     }
 }
 
-function page_onload() { }
+function page_onload() { 
+ var submitting = false;
+ 
+        $(window).bind("submit", function () {
+ 
+                submitting = true;
+
+        });
+
+        $(window).bind("beforeunload", function () {
+
+                if (!submitting && $("#ksdata")[0].defaultValue !== $("#ksdata")[0].value) {
+
+                        submitting = false;
+
+                        return "You have unsaved changes.";
+
+                }
+
+        });
+
+
+}
