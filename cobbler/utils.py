@@ -1002,8 +1002,11 @@ def check_dist():
     """
     Determines what distro we're running under.  
     """
-    from platform import linux_distribution
-    return linux_distribution()[0].lower
+    import platform
+    try:
+      return platform.linux_distribution()[0].lower
+    except AttributeError:
+      return platform.dist().lower
 
 def os_release():
 
