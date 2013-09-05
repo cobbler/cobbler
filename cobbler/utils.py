@@ -1002,16 +1002,11 @@ def check_dist():
     """
     Determines what distro we're running under.  
     """
-    if os.path.exists("/etc/debian_version"):
-       import lsb_release
-       return lsb_release.get_distro_information()['ID'].lower()
-    elif os.path.exists("/etc/SuSE-release"):
-       return "suse"
-    elif os.path.exists("/etc/redhat-release"):
-       # valid for Fedora and all Red Hat / Fedora derivatives
-       return "redhat"
-    else:
-       return "unknown"
+    import platform
+    try:
+      return platform.linux_distribution()[0].lower
+    except AttributeError:
+      return platform.dist().lower
 
 def os_release():
 
