@@ -505,6 +505,7 @@ class ImportSignatureManager:
             for distro in distros_added:
                 if distro.kernel.find("ks_mirror") != -1:
                     repo_adder(distro)
+                    self.distros.add(distro, save=True)
                 else:
                     self.logger.info("skipping distro %s since it isn't mirrored locally" % distro.name)
 
