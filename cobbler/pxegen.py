@@ -626,6 +626,8 @@ class PXEGen:
             # TODO: this looks like it's removing more than append, really
             # not sure what's up here...
             append_line = append_line[7:]
+        if distro and distro.os_version.startswith("xenserver620"):
+            append_line = "%s" % (kernel_options)
         metadata["append_line"] = append_line
 
         # store variables for templating
@@ -738,6 +740,11 @@ class PXEGen:
                         (append_line, kickstart_path)
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif","")
+            elif distro.breed == "xen":
+                if distro.os_version.find("xenserver620") != -1:
+                    img_path = os.path.join("/images",distro.name)
+                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- %s/install.img" % (img_path,img_path,kickstart_path,img_path )
+                    return append_line
 
         if distro is not None and (distro.breed in [ "debian", "ubuntu" ]):
             # Hostname is required as a parameter, the one in the preseed is
