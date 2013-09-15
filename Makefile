@@ -93,15 +93,15 @@ restorestate:
 	if [ -n "`getent passwd apache`" ] ; then \
 		chown -R apache /var/www/cobbler; \
 	else \
-		chown -R www-data /usr/share/cobbler/webroot/cobbler; \
+		chown -R www-data /usr/share/cobbler/web/cobbler_web; \
 	fi
 	if [ -d /var/www/cobbler ] ; then \
 		chmod -R +x /var/www/cobbler/web; \
 		chmod -R +x /var/www/cobbler/svc; \
 	fi
-	if [ -d /usr/share/cobbler/webroot ] ; then \
-		chmod -R +x /usr/share/cobbler/webroot/cobbler/web; \
-		chmod -R +x /usr/share/cobbler/webroot/cobbler/svc; \
+	if [ -d /usr/share/cobbler/web ] ; then \
+		chmod -R +x /usr/share/cobbler/web/cobbler/cobbler_web; \
+		chmod -R +x /srv/www/cobbler/svc; \
 	fi
 	rm -rf $(statepath)
 
