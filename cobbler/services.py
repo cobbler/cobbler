@@ -30,6 +30,7 @@ import sys
 import time
 import urlgrabber
 import yaml # PyYAML
+import config
 
 # the following imports are largely for the test code
 import remote
@@ -50,6 +51,7 @@ class CobblerSvc(object):
         self.server = server
         self.remote = None
         self.req    = req
+	self.config  = config.Config(self)
 
     def __xmlrpc_setup(self):
         """
@@ -235,8 +237,7 @@ class CobblerSvc(object):
     def findks(self,system=None,profile=None,**rest):
         self.__xmlrpc_setup()
 
-        serverseg = self.server.replace("http://","")
-        serverseg = self.server.replace("/cobbler_api","")
+        serverseg = "http//%s" % self.config._settings.server
 
         name = "?"    
         type = "system"
