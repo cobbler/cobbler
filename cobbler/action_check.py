@@ -117,7 +117,7 @@ class BootCheck:
        if notes != "":
            notes = " (NOTE: %s)" % notes
        rc = 0
-       if self.checked_dist == "redhat" or self.checked_dist == "suse":
+       if self.checked_dist in ("redhat","fedora","centos","scientific linux","suse"):
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
                rc = utils.subprocess_call(self.logger,"/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
@@ -157,7 +157,7 @@ class BootCheck:
        if not os.path.exists("/usr/bin/yumdownloader"):
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
        if self.settings.reposync_flags.find("-l"):
-           if self.checked_dist == "redhat" or self.checked_dist == "suse":
+           if self.checked_dist in ("redhat","fedora","centos","scientific linux","suse"):
                yum_utils_ver = utils.subprocess_get(self.logger,"/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
                if yum_utils_ver < "1.1.17":
                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver )
@@ -237,7 +237,7 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       if self.checked_dist == "redhat":
+       if self.checked_dist in ("redhat","fedora","centos","scientific linux"):
            rc = utils.subprocess_get(self.logger,"httpd -v")
        elif self.checked_dist == "suse":
            rc = utils.subprocess_get(self.logger,"httpd2 -v")

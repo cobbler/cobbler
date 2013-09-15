@@ -1010,7 +1010,7 @@ def check_dist():
 
 def os_release():
 
-   if check_dist() == "redhat":
+   if check_dist() in ("redhat","fedora","centos","scientific linux"):
       fh = open("/etc/redhat-release")
       data = fh.read().lower()
       if data.find("fedora") != -1:
