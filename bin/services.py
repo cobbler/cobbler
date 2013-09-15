@@ -51,7 +51,7 @@ def application(environ, start_response):
     # This MAC header is set by anaconda during a kickstart booted with the 
     # kssendmac kernel option. The field will appear here as something 
     # like: eth0 XX:XX:XX:XX:XX:XX
-    form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
+    form["REMOTE_MAC"]  = environ.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
 
     # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume
     # it's always present in this context.
