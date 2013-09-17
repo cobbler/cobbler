@@ -18,7 +18,7 @@
     "boot_files":[]
    },
    "rhel5": {
-    "signatures":["RedHat","Server","CentOS"],
+    "signatures":["RedHat","Server","CentOS","Client"],
     "version_file":"(redhat|sl|centos)-release-5([^\\.][\\w]*)?[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
