@@ -1330,7 +1330,7 @@ class Koan:
 
         hashv = utils.input_string_or_hash(kextra)
 
-        if self.static_interface is not None and (breed == "redhat" or breed == "suse"):
+        if self.static_interface is not None and (breed == "redhat" or breed == "suse" or breed == "debian" or breed == "ubuntu"):
             interface_name = self.static_interface
             interfaces = self.safe_load(pd, "interfaces")
             if interface_name.startswith("eth"):
@@ -1351,15 +1351,25 @@ class Koan:
             if ip is not None:
                 if breed == "suse":
                     hashv["hostip"] = ip
+                elif breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_ipaddress"] = ip
                 else:
                     hashv["ip"] = ip
             if netmask is not None:
-                hashv["netmask"] = netmask
+                if breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_netmask"] = netmask
+                else:
+                    hashv["netmask"] = netmask
             if gateway is not None:
-                hashv["gateway"] = gateway
+                if breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_gateway"] = gateway
+                else:
+                    hashv["gateway"] = gateway
             if dns is not None:
                 if breed == "suse":
                     hashv["nameserver"] = dns[0]
+                elif breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_nameservers"] = " ".join(dns)
                 else:
                     hashv["dns"] = ",".join(dns)
 
