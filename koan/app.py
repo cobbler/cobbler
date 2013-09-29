@@ -1344,6 +1344,25 @@ class Koan:
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
 
+            if breed == "debian" or breed == "ubuntu":
+                hostname = self.safe_load(pd, "hostname")
+                name = self.safe_load(pd, "name")
+
+                if hostname != "" or name != "":
+                    if hostname != "":
+                        # if this is a FQDN, grab the first bit
+                        my_hostname = hostname.split(".")[0]
+                        _domain = hostname.split(".")[1:]
+                        if _domain:
+                           my_domain = ".".join(_domain)
+                    else:
+                        my_hostname = name.split(".")[0]
+                        _domain = name.split(".")[1:]
+                        if _domain:
+                           my_domain = ".".join(_domain)
+                    hashv["hostname"] = my_hostname
+                    hashv["domain"] = my_domain
+
             if breed == "suse":
                 hashv["netdevice"] = self.static_interface
             else:
