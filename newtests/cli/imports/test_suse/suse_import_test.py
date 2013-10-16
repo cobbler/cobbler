@@ -21,6 +21,9 @@ distros = [
  {"name":"sles11_sp2-i386", "desc":"SLES 11 SP2 i586", "path":"/vagrant/distros/sles11_sp2_i586"},
  {"name":"sles11_sp2-x86_64", "desc":"SLES 11 SP2 x86_64", "path":"/vagrant/distros/sles11_sp2_x86_64"},
  {"name":"sles11_sp2-ppc64", "desc":"SLES 11 SP2 ppc64", "path":"/vagrant/distros/sles11_sp2_ppc64"},
+ {"name":"sles11_sp3-i386", "desc":"SLES 11 SP3 i586", "path":"/vagrant/distros/sles11_sp3_i586"},
+ {"name":"sles11_sp3-x86_64", "desc":"SLES 11 SP3 x86_64", "path":"/vagrant/distros/sles11_sp3_x86_64"},
+ {"name":"sles11_sp3-ppc64", "desc":"SLES 11 SP3 ppc64", "path":"/vagrant/distros/sles11_sp3_ppc64"},
 ]
 
 for i in range(0,len(distros)):
