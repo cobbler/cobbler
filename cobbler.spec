@@ -306,6 +306,7 @@ Group: Applications/System
 Requires: cobbler
 Requires: Django >= 1.1.2
 Requires: mod_wsgi
+Requires: mod_ssl
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 %endif
