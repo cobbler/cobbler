@@ -33,7 +33,6 @@ import errno
 from utils import popen2
 from shlex import shlex
 
-import codes
 import utils
 from cexceptions import *
 import templar
@@ -166,7 +165,7 @@ class ImportFreeBSDManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return codes.VALID_OS_VERSIONS["freebsd"]
+        return utils.get_valid_os_versions_for_breed("freebsd")
 
     def get_valid_repo_breeds(self):
         return ["rsync", "rhn", "yum",]

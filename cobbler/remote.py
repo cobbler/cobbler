@@ -1078,6 +1078,15 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
+    def get_valid_os_versions_for_breed(self,breed,token=None,**rest):
+        """
+        Return the list of valid os_versions for the given breed
+        """
+        self._log("get_valid_os_versions_for_breed",token=token)
+        results = utils.get_valid_os_versions_for_breed(breed)
+        results.sort()
+        return self.xmlrpc_hacks(results)
+
     def get_valid_os_versions(self,token=None,**rest):
         """
         Return the list of valid os_versions as read

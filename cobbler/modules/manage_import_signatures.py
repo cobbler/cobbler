@@ -35,7 +35,6 @@ import item_distro
 import item_profile
 import item_repo
 import item_system
-import codes
 
 # Import aptsources module if available to obtain repo mirror.
 try:
