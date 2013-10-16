@@ -2077,6 +2077,15 @@ def get_valid_breeds():
     else:
         return []
 
+def get_valid_os_versions_for_breed(breed):
+    """
+    Return a list of valid os-versions for the given breed
+    """
+    os_versions = []
+    if breed in get_valid_breeds():
+       os_versions = SIGNATURE_CACHE["breeds"][breed].keys()
+    return os_versions
+
 def get_valid_os_versions():
     """
     Return a list of valid os-versions found in the import signatures
