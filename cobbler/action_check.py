@@ -128,7 +128,7 @@ class BootCheck:
            if os.path.exists("/etc/init.d/%s" % which):
                rc = utils.subprocess_call(self.logger,"/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
-               status.append(_("service %s is not running%s") % which,notes)
+               status.append(_("service %s is not running%s") % (which,notes))
                return False
        elif self.checked_dist == "ubuntu":
            if os.path.exists("/etc/init/%s.conf" % which):
