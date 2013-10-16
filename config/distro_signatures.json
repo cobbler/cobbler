@@ -442,6 +442,23 @@
     "kernel_options_post":"",
     "template_files":"/etc/cobbler/pxe/bootcfg_esxi51.template=$local_img_path/cobbler-boot.cfg",
     "boot_files":["*.*"]
+   },
+   "esxi55": {
+    "signatures":["tboot.b00"],
+    "version_file":"s\\.v00",
+    "version_file_regex":"^.*ESXi 5\\.5\\.(.*)build-([\\d]+).*$",
+    "kernel_arch":"tools\\.t00",
+    "kernel_arch_regex":"^.*(x86_64).*$",
+    "supported_arches":["x86_64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"mboot\\.c32",
+    "initrd_file":"imgpayld\\.tgz",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "template_files":"/etc/cobbler/pxe/bootcfg_esxi55.template=$local_img_path/cobbler-boot.cfg",
+    "boot_files":["*.*"]
    }
   },
   "freebsd": {
