@@ -26,7 +26,6 @@ import os.path
 import glob
 import shutil
 import time
-import yaml # Howell-Clark version
 import sys
 import glob
 import traceback

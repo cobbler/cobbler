@@ -24,8 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import time
-import yaml # Howell-Clark version
 import sys
+
 HAS_YUM = True
 try:
     import yum
