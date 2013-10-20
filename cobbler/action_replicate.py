@@ -302,7 +302,7 @@ class Replicate:
     # -------------------------------------------------------
 
     def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, 
-            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False):
+            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False):
         """
         Get remote profiles and distros and sync them locally
         """
@@ -318,6 +318,7 @@ class Replicate:
         self.omit_data           = omit_data
         self.prune               = prune
         self.sync_all            = sync_all
+        self.use_ssl             = use_ssl
 
         self.logger.info("cobbler_master      = %s" % cobbler_master)
         self.logger.info("profile_patterns    = %s" % self.profile_patterns)
@@ -329,16 +330,22 @@ class Replicate:
         self.logger.info("file_patterns       = %s" % self.file_patterns)
         self.logger.info("omit_data           = %s" % self.omit_data)
         self.logger.info("sync_all            = %s" % self.sync_all)
-
+        self.logger.info("use_ssl             = %s" % self.use_ssl)
 
         if cobbler_master is not None:
             self.logger.info("using CLI defined master")
             self.host = cobbler_master
-            self.uri = 'http://%s/cobbler_api' % cobbler_master
+            if self.use_ssl:
+                self.uri = 'https://%s/cobbler_api' % cobbler_master
+            else:
+                self.uri = 'http://%s/cobbler_api' % cobbler_master
         elif len(self.settings.cobbler_master) > 0:
             self.logger.info("using info from master")
             self.host = self.settings.cobbler_master
-            self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
+            if self.use_ssl:
+                self.uri = 'https://%s/cobbler_api' % self.settings.cobbler_master
+            else:
+                self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
         else:
             utils.die('No cobbler master specified, try --master.')
 
