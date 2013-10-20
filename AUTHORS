@@ -7,6 +7,7 @@ And is maintained by:
     Michael DeHaan <michael.dehaan@gmail.com>
     Scott Henson <sjh@foolishpride.org>
     James Cammarata <jimi@sgnx.net>
+    Jorgen Maas <jorgen.maas@gmail.com>
 
 With patches and other contributions from (alphabetically, by last name):
 
@@ -35,6 +36,7 @@ With patches and other contributions from (alphabetically, by last name):
     Lee Faus <lfaus@redhat.com>
     Leonid Flaks <flaks@bnl.gov>
     Eoghan Gaffney <eoghan@noroutetohost.org>
+    Uwe Gansert <ug@suse.de>
     Dan Guernsey <danpg102@gmail.com>
     Marcel Haerry <haerry+et@puzzle.ch>
     Peter Halliday <phalliday@excelsiorsystems.net>
@@ -49,6 +51,7 @@ With patches and other contributions from (alphabetically, by last name):
     Mihai Ibanescu <mihai.ibanescu@gmail.com>
     Shuichi Ihara <ihara@sun.com>
     Pablo Iranzo Gómez <pablo.iranzo@redhat.com>
+    Christopher Johnston <chjohnst@gmail.com> 
     Brian Kearney <bkearney@redhat.com>
     Henry Kemp <henrykemp@gmail.com>
     Ruben Kerkhof <ruben@rubenkerkhof.com>
@@ -88,6 +91,7 @@ With patches and other contributions from (alphabetically, by last name):
     Scott Seago <sseago@redhat.com>
     Justin Sherill <jsherril@redhat.com>
     Chuck Short <chuck.short@canonical.com>
+    James Shubin <james@shubin.ca>
     Anderson Silva <ansilva@redhat.com>
     Joe Smith <yasumoto7@gmail.com>
     Michael Stahnke <mastahnke@gmail.com>
@@ -102,8 +106,6 @@ With patches and other contributions from (alphabetically, by last name):
     Adam Wolf <adamwolf@feelslikeburning.com>
     Simon Woolsgrove <simon@woolsgrove.com>
     Todd Zullinger <tmz@pobox.com>
-    Uwe Gansert <ug@suse.de>
-    James Shubin <james@shubin.ca>
 
     [...send patches to get your name here...]
 
