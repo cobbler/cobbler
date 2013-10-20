@@ -321,6 +321,7 @@ class Replicate:
         self.use_ssl             = use_ssl
 
         self.logger.info("cobbler_master      = %s" % cobbler_master)
+        self.logger.info("distro_patterns     = %s" % self.distro_patterns)
         self.logger.info("profile_patterns    = %s" % self.profile_patterns)
         self.logger.info("system_patterns     = %s" % self.system_patterns)
         self.logger.info("repo_patterns       = %s" % self.repo_patterns)
