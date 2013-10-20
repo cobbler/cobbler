@@ -1872,8 +1872,7 @@ class Koan:
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
-                selinuxenabled = sub_process.call(args)
-                if selinuxenabled == 0:
+                if os.path.exists(args) and sub_process.call(args) == 0:
                     # required context type
                     context_type = "virt_image_t"
 
