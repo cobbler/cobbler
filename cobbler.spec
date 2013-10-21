@@ -24,6 +24,7 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
+Requires: mod_ssl
 Requires: createrepo
 Requires: python-cheetah
 Requires: python-netaddr
@@ -304,6 +305,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: cobbler
+Requires: httpd
 Requires: Django >= 1.1.2
 Requires: mod_wsgi
 Requires: mod_ssl
