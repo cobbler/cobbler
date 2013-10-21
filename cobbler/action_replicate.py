@@ -49,7 +49,7 @@ class Replicate:
         self.logger   = logger
 
     def rsync_it(self,from_path,to_path,type=None):
-        from_path = "%s::%s" % (self.host, from_path)
+        from_path = "%s::%s" % (self.master, from_path)
         if type == 'repo':
            cmd = "rsync %s %s %s" % (self.settings.replicate_repo_rsync_options, from_path, to_path)
         else:
@@ -320,7 +320,22 @@ class Replicate:
         self.sync_all            = sync_all
         self.use_ssl             = use_ssl
 
+        if self.use_ssl:
+            protocol = 'https'
+        else:
+            protocol = 'http'
+
+        if cobbler_master is not None:
+            self.master = cobbler_master
+        elif len(self.settings.cobbler_master) > 0:
+            self.master = self.settings.cobbler_master
+        else:
+            utils.die('No cobbler master specified, try --master.')
+
+        self.uri = '%s://%s/cobbler_api' % (protocol,self.master)
+
         self.logger.info("cobbler_master      = %s" % cobbler_master)
+        self.logger.info("distro_patterns     = %s" % self.distro_patterns)
         self.logger.info("profile_patterns    = %s" % self.profile_patterns)
         self.logger.info("system_patterns     = %s" % self.system_patterns)
         self.logger.info("repo_patterns       = %s" % self.repo_patterns)
@@ -331,23 +346,6 @@ class Replicate:
         self.logger.info("omit_data           = %s" % self.omit_data)
         self.logger.info("sync_all            = %s" % self.sync_all)
         self.logger.info("use_ssl             = %s" % self.use_ssl)
-
-        if cobbler_master is not None:
-            self.logger.info("using CLI defined master")
-            self.host = cobbler_master
-            if self.use_ssl:
-                self.uri = 'https://%s/cobbler_api' % cobbler_master
-            else:
-                self.uri = 'http://%s/cobbler_api' % cobbler_master
-        elif len(self.settings.cobbler_master) > 0:
-            self.logger.info("using info from master")
-            self.host = self.settings.cobbler_master
-            if self.use_ssl:
-                self.uri = 'https://%s/cobbler_api' % self.settings.cobbler_master
-            else:
-                self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
-        else:
-            utils.die('No cobbler master specified, try --master.')
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
