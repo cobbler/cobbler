@@ -56,7 +56,11 @@ class Systems(collection.Collection):
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
                     lite_sync.remove_single_system(name)
-            del self.listing[name]
+            self.lock.acquire()
+            try:
+                del self.listing[name]
+            finally:
+                self.lock.release()
             self.config.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers: 
