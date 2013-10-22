@@ -96,10 +96,12 @@ class Collection:
             return self.listing.get(kargs["name"].lower(), None)
 
         self.lock.acquire()
-        for (name, obj) in self.listing.iteritems():
-            if obj.find_match(kargs, no_errors=no_errors):
-                matches.append(obj)
-        self.lock.release()
+        try:
+            for (name, obj) in self.listing.iteritems():
+                if obj.find_match(kargs, no_errors=no_errors):
+                    matches.append(obj)
+        finally:
+            self.lock.release()
 
         if not return_list:
             if len(matches) == 0:
@@ -152,9 +154,7 @@ class Collection:
         """
         Serialize the collection
         """
-        self.lock.acquire()
         datastruct = [x.to_datastruct() for x in self.listing.values()]
-        self.lock.release()
         return datastruct
 
     def from_datastruct(self,datastruct):
@@ -318,14 +318,22 @@ class Collection:
 
         if not save:
             # don't need to run triggers, so add it already ...
-            self.listing[ref.name.lower()] = ref
+            self.lock.acquire()
+            try:
+                self.listing[ref.name.lower()] = ref
+            finally:
+                self.lock.release()
 
         # perform filesystem operations
         if save:
             # failure of a pre trigger will prevent the object from being added
             if with_triggers:
                 utils.run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(), [], logger)
-            self.listing[ref.name.lower()] = ref
+            self.lock.acquire()
+            try:
+                self.listing[ref.name.lower()] = ref
+            finally:
+                self.lock.release()
 
             # save just this item if possible, if not, save
             # the whole collection
