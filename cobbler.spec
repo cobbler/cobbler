@@ -24,7 +24,6 @@ Requires: python >= 2.3
 Requires: httpd
 Requires: tftp-server
 Requires: mod_wsgi
-Requires: mod_ssl
 Requires: createrepo
 Requires: python-cheetah
 Requires: python-netaddr
@@ -100,8 +99,8 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m0644 config/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 
 %post
-if [ $1 -eq 1 ] ; then 
-    # Initial installation 
+if [ $1 -eq 1 ] ; then
+    # Initial installation
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
 elif [ "$1" -ge "2" ]; then
     # backup config
@@ -308,7 +307,6 @@ Requires: cobbler
 Requires: httpd
 Requires: Django >= 1.1.2
 Requires: mod_wsgi
-Requires: mod_ssl
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 %endif
