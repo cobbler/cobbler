@@ -2,9 +2,6 @@ import distutils.sysconfig
 import re
 import sys
 import utils
-import subprocess
-import syslog
-import json
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
