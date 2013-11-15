@@ -1,3 +1,11 @@
+"""
+This module removes salt keys from the salt master prior to
+reinstalling a machine if the salt master is running on the cobbler
+server.
+
+Based on:
+http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
+"""
 import distutils.sysconfig
 import re
 import sys
