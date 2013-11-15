@@ -1,0 +1,3 @@
+#if $str($getVar('salt_auto_setup','')) == "1"
+salt-minion
+#end if

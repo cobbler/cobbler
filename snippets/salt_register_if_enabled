@@ -1,0 +1,17 @@
+# start saltstack registration
+#if $str($getVar('salt_auto_setup','')) == "1"
+
+# set salt_master address
+/bin/sed -i -e's/#master: salt/master: $str($getVar('salt_master',''))/' /etc/salt/minion
+
+# turn salt-minon service on for reboot
+/usr/sbin/chkconfig salt-minion on
+
+# start salt-minion to send the certificate signing request
+service salt-minion start
+
+# sleep for five seconds to give salt-minion enough time to register
+sleep 5
+
+#end if
+# end saltstack registration

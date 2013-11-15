@@ -237,6 +237,33 @@ remove_old_puppet_certs_automatically: 0
 # puppet versions prior to 2.6.5 do not support parameters
 #puppet_parameterized_classes: 1
 
+# if enabled, this setting ensures that salt is installed during
+# # machine provision, a client certificate is generated and a
+# # certificate signing request is made with the salt master server
+salt_auto_setup: 0
+
+# when salt minion starts on a system after installation it needs to have
+# its certificate signed by the salt master server. Enabling the
+# following feature will ensure that the salt server signs the
+# certificate after installation if the salt master server is
+# running on the same machine as cobbler. This requires
+# salt_auto_setup above to be enabled
+salt_add_new_certs_automatically: 0
+
+# if machines managed by the salt master server are reinstalled, they
+# create a new certificate signing request with a new keypair.
+# the following option removes old certificates automatically if
+# a host is reinstalled if the salt master server is running on the
+# same machine as cobbler. This requires salt_auto_setup above
+# to be enabled
+salt_remove_old_certs_automatically: 0
+
+# the address of the salt master server 
+salt_master: salt
+
+# location of the salt-key utility for key signing and removal of salt
+saltkey_path: "/usr/bin/salt-key"
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: 0
