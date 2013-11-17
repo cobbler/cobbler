@@ -547,7 +547,7 @@ def input_string_or_hash(options,allow_multiples=True):
         return (True, {})
     elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif isinstance(options, str):
+    elif isinstance(options, basestring):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
@@ -1434,7 +1434,7 @@ def set_virt_file_size(self,num):
         self.virt_file_size = "<<inherit>>"
         return True
 
-    if isinstance(num, str) and num.find(",") != -1:
+    if isinstance(num, basestring) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1646,7 +1646,7 @@ class MntEntObj(object):
     mnt_passno = 0    #* pass number on parallel fsck */
 
     def __init__(self,input=None):
-        if input and isinstance(input, str):
+        if input and isinstance(input, basestring):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts, \
              self.mnt_freq, self.mnt_passno) = input.split()
     def __dict__(self):
