@@ -77,6 +77,7 @@ class Validate:
         os_version = blended["os_version"]
 
         self.logger.info("----------------------------")
+        self.logger.debug("osversion: %s" % os_version)
 
         ks = blended["kickstart"]
         if ks is None or ks == "":
@@ -102,7 +103,7 @@ class Validate:
 
         self.logger.info("checking url: %s" % url)
 
-        rc = utils.subprocess_call(self.logger,"/usr/bin/ksvalidator \"%s\"" % url, shell=True)
+        rc = utils.subprocess_call(self.logger,"/usr/bin/ksvalidator -v \"%s\" \"%s\"" % (os_version, url), shell=True)
         if rc != 0:
             return [False, last_errors]
        
