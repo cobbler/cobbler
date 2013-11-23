@@ -1415,10 +1415,7 @@ class Koan:
         Invoke virt guest-install (or tweaked copy thereof)
         """
         pd = profile_data
-        # importing can't throw exceptions any more, don't put it in a sub-method
-        import xencreate
-        import qcreate
-        import imagecreate
+        self.load_virt_modules()
 
         arch                          = self.safe_load(pd,'arch','x86')
         kextra                        = self.calc_kernel_args(pd)
@@ -1504,6 +1501,17 @@ class Koan:
                 print "- warning: don't know how to autoboot this virt type yet"
             # else...
         return results
+
+    #---------------------------------------------------
+
+    def load_virt_modules(self):
+        try:
+            import xencreate
+            import qcreate
+            import imagecreate
+        except:
+            traceback.print_exc()
+            raise InfoException("no virtualization support available, install python-virtinst or virt-install?")
 
     #---------------------------------------------------
 
