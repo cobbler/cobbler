@@ -173,6 +173,27 @@ def subprocess_call(cmd,ignore_rc=0):
         raise InfoException, "command failed (%s)" % rc
     return rc
 
+def subprocess_get_response(cmd, ignore_rc=False):
+    """
+    Wrapper around subprocess.check_output(...)
+    """
+    print "- %s" % cmd
+    rc = 0
+    result = ""
+    if not ANCIENT_PYTHON:
+        try:
+            result = sub_process.check_output(cmd).strip()
+        except subprocess.CalledProcessError, e:
+            rc = e.returncode
+            result = e.output
+    else:
+        cmd = string.join(cmd, " ")
+        print "cmdstr=(%s)" % cmd
+        rc = os.system(cmd)
+    if not ignore_rc and rc != 0:
+        raise InfoException, "command failed (%s)" % rc
+    return rc, result
+
 def input_string_or_hash(options,delim=None,allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
@@ -262,7 +283,7 @@ def nfsmount(input_path):
         shutil.rmtree(tempdir, ignore_errors=True)
         raise koan.InfoException("nfs mount failed: %s" % dirpath)
     # NOTE: option for a blocking install might be nice, so we could do this
-    # automatically, if supported by python-virtinst
+    # automatically, if supported by virt-install
     print "after install completes, you may unmount and delete %s" % tempdir
     return (tempdir, filename)
 
@@ -525,7 +546,7 @@ def make_floppy(kickstart):
     if not rc == 0:
         raise InfoException("umount failed")
 
-    # return the path to the completed disk image to pass to virtinst
+    # return the path to the completed disk image to pass to virt-install
     return floppy_path
 
 def sync_file(ofile, nfile, uid, gid, mode):
