@@ -41,14 +41,10 @@ build:
 # Assume we're on RedHat by default ('apache' user),
 # otherwise Debian / Ubuntu ('www-data' user)
 install: build
-	if [ -n "`getent passwd apache`" ] ; then \
-		python setup.py install --root $(DESTDIR) -f; \
-		chown -R apache $(DESTDIR)/usr/share/cobbler/web; \
-		chown -R apache $(DESTDIR)/var/lib/cobbler/webui_sessions; \
-	else \
+	if [ -e /etc/debian_version ]; then \
 		python setup.py install --root $(DESTDIR) -f --install-layout=deb; \
-		chown -R www-data $(DESTDIR)/usr/share/cobbler/web; \
-		chown -R www-data $(DESTDIR)/var/lib/cobbler/webui_sessions; \
+	else \
+		python setup.py install --root $(DESTDIR) -f; \
 	fi
 
 devinstall:

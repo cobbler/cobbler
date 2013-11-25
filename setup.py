@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 import glob, os, sys, time, yaml
 from distutils.core import setup, Command
+from distutils.command.install import install as _install
 from distutils.command.build_py import build_py as _build_py
+from distutils import log
 import unittest
+import exceptions
+import pwd
+import types
 
 try:
     import subprocess
@@ -113,6 +118,56 @@ class build_py(_build_py):
         _build_py.run(self)
 
 #####################################################################
+## Modify Install Stage  ############################################
+#####################################################################
+
+class install(_install):
+    """Specialised python package installer.
+
+    It does some required chown calls in addition to the usual stuff.
+    """
+
+    def __init__(self, *args):
+        _install.__init__(self, *args)
+
+    def change_owner(self, path, owner):
+        user = pwd.getpwnam(owner)
+        try:
+            log.info("changing mode of %s" % path)
+            if not self.dry_run:
+                # os.walk does not include the toplevel directory
+                os.lchown(path, user.pw_uid, -1)
+                # Now walk the directory and change them all
+                for root, dirs, files in os.walk(path):
+                    for dirname in dirs:
+                        os.lchown(os.path.join(root, dirname), user.pw_uid, -1)
+                    for filename in files:
+                        os.lchown(os.path.join(root, filename), user.pw_uid, -1)
+        except exceptions.OSError as e:
+            # We only check for errno = 1 (EPERM) here because its kinda
+            # expected when installing as a non root user.
+            if e.errno == 1:
+                self.warn("Could not change owner: You have insufficient permissions.")
+            else:
+                raise e
+
+    def run(self):
+        # Run the usual stuff.
+        _install.run(self)
+
+        # Hand over some directories to the webserver user
+        self.change_owner(
+            os.path.join(self.install_data, 'share/cobbler/web'),
+            http_user)
+        if not os.path.abspath(libpath):
+            # The next line only works for absolute libpath
+            raise Exception("libpath is not absolute.")
+        self.change_owner(
+            os.path.join(self.root + libpath, 'webui_sessions'),
+            http_user)
+
+
+#####################################################################
 ## Test Command #####################################################
 #####################################################################
 
@@ -170,18 +225,25 @@ if __name__ == "__main__":
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
+        http_user   = "wwwrun"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
+        http_user   = "www-data"
     else:
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
+        http_user   = "apache"
 
     webcontent  = webroot + "cobbler_webui_content/"
 
 
     setup(
-        cmdclass={'build_py': build_py, 'test': test_command},
+        cmdclass={
+            'build_py': build_py,
+            'test': test_command,
+            'install': install
+        },
         name = "cobbler",
         version = VERSION,
         description = "Network Boot and Update Server",
