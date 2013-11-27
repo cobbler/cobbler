@@ -2,9 +2,14 @@
 import os, sys, time, yaml
 import glob as _glob
 from distutils.core import setup, Command
+from distutils.command.build   import build as _build
 from distutils.command.install import install as _install
 from distutils.command.build_py import build_py as _build_py
 from distutils import log
+from distutils import dep_util
+from distutils.dist import Distribution as _Distribution
+from string import Template
+import codecs
 import unittest
 import exceptions
 import pwd
@@ -99,6 +104,18 @@ def gen_build_version():
 #####################################################################
 
 
+
+#####################################################################
+## Custom Distribution Class ########################################
+#####################################################################
+
+class Distribution(_Distribution):
+    def __init__(self, *args, **kwargs):
+        self.configure_files = []
+        self.configure_values = {}
+        _Distribution.__init__(self, *args, **kwargs)
+
+
 #####################################################################
 ## Modify Build Stage  ##############################################
 #####################################################################
@@ -110,6 +127,88 @@ class build_py(_build_py):
         gen_manpages()
         gen_build_version()
         _build_py.run(self)
+
+#####################################################################
+## Modify Build Stage  ##############################################
+#####################################################################
+class build(_build):
+    """Specialized Python source builder."""
+
+    def run(self):
+        self.run_command("configure")
+        _build.run(self)
+
+#####################################################################
+## Configure files ##################################################
+#####################################################################
+
+class build_cfg(Command):
+
+    description = "configuration files (copy and substitute options)"
+
+    user_options = [
+        ('force', 'f', "forcibly build everything (ignore file timestamps")
+    ]
+
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.build_dir = None
+        self.force = None
+
+    def finalize_options(self):
+        self.set_undefined_options(
+            'build',
+            ('build_base', 'build_dir'),
+            ('force', 'force')
+        )
+
+    def run(self):
+        # On dry-run ignore missing source files.
+        if self.dry_run:
+            mode = 'newer'
+        else:
+            mode = 'error'
+        # Work on all files
+        for infile in self.distribution.configure_files:
+            # We copy the files to build/
+            outfile = os.path.join(self.build_dir, infile)
+            # check if the file is out of date
+            if dep_util.newer_group(
+                [ infile, 'setup.py' ],
+                outfile,
+                mode):
+                # It is. Configure it
+                self.configure_one_file(infile, outfile)
+
+    def configure_one_file(self, infile, outfile):
+        self.announce("configuring %s" % (infile), log.INFO)
+        if not self.dry_run:
+            # Read the file
+            with codecs.open(infile, 'r', 'utf-8') as fh:
+                before = fh.read()
+            # Substitute the variables
+            # Create the output directory if necessary
+            outdir = os.path.dirname(outfile)
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            # Write it into build/
+            with codecs.open(outfile, 'w', 'utf-8') as fh:
+                fh.write(self.substitute_values(
+                    before,
+                    self.distribution.configure_values)
+            )
+
+    def substitute_values(self, string, values):
+        for name, val in values.iteritems():
+            # print("replacing @@%s@@ with %s" % (name, val))
+            string = string.replace("@@%s@@" % (name), val)
+        return string
+
+
+def has_configure_files(build):
+    """Check if the distribution has configuration files to work on."""
+    return bool(build.distribution.configure_files)
 
 #####################################################################
 ## Modify Install Stage  ############################################
@@ -325,12 +424,15 @@ if __name__ == "__main__":
 
 
     setup(
+        distclass=Distribution,
         cmdclass={
+            'build': build,
             'build_py': build_py,
             'test': test_command,
             'install': install,
             'savestate': savestate,
-            'restorestate': restorestate
+            'restorestate': restorestate,
+            'configure': build_cfg,
         },
         name = "cobbler",
         version = VERSION,
