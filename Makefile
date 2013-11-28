@@ -102,7 +102,7 @@ restorestate:
 		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
 	fi
 	if [ -d $(DESTDIR)/usr/share/cobbler/web ] ; then \
-		chmod -R +x $(DESTDIR)/usr/share/cobbler/web/cobbler/cobbler_web; \
+		chmod -R +x $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \
 	fi
 	rm -rf $(statepath)
