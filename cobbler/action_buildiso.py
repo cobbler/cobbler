@@ -189,10 +189,6 @@ class BuildIso:
              append_line += self.add_remaining_kopts(data["kernel_options"])
              cfg.write(append_line)
 
-             length=len(append_line)
-             if length > 254:
-                self.logger.warning("append line length is greater than 254 chars (%s chars)" % length)
-
        cfg.write("\nMENU SEPARATOR\n")
 
        # iterate through all selected systems
@@ -411,10 +407,6 @@ class BuildIso:
              # add remaining kernel_options to append_line
              append_line += self.add_remaining_kopts(data["kernel_options"])
              cfg.write(append_line)
-
-             length = len(append_line)
-             if length > 254:
-                self.logger.warning("append line length is greater than 254 chars (%s chars)" % length)
 
        cfg.write("\n")
        cfg.write("MENU END\n")
