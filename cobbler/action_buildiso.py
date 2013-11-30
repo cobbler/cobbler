@@ -162,7 +162,7 @@ class BuildIso:
 
              append_line = " append initrd=%s.img" % distname
              if dist.breed == "suse":
-                 if data["proxy"] != "":
+                 if data.has_key("proxy") and data["proxy"] != "":
                      append_line += " proxy=%s" % data["proxy"]
                  if data["kernel_options"].has_key("install") and data["kernel_options"]["install"] != "":
                      append_line += " install=%s" % data["kernel_options"]["install"]
@@ -178,13 +178,13 @@ class BuildIso:
                      append_line += " autoyast=%s" % data["kickstart"]
 
              if dist.breed == "redhat":
-                 if data["proxy"] != "":
+                 if data.has_key("proxy") and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
                  append_line += " ks=%s" % data["kickstart"]
 
              if dist.breed in ["ubuntu","debian"]:
                  append_line += " auto-install/enable=true url=%s" % data["kickstart"]
-                 if data["proxy"] != "":
+                 if data.has_key("proxy") and data["proxy"] != "":
                      append_line += " mirror/http/proxy=%s" % data["proxy"]
              append_line += self.add_remaining_kopts(data["kernel_options"])
              cfg.write(append_line)
@@ -217,7 +217,7 @@ class BuildIso:
 
              append_line = " append initrd=%s.img" % distname
              if dist.breed == "suse":
-                if data["proxy"] != "":
+                if data.has_key("proxy") and data["proxy"] != "":
                     append_line += " proxy=%s" % data["proxy"]
                 if data["kernel_options"].has_key("install") and data["kernel_options"]["install"] != "":
                     append_line += " install=%s" % data["kernel_options"]["install"]
@@ -233,13 +233,13 @@ class BuildIso:
                     append_line += " autoyast=%s" % data["kickstart"]
 
              if dist.breed == "redhat":
-                if data["proxy"] != "":
+                if data.has_key("proxy") and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
                 append_line += " ks=%s" % data["kickstart"]
 
              if dist.breed in ["ubuntu","debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["kickstart"]
-                if data["proxy"] != "":
+                if data.has_key("proxy") and data["proxy"] != "":
                     append_line += " mirror/http/proxy=%s" % data["proxy"]
                 # hostname is required as a parameter, the one in the preseed is not respected
                 my_domain = "local.lan"
