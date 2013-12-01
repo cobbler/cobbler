@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
-    docpath     = "/usr/share/man/man1"
+    docpath     = "share/man/man1"
     etcpath     = "/etc/cobbler/"
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
