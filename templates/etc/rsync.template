@@ -26,6 +26,10 @@
     path    = /var/lib/cobbler/triggers
     comment = Cobbler Triggers
 
+[cobbler-scripts]
+    path    = /var/lib/cobbler/scripts
+    comment = Cobbler Scripts
+
 #for repo in $repos:
 [repo-$repo]
     path    = $webdir/repo_mirror/$repo
