@@ -80,6 +80,7 @@ class InTftpdManager:
 
         # Loop through the hash of boot files,
         # executing a cp for each one
+        self.logger.info("processing boot_files for distro: %s" % distro.name)
         for file in target["boot_files"].keys():
             rendered_file = templater.render(file,metadata,None)
             try:
