@@ -366,10 +366,6 @@ class PXEGen:
                # This profile has been excluded from the menu
                continue
             distro = profile.get_conceptual_parent()
-            # xen distros can be ruled out as they won't boot
-            if distro.name.find("-xen") != -1 or distro.arch not in ["i386", "x86_64"]:
-                # can't PXE Xen
-                continue
             contents = self.write_pxe_file(filename=None, system=None,
                     profile=profile, distro=distro,
                     arch=distro.arch, include_header=False)
