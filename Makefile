@@ -15,12 +15,12 @@ clean:
 	-rm -f cobbler/*.pyc
 	-rm -rf dist
 	-rm -rf buildiso
-	-rm MANIFEST
+	-rm -f MANIFEST
 	-rm -f koan/*.pyc
 	-rm -f config/version
 	-rm -f docs/*.1.gz 
-	-rm *.tmp
-	-rm *.log
+	-rm -f *.tmp
+	-rm -f *.log
 
 test:
 	make savestate prefix=test
