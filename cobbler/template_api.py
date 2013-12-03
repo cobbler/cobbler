@@ -99,7 +99,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
             # Normally, the cheetah compiler worries about this, but we need to
             # preprocess the actual source
             if source is None:
-                if isinstance(file, (str, unicode)):
+                if isinstance(file, basestring):
                     if os.path.exists(file):
                        f = open(file)
                        source = "#errorCatcher Echo\n" + f.read()
