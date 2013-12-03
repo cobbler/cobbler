@@ -8,6 +8,7 @@ import unittest
 import exceptions
 import pwd
 import types
+import shutil
 
 try:
     import subprocess
@@ -207,6 +208,97 @@ class test_command(Command):
         sys.exit(int(bool(len(result.failures) > 0 or
                           len(result.errors) > 0)))
 
+#####################################################################
+## state command base class #########################################
+#####################################################################
+
+class statebase(Command):
+
+    user_options = [
+        ('statepath=', None, 'directory to backup configuration'),
+        ('root=',      None, 'install everything relative to this alternate root directory')
+        ]
+
+    def initialize_options(self):
+        self.statepath = statepath
+        self.root = None
+
+    def finalize_options(self):
+        pass
+
+    def _copy(self, frm, to):
+        if os.path.isdir(frm):
+            to = os.path.join(to, os.path.basename(frm))
+            self.announce("copying %s/ to %s/" % (frm, to), log.DEBUG)
+            if not self.dry_run:
+                if os.path.exists(to):
+                    shutil.rmtree(to)
+                shutil.copytree(frm, to)
+        else:
+            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), log.DEBUG)
+            if not self.dry_run:
+                shutil.copy2(frm, to)
+
+#####################################################################
+## restorestate command #############################################
+#####################################################################
+
+class restorestate(statebase):
+
+    def _copy(self, frm, to):
+        if self.root:
+            to = self.root + to
+        statebase._copy(self, frm, to)
+
+    def run(self):
+        self.announce("restoring the current configuration from %s" % self.statepath, log.INFO)
+        if not os.path.exists(self.statepath):
+            self.warn("%s does not exist. Skipping" % self.statepath)
+            return
+        self._copy(os.path.join(self.statepath, 'config'), libpath)
+        self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
+        self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
+        self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
+        self._copy(os.path.join(self.statepath, 'settings'), etcpath)
+        self._copy(os.path.join(self.statepath, 'users.conf'), etcpath)
+        self._copy(os.path.join(self.statepath, 'users.digest'), etcpath)
+        self._copy(os.path.join(self.statepath, 'dhcp.template'), etcpath)
+        self._copy(os.path.join(self.statepath, 'rsync.template'), etcpath)
+
+#####################################################################
+## savestate command ################################################
+#####################################################################
+
+class savestate(statebase):
+
+    description = "Backup the current configuration to /tmp/cobbler_settings."
+
+    def _copy(self, frm, to):
+        if self.root:
+            frm = self.root + frm
+        statebase._copy(self, frm, to)
+
+    def run(self):
+        self.announce( "backing up the current configuration to %s" % self.statepath, log.INFO)
+        if os.path.exists(self.statepath):
+            self.announce("deleting existing %s" % self.statepath, log.DEBUG)
+            if not self.dry_run:
+                shutil.rmtree(self.statepath)
+        if not self.dry_run:
+            os.makedirs(self.statepath)
+        self._copy(os.path.join(libpath, 'config'), self.statepath)
+        self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
+        self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'settings'), self.statepath)
+        self._copy(os.path.join(etcpath, 'users.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'users.digest'), self.statepath)
+        self._copy(os.path.join(etcpath, 'dhcp.template'), self.statepath)
+        self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
+
+
+
+
 
 #####################################################################
 ## Actual Setup.py Script ###########################################
@@ -221,6 +313,7 @@ if __name__ == "__main__":
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
+    statepath   = "/tmp/cobbler_settings/devinstall"
 
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
@@ -242,7 +335,9 @@ if __name__ == "__main__":
         cmdclass={
             'build_py': build_py,
             'test': test_command,
-            'install': install
+            'install': install,
+            'savestate': savestate,
+            'restorestate': restorestate
         },
         name = "cobbler",
         version = VERSION,
