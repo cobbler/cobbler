@@ -153,5 +153,6 @@ eraseconfig:
 	-rm /var/lib/cobbler/config/repos.d/*
 	-rm /var/lib/cobbler/config/networks.d/*
 
-tags:
-	find . -type f -name '*.py' | xargs etags -c TAGS
+.PHONY: tags
+tags: 
+	find . \( -name build -o -name .git \) -prune -o -type f -name '*.py' -print | xargs etags -o TAGS --
