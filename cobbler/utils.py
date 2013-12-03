@@ -1429,7 +1429,7 @@ def set_virt_file_size(self,num):
         self.virt_file_size = "<<inherit>>"
         return True
 
-    if isinstance(num, str) and num.find(",") != -1:
+    if isinstance(num, basestring) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1641,7 +1641,7 @@ class MntEntObj(object):
     mnt_passno = 0    #* pass number on parallel fsck */
 
     def __init__(self,input=None):
-        if input and isinstance(input, str):
+        if input and isinstance(input, basestring):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts, \
              self.mnt_freq, self.mnt_passno) = input.split()
     def __dict__(self):

@@ -195,7 +195,7 @@ def get_fields(what, is_subobject, seed_item=None):
             else:
                 tokens = []
                 for (x,y) in elem["value"].items():
-                   if isinstance(y,str) and y.strip() != "~":
+                   if isinstance(y,basestring) and y.strip() != "~":
                       y = y.replace(" ","\\ ")
                       tokens.append("%s=%s" % (x,y))
                    elif isinstance(y,list):
