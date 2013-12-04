@@ -218,16 +218,16 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
             ("%s" % docpath,                ["docs/*.gz"]),
-            ("installer_templates",         ["installer_templates/*"]),
+            ("share/cobbler/installer_templates",         ["installer_templates/*"]),
             ("%skickstarts" % libpath,      ["kickstarts/*"]),
             ("%ssnippets" % libpath,        ["snippets/*"]),
             ("%sscripts" % libpath,         ["scripts/*"]),
             ("%s" % libpath,                ["config/distro_signatures.json"]),
-            ("web",                         ["web/*.*"]),
+            ("share/cobbler/web",           ["web/*.*"]),
             ("%s" % webcontent,             ["web/content/*.*"]),
-            ("web/cobbler_web",             ["web/cobbler_web/*.*"]),
-            ("web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
-            ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
+            ("share/cobbler/web/cobbler_web",             ["web/cobbler_web/*.*"]),
+            ("share/cobbler/web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
+            ("share/cobbler/web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
             ("%swebui_sessions" % libpath,  []),
             ("%sloaders" % libpath,         []),
             ("%scobbler/aux" % webroot,     ["aux/*"]),
@@ -300,7 +300,7 @@ if __name__ == "__main__":
             ("%scobbler/tasks" % logpath,               []),
 
             # spoolpaths
-            ("spool/koan",                              []),
+            ("share/cobbler/spool/koan",                []),
 
             # web page directories that we own
             ("%scobbler/localmirror" % webroot,         []),
