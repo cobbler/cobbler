@@ -10,10 +10,14 @@ rpm-build
 build
 MANIFEST
 TAGS
+tags
 .project
 .pydevproject
 .coverage
 .metadata
+
+# setuptools
+cobbler.egg-info
 
 # docs - ignore pod output
 docs/*.gz
@@ -27,3 +31,6 @@ config/version
 cobbler4j/src/main/java/org/fedorahosted/cobbler/autogen
 cobbler4j/user.properties
 cobbler4j/target
+
+# Testrun output
+test.log

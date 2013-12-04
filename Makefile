@@ -15,12 +15,12 @@ clean:
 	-rm -f cobbler/*.pyc
 	-rm -rf dist
 	-rm -rf buildiso
-	-rm MANIFEST
+	-rm -f MANIFEST
 	-rm -f koan/*.pyc
 	-rm -f config/version
 	-rm -f docs/*.1.gz 
-	-rm *.tmp
-	-rm *.log
+	-rm -f *.tmp
+	-rm -f *.log
 
 test:
 	make savestate prefix=test
@@ -153,5 +153,6 @@ eraseconfig:
 	-rm /var/lib/cobbler/config/repos.d/*
 	-rm /var/lib/cobbler/config/networks.d/*
 
-tags:
-	find . -type f -name '*.py' | xargs etags -c TAGS
+.PHONY: tags
+tags: 
+	find . \( -name build -o -name .git \) -prune -o -type f -name '*.py' -print | xargs etags -o TAGS --
