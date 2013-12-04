@@ -183,7 +183,7 @@ def subprocess_get_response(cmd, ignore_rc=False):
     if not ANCIENT_PYTHON:
         try:
             result = sub_process.check_output(cmd).strip()
-        except subprocess.CalledProcessError, e:
+        except sub_process.CalledProcessError, e:
             rc = e.returncode
             result = e.output
     else:
