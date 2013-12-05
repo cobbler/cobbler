@@ -212,7 +212,7 @@ if __name__ == "__main__":
         ],
         data_files = proc_data_files([
             # tftpd, hide in /usr/sbin
-            ("/usr/sbin", ["bin/tftpd.py"]),
+            ("sbin", ["bin/tftpd.py"]),
 
             ("%s" % webconfig,              ["config/cobbler.conf"]),
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
