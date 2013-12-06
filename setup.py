@@ -247,7 +247,7 @@ def has_man_pages(build):
 
 build.sub_commands.extend((
     ('build_man', has_man_pages),
-    ('build_man', has_configure_files)
+    ('build_cfg', has_configure_files)
 ))
 
 #####################################################################
