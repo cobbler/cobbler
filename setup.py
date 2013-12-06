@@ -118,7 +118,6 @@ class build(_build):
     """Specialized Python source builder."""
 
     def run(self):
-        self.run_command("configure")
         _build.run(self)
 
 #####################################################################
@@ -127,7 +126,7 @@ class build(_build):
 
 class build_cfg(Command):
 
-    description = "configuration files (copy and substitute options)"
+    description = "configure files (copy and substitute options)"
 
     user_options = [
         ('install-base=', None, "base installation directory"),
@@ -246,9 +245,10 @@ def has_man_pages(build):
     """Check if the distribution has configuration files to work on."""
     return bool(build.distribution.man_pages)
 
-build.sub_commands.append(
-    ('build_man', has_man_pages)
-    )
+build.sub_commands.extend((
+    ('build_man', has_man_pages),
+    ('build_man', has_configure_files)
+))
 
 #####################################################################
 ## Build man pages ##################################################
@@ -536,7 +536,7 @@ if __name__ == "__main__":
             'install': install,
             'savestate': savestate,
             'restorestate': restorestate,
-            'configure': build_cfg,
+            'build_cfg': build_cfg,
             'build_man': build_man
         },
         name = "cobbler",
