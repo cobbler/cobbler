@@ -60,24 +60,6 @@ def glob(*args, **kwargs):
 
 #####################################################################
 
-def gen_manpages():
-    """Generate the man pages... this is currently done through POD,
-    possible future version may do this through some Python mechanism
-    (maybe conversion from ReStructured Text (.rst))...
-    """
-
-    manpages = {
-        "cobbler":          'pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz',
-        "koan":             'pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz',
-        "cobbler-register": 'pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz',
-    }
-
-    #Actually build them
-    for man, cmd in manpages.items():
-        print("building %s man page." % man)
-        if os.system(cmd):
-            print "Creation of %s manpage failed." % man
-            exit(1)
 
 #####################################################################
 
@@ -114,6 +96,7 @@ class Distribution(_Distribution):
     def __init__(self, *args, **kwargs):
         self.configure_files = []
         self.configure_values = {}
+        self.man_pages = []
         _Distribution.__init__(self, *args, **kwargs)
 
 
@@ -125,7 +108,6 @@ class build_py(_build_py):
     """Specialized Python source builder."""
 
     def run(self):
-        gen_manpages()
         gen_build_version()
         _build_py.run(self)
 
@@ -211,7 +193,7 @@ class build_cfg(Command):
             'install_headers':   os.path.normpath(self.install_headers)
         }
         self.configure_values.update(self.distribution.configure_values)
-        
+
 
     def run(self):
         # On dry-run ignore missing source files.
@@ -224,7 +206,7 @@ class build_cfg(Command):
             # We copy the files to build/
             outfile = os.path.join(self.build_dir, infile)
             # check if the file is out of date
-            if dep_util.newer_group(
+            if self.force or dep_util.newer_group(
                 [ infile, 'setup.py' ],
                 outfile,
                 mode):
@@ -259,6 +241,78 @@ class build_cfg(Command):
 def has_configure_files(build):
     """Check if the distribution has configuration files to work on."""
     return bool(build.distribution.configure_files)
+
+def has_man_pages(build):
+    """Check if the distribution has configuration files to work on."""
+    return bool(build.distribution.man_pages)
+
+build.sub_commands.append(
+    ('build_man', has_man_pages)
+    )
+
+#####################################################################
+## Build man pages ##################################################
+#####################################################################
+
+class build_man(Command):
+
+    decription = "build man pages"
+
+    user_options = [
+        ('force', 'f', "forcibly build everything (ignore file timestamps")
+    ]
+
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.build_dir= None
+        self.force = None
+
+    def finalize_options(self):
+        self.set_undefined_options(
+            'build',
+            ('build_base', 'build_dir'),
+            ('force', 'force')
+        )
+
+    def run(self):
+        """Generate the man pages... this is currently done through POD,
+        possible future version may do this through some Python mechanism
+        (maybe conversion from ReStructured Text (.rst))...
+        """
+        # On dry-run ignore missing source files.
+        if self.dry_run:
+            mode = 'newer'
+        else:
+            mode = 'error'
+        # Work on all files
+        for infile in self.distribution.man_pages:
+            # We copy the files to build/
+            outfile = os.path.join(self.build_dir, os.path.splitext(infile)[0] + '.gz')
+            # check if the file is out of date
+            if self.force or dep_util.newer_group(
+                [ infile ],
+                outfile,
+                mode):
+                # It is. Configure it
+                self.build_one_file(infile, outfile)
+
+    _COMMAND = 'pod2man --center="%s" --release="" %s | gzip -c > %s'
+
+    def build_one_file(self, infile, outfile):
+        man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
+        self.announce("building %s manpage" % (man), log.INFO)
+        if not self.dry_run:
+            # Create the output directory if necessary
+            outdir = os.path.dirname(outfile)
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            # Now create the manpage
+            cmd = build_man._COMMAND % ('man', infile, outfile )
+            if os.system(cmd):
+                log.announce("Creation of %s manpage failed." % man, log.ERROR)
+                exit(1)
+
 
 #####################################################################
 ## Modify Install Stage  ############################################
@@ -483,6 +537,7 @@ if __name__ == "__main__":
             'savestate': savestate,
             'restorestate': restorestate,
             'configure': build_cfg,
+            'build_man': build_man
         },
         name = "cobbler",
         version = VERSION,
@@ -522,6 +577,11 @@ if __name__ == "__main__":
             "config/cobblerd.service",
             "config/cobblerd"
         ],
+        man_pages = [
+            'docs/cobbler.1.pod',
+            'docs/cobbler-register.1.pod',
+            'docs/koan.1.pod'
+        ],
         data_files = [
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
@@ -529,7 +589,7 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["build/config/cobbler.conf"]),
             ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
             ("%s" % initpath,               ["build/config/cobblerd"]),
-            ("%s" % docpath,                glob("docs/*.gz")),
+            ("%s" % docpath,                glob("docs/*.1.gz")),
             ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
             ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),
