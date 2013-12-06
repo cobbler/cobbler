@@ -16,6 +16,7 @@ import pwd
 import types
 import shutil
 
+
 try:
     import subprocess
 except:
@@ -147,6 +148,15 @@ class build_cfg(Command):
     description = "configuration files (copy and substitute options)"
 
     user_options = [
+        ('install-base=', None, "base installation directory"),
+        ('install-platbase=', None, "base installation directory for platform-specific files "),
+        ('install-purelib=', None, "installation directory for pure Python module distributions"),
+        ('install-platlib=', None, "installation directory for non-pure module distributions"),
+        ('install-lib=', None, "installation directory for all module distributions " +
+         "(overrides --install-purelib and --install-platlib)"),
+        ('install-headers=', None, "installation directory for C/C++ headers"),
+        ('install-scripts=', None, "installation directory for Python scripts"),
+        ('install-data=', None, "installation directory for data files"),
         ('force', 'f', "forcibly build everything (ignore file timestamps")
     ]
 
@@ -155,6 +165,15 @@ class build_cfg(Command):
     def initialize_options(self):
         self.build_dir = None
         self.force = None
+        self.install_base = None
+        self.install_platbase = None
+        self.install_scripts = None
+        self.install_data = None
+        self.install_purelib = None
+        self.install_platlib = None
+        self.install_lib = None
+        self.install_headers = None
+        self.root = None
 
     def finalize_options(self):
         self.set_undefined_options(
@@ -162,6 +181,37 @@ class build_cfg(Command):
             ('build_base', 'build_dir'),
             ('force', 'force')
         )
+        self.set_undefined_options(
+            'install',
+            ('install_base',     'install_base'),
+            ('install_platbase', 'install_platbase'),
+            ('install_scripts',  'install_scripts'),
+            ('install_data',     'install_data'),
+            ('install_purelib',  'install_purelib'),
+            ('install_platlib',  'install_platlib'),
+            ('install_lib',      'install_lib'),
+            ('install_headers',  'install_headers'),
+            ('root', 'root')
+        )
+        # We need the unrooted versions of this values
+        for name in ( 'lib', 'purelib', 'platlib', 'scripts', 'data', 'headers' ):
+            attr = "install_" + name
+            setattr(self, attr, '/' + os.path.relpath( getattr(self, attr), self.root))
+
+        # The values to expand.
+        self.configure_values = {
+            'python_executable': sys.executable,
+            'install_base':      os.path.normpath(self.install_base),
+            'install_platbase':  os.path.normpath(self.install_platbase),
+            'install_scripts':   os.path.normpath(self.install_scripts),
+            'install_data':      os.path.normpath(self.install_data),
+            'install_purelib':   os.path.normpath(self.install_purelib),
+            'install_platlib':   os.path.normpath(self.install_platlib),
+            'install_lib':       os.path.normpath(self.install_lib),
+            'install_headers':   os.path.normpath(self.install_headers)
+        }
+        self.configure_values.update(self.distribution.configure_values)
+        
 
     def run(self):
         # On dry-run ignore missing source files.
@@ -196,7 +246,7 @@ class build_cfg(Command):
             with codecs.open(outfile, 'w', 'utf-8') as fh:
                 fh.write(self.substitute_values(
                     before,
-                    self.distribution.configure_values)
+                    self.configure_values)
             )
 
     def substitute_values(self, string, values):
@@ -467,15 +517,18 @@ if __name__ == "__main__":
         },
         configure_files = [
             "config/settings",
-            "config/cobbler.conf"
+            "config/cobbler.conf",
+            "config/cobbler_web.conf",
+            "config/cobblerd.service",
+            "config/cobblerd"
         ],
         data_files = [
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
 
             ("%s" % webconfig,              ["build/config/cobbler.conf"]),
-            ("%s" % webconfig,              ["config/cobbler_web.conf"]),
-            ("%s" % initpath,               ["config/cobblerd"]),
+            ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
+            ("%s" % initpath,               ["build/config/cobblerd"]),
             ("%s" % docpath,                glob("docs/*.gz")),
             ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
