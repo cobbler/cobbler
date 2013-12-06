@@ -89,8 +89,8 @@ def main():
 
     try:
         app.core(api)
-    except:
-        # FIXME: logging also?
+    except Exception, e:
+        logger.error(e)
         traceback.print_exc()
 
 if __name__ == "__main__":
