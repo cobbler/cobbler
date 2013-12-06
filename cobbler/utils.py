@@ -1004,9 +1004,9 @@ def check_dist():
     """
     import platform
     try:
-      return platform.linux_distribution()[0].lower()
+      return platform.linux_distribution()[0].lower().strip()
     except AttributeError:
-      return platform.dist()[0].lower()
+      return platform.dist()[0].lower().strip()
 
 def os_release():
 
