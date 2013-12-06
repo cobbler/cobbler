@@ -633,7 +633,10 @@ class System(item.Item):
         abstraction layer -- assigning systems to defined and repeatable 
         roles.
         """
-        if kickstart is None or kickstart in [ "", "delete", "<<inherit>>" ]:
+        if kickstart == "":
+            self.kickstart = kickstart
+            return True
+        if kickstart is None or kickstart in [ "delete", "<<inherit>>" ]:
             self.kickstart = "<<inherit>>"
             return True
         kickstart = utils.find_kickstart(kickstart)
