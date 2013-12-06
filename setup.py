@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import glob, os, sys, time, yaml
+import os, sys, time, yaml
+import glob as _glob
 from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.build_py import build_py as _build_py
@@ -28,36 +29,28 @@ OUTPUT_DIR = "config"
 ## Helper Functions #################################################
 #####################################################################
 
-
-#####################################################################
-
-def explode_glob_path(path):
-    """Take a glob and hand back the full recursive expansion,
-    ignoring links.
-    """
-
-    result = []
-    includes = glob.glob(path)
-    for item in includes:
-        if os.path.isdir(item) and not os.path.islink(item):
-            result.extend(explode_glob_path(os.path.join(item, "*")))
-        else:
-            result.append(item)
-    return result
-
-
-def proc_data_files(data_files):
-    """Because data_files doesn't natively support globs...
-    let's add them.
-    """
-
-    result = []
-    for dir,files in data_files:
-        includes = []
-        for item in files:
-            includes.extend(explode_glob_path(item))
-        result.append((dir, includes))
-    return result
+def glob(*args, **kwargs):
+    recursive = kwargs.get('recursive', False)
+    results = []
+    for arg in args:
+        for elem in _glob.glob(arg):
+            # Now check if we should handle/check those results.
+            if os.path.isdir(elem):
+                if os.path.islink(elem):
+                    # We skip symlinks
+                    pass
+                else:
+                    # We only handle directories if recursive was specified
+                    if recursive == True:
+                        results.extend(
+                            # Add the basename of arg (the pattern) to elem and continue
+                            glob(
+                                os.path.join(elem, os.path.basename(arg)),
+                                recursive=True))
+            else:
+                # Always append normal files
+                results.append(elem)
+    return results
 
 #####################################################################
 
@@ -187,7 +180,7 @@ class test_command(Command):
         for d in testdirs:
             testdir = os.path.join(os.getcwd(), "tests", d)
 
-            for t in glob.glob(os.path.join(testdir, '*.py')):
+            for t in _glob.glob(os.path.join(testdir, '*.py')):
                 if t.endswith('__init__.py'):
                     continue
                 testfile = '.'.join(['tests', d,
@@ -353,7 +346,7 @@ if __name__ == "__main__":
         ],
         packages = [
             "cobbler",
-            "cobbler/modules", 
+            "cobbler/modules",
             "koan",
         ],
         package_dir = {
@@ -367,36 +360,36 @@ if __name__ == "__main__":
             "bin/ovz-install",
             "bin/cobbler-register",
         ],
-        data_files = proc_data_files([
+        data_files = [
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
 
             ("%s" % webconfig,              ["config/cobbler.conf"]),
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
-            ("%s" % docpath,                ["docs/*.gz"]),
-            ("share/cobbler/installer_templates",         ["installer_templates/*"]),
-            ("%skickstarts" % libpath,      ["kickstarts/*"]),
-            ("%ssnippets" % libpath,        ["snippets/*"]),
-            ("%sscripts" % libpath,         ["scripts/*"]),
+            ("%s" % docpath,                glob("docs/*.gz")),
+            ("share/cobbler/installer_templates",         glob("installer_templates/*")),
+            ("%skickstarts" % libpath,      glob("kickstarts/*")),
+            ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),
+            ("%sscripts" % libpath,         glob("scripts/*")),
             ("%s" % libpath,                ["config/distro_signatures.json"]),
-            ("share/cobbler/web",           ["web/*.*"]),
-            ("%s" % webcontent,             ["web/content/*.*"]),
-            ("share/cobbler/web/cobbler_web",             ["web/cobbler_web/*.*"]),
-            ("share/cobbler/web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
-            ("share/cobbler/web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
+            ("share/cobbler/web",           glob("web/*.*")),
+            ("%s" % webcontent,             glob("web/content/*.*")),
+            ("share/cobbler/web/cobbler_web",             glob("web/cobbler_web/*.*")),
+            ("share/cobbler/web/cobbler_web/templatetags",glob("web/cobbler_web/templatetags/*")),
+            ("share/cobbler/web/cobbler_web/templates",   glob("web/cobbler_web/templates/*")),
             ("%swebui_sessions" % libpath,  []),
             ("%sloaders" % libpath,         []),
-            ("%scobbler/aux" % webroot,     ["aux/*"]),
+            ("%scobbler/aux" % webroot,     glob("aux/*")),
 
             #Configuration
-            ("%s" % etcpath,                ["config/*"]),
-            ("%s" % etcpath,                ["templates/etc/*"]),
-            ("%siso" % etcpath,             ["templates/iso/*"]),
-            ("%spxe" % etcpath,             ["templates/pxe/*"]),
-            ("%sreporting" % etcpath,       ["templates/reporting/*"]),
-            ("%spower" % etcpath,           ["templates/power/*"]),
-            ("%sldap" % etcpath,            ["templates/ldap/*"]),
+            ("%s" % etcpath,                glob("config/*")),
+            ("%s" % etcpath,                glob("templates/etc/*")),
+            ("%siso" % etcpath,             glob("templates/iso/*")),
+            ("%spxe" % etcpath,             glob("templates/pxe/*")),
+            ("%sreporting" % etcpath,       glob("templates/reporting/*")),
+            ("%spower" % etcpath,           glob("templates/power/*")),
+            ("%sldap" % etcpath,            glob("templates/ldap/*")),
 
             #Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath,       []),
@@ -444,7 +437,7 @@ if __name__ == "__main__":
             ("%sconfig/mgmtclasses.d" % libpath, []),
             ("%sconfig/packages.d" % libpath,    []),
             ("%sconfig/files.d" % libpath,       []),
-            
+
             #Build empty directories to hold koan localconfig
             ("/var/lib/koan/config",             []),
 
@@ -475,5 +468,5 @@ if __name__ == "__main__":
 
             # zone-specific templates directory
             ("%szone_templates" % etcpath,                []),
-        ]),
+        ],
     )
