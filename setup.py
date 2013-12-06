@@ -172,12 +172,14 @@ class build_cfg(Command):
             ('install_platlib',  'install_platlib'),
             ('install_lib',      'install_lib'),
             ('install_headers',  'install_headers'),
-            ('root', 'root')
+            ('root',             'root')
         )
-        # We need the unrooted versions of this values
-        for name in ( 'lib', 'purelib', 'platlib', 'scripts', 'data', 'headers' ):
-            attr = "install_" + name
-            setattr(self, attr, '/' + os.path.relpath( getattr(self, attr), self.root))
+
+        if self.root:
+            # We need the unrooted versions of this values
+            for name in ( 'lib', 'purelib', 'platlib', 'scripts', 'data', 'headers' ):
+                attr = "install_" + name
+                setattr(self, attr, '/' + os.path.relpath( getattr(self, attr), self.root))
 
         # The values to expand.
         self.configure_values = {
