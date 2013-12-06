@@ -231,6 +231,8 @@ class build_cfg(Command):
                     before,
                     self.configure_values)
             )
+            # The last step is to copy the permission bits
+            shutil.copymode(infile, outfile)
 
     def substitute_values(self, string, values):
         for name, val in values.iteritems():
