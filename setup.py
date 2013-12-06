@@ -462,11 +462,18 @@ if __name__ == "__main__":
             "bin/ovz-install",
             "bin/cobbler-register",
         ],
+        configure_values = {
+            'webroot': os.path.normpath(webroot),
+        },
+        configure_files = [
+            "config/settings",
+            "config/cobbler.conf"
+        ],
         data_files = [
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
 
-            ("%s" % webconfig,              ["config/cobbler.conf"]),
+            ("%s" % webconfig,              ["build/config/cobbler.conf"]),
             ("%s" % webconfig,              ["config/cobbler_web.conf"]),
             ("%s" % initpath,               ["config/cobblerd"]),
             ("%s" % docpath,                glob("docs/*.gz")),
@@ -486,6 +493,7 @@ if __name__ == "__main__":
 
             #Configuration
             ("%s" % etcpath,                glob("config/*")),
+            ("%s" % etcpath,                glob("build/config/*")),
             ("%s" % etcpath,                glob("templates/etc/*")),
             ("%siso" % etcpath,             glob("templates/iso/*")),
             ("%spxe" % etcpath,             glob("templates/pxe/*")),
