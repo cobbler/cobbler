@@ -413,7 +413,7 @@ virt_auto_boot: 1
 # cobbler's web directory.  Don't change this setting -- see the
 # Wiki on "relocating your cobbler install" if your /var partition
 # is not large enough.
-webdir: /var/www/cobbler
+webdir: @@webroot@@/cobbler
 
 # cobbler's public XMLRPC listens on this port.  Change this only
 # if absolutely needed, as you'll have to start supplying a new

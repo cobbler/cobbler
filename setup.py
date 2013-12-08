@@ -1,8 +1,21 @@
 #!/usr/bin/env python
-import glob, os, sys, time, yaml
+import os, sys, time, yaml
+import glob as _glob
 from distutils.core import setup, Command
+from distutils.command.build   import build as _build
+from distutils.command.install import install as _install
 from distutils.command.build_py import build_py as _build_py
+from distutils import log
+from distutils import dep_util
+from distutils.dist import Distribution as _Distribution
+from string import Template
+import codecs
 import unittest
+import exceptions
+import pwd
+import types
+import shutil
+
 
 try:
     import subprocess
@@ -22,57 +35,31 @@ OUTPUT_DIR = "config"
 ## Helper Functions #################################################
 #####################################################################
 
+def glob(*args, **kwargs):
+    recursive = kwargs.get('recursive', False)
+    results = []
+    for arg in args:
+        for elem in _glob.glob(arg):
+            # Now check if we should handle/check those results.
+            if os.path.isdir(elem):
+                if os.path.islink(elem):
+                    # We skip symlinks
+                    pass
+                else:
+                    # We only handle directories if recursive was specified
+                    if recursive == True:
+                        results.extend(
+                            # Add the basename of arg (the pattern) to elem and continue
+                            glob(
+                                os.path.join(elem, os.path.basename(arg)),
+                                recursive=True))
+            else:
+                # Always append normal files
+                results.append(elem)
+    return results
 
 #####################################################################
 
-def explode_glob_path(path):
-    """Take a glob and hand back the full recursive expansion,
-    ignoring links.
-    """
-
-    result = []
-    includes = glob.glob(path)
-    for item in includes:
-        if os.path.isdir(item) and not os.path.islink(item):
-            result.extend(explode_glob_path(os.path.join(item, "*")))
-        else:
-            result.append(item)
-    return result
-
-
-def proc_data_files(data_files):
-    """Because data_files doesn't natively support globs...
-    let's add them.
-    """
-
-    result = []
-    for dir,files in data_files:
-        includes = []
-        for item in files:
-            includes.extend(explode_glob_path(item))
-        result.append((dir, includes))
-    return result
-
-#####################################################################
-
-def gen_manpages():
-    """Generate the man pages... this is currently done through POD,
-    possible future version may do this through some Python mechanism
-    (maybe conversion from ReStructured Text (.rst))...
-    """
-
-    manpages = {
-        "cobbler":          'pod2man --center="cobbler" --release="" ./docs/cobbler.pod | gzip -c > ./docs/cobbler.1.gz',
-        "koan":             'pod2man --center="koan" --release="" ./docs/koan.pod | gzip -c > ./docs/koan.1.gz',
-        "cobbler-register": 'pod2man --center="cobbler-register" --release="" ./docs/cobbler-register.pod | gzip -c > ./docs/cobbler-register.1.gz',
-    }
-
-    #Actually build them
-    for man, cmd in manpages.items():
-        print("building %s man page." % man)
-        if os.system(cmd):
-            print "Creation of %s manpage failed." % man
-            exit(1)
 
 #####################################################################
 
@@ -100,6 +87,19 @@ def gen_build_version():
 #####################################################################
 
 
+
+#####################################################################
+## Custom Distribution Class ########################################
+#####################################################################
+
+class Distribution(_Distribution):
+    def __init__(self, *args, **kwargs):
+        self.configure_files = []
+        self.configure_values = {}
+        self.man_pages = []
+        _Distribution.__init__(self, *args, **kwargs)
+
+
 #####################################################################
 ## Modify Build Stage  ##############################################
 #####################################################################
@@ -108,9 +108,263 @@ class build_py(_build_py):
     """Specialized Python source builder."""
 
     def run(self):
-        gen_manpages()
         gen_build_version()
         _build_py.run(self)
+
+#####################################################################
+## Modify Build Stage  ##############################################
+#####################################################################
+class build(_build):
+    """Specialized Python source builder."""
+
+    def run(self):
+        _build.run(self)
+
+#####################################################################
+## Configure files ##################################################
+#####################################################################
+
+class build_cfg(Command):
+
+    description = "configure files (copy and substitute options)"
+
+    user_options = [
+        ('install-base=', None, "base installation directory"),
+        ('install-platbase=', None, "base installation directory for platform-specific files "),
+        ('install-purelib=', None, "installation directory for pure Python module distributions"),
+        ('install-platlib=', None, "installation directory for non-pure module distributions"),
+        ('install-lib=', None, "installation directory for all module distributions " +
+         "(overrides --install-purelib and --install-platlib)"),
+        ('install-headers=', None, "installation directory for C/C++ headers"),
+        ('install-scripts=', None, "installation directory for Python scripts"),
+        ('install-data=', None, "installation directory for data files"),
+        ('force', 'f', "forcibly build everything (ignore file timestamps")
+    ]
+
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.build_dir = None
+        self.force = None
+        self.install_base = None
+        self.install_platbase = None
+        self.install_scripts = None
+        self.install_data = None
+        self.install_purelib = None
+        self.install_platlib = None
+        self.install_lib = None
+        self.install_headers = None
+        self.root = None
+
+    def finalize_options(self):
+        self.set_undefined_options(
+            'build',
+            ('build_base', 'build_dir'),
+            ('force', 'force')
+        )
+        self.set_undefined_options(
+            'install',
+            ('install_base',     'install_base'),
+            ('install_platbase', 'install_platbase'),
+            ('install_scripts',  'install_scripts'),
+            ('install_data',     'install_data'),
+            ('install_purelib',  'install_purelib'),
+            ('install_platlib',  'install_platlib'),
+            ('install_lib',      'install_lib'),
+            ('install_headers',  'install_headers'),
+            ('root',             'root')
+        )
+
+        if self.root:
+            # We need the unrooted versions of this values
+            for name in ( 'lib', 'purelib', 'platlib', 'scripts', 'data', 'headers' ):
+                attr = "install_" + name
+                setattr(self, attr, '/' + os.path.relpath( getattr(self, attr), self.root))
+
+        # The values to expand.
+        self.configure_values = {
+            'python_executable': sys.executable,
+            'install_base':      os.path.normpath(self.install_base),
+            'install_platbase':  os.path.normpath(self.install_platbase),
+            'install_scripts':   os.path.normpath(self.install_scripts),
+            'install_data':      os.path.normpath(self.install_data),
+            'install_purelib':   os.path.normpath(self.install_purelib),
+            'install_platlib':   os.path.normpath(self.install_platlib),
+            'install_lib':       os.path.normpath(self.install_lib),
+            'install_headers':   os.path.normpath(self.install_headers)
+        }
+        self.configure_values.update(self.distribution.configure_values)
+
+
+    def run(self):
+        # On dry-run ignore missing source files.
+        if self.dry_run:
+            mode = 'newer'
+        else:
+            mode = 'error'
+        # Work on all files
+        for infile in self.distribution.configure_files:
+            # We copy the files to build/
+            outfile = os.path.join(self.build_dir, infile)
+            # check if the file is out of date
+            if self.force or dep_util.newer_group(
+                [ infile, 'setup.py' ],
+                outfile,
+                mode):
+                # It is. Configure it
+                self.configure_one_file(infile, outfile)
+
+    def configure_one_file(self, infile, outfile):
+        self.announce("configuring %s" % (infile), log.INFO)
+        if not self.dry_run:
+            # Read the file
+            with codecs.open(infile, 'r', 'utf-8') as fh:
+                before = fh.read()
+            # Substitute the variables
+            # Create the output directory if necessary
+            outdir = os.path.dirname(outfile)
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            # Write it into build/
+            with codecs.open(outfile, 'w', 'utf-8') as fh:
+                fh.write(self.substitute_values(
+                    before,
+                    self.configure_values)
+            )
+
+    def substitute_values(self, string, values):
+        for name, val in values.iteritems():
+            # print("replacing @@%s@@ with %s" % (name, val))
+            string = string.replace("@@%s@@" % (name), val)
+        return string
+
+
+def has_configure_files(build):
+    """Check if the distribution has configuration files to work on."""
+    return bool(build.distribution.configure_files)
+
+def has_man_pages(build):
+    """Check if the distribution has configuration files to work on."""
+    return bool(build.distribution.man_pages)
+
+build.sub_commands.extend((
+    ('build_man', has_man_pages),
+    ('build_cfg', has_configure_files)
+))
+
+#####################################################################
+## Build man pages ##################################################
+#####################################################################
+
+class build_man(Command):
+
+    decription = "build man pages"
+
+    user_options = [
+        ('force', 'f', "forcibly build everything (ignore file timestamps")
+    ]
+
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.build_dir= None
+        self.force = None
+
+    def finalize_options(self):
+        self.set_undefined_options(
+            'build',
+            ('build_base', 'build_dir'),
+            ('force', 'force')
+        )
+
+    def run(self):
+        """Generate the man pages... this is currently done through POD,
+        possible future version may do this through some Python mechanism
+        (maybe conversion from ReStructured Text (.rst))...
+        """
+        # On dry-run ignore missing source files.
+        if self.dry_run:
+            mode = 'newer'
+        else:
+            mode = 'error'
+        # Work on all files
+        for infile in self.distribution.man_pages:
+            # We copy the files to build/
+            outfile = os.path.join(self.build_dir, os.path.splitext(infile)[0] + '.gz')
+            # check if the file is out of date
+            if self.force or dep_util.newer_group(
+                [ infile ],
+                outfile,
+                mode):
+                # It is. Configure it
+                self.build_one_file(infile, outfile)
+
+    _COMMAND = 'pod2man --center="%s" --release="" %s | gzip -c > %s'
+
+    def build_one_file(self, infile, outfile):
+        man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
+        self.announce("building %s manpage" % (man), log.INFO)
+        if not self.dry_run:
+            # Create the output directory if necessary
+            outdir = os.path.dirname(outfile)
+            if not os.path.exists(outdir):
+                os.makedirs(outdir)
+            # Now create the manpage
+            cmd = build_man._COMMAND % ('man', infile, outfile )
+            if os.system(cmd):
+                log.announce("Creation of %s manpage failed." % man, log.ERROR)
+                exit(1)
+
+
+#####################################################################
+## Modify Install Stage  ############################################
+#####################################################################
+
+class install(_install):
+    """Specialised python package installer.
+
+    It does some required chown calls in addition to the usual stuff.
+    """
+
+    def __init__(self, *args):
+        _install.__init__(self, *args)
+
+    def change_owner(self, path, owner):
+        user = pwd.getpwnam(owner)
+        try:
+            log.info("changing mode of %s" % path)
+            if not self.dry_run:
+                # os.walk does not include the toplevel directory
+                os.lchown(path, user.pw_uid, -1)
+                # Now walk the directory and change them all
+                for root, dirs, files in os.walk(path):
+                    for dirname in dirs:
+                        os.lchown(os.path.join(root, dirname), user.pw_uid, -1)
+                    for filename in files:
+                        os.lchown(os.path.join(root, filename), user.pw_uid, -1)
+        except exceptions.OSError as e:
+            # We only check for errno = 1 (EPERM) here because its kinda
+            # expected when installing as a non root user.
+            if e.errno == 1:
+                self.warn("Could not change owner: You have insufficient permissions.")
+            else:
+                raise e
+
+    def run(self):
+        # Run the usual stuff.
+        _install.run(self)
+
+        # Hand over some directories to the webserver user
+        self.change_owner(
+            os.path.join(self.install_data, 'share/cobbler/web'),
+            http_user)
+        if not os.path.abspath(libpath):
+            # The next line only works for absolute libpath
+            raise Exception("libpath is not absolute.")
+        self.change_owner(
+            os.path.join(self.root + libpath, 'webui_sessions'),
+            http_user)
+
 
 #####################################################################
 ## Test Command #####################################################
@@ -131,7 +385,7 @@ class test_command(Command):
         for d in testdirs:
             testdir = os.path.join(os.getcwd(), "tests", d)
 
-            for t in glob.glob(os.path.join(testdir, '*.py')):
+            for t in _glob.glob(os.path.join(testdir, '*.py')):
                 if t.endswith('__init__.py'):
                     continue
                 testfile = '.'.join(['tests', d,
@@ -152,6 +406,97 @@ class test_command(Command):
         sys.exit(int(bool(len(result.failures) > 0 or
                           len(result.errors) > 0)))
 
+#####################################################################
+## state command base class #########################################
+#####################################################################
+
+class statebase(Command):
+
+    user_options = [
+        ('statepath=', None, 'directory to backup configuration'),
+        ('root=',      None, 'install everything relative to this alternate root directory')
+        ]
+
+    def initialize_options(self):
+        self.statepath = statepath
+        self.root = None
+
+    def finalize_options(self):
+        pass
+
+    def _copy(self, frm, to):
+        if os.path.isdir(frm):
+            to = os.path.join(to, os.path.basename(frm))
+            self.announce("copying %s/ to %s/" % (frm, to), log.DEBUG)
+            if not self.dry_run:
+                if os.path.exists(to):
+                    shutil.rmtree(to)
+                shutil.copytree(frm, to)
+        else:
+            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), log.DEBUG)
+            if not self.dry_run:
+                shutil.copy2(frm, to)
+
+#####################################################################
+## restorestate command #############################################
+#####################################################################
+
+class restorestate(statebase):
+
+    def _copy(self, frm, to):
+        if self.root:
+            to = self.root + to
+        statebase._copy(self, frm, to)
+
+    def run(self):
+        self.announce("restoring the current configuration from %s" % self.statepath, log.INFO)
+        if not os.path.exists(self.statepath):
+            self.warn("%s does not exist. Skipping" % self.statepath)
+            return
+        self._copy(os.path.join(self.statepath, 'config'), libpath)
+        self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
+        self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
+        self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
+        self._copy(os.path.join(self.statepath, 'settings'), etcpath)
+        self._copy(os.path.join(self.statepath, 'users.conf'), etcpath)
+        self._copy(os.path.join(self.statepath, 'users.digest'), etcpath)
+        self._copy(os.path.join(self.statepath, 'dhcp.template'), etcpath)
+        self._copy(os.path.join(self.statepath, 'rsync.template'), etcpath)
+
+#####################################################################
+## savestate command ################################################
+#####################################################################
+
+class savestate(statebase):
+
+    description = "Backup the current configuration to /tmp/cobbler_settings."
+
+    def _copy(self, frm, to):
+        if self.root:
+            frm = self.root + frm
+        statebase._copy(self, frm, to)
+
+    def run(self):
+        self.announce( "backing up the current configuration to %s" % self.statepath, log.INFO)
+        if os.path.exists(self.statepath):
+            self.announce("deleting existing %s" % self.statepath, log.DEBUG)
+            if not self.dry_run:
+                shutil.rmtree(self.statepath)
+        if not self.dry_run:
+            os.makedirs(self.statepath)
+        self._copy(os.path.join(libpath, 'config'), self.statepath)
+        self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
+        self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'settings'), self.statepath)
+        self._copy(os.path.join(etcpath, 'users.conf'), self.statepath)
+        self._copy(os.path.join(etcpath, 'users.digest'), self.statepath)
+        self._copy(os.path.join(etcpath, 'dhcp.template'), self.statepath)
+        self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
+
+
+
+
 
 #####################################################################
 ## Actual Setup.py Script ###########################################
@@ -166,22 +511,36 @@ if __name__ == "__main__":
     initpath    = "/etc/init.d/"
     libpath     = "/var/lib/cobbler/"
     logpath     = "/var/log/"
+    statepath   = "/tmp/cobbler_settings/devinstall"
 
     if os.path.exists("/etc/SuSE-release"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
+        http_user   = "wwwrun"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
+        http_user   = "www-data"
     else:
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
+        http_user   = "apache"
 
     webcontent  = webroot + "cobbler_webui_content/"
 
 
     setup(
-        cmdclass={'build_py': build_py, 'test': test_command},
+        distclass=Distribution,
+        cmdclass={
+            'build': build,
+            'build_py': build_py,
+            'test': test_command,
+            'install': install,
+            'savestate': savestate,
+            'restorestate': restorestate,
+            'build_cfg': build_cfg,
+            'build_man': build_man
+        },
         name = "cobbler",
         version = VERSION,
         description = "Network Boot and Update Server",
@@ -196,7 +555,7 @@ if __name__ == "__main__":
         ],
         packages = [
             "cobbler",
-            "cobbler/modules", 
+            "cobbler/modules",
             "koan",
         ],
         package_dir = {
@@ -210,36 +569,68 @@ if __name__ == "__main__":
             "bin/ovz-install",
             "bin/cobbler-register",
         ],
-        data_files = proc_data_files([
+        configure_values = {
+            'webroot': os.path.normpath(webroot),
+        },
+        configure_files = [
+            "config/settings",
+            "config/cobbler.conf",
+            "config/cobbler_web.conf",
+            "config/cobblerd.service",
+            "config/cobblerd"
+        ],
+        man_pages = [
+            'docs/cobbler.1.pod',
+            'docs/cobbler-register.1.pod',
+            'docs/koan.1.pod'
+        ],
+        data_files = [
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
 
-            ("%s" % webconfig,              ["config/cobbler.conf"]),
-            ("%s" % webconfig,              ["config/cobbler_web.conf"]),
-            ("%s" % initpath,               ["config/cobblerd"]),
-            ("%s" % docpath,                ["docs/*.gz"]),
-            ("share/cobbler/installer_templates",         ["installer_templates/*"]),
-            ("%skickstarts" % libpath,      ["kickstarts/*"]),
-            ("%ssnippets" % libpath,        ["snippets/*"]),
-            ("%sscripts" % libpath,         ["scripts/*"]),
+            ("%s" % webconfig,              ["build/config/cobbler.conf"]),
+            ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
+            ("%s" % initpath,               ["build/config/cobblerd"]),
+            ("%s" % docpath,                glob("docs/*.1.gz")),
+            ("share/cobbler/installer_templates",         glob("installer_templates/*")),
+            ("%skickstarts" % libpath,      glob("kickstarts/*")),
+            ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),
+            ("%sscripts" % libpath,         glob("scripts/*")),
             ("%s" % libpath,                ["config/distro_signatures.json"]),
-            ("share/cobbler/web",           ["web/*.*"]),
-            ("%s" % webcontent,             ["web/content/*.*"]),
-            ("share/cobbler/web/cobbler_web",             ["web/cobbler_web/*.*"]),
-            ("share/cobbler/web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
-            ("share/cobbler/web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
+            ("share/cobbler/web",           glob("web/*.*")),
+            ("%s" % webcontent,             glob("web/content/*.*")),
+            ("share/cobbler/web/cobbler_web",             glob("web/cobbler_web/*.*")),
+            ("share/cobbler/web/cobbler_web/templatetags",glob("web/cobbler_web/templatetags/*")),
+            ("share/cobbler/web/cobbler_web/templates",   glob("web/cobbler_web/templates/*")),
             ("%swebui_sessions" % libpath,  []),
             ("%sloaders" % libpath,         []),
-            ("%scobbler/aux" % webroot,     ["aux/*"]),
+            ("%scobbler/aux" % webroot,     glob("aux/*")),
 
             #Configuration
-            ("%s" % etcpath,                ["config/*"]),
-            ("%s" % etcpath,                ["templates/etc/*"]),
-            ("%siso" % etcpath,             ["templates/iso/*"]),
-            ("%spxe" % etcpath,             ["templates/pxe/*"]),
-            ("%sreporting" % etcpath,       ["templates/reporting/*"]),
-            ("%spower" % etcpath,           ["templates/power/*"]),
-            ("%sldap" % etcpath,            ["templates/ldap/*"]),
+            ("%s" % etcpath,                ["build/config/cobbler.conf",
+                                             "build/config/cobbler_web.conf",
+                                             "build/config/cobblerd",
+                                             "build/config/cobblerd.service",
+                                             "build/config/settings"]),
+            ("%s" % etcpath,                ["config/auth.conf",
+                                             "config/cheetah_macros",
+                                             "config/cobbler_bash",
+                                             "config/cobblerd_rotate",
+                                             "config/completions",
+                                             "config/distro_signatures.json",
+                                             "config/import_rsync_whitelist",
+                                             "config/modules.conf",
+                                             "config/mongodb.conf",
+                                             "config/rsync.exclude",
+                                             "config/users.conf",
+                                             "config/users.digest",
+                                             "config/version"]),
+            ("%s" % etcpath,                glob("templates/etc/*")),
+            ("%siso" % etcpath,             glob("templates/iso/*")),
+            ("%spxe" % etcpath,             glob("templates/pxe/*")),
+            ("%sreporting" % etcpath,       glob("templates/reporting/*")),
+            ("%spower" % etcpath,           glob("templates/power/*")),
+            ("%sldap" % etcpath,            glob("templates/ldap/*")),
 
             #Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath,       []),
@@ -287,7 +678,7 @@ if __name__ == "__main__":
             ("%sconfig/mgmtclasses.d" % libpath, []),
             ("%sconfig/packages.d" % libpath,    []),
             ("%sconfig/files.d" % libpath,       []),
-            
+
             #Build empty directories to hold koan localconfig
             ("/var/lib/koan/config",             []),
 
@@ -318,5 +709,5 @@ if __name__ == "__main__":
 
             # zone-specific templates directory
             ("%szone_templates" % etcpath,                []),
-        ]),
+        ],
     )
