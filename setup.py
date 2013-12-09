@@ -181,9 +181,16 @@ class build_cfg(Command):
                 attr = "install_" + name
                 setattr(self, attr, '/' + os.path.relpath( getattr(self, attr), self.root))
 
+        # Check if we are running under a virtualenv
+        if hasattr(sys, 'real_prefix'):
+            virtualenv = sys.prefix
+        else:
+            virtualenv = ""
+
         # The values to expand.
         self.configure_values = {
             'python_executable': sys.executable,
+            'virtualenv':        virtualenv,
             'install_base':      os.path.normpath(self.install_base),
             'install_platbase':  os.path.normpath(self.install_platbase),
             'install_scripts':   os.path.normpath(self.install_scripts),
@@ -191,7 +198,7 @@ class build_cfg(Command):
             'install_purelib':   os.path.normpath(self.install_purelib),
             'install_platlib':   os.path.normpath(self.install_platlib),
             'install_lib':       os.path.normpath(self.install_lib),
-            'install_headers':   os.path.normpath(self.install_headers)
+            'install_headers':   os.path.normpath(self.install_headers),
         }
         self.configure_values.update(self.distribution.configure_values)
 

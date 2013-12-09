@@ -19,14 +19,25 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import yaml
+
+# Only add standard python modules here. When running under a virtualenv other modules are not
+# available at this point.
 import os
 import urllib
 import cgi
 
-from cobbler.services import CobblerSvc
-
 def application(environ, start_response):
+
+    if 'VIRTUALENV' in environ and environ['VIRTUALENV'] != "":
+        # VIRTUALENV Support
+        # see http://code.google.com/p/modwsgi/wiki/VirtualEnvironments
+        import site
+        import distutils.sysconfig
+        site.addsitedir(distutils.sysconfig.get_python_lib(prefix=environ['VIRTUALENV']))
+        # Now all modules are available even under a virtualenv
+
+    import yaml
+    from cobbler.services import CobblerSvc
 
     my_uri = urllib.unquote(environ['REQUEST_URI'])
     
