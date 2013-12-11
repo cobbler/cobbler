@@ -49,6 +49,22 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
+   "rhel7": {
+    "signatures":["Packages"],
+    "version_file":"(redhat|sl|centos)-release-(?!notes)([\\w]*-)7\\.(.*)\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64","ppc","ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
    "fedora16": {
     "signatures":["Packages"],
     "version_file":"(fedora)-release-16-(.*)\\.noarch\\.rpm",
