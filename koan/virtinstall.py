@@ -162,6 +162,7 @@ def build_commandline(uri,
                       qemu_driver_type=None,
                       qemu_net_type=None,
                       qemu_machine_type=None,
+                      cpu=None,
                       wait=0,
                       noreboot=False,
                       osimport=False):
@@ -404,6 +405,8 @@ def build_commandline(uri,
         cmd += " "
 
     cmd += "--wait %d " % int(wait)
+    if cpu:
+        cmd += "--cpu %s " % cpu
     if noreboot:
         cmd += "--noreboot "
     if osimport and not(import_exists):
