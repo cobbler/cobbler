@@ -3,7 +3,7 @@
   "redhat": {
    "rhel4": {
     "signatures":["RedHat/RPMS","CentOS/RPMS"],
-    "version_file":"(redhat|sl|centos)-release-4[\\.-]+(.*)\\.rpm",
+    "version_file":"(redhat|sl|centos)-release-4(AS|WS|ES)[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "kernel_arch_regex":null,
