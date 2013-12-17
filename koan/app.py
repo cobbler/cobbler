@@ -705,6 +705,7 @@ class Koan:
 
                 url_parser = OptionParser()
                 url_parser.add_option("--url", dest="url")
+                url_parser.add_option("--proxy", dest="proxy")
 
                 nfs_parser = OptionParser()
                 nfs_parser.add_option("--dir", dest="dir")
