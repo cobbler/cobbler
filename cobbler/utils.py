@@ -1534,7 +1534,7 @@ def set_virt_type(self,vtype):
     """
 
     if vtype == "<<inherit>>":
-        self.virt_type == "<<inherit>>"
+        self.virt_type = "<<inherit>>"
         return True
 
     if vtype.lower() not in [ "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto" ]:
