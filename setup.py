@@ -526,14 +526,17 @@ if __name__ == "__main__":
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
         http_user   = "wwwrun"
+        defaultpath = "/etc/sysconfig/"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
         http_user   = "www-data"
+        defaultpath = "/etc/default/"
     else:
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
         http_user   = "apache"
+        defaultpath = "/etc/sysconfig/"
 
     webcontent  = webroot + "cobbler_webui_content/"
 
@@ -580,6 +583,7 @@ if __name__ == "__main__":
         ],
         configure_values = {
             'webroot': os.path.normpath(webroot),
+            'defaultpath': os.path.normpath(defaultpath),
         },
         configure_files = [
             "config/settings",

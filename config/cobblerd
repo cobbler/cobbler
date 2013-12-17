@@ -37,6 +37,10 @@ else
     . /etc/rc.d/init.d/functions
 fi
 
+if [ -f @@defaultpath@@/cobblerd ]; then
+    . @@defaultpath@@/cobblerd
+fi
+
 SERVICE=cobblerd
 PROCESS=cobblerd
 CONFIG_ARGS=" "
