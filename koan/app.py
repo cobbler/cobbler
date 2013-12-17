@@ -689,7 +689,16 @@ class Koan:
                     break
         else:
             try:
-                raw = utils.urlread(profile_data["kickstart"])
+                if profile_data["kickstart"][:4] == "http":
+                    if not self.system:
+                        url_fmt = "http://%s/cblr/svc/op/ks/profile/%s"
+                    else:
+                        url_fmt = "http://%s/cblr/svc/op/ks/system/%s"
+                    url = url_fmt % (self.server, profile_data['name'])
+                else:
+                    url = profile_data["kickstart"]
+
+                raw = utils.urlread(url)
                 lines = raw.splitlines()
 
                 method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
