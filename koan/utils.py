@@ -181,11 +181,9 @@ def subprocess_get_response(cmd, ignore_rc=False):
     rc = 0
     result = ""
     if not ANCIENT_PYTHON:
-        try:
-            result = sub_process.check_output(cmd).strip()
-        except sub_process.CalledProcessError, e:
-            rc = e.returncode
-            result = e.output
+        p = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+        result = p.communicate()[0]
+        rc = p.wait()
     else:
         cmd = string.join(cmd, " ")
         print "cmdstr=(%s)" % cmd
