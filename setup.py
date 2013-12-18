@@ -364,15 +364,20 @@ class install(_install):
         _install.run(self)
 
         # Hand over some directories to the webserver user
-        self.change_owner(
-            os.path.join(self.install_data, 'share/cobbler/web'),
-            http_user)
+        path = os.path.join(self.install_data, 'share/cobbler/web')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            # building RPMs in a mock chroot, user 'apache' won't exist
+            log.warn("Error in 'chown apache %s': %s" % (path,e))
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
-        self.change_owner(
-            os.path.join(self.root + libpath, 'webui_sessions'),
-            http_user)
+        path = os.path.join(self.root + libpath, 'webui_sessions')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            log.warn("Error in 'chown apache %s': %s" % (path,e))
 
 
 #####################################################################
