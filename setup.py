@@ -364,15 +364,20 @@ class install(_install):
         _install.run(self)
 
         # Hand over some directories to the webserver user
-        self.change_owner(
-            os.path.join(self.install_data, 'share/cobbler/web'),
-            http_user)
+        path = os.path.join(self.install_data, 'share/cobbler/web')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            # building RPMs in a mock chroot, user 'apache' won't exist
+            log.warn("Error in 'chown apache %s': %s" % (path,e))
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
-        self.change_owner(
-            os.path.join(self.root + libpath, 'webui_sessions'),
-            http_user)
+        path = os.path.join(self.root + libpath, 'webui_sessions')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            log.warn("Error in 'chown apache %s': %s" % (path,e))
 
 
 #####################################################################
@@ -526,14 +531,17 @@ if __name__ == "__main__":
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
         http_user   = "wwwrun"
+        defaultpath = "/etc/sysconfig/"
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
         http_user   = "www-data"
+        defaultpath = "/etc/default/"
     else:
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
         http_user   = "apache"
+        defaultpath = "/etc/sysconfig/"
 
     webcontent  = webroot + "cobbler_webui_content/"
 
@@ -580,6 +588,7 @@ if __name__ == "__main__":
         ],
         configure_values = {
             'webroot': os.path.normpath(webroot),
+            'defaultpath': os.path.normpath(defaultpath),
         },
         configure_files = [
             "config/settings",
@@ -600,7 +609,7 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["build/config/cobbler.conf"]),
             ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
             ("%s" % initpath,               ["build/config/cobblerd"]),
-            ("%s" % docpath,                glob("docs/*.1.gz")),
+            ("%s" % docpath,                glob("build/docs/*.1.gz")),
             ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
             ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),

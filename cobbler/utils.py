@@ -1534,7 +1534,7 @@ def set_virt_type(self,vtype):
     """
 
     if vtype == "<<inherit>>":
-        self.virt_type == "<<inherit>>"
+        self.virt_type = "<<inherit>>"
         return True
 
     if vtype.lower() not in [ "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto" ]:
@@ -1964,6 +1964,8 @@ def add_options_from_fields(object_type, parser, fields, object_action):
                     aliasopt.append("--%s" % deprecated_field)
 
             if isinstance(choices, list) and len(choices) != 0:
+                if default not in choices:
+                    choices.append(default)
                 desc = desc + " (valid options: %s)" % ",".join(choices)    
                 parser.add_option(niceopt, dest=k, help=desc, choices=choices)
                 for alias in aliasopt:

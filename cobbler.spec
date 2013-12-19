@@ -82,6 +82,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.d
 mv config/cobbler.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
 mv config/cobbler_web.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
@@ -230,6 +232,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/tftpd.py*
 
 %config(noreplace) %{_sysconfdir}/cobbler
+%config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %if 0%{?fedora} >= 16
 %{_unitdir}/cobblerd.service
 %else
