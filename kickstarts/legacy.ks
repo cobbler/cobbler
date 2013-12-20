@@ -45,6 +45,10 @@ $SNIPPET('pre_anamon')
 
 %packages
 
+$post --nochroot
+$SNIPPET('log_ks_post_nochroot')
+%end
+
 %post
 $SNIPPET('log_ks_post')
 # Begin yum configuration
