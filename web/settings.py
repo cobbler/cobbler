@@ -30,7 +30,11 @@ SITE_ID = 1
 # not used
 MEDIA_ROOT = ''
 MEDIA_URL = ''
-ADMIN_MEDIA_PREFIX = '/media/'
+
+if django.VERSION[0] == 1 and django.VERSION[1] < 4: 
+    ADMIN_MEDIA_PREFIX = '/media/'
+else:
+    STATIC_URL = '/media/'
 
 SECRET_KEY = ''
 
