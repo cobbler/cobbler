@@ -79,9 +79,8 @@ other applications.
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
-mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.d
-mv config/cobbler.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
-mv config/cobbler_web.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/
+rm $RPM_BUILD_ROOT/etc/cobbler/cobbler.conf
+rm $RPM_BUILD_ROOT/etc/cobbler/cobbler_web.conf
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
@@ -98,7 +97,7 @@ rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 %if 0%{?fedora} >= 16
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
-install -m0644 config/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
+mv $RPM_BUILD_ROOT/etc/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 
 %post
 if [ $1 -eq 1 ] ; then
