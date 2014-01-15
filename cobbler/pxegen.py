@@ -282,7 +282,7 @@ class PXEGen:
             else:
                 continue 
 
-            if system.is_management_supported() and system.netboot_enabled:
+            if system.is_management_supported():
                 if not image_based:
                     self.write_pxe_file(f2, system, profile, distro, working_arch, metadata=pxe_metadata)
                     if grub_path:
