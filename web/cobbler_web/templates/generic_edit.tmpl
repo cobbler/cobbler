@@ -45,6 +45,7 @@ function intf_update_visibility()
     intf_enable_field("ipv6_mtu",!is_slave)
     intf_enable_field("ipv6_static_routes",!is_slave)
     intf_enable_field("ipv6_default_gateway",!is_slave)
+    intf_enable_field("cnames",!is_slave)
 }
 
 function get_selected_interface()
@@ -125,6 +126,7 @@ function on_interface_add()
     interface_table[iname]["ipv6_mtu"] = ""
     interface_table[iname]["ipv6_static_routes"] = ""
     interface_table[iname]["ipv6_default_gateway"] = ""
+    interface_table[iname]["cnames"] = ""
 
     var interfaces = document.getElementById("interfaces")
     ilen = interfaces.length
@@ -231,6 +233,7 @@ function save_intf(which)
     itable["ipv6_mtu"]             = get_enabled_field("ipv6_mtu",!is_slave)
     itable["ipv6_static_routes"]   = get_enabled_field("ipv6_static_routes",!is_slave)
     itable["ipv6_default_gateway"] = get_enabled_field("ipv6_default_gateway",!is_slave)
+    itable["cnames"]           = get_enabled_field("cnames",!is_slave)
 }
 
 function load_intf()
@@ -261,6 +264,7 @@ function load_intf()
     document.getElementById("ipv6_mtu").value             = interface_table[intf]["ipv6_mtu"]
     document.getElementById("ipv6_static_routes").value   = interface_table[intf]["ipv6_static_routes"]
     document.getElementById("ipv6_default_gateway").value = interface_table[intf]["ipv6_default_gateway"]
+    document.getElementById("cnames").value           = interface_table[intf]["cnames"]
 
     intf_update_visibility()
 }
@@ -291,6 +295,7 @@ function clear_intf()
     document.getElementById("ipv6_mtu").value             = ""
     document.getElementById("ipv6_static_routes").value   = ""
     document.getElementById("ipv6_default_gateway").value = ""
+    document.getElementById("cnames").value               = ""
 
 
 }
@@ -327,6 +332,7 @@ function build_interface_table()
     interface_table['{{ key }}']["ipv6_mtu"]             = "{{ value.ipv6_mtu }}"
     interface_table['{{ key }}']["ipv6_static_routes"]   = "{{ value.ipv6_static_routes|join:" " }}"
     interface_table['{{ key }}']["ipv6_default_gateway"] = "{{ value.ipv6_default_gateway }}"
+    interface_table['{{ key }}']["cnames"]                = "{{ value.cnames|join:" " }}"
     last = "{{ key }}"
     {% endfor %}
   {% endsmart_if %}
