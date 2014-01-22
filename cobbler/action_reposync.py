@@ -330,6 +330,19 @@ class RepoSync:
 
     # ====================================================================================
 
+    def gen_wget_ssl_opts(self, yumopts):
+        # use SSL options if specified in yum opts
+        wget_ssl_opts = ''
+        if yumopts['sslclientkey']:
+            wget_ssl_opts += " --private-key=%s" %  yumopts['sslclientkey']
+        if yumopts['sslclientcert']:
+            wget_ssl_opts += " --certificate=%s" %  yumopts['sslclientcert']
+        if yumopts['sslcacert']:
+            wget_ssl_opts += " --ca-certificate=%s" %  yumopts['sslcacert']
+        return wget_ssl_opts
+
+    # ====================================================================================
+
     def yum_sync(self, repo):
 
         """
@@ -405,9 +418,10 @@ class RepoSync:
 
         if not os.path.exists("/usr/bin/wget"):
             utils.die(self.logger,"no /usr/bin/wget found, please install wget")
-
+        # generate wget command-line ssl opts from any ssl opts specified in yumopts
+        wget_ssl_opts = self.gen_wget_ssl_opts(repo.yumopts)
         # grab repomd.xml and use it to download any metadata we can use
-        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
+        cmd2 = "/usr/bin/wget -q %s %s/repodata/repomd.xml -O %s/repomd.xml" % (wget_ssl_opts, repo_mirror, temp_path)
         rc = utils.subprocess_call(self.logger,cmd2)
         if rc == 0:
             # create our repodata directory now, as any extra metadata we're
@@ -419,7 +433,7 @@ class RepoSync:
                 # don't download metadata files that are created by default
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                     mdfile = rmd.getData(mdtype).location[1]
-                    cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
+                    cmd3 = "/usr/bin/wget -q %s %s/%s -O %s/%s" % (wget_ssl_opts, repo_mirror, mdfile, dest_path, mdfile)
                     utils.subprocess_call(self.logger,cmd3)
                     if rc !=0:
                         utils.die(self.logger,"wget failed")
