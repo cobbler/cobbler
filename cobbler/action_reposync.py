@@ -590,6 +590,14 @@ class RepoSync:
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
+        # user may have options specific to certain yum plugins
+        # add them to the file
+        for x in repo.yumopts:
+            config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
+            if x == "enabled":
+                optenabled = True
+            if x == "gpgcheck":
+                optgpgcheck = True
         config_file.close()
         return fname 
 
