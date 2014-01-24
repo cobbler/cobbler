@@ -867,7 +867,7 @@ class PXEGen:
                 if dest_dir.find(utils.tftpboot_location()) != 0:
                    raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir,utils.tftpboot_location()))
                    continue
-            else:
+            elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
                 dest = os.path.join(dest_dir, os.path.basename(dest))
                 if not os.path.exists(dest_dir):
