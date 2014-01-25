@@ -22,7 +22,6 @@ BuildRequires: python-cheetah
 
 Requires: python >= 2.3
 Requires: httpd
-Requires: tftp-server
 Requires: mod_wsgi
 Requires: createrepo
 Requires: python-cheetah
