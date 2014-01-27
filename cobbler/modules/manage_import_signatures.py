@@ -172,7 +172,7 @@ class ImportSignatureManager:
                         for (root,subdir,fnames) in os.walk(self.path):
                             for fname in fnames+subdir:
                                 if f_re.match(fname):
-                                    # if the version file regex exists, we use it 
+                                    # if the version file regex exists, we use it
                                     # to scan the contents of the target version file
                                     # to ensure it's the right version
                                     if sigdata["breeds"][breed][version]["version_file_regex"]:
@@ -223,8 +223,8 @@ class ImportSignatureManager:
         for x in fnames:
             adtls = []
 
-            # most of the time we just want to ignore isolinux 
-            # directories, unless this is one of the oddball 
+            # most of the time we just want to ignore isolinux
+            # directories, unless this is one of the oddball
             # distros where we do want it
             if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
                 continue
@@ -339,7 +339,7 @@ class ImportSignatureManager:
             profile.set_distro(name)
             profile.set_kickstart(self.kickstart_file)
 
-            # depending on the name of the profile we can 
+            # depending on the name of the profile we can
             # define a good virt-type for usage with koan
             if name.find("-xen") != -1:
                 profile.set_virt_type("xenpv")
@@ -379,7 +379,7 @@ class ImportSignatureManager:
     def arch_walker(self,foo,dirname,fnames):
         """
         Function for recursively searching through a directory for
-        a kernel file matching a given architecture, called by 
+        a kernel file matching a given architecture, called by
         learn_arch_from_tree()
         """
 
@@ -545,13 +545,17 @@ class ImportSignatureManager:
         """
         When importing Fedora/EL certain parts of the install tree can also be used
         as yum repos containing packages that might not yet be available via updates
-        in yum.  This code identifies those areas.
+        in yum.  This code identifies those areas. Existing repodata will be used as-is,
+        but repodate is created for earlier, non-yum based, installers.
         """
 
-        masterdir = "repodata"
-        if not os.path.exists(os.path.join(comps_path, "repodata")):
+        if os.path.exists(os.path.join(comps_path, "repodata")):
+            keeprepodata = True
+            masterdir = "repodata"
+        else:
             # older distros...
             masterdir = "base"
+            keeprepodata = False
 
         # figure out what our comps file is ...
         self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % { "p1" : comps_path, "p2" : masterdir })
@@ -601,8 +605,11 @@ class ImportSignatureManager:
 
             # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
             # they'll share same repo files.
+            if keeprepodata:
+                self.logger.info("Keeping repodata as-is :%s/repodata" % comps_path)
+                self.found_repos[comps_path] = 1
 
-            if not self.found_repos.has_key(comps_path):
+            elif not self.found_repos.has_key(comps_path):
                 utils.remove_yum_olddata(comps_path)
                 cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags,os.path.join(comps_path, masterdir, comps_file), comps_path)
                 utils.subprocess_call(self.logger, cmd, shell=True)
