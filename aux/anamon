@@ -172,6 +172,7 @@ def anamon_loop():
     scrlog = WatchedFile("/tmp/ks-script.log", "ks-script.log")
     dump = WatchedFile("/tmp/anacdump.txt", "anacdump.txt")
     mod = WatchedFile("/tmp/modprobe.conf", "modprobe.conf")
+    kspre = WatchedFile("/tmp/ks-pre.log", "ks-pre.log")
 
     # Setup '/mnt/sysimage' watcher
     sysimage = MountWatcher("/mnt/sysimage")
@@ -203,7 +204,7 @@ def anamon_loop():
 
     # Use the default watchlist and waitlist
     else:
-        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg, storage_log, prgm_log, vnc_log, xlog]
+        watchlist = [alog, slog, dump, scrlog, mod, llog, kcfg, storage_log, prgm_log, vnc_log, xlog, kspre]
         waitlist.extend(package_logs)
         waitlist.extend(bootloader_cfgs)
 
@@ -277,4 +278,3 @@ if daemon:
     sys.exit(0)
 else:
     anamon_loop()
-
