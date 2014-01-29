@@ -1,3 +1,9 @@
 #set ($power_sys, $power_lpar) = $power_id.split(':')
 
-fence_lpar -a "$power_address" -l "$power_user" -p "$power_pass" -x -s "$power_sys" -n "$power_lpar" -o "$power_mode"
+action=$power_mode
+ipaddr=$power_address
+login=$power_user
+managed=$power_sys
+port=$power_lpar
+passwd=$power_pass
+secure

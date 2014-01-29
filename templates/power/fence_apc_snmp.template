@@ -1,1 +1,3 @@
-fence_apc_snmp -a "$power_address" -n "$power_id" -o "$power_mode"
+action=$power_mode
+ipaddr=$power_address
+port=$power_id

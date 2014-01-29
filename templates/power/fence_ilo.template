@@ -1,2 +1,4 @@
-fence_ilo -a "$power_address" -l "$power_user" -p "$power_pass" -o "$power_mode"
-
+action=$power_mode
+ipaddr=$power_address
+login=$power_user
+passwd=$power_pass

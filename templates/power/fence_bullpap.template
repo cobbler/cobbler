@@ -1,1 +1,5 @@
-fence_bullpap -a "$power_address" -l "$power_user" -p "$power_pass" -d "$power_id" -o "$power_mode"
+action=$power_mode
+ipaddr=$power_address
+login=$power_user
+passwd=$power_pass
+port=$power_id
