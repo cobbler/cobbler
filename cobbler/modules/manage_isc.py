@@ -89,8 +89,8 @@ class IscManager:
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
         dhcp_tags = { "default": {} }
-        elilo = "/elilo-3.6-ia64.efi"
-        yaboot = "/yaboot-1.3.14"
+        elilo = "/elilo-ia64.efi"
+        yaboot = "/yaboot"
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
