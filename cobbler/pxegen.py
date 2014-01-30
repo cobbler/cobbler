@@ -126,6 +126,15 @@ class PXEGen:
         utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
 
+        pxegrub_imported = False
+        if os.path.isdir(os.path.join(self.bootloc, 'boot')):
+            shutil.rmtree(os.path.join(self.bootloc, 'boot'))
+        for i in self.distros:
+            if 'nexenta' == i.breed and not pxegrub_imported:                
+                name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
+                shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'ks_mirror', name_without_arch, 'boot'),
+                                os.path.join(self.bootloc, 'boot'))
+                pxegrub_imported = True
 
     def copy_images(self):
         """
@@ -169,6 +178,25 @@ class PXEGen:
             dst2 = os.path.join(distro_dir, b_initrd)
             utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, 
                     api=self.api, logger=self.logger)
+
+        if "nexenta" == d.breed:
+            try:
+                os.makedirs(os.path.join(distro_dir, 'platform', 'i86pc', 'kernel', 'amd64'))
+                os.makedirs(os.path.join(distro_dir, 'platform', 'i86pc', 'amd64'))
+            except OSError:
+                pass
+            b_kernel = os.path.basename(kernel)
+            utils.linkfile(kernel, os.path.join(distro_dir, 'platform', 'i86pc', 'kernel', 'amd64', b_kernel), 
+                           symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+            b_initrd = os.path.basename(initrd)
+            utils.linkfile(initrd, os.path.join(distro_dir, 'platform', 'i86pc', 'amd64', b_initrd), 
+                           symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+
+            # the [:-7] removes the architecture
+            if os.path.isdir(os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles')):
+                shutil.rmtree(os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles'))
+            shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'kickstarts', 'install_profiles'), 
+                           os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles'))
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -367,6 +395,10 @@ class PXEGen:
                # This profile has been excluded from the menu
                continue
             distro = profile.get_conceptual_parent()
+            if distro.name.find('exenta') != -1:
+                # nexenta has a separate menu
+                continue
+
             contents = self.write_pxe_file(filename=None, system=None,
                     profile=profile, distro=distro,
                     arch=distro.arch, include_header=False)
@@ -397,6 +429,39 @@ class PXEGen:
                 base = os.path.basename(memtest)
                 contents = self.write_memtest_pxe("/%s" % base)
                 pxe_menu_items = pxe_menu_items + contents + "\n"
+
+        return {'pxe' : pxe_menu_items, 'grub' : grub_menu_items}
+
+    def get_menu_items_nexenta(self):
+        """
+        Generates menu items for nexenta
+        """
+        # sort the profiles
+        profile_list = [profile for profile in self.profiles]
+        def sort_name(a,b):
+           return cmp(a.name,b.name)
+        profile_list.sort(sort_name)
+
+        # Build out menu items and append each to this master list, used for
+        # the default menus:
+        pxe_menu_items = ""
+        grub_menu_items = ""
+
+        # For now, profiles are the only items we want grub EFI boot menu entries for:
+        for profile in profile_list:
+            if not profile.enable_menu:
+               # This profile has been excluded from the menu
+               continue
+            distro = profile.get_conceptual_parent()
+
+            if distro.name.find('nexenta') != -1:
+                contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False)
+                if contents is not None:
+                    pxe_menu_items = pxe_menu_items + contents + "\n"
+
+                grub_contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False, format="nexenta")
+                if grub_contents is not None:
+                    grub_menu_items = grub_menu_items + grub_contents + "\n"
               
         return {'pxe' : pxe_menu_items, 'grub' : grub_menu_items}
 
@@ -429,6 +494,16 @@ class PXEGen:
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
+
+        # write the nexenta menu
+        menu_items = self.get_menu_items_nexenta()
+        metadata = { "grub_menu_items": menu_items['grub'] }
+        outfile = os.path.join(self.bootloc, "boot", 'grub', 'menu.lst')
+        template_src = open(os.path.join(self.settings.pxe_template_dir, "nexenta_grub_menu.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
+        
 
     def write_memtest_pxe(self,filename):
         """
@@ -507,8 +582,13 @@ class PXEGen:
             # not image based, it's something normalish
 
             img_path = os.path.join("/images",distro.name)
-            kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
-            initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
+
+            if 'nexenta' == distro.breed:
+                kernel_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'kernel', 'amd64', os.path.basename(distro.kernel))
+                initrd_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'amd64', os.path.basename(distro.initrd))
+            else:
+                kernel_path = os.path.join("/images",distro.name,os.path.basename(distro.kernel))
+                initrd_path = os.path.join("/images",distro.name,os.path.basename(distro.initrd))
         
             # Find the kickstart if we inherit from another profile
             if system:
@@ -602,6 +682,8 @@ class PXEGen:
             elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_esxi.template")
+            elif 'nexenta' == format:
+                template = os.path.join(self.settings.pxe_template_dir, 'nexenta_profile.template')
             else:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile.template")
 
@@ -794,6 +876,9 @@ class PXEGen:
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 255:
             self.logger.warning("warning: kernel option length exceeds 255")
+
+        if 'nexenta' == distro.breed:
+            append_line = "-B iso_nfs_path=%s:/var/www/cobbler/links/%s,auto_install=1" % (blended['next_server'], distro.name)
 
         return append_line
 
