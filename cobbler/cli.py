@@ -57,7 +57,7 @@ OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 OBJECT_ACTIONS = []
 for actions in OBJECT_ACTIONS_MAP.values():
    OBJECT_ACTIONS += actions
-DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version".split()
+DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync signature sync validateks version".split()
 
 ####################################################
 
