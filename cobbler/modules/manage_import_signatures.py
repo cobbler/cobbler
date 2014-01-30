@@ -251,7 +251,7 @@ class ImportSignatureManager:
                 else:
                     pae_kernel = os.path.join(dirname, x)
 
-            # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
+            # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
             if initrd is not None and kernel is not None:
                 adtls.append(self.add_entry(dirname,kernel,initrd))
                 kernel = None
@@ -263,6 +263,15 @@ class ImportSignatureManager:
 
             for adtl in adtls:
                 distros_added.extend(adtl)
+
+        if "nexenta" == self.breed:
+            # self.logger.warning( "this is nexenta" )
+            initrd = os.path.join(self.path, self.signature["initrd_file"])
+            kernel = os.path.join(self.path, self.signature["kernel_file"])
+            adtls.append(self.add_entry(self.path, kernel, initrd))
+            for adtl in adtls:
+                distros_added.extend(adtl)
+                
 
     def add_entry(self,dirname,kernel,initrd):
         """

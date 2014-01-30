@@ -1,0 +1,11 @@
+
+
+__PF_gateway="10.3.30.1"
+__PF_nic_primary="eth0"
+__PF_dns_ip_1="10.3.250.2"
+__PF_syspool_luns="c1t0d0"
+__PF_ipaddr_eth0="10.3.30.98"
+__PF_netmask_eth0="255.255.255.0"
+__PF_nlm_key="aaabbbccc"
+__PF_language="en"
+
