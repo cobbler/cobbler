@@ -33,13 +33,43 @@ import shlex
 import app as koan
 import utils
 
-try:
-    import virtinst
-    virtinst_version = virtinst.__version__.split('.')
-except:
+# The virtinst module will no longer be availabe to import in some
+# distros. We need to get all the info we need from the virt-install
+# command line tool. This should work on both old and new variants,
+# as the virt-install command line tool has always been provided by
+# python-virtinst (and now the new virt-install rpm).
+rc, response = utils.subprocess_get_response(
+        shlex.split('virt-install --version'), True)
+if rc == 0:
+    virtinst_version = response
+else:
     virtinst_version = None
 
-from virtinst import osdict
+# This one's trickier. We need a list of supported os varients, but
+# the man page explicitly says not to parse the result of this command.
+# But we need it, and there's no other way to get it. I spoke with the
+# virt-install maintainers and they said the point of that message
+# is that you can't absolutely depend on the output not changing, but
+# at the moment it's the only option for us. Long term plans are for
+# virt-install to switch to libosinfo for OS metadata tracking, which
+# provides a library and tools for querying valid OS values. Until
+# that's available and pervasive the best we can do is to use the
+# module if it's availabe and if not parse the command output.
+supported_variants = set()
+try:
+    from virtinst import osdict
+    for ostype in osdict.OS_TYPES.keys():
+        for variant in osdict.OS_TYPES[ostype]["variants"].keys():
+            supported_variants.add(variant)
+except:
+    try:
+        rc, response = utils.subprocess_get_response(
+                shlex.split('virt-install --os-variant list'))
+        variants = response.split('\n')
+        for variant in variants:
+            supported_variants.add(variant.split()[0])
+    except:
+        pass # No problem, we'll just use generic
 
 def _sanitize_disks(disks):
     ret = []
@@ -152,7 +182,7 @@ def build_commandline(uri,
     oldstyle_accelerate = False
 
     if not virtinst_version:
-        print ("- warning: old python-virtinst detected, a lot of features will be disabled")
+        print ("- warning: old virt-install detected, a lot of features will be disabled")
         disable_autostart = True
         disable_boot_opt = True
         disable_virt_type = True
@@ -214,7 +244,7 @@ def build_commandline(uri,
             # to the ISO.
             print "I want to make a floppy for %s" % kickstart
             floppy = utils.make_floppy(kickstart)
-    elif is_qemu:
+    elif is_qemu or is_xen:
         # images don't need to source this
         if not profile_data.has_key("install_tree"):
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
@@ -327,18 +357,13 @@ def build_commandline(uri,
                 suse_version_re = re.compile("^(opensuse[0-9]+)\.([0-9]+)$")
                 if suse_version_re.match(os_version):
                     os_version = suse_version_re.match(os_version).groups()[0]
-            # make sure virtinst knows about our os_version,
+            # make sure virt-install knows about our os_version,
             # otherwise default it to generic26
             found = False
-            for type in osdict.OS_TYPES.keys():
-                for variant in osdict.OS_TYPES[type]["variants"].keys():
-                    if os_version == variant:
-                        found = True
-                        break
-            if found:
+            if os_version in supported_variants:
                 cmd += "--os-variant %s " % os_version
             else:
-                print ("- warning: virtinst doesn't know this os_version, defaulting to generic26")
+                print ("- warning: virt-install doesn't know this os_version, defaulting to generic26")
                 cmd += "--os-variant generic26 "
         else:
             distro = "unix"

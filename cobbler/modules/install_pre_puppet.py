@@ -43,6 +43,10 @@ def run(api, args, logger):
         search_domains = system['name_servers_search']
         if search_domains:
             hostname += '.' + search_domains[0]
+    if not re.match(r'[\w-]+\..+', hostname):
+        default_search_domains = system['default_name_servers_search']
+        if default_search_domains:
+            hostname += '.' + default_search_domains[0]
     puppetca_path = settings.puppetca_path
     cmd = [puppetca_path, 'cert', 'clean', hostname]
 
@@ -52,10 +56,10 @@ def run(api, args, logger):
         rc = utils.subprocess_call(logger, cmd, shell=False)
     except:
         if logger is not None:
-            logger.warning("failed to execute %s", puppetca_path)
+            logger.warning("failed to execute %s" % puppetca_path)
 
     if rc != 0:
         if logger is not None:
-            logger.warning("puppet cert removal for %s failed", name)
+            logger.warning("puppet cert removal for %s failed" % name)
 
     return 0

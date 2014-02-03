@@ -57,7 +57,7 @@ OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 OBJECT_ACTIONS = []
 for actions in OBJECT_ACTIONS_MAP.values():
    OBJECT_ACTIONS += actions
-DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version".split()
+DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version signature get-loaders hardlink".split()
 
 ####################################################
 
@@ -381,7 +381,7 @@ class BootCLI:
                         self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
                 except xmlrpclib.Fault, (err):
                     (etype, emsg) = err.faultString.split(":",1)
-                    print emsg[1:-1] # don't print the wrapping quotes
+                    print "exception on server: %s" % emsg
                     sys.exit(1)
                 except RuntimeError, (err):
                     print err.args[0]
@@ -455,8 +455,9 @@ class BootCLI:
             self.parser.add_option("--packages",    dest="package_patterns",   help="patterns of packages to replicate")
             self.parser.add_option("--files",       dest="file_patterns",      help="patterns of files to replicate")
             self.parser.add_option("--omit-data",   dest="omit_data", action="store_true", help="do not rsync data")
-            self.parser.add_option("--sync-all",  dest="sync_all", action="store_true", help="sync all data")
-            self.parser.add_option("--prune",       dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
+            self.parser.add_option("--sync-all",    dest="sync_all",  action="store_true", help="sync all data")
+            self.parser.add_option("--prune",       dest="prune",     action="store_true", help="remove objects (of all types) not found on the master")
+            self.parser.add_option("--use-ssl",     dest="use_ssl",   action="store_true", help="use ssl to access the Cobbler master server api")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)
 

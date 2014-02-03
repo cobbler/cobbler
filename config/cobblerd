@@ -45,6 +45,7 @@ if [ -f $DEBIAN_VERSION ]; then
 else
     LOCKFILE=/var/lock/subsys/$SERVICE
 fi
+WSGI=/usr/share/cobbler/web/cobbler.wsgi
 
 RETVAL=0
 
@@ -67,6 +68,7 @@ start() {
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
+    [ -f $WSGI ] && touch $WSGI
     return $RETVAL
 }
 

@@ -26,12 +26,10 @@ import utils
 import item
 import weakref
 import os
-import codes
 import time
 from cexceptions import *
 
 from utils import _
-import codes
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
 # entry to the list following some conventions to be described later.  You must also add a method called

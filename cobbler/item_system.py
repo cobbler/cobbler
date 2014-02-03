@@ -151,7 +151,9 @@ class System(item.Item):
 
     def __get_interface(self,name):
 
-        if name == "" and len(self.interfaces.keys()) == 1:
+        if name == "" and len(self.interfaces.keys()) == 0:
+            raise CX(_("No interfaces defined. Please use --interface <interface_name>"))
+        elif name == "" and len(self.interfaces.keys()) == 1:
             name = self.interfaces.keys()[0]
         elif name == "" and len(self.interfaces.keys()) > 1:
             raise CX(_("Multiple interfaces defined. Please use --interface <interface_name>"))
@@ -631,7 +633,10 @@ class System(item.Item):
         abstraction layer -- assigning systems to defined and repeatable 
         roles.
         """
-        if kickstart is None or kickstart in [ "", "delete", "<<inherit>>" ]:
+        if kickstart == "":
+            self.kickstart = kickstart
+            return True
+        if kickstart is None or kickstart in [ "delete", "<<inherit>>" ]:
             self.kickstart = "<<inherit>>"
             return True
         kickstart = utils.find_kickstart(kickstart)
@@ -685,7 +690,7 @@ class System(item.Item):
         Used by the WUI to modify an interface more-efficiently
         """
         for (key,value) in hash.iteritems():
-            (field,interface) = key.split("-")
+            (field,interface) = key.split("-",1)
             field = field.replace("_","").replace("-","")
             if field == "macaddress"          : self.set_mac_address(value, interface)
             if field == "mtu"                 : self.set_mtu(value, interface)

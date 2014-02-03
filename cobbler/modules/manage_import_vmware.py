@@ -27,8 +27,6 @@ import glob
 import traceback
 import errno
 import re
-import codes
-
 
 import utils
 from cexceptions import *
@@ -154,7 +152,7 @@ class ImportVMWareManager:
 
     # required function for import modules
     def get_valid_os_versions(self):
-        return codes.VALID_OS_VERSIONS["vmware"]
+        return utils.get_valid_os_versions_for_breed("vmware")
 
     def get_valid_repo_breeds(self):
         return ["rsync", "rhn", "yum",]

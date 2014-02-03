@@ -1,4 +1,5 @@
 Cobbler CHANGELOG
+- Feb 10 2014 - 2.4.1
 - Nov 15 2011 - 2.2.2
 - Fixed indentation on closing tr tag (gregswift@gmail.com)
 - Added leader column to the non-generic tables so that all tables have the

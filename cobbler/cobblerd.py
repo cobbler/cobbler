@@ -30,9 +30,9 @@ from utils import _
 import xmlrpclib
 import binascii
 import utils
+import pwd
 
 import api as cobbler_api
-import yaml # Howell Clark version
 import utils
 import remote
 
@@ -57,18 +57,17 @@ def regen_ss_file():
     fd = open("/dev/urandom")
     data = fd.read(512)
     fd.close()
-    if not os.path.isfile(ssfile):
-        fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
-        os.write(fd,binascii.hexlify(data))
-        os.close(fd)
-        http_user = "apache"
-        if utils.check_dist() in [ "debian", "ubuntu" ]:
-            http_user = "www-data"
-        utils.os_system("chown %s /var/lib/cobbler/web.ss"%http_user )
-    else:
-        fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
-        os.write(fd,binascii.hexlify(data))
-        os.close(fd)
+
+    fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
+    os.write(fd,binascii.hexlify(data))
+    os.close(fd)
+
+    http_user = "apache"
+    if utils.check_dist() in [ "debian", "ubuntu" ]:
+        http_user = "www-data"
+    elif utils.check_dist() in [ "suse", "opensuse" ]:
+        http_user = "wwwrun"
+    os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
     return 1
 

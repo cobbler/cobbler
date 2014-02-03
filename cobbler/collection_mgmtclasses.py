@@ -49,9 +49,13 @@ class Mgmtclasses(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/*", [], logger)
+                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [], logger)
 
-            del self.listing[name]
+            self.lock.acquire()
+            try:
+                del self.listing[name]
+            finally:
+                self.lock.release()
             self.config.serialize_delete(self, obj)
 
             if with_delete:

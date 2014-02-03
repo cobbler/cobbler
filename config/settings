@@ -39,6 +39,9 @@ anamon_enabled: 0
 # The default value is "login".
 authn_pam_service: "login"
 
+# How long the authentication token is valid for, in seconds
+auth_token_expiration: 3600
+
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
 # sender: optional
@@ -50,6 +53,7 @@ build_reporting_sender: ""
 build_reporting_email: [ 'root@localhost' ]
 build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
+build_reporting_ignorelist: [ "" ]
 
 # Cheetah-language kickstart templates can import Python modules.
 # while this is a useful feature, it is not safe to allow them to 
@@ -339,9 +343,6 @@ register_new_installs: 0
 # Flags to use for yum's reposync.  If your version of yum reposync
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -n -d"
-
-# These options will be used for an rsync initiated by cobbler replicate
-replicate_rsync_options: "-avzH"
 
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is

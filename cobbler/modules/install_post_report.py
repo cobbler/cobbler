@@ -71,7 +71,7 @@ def run(api, args, logger):
     if subject == "":
         subject = '[Cobbler] install complete '
 
-    to_addr = ", ".join(to_addr)
+    to_addr = ",".join(to_addr)
     metadata = {
         "from_addr" : from_addr,
         "to_addr"   : to_addr,
@@ -89,12 +89,18 @@ def run(api, args, logger):
     # for debug, call
     # print message
 
-    # Send the mail
-    # FIXME: on error, return non-zero
-    server_handle = smtplib.SMTP(smtp_server)
-    server_handle.sendmail(from_addr, to_addr, message)
-    server_handle.quit()
- 
+    sendmail = True
+    for prefix in settings.build_reporting_ignorelist:
+        if name.lower().startswith(prefix) == True:
+            sendmail = False
+
+    if sendmail == True:
+        # Send the mail
+        # FIXME: on error, return non-zero
+        server_handle = smtplib.SMTP(smtp_server)
+        server_handle.sendmail(from_addr, to_addr.split(','), message)
+        server_handle.quit()
+
     return 0
 
 

@@ -17,7 +17,7 @@ cat << __EOT__ > /etc/sysconfig/anamon
 COBBLER_SERVER="$server"
 COBBLER_PORT="$http_port"
 COBBLER_NAME="$name"
-LOGFILES="/var/log/boot.log /var/log/messages /var/log/dmesg"
+LOGFILES="/var/log/boot.log /var/log/messages /var/log/dmesg /root/ks-post.log"
 __EOT__
 
 #end if

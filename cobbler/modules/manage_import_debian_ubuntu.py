@@ -28,7 +28,6 @@ import traceback
 import errno
 import re
 
-import codes
 import utils
 from cexceptions import *
 import templar
@@ -173,9 +172,9 @@ class ImportDebianUbuntuManager:
     # required function for import modules
     def get_valid_os_versions(self):
         if self.breed == "debian":
-            return codes.VALID_OS_VERSIONS["debian"]
+            return utils.get_valid_os_versions_for_breed("debian")
         elif self.breed == "ubuntu":
-            return codes.VALID_OS_VERSIONS["ubuntu"]
+            return utils.get_valid_os_versions_for_breed("ubuntu")
         else:
             return []
 
@@ -590,16 +589,8 @@ class ImportDebianUbuntuManager:
         """
         Determine what the distro is based on the release package filename.
         """
-        # FIXME: all of these dist_names should probably be put in a function
-        # which would be called in place of looking in codes.py.  Right now
-        # you have to update both codes.py and this to add a new release
-        if self.breed == "debian":
-            dist_names = ['etch','lenny',]
-        elif self.breed == "ubuntu":
-            dist_names = ['dapper','hardy','intrepid','jaunty','karmic','lynx','maverick','natty',]
-        else:
-            return None
-
+        dist_names = utils.get_valid_os_versions_for_breed(self.breed)
+        
         if os.path.basename(file) in dist_names:
             release_file = os.path.join(file,'Release')
             self.logger.info("Found %s release file: %s" % (self.breed,release_file))

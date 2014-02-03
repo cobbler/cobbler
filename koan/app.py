@@ -629,10 +629,13 @@ class Koan:
                 if not os.path.exists("/usr/bin/qemu-img"):
                     raise InfoException("qemu package needs to be installed")
                 # is libvirt new enough?
-                cmd = sub_process.Popen("rpm -q python-virtinst", stdout=sub_process.PIPE, shell=True)
-                version_str = cmd.communicate()[0]
-                if version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
-                    raise InfoException("need python-virtinst >= 0.2 to do installs for qemu/kvm")
+                # Note: in some newer distros (like Fedora 19) the python-virtinst package has been
+                # subsumed into virt-install. If we don't have one check to see if we have the other.
+                rc, version_str = utils.subprocess_get_response(shlex.split('rpm -q virt-install'), True)
+                if rc != 0:
+                    rc, version_str = utils.subprocess_get_response(shlex.split('rpm -q python-virtinst'), True)
+                    if rc != 0 or version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
+                        raise InfoException("need python-virtinst >= 0.2 or virt-install package to do installs for qemu/kvm (depending on your OS)")
 
             # for vmware
             if self.virt_type == "vmware" or self.virt_type == "vmwarew":
@@ -686,13 +689,23 @@ class Koan:
                     break
         else:
             try:
-                raw = utils.urlread(profile_data["kickstart"])
+                if profile_data["kickstart"][:4] == "http":
+                    if not self.system:
+                        url_fmt = "http://%s/cblr/svc/op/ks/profile/%s"
+                    else:
+                        url_fmt = "http://%s/cblr/svc/op/ks/system/%s"
+                    url = url_fmt % (self.server, profile_data['name'])
+                else:
+                    url = profile_data["kickstart"]
+
+                raw = utils.urlread(url)
                 lines = raw.splitlines()
 
                 method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
 
                 url_parser = OptionParser()
                 url_parser.add_option("--url", dest="url")
+                url_parser.add_option("--proxy", dest="proxy")
 
                 nfs_parser = OptionParser()
                 nfs_parser.add_option("--dir", dest="dir")
@@ -1330,7 +1343,7 @@ class Koan:
 
         hashv = utils.input_string_or_hash(kextra)
 
-        if self.static_interface is not None and (breed == "redhat" or breed == "suse"):
+        if self.static_interface is not None and (breed == "redhat" or breed == "suse" or breed == "debian" or breed == "ubuntu"):
             interface_name = self.static_interface
             interfaces = self.safe_load(pd, "interfaces")
             if interface_name.startswith("eth"):
@@ -1344,6 +1357,25 @@ class Koan:
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
 
+            if breed == "debian" or breed == "ubuntu":
+                hostname = self.safe_load(pd, "hostname")
+                name = self.safe_load(pd, "name")
+
+                if hostname != "" or name != "":
+                    if hostname != "":
+                        # if this is a FQDN, grab the first bit
+                        my_hostname = hostname.split(".")[0]
+                        _domain = hostname.split(".")[1:]
+                        if _domain:
+                           my_domain = ".".join(_domain)
+                    else:
+                        my_hostname = name.split(".")[0]
+                        _domain = name.split(".")[1:]
+                        if _domain:
+                           my_domain = ".".join(_domain)
+                    hashv["hostname"] = my_hostname
+                    hashv["domain"] = my_domain
+
             if breed == "suse":
                 hashv["netdevice"] = self.static_interface
             else:
@@ -1351,15 +1383,25 @@ class Koan:
             if ip is not None:
                 if breed == "suse":
                     hashv["hostip"] = ip
+                elif breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_ipaddress"] = ip
                 else:
                     hashv["ip"] = ip
             if netmask is not None:
-                hashv["netmask"] = netmask
+                if breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_netmask"] = netmask
+                else:
+                    hashv["netmask"] = netmask
             if gateway is not None:
-                hashv["gateway"] = gateway
+                if breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_gateway"] = gateway
+                else:
+                    hashv["gateway"] = gateway
             if dns is not None:
                 if breed == "suse":
                     hashv["nameserver"] = dns[0]
+                elif breed == "debian" or breed == "ubuntu":
+                    hashv["netcfg/get_nameservers"] = " ".join(dns)
                 else:
                     hashv["dns"] = ",".join(dns)
 
@@ -1479,7 +1521,7 @@ class Koan:
             import imagecreate
         except:
             traceback.print_exc()
-            raise InfoException("no virtualization support available, install python-virtinst?")
+            raise InfoException("no virtualization support available, install python-virtinst or virt-install?")
 
     #---------------------------------------------------
 
@@ -1634,7 +1676,7 @@ class Koan:
             #        the virtinst VirtualDisk class, but
             #        not all versions of virtinst have a 
             #        nice list to use
-            if t in ('raw','qcow','qcow2','aio', 'vmdk'):
+            if t in ('raw', 'qcow', 'qcow2', 'aio', 'vmdk', 'qed'):
                accum.append(t)
             else:
                print "invalid disk driver specified, defaulting to 'raw'"
@@ -1843,8 +1885,7 @@ class Koan:
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
-                selinuxenabled = sub_process.call(args)
-                if selinuxenabled == 0:
+                if os.path.exists(args) and sub_process.call(args) == 0:
                     # required context type
                     context_type = "virt_image_t"
 

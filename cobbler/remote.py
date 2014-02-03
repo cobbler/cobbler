@@ -49,8 +49,6 @@ import utils
 from utils import _
 import configgen
 
-# FIXME: make configurable?
-TOKEN_TIMEOUT = 60*60 # 60 minutes
 EVENT_TIMEOUT = 7*24*60*60 # 1 week
 CACHE_TIMEOUT = 10*60 # 10 minutes
 
@@ -214,6 +212,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
                 self.options.get("sync_all", False),
+                self.options.get("use_ssl", False),
                 self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
@@ -1024,7 +1023,8 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         try:
             return self.api.generate_kickstart(profile,system)
-        except:
+        except Exception, e:
+            utils.log_exc(self.logger)
             return "# This kickstart had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
     def generate_gpxe(self,profile=None,system=None,**rest):
@@ -1076,6 +1076,15 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_valid_breeds",token=token)
         results = utils.get_valid_breeds()
+        results.sort()
+        return self.xmlrpc_hacks(results)
+
+    def get_valid_os_versions_for_breed(self,breed,token=None,**rest):
+        """
+        Return the list of valid os_versions for the given breed
+        """
+        self._log("get_valid_os_versions_for_breed",token=token)
+        results = utils.get_valid_os_versions_for_breed(breed)
         results.sort()
         return self.xmlrpc_hacks(results)
 
@@ -1709,7 +1718,7 @@ class CobblerXMLRPCInterface:
         timenow = time.time()
         for token in self.token_cache.keys():
             (tokentime, user) = self.token_cache[token]
-            if (timenow > tokentime + TOKEN_TIMEOUT):
+            if (timenow > tokentime + self.api.settings().auth_token_expiration):
                 self._log("expiring token",token=token,debug=True)
                 del self.token_cache[token]
         # and also expired objects

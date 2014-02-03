@@ -3,6 +3,8 @@
 #raw
 # generic functions to be used later for discovering NICs
 mac_exists() {
+  [ -z "$1" ] && return 1
+
   if which ip 2>/dev/null >/dev/null; then
     ip -o link | grep -i "$1" 2>/dev/null >/dev/null
     return $?

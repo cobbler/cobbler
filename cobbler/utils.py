@@ -675,7 +675,7 @@ def blender(api_handle,remove_hashes, root_obj):
     # repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile","system"):
         repo_data = []
-        for r in results["repos"]:
+        for r in results.get("repos",[]):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_datastruct())
@@ -1002,20 +1002,15 @@ def check_dist():
     """
     Determines what distro we're running under.  
     """
-    if os.path.exists("/etc/debian_version"):
-       import lsb_release
-       return lsb_release.get_distro_information()['ID'].lower()
-    elif os.path.exists("/etc/SuSE-release"):
-       return "suse"
-    elif os.path.exists("/etc/redhat-release"):
-       # valid for Fedora and all Red Hat / Fedora derivatives
-       return "redhat"
-    else:
-       return "unknown"
+    import platform
+    try:
+      return platform.linux_distribution()[0].lower().strip()
+    except AttributeError:
+      return platform.dist()[0].lower().strip()
 
 def os_release():
 
-   if check_dist() == "redhat":
+   if check_dist() in ("redhat","fedora","centos","scientific linux"):
       fh = open("/etc/redhat-release")
       data = fh.read().lower()
       if data.find("fedora") != -1:
@@ -1539,7 +1534,7 @@ def set_virt_type(self,vtype):
     """
 
     if vtype == "<<inherit>>":
-        self.virt_type == "<<inherit>>"
+        self.virt_type = "<<inherit>>"
         return True
 
     if vtype.lower() not in [ "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto" ]:
@@ -1837,9 +1832,12 @@ def clear_from_fields(obj, fields, is_subobject=False):
 
 def from_datastruct_from_fields(obj, seed_data, fields):
 
+    int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
         if elems[0].startswith("*") or elems[0].find("widget") != -1:
+            if elems[0].startswith("*"):
+                int_fields.append(elems)
             continue
         src_k = dst_k = elems[0]
         # deprecated field switcheroo
@@ -1861,7 +1859,10 @@ def from_datastruct_from_fields(obj, seed_data, fields):
                     if not obj.interfaces[interface].has_key(field_info.DEPRECATED_FIELDS[k]) or \
                            obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
                         obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
-
+            # populate fields that might be missing
+            for int_field in int_fields:
+                if not obj.interfaces[interface].has_key(int_field[0][1:]):
+                    obj.interfaces[interface][int_field[0][1:]] = int_field[1]
     return obj
 
 def get_methods_from_fields(obj, fields):
@@ -1963,6 +1964,8 @@ def add_options_from_fields(object_type, parser, fields, object_action):
                     aliasopt.append("--%s" % deprecated_field)
 
             if isinstance(choices, list) and len(choices) != 0:
+                if default not in choices:
+                    choices.append(default)
                 desc = desc + " (valid options: %s)" % ",".join(choices)    
                 parser.add_option(niceopt, dest=k, help=desc, choices=choices)
                 for alias in aliasopt:
@@ -2075,6 +2078,15 @@ def get_valid_breeds():
         return SIGNATURE_CACHE["breeds"].keys()
     else:
         return []
+
+def get_valid_os_versions_for_breed(breed):
+    """
+    Return a list of valid os-versions for the given breed
+    """
+    os_versions = []
+    if breed in get_valid_breeds():
+       os_versions = SIGNATURE_CACHE["breeds"][breed].keys()
+    return os_versions
 
 def get_valid_os_versions():
     """

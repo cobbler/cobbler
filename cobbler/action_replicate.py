@@ -49,7 +49,7 @@ class Replicate:
         self.logger   = logger
 
     def rsync_it(self,from_path,to_path,type=None):
-        from_path = "%s::%s" % (self.host, from_path)
+        from_path = "%s::%s" % (self.master, from_path)
         if type == 'repo':
            cmd = "rsync %s %s %s" % (self.settings.replicate_repo_rsync_options, from_path, to_path)
         else:
@@ -185,6 +185,8 @@ class Replicate:
             self.rsync_it("cobbler-snippets","/var/lib/cobbler/snippets")
             self.logger.info("Rsyncing triggers")
             self.rsync_it("cobbler-triggers","/var/lib/cobbler/triggers")
+            self.logger.info("Rsyncing scripts")
+            self.rsync_it("cobbler-scripts","/var/lib/cobbler/scripts")
         else:
             self.logger.info("*NOT* Rsyncing Data")
 
@@ -302,7 +304,7 @@ class Replicate:
     # -------------------------------------------------------
 
     def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, 
-            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False):
+            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False):
         """
         Get remote profiles and distros and sync them locally
         """
@@ -318,8 +320,24 @@ class Replicate:
         self.omit_data           = omit_data
         self.prune               = prune
         self.sync_all            = sync_all
+        self.use_ssl             = use_ssl
+
+        if self.use_ssl:
+            protocol = 'https'
+        else:
+            protocol = 'http'
+
+        if cobbler_master is not None:
+            self.master = cobbler_master
+        elif len(self.settings.cobbler_master) > 0:
+            self.master = self.settings.cobbler_master
+        else:
+            utils.die('No cobbler master specified, try --master.')
+
+        self.uri = '%s://%s/cobbler_api' % (protocol,self.master)
 
         self.logger.info("cobbler_master      = %s" % cobbler_master)
+        self.logger.info("distro_patterns     = %s" % self.distro_patterns)
         self.logger.info("profile_patterns    = %s" % self.profile_patterns)
         self.logger.info("system_patterns     = %s" % self.system_patterns)
         self.logger.info("repo_patterns       = %s" % self.repo_patterns)
@@ -329,18 +347,7 @@ class Replicate:
         self.logger.info("file_patterns       = %s" % self.file_patterns)
         self.logger.info("omit_data           = %s" % self.omit_data)
         self.logger.info("sync_all            = %s" % self.sync_all)
-
-
-        if cobbler_master is not None:
-            self.logger.info("using CLI defined master")
-            self.host = cobbler_master
-            self.uri = 'http://%s/cobbler_api' % cobbler_master
-        elif len(self.settings.cobbler_master) > 0:
-            self.logger.info("using info from master")
-            self.host = self.settings.cobbler_master
-            self.uri = 'http://%s/cobbler_api' % self.settings.cobbler_master
-        else:
-            utils.die('No cobbler master specified, try --master.')
+        self.logger.info("use_ssl             = %s" % self.use_ssl)
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
@@ -353,6 +360,6 @@ class Replicate:
         self.replicate_data()
         self.link_distros()
         self.logger.info("Syncing")
-        self.api.sync()
+        self.api.sync(logger=self.logger)
         self.logger.info("Done")
         return True
