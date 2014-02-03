@@ -7,7 +7,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.4.0
+Version: 2.4.1
 Release: 1%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
