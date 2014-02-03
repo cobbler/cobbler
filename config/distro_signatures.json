@@ -198,9 +198,9 @@
     "boot_files":[]
    },
    "oneiric": {
-    "signatures":["dists"],
-    "version_file":"Release",
-    "version_file_regex":"Codename: oneiric",
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: oneiric|Ubuntu 11.10",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64"],
