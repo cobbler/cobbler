@@ -598,9 +598,9 @@ if __name__ == "__main__":
             "config/cobblerd"
         ],
         man_pages = [
-            'docs/cobbler.1.pod',
-            'docs/cobbler-register.1.pod',
-            'docs/koan.1.pod'
+            'docs/man/cobbler.1.pod',
+            'docs/man/cobbler-register.1.pod',
+            'docs/man/koan.1.pod'
         ],
         data_files = [
             # tftpd, hide in /usr/sbin
@@ -609,7 +609,7 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["build/config/cobbler.conf"]),
             ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
             ("%s" % initpath,               ["build/config/cobblerd"]),
-            ("%s" % docpath,                glob("build/docs/*.1.gz")),
+            ("%s" % docpath,                glob("build/docs/man/*.1.gz")),
             ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
             ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),
