@@ -27,10 +27,7 @@ import copy
 import socket
 import glob
 import random
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
+import subprocess
 import shutil
 import string
 import traceback
@@ -1034,7 +1031,7 @@ def os_release():
       release = lsb_release.get_distro_information()['RELEASE']
       return ("debian", release)
    elif check_dist() == "ubuntu":
-      version = sub_process.check_output(("lsb_release","--release","--short")).rstrip()
+      version = subprocess.check_output(("lsb_release","--release","--short")).rstrip()
       make = "ubuntu"
       return (make, float(version))
    elif check_dist() == "suse":
@@ -1242,7 +1239,7 @@ def check_openfiles(src):
         if not os.path.isdir(src):
             raise CX(_("Error in check_openfiles: the source (%s) must be a directory") % src)
         cmd = [ "/usr/sbin/lsof", "+D", src, "-Fn", "|", "wc", "-l" ]
-        handle = sub_process.Popen(cmd, shell=True, stdout=sub_process.PIPE, close_fds=True)
+        handle = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
         out = handle.stdout
         results = out.read()
         return int(results)
@@ -1617,7 +1614,7 @@ def is_selinux_enabled():
     if not os.path.exists("/usr/sbin/selinuxenabled"):
        return False
     args = "/usr/sbin/selinuxenabled"
-    selinuxenabled = sub_process.call(args,close_fds=True)
+    selinuxenabled = subprocess.call(args,close_fds=True)
     if selinuxenabled == 0:
         return True
     else:
@@ -1724,10 +1721,10 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
 
     stdin = None
     if input:
-        stdin = sub_process.PIPE
+        stdin = subprocess.PIPE
 
     try:
-        sp = sub_process.Popen(cmd, shell=shell, stdin=stdin, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
+        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
@@ -1753,7 +1750,7 @@ def popen2(args, **kwargs):
     Leftovers from borrowing some bits from Snake, replace this 
     function with just the subprocess call.
     """
-    p = sub_process.Popen(args, stdout=sub_process.PIPE, stdin=sub_process.PIPE, **kwargs)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, **kwargs)
     return (p.stdout, p.stdin)
 
 def ram_consumption_of_guests(host, api):
@@ -1806,7 +1803,7 @@ def os_system(cmd):
     os.system doesn't close file descriptors, so this is a wrapper
     to ensure we never use it.
     """
-    rc = sub_process.call(cmd, shell=True, close_fds=True)
+    rc = subprocess.call(cmd, shell=True, close_fds=True)
     return rc
 
 def clear_from_fields(obj, fields, is_subobject=False):
