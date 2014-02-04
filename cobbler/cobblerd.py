@@ -103,7 +103,7 @@ def log(logger,msg):
 #            "cobblerd",
 #            "_http._tcp",
 #            "%s" % settings.xmlrpc_port ]
-#    proc = sub_process.Popen(cmd, shell=False, stderr=sub_process.PIPE, stdout=sub_process.PIPE, close_fds=True)
+#    proc = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
 #    proc.communicate()[0]
 #    log(logger, "avahi service terminated") 
 
