@@ -259,7 +259,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /tftpboot/images
 %endif
 
-%doc AUTHORS CHANGELOG README COPYING
+%doc AUTHORS README COPYING
 
 %package -n koan
 
@@ -297,7 +297,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
-%doc AUTHORS COPYING CHANGELOG README
+%doc AUTHORS COPYING README
 
 
 %package -n cobbler-web
@@ -325,7 +325,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 %files -n cobbler-web
 %defattr(-,root,root,-)
-%doc AUTHORS COPYING CHANGELOG README
+%doc AUTHORS COPYING README
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web

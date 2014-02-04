@@ -1,4 +1,4 @@
-include COPYING AUTHORS README CHANGELOG
+include COPYING AUTHORS README
 include cobbler.spec config/cobblerd.service
 
 recursive-include aux *
