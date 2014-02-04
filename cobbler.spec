@@ -20,7 +20,7 @@ BuildRequires: git
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
 
-Requires: python >= 2.3
+Requires: python >= 2.6
 Requires: httpd
 Requires: mod_wsgi
 Requires: createrepo
@@ -306,7 +306,7 @@ Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: cobbler
 Requires: httpd
-Requires: Django >= 1.1.2
+Requires: Django >= 1.4
 Requires: mod_wsgi
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
