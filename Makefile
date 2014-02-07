@@ -38,8 +38,7 @@ nosetests:
 build:
 	python setup.py build -f
 
-# Assume we're on RedHat by default ('apache' user),
-# otherwise Debian / Ubuntu ('www-data' user)
+# Debian/Ubuntu requires an additional parameter in setup.py
 install: build
 	if [ -e /etc/debian_version ]; then \
 		python setup.py install --root $(DESTDIR) -f --install-layout=deb; \
@@ -57,13 +56,18 @@ savestate:
 	python setup.py -v savestate --root $(DESTDIR); \
 
 
-# Assume we're on RedHat by default, otherwise Debian / Ubuntu
+# Check if we are on Red Hat, Suse or Debian based distribution
 restorestate:
 	python setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
+		# Red Hat-based
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
-	else \
+	elif [ -n "`getent passwd wwwrun`" ] ; then \
+		# Suse-based
+		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
+	elif [-n "`getent passwd www-data`"] ; then \
+		# Debian / Ubuntu
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
@@ -84,12 +88,19 @@ webtest: devinstall
 	make devinstall
 	make restartservices
 
-# Assume we're on RedHat by default, otherwise Debian / Ubuntu
+# Check if we are on Red Hat, Suse or Debian based distribution
 restartservices:
 	if [ -x /sbin/service ] ; then \
+		# Red Hat-based or Suse-based
 		/sbin/service cobblerd restart; \
-		/sbin/service httpd restart; \
+	    if [ -f /etc/init.d/httpd ] ; then \
+			# Red Hat-based
+			/sbin/service httpd restart; \
+		else \
+			# Suse-based
+			/sbin/service apache2 restart; \
 	else \
+		# Debian / Ubuntu
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \
 	fi
