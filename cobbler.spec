@@ -365,7 +365,15 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %files -n cobbler-web
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING README
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
+%endif
+
+%if 0%{?suse_version} >= 1310
+%config(noreplace) /etc/apache2/conf.d/cobbler_web.conf
+%endif
+
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
