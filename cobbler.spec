@@ -368,16 +368,17 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
+/var/www/cobbler_webui_content/
 %endif
 
 %if 0%{?suse_version} >= 1310
 %config(noreplace) /etc/apache2/conf.d/cobbler_web.conf
+/srv/www/cobbler_webui_content/
 %endif
 
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
-/var/www/cobbler_webui_content/
 
 %changelog
 * Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
