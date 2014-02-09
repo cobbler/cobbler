@@ -4,7 +4,7 @@
 # Supported build targets:
 # - Fedora >= 18
 # - RHEL >= 6
-#
+# - OpenSuSE => 13.1
 
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
