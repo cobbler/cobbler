@@ -261,7 +261,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %if 0%{?fedora} >= 18
 %{_unitdir}/cobblerd.service
-%end
+%endif
 %if 0%{?rhel} = 6
 /etc/init.d/cobblerd
 %endif
