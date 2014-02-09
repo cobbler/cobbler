@@ -342,19 +342,26 @@ of an existing system.  For use with a boot-server configured with Cobbler
 
 
 #
-# pacakge: cobbler-web
+# package: cobbler-web
 #
 
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
 Group: Applications/System
+Requires: python(abi) >= %{pyver}
 Requires: cobbler
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: httpd
 Requires: Django >= 1.4
 Requires: mod_wsgi
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
-Requires: python(abi) >= %{pyver}
+%endif
+
+%if 0%{?suse_version} >= 1310
+Requires: apache2
+Requires: apache2-mod_wsgi
+Requires: python-django
 %endif
 
 %description -n cobbler-web
