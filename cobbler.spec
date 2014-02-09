@@ -35,7 +35,6 @@ Url: http://www.cobblerd.org/
 BuildRequires: git
 BuildRequires: python-setuptools
 
-
 Requires: python >= 2.6
 Requires: httpd
 Requires: mod_wsgi
@@ -46,7 +45,6 @@ Requires: python-urlgrabber
 Requires: rsync
 Requires: syslinux
 Requires: yum-utils
-
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 BuildRequires: redhat-rpm-config
@@ -59,7 +57,6 @@ Requires: python-cheetah
 Requires: PyYAML
 %endif
 
-
 %if 0%{?suse_version} >= 1310
 BuildRequires: python-PyYAML
 BuildRequires: python-Cheetah
@@ -67,7 +64,6 @@ BuildRequires: python-Cheetah
 Requires: python-PyYAML
 Requires: python-Cheetah
 %endif
-
 
 %if 0%{?fedora} >= 18
 BuildRequires: systemd-units
@@ -77,7 +73,6 @@ Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 %endif
-
 
 %if 0%{?rhel} >= 6
 Requires(post):  /sbin/chkconfig
@@ -275,16 +270,17 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 /var/www/cobbler
+%config(noreplace) /etc/httpd/conf.d/cobbler.conf
 %endif
 
 %if 0%{?suse_version} >= 1310
 /srv/www/cobbler
+%config(noreplace) /etc/apache2/conf.d/cobbler.conf
 %endif
 
 
 %{_mandir}/man1/cobbler.1.gz
 
-%config(noreplace) /etc/httpd/conf.d/cobbler.conf
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
