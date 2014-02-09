@@ -257,6 +257,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora} >= 18
 %{_unitdir}/cobblerd.service
 %endif
+
 %if 0%{?rhel} == 6
 /etc/init.d/cobblerd
 %endif
@@ -285,8 +286,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
-%else
-/tftpboot/images
+%endif
+
+%if 0%{?sus_version} >= 1310
+%{python_sitelib}/cobbler*.egg-info
 %endif
 
 %doc AUTHORS README COPYING
