@@ -288,7 +288,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/lib/tftpboot/images
 %endif
 
-%if 0%{?sus_version} >= 1310
+%if 0%{?suse_version} >= 1310
 %{python_sitelib}/cobbler*.egg-info
 %endif
 
