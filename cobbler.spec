@@ -272,7 +272,15 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %exclude /var/lib/cobbler/webui_sessions
 
 /var/log/cobbler
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 /var/www/cobbler
+%endif
+
+%if 0%{?suse_version} >= 1310
+/srv/www/cobbler
+%endif
+
 
 %{_mandir}/man1/cobbler.1.gz
 
