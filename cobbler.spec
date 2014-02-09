@@ -34,26 +34,38 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git
-BuildRequires: PyYAML
-BuildRequires: python-cheetah
 BuildRequires: python-setuptools
+
 
 Requires: python >= 2.6
 Requires: httpd
 Requires: mod_wsgi
 Requires: createrepo
-Requires: python-cheetah
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
-Requires: PyYAML
 Requires: rsync
 Requires: syslinux
 Requires: yum-utils
 
+
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
+BuildRequires: PyYAML
+BuildRequires: python-cheetah
+
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
+Requires: python-cheetah
+Requires: PyYAML
+%endif
+
+
+%if 0%{suse_version} >= 1310
+BuildRequires: python-PyYAML
+BuildRequires: python-Cheetah
+
+Requires: python-PyYAML
+Requires: python-Cheetah
 %endif
 
 
