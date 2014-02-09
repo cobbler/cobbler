@@ -32,7 +32,6 @@ BuildArch: noarch
 Url: http://www.cobblerd.org/
 
 
-BuildRequires: redhat-rpm-config
 BuildRequires: git
 BuildRequires: python-setuptools
 
@@ -50,6 +49,7 @@ Requires: yum-utils
 
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
+BuildRequires: redhat-rpm-config
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
 
