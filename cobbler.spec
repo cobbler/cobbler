@@ -36,8 +36,6 @@ BuildRequires: git
 BuildRequires: python-setuptools
 
 Requires: python >= 2.6
-Requires: httpd
-Requires: mod_wsgi
 Requires: createrepo
 Requires: python-netaddr
 Requires: python-simplejson
@@ -55,6 +53,8 @@ Requires: python(abi) >= %{pyver}
 Requires: genisoimage
 Requires: python-cheetah
 Requires: PyYAML
+Requires: httpd
+Requires: mod_wsgi
 %endif
 
 %if 0%{?suse_version} >= 1310
@@ -63,6 +63,8 @@ BuildRequires: python-Cheetah
 
 Requires: python-PyYAML
 Requires: python-Cheetah
+Requires: apache2
+Requires: apache2-mod_wsgi
 %endif
 
 %if 0%{?fedora} >= 18
