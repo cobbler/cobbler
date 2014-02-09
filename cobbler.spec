@@ -389,9 +389,18 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /srv/www/cobbler_webui_content/
 %endif
 
+%if 0%{?fedora} >=18 || 0%{?rhel} >= 6
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
+%endif
+
+%if 0%{?suse_version} >= 1310
+%defattr(-,wwwrun,www,-)
+/usr/share/cobbler/web
+%dir %attr(700,wwwrun,www) /var/lib/cobbler/webui_sessions
+%endif
+
 
 %changelog
 * Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
