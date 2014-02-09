@@ -116,7 +116,7 @@ mkdir -p $RPM_BUILD_ROOT/tftpboot/images
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%if 0%{?fedora} >= 18
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT/etc/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
@@ -254,7 +254,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
-%if 0%{?fedora} >= 18
+
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
 %{_unitdir}/cobblerd.service
 %endif
 
