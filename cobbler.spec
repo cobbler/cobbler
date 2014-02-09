@@ -60,7 +60,7 @@ Requires: PyYAML
 %endif
 
 
-%if 0%{suse_version} >= 1310
+%if 0%{?suse_version} >= 1310
 BuildRequires: python-PyYAML
 BuildRequires: python-Cheetah
 
@@ -262,7 +262,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora} >= 18
 %{_unitdir}/cobblerd.service
 %endif
-%if 0%{?rhel} = 6
+%if 0%{?rhel} == 6
 /etc/init.d/cobblerd
 %endif
 
