@@ -1,8 +1,24 @@
+#
+# RPM spec file for all Cobbler packages
+#
+# Supported build targets:
+# - Fedora >= 18
+# - RHEL >= 6
+#
+
+
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
 
 %define _binaries_in_noarch_packages_terminate_build 0
 %global debug_package %{nil}
+
+
+#
+# Package: cobbler
+#
+
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
@@ -15,10 +31,12 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://www.cobblerd.org/
 
+
 BuildRequires: redhat-rpm-config
 BuildRequires: git
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
+BuildRequires: python-setuptools
 
 Requires: python >= 2.6
 Requires: httpd
@@ -31,36 +49,34 @@ Requires: python-urlgrabber
 Requires: PyYAML
 Requires: rsync
 Requires: syslinux
+Requires: yum-utils
 
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
-%else
-Requires: mkisofs
 %endif
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%else
-BuildRequires: python-setuptools
-%endif
-%if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
-Requires: yum-utils
-%endif
-%if 0%{?fedora} >= 16
+
+
+%if 0%{?fedora} >= 18
 BuildRequires: systemd-units
+
 Requires(post): systemd-sysv
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
-%else
+%endif
+
+
+%if 0%{?rhel} >= 6
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 %endif
 
+
 %description
 
-Cobbler is a network install server.  Cobbler supports PXE,
+Cobbler is a network install server.  Cobbler supports PXE, ISO
 virtualized installs, and re-installing existing Linux machines.  The
 last two modes use a helper tool, 'koan', that integrates with
 cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
@@ -85,7 +101,7 @@ mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
 %else
 mkdir -p $RPM_BUILD_ROOT/tftpboot/images
@@ -93,7 +109,7 @@ mkdir -p $RPM_BUILD_ROOT/tftpboot/images
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} >= 18
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT/etc/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
@@ -231,9 +247,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} >= 18
 %{_unitdir}/cobblerd.service
-%else
+%end
+%if 0%{?rhel} = 6
 /etc/init.d/cobblerd
 %endif
 
@@ -249,7 +266,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
 %else
@@ -257,6 +274,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %endif
 
 %doc AUTHORS README COPYING
+
+
+# 
+# package: koan
+#
 
 %package -n koan
 
@@ -297,6 +319,10 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %doc AUTHORS COPYING README
 
 
+#
+# pacakge: cobbler-web
+#
+
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
@@ -305,7 +331,7 @@ Requires: cobbler
 Requires: httpd
 Requires: Django >= 1.4
 Requires: mod_wsgi
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 %endif
 
