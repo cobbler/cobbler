@@ -1,8 +1,24 @@
+#
+# RPM spec file for all Cobbler packages
+#
+# Supported build targets:
+# - Fedora >= 18
+# - RHEL >= 6
+# - OpenSuSE => 13.1
+
+
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
 
 %define _binaries_in_noarch_packages_terminate_build 0
 %global debug_package %{nil}
+
+
+#
+# Package: cobbler
+#
+
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
@@ -15,52 +31,61 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://www.cobblerd.org/
 
-BuildRequires: redhat-rpm-config
+
 BuildRequires: git
-BuildRequires: PyYAML
-BuildRequires: python-cheetah
+BuildRequires: python-setuptools
 
 Requires: python >= 2.6
-Requires: httpd
-Requires: mod_wsgi
 Requires: createrepo
-Requires: python-cheetah
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
-Requires: PyYAML
 Requires: rsync
 Requires: syslinux
+Requires: yum-utils
 
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
+BuildRequires: redhat-rpm-config
+BuildRequires: PyYAML
+BuildRequires: python-cheetah
+
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
-%else
-Requires: mkisofs
+Requires: python-cheetah
+Requires: PyYAML
+Requires: httpd
+Requires: mod_wsgi
 %endif
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%else
-BuildRequires: python-setuptools
+
+%if 0%{?suse_version} >= 1310
+BuildRequires: python-PyYAML
+BuildRequires: python-Cheetah
+
+Requires: python-PyYAML
+Requires: python-Cheetah
+Requires: apache2
+Requires: apache2-mod_wsgi
 %endif
-%if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
-Requires: yum-utils
-%endif
-%if 0%{?fedora} >= 16
+
+%if 0%{?fedora} >= 18
 BuildRequires: systemd-units
+
 Requires(post): systemd-sysv
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
-%else
+%endif
+
+%if 0%{?rhel} >= 6
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 %endif
 
+
 %description
 
-Cobbler is a network install server.  Cobbler supports PXE,
+Cobbler is a network install server.  Cobbler supports PXE, ISO
 virtualized installs, and re-installing existing Linux machines.  The
 last two modes use a helper tool, 'koan', that integrates with
 cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
@@ -85,7 +110,7 @@ mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
 %else
 mkdir -p $RPM_BUILD_ROOT/tftpboot/images
@@ -93,7 +118,7 @@ mkdir -p $RPM_BUILD_ROOT/tftpboot/images
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT/etc/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
@@ -231,9 +256,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
-%if 0%{?fedora} >= 16
+
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
 %{_unitdir}/cobblerd.service
-%else
+%endif
+
+%if 0%{?rhel} == 6
 /etc/init.d/cobblerd
 %endif
 
@@ -243,20 +271,36 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %exclude /var/lib/cobbler/webui_sessions
 
 /var/log/cobbler
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 /var/www/cobbler
+%config(noreplace) /etc/httpd/conf.d/cobbler.conf
+%endif
+
+%if 0%{?suse_version} >= 1310
+/srv/www/cobbler
+%config(noreplace) /etc/apache2/conf.d/cobbler.conf
+%endif
+
 
 %{_mandir}/man1/cobbler.1.gz
 
-%config(noreplace) /etc/httpd/conf.d/cobbler.conf
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
-%else
-/tftpboot/images
+%endif
+
+%if 0%{?suse_version} >= 1310
+%{python_sitelib}/cobbler*.egg-info
 %endif
 
 %doc AUTHORS README COPYING
+
+
+# 
+# package: koan
+#
 
 %package -n koan
 
@@ -297,16 +341,27 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %doc AUTHORS COPYING README
 
 
+#
+# package: cobbler-web
+#
+
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
 Group: Applications/System
+Requires: python(abi) >= %{pyver}
 Requires: cobbler
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: httpd
 Requires: Django >= 1.4
 Requires: mod_wsgi
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-Requires: python(abi) >= %{pyver}
+%endif
+
+%if 0%{?suse_version} >= 1310
+Requires: apache2
+Requires: apache2-mod_wsgi
+Requires: python-django
 %endif
 
 %description -n cobbler-web
@@ -323,11 +378,29 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %files -n cobbler-web
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING README
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
+/var/www/cobbler_webui_content/
+%endif
+
+%if 0%{?suse_version} >= 1310
+%config(noreplace) /etc/apache2/conf.d/cobbler_web.conf
+/srv/www/cobbler_webui_content/
+%endif
+
+%if 0%{?fedora} >=18 || 0%{?rhel} >= 6
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
-/var/www/cobbler_webui_content/
+%endif
+
+%if 0%{?suse_version} >= 1310
+%defattr(-,wwwrun,www,-)
+/usr/share/cobbler/web
+%dir %attr(700,wwwrun,www) /var/lib/cobbler/webui_sessions
+%endif
+
 
 %changelog
 * Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
