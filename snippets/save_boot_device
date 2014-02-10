@@ -1,5 +1,6 @@
-if [ "$os_version" == "sles11" ]; then
-    nvram --print-config=boot-device > /root/boot-device.bak
-elif [ "$os_version" == "fedora17" ]; then
-    nvram --print-config=boot-device > /tmp/boot-device.bak
-fi
+#if ( "ppc" in $arch ) and ( $breed == "suse" or $breed == "redhat" )
+# Some Linux distributions, such as Fedora 17+, SLES 11+ and RHEL 7+, set the disk
+# as first boot device in Power machines. Therefore, save the original boot
+# order, so it can be restored after installation is completed.
+nvram --print-config=boot-device > /root/boot-device.bak
+#end if
