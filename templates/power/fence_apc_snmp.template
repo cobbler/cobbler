@@ -1,0 +1,3 @@
+action=$power_mode
+ipaddr=$power_address
+port=$power_id
