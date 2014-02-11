@@ -535,6 +535,9 @@ if __name__ == "__main__":
 	if os.system("a2enmod rewrite"):
                 log.announce("Adding rewrite to apache2 failed 'a2enmod rewrite'", log.ERROR)
                 exit(1)
+	if os.system("a2enmod version"):
+                log.announce("Adding rewrite to apache2 failed 'a2enmod rewrite'", log.ERROR)
+                exit(1)
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
