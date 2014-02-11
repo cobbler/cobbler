@@ -4,16 +4,29 @@
 # Supported build targets:
 # - Fedora >= 18
 # - RHEL >= 6
-# - OpenSuSE => 13.1
-
+# - OpenSuSE >= 13.1
+#
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
 
-%define _binaries_in_noarch_packages_terminate_build 0
 %global debug_package %{nil}
+%define _binaries_in_noarch_packages_terminate_build 0
 
+%if 0%{?suse_version}
+%define apache_dir /srv/www/
+%define apache_etc /etc/apache2/conf.d/
+%define apache_user wwwrun
+%define apache_group www
+%endif
+
+%if 0%{?fedora} || 0%{?rhel}
+%define apache_dir /var/www/
+%define apache_etc /etc/httpd/conf.d/
+%define apache_user apache
+%define apache_group apache
+%endif
 
 #
 # Package: cobbler
@@ -31,10 +44,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://www.cobblerd.org/
 
-
 BuildRequires: git
 BuildRequires: python-setuptools
-
 Requires: python >= 2.6
 Requires: createrepo
 Requires: python-netaddr
@@ -48,7 +59,6 @@ Requires: yum-utils
 BuildRequires: redhat-rpm-config
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
-
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
 Requires: python-cheetah
@@ -60,7 +70,6 @@ Requires: mod_wsgi
 %if 0%{?suse_version} >= 1310
 BuildRequires: python-PyYAML
 BuildRequires: python-Cheetah
-
 Requires: python-PyYAML
 Requires: python-Cheetah
 Requires: apache2
@@ -69,7 +78,6 @@ Requires: apache2-mod_wsgi
 
 %if 0%{?fedora} >= 18
 BuildRequires: systemd-units
-
 Requires(post): systemd-sysv
 Requires(post): systemd-units
 Requires(preun): systemd-units
@@ -112,8 +120,10 @@ mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
-%else
-mkdir -p $RPM_BUILD_ROOT/tftpboot/images
+%endif
+
+%if 0%{?suse_version} >= 1310
+mkdir -p $RPM_BUILD_ROOT/srv/tftpboot/images
 %endif
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
@@ -271,28 +281,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %exclude /var/lib/cobbler/webui_sessions
 
 /var/log/cobbler
-
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
-/var/www/cobbler
-%config(noreplace) /etc/httpd/conf.d/cobbler.conf
-%endif
-
-%if 0%{?suse_version} >= 1310
-/srv/www/cobbler
-%config(noreplace) /etc/apache2/conf.d/cobbler.conf
-%endif
-
+%{apache_dir}/cobbler
+%config(noreplace) %{apache_etc}/cobbler.conf
 
 %{_mandir}/man1/cobbler.1.gz
-
+%{python_sitelib}/cobbler*.egg-info
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
-%{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
 %endif
 
 %if 0%{?suse_version} >= 1310
-%{python_sitelib}/cobbler*.egg-info
+/srv/tftpboot/images
 %endif
 
 %doc AUTHORS README COPYING
@@ -379,15 +379,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING README
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
-%config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
-/var/www/cobbler_webui_content/
-%endif
-
-%if 0%{?suse_version} >= 1310
-%config(noreplace) /etc/apache2/conf.d/cobbler_web.conf
-/srv/www/cobbler_webui_content/
-%endif
+%config(noreplace) %{apache_etc}/cobbler_web.conf
+%{apache_dir}/cobbler_webui_content/
 
 %if 0%{?fedora} >=18 || 0%{?rhel} >= 6
 %defattr(-,apache,apache,-)
@@ -396,9 +389,9 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %endif
 
 %if 0%{?suse_version} >= 1310
-%defattr(-,wwwrun,www,-)
+%defattr(-,%{apache_user},%{apache_group},-)
 /usr/share/cobbler/web
-%dir %attr(700,wwwrun,www) /var/lib/cobbler/webui_sessions
+%dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
 %endif
 
 
