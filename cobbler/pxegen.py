@@ -780,10 +780,9 @@ class PXEGen:
             append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
 
         # do variable substitution on the append line
-        # FIXME: should we just promote all of the ksmeta 
-        #        variables instead of just the tree?
-        if blended.has_key("ks_meta") and blended["ks_meta"].has_key("tree"):
-            blended["tree"] = blended["ks_meta"]["tree"]
+        # promote all of the ksmeta variables
+        if blended.has_key("ks_meta"):
+            blended.update(blended["ks_meta"])
         append_line = self.templar.render(append_line,utils.flatten(blended),None)
 
         # FIXME - the append_line length limit is architecture specific
