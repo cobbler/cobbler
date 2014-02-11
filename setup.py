@@ -532,6 +532,9 @@ if __name__ == "__main__":
         webroot     = "/srv/www/"
         http_user   = "wwwrun"
         defaultpath = "/etc/sysconfig/"
+	if os.system("a2enmod rewrite"):
+                log.announce("Adding rewrite to apache2 failed 'a2enmod rewrite'", log.ERROR)
+                exit(1)
     elif os.path.exists("/etc/debian_version"):
         webconfig  = "/etc/apache2/conf.d"
         webroot     = "/srv/www/"
