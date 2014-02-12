@@ -44,7 +44,7 @@ fi
 SERVICE=cobblerd
 PROCESS=cobblerd
 CONFIG_ARGS=" "
-if [ -f $DEBIAN_VERSION ]; then
+if [ -f $DEBIAN_VERSION -o -f $SUSE_RELEASE ]; then
     LOCKFILE=/var/lock/$SERVICE
 else
     LOCKFILE=/var/lock/subsys/$SERVICE
