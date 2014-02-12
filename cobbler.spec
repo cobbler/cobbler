@@ -67,7 +67,7 @@ Requires: httpd
 Requires: mod_wsgi
 %endif
 
-%if 0%{?suse_version} >= 1310
+%if 0%{?suse_version} >= 1230
 BuildRequires: python-PyYAML
 BuildRequires: python-Cheetah
 Requires: python-PyYAML
@@ -122,13 +122,13 @@ mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
 %endif
 
-%if 0%{?suse_version} >= 1310
+%if 0%{?suse_version} >= 1230
 mkdir -p $RPM_BUILD_ROOT/srv/tftpboot/images
 %endif
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1230
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT/etc/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
@@ -267,7 +267,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 
-%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1310
+%if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1230
 %{_unitdir}/cobblerd.service
 %endif
 
@@ -291,7 +291,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/lib/tftpboot/images
 %endif
 
-%if 0%{?suse_version} >= 1310
+%if 0%{?suse_version} >= 1230
 /srv/tftpboot/images
 %endif
 
@@ -358,7 +358,7 @@ Requires: Django >= 1.4
 Requires: mod_wsgi
 %endif
 
-%if 0%{?suse_version} >= 1310
+%if 0%{?suse_version} >= 1230
 Requires: apache2
 Requires: apache2-mod_wsgi
 Requires: python-django
@@ -388,7 +388,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
 %endif
 
-%if 0%{?suse_version} >= 1310
+%if 0%{?suse_version} >= 1230
 %defattr(-,%{apache_user},%{apache_group},-)
 /usr/share/cobbler/web
 %dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
