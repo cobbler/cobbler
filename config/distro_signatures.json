@@ -498,7 +498,8 @@
       "isolinux_ok":false,
       "kernel_options":"",
       "kernel_options_post":"",
-      "boot_files":[]
+      "boot_files":[],
+      "default_kickstart":""
     }
   },
   "generic": {
