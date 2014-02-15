@@ -396,3 +396,21 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
+* Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
+* Thu Jun 20 2013 James Cammarata <jimi@sngx.net> 2.4.0-1
+* Sun Jun 17 2012 James Cammarata <jimi@sngx.net> 2.2.3-2
+* Tue Jun 05 2012 James Cammarata <jimi@sngx.net> 2.2.3-1
+* Tue Nov 15 2011 Scott Henson <shenson@redhat.com> 2.2.2-1
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.0-1
+* Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
+* Thu Apr 15 2010 Devan Goodwin <dgoodwin@rm-rf.ca> 2.0.3.2-1
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-2
+* Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
+* Thu Feb 11 2010 Scott Henson <shenson@redhat.com> - 2.0.3-1
+* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
+* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail> - 2.0.0-1
+
+# EOF
