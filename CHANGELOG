@@ -1,5 +1,7 @@
 Cobbler CHANGELOG
-- Feb 10 2014 - 2.4.1
+- Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
+- Feb 10 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
+- Jun 20 2013 James Cammarata <jimi@sngx.net> 2.4.0-1
 - Nov 15 2011 - 2.2.2
 - Fixed indentation on closing tr tag (gregswift@gmail.com)
 - Added leader column to the non-generic tables so that all tables have the
