@@ -74,8 +74,12 @@ def start_install(*args, **kwargs):
     cpus       = kwargs['profile_data']['virt_cpus']
     onboot     = kwargs['profile_data']['virt_auto_boot'] 
 
-    # we get [0,1] ot [False,True] and have to map it to [no,yes]
-    onboot = 'yes' if onboot == '1' or onboot == True else 'no'
+    # we get [0,1] or [False,True] and have to map it to [no,yes]
+    if onboot in ['yes', '1', 1, True]:
+        onboot = 'yes'
+    else:
+        onboot = 'no'
+
     CTID = None
     vz_meta = {}
 
