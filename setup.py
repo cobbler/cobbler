@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+
 import os, sys, time, yaml
 import glob as _glob
+
 from distutils.core import setup, Command
 from distutils.command.build   import build as _build
 from distutils.command.install import install as _install
@@ -9,18 +11,14 @@ from distutils import log
 from distutils import dep_util
 from distutils.dist import Distribution as _Distribution
 from string import Template
+
 import codecs
 import unittest
 import exceptions
 import pwd
 import types
 import shutil
-
-
-try:
-    import subprocess
-except:
-    import cobbler.sub_process as subprocess
+import subprocess
 
 try:
     import coverage
