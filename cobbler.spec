@@ -254,10 +254,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
 %exclude %{python_sitelib}/cobbler/sub_process.py*
 %endif
-
-%{python_sitelib}/cobbler*.egg-info
-
 %if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
 %else
 /tftpboot/images
