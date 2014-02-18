@@ -543,7 +543,7 @@ class PXEGen:
 					template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
 				else:
 					local = os.path.join(self.settings.pxe_template_dir, "grublocal.template")
-					if os.path_exists(local):
+					if os.path.exists(local):
 						template = local
             else: # pxe
                 if system.netboot_enabled:
