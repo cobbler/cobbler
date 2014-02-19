@@ -1,10 +1,11 @@
 #
 # RPM spec file for all Cobbler packages
 #
-# Supported build targets:
-# - Fedora >= 18
-# - RHEL >= 6
-# - OpenSuSE >= 13.1
+# Supported/tested build targets:
+# - Fedora: 18, 19, 20
+# - RHEL: 6
+# - CentOS: 6
+# - OpenSuSE: 12.3, 13.1
 #
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
@@ -66,7 +67,6 @@ Requires: mod_wsgi
 %endif
 
 %if 0%{?suse_version} >= 1230
-BuildRequires: python-PyYAML
 BuildRequires: python-Cheetah
 Requires: python-PyYAML
 Requires: python-Cheetah
