@@ -45,7 +45,6 @@ BuildArch: noarch
 Url: http://www.cobblerd.org/
 
 BuildRequires: git
-BuildRequires: python-setuptools
 Requires: python >= 2.6
 Requires: createrepo
 Requires: python-netaddr
