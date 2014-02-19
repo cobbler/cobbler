@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, time, yaml
+import os, sys, time
 import glob as _glob
 
 from distutils.core import setup, Command
@@ -11,6 +11,7 @@ from distutils import log
 from distutils import dep_util
 from distutils.dist import Distribution as _Distribution
 from string import Template
+from ConfigParser import ConfigParser
 
 import codecs
 import unittest
@@ -62,7 +63,6 @@ def glob(*args, **kwargs):
 #####################################################################
 
 def gen_build_version():
-    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
     gitdate = "?"
     gitstamp = "?"
     builddate = time.asctime()
@@ -72,14 +72,16 @@ def gen_build_version():
        data = cmd.communicate()[0].strip()
        if cmd.returncode == 0:
            gitstamp, gitdate = data.split("\n")
-    data = {
-       "gitdate" : gitdate,
-       "gitstamp"      : gitstamp,
-       "builddate"     : builddate,
-       "version"       : VERSION,
-       "version_tuple" : [ int(x) for x in VERSION.split(".")]
-    }
-    fd.write(yaml.dump(data))
+
+    fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
+    config = ConfigParser()
+    config.add_section("cobbler")
+    config.set("cobbler","gitdate", gitdate)
+    config.set("cobbler","gitstamp", gitstamp)
+    config.set("cobbler","builddate", builddate)
+    config.set("cobbler","version", VERSION)
+    config.set("cobbler","version_tuple", [ int(x) for x in VERSION.split(".")]) 
+    config.write(fd)
     fd.close()
 
 #####################################################################
