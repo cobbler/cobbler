@@ -813,6 +813,13 @@ class PXEGen:
            return results
 
         blended = utils.blender(self.api, False, obj)
+        
+        if obj.COLLECTION_TYPE == "distro":
+            if obj.os_version.startswith("esxi5"):
+                realbootcfg = open(os.path.join(os.path.dirname(obj.kernel),'boot.cfg')).read()
+                bootmodules = re.findall(r'modules=(.*)',realbootcfg)
+                for modules in bootmodules:
+                    blended['esx_modules'] = modules.replace('/','')
 
         ksmeta = blended.get("ks_meta",{})
         try:
