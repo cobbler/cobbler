@@ -32,6 +32,7 @@ import traceback
 import errno
 import string
 import socket
+import re
 
 import utils
 from cexceptions import *
