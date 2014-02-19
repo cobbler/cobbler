@@ -56,7 +56,6 @@ Requires: yum-utils
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 BuildRequires: redhat-rpm-config
-BuildRequires: PyYAML
 BuildRequires: python-cheetah
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
