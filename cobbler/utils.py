@@ -1034,14 +1034,14 @@ def os_release():
       version = subprocess.check_output(("lsb_release","--release","--short")).rstrip()
       make = "ubuntu"
       return (make, float(version))
-   elif re.match("suse", check_dist()):
+   elif re.match("opensuse", check_dist()):
       fd = open("/etc/SuSE-release")
       for line in fd.read().split("\n"):
          if line.find("VERSION") != -1:
             version = line.replace("VERSION = ","")
          if line.find("PATCHLEVEL") != -1:
             rest = line.replace("PATCHLEVEL = ","")
-      make = "suse"
+      make = "opensuse"
       return (make, float(version))
    else:
       return ("unknown",0)
@@ -1056,7 +1056,7 @@ def tftpboot_location():
         return "/var/lib/tftpboot"
     elif make in ("redhat","centos") and version >= 6:
         return "/var/lib/tftpboot"
-    elif make == "suse":
+    elif make == "opensuse":
         return "/srv/tftpboot"
     # As of Ubuntu 12.04, while they seem to have settled on sticking with 
     # /var/lib/tftpboot, they haven't scrubbed all of the packages that came 
@@ -2224,7 +2224,7 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     elif version[0] in [ "fedora" ] and version[1] < 11: 
         return "/etc/dhcpd.conf"
-    elif dist == "suse":
+    elif dist == "opensuse":
         return "/etc/dhcpd.conf"
     elif dist == "debian" and int(version[1].split('.')[0]) < 6:
         return "/etc/dhcp3/dhcpd.conf"
