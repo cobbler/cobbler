@@ -14,12 +14,14 @@
 
 %global debug_package %{nil}
 %define _binaries_in_noarch_packages_terminate_build 0
+%define _unpackaged_files_terminate_build 1
 
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
 %define apache_etc /etc/apache2/conf.d/
 %define apache_user wwwrun
 %define apache_group www
+%define tftp_images /srv/tftpboot/images
 %endif
 
 %if 0%{?fedora} || 0%{?rhel}
@@ -27,7 +29,9 @@
 %define apache_etc /etc/httpd/conf.d/
 %define apache_user apache
 %define apache_group apache
+%define tftp_images /var/lib/tftpboot/images
 %endif
+
 
 #
 # Package: cobbler
@@ -47,6 +51,7 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: git
 Requires: python >= 2.6
+Requires: python(abi) >= %{pyver}
 Requires: createrepo
 Requires: python-netaddr
 Requires: python-simplejson
@@ -58,7 +63,6 @@ Requires: yum-utils
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 BuildRequires: redhat-rpm-config
 BuildRequires: python-cheetah
-Requires: python(abi) >= %{pyver}
 Requires: genisoimage
 Requires: python-cheetah
 Requires: PyYAML
@@ -72,6 +76,7 @@ Requires: python-PyYAML
 Requires: python-Cheetah
 Requires: apache2
 Requires: apache2-mod_wsgi
+Requires: cdrkit-cdrtools-compat
 %endif
 
 %if 0%{?fedora} >= 18
@@ -90,41 +95,38 @@ Requires(preun): /sbin/service
 
 
 %description
-
 Cobbler is a network install server.  Cobbler supports PXE, ISO
-virtualized installs, and re-installing existing Linux machines.  The
-last two modes use a helper tool, 'koan', that integrates with
+virtualized installs, and re-installing existing Linux machines. 
+The last two modes use a helper tool, 'koan', that integrates with
 cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
 advanced features include importing distributions from DVDs and rsync
 mirrors, kickstart templating, integrated yum mirroring, and built-in
 DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with
 other applications.
 
+
 %prep
 %setup -q
+
 
 %build
 %{__python} setup.py build
 
+
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+
 rm $RPM_BUILD_ROOT/etc/cobbler/cobbler.conf
 rm $RPM_BUILD_ROOT/etc/cobbler/cobbler_web.conf
-mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
+rm $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
+mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
+mkdir -p $RPM_BUILD_ROOT%{tftp_images}
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
-mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
-%endif
+mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
-%if 0%{?suse_version} >= 1230
-mkdir -p $RPM_BUILD_ROOT/srv/tftpboot/images
-%endif
-
-rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
 %if 0%{?fedora} >= 18 || 0%{?suse_version} >= 1230
 rm -rf $RPM_BUILD_ROOT/etc/init.d
@@ -313,10 +315,10 @@ Requires: virt-install
 
 
 %description -n koan
-
 Koan stands for kickstart-over-a-network and allows for both
 network installation of new virtualized guests and reinstallation
 of an existing system.  For use with a boot-server configured with Cobbler
+
 
 %files -n koan
 %defattr(-,root,root,-)
@@ -362,16 +364,18 @@ Requires: apache2-mod_wsgi
 Requires: python-django
 %endif
 
-%description -n cobbler-web
 
+%description -n cobbler-web
 Web interface for Cobbler that allows visiting
 http://server/cobbler_web to configure the install server.
+
 
 %post -n cobbler-web
 # Change the SECRET_KEY option in the Django settings.py file
 # required for security reasons, should be unique on all systems
 RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/web/settings.py
+
 
 %files -n cobbler-web
 %defattr(-,root,root,-)
