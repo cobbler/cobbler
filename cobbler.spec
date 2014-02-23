@@ -302,7 +302,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # log
 %{_var}/log/cobbler
-%{apache_log}
 %{apache_log}/cobbler
 %exclude %{_var}/log/koan
 %exclude %{_var}/spool/koan
