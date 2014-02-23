@@ -33,7 +33,6 @@ import time
 import re
 
 import utils
-import func_utils
 from cexceptions import *
 import templar
 import clogger
