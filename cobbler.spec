@@ -80,9 +80,8 @@ Requires: mod_wsgi
 %if 0%{?suse_version} >= 1230
 BuildRequires: apache2
 BuildRequires: python-Cheetah
-BuildRequires: suse-release
+BuildRequires: distribution-release
 BuildRequires: systemd
-%{?systemd_requires}
 Requires: python-PyYAML
 Requires: python-Cheetah
 Requires: apache2
@@ -99,9 +98,18 @@ Requires(postun): systemd-units
 %endif
 
 %if 0%{?rhel} >= 6
-Requires(post):  /sbin/chkconfig
+Requires(pre): /sbin/chkconfig
+Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
+%endif
+
+%if 0%{?suse_version} >= 1230
+%{?systemd_requires}
+Requires(pre): systemd
+Requires(post): systemd
+Requires(preun): systemd
+Requires(preun): systemd
 %endif
 
 
@@ -158,37 +166,8 @@ mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
 
 %pre
-# not used
-
-
-%post
-# package install
-if (( $1 == 1 )); then
-    %if 0%{?rhel} == 6
-        /sbin/chkconfig --add cobblerd > /dev/null 2>&
-        /etc/init.d/cobblerd start > /dev/null 2>&1
-        /etc/init.d/httpd restart > /dev/null 2>&1
-    %endif
-    %if 0%{?suse_version} >= 1230
-        %{fillup_and_insserv cobblerd}
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy_http
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy_connect
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES rewrite
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES ssl
-        sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES wsgi
-        /usr/bin/systemctl enable cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl start cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl restart apache2.service > /dev/null 2>&1
-    %endif
-    %if 0%{?fedora} >= 18
-        /usr/bin/systemctl enable cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl start cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl restart httpd.service > /dev/null 2>&1
-    %endif
-# package upgrade
-elif (( $1 >= 2 )); then
-    # backup configuration
+if (( $1 >= 2 )); then
+    # package upgrade: backup configuration
     DATE=$(date "+%Y%m%d-%H%M%S")
     if [[ ! -d /var/lib/cobbler/backup/upgrade-${DATE} ]]; then
         mkdir -p /var/lib/cobbler/backup/upgrade-${DATE}
@@ -198,55 +177,79 @@ elif (( $1 >= 2 )); then
             cp -r /var/lib/cobbler/${i} /var/lib/cobbler/backup/upgrade-${DATE}
         fi
     done
-    # restart services
-    %if 0%{?rhel} == 6
-        /etc/init.d/cobblerd condrestart > /dev/null 2>&1
-        /etc/init.d/httpd condrestart > /dev/null 2>&1
-    %endif
-    %if 0%{?fedora} >= 18
-        /usr/bin/systemctl try-restart cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl try-restart httpd.service > /dev/null 2>&1
-    %endif 
-    %if 0%{?suse_version} >= 1230
-        /usr/bin/systemctl try-restart cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl try-restart apache2.service > /dev/null 2>&1
-    %endif
+    if [[ -d /etc/cobbler ]]; then
+        cp -r /etc/cobbler /var/lib/cobbler/backup/upgrade-${DATE}
+    fi
 fi
 
 
+%if 0%{?rhel} == 6
+%post
+# package install
+if (( $1 == 1 )); then
+    /sbin/chkconfig --add cobblerd > /dev/null 2>&
+    /etc/init.d/cobblerd start > /dev/null 2>&1
+    /etc/init.d/httpd restart > /dev/null 2>&1
+fi
 %preun
-# last instance of cobbler package is being removed
+# before last package is removed
 if (( $1 == 0 )); then
-    # disable/stop cobblerd
-    %if 0%{?rhel} == 6
-        /sbin/chkconfig --del cobblerd > /dev/null 2>&
-        /etc/init.d/cobblerd stop > /dev/null 2>&1
-    %endif
-    %if 0%{?suse_version} >= 1230
-        /usr/bin/systemctl disable cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl stop cobblerd.service > /dev/null 2>&1
-    %endif
-    %if 0%{?fedora} >= 18
-        /usr/bin/systemctl disable cobblerd.service > /dev/null 2>&1
-        /usr/bin/systemctl stop cobblerd.service > /dev/null 2>&1
-    %endif
+    /sbin/chkconfig --del cobblerd > /dev/null 2>&
+    /etc/init.d/cobblerd stop > /dev/null 2>&1
+fi 
+%postun
+# after last package is removed
+if (( $1 == 0 )); then
+    /etc/init.d/httpd condrestart > /dev/null 2>&1
 fi
+%endif
 
 
+%if 0%{?suse_version} >= 1230
+%post
+# package install
+if (( $1 == 1 )); then
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy > /dev/null 2>&1
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy_http > /dev/null 2>&1
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES proxy_connect > /dev/null 2>&1
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES rewrite > /dev/null 2>&1
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES ssl > /dev/null 2>&1
+    sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES wsgi > /dev/null 2>&1
+    %service_add_post cobblerd.service
+fi
+%preun
+# last package removal
+if (( $1 == 0 )); then
+    %service_del_preun cobblerd.service
+fi
 %postun
 # last package removal
 if (( $1 == 0 )); then
-    # restart apache processes after cobbler removal
-    %if 0%{?rhel} == 6
-        /etc/init.d/httpd condrestart > /dev/null 2>&1
-    %endif
-    %if 0%{?fedora} >= 18
-        /usr/bin/systemctl try-restart httpd.service > /dev/null 2>&1
-    %endif
-    %if 0%{?suse_version} >= 1230
-        /usr/bin/systemctl try-restart apache2.service > /dev/null 2>&1
-    %endif
+    %service_del_postun cobblerd.service
 fi
+%endif
+
+
+%if 0%{?fedora} >= 18
+%post
+# package install
+if (( $1 == 1 )); then
+    /usr/bin/systemctl enable cobblerd.service > /dev/null 2>&1
+    /usr/bin/systemctl start cobblerd.service > /dev/null 2>&1
+    /usr/bin/systemctl restart httpd.service > /dev/null 2>&1
+fi
+%preun
+# last package removal
+if (( $1 == 0 )); then
+    /usr/bin/systemctl disable cobblerd.service > /dev/null 2>&1
+    /usr/bin/systemctl stop cobblerd.service > /dev/null 2>&1
+fi
+%postun
+# last package removal
+if (( $1 == 0 )); then
+    /usr/bin/systemctl try-restart httpd.service > /dev/null 2>&1
+fi
+%endif
 
 
 %clean
