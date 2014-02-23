@@ -35,7 +35,7 @@
    },
    "rhel6": {
     "signatures":["Packages"],
-    "version_file":"(redhat|sl|centos)-release-(?!notes)([\\w]*-)*6[\\.-]+(.*)\\.rpm",
+    "version_file":"(redhat|sl|centos|oraclelinux)-release-(?!notes)([\\w]*-)*6(Server)*[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "kernel_arch_regex":null,
