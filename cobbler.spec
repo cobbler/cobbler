@@ -143,7 +143,6 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd_rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT%{tftp_dir}/images
-mkdir -p $RPM_BUILD_ROOT%{apache_log}/cobbler
 
 %if 0%{?rhel} == 6
 # sysvinit
@@ -187,14 +186,14 @@ fi
 %post
 # package install
 if (( $1 == 1 )); then
-    /sbin/chkconfig --add cobblerd > /dev/null 2>&
+    /sbin/chkconfig --add cobblerd > /dev/null 2>&1
     /etc/init.d/cobblerd start > /dev/null 2>&1
     /etc/init.d/httpd restart > /dev/null 2>&1
 fi
 %preun
 # before last package is removed
 if (( $1 == 0 )); then
-    /sbin/chkconfig --del cobblerd > /dev/null 2>&
+    /sbin/chkconfig --del cobblerd > /dev/null 2>&1
     /etc/init.d/cobblerd stop > /dev/null 2>&1
 fi 
 %postun
@@ -302,7 +301,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # log
 %{_var}/log/cobbler
-%{apache_log}/cobbler
 %exclude %{_var}/log/koan
 %exclude %{_var}/spool/koan
 
