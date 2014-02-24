@@ -82,7 +82,7 @@ class BootLiteSync:
                 self.logger.error("symlink failed (%s -> %s)" % (src_dir,dst_dir))
 
         # generate any templates listed in the distro
-        self.sync.pxegen.write_templates(distro)
+        self.sync.pxegen.write_templates(distro,write_file=True)
         # cascade sync
         kids = distro.get_children()
         for k in kids:

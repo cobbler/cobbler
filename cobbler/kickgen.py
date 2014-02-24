@@ -65,7 +65,7 @@ class KickGen:
     def createAutoYaSTScript( self, document, script, name ):
         newScript = document.createElement("script")
         newScriptSource = document.createElement("source")
-        newScriptSourceText = document.createTextNode(script)
+        newScriptSourceText = document.createCDATASection(script)
         newScript.appendChild(newScriptSource)
 
         newScriptFile = document.createElement("filename")

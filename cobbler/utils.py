@@ -1052,9 +1052,7 @@ def tftpboot_location():
     based on the distro on which cobblerd is running
     """
     (make,version) = os_release()
-    if make == "fedora" and version >= 9:
-        return "/var/lib/tftpboot"
-    elif make in ("redhat","centos") and version >= 6:
+    if make in ("fedora","redhat","centos"):
         return "/var/lib/tftpboot"
     elif make == "suse":
         return "/srv/tftpboot"

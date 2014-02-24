@@ -45,6 +45,7 @@ import kickgen
 import yumgen
 import pxegen
 from utils import _
+from ConfigParser import ConfigParser
 
 import logging
 import time
@@ -229,13 +230,22 @@ class BootAPI:
             version       -- something like "1.3.2"
             version_tuple -- something like [ 1, 3, 2 ]
         """
-        fd = open("/etc/cobbler/version")
-        ydata = fd.read()
-        fd.close()
-        data = yaml.safe_load(ydata)
+
+        config = ConfigParser()
+        config.read("/etc/cobbler/version")
+        data = {}
+        data["gitdate"] = config.get("cobbler","gitdate")
+        data["gitstamp"] = config.get("cobbler","gitstamp")
+        data["builddate"] = config.get("cobbler","builddate")
+        data["version"] = config.get("cobbler","version")
+        # dont actually read the version_tuple from the version file
+        data["version_tuple"] = []
+        for num in data["version"].split("."):
+            data["version_tuple"].append(int(num))
+
         if not extended:
             # for backwards compatibility and use with koan's comparisons
-            elems = data["version_tuple"] 
+            elems = data["version_tuple"]
             return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
         else:
             return data

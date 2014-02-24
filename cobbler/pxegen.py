@@ -32,6 +32,7 @@ import traceback
 import errno
 import string
 import socket
+import re
 
 import utils
 from cexceptions import *
@@ -539,7 +540,12 @@ class PXEGen:
         # choose a template
         if system:
             if format == "grub":
-                template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
+                if system.netboot_enabled:
+                    template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
+                else:
+                    local = os.path.join(self.settings.pxe_template_dir, "grublocal.template")
+                    if os.path.exists(local):
+                        template = local
             else: # pxe
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
@@ -813,6 +819,13 @@ class PXEGen:
            return results
 
         blended = utils.blender(self.api, False, obj)
+        
+        if obj.COLLECTION_TYPE == "distro":
+            if obj.os_version.startswith("esxi5"):
+                realbootcfg = open(os.path.join(os.path.dirname(obj.kernel),'boot.cfg')).read()
+                bootmodules = re.findall(r'modules=(.*)',realbootcfg)
+                for modules in bootmodules:
+                    blended['esx_modules'] = modules.replace('/','')
 
         ksmeta = blended.get("ks_meta",{})
         try:
