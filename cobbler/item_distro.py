@@ -175,9 +175,9 @@ class Distro(item.Item):
 
     def set_initrd(self,initrd):
         """
-	Specifies an initrd image.  Path search works as in set_kernel.
-	File must be named appropriately.
-	"""
+	    Specifies an initrd image.  Path search works as in set_kernel.
+	    File must be named appropriately.
+	    """
         if initrd is None or initrd == "":
             raise CX("initrd not specified")
         if utils.find_initrd(initrd):
