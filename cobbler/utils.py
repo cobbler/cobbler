@@ -1034,7 +1034,7 @@ def os_release():
       version = subprocess.check_output(("lsb_release","--release","--short")).rstrip()
       make = "ubuntu"
       return (make, float(version))
-   elif re.match("suse", check_dist()):
+   elif (re.match("suse", check_dist())) or (re.match("opensuse", check_dist())):
       fd = open("/etc/SuSE-release")
       for line in fd.read().split("\n"):
          if line.find("VERSION") != -1:
