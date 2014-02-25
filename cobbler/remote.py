@@ -1991,7 +1991,7 @@ class CobblerXMLRPCInterface:
             return True
 
 
-    def power_system(self,object_id,power=None,token=None,logger=None):
+    def power_system(self,object_id,power=None,token=None,user=None, password=None, logger=None):
         """
         Internal implementation used by background_power, do not call
         directly if possible.  
@@ -2000,13 +2000,13 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
         if power=="on":
-            rc=self.api.power_on(obj, user=None, password=None, logger=logger)
+            rc=self.api.power_on(obj, user=user, password=passwrod, logger=logger)
         elif power=="off":
-            rc=self.api.power_off(obj, user=None, password=None, logger=logger)
+            rc=self.api.power_off(obj, user=user, password=password, logger=logger)
         elif power=="status":
-            rc=self.api.power_status(obj, user=None, password=None, logger=logger)
+            rc=self.api.power_status(obj, user=user, password=password, logger=logger)
         elif power=="reboot":
-            rc=self.api.reboot(obj, user=None, password=None, logger=logger)
+            rc=self.api.reboot(obj, user=user, password=password, logger=logger)
         else:
             utils.die(self.logger, "invalid power mode '%s', expected on/off/status/reboot" % power)
         return rc
