@@ -473,7 +473,7 @@
    },
    "sles12": {
     "signatures":["suse"],
-    "version_file":"sles-release-12-(.*).rpm",
+    "version_file":"(sles|SLES-for-VMware)-release-12-(.*).rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*)\\.rpm",
     "kernel_arch_regex":null,
