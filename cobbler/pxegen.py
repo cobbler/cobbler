@@ -193,10 +193,10 @@ class PXEGen:
                            symlink_ok=symlink_ok, api=self.api, logger=self.logger)
 
             # the [:-7] removes the architecture
-            if os.path.isdir(os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles')):
-                shutil.rmtree(os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles'))
+            if os.path.isdir(os.path.join('/var', 'lib', 'tftpboot', 'images', d.name, 'install_profiles')):
+                shutil.rmtree(os.path.join('/var', 'lib', 'tftpboot', 'images', d.name, 'install_profiles'))
             shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'kickstarts', 'install_profiles'), 
-                           os.path.join(self.settings.webdir, 'ks_mirror', d.name[:-7], 'install_profiles'))
+                           os.path.join('/var', 'lib', 'tftpboot', 'images', d.name, 'install_profiles'))
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
