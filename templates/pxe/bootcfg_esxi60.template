@@ -1,0 +1,13 @@
+bootstate=0
+title=Loading ESXi installer
+prefix=$img_path
+kernel=tboot.b00
+#if $getVar('system_name','') != ''
+#set $what = "system"
+#else
+#set $what = "profile"
+#end if
+kernelopt=runweasel ks=http://$server:$http_port/cblr/svc/op/ks/$what/$name
+modules=$esx_modules
+build=
+updated=0
