@@ -680,23 +680,23 @@ class Koan:
 
         """
         try:
-                if profile_data["kickstart"][:4] == "http":
-                    if not self.system:
-                        url_fmt = "http://%s/cblr/svc/op/ks/profile/%s"
-                    else:
-                        url_fmt = "http://%s/cblr/svc/op/ks/system/%s"
-                    url = url_fmt % (self.server, profile_data['name'])
+            if profile_data["kickstart"][:4] == "http":
+                if not self.system:
+                    url_fmt = "http://%s/cblr/svc/op/ks/profile/%s"
                 else:
-                    url = profile_data["kickstart"]
+                    url_fmt = "http://%s/cblr/svc/op/ks/system/%s"
+                url = url_fmt % (self.server, profile_data['name'])
+            else:
+                url = profile_data["kickstart"]
 
-                raw = utils.urlread(url)
+            raw = utils.urlread(url)
             lines = raw.splitlines()
 
             method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
 
             url_parser = OptionParser()
             url_parser.add_option("--url", dest="url")
-                url_parser.add_option("--proxy", dest="proxy")
+            url_parser.add_option("--proxy", dest="proxy")
 
             nfs_parser = OptionParser()
             nfs_parser.add_option("--dir", dest="dir")
@@ -720,7 +720,7 @@ class Koan:
                 print "install_tree:", profile_data["install_tree"]
             else:
                 print "warning: kickstart found but no install_tree found"
-                        
+
         except:
             # unstable to download the kickstart, however this might not
             # be an error.  For instance, xen FV installations of non
