@@ -1,0 +1,3 @@
+title $profile_name
+    kernel$ $kernel_path $kernel_options
+    module$ $initrd_path
