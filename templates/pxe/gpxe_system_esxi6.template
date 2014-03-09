@@ -1,0 +1,4 @@
+#!gpxe
+kernel http://$server:$http_port/cobbler/ks_mirror/$ks_mirror_name/mboot.c32
+imgargs mboot.c32 -c http://$server:$http_port/cblr/svc/op/bootcfg/system/$name BOOTIF=$mac_address_eth0
+boot
