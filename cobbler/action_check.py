@@ -54,7 +54,7 @@ class BootCheck:
        self.check_selinux(status)
        if self.settings.manage_dhcp:
            mode = self.config.api.get_sync().dhcp.what()
-           if mode == "isc": 
+           if mode == "isc":
                self.check_dhcpd_bin(status)
                self.check_dhcpd_conf(status)
                self.check_service(status,"dhcpd")
@@ -72,7 +72,7 @@ class BootCheck:
                self.check_service(status,"dnsmasq")
 
        mode = self.config.api.get_sync().tftpd.what()
-       if mode == "in_tftpd": 
+       if mode == "in_tftpd":
            self.check_tftpd_bin(status)
            self.check_tftpd_dir(status)
            self.check_tftpd_conf(status)
@@ -82,7 +82,7 @@ class BootCheck:
            self.check_ctftpd_conf(status)
 
        self.check_service(status, "cobblerd")
-    
+
        self.check_bootloaders(status)
        self.check_for_wget_curl(status)
        self.check_rsync_conf(status)
@@ -117,7 +117,15 @@ class BootCheck:
        if notes != "":
            notes = " (NOTE: %s)" % notes
        rc = 0
-       if self.checked_dist in ("redhat","fedora","centos","scientific linux","suse","opensuse"):
+       if self.checked_dist in (
+           "redhat",
+           "red hat enterprise linux server",
+           "fedora",
+           "centos",
+           "scientific linux",
+           "suse",
+           "opensuse"
+       ):
            if os.path.exists("/etc/rc.d/init.d/%s" % which):
                rc = utils.subprocess_call(self.logger,"/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
            if rc != 0:
@@ -157,7 +165,15 @@ class BootCheck:
        if not os.path.exists("/usr/bin/yumdownloader"):
            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
        if self.settings.reposync_flags.find("-l"):
-           if self.checked_dist in ("redhat","fedora","centos","scientific linux","suse","opensuse"):
+           if self.checked_dist in (
+               "redhat",
+               "red hat enterprise linux server",
+               "fedora",
+               "centos",
+               "scientific linux",
+               "suse",
+               "opensuse"
+           ):
                yum_utils_ver = utils.subprocess_get(self.logger,"/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
                if yum_utils_ver < "1.1.17":
                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver )
@@ -174,7 +190,7 @@ class BootCheck:
                  status.append(_("comment out 'dists' on /etc/debmirror.conf for proper debian support"))
              if re_arches.search(line) and not line.strip().startswith("#"):
                  status.append(_("comment out 'arches' on /etc/debmirror.conf for proper debian support"))
-       
+
 
    def check_name(self,status):
        """
@@ -221,7 +237,7 @@ class BootCheck:
                 not_found.append(r)
         if len(not_found) > 0:
             status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
-       
+
    def check_for_unsynced_repos(self,status):
        need_sync = []
        for r in self.config.repos():
@@ -237,7 +253,13 @@ class BootCheck:
        """
        Check if Apache is installed.
        """
-       if self.checked_dist in ("redhat","fedora","centos","scientific linux"):
+       if self.checked_dist in (
+           "redhat",
+           "red hat enterprise linux server",
+           "fedora",
+           "centos",
+           "scientific linux"
+       ):
            rc = utils.subprocess_get(self.logger,"httpd -v")
        elif self.checked_dist == "suse" or self.checked_dist == "opensuse":
            rc = utils.subprocess_get(self.logger,"httpd2 -v")
@@ -270,7 +292,7 @@ class BootCheck:
        # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
        if rc.find("BIND") == -1:
            status.append("named is not installed and/or in path")
-       
+
    def check_for_wget_curl(self,status):
        """
        Check to make sure wget or curl is installed
@@ -317,7 +339,7 @@ class BootCheck:
 
        if len(not_found) > 0:
           status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
- 
+
    def check_tftpd_bin(self,status):
        """
        Check if tftpd is installed
