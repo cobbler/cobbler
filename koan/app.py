@@ -1097,14 +1097,17 @@ class Koan:
                 # Are we running on ppc?
                 if not ANCIENT_PYTHON:
                     if arch.startswith("ppc"):
-                        cmd.append("--yaboot")
+                        if "grub2" in probe_output:
+                            cmd.append("--grub2")
+                        else:
+                            cmd.append("--yaboot")
                     elif arch.startswith("s390"):
                         cmd.append("--zipl")
 
                 utils.subprocess_call(cmd)
 
                 # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-                if not ANCIENT_PYTHON and arch.startswith("ppc"):
+                if not ANCIENT_PYTHON and arch.startswith("ppc") and "grub2" not in probe_output:
                     # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                     print "- applying ybin changes"
                     cmd = [ "/sbin/ybin" ]
