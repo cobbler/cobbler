@@ -1546,7 +1546,6 @@ class CobblerXMLRPCInterface:
             image_based = False
             profile = obj.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
-            arch = distro.arch
 
             # the management classes stored in the system are just a list 
             # of names, so we need to turn it into a full list of hashes 
@@ -1558,6 +1557,7 @@ class CobblerXMLRPCInterface:
                 if c:
                     hash["mgmt_classes"][m] = c.to_datastruct()
 
+            arch = None
             if distro is None and profile.COLLECTION_TYPE == "image":
                 image_based = True
                 arch = profile.arch
