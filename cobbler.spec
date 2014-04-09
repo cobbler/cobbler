@@ -413,6 +413,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.3
 * Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
 * Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
 * Thu Jun 20 2013 James Cammarata <jimi@sngx.net> 2.4.0-1
