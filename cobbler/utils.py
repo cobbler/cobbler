@@ -1655,6 +1655,15 @@ def get_mtab(mtab="/etc/mtab", vfstype=None):
         '''cache is stale ... refresh'''
         mtab_mtime = mtab_stat.st_mtime
         mtab_map = __cache_mtab__(mtab)
+        # Check if "/" is in mtab.
+        # If not, assume we are in a chroot and add a dummy entry for that.
+        root_in_mtab=False
+        for ent in mtab_map:
+            if ent.mnt_dir == '/':
+                root_in_mtab=True
+                break
+        if not root_in_mtab:
+            mtab_map.append(MntEntObj('chroot / - - - -'))
 
     # was a specific fstype requested?
     if vfstype:
