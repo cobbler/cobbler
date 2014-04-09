@@ -206,7 +206,7 @@ class System(item.Item):
     def set_name(self,name):
         """
         Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
-        and fill that value in.  
+        and fill that value in.
         """
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
@@ -228,10 +228,10 @@ class System(item.Item):
            intf = self.__get_interface("eth0")
            if intf["ip_address"] == "":
                intf["ip_address"] = name
-        self.name = name 
+        self.name = name
 
         return True
-    
+
     def set_redhat_management_key(self,key):
         return utils.set_redhat_management_key(self,key)
 
@@ -266,7 +266,7 @@ class System(item.Item):
             return intf["mac_address"].strip()
         else:
             return None
-        
+
     def get_ip_address(self,interface):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
@@ -275,7 +275,7 @@ class System(item.Item):
 
         intf = self.__get_interface(interface)
 
-        if intf["ip_address"] != "": 
+        if intf["ip_address"] != "":
             return intf["ip_address"].strip()
         else:
             return ""
@@ -313,17 +313,17 @@ class System(item.Item):
            for x in matched:
                if x.name != self.name:
                    raise CX("dns-name duplicated: %s" % dns_name)
-               
+
 
         intf["dns_name"] = dns_name
         return True
- 
+
     def set_cnames(self,cnames,interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(cnames)
-        intf["cnames"] = data        
+        intf["cnames"] = data
         return True
-    
+
     def set_static_routes(self,routes,interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
@@ -398,7 +398,7 @@ class System(item.Item):
         else:
            raise CX(_("invalid format for gateway IP address (%s)") % gateway)
         return True
- 
+
     def set_name_servers(self,data):
         if data == "<<inherit>>":
            data = []
@@ -417,7 +417,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["netmask"] = netmask
         return True
-    
+
     def set_if_gateway(self,gateway,interface):
         intf = self.__get_interface(interface)
         if gateway == "" or utils.is_ip(gateway):
@@ -588,7 +588,7 @@ class System(item.Item):
 
     def set_virt_disk_driver(self,driver):
         return utils.set_virt_disk_driver(self,driver)
- 
+
     def set_virt_auto_boot(self,num):
         return utils.set_virt_auto_boot(self,num)
 
@@ -611,11 +611,11 @@ class System(item.Item):
         loop when systems are set to PXE boot first in the boot order.  In general, users
         who are PXE booting first in the boot order won't create system definitions, so this
         feature primarily comes into play for programmatic users of the API, who want to
-        initially create a system with netboot enabled and then disable it after the system installs, 
+        initially create a system with netboot enabled and then disable it after the system installs,
         as triggered by some action in kickstart %post.   For this reason, this option is not
         surfaced in the CLI, output, or documentation (yet).
 
-        Use of this option does not affect the ability to use PXE menus.  If an admin has machines 
+        Use of this option does not affect the ability to use PXE menus.  If an admin has machines
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
@@ -630,7 +630,7 @@ class System(item.Item):
         is STRONGLY encouraged.  This is only for exception cases
         where a user already has kickstarts made for each system
         and can't leverage templating.  Profiles provide an important
-        abstraction layer -- assigning systems to defined and repeatable 
+        abstraction layer -- assigning systems to defined and repeatable
         roles.
         """
         if kickstart == "":
@@ -651,7 +651,8 @@ class System(item.Item):
         if power_type is None:
             power_type = ""
         choices = utils.get_power_types()
-        choices.sort()
+        if not choices:
+            raise CX("you need to have fence-agents installed")
         if power_type not in choices:
             raise CX("power management type must be one of: %s" % ",".join(choices))
         self.power_type = power_type
@@ -662,14 +663,14 @@ class System(item.Item):
            power_user = ""
         utils.safe_filter(power_user)
         self.power_user = power_user
-        return True 
+        return True
 
     def set_power_pass(self, power_pass):
         if power_pass is None:
            power_pass = ""
         utils.safe_filter(power_pass)
         self.power_pass = power_pass
-        return True    
+        return True
 
     def set_power_address(self, power_address):
         if power_address is None:
@@ -725,48 +726,48 @@ class System(item.Item):
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
                 raise CX("Error with system %s - profile or image is required" % (self.name))
-            
+
     def set_template_remote_kickstarts(self, template):
         """
-        Sets whether or not the server is configured to template remote 
+        Sets whether or not the server is configured to template remote
         kickstarts.
         """
         self.template_remote_kickstarts = utils.input_boolean(template)
         return True
-    
+
     def set_monit_enabled(self,monit_enabled):
         """
         If true, allows per-system to start Monit to monitor system services such as apache.
         If monit is not running it will start the service.
-        
+
         If false, no management of monit will take place. If monit is not running it will not
         be started. If monit is running it will not be stopped or restarted.
         """
         self.monit_enabled = utils.input_boolean(monit_enabled)
         return True
-    
+
     def set_ldap_enabled(self,ldap_enabled):
         """
         If true, allows per-system to start Monit to monitor system services such as apache.
         If monit is not running it will start the service.
-        
+
         If false, no management of monit will take place. If monit is not running it will not
         be started. If monit is running it will not be stopped or restarted.
         """
         self.ldap_enabled = utils.input_boolean(ldap_enabled)
         return True
-    
+
     def set_repos_enabled(self,repos_enabled):
         """
         If true, allows per-system to start Monit to monitor system services such as apache.
         If monit is not running it will start the service.
-        
+
         If false, no management of monit will take place. If monit is not running it will not
         be started. If monit is running it will not be stopped or restarted.
         """
         self.repos_enabled = utils.input_boolean(repos_enabled)
         return True
-    
+
     def set_ldap_type(self, ldap_type):
         if ldap_type is None:
             ldap_type = ""
