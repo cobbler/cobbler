@@ -1704,13 +1704,20 @@ def get_file_device_path(fname):
 
     # convert mtab to a dict
     mtab_dict = {}
-    for ent in get_mtab():
-        mtab_dict[ent.mnt_dir] = ent.mnt_fsname
+    try:
+        for ent in get_mtab():
+            mtab_dict[ent.mnt_dir] = ent.mnt_fsname
+    except:
+        pass
 
     # find a best match
     fdir = os.path.dirname(fname)
     match = mtab_dict.has_key(fdir)
+    chrootfs = False
     while not match:
+        if fdir == os.path.sep:
+            chrootfs = True
+            break
         fdir = os.path.realpath(os.path.join(fdir, os.path.pardir))
         match = mtab_dict.has_key(fdir)
 
@@ -1718,7 +1725,10 @@ def get_file_device_path(fname):
     if fdir != os.path.sep:
         fname = fname[len(fdir):]
 
-    return (mtab_dict[fdir], fname)
+    if chrootfs:
+        return (":", fname)
+    else:
+        return (mtab_dict[fdir], fname)
 
 def is_remote_file(file):
     (dev, path) = get_file_device_path(file)
