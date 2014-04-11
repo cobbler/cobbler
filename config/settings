@@ -449,3 +449,6 @@ replicate_rsync_options: "-avzH"
 
 # replication rsync options for repos set to override default value of "-avzH"
 replicate_repo_rsync_options: "-avzH"
+
+# always write DHCP entries, regardless if netboot is enabled
+always_write_dhcp_entries: 0
