@@ -211,7 +211,7 @@ class PXEGen:
         utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
         return True
 
-    def write_all_system_files(self, system):
+    def write_all_system_files(self, system, menu_items):
 
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -259,7 +259,7 @@ class PXEGen:
                 utils.rmfile(f2)
             return
 
-        pxe_metadata = {'pxe_menu_items': self.get_menu_items()['pxe'] }
+        pxe_metadata = {'pxe_menu_items': menu_items}
  
         # generate one record for each described NIC ..
  

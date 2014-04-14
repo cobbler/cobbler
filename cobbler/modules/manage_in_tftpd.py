@@ -142,7 +142,8 @@ class InTftpdManager:
         system = self.systems.find(name=name)
         if system is None:
             utils.die(self.logger,"error in system lookup for %s" % name)
-        self.pxegen.write_all_system_files(system)
+        menu_items = self.pxegen.get_menu_items()['pxe']
+        self.pxegen.write_all_system_files(system, menu_items)
         # generate any templates listed in the system
         self.pxegen.write_templates(system)
 
@@ -151,7 +152,8 @@ class InTftpdManager:
         Write out new pxelinux.cfg files to /tftpboot
         """
         # write the PXE files for the system
-        self.pxegen.write_all_system_files(system)
+        menu_items = self.pxegen.get_menu_items()['pxe']
+        self.pxegen.write_all_system_files(system, menu_items)
         # generate any templates listed in the distro
         self.pxegen.write_templates(system)
 
@@ -184,8 +186,9 @@ class InTftpdManager:
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
+        menu_items = self.pxegen.get_menu_items()['pxe']
         for x in self.systems:
-            self.pxegen.write_all_system_files(x)
+            self.pxegen.write_all_system_files(x, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
