@@ -83,8 +83,6 @@ class BootStatusReport:
         mrstart = elem[MOST_RECENT_START]
         mrstop  = elem[MOST_RECENT_STOP]
         mrtarg  = elem[MOST_RECENT_TARGET]
-        snstart = elem[SEEN_START]
-        snstop  = elem[SEEN_STOP]
 
 
         if start_or_stop == "start":
