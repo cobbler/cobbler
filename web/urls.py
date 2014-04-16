@@ -1,4 +1,4 @@
-from django.conf.urls import patterns
+from django.conf.urls import patterns, include
 
 # Uncomment the next two lines to enable the admin:
 #from django.contrib import admin
@@ -7,4 +7,3 @@ from django.conf.urls import patterns
 urlpatterns = patterns('',
     (r'^', include('cobbler_web.urls')),
 )
-

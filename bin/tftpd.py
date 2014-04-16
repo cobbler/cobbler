@@ -51,9 +51,8 @@ import tornado.ioloop as ioloop
 import cobbler.templar
 import Cheetah # need exception types
 
-from struct import *;
-from subprocess import *;
-#import functools
+from struct import pack, unpack
+from subprocess import Popen, PIPE, STDOUT, local_sock
 
 # Data/Defines
 TFTP_OPCODE_RRQ   = 1
@@ -243,9 +242,10 @@ class ERRORPacket(Packet):
         logging.debug("ERROR %d: %s from %s"%
                 (self.error_code,self.error_str,remote_addr))
 
-    def __init__(self, error_code, error_str):
-        self.error_code = error_code
-        self.error_str  = error_str
+# FIXME: disabled as per pyflakes, not really sure about this one..
+#    def __init__(self, error_code, error_str):
+#        self.error_code = error_code
+#        self.error_str  = error_str
 
     def is_error(self):
         return True

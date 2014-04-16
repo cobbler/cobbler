@@ -23,7 +23,8 @@ clean:
 	-rm -f *.log
 
 qa:
-	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
+	@echo "running pyflakes..."
+	@pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
 
 test:
 	make savestate prefix=test
@@ -108,7 +109,7 @@ restartservices:
 		/usr/sbin/service apache2 restart; \
 	fi
 
-sdist: clean
+sdist: qa clean
 	python setup.py sdist
 
 rpms: clean sdist

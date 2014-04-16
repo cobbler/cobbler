@@ -995,7 +995,7 @@ def os_release():
       for t in tokens:
          try:
              return (make,float(t))
-         except ValueError, ve:
+         except ValueError:
              pass
       raise CX("failed to detect local OS version from /etc/redhat-release")
 
@@ -1131,8 +1131,6 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         # arg
         raise "Internal error: API handle is required"
 
-    is_remote = is_remote_file(src)
-
     if os.path.exists(dst):
         # if the destination exists, is it right in terms of accuracy
         # and context?
@@ -1202,33 +1200,11 @@ def copyfile(src,dst,api=None,logger=None):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
-def check_openfiles(src):
-    """
-    Used to check for open files on a mounted partition.
-    """
-    try:
-        if not os.path.isdir(src):
-            raise CX(_("Error in check_openfiles: the source (%s) must be a directory") % src)
-        cmd = [ "/usr/sbin/lsof", "+D", src, "-Fn", "|", "wc", "-l" ]
-        handle = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
-        out = handle.stdout
-        results = out.read()
-        return int(results)
-    except:
-        if not os.access(src,os.R_OK):
-            raise CX(_("Cannot read: %s") % src)
-        if not os.path.samefile(src,dst):
-            # accomodate for the possibility that we already copied
-            # the file as a symlink/hardlink
-            raise
-
-
 def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,cache=True,api=None,logger=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
-        base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
         linkfile(file,dst1,symlink_ok=symlink_ok,cache=cache,api=api,logger=logger)
 
@@ -1744,11 +1720,8 @@ def ram_consumption_of_guests(host, api):
           # guest object was deleted but host was not updated
           continue
        host_data = blender(api,False,host_obj)
-       ram = host_data.get("virt_ram", 512)
        ttl_ram = ttl_ram + host_data["virt_ram"]
     return ttl_ram
-
-
 
 def choose_virt_host(systems, api):
     """
@@ -1765,7 +1738,6 @@ def choose_virt_host(systems, api):
      
     if len(systems) == 0:
        raise CX("empty candidate systems list")
-    by_name = {}
     least_host = systems[0] 
     least_host_ct = -1
     for s in systems:
@@ -2152,7 +2124,6 @@ def strip_none(data, omit_none=False):
     elif isinstance(data, dict):
         data2 = {}
         for key in data.keys():
-            keydata = data[key]
             if omit_none and data[key] is None:
                 pass
             else:
@@ -2160,14 +2131,6 @@ def strip_none(data, omit_none=False):
         return data2
 
     return data
-
-def cli_find_via_xmlrpc(remote, otype, options):
-    """
-    Given an options object and a remote handle, find options matching
-    the criteria given.
-    """
-    criteria = strip_none2(options.__dict__)
-    return remote.find_items(otype,criteria,"name",False)
 
 # -------------------------------------------------------
     
