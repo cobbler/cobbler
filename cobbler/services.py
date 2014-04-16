@@ -21,19 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import exceptions
 import xmlrpclib
-import os
-import traceback
-import string
-import sys
 import time
 import urlgrabber
 import yaml # PyYAML
 import config
 
 # the following imports are largely for the test code
-import remote
 import glob
 import api as cobbler_api
 import utils

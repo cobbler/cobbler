@@ -24,7 +24,6 @@ import utils
 import item
 from cexceptions import *
 from utils import _
-import time
 import codes
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.

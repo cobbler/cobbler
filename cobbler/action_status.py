@@ -21,15 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
 import glob
 import time
-import api as cobbler_api
 import clogger
-import utils
-
-#from utils import _
 
 # ARRAY INDEXES
 MOST_RECENT_START  = 0

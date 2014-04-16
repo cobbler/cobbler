@@ -23,9 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import exceptions
 from cexceptions import *
 import utils
-import glob
 import time
-import random
 import os
 from threading import Lock
 

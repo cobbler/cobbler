@@ -13,7 +13,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import item
-import utils
 from cexceptions import CX
 
 class Resource(item.Item):

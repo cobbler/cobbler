@@ -26,7 +26,6 @@ from utils import _
 import os.path
 import glob
 import re
-import sys
 
 TESTMODE = False
 

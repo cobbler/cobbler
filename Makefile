@@ -22,6 +22,9 @@ clean:
 	-rm -f *.tmp
 	-rm -f *.log
 
+qa:
+	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan bin/ovz-install
+
 test:
 	make savestate prefix=test
 	make rpms

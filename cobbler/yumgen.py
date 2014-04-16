@@ -23,23 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import shutil
-import time
-import sys
-import glob
-import traceback
-import errno
 
 import utils
 from cexceptions import *
 import templar 
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
-
-from utils import _
 
 
 class YumGen:
