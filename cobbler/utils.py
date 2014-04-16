@@ -41,16 +41,11 @@ import clogger
 import yaml
 import urllib2
 import simplejson
+import hashlib
 
-try:
-    import hashlib as fiver
-    def md5(key):
-        return fiver.md5(key)
-except ImportError: 
-    # for Python < 2.5
-    import md5 as fiver
-    def md5(key):
-        return fiver.md5(key)
+
+def md5(key):
+    return hashlib.md5(key)
 
 # python-netaddr 0.7 broke backward compatability, try to use the old IP
 # classes, and fallback on the newer if there's an import error.
