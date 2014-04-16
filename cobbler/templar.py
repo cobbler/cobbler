@@ -27,10 +27,10 @@ import os.path
 import pprint
 from cexceptions import CX
 from template_api import Template
-from utils import *
 import utils
 import clogger
 import functools
+import string
 
 import Cheetah
 major, minor, release = Cheetah.Version.split('.')[0:3]
