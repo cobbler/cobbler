@@ -23,7 +23,7 @@ clean:
 	-rm -f *.log
 
 qa:
-	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan bin/ovz-install
+	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan
 
 test:
 	make savestate prefix=test
