@@ -31,7 +31,6 @@ except:
     HAS_YUM = False
 
 import utils
-from cexceptions import *
 import clogger
 
 class RepoSync:

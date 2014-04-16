@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import exceptions
 
-TEST_MODE = False
 
 class CobblerException(exceptions.Exception):
 

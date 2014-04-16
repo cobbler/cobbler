@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import exceptions
 import utils
-from cexceptions import *
+from cexceptions import CX
 from utils import _
 import pprint
 import fnmatch

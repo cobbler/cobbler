@@ -31,7 +31,7 @@ import socket
 import re
 
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar 
 
 

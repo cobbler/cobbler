@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import urlparse
 
 import utils
-from cexceptions import *
+from cexceptions import FileNotFoundException, CX
 import templar 
 
 from utils import _

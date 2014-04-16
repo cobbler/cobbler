@@ -27,7 +27,7 @@ import sys
 import glob
 import clogger
 from utils import _, log_exc
-from cexceptions import *
+from cexceptions import CX
 import ConfigParser
 
 # python 2.3 compat.  If we don't need that, drop this test

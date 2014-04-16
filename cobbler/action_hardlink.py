@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import utils
-from cexceptions import *
 import clogger
 
 class HardLinker:

@@ -46,7 +46,7 @@ import collection_files as files
 import settings
 import serializer
 
-from cexceptions import *
+from cexceptions import CX
 
 class Config:
 

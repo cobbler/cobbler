@@ -26,7 +26,7 @@ import os.path
 import glob
 import time
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar 
 import pxegen
 import clogger

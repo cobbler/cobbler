@@ -24,7 +24,6 @@ import os
 import os.path
 import clogger
 
-from cexceptions import *
 import glob
 
 class LogTool:

@@ -26,7 +26,7 @@ import Cheetah.Template
 import os.path
 import re
 import utils
-from cexceptions import *
+from cexceptions import FileNotFoundException
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
