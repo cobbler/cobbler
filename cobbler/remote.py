@@ -31,7 +31,7 @@ from threading import Thread
 
 import api as cobbler_api
 import utils
-from cexceptions import *
+from cexceptions import CX
 import item_distro
 import item_profile
 import item_system

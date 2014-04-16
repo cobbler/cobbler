@@ -27,7 +27,6 @@ import traceback
 import sys
 import time
 
-from cexceptions import *
 import api as cobbler_api
 
 LOCK_ENABLED = True

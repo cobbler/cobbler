@@ -25,7 +25,6 @@ import os
 import os.path
 import xmlrpclib
 import utils
-from cexceptions import *
 import clogger
 import fnmatch
 

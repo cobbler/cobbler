@@ -16,7 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import item_image as image
 import utils
 import collection
-from cexceptions import *
+from cexceptions import CX
 from utils import _
 import action_litesync
 

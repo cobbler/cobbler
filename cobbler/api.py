@@ -37,7 +37,7 @@ import action_power
 import action_log
 import action_hardlink
 import action_dlcontent
-from cexceptions import *
+from cexceptions import CX
 import module_loader
 import kickgen
 import yumgen

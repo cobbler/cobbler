@@ -32,7 +32,7 @@ import shutil
 import string
 import traceback
 import errno
-from cexceptions import *
+from cexceptions import FileNotFoundException, CX
 import codes
 import netaddr
 import shlex

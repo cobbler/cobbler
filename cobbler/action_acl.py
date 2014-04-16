@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import utils
-from cexceptions import *
+from cexceptions import CX
 import clogger
 
 class AclConfig:
