@@ -307,7 +307,6 @@ class CobblerXMLRPCInterface:
            return "?"
 
     def __generate_event_id(self,optype):
-        t = time.time()
         (year, month, day, hour, minute, second, weekday, julian, dst) = time.localtime()
         return "%04d-%02d-%02d_%02d%02d%02d_%s" % (year,month,day,hour,minute,second,optype)
 
@@ -1805,7 +1804,6 @@ class CobblerXMLRPCInterface:
            return False 
 
     def check_access(self,token,resource,arg1=None,arg2=None):
-        validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
@@ -1817,7 +1815,6 @@ class CobblerXMLRPCInterface:
         return rc
 
     def get_authn_module_name(self, token):
-        validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
         if user != "<DIRECT>":
           raise CX("authorization failure for user %s attempting to access authn module name" %user)

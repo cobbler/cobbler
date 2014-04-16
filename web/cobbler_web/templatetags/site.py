@@ -1,5 +1,4 @@
 from django import template
-from django.template import Node, NodeList
 from django.utils.datastructures import SortedDict
 
 register = template.Library()

@@ -23,7 +23,7 @@ clean:
 	-rm -f *.log
 
 qa:
-	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan
+	pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
 
 test:
 	make savestate prefix=test
