@@ -13,13 +13,13 @@ urlpatterns = patterns('',
     (r'^setting/save$', views.setting_save),
 
     (r'^ksfile/list(/(?P<page>\d+))?$', views.ksfile_list),
-    (r'^ksfile/edit$', views.ksfile_edit, {'editmode':'new'}),
-    (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', views.ksfile_edit, {'editmode':'edit'}),
+    (r'^ksfile/edit$', views.ksfile_edit, {'editmode': 'new'}),
+    (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', views.ksfile_edit, {'editmode': 'edit'}),
     (r'^ksfile/save$', views.ksfile_save),
 
     (r'^snippet/list(/(?P<page>\d+))?$', views.snippet_list),
     (r'^snippet/edit$', views.snippet_edit, {'editmode':'new'}),
-    (r'^snippet/edit/file:(?P<snippet_name>.+)$', views.snippet_edit, {'editmode':'edit'}),
+    (r'^snippet/edit/file:(?P<snippet_name>.+)$', views.snippet_edit, {'editmode': 'edit'}),
     (r'^snippet/save$', views.snippet_save),
 
     (r'^(?P<what>\w+)/list(/(?P<page>\d+))?', views.genlist),
