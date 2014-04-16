@@ -150,7 +150,7 @@ class SmartIfTests(unittest.TestCase):
         self.assertCalcFalse(GreaterOrEqual(self.low, self.high))
 
     def test_in(self):
-        list_ = TestVar([1,2,3])
+        list_ = TestVar([1, 2, 3])
         invalid_list = TestVar(None)
         self.assertCalc(In(self.low, list_))
         self.assertCalcFalse(In(self.low, invalid_list))
@@ -365,8 +365,9 @@ ifinlist = register.tag(smart_if)
 # Based on code found here:
 # http://stackoverflow.com/questions/2024660/django-sort-dict-in-template
 #
-# Required since dict.items|dictsort doesn't seem to work 
+# Required since dict.items|dictsort doesn't seem to work
 # when iterating over the keys with a for loop
+
 
 @register.filter(name='sort')
 def listsort(value):

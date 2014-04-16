@@ -29,53 +29,60 @@ username = None
 
 #==================================================================================
 
-def index(request):
-   """
-   This is the main greeting page for cobbler web.
-   """
-   if not test_user_authenticated(request): return login(request,next="/cobbler_web", expired=True)
 
-   t = get_template('index.tmpl')
-   html = t.render(RequestContext(request,{
-        'version' : remote.extended_version(request.session['token'])['version'],
-        'username': username,
-   }))
-   return HttpResponse(html)
+def index(request):
+    """
+    This is the main greeting page for cobbler web.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web", expired=True)
+
+    t = get_template('index.tmpl')
+    html = t.render(RequestContext(request, {
+         'version': remote.extended_version(request.session['token'])['version'],
+         'username': username,
+    }))
+    return HttpResponse(html)
 
 #========================================================================
+
 
 def task_created(request):
-   """
-   Let's the user know what to expect for event updates.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/task_created", expired=True)
-   t = get_template("task_created.tmpl")
-   html = t.render(RequestContext(request,{
-       'version'  : remote.extended_version(request.session['token'])['version'],
-       'username' : username
-   }))
-   return HttpResponse(html)
+    """
+    Let's the user know what to expect for event updates.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/task_created", expired=True)
+    t = get_template("task_created.tmpl")
+    html = t.render(RequestContext(request, {
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    }))
+    return HttpResponse(html)
 
 #========================================================================
 
-def error_page(request,message):
-   """
-   This page is used to explain error messages to the user.
-   """
-   if not test_user_authenticated(request): return login(request,expired=True)
-   # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
-   # field errors
-   t = get_template('error_page.tmpl')
-   message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
-   message = message.replace("'\">","")
-   html = t.render(RequestContext(request,{
-       'version' : remote.extended_version(request.session['token'])['version'],
-       'message' : message,
-       'username': username
-   }))
-   return HttpResponse(html)
+
+def error_page(request, message):
+    """
+    This page is used to explain error messages to the user.
+    """
+    if not test_user_authenticated(request):
+        return login(request, expired=True)
+    # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
+    # field errors
+    t = get_template('error_page.tmpl')
+    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'", "Remote exception: ")
+    message = message.replace("'\">", "")
+    html = t.render(RequestContext(request, {
+        'version': remote.extended_version(request.session['token'])['version'],
+        'message': message,
+        'username': username
+    }))
+    return HttpResponse(html)
 
 #==================================================================================
+
 
 def get_fields(what, is_subobject, seed_item=None):
 
@@ -87,15 +94,15 @@ def get_fields(what, is_subobject, seed_item=None):
     """
 
     if what == "distro":
-       field_data = item_distro.FIELDS
+        field_data = item_distro.FIELDS
     if what == "profile":
-       field_data = item_profile.FIELDS
+        field_data = item_profile.FIELDS
     if what == "system":
-       field_data = item_system.FIELDS
+        field_data = item_system.FIELDS
     if what == "repo":
-       field_data = item_repo.FIELDS
+        field_data = item_repo.FIELDS
     if what == "image":
-       field_data =  item_image.FIELDS
+        field_data = item_image.FIELDS
     if what == "mgmtclass":
         field_data = item_mgmtclass.FIELDS
     if what == "package":
@@ -119,15 +126,15 @@ def get_fields(what, is_subobject, seed_item=None):
             row[6] = []
 
         elem = {
-            "name"                    : row[0],
-            "dname"                   : row[0].replace("*",""),
-            "value"                   : "?",
-            "caption"                 : row[3],
-            "editable"                : row[4],
-            "tooltip"                 : row[5],
-            "choices"                 : row[6],
-            "css_class"               : "generic",
-            "html_element"            : "generic",
+            "name": row[0],
+            "dname": row[0].replace("*", ""),
+            "value": "?",
+            "caption": row[3],
+            "editable": row[4],
+            "tooltip": row[5],
+            "choices": row[6],
+            "css_class": "generic",
+            "html_element": "generic",
         }
 
         if not elem["editable"]:
@@ -138,24 +145,24 @@ def get_fields(what, is_subobject, seed_item=None):
                 elem["value"] = seed_item[row[0]]
             elif row[0].startswith("*"):
                 # system interfaces are loaded by javascript, not this
-                elem["value"]             = ""
-                elem["name"]              = row[0].replace("*","")
+                elem["value"] = ""
+                elem["name"] = row[0].replace("*", "")
             elif row[0].find("widget") == -1:
-                elem["value"]             = seed_item[row[0]]
+                elem["value"] = seed_item[row[0]]
         elif is_subobject:
-            elem["value"]             = row[2]
+            elem["value"] = row[2]
         else:
-            elem["value"]             = row[1]
+            elem["value"] = row[1]
 
         if elem["value"] is None:
             elem["value"] = ""
 
         # we'll process this for display but still need to present the original to some
         # template logic
-        elem["value_raw"]             = elem["value"]
+        elem["value_raw"] = elem["value"]
 
-        if isinstance(elem["value"],basestring) and elem["value"].startswith("SETTINGS:"):
-            key = elem["value"].replace("SETTINGS:","",1)
+        if isinstance(elem["value"], basestring) and elem["value"].startswith("SETTINGS:"):
+            key = elem["value"].replace("SETTINGS:", "", 1)
             elem["value"] = settings[key]
 
         # flatten hashes of all types, they can only be edited as text
@@ -164,24 +171,24 @@ def get_fields(what, is_subobject, seed_item=None):
             if elem["name"] == "mgmt_parameters":
                 #Render dictionary as YAML for Management Parameters field
                 tokens = []
-                for (x,y) in elem["value"].items():
-                   if y is not None:
-                      tokens.append("%s: %s" % (x,y))
-                   else:
-                      tokens.append("%s: " % x)
+                for (x, y) in elem["value"].items():
+                    if y is not None:
+                        tokens.append("%s: %s" % (x, y))
+                    else:
+                        tokens.append("%s: " % x)
                 elem["value"] = "{ %s }" % ", ".join(tokens)
             else:
                 tokens = []
-                for (x,y) in elem["value"].items():
-                   if isinstance(y,basestring) and y.strip() != "~":
-                      y = y.replace(" ","\\ ")
-                      tokens.append("%s=%s" % (x,y))
-                   elif isinstance(y,list):
-                      for l in y:
-                         l = l.replace(" ","\\ ")
-                         tokens.append("%s=%s" % (x,l))
-                   elif y != None:
-                      tokens.append("%s" % x)
+                for (x, y) in elem["value"].items():
+                    if isinstance(y, basestring) and y.strip() != "~":
+                        y = y.replace(" ", "\\ ")
+                        tokens.append("%s=%s" % (x, y))
+                    elif isinstance(y, list):
+                        for l in y:
+                            l = l.replace(" ", "\\ ")
+                            tokens.append("%s=%s" % (x, l))
+                    elif y != None:
+                        tokens.append("%s" % x)
                 elem["value"] = " ".join(tokens)
 
         name = row[0]
@@ -215,19 +222,20 @@ def get_fields(what, is_subobject, seed_item=None):
 
 #==================================================================================
 
-def __tweak_field(fields,field_name,attribute,value):
+
+def __tweak_field(fields, field_name, attribute, value):
     """
     Helper function to insert extra data into the field list.
     """
     # FIXME: eliminate this function.
     for x in fields:
-       if x["name"] == field_name:
-           x[attribute] = value
+        if x["name"] == field_name:
+            x[attribute] = value
 
 #==================================================================================
 
 
-def __format_columns(column_names,sort_field):
+def __format_columns(column_names, sort_field):
     """
     Format items retrieved from XMLRPC for rendering by the generic_edit template
     """
@@ -249,11 +257,12 @@ def __format_columns(column_names,sort_field):
         fieldorder = "none"
         if fieldname == sort_name:
             fieldorder = sort_order
-        dataset.append([fieldname,fieldorder])
+        dataset.append([fieldname, fieldorder])
     return dataset
 
 
 #==================================================================================
+
 
 def __format_items(items, column_names):
     """
@@ -265,24 +274,26 @@ def __format_items(items, column_names):
         for fieldname in column_names:
             if fieldname == "name":
                 html_element = "name"
-            elif fieldname in [ "system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file" ]:
+            elif fieldname in ["system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file"]:
                 html_element = "editlink"
             elif fieldname in field_info.USES_CHECKBOX:
                 html_element = "checkbox"
             else:
                 html_element = "text"
-            row.append([fieldname,itemhash[fieldname],html_element])
+            row.append([fieldname, itemhash[fieldname], html_element])
         dataset.append(row)
     return dataset
 
 #==================================================================================
+
 
 def genlist(request, what, page=None):
     """
     Lists all object types, complete with links to actions
     on those objects.
     """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/list" % what, expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/list" % what, expired=True)
 
     # get details from the session
     if page == None:
@@ -290,7 +301,7 @@ def genlist(request, what, page=None):
     limit = int(request.session.get("%s_limit" % what, 50))
     sort_field = request.session.get("%s_sort_field" % what, "name")
     filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
-    pageditems = remote.find_items_paged(what,utils.strip_none(filters),sort_field,page,limit)
+    pageditems = remote.find_items_paged(what, utils.strip_none(filters), sort_field, page, limit)
 
     # what columns to show for each page?
     # we also setup the batch actions here since they're dependent
@@ -298,61 +309,62 @@ def genlist(request, what, page=None):
 
     # everythng gets batch delete
     batchactions = [
-        ["Delete","delete","delete"],
+        ["Delete", "delete", "delete"],
     ]
 
     if what == "distro":
-       columns = [ "name" ]
-       batchactions += [
-           ["Build ISO","buildiso","enable"],
-       ]
+        columns = ["name"]
+        batchactions += [
+            ["Build ISO", "buildiso", "enable"],
+        ]
     if what == "profile":
-       columns = [ "name", "distro" ]
-       batchactions += [
-           ["Build ISO","buildiso","enable"],
-       ]
+        columns = ["name", "distro"]
+        batchactions += [
+            ["Build ISO", "buildiso", "enable"],
+        ]
     if what == "system":
-       # FIXME: also list network, once working
-       columns = [ "name", "profile", "status", "netboot_enabled" ]
-       batchactions += [
-           ["Power on","power","on"],
-           ["Power off","power","off"],
-           ["Reboot","power","reboot"],
-           ["Change profile","profile",""],
-           ["Netboot enable","netboot","enable"],
-           ["Netboot disable","netboot","disable"],
-           ["Build ISO","buildiso","enable"],
-       ]
+        # FIXME: also list network, once working
+        columns = ["name", "profile", "status", "netboot_enabled"]
+        batchactions += [
+            ["Power on", "power", "on"],
+            ["Power off", "power", "off"],
+            ["Reboot", "power", "reboot"],
+            ["Change profile", "profile", ""],
+            ["Netboot enable", "netboot", "enable"],
+            ["Netboot disable", "netboot", "disable"],
+            ["Build ISO", "buildiso", "enable"],
+        ]
     if what == "repo":
-       columns = [ "name", "mirror" ]
-       batchactions += [
-           ["Reposync","reposync","go"],
-       ]
+        columns = ["name", "mirror"]
+        batchactions += [
+            ["Reposync", "reposync", "go"],
+        ]
     if what == "image":
-       columns = [ "name", "file" ]
+        columns = ["name", "file"]
     if what == "network":
-       columns = [ "name" ]
+        columns = ["name"]
     if what == "mgmtclass":
-        columns = [ "name" ]
+        columns = ["name"]
     if what == "package":
-        columns = [ "name", "installer" ]
+        columns = ["name", "installer"]
     if what == "file":
-        columns = [ "name" ]
+        columns = ["name"]
 
     # render the list
     t = get_template('generic_list.tmpl')
-    html = t.render(RequestContext(request,{
-        'what'           : what,
-        'columns'        : __format_columns(columns,sort_field),
-        'items'          : __format_items(pageditems["items"],columns),
-        'pageinfo'       : pageditems["pageinfo"],
-        'filters'        : filters,
-        'version'        : remote.extended_version(request.session['token'])['version'],
-        'username'       : username,
-        'limit'          : limit,
-        'batchactions'   : batchactions,
+    html = t.render(RequestContext(request, {
+        'what': what,
+        'columns': __format_columns(columns, sort_field),
+        'items': __format_items(pageditems["items"], columns),
+        'pageinfo': pageditems["pageinfo"],
+        'filters': filters,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+        'limit': limit,
+        'batchactions': batchactions,
     }))
     return HttpResponse(html)
+
 
 @require_POST
 @csrf_protect
@@ -365,7 +377,8 @@ def modify_list(request, what, pref, value=None):
     This function modifies the session object to
     store these preferences persistently.
     """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/modifylist/%s/%s" % (what,pref,str(value)), expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/modifylist/%s/%s" % (what, pref, str(value)), expired=True)
 
 
     # what preference are we tweaking?
@@ -375,7 +388,7 @@ def modify_list(request, what, pref, value=None):
         # FIXME: this isn't exposed in the UI.
 
         # sorting list on columns
-        old_sort = request.session.get("%s_sort_field" % what,"name")
+        old_sort = request.session.get("%s_sort_field" % what, "name")
         if old_sort.startswith("!"):
             old_sort = old_sort[1:]
             old_revsort = True
@@ -397,7 +410,7 @@ def modify_list(request, what, pref, value=None):
         # what page are we currently on
         request.session["%s_page" % what] = int(value)
 
-    elif pref in ("addfilter","removefilter"):
+    elif pref in ("addfilter", "removefilter"):
         # filters limit what we show in the lists
         # they are stored in json format for marshalling
         filters = simplejson.loads(request.session.get("%s_filters" % what, "{}"))
@@ -422,69 +435,75 @@ def modify_list(request, what, pref, value=None):
 
 # ======================================================================
 
+
 @require_POST
 @csrf_protect
 def generic_rename(request, what, obj_name=None, obj_newname=None):
+    """
+    Renames an object.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/rename/%s/%s" % (what, obj_name, obj_newname), expired=True)
 
-   """
-   Renames an object.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/rename/%s/%s" % (what,obj_name,obj_newname), expired=True)
-
-   if obj_name == None:
-      return error_page(request,"You must specify a %s to rename" % what)
-   if not remote.has_item(what,obj_name):
-      return error_page(request,"Unknown %s specified" % what)
-   elif not remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name):
-      return error_page(request,"You do not have permission to rename this %s" % what)
-   else:
-      obj_id = remote.get_item_handle(what, obj_name, request.session['token'])
-      remote.rename_item(what, obj_id, obj_newname, request.session['token'])
-      return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    if obj_name == None:
+        return error_page(request, "You must specify a %s to rename" % what)
+    if not remote.has_item(what, obj_name):
+        return error_page(request, "Unknown %s specified" % what)
+    elif not remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name):
+        return error_page(request, "You do not have permission to rename this %s" % what)
+    else:
+        obj_id = remote.get_item_handle(what, obj_name, request.session['token'])
+        remote.rename_item(what, obj_id, obj_newname, request.session['token'])
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def generic_copy(request, what, obj_name=None, obj_newname=None):
-   """
-   Copies an object.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/copy/%s/%s" % (what,obj_name,obj_newname), expired=True)
-   # FIXME: shares all but one line with rename, merge it.
-   if obj_name == None:
-      return error_page(request,"You must specify a %s to rename" % what)
-   if not remote.has_item(what,obj_name):
-      return error_page(request,"Unknown %s specified" % what)
-   elif not remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name):
-      return error_page(request,"You do not have permission to copy this %s" % what)
-   else:
-      obj_id = remote.get_item_handle(what, obj_name, request.session['token'])
-      remote.copy_item(what, obj_id, obj_newname, request.session['token'])
-      return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    """
+    Copies an object.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/copy/%s/%s" % (what, obj_name, obj_newname), expired=True)
+    # FIXME: shares all but one line with rename, merge it.
+    if obj_name == None:
+        return error_page(request, "You must specify a %s to rename" % what)
+    if not remote.has_item(what, obj_name):
+        return error_page(request, "Unknown %s specified" % what)
+    elif not remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name):
+        return error_page(request, "You do not have permission to copy this %s" % what)
+    else:
+        obj_id = remote.get_item_handle(what, obj_name, request.session['token'])
+        remote.copy_item(what, obj_id, obj_newname, request.session['token'])
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def generic_delete(request, what, obj_name=None):
-   """
-   Deletes an object.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/delete/%s" % (what,obj_name), expired=True)
-   # FIXME: consolidate code with above functions.
-   if obj_name == None:
-      return error_page(request,"You must specify a %s to delete" % what)
-   if not remote.has_item(what,obj_name):
-      return error_page(request,"Unknown %s specified" % what)
-   elif not remote.check_access_no_fail(request.session['token'], "remove_%s" % what, obj_name):
-      return error_page(request,"You do not have permission to delete this %s" % what)
-   else:
-      remote.remove_item(what, obj_name, request.session['token'])
-      return HttpResponseRedirect("/cobbler_web/%s/list" % what)
+    """
+    Deletes an object.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/delete/%s" % (what, obj_name), expired=True)
+    # FIXME: consolidate code with above functions.
+    if obj_name == None:
+        return error_page(request, "You must specify a %s to delete" % what)
+    if not remote.has_item(what, obj_name):
+        return error_page(request, "Unknown %s specified" % what)
+    elif not remote.check_access_no_fail(request.session['token'], "remove_%s" % what, obj_name):
+        return error_page(request, "You do not have permission to delete this %s" % what)
+    else:
+        remote.remove_item(what, obj_name, request.session['token'])
+        return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
@@ -494,7 +513,8 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     Process operations like profile reassignment, netboot toggling, and deletion
     which occur on all items that are checked on the list page.
     """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/multi/%s/%s" % (what,multi_mode,multi_arg), expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/multi/%s/%s" % (what, multi_mode, multi_arg), expired=True)
 
     # FIXME: cleanup
     # FIXME: COMMENTS!!!11111???
@@ -504,18 +524,18 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         return error_page(request, "Need to select some systems first")
 
     if multi_mode == "delete":
-         for obj_name in names:
-            remote.remove_item(what,obj_name, request.session['token'])
+        for obj_name in names:
+            remote.remove_item(what, obj_name, request.session['token'])
     elif what == "system" and multi_mode == "netboot":
-        netboot_enabled = multi_arg # values: enable or disable
+        netboot_enabled = multi_arg  # values: enable or disable
         if netboot_enabled is None:
-            return error_page(request,"Cannot modify systems without specifying netboot_enabled")
+            return error_page(request, "Cannot modify systems without specifying netboot_enabled")
         if netboot_enabled == "enable":
             netboot_enabled = True
         elif netboot_enabled == "disable":
             netboot_enabled = False
         else:
-            return error_page(request,"Invalid netboot option, expect enable or disable")
+            return error_page(request, "Invalid netboot option, expect enable or disable")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, request.session['token'])
             remote.modify_system(obj_id, "netboot_enabled", netboot_enabled, request.session['token'])
@@ -523,7 +543,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     elif what == "system" and multi_mode == "profile":
         profile = multi_arg
         if profile is None:
-            return error_page(request,"Cannot modify systems without specifying profile")
+            return error_page(request, "Cannot modify systems without specifying profile")
         for obj_name in names:
             obj_id = remote.get_system_handle(obj_name, request.session['token'])
             remote.modify_system(obj_id, "profile", profile, request.session['token'])
@@ -533,299 +553,323 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         # in one set.
         power = multi_arg
         if power is None:
-            return error_page(request,"Cannot modify systems without specifying power option")
-        options = { "systems" : names, "power" : power }
+            return error_page(request, "Cannot modify systems without specifying power option")
+        options = {"systems": names, "power": power}
         remote.background_power_system(options, request.session['token'])
     elif what == "system" and multi_mode == "buildiso":
-        options = { "systems" : names, "profiles" : [] }
+        options = {"systems": names, "profiles": []}
         remote.background_buildiso(options, request.session['token'])
     elif what == "profile" and multi_mode == "buildiso":
-        options = { "profiles" : names, "systems" : [] }
+        options = {"profiles": names, "systems": []}
         remote.background_buildiso(options, request.session['token'])
     elif what == "distro" and multi_mode == "buildiso":
         if len(names) > 1:
-            return error_page(request,"You can only select one distro at a time to build an ISO for")
-        options = { "standalone" : True, "distro": str(names[0]) }
+            return error_page(request, "You can only select one distro at a time to build an ISO for")
+        options = {"standalone": True, "distro": str(names[0])}
         remote.background_buildiso(options, request.session['token'])
     elif what == "repo" and multi_mode == "reposync":
-        options = { "repos" : names, "tries" : 3 }
-        remote.background_reposync(options,request.session['token'])
+        options = {"repos": names, "tries": 3}
+        remote.background_reposync(options, request.session['token'])
     else:
-        return error_page(request,"Unknown batch operation on %ss: %s" % (what,str(multi_mode)))
+        return error_page(request, "Unknown batch operation on %ss: %s" % (what, str(multi_mode)))
 
     # FIXME: "operation complete" would make a lot more sense here than a redirect
-    return HttpResponseRedirect("/cobbler_web/%s/list"%what)
+    return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 # ======================================================================
+
 
 def import_prompt(request):
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt", expired=True)
-   t = get_template('import.tmpl')
-   html = t.render(RequestContext(request,{
-       'version'  : remote.extended_version(request.session['token'])['version'],
-       'username' : username,
-   }))
-   return HttpResponse(html)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/import/prompt", expired=True)
+    t = get_template('import.tmpl')
+    html = t.render(RequestContext(request, {
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 def check(request):
-   """
-   Shows a page with the results of 'cobbler check'
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/check", expired=True)
-   results = remote.check(request.session['token'])
-   t = get_template('check.tmpl')
-   html = t.render(RequestContext(request,{
-       'version': remote.extended_version(request.session['token'])['version'],
-       'username' : username,
-       'results'  : results
-   }))
-   return HttpResponse(html)
+    """
+    Shows a page with the results of 'cobbler check'
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/check", expired=True)
+    results = remote.check(request.session['token'])
+    t = get_template('check.tmpl')
+    html = t.render(RequestContext(request, {
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+        'results': results
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def buildiso(request):
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/buildiso", expired=True)
-    remote.background_buildiso({},request.session['token'])
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/buildiso", expired=True)
+    remote.background_buildiso({}, request.session['token'])
     return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def import_run(request):
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt", expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/import/prompt", expired=True)
     options = {
-        "name"  : request.POST.get("name",""),
-        "path"  : request.POST.get("path",""),
-        "breed" : request.POST.get("breed",""),
-        "arch"  : request.POST.get("arch","")
+        "name": request.POST.get("name", ""),
+        "path": request.POST.get("path", ""),
+        "breed": request.POST.get("breed", ""),
+        "arch": request.POST.get("arch", "")
         }
-    remote.background_import(options,request.session['token'])
+    remote.background_import(options, request.session['token'])
     return HttpResponseRedirect('/cobbler_web/task_created')
 
 # ======================================================================
 
+
 def ksfile_list(request, page=None):
-   """
-   List all kickstart templates and link to their edit pages.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/ksfile/list", expired=True)
-   ksfiles = remote.get_kickstart_templates(request.session['token'])
+    """
+    List all kickstart templates and link to their edit pages.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/ksfile/list", expired=True)
+    ksfiles = remote.get_kickstart_templates(request.session['token'])
 
-   ksfile_list = []
-   for ksfile in ksfiles:
-      if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
-         ksfile_list.append((ksfile,ksfile.replace('/var/lib/cobbler/kickstarts/',''),'editable'))
-      elif ksfile.startswith("http://") or ksfile.startswith("ftp://"):
-         ksfile_list.append((ksfile,ksfile,'','viewable'))
-      else:
-         ksfile_list.append((ksfile,ksfile,None))
+    ksfile_list = []
+    for ksfile in ksfiles:
+        if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
+            ksfile_list.append((ksfile, ksfile.replace('/var/lib/cobbler/kickstarts/', ''), 'editable'))
+        elif ksfile.startswith("http://") or ksfile.startswith("ftp://"):
+            ksfile_list.append((ksfile, ksfile, '', 'viewable'))
+        else:
+            ksfile_list.append((ksfile, ksfile, None))
 
-   t = get_template('ksfile_list.tmpl')
-   html = t.render(RequestContext(request,{
-       'what':'ksfile',
-       'ksfiles': ksfile_list,
-       'version': remote.extended_version(request.session['token'])['version'],
-       'username': username,
-       'item_count': len(ksfile_list[0]),
-   }))
-   return HttpResponse(html)
+    t = get_template('ksfile_list.tmpl')
+    html = t.render(RequestContext(request, {
+        'what': 'ksfile',
+        'ksfiles': ksfile_list,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+        'item_count': len(ksfile_list[0]),
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 @csrf_protect
 def ksfile_edit(request, ksfile_name=None, editmode='edit'):
-   """
-   This is the page where a kickstart file is edited.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/ksfile/edit/file:%s" % ksfile_name, expired=True)
-   if editmode == 'edit':
-      editable = False
-   else:
-      editable = True
-   deleteable = False
-   ksdata = ""
-   if not ksfile_name is None:
-      editable = remote.check_access_no_fail(request.session['token'], "modify_kickstart", ksfile_name)
-      deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
-      ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
+    """
+    This is the page where a kickstart file is edited.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/ksfile/edit/file:%s" % ksfile_name, expired=True)
+    if editmode == 'edit':
+        editable = False
+    else:
+        editable = True
+    deleteable = False
+    ksdata = ""
+    if not ksfile_name is None:
+        editable = remote.check_access_no_fail(request.session['token'], "modify_kickstart", ksfile_name)
+        deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
+        ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
 
-   t = get_template('ksfile_edit.tmpl')
-   html = t.render(RequestContext(request,{
-       'ksfile_name' : ksfile_name,
-       'deleteable'  : deleteable,
-       'ksdata'      : ksdata,
-       'editable'    : editable,
-       'editmode'    : editmode,
-       'version'     : remote.extended_version(request.session['token'])['version'],
-       'username'    : username
-   }))
-   return HttpResponse(html)
+    t = get_template('ksfile_edit.tmpl')
+    html = t.render(RequestContext(request, {
+        'ksfile_name': ksfile_name,
+        'deleteable': deleteable,
+        'ksdata': ksdata,
+        'editable': editable,
+        'editmode': editmode,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def ksfile_save(request):
-   """
-   This page processes and saves edits to a kickstart file.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/ksfile/list", expired=True)
-   # FIXME: error checking
+    """
+    This page processes and saves edits to a kickstart file.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/ksfile/list", expired=True)
+    # FIXME: error checking
 
-   editmode = request.POST.get('editmode', 'edit')
-   ksfile_name = request.POST.get('ksfile_name', None)
-   ksdata = request.POST.get('ksdata', "").replace('\r\n','\n')
+    editmode = request.POST.get('editmode', 'edit')
+    ksfile_name = request.POST.get('ksfile_name', None)
+    ksdata = request.POST.get('ksdata', "").replace('\r\n', '\n')
 
-   if ksfile_name == None:
-      return HttpResponse("NO KSFILE NAME SPECIFIED")
-   if editmode != 'edit':
-      ksfile_name = "/var/lib/cobbler/kickstarts/" + ksfile_name
+    if ksfile_name == None:
+        return HttpResponse("NO KSFILE NAME SPECIFIED")
+    if editmode != 'edit':
+        ksfile_name = "/var/lib/cobbler/kickstarts/" + ksfile_name
 
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
+    delete1 = request.POST.get('delete1', None)
+    delete2 = request.POST.get('delete2', None)
 
-   if delete1 and delete2:
-      remote.read_or_write_kickstart_template(ksfile_name, False, -1, request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/ksfile/list')
-   else:
-      remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/ksfile/edit/file:%s' % ksfile_name)
+    if delete1 and delete2:
+        remote.read_or_write_kickstart_template(ksfile_name, False, -1, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/ksfile/list')
+    else:
+        remote.read_or_write_kickstart_template(ksfile_name, False, ksdata, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/ksfile/edit/file:%s' % ksfile_name)
 
 # ======================================================================
+
 
 def snippet_list(request, page=None):
-   """
-   This page lists all available snippets and has links to edit them.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/snippet/list", expired=True)
-   snippets = remote.get_snippets(request.session['token'])
+    """
+    This page lists all available snippets and has links to edit them.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/snippet/list", expired=True)
+    snippets = remote.get_snippets(request.session['token'])
 
-   snippet_list = []
-   for snippet in snippets:
-      if snippet.startswith("/var/lib/cobbler/snippets"):
-         snippet_list.append((snippet,snippet.replace("/var/lib/cobbler/snippets/",""),'editable'))
-      else:
-         snippet_list.append((snippet,snippet,None))
+    snippet_list = []
+    for snippet in snippets:
+        if snippet.startswith("/var/lib/cobbler/snippets"):
+            snippet_list.append((snippet, snippet.replace("/var/lib/cobbler/snippets/", ""), 'editable'))
+        else:
+            snippet_list.append((snippet, snippet, None))
 
-   t = get_template('snippet_list.tmpl')
-   html = t.render(RequestContext(request,{
-       'what'     : 'snippet',
-       'snippets' : snippet_list,
-       'version'  : remote.extended_version(request.session['token'])['version'],
-       'username' : username
-   }))
-   return HttpResponse(html)
+    t = get_template('snippet_list.tmpl')
+    html = t.render(RequestContext(request, {
+        'what': 'snippet',
+        'snippets': snippet_list,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 @csrf_protect
 def snippet_edit(request, snippet_name=None, editmode='edit'):
-   """
-   This page edits a specific snippet.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/edit/file:%s" % snippet_name, expired=True)
-   if editmode == 'edit':
-      editable = False
-   else:
-      editable = True
-   deleteable = False
-   snippetdata = ""
-   if not snippet_name is None:
-      editable = remote.check_access_no_fail(request.session['token'], "modify_snippet", snippet_name)
-      deleteable = True
-      snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
+    """
+    This page edits a specific snippet.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/edit/file:%s" % snippet_name, expired=True)
+    if editmode == 'edit':
+        editable = False
+    else:
+        editable = True
+    deleteable = False
+    snippetdata = ""
+    if not snippet_name is None:
+        editable = remote.check_access_no_fail(request.session['token'], "modify_snippet", snippet_name)
+        deleteable = True
+        snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
 
-   t = get_template('snippet_edit.tmpl')
-   html = t.render(RequestContext(request,{
-       'snippet_name' : snippet_name,
-       'deleteable'   : deleteable,
-       'snippetdata'  : snippetdata,
-       'editable'     : editable,
-       'editmode'     : editmode,
-       'version'      : remote.extended_version(request.session['token'])['version'],
-       'username'     : username
-   }))
-   return HttpResponse(html)
+    t = get_template('snippet_edit.tmpl')
+    html = t.render(RequestContext(request, {
+        'snippet_name': snippet_name,
+        'deleteable': deleteable,
+        'snippetdata': snippetdata,
+        'editable': editable,
+        'editmode': editmode,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def snippet_save(request):
-   """
-   This snippet saves a snippet once edited.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/snippet/list", expired=True)
-   # FIXME: error checking
+    """
+    This snippet saves a snippet once edited.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/snippet/list", expired=True)
+    # FIXME: error checking
 
-   editmode = request.POST.get('editmode', 'edit')
-   snippet_name = request.POST.get('snippet_name', None)
-   snippetdata = request.POST.get('snippetdata', "").replace('\r\n','\n')
+    editmode = request.POST.get('editmode', 'edit')
+    snippet_name = request.POST.get('snippet_name', None)
+    snippetdata = request.POST.get('snippetdata', "").replace('\r\n', '\n')
 
-   if snippet_name == None:
-      return HttpResponse("NO SNIPPET NAME SPECIFIED")
-   if editmode != 'edit':
-      if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
-          snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
+    if snippet_name == None:
+        return HttpResponse("NO SNIPPET NAME SPECIFIED")
+    if editmode != 'edit':
+        if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
+            snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
 
-   delete1   = request.POST.get('delete1', None)
-   delete2   = request.POST.get('delete2', None)
+    delete1 = request.POST.get('delete1', None)
+    delete2 = request.POST.get('delete2', None)
 
-   if delete1 and delete2:
-      remote.read_or_write_snippet(snippet_name, False, -1, request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/snippet/list')
-   else:
-      remote.read_or_write_snippet(snippet_name,False,snippetdata,request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/snippet/edit/file:%s' % snippet_name)
+    if delete1 and delete2:
+        remote.read_or_write_snippet(snippet_name, False, -1, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/snippet/list')
+    else:
+        remote.read_or_write_snippet(snippet_name, False, snippetdata, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/snippet/edit/file:%s' % snippet_name)
 
 # ======================================================================
+
 
 def setting_list(request):
     """
     This page presents a list of all the settings to the user.  They are not editable.
     """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list", expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/setting/list", expired=True)
     settings = remote.get_settings()
     skeys = settings.keys()
     skeys.sort()
 
     results = []
     for k in skeys:
-        results.append([k,settings[k]])
+        results.append([k, settings[k]])
 
     t = get_template('settings.tmpl')
-    html = t.render(RequestContext(request,{
-         'settings' : results,
-         'version'  : remote.extended_version(request.session['token'])['version'],
-         'username' : username,
+    html = t.render(RequestContext(request, {
+         'settings': results,
+         'version': remote.extended_version(request.session['token'])['version'],
+         'username': username,
     }))
     return HttpResponse(html)
+
 
 @csrf_protect
 def setting_edit(request, setting_name=None):
     if not setting_name:
         return HttpResponseRedirect('/cobbler_web/setting/list')
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/edit/%s" % setting_name, expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/setting/edit/%s" % setting_name, expired=True)
 
     settings = remote.get_settings()
     if not settings.has_key(setting_name):
-        return error_page(request,"Unknown setting: %s" % setting_name)
+        return error_page(request, "Unknown setting: %s" % setting_name)
 
     cur_setting = {
-        'name'  : setting_name,
-        'value' : settings[setting_name],
+        'name': setting_name,
+        'value': settings[setting_name],
     }
 
     fields = get_fields('setting', False, seed_item=cur_setting)
     sections = {}
     for field in fields:
         bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo,field['block_section'])
+        fkey = "%d_%s" % (bmo, field['block_section'])
         if not sections.has_key(fkey):
             sections[fkey] = {}
             sections[fkey]['name'] = field['block_section']
@@ -833,306 +877,325 @@ def setting_edit(request, setting_name=None):
         sections[fkey]['fields'].append(field)
 
     t = get_template('generic_edit.tmpl')
-    html = t.render(RequestContext(request,{
-        'what'            : 'setting',
-        #'fields'          : fields,
-        'sections'        : sections,
-        'subobject'       : False,
-        'editmode'        : 'edit',
-        'editable'        : True,
-        'version'         : remote.extended_version(request.session['token'])['version'],
-        'username'        : username,
-        'name'            : setting_name,
+    html = t.render(RequestContext(request, {
+        'what': 'setting',
+        #'fields': fields,
+        'sections': sections,
+        'subobject': False,
+        'editmode': 'edit',
+        'editable': True,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+        'name': setting_name,
     }))
     return HttpResponse(html)
 
+
 @csrf_protect
 def setting_save(request):
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/setting/list", expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/setting/list", expired=True)
 
     # load request fields and see if they are valid
     setting_name = request.POST.get('name', "")
     setting_value = request.POST.get('value', None)
 
     if setting_name == "":
-        return error_page(request,"The setting name was not specified")
+        return error_page(request, "The setting name was not specified")
 
     settings = remote.get_settings()
     if not settings.has_key(setting_name):
-        return error_page(request,"Unknown setting: %s" % setting_name)
+        return error_page(request, "Unknown setting: %s" % setting_name)
 
     if remote.modify_setting(setting_name, setting_value, request.session['token']):
-        return error_page(request,"There was an error saving the setting")
+        return error_page(request, "There was an error saving the setting")
 
     return HttpResponseRedirect("/cobbler_web/setting/list")
 
 # ======================================================================
 
+
 def events(request):
-   """
-   This page presents a list of all the events and links to the event log viewer.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/events", expired=True)
-   events = remote.get_events()
+    """
+    This page presents a list of all the events and links to the event log viewer.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/events", expired=True)
+    events = remote.get_events()
 
-   events2 = []
-   for id in events.keys():
-      (ttime, name, state, read_by) = events[id]
-      events2.append([id,time.asctime(time.localtime(ttime)),name,state])
+    events2 = []
+    for id in events.keys():
+        (ttime, name, state, read_by) = events[id]
+        events2.append([id, time.asctime(time.localtime(ttime)), name, state])
 
-   def sorter(a,b):
-      return cmp(a[0],b[0])
-   events2.sort(sorter)
+    def sorter(a, b):
+        return cmp(a[0], b[0])
+    events2.sort(sorter)
 
-   t = get_template('events.tmpl')
-   html = t.render(RequestContext(request,{
-       'results'  : events2,
-       'version'  : remote.extended_version(request.session['token'])['version'],
-       'username' : username
-   }))
-   return HttpResponse(html)
+    t = get_template('events.tmpl')
+    html = t.render(RequestContext(request, {
+        'results': events2,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
+    }))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 def eventlog(request, event=0):
-   """
-   Shows the log for a given event.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/eventlog/%s" % str(event), expired=True)
-   event_info = remote.get_events()
-   if not event_info.has_key(event):
-      return HttpResponse("event not found")
+    """
+    Shows the log for a given event.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/eventlog/%s" % str(event), expired=True)
+    event_info = remote.get_events()
+    if not event_info.has_key(event):
+        return HttpResponse("event not found")
 
-   data       = event_info[event]
-   eventname  = data[0]
-   eventtime  = data[1]
-   eventstate = data[2]
-   eventlog   = remote.get_event_log(event)
+    data = event_info[event]
+    eventname = data[0]
+    eventtime = data[1]
+    eventstate = data[2]
+    eventlog = remote.get_event_log(event)
 
-   t = get_template('eventlog.tmpl')
-   vars = {
-      'eventlog'   : eventlog,
-      'eventname'  : eventname,
-      'eventstate' : eventstate,
-      'eventid'    : event,
-      'eventtime'  : eventtime,
-      'version'    : remote.extended_version(request.session['token'])['version'],
-      'username'  : username
-   }
-   html = t.render(RequestContext(request,vars))
-   return HttpResponse(html)
+    t = get_template('eventlog.tmpl')
+    vars = {
+       'eventlog': eventlog,
+       'eventname': eventname,
+       'eventstate': eventstate,
+       'eventid': event,
+       'eventtime': eventtime,
+       'version': remote.extended_version(request.session['token'])['version'],
+       'username': username
+    }
+    html = t.render(RequestContext(request, vars))
+    return HttpResponse(html)
 
 # ======================================================================
+
 
 def random_mac(request, virttype="xenpv"):
-   """
-   Used in an ajax call to fill in a field with a mac address.
-   """
-   # FIXME: not exposed in UI currently
-   if not test_user_authenticated(request): return login(request, expired=True)
-   random_mac = remote.get_random_mac(virttype, request.session['token'])
-   return HttpResponse(random_mac)
+    """
+    Used in an ajax call to fill in a field with a mac address.
+    """
+    # FIXME: not exposed in UI currently
+    if not test_user_authenticated(request):
+        return login(request, expired=True)
+    random_mac = remote.get_random_mac(virttype, request.session['token'])
+    return HttpResponse(random_mac)
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def sync(request):
-   """
-   Runs 'cobbler sync' from the API when the user presses the sync button.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/sync", expired=True)
-   remote.background_sync({"verbose":"True"},request.session['token'])
-   return HttpResponseRedirect("/cobbler_web/task_created")
+    """
+    Runs 'cobbler sync' from the API when the user presses the sync button.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/sync", expired=True)
+    remote.background_sync({"verbose": "True"}, request.session['token'])
+    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def reposync(request):
-   """
-   Syncs all repos that are configured to be synced.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/reposync", expired=True)
-   remote.background_reposync({ "names":"", "tries" : 3},request.session['token'])
-   return HttpResponseRedirect("/cobbler_web/task_created")
+    """
+    Syncs all repos that are configured to be synced.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/reposync", expired=True)
+    remote.background_reposync({"names": "", "tries": 3}, request.session['token'])
+    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def hardlink(request):
-   """
-   Hardlinks files between repos and install trees to save space.
-   """
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/hardlink", expired=True)
-   remote.background_hardlink({},request.session['token'])
-   return HttpResponseRedirect("/cobbler_web/task_created")
+    """
+    Hardlinks files between repos and install trees to save space.
+    """
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/hardlink", expired=True)
+    remote.background_hardlink({}, request.session['token'])
+    return HttpResponseRedirect("/cobbler_web/task_created")
 
 # ======================================================================
+
 
 @require_POST
 @csrf_protect
 def replicate(request):
-   """
-   Replicate configuration from the central cobbler server, configured
-   in /etc/cobbler/settings (note: this is uni-directional!)
+    """
+    Replicate configuration from the central cobbler server, configured
+    in /etc/cobbler/settings (note: this is uni-directional!)
 
-   FIXME: this is disabled because we really need a web page to provide options for
-   this command.
+    FIXME: this is disabled because we really need a web page to provide options for
+    this command.
 
-   """
-   #settings = remote.get_settings()
-   #options = settings # just load settings from file until we decide to ask user (later?)
-   #remote.background_replicate(options, request.session['token'])
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/replicate", expired=True)
-   return HttpResponseRedirect("/cobbler_web/task_created")
+    """
+    #settings = remote.get_settings()
+    #options = settings # just load settings from file until we decide to ask user (later?)
+    #remote.background_replicate(options, request.session['token'])
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/replicate", expired=True)
+    return HttpResponseRedirect("/cobbler_web/task_created")
+
+# ======================================================================
+
+
+def __names_from_dicts(loh, optional=True):
+    """
+    Tiny helper function.
+    Get the names out of an array of hashes that the remote interface returns.
+    """
+    results = []
+    if optional:
+        results.append("<<None>>")
+    for x in loh:
+        results.append(x["name"])
+    results.sort()
+    return results
 
 # ======================================================================
 
-def __names_from_dicts(loh,optional=True):
-   """
-   Tiny helper function.
-   Get the names out of an array of hashes that the remote interface returns.
-   """
-   results = []
-   if optional:
-      results.append("<<None>>")
-   for x in loh:
-      results.append(x["name"])
-   results.sort()
-   return results
-
-# ======================================================================
 
 @csrf_protect
 def generic_edit(request, what=None, obj_name=None, editmode="new"):
+    """
+    Presents an editor page for any type of object.
+    While this is generally standardized, systems are a little bit special.
+    """
+    target = ""
+    if obj_name != None:
+        target = "/%s" % obj_name
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/edit%s" % (what, target), expired=True)
 
-   """
-   Presents an editor page for any type of object.
-   While this is generally standardized, systems are a little bit special.
-   """
-   target = ""
-   if obj_name != None:
-       target = "/%s" % obj_name
-   if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/edit%s" % (what,target), expired=True)
+    obj = None
 
-   obj = None
+    child = False
+    if what == "subprofile":
+        what = "profile"
+        child = True
 
-   child = False
-   if what == "subprofile":
-      what = "profile"
-      child = True
+    if not obj_name is None:
+        editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
+        obj = remote.get_item(what, obj_name, False)
+    else:
+        editable = remote.check_access_no_fail(request.session['token'], "new_%s" % what, None)
+        obj = None
 
-   if not obj_name is None:
-      editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
-      obj = remote.get_item(what, obj_name, False)
-   else:
-       editable = remote.check_access_no_fail(request.session['token'], "new_%s" % what, None)
-       obj = None
+    interfaces = {}
+    if what == "system":
+        if obj:
+            interfaces = obj.get("interfaces", {})
+        else:
+            interfaces = {}
 
-   interfaces = {}
-   if what == "system":
-       if obj:
-           interfaces = obj.get("interfaces",{})
-       else:
-           interfaces = {}
+    fields = get_fields(what, child, obj)
 
-   fields = get_fields(what, child, obj)
-
-   # populate some select boxes
-   # FIXME: we really want to just populate with the names, right?
-   if what == "profile":
-      if (obj and obj["parent"] not in (None,"")) or child:
-         __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
-      else:
-         __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
-      __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
-   elif what == "system":
-      __tweak_field(fields, "profile", "choices",      __names_from_dicts(remote.get_profiles()))
-      __tweak_field(fields, "image", "choices",        __names_from_dicts(remote.get_images(),optional=True))
-   elif what == "mgmtclass":
+    # populate some select boxes
+    # FIXME: we really want to just populate with the names, right?
+    if what == "profile":
+        if (obj and obj["parent"] not in (None, "")) or child:
+            __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
+        else:
+            __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
+        __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
+    elif what == "system":
+        __tweak_field(fields, "profile", "choices", __names_from_dicts(remote.get_profiles()))
+        __tweak_field(fields, "image", "choices", __names_from_dicts(remote.get_images(), optional=True))
+    elif what == "mgmtclass":
         __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
-        __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
+        __tweak_field(fields, "files", "choices", __names_from_dicts(remote.get_files()))
 
-   if what in ("distro","profile","system"):
-       __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
-       __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
-       __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
+    if what in ("distro", "profile", "system"):
+        __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
+        __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
+        __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
 
-   # if editing save the fields in the session for comparison later
-   if editmode == "edit":
-       request.session['%s_%s' % (what,obj_name)] = fields
+    # if editing save the fields in the session for comparison later
+    if editmode == "edit":
+        request.session['%s_%s' % (what, obj_name)] = fields
 
-   sections = {}
-   for field in fields:
-       bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-       fkey = "%d_%s" % (bmo,field['block_section'])
-       if not sections.has_key(fkey):
-           sections[fkey] = {}
-           sections[fkey]['name'] = field['block_section']
-           sections[fkey]['fields'] = []
-       sections[fkey]['fields'].append(field)
+    sections = {}
+    for field in fields:
+        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
+        fkey = "%d_%s" % (bmo, field['block_section'])
+        if not sections.has_key(fkey):
+            sections[fkey] = {}
+            sections[fkey]['name'] = field['block_section']
+            sections[fkey]['fields'] = []
+        sections[fkey]['fields'].append(field)
 
-   t = get_template('generic_edit.tmpl')
-   inames = interfaces.keys()
-   inames.sort()
-   html = t.render(RequestContext(request,{
-       'what'            : what,
-       #'fields'          : fields,
-       'sections'        : sections,
-       'subobject'       : child,
-       'editmode'        : editmode,
-       'editable'        : editable,
-       'interfaces'      : interfaces,
-       'interface_names' : inames,
-       'interface_length': len(inames),
-       'version'         : remote.extended_version(request.session['token'])['version'],
-       'username'        : username,
-       'name'            : obj_name
-   }))
+    t = get_template('generic_edit.tmpl')
+    inames = interfaces.keys()
+    inames.sort()
+    html = t.render(RequestContext(request, {
+        'what': what,
+        #'fields': fields,
+        'sections': sections,
+        'subobject': child,
+        'editmode': editmode,
+        'editable': editable,
+        'interfaces': interfaces,
+        'interface_names': inames,
+        'interface_length': len(inames),
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
+        'name': obj_name
+    }))
 
-   return HttpResponse(html)
+    return HttpResponse(html)
 
 # ======================================================================
 
+
 @require_POST
 @csrf_protect
-def generic_save(request,what):
-
+def generic_save(request, what):
     """
     Saves an object back using the cobbler API after clearing any 'generic_edit' page.
     """
-    if not test_user_authenticated(request): return login(request, next="/cobbler_web/%s/list" % what, expired=True)
+    if not test_user_authenticated(request):
+        return login(request, next="/cobbler_web/%s/list" % what, expired=True)
 
     # load request fields and see if they are valid
-    editmode  = request.POST.get('editmode', 'edit')
-    obj_name  = request.POST.get('name', "")
+    editmode = request.POST.get('editmode', 'edit')
+    obj_name = request.POST.get('name', "")
     subobject = request.POST.get('subobject', "False")
 
     if subobject == "False":
-       subobject = False
+        subobject = False
     else:
-       subobject = True
+        subobject = True
 
     if obj_name == "":
-        return error_page(request,"Required field name is missing")
+        return error_page(request, "Required field name is missing")
 
     prev_fields = []
-    if request.session.has_key("%s_%s" % (what,obj_name)) and editmode == "edit":
-        prev_fields = request.session["%s_%s" % (what,obj_name)]
+    if request.session.has_key("%s_%s" % (what, obj_name)) and editmode == "edit":
+        prev_fields = request.session["%s_%s" % (what, obj_name)]
 
     # grab the remote object handle
     # for edits, fail in the object cannot be found to be edited
     # for new objects, fail if the object already exists
     if editmode == "edit":
         if not remote.has_item(what, obj_name):
-            return error_page(request,"Failure trying to access item %s, it may have been deleted." % (obj_name))
-        obj_id = remote.get_item_handle( what, obj_name, request.session['token'] )
+            return error_page(request, "Failure trying to access item %s, it may have been deleted." % (obj_name))
+        obj_id = remote.get_item_handle(what, obj_name, request.session['token'])
     else:
         if remote.has_item(what, obj_name):
-            return error_page(request,"Could not create a new item %s, it already exists." % (obj_name))
-        obj_id = remote.new_item( what, request.session['token'] )
+            return error_page(request, "Could not create a new item %s, it already exists." % (obj_name))
+        obj_id = remote.new_item(what, request.session['token'])
 
     # walk through our fields list saving things we know how to save
     fields = get_fields(what, subobject)
@@ -1153,32 +1216,32 @@ def generic_save(request,what):
                     prev_value = prev_field['value']
                     break
 
-            value = request.POST.get(field['name'],None)
+            value = request.POST.get(field['name'], None)
             # Checkboxes return the value of the field if checked, otherwise None
             # convert to True/False
             if field["html_element"] == "checkbox":
-                if value==field['name']:
-                    value=True
+                if value == field['name']:
+                    value = True
                 else:
-                    value=False
+                    value = False
 
             # Multiselect fields are handled differently
             if field["html_element"] == "multiselect":
-                values=request.POST.getlist(field['name'])
-                value=[]
+                values = request.POST.getlist(field['name'])
+                value = []
                 if '<<inherit>>' in values:
-                    value='<<inherit>>'
+                    value = '<<inherit>>'
                 else:
                     for single_value in values:
                         if single_value != "<<None>>":
-                            value.insert(0,single_value)
+                            value.insert(0, single_value)
 
             if value != None:
                 if value == "<<None>>":
                     value = ""
                 if value is not None and (not subobject or field['name'] != 'distro') and value != prev_value:
                     try:
-                        remote.modify_item(what,obj_id,field['name'],value,request.session['token'])
+                        remote.modify_item(what, obj_id, field['name'], value, request.session['token'])
                     except Exception, e:
                         return error_page(request, str(e))
 
@@ -1188,7 +1251,7 @@ def generic_save(request,what):
         interface_field_list = []
         for field in fields:
             if field['name'].startswith("*"):
-                field = field['name'].replace("*","")
+                field = field['name'].replace("*", "")
                 interface_field_list.append(field)
         interfaces = request.POST.get('interface_list', "").split(",")
         for interface in interfaces:
@@ -1196,10 +1259,10 @@ def generic_save(request,what):
                 continue
             ifdata = {}
             for item in interface_field_list:
-                ifdata["%s-%s" % (item,interface)] = request.POST.get("%s-%s" % (item,interface), "")
-            ifdata=utils.strip_none(ifdata)
+                ifdata["%s-%s" % (item, interface)] = request.POST.get("%s-%s" % (item, interface), "")
+            ifdata = utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
-            present  = request.POST.get("present-%s" % interface, "")
+            present = request.POST.get("present-%s" % interface, "")
             original = request.POST.get("original-%s" % interface, "")
             try:
                 if present == "0" and original == "1":
@@ -1246,7 +1309,10 @@ def test_user_authenticated(request):
             pass
     return False
 
+
 use_passthru = -1
+
+
 @csrf_protect
 def login(request, next=None, message=None, expired=False):
     global use_passthru
@@ -1260,7 +1326,8 @@ def login(request, next=None, message=None, expired=False):
 
     if expired and not message:
         message = "Sorry, either you need to login or your session expired."
-    return render_to_response('login.tmpl', RequestContext(request,{'next':next,'message':message}))
+    return render_to_response('login.tmpl', RequestContext(request, {'next': next, 'message': message}))
+
 
 def accept_remote_user(request, nextsite):
     global username
@@ -1271,9 +1338,10 @@ def accept_remote_user(request, nextsite):
     request.session['username'] = username
     request.session['token'] = token
     if nextsite:
-       return HttpResponseRedirect(nextsite)
+        return HttpResponseRedirect(nextsite)
     else:
-       return HttpResponseRedirect("/cobbler_web")
+        return HttpResponseRedirect("/cobbler_web")
+
 
 @require_POST
 @csrf_protect
@@ -1284,7 +1352,7 @@ def do_login(request):
 
     username = request.POST.get('username', '').strip()
     password = request.POST.get('password', '')
-    nextsite = request.POST.get('next',None)
+    nextsite = request.POST.get('next', None)
 
     if url_cobbler_api is None:
         url_cobbler_api = utils.local_get_cobbler_api_url()
@@ -1300,11 +1368,12 @@ def do_login(request):
         request.session['username'] = username
         request.session['token'] = token
         if nextsite:
-           return HttpResponseRedirect(nextsite)
+            return HttpResponseRedirect(nextsite)
         else:
-           return HttpResponseRedirect("/cobbler_web")
+            return HttpResponseRedirect("/cobbler_web")
     else:
-        return login(request,nextsite,message="Login failed, please try again")
+        return login(request, nextsite, message="Login failed, please try again")
+
 
 @require_POST
 @csrf_protect
