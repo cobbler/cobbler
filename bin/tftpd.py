@@ -862,7 +862,6 @@ def read_packet(data,local_sock,remote_addr):
        
        Returns None on failure
     """
-    packet = None
     opcode, = unpack("!H",data[0:2])
     if opcode < 1 or opcode > 6:
         logging.warn("Unknown request id %d from %s" % (opcode,remote_addr))

@@ -78,10 +78,6 @@ class YumGen:
             included[path] = 1
 
         for infile in input_files:
-            if infile.find("ks_mirror") == -1:
-                dispname = infile.split("/")[-2]
-            else:
-                dispname = infile.split("/")[-1].replace(".repo","")
             try:
                 infile_h = open(infile)
             except:
