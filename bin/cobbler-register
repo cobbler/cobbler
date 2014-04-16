@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 cobbler-register wrapper script.  See 'man cobbler-register' for details.
 

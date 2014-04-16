@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-import yaml # PyYAML version
+import yaml
 import urlgrabber
 import sys
 
@@ -17,5 +17,3 @@ if __name__ == "__main__":
        conf.close()
        url = "http://%s:%s/cblr/svc/op/puppet/hostname/%s" % (config["server"], config["http_port"], hostname)
        print urlgrabber.urlread(url)
-
-

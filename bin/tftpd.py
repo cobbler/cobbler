@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 SYNOPSIS
     tftpd.py [-h,--help] [-v,--verbose] [-d,--debug] [--version]

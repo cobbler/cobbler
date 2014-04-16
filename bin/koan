@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Koan wrapper script.  See 'man koan' for details.
 

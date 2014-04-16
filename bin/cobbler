@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Wrapper for cobbler
 
@@ -33,4 +32,3 @@ if PROFILING:
     sys.exit(0)
 else:
     sys.exit(app.main())
-
