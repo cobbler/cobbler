@@ -20,14 +20,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys, socket, time, os, errno, re, random, stat, string
-import base64
+import time, os, errno, random, stat, string
 import SimpleXMLRPCServer
 from SocketServer import ThreadingMixIn
 import xmlrpclib
 import base64
 import fcntl
-import traceback
 import glob
 from threading import Thread
 
@@ -44,9 +42,6 @@ import item_package
 import item_file
 import clogger
 import pxegen
-import utils
-#from utils import * # BAD!
-from utils import _
 import configgen
 
 EVENT_TIMEOUT = 7*24*60*60 # 1 week

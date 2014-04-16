@@ -25,11 +25,7 @@ import os
 import os.path
 import shutil
 import shlex
-import time
-import sys
 import glob
-import traceback
-import errno
 import string
 import socket
 import re
@@ -37,14 +33,6 @@ import re
 import utils
 from cexceptions import *
 import templar 
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
-import item_image
-
-from utils import _
 
 
 class PXEGen:
@@ -206,7 +194,6 @@ class PXEGen:
             return
         if not os.path.exists(images_dir):
             os.makedirs(images_dir)
-        basename = os.path.basename(img.file)
         newfile = os.path.join(images_dir, img.name)
         utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
         return True

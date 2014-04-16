@@ -5,7 +5,6 @@
 import sys
 import unittest
 import os
-import tempfile
 import shutil
 import traceback
 
@@ -13,7 +12,6 @@ from cexceptions import *
 
 import modules.authz_ownership as authz_module
 import api
-import config
 import utils
 utils.TEST_MODE = True
 

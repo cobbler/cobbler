@@ -17,10 +17,8 @@ from mod_python import Session
 from mod_python import util
 
 import xmlrpclib
-import cgi
 import os
 from cobbler.webui import CobblerWeb
-import cobbler.utils as utils
 import yaml # PyYAML
 
 XMLRPC_SERVER = "http://127.0.0.1:25151" # FIXME: pull port from settings

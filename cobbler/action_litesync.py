@@ -27,7 +27,6 @@ import os
 import os.path
 
 import utils
-import traceback
 import clogger
 import module_loader
 

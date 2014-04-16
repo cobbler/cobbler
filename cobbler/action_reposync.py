@@ -23,8 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import time
-import sys
 
 HAS_YUM = True
 try:
@@ -34,9 +32,6 @@ except:
 
 import utils
 from cexceptions import *
-import traceback
-import errno
-from utils import _
 import clogger
 
 class RepoSync:

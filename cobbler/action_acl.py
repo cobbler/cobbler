@@ -23,16 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
-import shutil
-import sys
-import glob
-import traceback
-import errno
 import utils
 from cexceptions import *
-from utils import _
 import clogger
 
 class AclConfig:
@@ -72,7 +64,6 @@ class AclConfig:
      
     def modacl(self,isadd,isuser,who):
 
-        webdir = self.settings.webdir
         snipdir = self.settings.snippetsdir
         tftpboot = utils.tftpboot_location()
 
