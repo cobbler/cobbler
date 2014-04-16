@@ -11,11 +11,11 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = ''     # cobbler-web does not use a database
-DATABASE_NAME = ''       
-DATABASE_USER = ''       
-DATABASE_PASSWORD = ''   
-DATABASE_HOST = ''       
-DATABASE_PORT = ''       
+DATABASE_NAME = ''
+DATABASE_USER = ''
+DATABASE_PASSWORD = ''
+DATABASE_HOST = ''
+DATABASE_PORT = ''
 
 # Force Django to use the systems timezone
 TIME_ZONE = None
@@ -31,7 +31,7 @@ SITE_ID = 1
 MEDIA_ROOT = ''
 MEDIA_URL = ''
 
-if django.VERSION[0] == 1 and django.VERSION[1] < 4: 
+if django.VERSION[0] == 1 and django.VERSION[1] < 4:
     ADMIN_MEDIA_PREFIX = '/media/'
 else:
     STATIC_URL = '/media/'
@@ -52,8 +52,8 @@ else:
     )
 
 if django.VERSION[0] == 1 and django.VERSION[1] < 2:
-    # Legacy django had a different CSRF method, which also had 
-    # different middleware. We check the vesion here so we bring in 
+    # Legacy django had a different CSRF method, which also had
+    # different middleware. We check the vesion here so we bring in
     # the correct one.
     MIDDLEWARE_CLASSES = (
         'django.middleware.common.CommonMiddleware',
@@ -86,8 +86,7 @@ from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
 TEMPLATE_CONTEXT_PROCESSORS += (
      'django.core.context_processors.request',
-) 
-     
+)
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = '/var/lib/cobbler/webui_sessions'
-

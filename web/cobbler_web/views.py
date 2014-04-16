@@ -420,7 +420,7 @@ def modify_list(request, what, pref, value=None):
             filters[field_name] = field_value
         else:
             # remove this filter, if it exists
-            if filters.has_key(value):
+            if value in filters:
                 del filters[value]
         # save session variable
         request.session["%s_filters" % what] = simplejson.dumps(filters)
@@ -857,7 +857,7 @@ def setting_edit(request, setting_name=None):
         return login(request, next="/cobbler_web/setting/edit/%s" % setting_name, expired=True)
 
     settings = remote.get_settings()
-    if not settings.has_key(setting_name):
+    if not setting_name in settings:
         return error_page(request, "Unknown setting: %s" % setting_name)
 
     cur_setting = {
@@ -870,7 +870,7 @@ def setting_edit(request, setting_name=None):
     for field in fields:
         bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
-        if not sections.has_key(fkey):
+        if not fkey in sections:
             sections[fkey] = {}
             sections[fkey]['name'] = field['block_section']
             sections[fkey]['fields'] = []
@@ -904,7 +904,7 @@ def setting_save(request):
         return error_page(request, "The setting name was not specified")
 
     settings = remote.get_settings()
-    if not settings.has_key(setting_name):
+    if not setting_name in settings:
         return error_page(request, "Unknown setting: %s" % setting_name)
 
     if remote.modify_setting(setting_name, setting_value, request.session['token']):
@@ -950,7 +950,7 @@ def eventlog(request, event=0):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/eventlog/%s" % str(event), expired=True)
     event_info = remote.get_events()
-    if not event_info.has_key(event):
+    if not event in event_info:
         return HttpResponse("event not found")
 
     data = event_info[event]
@@ -1130,7 +1130,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     for field in fields:
         bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
-        if not sections.has_key(fkey):
+        if not fkey in sections:
             sections[fkey] = {}
             sections[fkey]['name'] = field['block_section']
             sections[fkey]['fields'] = []
@@ -1182,7 +1182,7 @@ def generic_save(request, what):
         return error_page(request, "Required field name is missing")
 
     prev_fields = []
-    if request.session.has_key("%s_%s" % (what, obj_name)) and editmode == "edit":
+    if "%s_%s" % (what, obj_name) in request.session and editmode == "edit":
         prev_fields = request.session["%s_%s" % (what, obj_name)]
 
     # grab the remote object handle
@@ -1297,11 +1297,11 @@ def test_user_authenticated(request):
     # the remote server via XMLRPC. We then compare that to
     # the value stored in the session.  If everything matches up,
     # the user is considered successfully authenticated
-    if request.session.has_key('token') and request.session['token'] != '':
+    if 'token' in request.session and request.session['token'] != '':
         try:
             if remote.token_check(request.session['token']):
                 token_user = remote.get_user_from_token(request.session['token'])
-                if request.session.has_key('username') and request.session['username'] == token_user:
+                if 'username' in request.session and request.session['username'] == token_user:
                     username = request.session['username']
                     return True
         except:
