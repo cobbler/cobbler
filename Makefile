@@ -111,7 +111,7 @@ restartservices:
 		/usr/sbin/service apache2 restart; \
 	fi
 
-sdist: qa clean
+sdist: clean
 	python setup.py sdist
 
 rpms: clean sdist
