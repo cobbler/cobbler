@@ -30,6 +30,7 @@ from template_api import Template
 from utils import *
 import utils
 import clogger
+import functools
 
 import Cheetah
 major, minor, release = Cheetah.Version.split('.')[0:3]
@@ -43,10 +44,6 @@ except:
     """ FIXME: log a message here """
     pass
     
-try:
-    import functools
-except:
-    functools = None
 
 class Templar:
 
@@ -199,7 +196,7 @@ class Templar:
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame':False})
 
-        if fix_cheetah_class and functools is not None:
+        if fix_cheetah_class:
             t.SNIPPET = functools.partial(t.SNIPPET, t)
             t.read_snippet = functools.partial(t.read_snippet, t)
 

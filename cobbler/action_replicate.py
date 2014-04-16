@@ -67,7 +67,7 @@ class Replicate:
                 try:
                     self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
                     self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
-                except Exception, e:
+                except Exception:
                     utils.log_exc(self.logger)
 
     # -------------------------------------------------------
@@ -75,7 +75,6 @@ class Replicate:
     def add_objects_not_on_local(self, obj_type):
          locals   = utils.loh_to_hoh(self.local_data[obj_type], "uid")
          remotes  = utils.loh_sort_by_key(self.remote_data[obj_type],"depth")
-         remotes2 = utils.loh_to_hoh(self.remote_data[obj_type],"depth")
 
          for rdata in remotes:
 
@@ -91,7 +90,7 @@ class Replicate:
                      self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                      if not self.api.add_item(obj_type, newobj,logger=self.logger):
                          self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
-                 except Exception, e:
+                 except Exception:
                      utils.log_exc(self.logger)
 
     # -------------------------------------------------------
@@ -120,7 +119,7 @@ class Replicate:
                          self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
                          if not self.api.add_item(obj_type, newobj):
                              self.logger.error("failed to update %s %s" % (obj_type, rdata["name"]))
-                     except Exception, e:
+                     except Exception:
                          utils.log_exc(self.logger)
 
     # -------------------------------------------------------

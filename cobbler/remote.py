@@ -1017,7 +1017,7 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         try:
             return self.api.generate_kickstart(profile,system)
-        except Exception, e:
+        except Exception:
             utils.log_exc(self.logger)
             return "# This kickstart had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
@@ -1992,7 +1992,7 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
         if power=="on":
-            rc=self.api.power_on(obj, user=user, password=passwrod, logger=logger)
+            rc=self.api.power_on(obj, user=user, password=password, logger=logger)
         elif power=="off":
             rc=self.api.power_off(obj, user=user, password=password, logger=logger)
         elif power=="status":
@@ -2157,9 +2157,6 @@ def test_xmlrpc_ro():
 
    before_distros  = len(api.distros())
    before_profiles = len(api.profiles())
-   before_systems  = len(api.systems())
-   before_repos    = len(api.repos())
-   before_images   = len(api.images())
 
    fake = open("/tmp/cobbler.fake","w+")
    fake.write("")
@@ -2180,7 +2177,7 @@ def test_xmlrpc_ro():
    files = glob.glob("rpm-build/*.rpm")
    if len(files) == 0:
       raise Exception("Tests must be run from the cobbler checkout directory.")
-   rc = utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
+   utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
    api.add_repo(repo)
 
    profile = api.new_profile()
@@ -2235,17 +2232,14 @@ def test_xmlrpc_ro():
    assert comb(profiles, "profile0")
 
    systems = server.get_systems()
-   # assert len(systems) == before_systems + 1
    assert comb(systems, "system0")
 
    repos = server.get_repos()
    # FIXME: disable temporarily
-   # assert len(repos) == before_repos + 1
    assert comb(repos, "repo0")
 
 
    images = server.get_images()
-   # assert len(images) == before_images + 1
    assert comb(images, "image0")
 
    # now test specific gets
@@ -2376,9 +2370,6 @@ def test_xmlrpc_ro():
 
    # assert (len(api.distros()) == before_distros)
    # assert (len(api.profiles()) == before_profiles)
-   # assert (len(api.systems()) == before_systems)
-   # assert (len(api.images()) == before_images)
-   # assert (len(api.repos()) == before_repos)
   
 def test_xmlrpc_rw():
 
@@ -2624,7 +2615,6 @@ def test_xmlrpc_rw():
    assert len(server.get_repos_since(2)) > 0
    assert len(server.get_distros_since(2)) > 0
 
-   now = time.time()
    the_future = time.time() + 99999
    assert len(server.get_distros_since(the_future)) == 0
  
