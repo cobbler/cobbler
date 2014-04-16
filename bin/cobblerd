@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Wrapper for cobbler's remote syslog watching daemon.
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 ## OpenVZ container-type virtualization installation functions.
 ## 
 ## Copyright 2012 Sergey Podushkin <psv AT tncc.ru>
