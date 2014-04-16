@@ -234,7 +234,6 @@ class CobblerSvc(object):
         serverseg = "http//%s" % self.config._settings.server
 
         name = "?"    
-        type = "system"
         if system is not None:
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
         elif profile is not None:
@@ -325,7 +324,7 @@ def __test_setup():
     files = glob.glob("rpm-build/*.rpm")
     if len(files) == 0:
        raise Exception("Tests must be run from the cobbler checkout directory.")
-    rc = utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
+    utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
     api.add_repo(repo)
 
     fd = open("/tmp/cobbler_t1","w+")

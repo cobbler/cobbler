@@ -85,7 +85,7 @@ def load_modules(module_path=mod_path, blacklist=None):
             if not MODULES_BY_CATEGORY.has_key(category):
                 MODULES_BY_CATEGORY[category] = {}
             MODULES_BY_CATEGORY[category][modname] = blip
-        except Exception, e:
+        except Exception:
             logger.info('Exception raised when loading module %s' % modname)
             log_exc(logger)
 

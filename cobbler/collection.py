@@ -282,7 +282,7 @@ class Collection:
 
         try:
             ref.check_if_valid()
-        except CX, error:
+        except CX:
             return False
 
         if ref.uid == '':

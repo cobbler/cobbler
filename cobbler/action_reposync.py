@@ -91,7 +91,6 @@ class RepoSync:
 
             repo_mirror = os.path.join(self.settings.webdir, "repo_mirror")
             repo_path = os.path.join(repo_mirror, repo.name)
-            mirror = repo.mirror
 
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
@@ -216,8 +215,6 @@ class RepoSync:
         Handle copying of rsync:// and rsync-over-ssh repos.
         """
 
-        repo_mirror = repo.mirror
-
         if not repo.mirror_locally:
             utils.die(self.logger,"rsync:// urls must be mirrored locally, yum cannot access them directly")
 
@@ -249,8 +246,6 @@ class RepoSync:
         """
         Handle mirroring of RHN repos.
         """
-
-        repo_mirror = repo.mirror
 
         # FIXME? warn about not having yum-utils.  We don't want to require it in the package because
         # RHEL4 and RHEL5U0 don't have it.
@@ -303,15 +298,12 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            rc = utils.subprocess_call(self.logger, cmd)
-            # Don't die if reposync fails, it is logged
-            # if rc !=0:
-            #     utils.die(self.logger,"cobbler reposync failed")
+            utils.subprocess_call(self.logger, cmd)
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
 
-        temp_file = self.create_local_file(temp_path, repo, output=False)
+        self.create_local_file(temp_path, repo, output=False)
 
         # now run createrepo to rebuild the index
 
@@ -436,8 +428,6 @@ class RepoSync:
         Handle copying of http:// and ftp:// debian repos.
         """
 
-        repo_mirror = repo.mirror
-
         # warn about not having mirror program.
 
         mirror_program = "/usr/bin/debmirror"
@@ -445,7 +435,6 @@ class RepoSync:
             utils.die(self.logger,"no %s found, please install it"%(mirror_program))
 
         cmd = ""                  # command to run
-        has_rpm_list = False      # flag indicating not to pull the whole repo
 
         # detect cases that require special handling
 
