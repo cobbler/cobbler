@@ -25,6 +25,8 @@ clean:
 qa:
 	@echo "running pyflakes..."
 	@pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
+	@echo "running pep8..."
+	@pep8 -r --ignore E303,E501 cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
 
 test:
 	make savestate prefix=test
