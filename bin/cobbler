@@ -20,7 +20,8 @@ PROFILING = False
 
 if PROFILING:
     print "** PROFILING **"
-    import hotshot, hotshot.stats
+    import hotshot
+    import hotshot.stats
     prof = hotshot.Profile("cobbler.prof")
     prof.runcall(app.main)
     prof.close()
