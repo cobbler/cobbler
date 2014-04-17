@@ -25,38 +25,38 @@ import os
 import os.path
 
 import utils
-import templar 
+import templar
 
 
 class YumGen:
 
-    def __init__(self,config):
+    def __init__(self, config):
         """
         Constructor
         """
-        self.config      = config
-        self.api         = config.api
-        self.distros     = config.distros()
-        self.profiles    = config.profiles()
-        self.systems     = config.systems()
-        self.settings    = config.settings()
-        self.repos       = config.repos()
-        self.templar     = templar.Templar(config)
+        self.config = config
+        self.api = config.api
+        self.distros = config.distros()
+        self.profiles = config.profiles()
+        self.systems = config.systems()
+        self.settings = config.settings()
+        self.repos = config.repos()
+        self.templar = templar.Templar(config)
 
-    def get_yum_config(self,obj,is_profile):
+    def get_yum_config(self, obj, is_profile):
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
         """
 
         totalbuf = ""
 
-        blended  = utils.blender(self.api, False, obj)
+        blended = utils.blender(self.api, False, obj)
 
         input_files = []
 
         # chance old versions from upgrade do not have a source_repos
         # workaround for user bug
-        if not blended.has_key("source_repos"):
+        if not "source_repos" in blended:
             blended["source_repos"] = []
 
         # tack on all the install source repos IF there is more than one.
@@ -66,13 +66,13 @@ class YumGen:
         included = {}
         for r in blended["source_repos"]:
             filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
-            if not included.has_key(filename):
+            if not filename in included:
                 input_files.append(filename)
             included[filename] = 1
 
         for repo in blended["repos"]:
             path = os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo")
-            if not included.has_key(path):
+            if not path in included:
                 input_files.append(path)
             included[path] = 1
 
@@ -83,16 +83,13 @@ class YumGen:
                 # file does not exist and the user needs to run reposync
                 # before we will use this, cobbler check will mention
                 # this problem
-                totalbuf = totalbuf +  "\n# error: could not read repo source: %s\n\n" % infile
+                totalbuf = totalbuf + "\n# error: could not read repo source: %s\n\n" % infile
                 continue
 
             infile_data = infile_h.read()
             infile_h.close()
-            outfile = None # disk output only
+            outfile = None  # disk output only
             totalbuf = totalbuf + self.templar.render(infile_data, blended, outfile, None)
             totalbuf = totalbuf + "\n\n"
 
         return totalbuf
-
-
-
