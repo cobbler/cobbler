@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-
 import os
 import os.path
 import time
@@ -35,25 +34,26 @@ import utils
 import templar
 import clogger
 
+
 class PowerTool:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,system,api,force_user=None,force_pass=None,logger=None):
+    def __init__(self, config, system, api, force_user=None, force_pass=None, logger=None):
         """
         Power library constructor requires a cobbler system object.
         """
-        self.system      = system
-        self.config      = config
-        self.settings    = config.settings()
-        self.api         = api
-        self.logger      = self.api.logger
-        self.force_user  = force_user
-        self.force_pass  = force_pass
+        self.system = system
+        self.config = config
+        self.settings = config.settings()
+        self.api = api
+        self.logger = self.api.logger
+        self.force_user = force_user
+        self.force_pass = force_pass
         if logger is None:
             logger = clogger.Logger()
-        self.logger      = logger
+        self.logger = logger
 
     def power(self, desired_state):
         """
@@ -68,16 +68,16 @@ class PowerTool:
 
         power_command = utils.get_power(self.system.power_type)
         if not power_command:
-            utils.die(self.logger,"no power type set for system")
+            utils.die(self.logger, "no power type set for system")
 
         meta = utils.blender(self.api, False, self.system)
         meta["power_mode"] = desired_state
 
-        # allow command line overrides of the username/password 
+        # allow command line overrides of the username/password
         if self.force_user is not None:
-           meta["power_user"] = self.force_user
+            meta["power_user"] = self.force_user
         if self.force_pass is not None:
-           meta["power_pass"] = self.force_pass
+            meta["power_pass"] = self.force_pass
 
         self.logger.info("cobbler power configuration is:")
         self.logger.info("      type   : %s" % self.system.power_type)
@@ -86,10 +86,10 @@ class PowerTool:
         self.logger.info("      id     : %s" % self.system.power_id)
 
         # if no username/password data, check the environment
-        if meta.get("power_user","") == "":
-            meta["power_user"] = os.environ.get("COBBLER_POWER_USER","")
-        if meta.get("power_pass","") == "":
-            meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS","")
+        if meta.get("power_user", "") == "":
+            meta["power_user"] = os.environ.get("COBBLER_POWER_USER", "")
+        if meta.get("power_pass", "") == "":
+            meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS", "")
 
         template = utils.get_power_template(self.system.power_type)
         tmp = templar.Templar(self.api._config)
@@ -97,7 +97,7 @@ class PowerTool:
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
-        for x in range(0,5):
+        for x in range(0, 5):
             output, rc = utils.subprocess_sp(self.logger, power_command, shell=False, input=template_data)
             if rc == 0:
                 # If the desired state is actually a query for the status
@@ -110,14 +110,13 @@ class PowerTool:
                             return True
                         else:
                             return False
-                    utils.die(self.logger,"command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output))
+                    utils.die(self.logger, "command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output))
                     return None
                 break
             else:
                 time.sleep(2)
 
         if not rc == 0:
-           utils.die(self.logger,"command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
+            utils.die(self.logger, "command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
 
         return rc
-
