@@ -27,20 +27,21 @@ import utils
 from cexceptions import CX
 import clogger
 
+
 class AclConfig:
 
-    def __init__(self,config,logger=None):
+    def __init__(self, config, logger=None):
         """
         Constructor
         """
-        self.config      = config
-        self.api         = config.api
-        self.settings    = config.settings()
+        self.config = config
+        self.api = config.api
+        self.settings = config.settings()
         if logger is None:
-            logger       = clogger.Logger()
-        self.logger      = logger
+            logger = clogger.Logger()
+        self.logger = logger
 
-    def run(self,adduser=None,addgroup=None,removeuser=None,removegroup=None):
+    def run(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
         """
         Automate setfacl commands
         """
@@ -48,65 +49,59 @@ class AclConfig:
         ok = False
         if adduser:
             ok = True
-            self.modacl(True,True,adduser)
+            self.modacl(True, True, adduser)
         if addgroup:
             ok = True
-            self.modacl(True,False,addgroup)
+            self.modacl(True, False, addgroup)
         if removeuser:
             ok = True
-            self.modacl(False,True,removeuser)
+            self.modacl(False, True, removeuser)
         if removegroup:
             ok = True
-            self.modacl(False,False,removegroup) 
+            self.modacl(False, False, removegroup)
         if not ok:
             raise CX("no arguments specified, nothing to do")
         return True
-     
-    def modacl(self,isadd,isuser,who):
+
+    def modacl(self, isadd, isuser, who):
 
         snipdir = self.settings.snippetsdir
         tftpboot = utils.tftpboot_location()
 
         PROCESS_DIRS = {
-           "/var/log/cobbler"          : "rwx",
-           "/var/log/cobbler/tasks"    : "rwx",
-           "/var/lib/cobbler"          : "rwx",
-           "/etc/cobbler"              : "rwx",
-           tftpboot                    : "rwx",
-           "/var/lib/cobbler/triggers" : "rwx"
+           "/var/log/cobbler": "rwx",
+           "/var/log/cobbler/tasks": "rwx",
+           "/var/lib/cobbler": "rwx",
+           "/etc/cobbler": "rwx",
+           tftpboot: "rwx",
+           "/var/lib/cobbler/triggers": "rwx"
         }
         if not snipdir.startswith("/var/lib/cobbler/"):
             PROCESS_DIRS[snipdir] = "r"
 
         cmd = "-R"
-        
+
         if isadd:
-           cmd = "%s -m" % cmd
+            cmd = "%s -m" % cmd
         else:
-           cmd = "%s -x" % cmd
+            cmd = "%s -x" % cmd
 
         if isuser:
-           cmd = "%s u:%s" % (cmd,who)
+            cmd = "%s u:%s" % (cmd, who)
         else:
-           cmd = "%s g:%s" % (cmd,who)
+            cmd = "%s g:%s" % (cmd, who)
 
         for d in PROCESS_DIRS:
             how = PROCESS_DIRS[d]
             if isadd:
-               cmd2 = "%s:%s" % (cmd,how)
+                cmd2 = "%s:%s" % (cmd, how)
             else:
-               cmd2 = cmd
+                cmd2 = cmd
 
-            cmd2 = "%s %s" % (cmd2,d)
-            rc = utils.subprocess_call(self.logger,"setfacl -d %s" % cmd2,shell=True)
+            cmd2 = "%s %s" % (cmd2, d)
+            rc = utils.subprocess_call(self.logger, "setfacl -d %s" % cmd2, shell=True)
             if not rc == 0:
-               utils.die(self.logger,"command failed")
-            rc = utils.subprocess_call(self.logger,"setfacl %s" % cmd2,shell=True)
+                utils.die(self.logger, "command failed")
+            rc = utils.subprocess_call(self.logger, "setfacl %s" % cmd2, shell=True)
             if not rc == 0:
-               utils.die(self.logger,"command failed")
-
-
-
-
-
-
+                utils.die(self.logger, "command failed")
