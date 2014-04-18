@@ -1,12 +1,11 @@
-cobbler (1.5.0-1) unstable; urgency=low
+cobbler (2.6.0-1.1) unstable; urgency=low
 
-  * Release bump
+  * Fixed virt-install version check - support for non rpm based distributions 
 
- -- Jasper Capel <jasper@newnewyork.nl>  Tue, 24 Feb 2009 19:25:21 +0100
-cobbler (1.4.1-1) unstable; urgency=low
+ -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 19:09:14 +0200
 
-  * Initial release
+cobbler (2.6.0-1) unstable; urgency=low
 
- -- Jasper Capel <jasper@newnewyork.nl>  Wed, 11 Feb 2009 22:50:37 +0100
+  * Initial release. Orginal package splitted into two: cobbler and koan.
 
-
+ -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 18:24:22 +0200
