@@ -24,62 +24,57 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import time
 import os
 
-ERROR   = "ERROR"
+ERROR = "ERROR"
 WARNING = "WARNING"
-DEBUG   = "DEBUG"
-INFO    = "INFO"
+DEBUG = "DEBUG"
+INFO = "INFO"
+
 
 class Logger:
 
-   def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
-      self.logfile = None
+    def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
+        self.logfile = None
 
-      # Main logfile is append mode, other logfiles not.
-      if not os.path.exists(logfile) and os.path.exists(os.path.dirname(logfile)):
-         self.logfile = open(logfile, "a")
-         self.logfile.close()
+        # Main logfile is append mode, other logfiles not.
+        if not os.path.exists(logfile) and os.path.exists(os.path.dirname(logfile)):
+            self.logfile = open(logfile, "a")
+            self.logfile.close()
 
-      try:
-          self.logfile = open(logfile, "a")
-      except IOError:
-          # You likely don't have write access, this logger will just print 
-          # things to stdout.
-          pass
+        try:
+            self.logfile = open(logfile, "a")
+        except IOError:
+            # You likely don't have write access, this logger will just print
+            # things to stdout.
+            pass
 
-      
+    def warning(self, msg):
+        self.__write(WARNING, msg)
 
-   def warning(self, msg):
-      self.__write(WARNING, msg)
+    def error(self, msg):
+        self.__write(ERROR, msg)
 
-   def error(self, msg):
-      self.__write(ERROR, msg)
+    def debug(self, msg):
+        self.__write(DEBUG, msg)
 
-   def debug(self, msg):
-      self.__write(DEBUG, msg)
+    def info(self, msg):
+        self.__write(INFO, msg)
 
-   def info(self, msg):
-      self.__write(INFO, msg)
+    def flat(self, msg):
+        self.__write(None, msg)
 
-   def flat(self, msg):
-      self.__write(None, msg)
+    def __write(self, level, msg):
+        if level is not None:
+            msg = "%s - %s | %s" % (time.asctime(), level, msg)
 
-   def __write(self, level, msg):
+        if self.logfile is not None:
+            self.logfile.write(msg)
+            self.logfile.write("\n")
+            self.logfile.flush()
+        else:
+            print(msg)
 
-      if level is not None:
-         msg = "%s - %s | %s" % (time.asctime(), level, msg)
+    def handle(self):
+        return self.logfile
 
-      if self.logfile is not None:
-         self.logfile.write(msg)
-         self.logfile.write("\n")
-         self.logfile.flush()
-      else:
-         print(msg)
- 
-   def handle(self):
-      return self.logfile
-
-   def close(self):
-      self.logfile.close()
-
-
- 
+    def close(self):
+        self.logfile.close()
