@@ -33,6 +33,7 @@ except:
 import utils
 import clogger
 
+
 class RepoSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -40,25 +41,25 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self,config,tries=1,nofail=False,logger=None):
+    def __init__(self, config, tries=1, nofail=False, logger=None):
         """
         Constructor
         """
-        self.verbose   = True
-        self.api       = config.api
-        self.config    = config
-        self.distros   = config.distros()
-        self.profiles  = config.profiles()
-        self.systems   = config.systems()
-        self.settings  = config.settings()
-        self.repos     = config.repos()
-        self.rflags    = self.settings.reposync_flags
-        self.tries     = tries
-        self.nofail    = nofail
-        self.logger    = logger
+        self.verbose = True
+        self.api = config.api
+        self.config = config
+        self.distros = config.distros()
+        self.profiles = config.profiles()
+        self.systems = config.systems()
+        self.settings = config.settings()
+        self.repos = config.repos()
+        self.rflags = self.settings.reposync_flags
+        self.tries = tries
+        self.nofail = nofail
+        self.logger = logger
 
         if logger is None:
-           self.logger = clogger.Logger()
+            self.logger = clogger.Logger()
 
         self.logger.info("hello, reposync")
 
@@ -69,13 +70,13 @@ class RepoSync:
         """
         Syncs the current repo configuration file with the filesystem.
         """
-            
+
         self.logger.info("run, reposync, run!")
-        
+
         try:
             self.tries = int(self.tries)
         except:
-            utils.die(self.logger,"retry value must be an integer")
+            utils.die(self.logger, "retry value must be an integer")
 
         self.verbose = verbose
 
@@ -95,14 +96,14 @@ class RepoSync:
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
 
-            # set the environment keys specified for this repo, 
+            # set the environment keys specified for this repo
             # save the old ones if they modify an existing variable
 
             env = repo.environment
             old_env = {}
 
             for k in env.keys():
-                self.logger.debug("setting repo environment: %s=%s" % (k,env[k]))
+                self.logger.debug("setting repo environment: %s=%s" % (k, env[k]))
                 if env[k] is not None:
                     if os.getenv(k):
                         old_env[k] = os.getenv(k)
@@ -112,46 +113,46 @@ class RepoSync:
             # which may actually NOT reposync if the repo is set to not mirror locally
             # but that's a technicality
 
-            for x in range(self.tries+1,1,-1):
+            for x in range(self.tries + 1, 1, -1):
                 success = False
                 try:
-                    self.sync(repo) 
+                    self.sync(repo)
                     success = True
                     break
                 except:
                     utils.log_exc(self.logger)
-                    self.logger.warning("reposync failed, tries left: %s" % (x-2))
+                    self.logger.warning("reposync failed, tries left: %s" % (x - 2))
 
-            # cleanup/restore any environment variables that were 
+            # cleanup/restore any environment variables that were
             # added or changed above
 
             for k in env.keys():
                 if env[k] is not None:
-                    if old_env.has_key(k):
-                        self.logger.debug("resetting repo environment: %s=%s" % (k,old_env[k]))
+                    if k in old_env:
+                        self.logger.debug("resetting repo environment: %s=%s" % (k, old_env[k]))
                         os.environ[k] = old_env[k]
                     else:
-                        self.logger.debug("removing repo environment: %s=%s" % (k,env[k]))
+                        self.logger.debug("removing repo environment: %s=%s" % (k, env[k]))
                         del os.environ[k]
 
             if not success:
                 report_failure = True
                 if not self.nofail:
-                    utils.die(self.logger,"reposync failed, retry limit reached, aborting")
+                    utils.die(self.logger, "reposync failed, retry limit reached, aborting")
                 else:
                     self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
         if report_failure:
-            utils.die(self.logger,"overall reposync failed, at least one repo failed to synchronize")
+            utils.die(self.logger, "overall reposync failed, at least one repo failed to synchronize")
 
         return True
 
     # ==================================================================================
 
     def sync(self, repo):
-      
+
         """
         Conditionally sync a repo, based on type.
         """
@@ -165,7 +166,7 @@ class RepoSync:
         elif repo.breed == "rsync":
             return self.rsync_sync(repo)
         else:
-            utils.die(self.logger,"unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
+            utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
 
     # ====================================================================================
 
@@ -180,15 +181,15 @@ class RepoSync:
             mdoptions = []
             if os.path.isfile("%s/.origin/repomd.xml" % (dirname)):
                 if not HAS_YUM:
-                   utils.die(self.logger,"yum is required to use this feature")
+                    utils.die(self.logger, "yum is required to use this feature")
 
                 rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repomd.xml" % (dirname))
-                if rmd.repoData.has_key("group"):
+                if "group" in rmd.repoData:
                     groupmdfile = rmd.getData("group").location[1]
                     mdoptions.append("-g %s" % groupmdfile)
-                if rmd.repoData.has_key("prestodelta"):
+                if "prestodelta" in rmd.repoData:
                     # need createrepo >= 0.9.7 to add deltas
-                    if utils.check_dist() in ("redhat","fedora","centos","scientific linux","suse","opensuse"):
+                    if utils.check_dist() in ("redhat", "fedora", "centos", "scientific linux", "suse", "opensuse"):
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
                         createrepo_ver = utils.subprocess_get(self.logger, cmd)
                         if createrepo_ver >= "0.9.7":
@@ -197,7 +198,7 @@ class RepoSync:
                             self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
 
             blended = utils.blender(self.api, False, repo)
-            flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
+            flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
                 # BOOKMARK
                 cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
@@ -205,7 +206,7 @@ class RepoSync:
             except:
                 utils.log_exc(self.logger)
                 self.logger.error("createrepo failed.")
-            del fnames[:] # we're in the right place
+            del fnames[:]           # we're in the right place
 
     # ====================================================================================
 
@@ -216,13 +217,13 @@ class RepoSync:
         """
 
         if not repo.mirror_locally:
-            utils.die(self.logger,"rsync:// urls must be mirrored locally, yum cannot access them directly")
+            utils.die(self.logger, "rsync:// urls must be mirrored locally, yum cannot access them directly")
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         # FIXME: don't hardcode
-        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
 
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
@@ -234,13 +235,13 @@ class RepoSync:
         cmd = "rsync -rltDv --copy-unsafe-links --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
         rc = utils.subprocess_call(self.logger, cmd)
 
-        if rc !=0:
-            utils.die(self.logger,"cobbler reposync failed")
+        if rc != 0:
+            utils.die(self.logger, "cobbler reposync failed")
         os.path.walk(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
-    
+
     def rhn_sync(self, repo):
 
         """
@@ -251,7 +252,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            utils.die(self.logger,"no /usr/bin/reposync found, please install yum-utils")
+            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -263,16 +264,16 @@ class RepoSync:
 
         # create yum config file for use by reposync
         # FIXME: don't hardcode
-        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
         if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
-         
+
         # how we invoke yum-utils depends on whether this is RHN content or not.
 
-       
+
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
@@ -280,11 +281,11 @@ class RepoSync:
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
-        rest = repo.mirror[6:] # everything after rhn://
-        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, self.settings.webdir+"/repo_mirror")
+        rest = repo.mirror[6:]      # everything after rhn://
+        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, self.settings.webdir + "/repo_mirror")
         if repo.name != rest:
-            args = { "name" : repo.name, "rest" : rest }
-            utils.die(self.logger,"ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
+            args = {"name": repo.name, "rest": rest}
+            utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
 
         if repo.arch == "i386":
             # counter-intuitive, but we want the newish kernels too
@@ -328,7 +329,7 @@ class RepoSync:
         # RHEL4 and RHEL5U0 don't have it.
 
         if not os.path.exists("/usr/bin/reposync"):
-            utils.die(self.logger,"no /usr/bin/reposync found, please install yum-utils")
+            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
 
         cmd = ""                  # command to run
         has_rpm_list = False      # flag indicating not to pull the whole repo
@@ -339,13 +340,13 @@ class RepoSync:
             has_rpm_list = True
 
         # create yum config file for use by reposync
-        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
         if not os.path.isdir(temp_path) and repo.mirror_locally:
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
-         
+
         # create the config file that yum will use for the copying
 
         if repo.mirror_locally:
@@ -353,26 +354,26 @@ class RepoSync:
 
         if not has_rpm_list and repo.mirror_locally:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, self.settings.webdir+"/repo_mirror")
+            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, self.settings.webdir + "/repo_mirror")
             if repo.arch != "":
                 if repo.arch == "x86":
-                   repo.arch = "i386" # FIX potential arch errors
+                    repo.arch = "i386"      # FIX potential arch errors
                 if repo.arch == "i386":
-                   # counter-intuitive, but we want the newish kernels too
-                   cmd = "%s -a i686" % (cmd)
+                    # counter-intuitive, but we want the newish kernels too
+                    cmd = "%s -a i686" % (cmd)
                 else:
-                   cmd = "%s -a %s" % (cmd, repo.arch)
+                    cmd = "%s -a %s" % (cmd, repo.arch)
 
         elif repo.mirror_locally:
 
             # create the output directory if it doesn't exist
             if not os.path.exists(dest_path):
-               os.makedirs(dest_path)
+                os.makedirs(dest_path)
 
             use_source = ""
             if repo.arch == "src":
                 use_source = "--source"
- 
+
             # older yumdownloader sometimes explodes on --resolvedeps
             # if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
@@ -384,17 +385,17 @@ class RepoSync:
 
         if repo.mirror_locally:
             rc = utils.subprocess_call(self.logger, cmd)
-            if rc !=0:
-                utils.die(self.logger,"cobbler reposync failed")
+            if rc != 0:
+                utils.die(self.logger, "cobbler reposync failed")
 
         repodata_path = os.path.join(dest_path, "repodata")
 
         if not os.path.exists("/usr/bin/wget"):
-            utils.die(self.logger,"no /usr/bin/wget found, please install wget")
+            utils.die(self.logger, "no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
         cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
-        rc = utils.subprocess_call(self.logger,cmd2)
+        rc = utils.subprocess_call(self.logger, cmd2)
         if rc == 0:
             # create our repodata directory now, as any extra metadata we're
             # about to download probably lives there
@@ -406,9 +407,9 @@ class RepoSync:
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                     mdfile = rmd.getData(mdtype).location[1]
                     cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
-                    utils.subprocess_call(self.logger,cmd3)
-                    if rc !=0:
-                        utils.die(self.logger,"wget failed")
+                    utils.subprocess_call(self.logger, cmd3)
+                    if rc != 0:
+                        utils.die(self.logger, "wget failed")
 
         # now run createrepo to rebuild the index
 
@@ -420,7 +421,7 @@ class RepoSync:
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
- 
+
 
     def apt_sync(self, repo):
 
@@ -432,21 +433,21 @@ class RepoSync:
 
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            utils.die(self.logger,"no %s found, please install it"%(mirror_program))
+            utils.die(self.logger, "no %s found, please install it" % (mirror_program))
 
         cmd = ""                  # command to run
 
         # detect cases that require special handling
 
         if repo.rpm_list != "" and repo.rpm_list != []:
-            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
+            utils.die(self.logger, "has_rpm_list not yet supported on apt repos")
 
         if not repo.arch:
-            utils.die(self.logger,"Architecture is required for apt repositories")
+            utils.die(self.logger, "Architecture is required for apt repositories")
 
         # built destination path for the repo
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
-         
+
         if repo.mirror_locally:
             # NOTE: Dropping @@suite@@ replace as it is also dropped from
             # from manage_import_debian_ubuntu.py due that repo has no os_version
@@ -456,7 +457,7 @@ class RepoSync:
 
             idx = mirror.find("://")
             method = mirror[:idx]
-            mirror = mirror[idx+3:]
+            mirror = mirror[idx + 3:]
 
             idx = mirror.find("/")
             host = mirror[:idx]
@@ -465,35 +466,35 @@ class RepoSync:
             dists = ",".join(repo.apt_dists)
             components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (method,host,mirror,dists,components)
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (method, host, mirror, dists, components)
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
                 if repo.yumopts[x]:
-                    rflags += " %s %s" % ( x , repo.yumopts[x] ) 
+                    rflags += " %s %s" % (x, repo.yumopts[x])
                 else:
-                    rflags += " %s" % x 
+                    rflags += " %s" % x
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
             if repo.arch == "src":
                 cmd = "%s --source" % cmd
             else:
                 arch = repo.arch
                 if arch == "x86":
-                   arch = "i386" # FIX potential arch errors
+                    arch = "i386"       # FIX potential arch errors
                 if arch == "x86_64":
-                   arch = "amd64" # FIX potential arch errors
+                    arch = "amd64"      # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
-                    
+
             # Set's an environment variable for subprocess, otherwise debmirror will fail
             # as it needs this variable to exist.
             # FIXME: might this break anything? So far it doesn't
             os.putenv("HOME", "/var/lib/cobbler")
 
             rc = utils.subprocess_call(self.logger, cmd)
-            if rc !=0:
-                utils.die(self.logger,"cobbler reposync failed")
+            if rc != 0:
+                utils.die(self.logger, "cobbler reposync failed")
 
-       
+
     def create_local_file(self, dest_path, repo, output=True):
         """
 
@@ -503,14 +504,14 @@ class RepoSync:
         (A) output=True, Create local files that can be used with yum on provisioned clients to make use of this mirror.
         (B) output=False, Create a temporary file for yum to feed into yum for mirroring
         """
-    
+
         # the output case will generate repo configuration files which are usable
         # for the installed systems.  They need to be made compatible with --server-override
         # which means they are actually templates, which need to be rendered by a cobbler-sync
         # on per profile/system basis.
 
         if output:
-            fname = os.path.join(dest_path,"config.repo")
+            fname = os.path.join(dest_path, "config.repo")
         else:
             fname = os.path.join(dest_path, "%s.repo" % repo.name)
         self.logger.debug("creating: %s" % fname)
@@ -532,7 +533,7 @@ class RepoSync:
                 if mstr.startswith("/"):
                     mstr = "file://%s" % mstr
                 line = "baseurl=%s\n" % mstr
-  
+
             config_file.write(line)
             # user may have options specific to certain yum plugins
             # add them to the file
@@ -551,7 +552,7 @@ class RepoSync:
                 http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             else:
                 http_server = self.settings.server
-            line = line.replace("@@server@@",http_server)
+            line = line.replace("@@server@@", http_server)
             config_file.write(line)
         if not optenabled:
             config_file.write("enabled=1\n")
@@ -560,7 +561,7 @@ class RepoSync:
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
         config_file.close()
-        return fname 
+        return fname
 
     # ==================================================================================
 
@@ -575,10 +576,9 @@ class RepoSync:
         if os.path.exists("/etc/SuSE-release"):
             owner = "root:www"
 
-        cmd1 = "chown -R "+owner+" %s" % repo_path
+        cmd1 = "chown -R " + owner + " %s" % repo_path
 
         utils.subprocess_call(self.logger, cmd1)
 
         cmd2 = "chmod -R 755 %s" % repo_path
         utils.subprocess_call(self.logger, cmd2)
-
