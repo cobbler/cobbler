@@ -23,35 +23,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import clogger
-
 import glob
+
 
 class LogTool:
     """
     Helpers for dealing with System logs, consoles, anamon, etc..
     """
 
-    def __init__(self,config,system,api,logger=None):
+    def __init__(self, config, system, api, logger=None):
         """
         Log library constructor requires a cobbler system object.
         """
-        self.system      = system
-        self.config      = config
-        self.settings    = config.settings()
-        self.api         = api
+        self.system = system
+        self.config = config
+        self.settings = config.settings()
+        self.api = api
         if logger is None:
             logger = clogger.Logger()
-        self.logger      = logger
+        self.logger = logger
 
 
     def clear(self):
         """
         Clears the system logs
         """
- 
         consoles = self.settings.consoles
-        logs = filter(os.path.isfile, 
-                      glob.glob('%s/%s' % (consoles, self.system.name)))
+        logs = filter(os.path.isfile, glob.glob('%s/%s' % (consoles, self.system.name)))
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
             logs.extend(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
@@ -65,4 +63,3 @@ class LogTool:
             except OSError, e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
         return 0
-
