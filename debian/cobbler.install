@@ -1,0 +1,14 @@
+usr/bin/cobbler
+usr/bin/cobblerd
+usr/bin/cobbler-ext-nodes
+usr/bin/ovz-install
+usr/sbin/tftpd.py
+usr/lib/python*/dist-packages/cobbler/*
+usr/share/cobbler/*
+var/lib/cobbler/*
+usr/share/man/man1/cobbler.1.gz
+etc/cobbler/*
+etc/apache2/conf.d/*
+etc/init.d/cobblerd
+srv/www/cobbler/*
+srv/www/cobbler_webui_content/*

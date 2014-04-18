@@ -629,13 +629,9 @@ class Koan:
                 if not os.path.exists("/usr/bin/qemu-img"):
                     raise InfoException("qemu package needs to be installed")
                 # is libvirt new enough?
-                # Note: in some newer distros (like Fedora 19) the python-virtinst package has been
-                # subsumed into virt-install. If we don't have one check to see if we have the other.
-                rc, version_str = utils.subprocess_get_response(shlex.split('rpm -q virt-install'), True)
-                if rc != 0:
-                    rc, version_str = utils.subprocess_get_response(shlex.split('rpm -q python-virtinst'), True)
-                    if rc != 0 or version_str.find("virtinst-0.1") != -1 or version_str.find("virtinst-0.0") != -1:
-                        raise InfoException("need python-virtinst >= 0.2 or virt-install package to do installs for qemu/kvm (depending on your OS)")
+                rc, version_str = utils.subprocess_get_response(shlex.split('/usr/bin/virt-install --version'), True)
+                if rc != 0 or re.match('^0\.[01].*',version_str):
+                    raise InfoException("need python-virtinst >= 0.2 or virt-install package to do installs for qemu/kvm (depending on your OS)")
 
             # for vmware
             if self.virt_type == "vmware" or self.virt_type == "vmwarew":
