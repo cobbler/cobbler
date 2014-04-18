@@ -1,5 +1,5 @@
 Source: cobbler
-Section: unknown
+Section: admin
 Priority: optional
 Maintainer: Jasper Poppe <jpoppe@ebay.com>
 Build-Depends: debhelper (>= 7), python-cheetah, python-yaml, git-core, python
@@ -8,7 +8,7 @@ Homepage: https://fedoraproject.org/cobbler
 
 Package: cobbler
 Architecture: all
-Depends: ${python:Depends}, python, apache2, libapache2-mod-python, python-support, python-yaml, python-netaddr, python-cheetah, syslinux | syslinux-common
+Depends: ${python:Depends}, python, apache2, libapache2-mod-python, python-support, python-yaml, python-netaddr, python-cheetah, debmirror, syslinux | syslinux-common
 Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo
 Description: Install server
  Cobbler is a network install server.  Cobbler
@@ -22,3 +22,11 @@ Description: Install server
  a Python and XMLRPC API for integration with other
  applications.  There is also a web interface.
 
+Package: koan
+Architecture: all
+Depends: ${python:Depends}, python, python-support, python-yaml, python-netaddr, lvm2, libvirt-bin, virtinst, syslinux | syslinux-common
+Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo, selinux-utils
+Description: kickstart-over-a-network (koan)
+ Koan stands for kickstart-over-a-network.
+ It's a Cobbler helper tool that supports virtualized guests installs
+ and reinstalling existing Linux machines.

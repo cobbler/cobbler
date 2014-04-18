@@ -1,0 +1,4 @@
+usr/bin
+var/log/koan
+var/spool/koan
+var/lib/koan/config
