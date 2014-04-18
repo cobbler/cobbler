@@ -67,13 +67,10 @@ restorestate:
 	python setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
-		# Red Hat-based
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
 	elif [ -n "`getent passwd wwwrun`" ] ; then \
-		# Suse-based
 		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	elif [-n "`getent passwd www-data`"] ; then \
-		# Debian / Ubuntu
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
@@ -82,6 +79,8 @@ restorestate:
 	fi
 	if [ -d $(DESTDIR)/usr/share/cobbler/web ] ; then \
 		chmod -R +x $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
+	fi
+	if [ -d $(DESTDIR)/srv/www/cobbler/svc ]; then \
 		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \
 	fi
 	rm -rf $(statepath)
@@ -97,16 +96,17 @@ webtest: devinstall
 # Check if we are on Red Hat, Suse or Debian based distribution
 restartservices:
 	if [ -x /sbin/service ] ; then \
-		# Red Hat-based or Suse-based
 		/sbin/service cobblerd restart; \
-	    if [ -f /etc/init.d/httpd ] ; then \
-			# Red Hat-based
+		if [ -f /etc/init.d/httpd ] ; then \
 			/sbin/service httpd restart; \
+		elif [ -f /usr/lib/systemd/system/httpd.service ]; then \
+			/bin/systemctl restart httpd.service; \
 		else \
-			# Suse-based
 			/sbin/service apache2 restart; \
+		fi; \
+	elif [ -x /bin/systemctl ]; then \
+		/bin/systemctl restart httpd.service; \
 	else \
-		# Debian / Ubuntu
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \
 	fi
