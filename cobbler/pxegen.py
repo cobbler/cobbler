@@ -849,6 +849,8 @@ class PXEGen:
             # A similar issue exists with suite name, as installer requires
             # the existence of "stable" in the dists directory
             append_line = "%s suite=%s" % (append_line, distro.os_version)
+        elif distro is not None and distro.breed == 'nexenta':
+            append_line = "-B iso_nfs_path=%s:/var/www/cobbler/links/%s,auto_install=1" % (blended['next_server'], distro.name)
 
         # append necessary kernel args for arm architectures
         if arch is not None and arch.startswith("arm"):
@@ -863,9 +865,6 @@ class PXEGen:
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 255:
             self.logger.warning("warning: kernel option length exceeds 255")
-
-        if 'nexenta' == distro.breed:
-            append_line = "-B iso_nfs_path=%s:/var/www/cobbler/links/%s,auto_install=1" % (blended['next_server'], distro.name)
 
         return append_line
 
