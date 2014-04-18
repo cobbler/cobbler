@@ -26,102 +26,94 @@ import time
 import clogger
 
 # ARRAY INDEXES
-MOST_RECENT_START  = 0
-MOST_RECENT_STOP   = 1
+MOST_RECENT_START = 0
+MOST_RECENT_STOP = 1
 MOST_RECENT_TARGET = 2
-SEEN_START         = 3
-SEEN_STOP          = 4
-STATE              = 5
+SEEN_START = 3
+SEEN_STOP = 4
+STATE = 5
+
 
 class BootStatusReport:
 
-  
-    def __init__(self,config,mode,logger=None):
+    def __init__(self, config, mode, logger=None):
         """
         Constructor
         """
-        self.config   = config
+        self.config = config
         self.settings = config.settings()
-        self.ip_data  = {}
-        self.mode     = mode
+        self.ip_data = {}
+        self.mode = mode
         if logger is None:
-            logger       = clogger.Logger()
-        self.logger      = logger
+            logger = clogger.Logger()
+        self.logger = logger
 
 
     # -------------------------------------------------------
 
     def scan_logfiles(self):
-
-        #profile foosball        ?       127.0.0.1       start   1208294043.58
-        #system  neo     ?       127.0.0.1       start   1208295122.86
-
-
         files = glob.glob("/var/log/cobbler/install.log*")
         for fname in files:
-           fd = open(fname)
-           data = fd.read()
-           for line in data.split("\n"):
-              tokens = line.split()
-              if len(tokens) == 0:
-                  continue
-              (profile_or_system, name, ip, start_or_stop, ts) = tokens
-              self.catalog(profile_or_system,name,ip,start_or_stop,ts)
-           fd.close() 
+            fd = open(fname)
+            data = fd.read()
+            for line in data.split("\n"):
+                tokens = line.split()
+                if len(tokens) == 0:
+                    continue
+                (profile_or_system, name, ip, start_or_stop, ts) = tokens
+                self.catalog(profile_or_system, name, ip, start_or_stop, ts)
+            fd.close()
 
     # ------------------------------------------------------
 
-    def catalog(self,profile_or_system,name,ip,start_or_stop,ts):    
+    def catalog(self, profile_or_system, name, ip, start_or_stop, ts):
         ip_data = self.ip_data
 
-        if not ip_data.has_key(ip):
-           ip_data[ip]  = [ -1, -1, "?", 0, 0, "?" ]
+        if not ip in ip_data:
+            ip_data[ip] = [-1, -1, "?", 0, 0, "?"]
         elem = ip_data[ip]
 
         ts = float(ts)
 
         mrstart = elem[MOST_RECENT_START]
-        mrstop  = elem[MOST_RECENT_STOP]
-        mrtarg  = elem[MOST_RECENT_TARGET]
-
+        mrstop = elem[MOST_RECENT_STOP]
+        mrtarg = elem[MOST_RECENT_TARGET]
 
         if start_or_stop == "start":
-           if mrstart < ts:
-              mrstart = ts
-              mrtarg  = "%s:%s" % (profile_or_system, name)
-              elem[SEEN_START] = elem[SEEN_START] + 1
+            if mrstart < ts:
+                mrstart = ts
+                mrtarg = "%s:%s" % (profile_or_system, name)
+                elem[SEEN_START] = elem[SEEN_START] + 1
 
         if start_or_stop == "stop":
-           if mrstop < ts:
-              mrstop = ts
-              mrtarg = "%s:%s" % (profile_or_system, name)
-              elem[SEEN_STOP] = elem[SEEN_STOP] + 1
+            if mrstop < ts:
+                mrstop = ts
+                mrtarg = "%s:%s" % (profile_or_system, name)
+                elem[SEEN_STOP] = elem[SEEN_STOP] + 1
 
-        elem[MOST_RECENT_START]  = mrstart
-        elem[MOST_RECENT_STOP]   = mrstop
+        elem[MOST_RECENT_START] = mrstart
+        elem[MOST_RECENT_STOP] = mrstop
         elem[MOST_RECENT_TARGET] = mrtarg
 
     # -------------------------------------------------------
 
     def process_results(self):
         # FIXME: this should update the times here
-
         tnow = int(time.time())
         for ip in self.ip_data.keys():
-           elem = self.ip_data[ip]
-
-           start = int(elem[MOST_RECENT_START])
-           stop  = int(elem[MOST_RECENT_STOP])
-           if (stop > start):
-               elem[STATE] = "finished"
-           else:
-               delta = tnow - start
-               min   = delta / 60
-               sec   = delta % 60
-               if min > 100:
-                   elem[STATE] = "unknown/stalled"
-               else:
-                   elem[STATE] = "installing (%sm %ss)" % (min,sec)  
+            elem = self.ip_data[ip]
+            start = int(elem[MOST_RECENT_START])
+            stop = int(elem[MOST_RECENT_STOP])
+            if (stop > start):
+                elem[STATE] = "finished"
+            else:
+                delta = tnow - start
+                min = delta / 60
+                sec = delta % 60
+                if min > 100:
+                    elem[STATE] = "unknown/stalled"
+                else:
+                    elem[STATE] = "installing (%sm %ss)" % (min, sec)
 
         return self.ip_data
 
@@ -154,11 +146,9 @@ class BootStatusReport:
         """
         Calculate and print a kickstart-status report.
         """
-
         self.scan_logfiles()
         results = self.process_results()
         if self.mode == "text":
             return self.get_printable_results()
         else:
             return results
-
