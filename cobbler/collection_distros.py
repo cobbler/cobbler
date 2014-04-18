@@ -30,18 +30,19 @@ from utils import _
 import os.path
 import glob
 
+
 class Distros(collection.Collection):
 
     def collection_type(self):
         return "distro"
 
-    def factory_produce(self,config,seed_data):
+    def factory_produce(self, config, seed_data):
         """
         Return a Distro forged from seed_data
         """
         return distro.Distro(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -63,7 +64,7 @@ class Distros(collection.Collection):
                     self.config.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
 
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [], logger)
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
@@ -77,7 +78,7 @@ class Distros(collection.Collection):
             self.config.serialize_delete(self, obj)
 
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
@@ -85,7 +86,7 @@ class Distros(collection.Collection):
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
             settings = self.config.settings()
-            possible_storage = glob.glob(settings.webdir+"/ks_mirror/*")
+            possible_storage = glob.glob(settings.webdir + "/ks_mirror/*")
             path = None
             for storage in possible_storage:
                 if os.path.dirname(obj.kernel).find(storage) != -1:
@@ -95,14 +96,14 @@ class Distros(collection.Collection):
             # if we found a mirrored path above, we can delete the mirrored storage /if/
             # no other object is using the same mirrored storage.
             if with_delete and path is not None and os.path.exists(path) and kernel.find(settings.webdir) != -1:
-               # this distro was originally imported so we know we can clean up the associated
-               # storage as long as nothing else is also using this storage.
-               found = False
-               distros = self.api.distros()
-               for d in distros:
-                   if d.kernel.find(path) != -1:
-                       found = True
-               if not found:
-                   utils.rmtree(path)
+                # this distro was originally imported so we know we can clean up the associated
+                # storage as long as nothing else is also using this storage.
+                found = False
+                distros = self.api.distros()
+                for d in distros:
+                    if d.kernel.find(path) != -1:
+                        found = True
+                if not found:
+                    utils.rmtree(path)
 
         return True
