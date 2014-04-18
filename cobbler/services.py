@@ -4,7 +4,7 @@ Mod Python service functions for Cobbler's public interface
 
 based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
 additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import xmlrpclib
 import time
 import urlgrabber
-import yaml # PyYAML
+import yaml
 import config
 
 # the following imports are largely for the test code
@@ -35,6 +35,7 @@ import os
 import os.path
 import simplejson
 
+
 class CobblerSvc(object):
     """
     Interesting mod python functions are all keyed off the parameter
@@ -44,67 +45,67 @@ class CobblerSvc(object):
     def __init__(self, server=None, req=None):
         self.server = server
         self.remote = None
-        self.req    = req
-	self.config  = config.Config(self)
+        self.req = req
+        self.config = config.Config(self)
 
     def __xmlrpc_setup(self):
         """
-        Sets up the connection to the Cobbler XMLRPC server. 
+        Sets up the connection to the Cobbler XMLRPC server.
         This is the version that does not require logins.
         """
         if self.remote is None:
             self.remote = xmlrpclib.Server(self.server, allow_none=True)
 
-    def index(self,**args):
+    def index(self, **args):
         return "no mode specified"
 
-    def debug(self,profile=None,**rest):
+    def debug(self, profile=None, **rest):
         # the purpose of this method could change at any time
         # and is intented for temporary test code only, don't rely on it
         self.__xmlrpc_setup()
         return self.remote.get_repos_compatible_with_profile(profile)
 
-    def ks(self,profile=None,system=None,REMOTE_ADDR=None,REMOTE_MAC=None,**rest):
+    def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
         """
         Generate kickstart files...
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
-        return u"%s" % data    
+        data = self.remote.generate_kickstart(profile, system, REMOTE_ADDR, REMOTE_MAC)
+        return u"%s" % data
 
-    def gpxe(self,profile=None,system=None,**rest):
+    def gpxe(self, profile=None, system=None, **rest):
         """
         Generate a gPXE config
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_gpxe(profile,system)
+        data = self.remote.generate_gpxe(profile, system)
         return u"%s" % data
 
-    def bootcfg(self,profile=None,system=None,**rest):
+    def bootcfg(self, profile=None, system=None, **rest):
         """
-        Generate a boot.cfg config file. Used primarily 
+        Generate a boot.cfg config file. Used primarily
         for VMware ESXi.
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_bootcfg(profile,system)
+        data = self.remote.generate_bootcfg(profile, system)
         return u"%s" % data
 
-    def script(self,profile=None,system=None,**rest):
+    def script(self, profile=None, system=None, **rest):
         """
         Generate a script based on snippets. Useful for post
         or late-action scripts where it's difficult to embed
         the script in the response file.
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_script(profile,system,rest['query_string']['script'][0])
+        data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
         return u"%s" % data
 
-    def events(self,user="",**rest):
+    def events(self, user="", **rest):
         self.__xmlrpc_setup()
         if user == "":
-           data = self.remote.get_events("")
+            data = self.remote.get_events("")
         else:
-           data = self.remote.get_events(user)
+            data = self.remote.get_events(user)
 
         # sort it... it looks like { timestamp : [ array of details ] }
         keylist = data.keys()
@@ -115,28 +116,28 @@ class CobblerSvc(object):
             nowtime = time.time()
             if ((nowtime - etime) < 30):
                 results.append([k, data[k][0], data[k][1], data[k][2]])
-        return simplejson.dumps(results) 
+        return simplejson.dumps(results)
 
-    def template(self,profile=None,system=None,path=None,**rest):
+    def template(self, profile=None, system=None, path=None, **rest):
         """
         Generate a templated file for the system
         """
         self.__xmlrpc_setup()
         if path is not None:
-            path = path.replace("_","/")
-            path = path.replace("//","_")
+            path = path.replace("_", "/")
+            path = path.replace("//", "_")
         else:
             return "# must specify a template path"
 
         if profile is not None:
-            data = self.remote.get_template_file_for_profile(profile,path)
+            data = self.remote.get_template_file_for_profile(profile, path)
         elif system is not None:
-            data = self.remote.get_template_file_for_system(system,path)
+            data = self.remote.get_template_file_for_system(system, path)
         else:
             data = "# must specify profile or system name"
         return data
 
-    def yum(self,profile=None,system=None,**rest):
+    def yum(self, profile=None, system=None, **rest):
         self.__xmlrpc_setup()
         if profile is not None:
             data = self.remote.get_repo_config_for_profile(profile)
@@ -146,48 +147,48 @@ class CobblerSvc(object):
             data = "# must specify profile or system name"
         return data
 
-    def trig(self,mode="?",profile=None,system=None,REMOTE_ADDR=None,**rest):
+    def trig(self, mode="?", profile=None, system=None, REMOTE_ADDR=None, **rest):
         """
         Hook to call install triggers.
         """
         self.__xmlrpc_setup()
         ip = REMOTE_ADDR
         if profile:
-            rc = self.remote.run_install_triggers(mode,"profile",profile,ip)
+            rc = self.remote.run_install_triggers(mode, "profile", profile, ip)
         else:
-            rc = self.remote.run_install_triggers(mode,"system",system,ip)
+            rc = self.remote.run_install_triggers(mode, "system", system, ip)
         return str(rc)
 
-    def nopxe(self,system=None,**rest):
+    def nopxe(self, system=None, **rest):
         self.__xmlrpc_setup()
         return str(self.remote.disable_netboot(system))
 
-    def list(self,what="systems",**rest):
+    def list(self, what="systems", **rest):
         self.__xmlrpc_setup()
         buf = ""
         if what == "systems":
-           listing = self.remote.get_systems()
+            listing = self.remote.get_systems()
         elif what == "profiles":
-           listing = self.remote.get_profiles()
+            listing = self.remote.get_profiles()
         elif what == "distros":
-           listing = self.remote.get_distros()
+            listing = self.remote.get_distros()
         elif what == "images":
-           listing = self.remote.get_images()
+            listing = self.remote.get_images()
         elif what == "repos":
-           listing = self.remote.get_repos()
+            listing = self.remote.get_repos()
         elif what == "mgmtclasses":
-           listing = self.remote.get_mgmtclasses()
+            listing = self.remote.get_mgmtclasses()
         elif what == "packages":
-           listing = self.remote.get_packages()
+            listing = self.remote.get_packages()
         elif what == "files":
-           listing = self.remote.get_files()
+            listing = self.remote.get_files()
         else:
-           return "?"
+            return "?"
         for x in listing:
-           buf = buf + "%s\n" % x["name"]
+            buf = buf + "%s\n" % x["name"]
         return buf
 
-    def autodetect(self,**rest):
+    def autodetect(self, **rest):
         self.__xmlrpc_setup()
         systems = self.remote.get_systems()
 
@@ -224,16 +225,16 @@ class CobblerSvc(object):
         elif len(candidates) == 1:
             return candidates[0]["name"]
 
-    def look(self,**rest):
+    def look(self, **rest):
         # debug only
         return repr(rest)
 
-    def findks(self,system=None,profile=None,**rest):
+    def findks(self, system=None, profile=None, **rest):
         self.__xmlrpc_setup()
 
         serverseg = "http//%s" % self.config._settings.server
 
-        name = "?"    
+        name = "?"
         if system is not None:
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
         elif profile is not None:
@@ -241,60 +242,61 @@ class CobblerSvc(object):
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
-                return "# autodetection %s" % name 
+                return "# autodetection %s" % name
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
-                
-        try: 
+
+        try:
             return urlgrabber.urlread(url)
         except:
             return "# kickstart retrieval failed (%s)" % url
 
-    def puppet(self,hostname=None,**rest):
+    def puppet(self, hostname=None, **rest):
         self.__xmlrpc_setup()
 
         if hostname is None:
-           return "hostname is required"
-         
+            return "hostname is required"
+
         settings = self.remote.get_settings()
         results = self.remote.find_system_by_dns_name(hostname)
 
         classes = results.get("mgmt_classes", {})
-        params = results.get("mgmt_parameters",{})
-        environ = results.get("status","production")
+        params = results.get("mgmt_parameters", {})
+        environ = results.get("status", "production")
 
-        if settings.get("puppet_parameterized_classes",False):
-           for ckey in classes.keys():
-              tmp = {}
-              class_name = classes[ckey].get("class_name","")
-              if class_name in (None,""):
-                 class_name = ckey              
-              if classes[ckey].get("is_definition",False):
-                 def_tmp = {}
-                 def_name = classes[ckey]["params"].get("name","")
-                 del classes[ckey]["params"]["name"]
-                 if def_name != "":
+        if settings.get("puppet_parameterized_classes", False):
+            for ckey in classes.keys():
+                tmp = {}
+                class_name = classes[ckey].get("class_name", "")
+                if class_name in (None, ""):
+                    class_name = ckey
+                if classes[ckey].get("is_definition", False):
+                    def_tmp = {}
+                    def_name = classes[ckey]["params"].get("name", "")
+                    del classes[ckey]["params"]["name"]
+                    if def_name != "":
+                        for pkey in classes[ckey]["params"].keys():
+                            def_tmp[pkey] = classes[ckey]["params"][pkey]
+                        tmp["instances"] = {def_name: def_tmp}
+                    else:
+                        # FIXME: log an error here?
+                        # skip silently...
+                        continue
+                else:
                     for pkey in classes[ckey]["params"].keys():
-                       def_tmp[pkey] = classes[ckey]["params"][pkey]
-                    tmp["instances"] = {def_name:def_tmp}
-                 else:
-                    # FIXME: log an error here?
-                    # skip silently...
-                    continue
-              else:
-                 for pkey in classes[ckey]["params"].keys():
-                    tmp[pkey] = classes[ckey]["params"][pkey]
-              del classes[ckey]
-              classes[class_name] = tmp
+                        tmp[pkey] = classes[ckey]["params"][pkey]
+                del classes[ckey]
+                classes[class_name] = tmp
         else:
-           classes = classes.keys()
+            classes = classes.keys()
 
         newdata = {
-           "classes"    : classes,
-           "parameters" : params,
-           "environment": environ,
+            "classes": classes,
+            "parameters": params,
+            "environment": environ,
         }
-        
-        return yaml.dump(newdata,default_flow_style=False)
+
+        return yaml.dump(newdata, default_flow_style=False)
+
 
 def __test_setup():
 
@@ -305,7 +307,7 @@ def __test_setup():
 
     api = cobbler_api.BootAPI()
 
-    fake = open("/tmp/cobbler.fake","w+")
+    fake = open("/tmp/cobbler.fake", "w+")
     fake.write("")
     fake.close()
 
@@ -319,19 +321,19 @@ def __test_setup():
     repo.set_name("repo0")
 
     if not os.path.exists("/tmp/empty"):
-       os.mkdir("/tmp/empty",770)
+        os.mkdir("/tmp/empty", 770)
     repo.set_mirror("/tmp/empty")
     files = glob.glob("rpm-build/*.rpm")
     if len(files) == 0:
-       raise Exception("Tests must be run from the cobbler checkout directory.")
-    utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
+        raise Exception("Tests must be run from the cobbler checkout directory.")
+    utils.subprocess_call(None, "cp rpm-build/*.rpm /tmp/empty", shell=True)
     api.add_repo(repo)
 
-    fd = open("/tmp/cobbler_t1","w+")
+    fd = open("/tmp/cobbler_t1", "w+")
     fd.write("$profile_name")
     fd.close()
 
-    fd = open("/tmp/cobbler_t2","w+")
+    fd = open("/tmp/cobbler_t2", "w+")
     fd.write("$system_name")
     fd.close()
 
@@ -340,8 +342,8 @@ def __test_setup():
     profile.set_distro("distro0")
     profile.set_kickstart("/var/lib/cobbler/kickstarts/sample.ks")
     profile.set_repos(["repo0"])
-    profile.set_mgmt_classes(["alpha","beta"])
-    profile.set_ksmeta({"tree":"look_for_this1","gamma":3})
+    profile.set_mgmt_classes(["alpha", "beta"])
+    profile.set_ksmeta({"tree": "look_for_this1", "gamma": 3})
     profile.set_template_files("/tmp/cobbler_t1=/tmp/t1-rendered")
     api.add_profile(profile)
 
@@ -350,9 +352,9 @@ def __test_setup():
     system.set_hostname("hostname0")
     system.set_gateway("192.168.1.1")
     system.set_profile("profile0")
-    system.set_dns_name("hostname0","eth0")
-    system.set_ksmeta({"tree":"look_for_this2"})
-    system.set_template_files({"/tmp/cobbler_t2":"/tmp/t2-rendered"})
+    system.set_dns_name("hostname0", "eth0")
+    system.set_ksmeta({"tree": "look_for_this2"})
+    system.set_template_files({"/tmp/cobbler_t2": "/tmp/t2-rendered"})
     api.add_system(system)
 
     image = api.new_image()
@@ -369,6 +371,7 @@ def __test_setup():
 
     api.reposync(name="repo0")
 
+
 def test_services_access():
     import remote
     remote._test_setup_settings(pxe_once=1)
@@ -380,7 +383,7 @@ def test_services_access():
 
     # test mod_python service URLs -- more to be added here
 
-    templates = [ "sample.ks", "sample_end.ks", "legacy.ks" ]
+    templates = ["sample.ks", "sample_end.ks", "legacy.ks"]
 
     for template in templates:
         ks = "/var/lib/cobbler/kickstarts/%s" % template
@@ -402,20 +405,20 @@ def test_services_access():
     data = urlgrabber.urlread(url)
     print "D1=%s" % data
     assert data.find("repo0") != -1
-    
+
     url = "http://127.0.0.1/cblr/svc/op/yum/system/system0"
     data = urlgrabber.urlread(url)
-    print "D2=%s" % data 
+    print "D2=%s" % data
     assert data.find("repo0") != -1
-  
-    for a in [ "pre", "post" ]:
-       filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
-       fd = open(filename, "w+")
-       fd.write("#!/bin/bash\n")
-       fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3)\" >> /var/log/cobbler/kicklog/cobbler_trigger_test\n" % a)
-       fd.write("exit 0\n")
-       fd.close()
-       utils.os_system("chmod +x %s" % filename)
+
+    for a in ["pre", "post"]:
+        filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
+        fd = open(filename, "w+")
+        fd.write("#!/bin/bash\n")
+        fd.write("echo \"TESTING %s type ($1) name ($2) ip ($3)\" >> /var/log/cobbler/kicklog/cobbler_trigger_test\n" % a)
+        fd.write("exit 0\n")
+        fd.close()
+        utils.os_system("chmod +x %s" % filename)
 
     urls = [
         "http://127.0.0.1/cblr/svc/op/trig/mode/pre/profile/profile0"
@@ -426,8 +429,8 @@ def test_services_access():
     for x in urls:
         print "reading: %s" % url
         data = urlgrabber.urlread(x)
-        print "read: %s" % data        
-        time.sleep(5) 
+        print "read: %s" % data
+        time.sleep(5)
         assert os.path.exists("/var/log/cobbler/kicklog/cobbler_trigger_test")
         os.unlink("/var/log/cobbler/kicklog/cobbler_trigger_test")
 
@@ -440,15 +443,15 @@ def test_services_access():
 
     sys = api.find_system("system0")
     sys.set_netboot_enabled(True)
-    api.add_system(sys) # save the system to ensure it's set True
+    api.add_system(sys)     # save the system to ensure it's set True
 
     url = "http://127.0.0.1/cblr/svc/op/nopxe/system/system0"
     data = urlgrabber.urlread(url)
     time.sleep(2)
 
     sys = api.find_system("system0")
-    assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
-    
+    assert str(sys.netboot_enabled).lower() not in ["1", "true", "yes"]
+
     # now let's test the listing URLs since we document
     # them even know I don't know of anything relying on them.
 
@@ -475,7 +478,7 @@ def test_services_access():
     # these features may be removed in a later release
     # of cobbler but really aren't hurting anything so there
     # is no pressing need.
-  
+
     # now let's test the puppet external nodes support
     # and just see if we get valid YAML back without
     # doing much more
@@ -486,11 +489,11 @@ def test_services_access():
     assert data.find("beta") != -1
     assert data.find("gamma") != -1
     assert data.find("3") != -1
-    
+
     data = yaml.safe_load(data)
-    assert data.has_key("classes")
-    assert data.has_key("parameters")
-    
+    assert "classes" in data
+    assert "parameters" in data
+
     # now let's test the template file serving
     # which is used by the snippet download_config_files
     # and also by koan's --update-files
@@ -498,7 +501,7 @@ def test_services_access():
     url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
     data = urlgrabber.urlread(url)
     assert data.find("profile0") != -1
-    assert data.find("$profile_name") == -1    
+    assert data.find("$profile_name") == -1
 
     url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
     data = urlgrabber.urlread(url)
@@ -506,7 +509,6 @@ def test_services_access():
     assert data.find("$system_name") == -1
 
     os.unlink("/tmp/cobbler_t1")
-    os.unlink("/tmp/cobbler_t2") 
+    os.unlink("/tmp/cobbler_t2")
 
     remote._test_remove_objects()
-
