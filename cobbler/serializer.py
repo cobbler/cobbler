@@ -32,10 +32,12 @@ import api as cobbler_api
 LOCK_ENABLED = True
 LOCK_HANDLE = None
 
-def handler(num,frame): 
-   print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
-   return True
-    
+
+def handler(num, frame):
+    print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
+    return True
+
+
 def __grab_lock():
     """
     Dual purpose locking:
@@ -45,9 +47,9 @@ def __grab_lock():
     try:
         if LOCK_ENABLED:
             if not os.path.exists("/var/lib/cobbler/lock"):
-                fd = open("/var/lib/cobbler/lock","w+")
+                fd = open("/var/lib/cobbler/lock", "w+")
                 fd.close()
-            LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+            LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
             fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
         return True
     except:
@@ -55,29 +57,32 @@ def __grab_lock():
         traceback.print_exc()
         sys.exit(7)
 
+
 def __release_lock(with_changes=False):
     if with_changes:
         # this file is used to know when the last config change
         # was made -- allowing the API to work more smoothly without
-        # a lot of unneccessary reloads.  
-        fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT|os.O_RDWR, 0200)
+        # a lot of unneccessary reloads.
+        fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
         os.write(fd, "%f" % time.time())
         os.close(fd)
     if LOCK_ENABLED:
-        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
+        LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
         LOCK_HANDLE.close()
     return True
 
+
 def serialize(obj):
     """
-    Save a collection to disk or other storage.  
+    Save a collection to disk or other storage.
     """
     __grab_lock()
     storage_module = __get_storage_module(obj.collection_type())
     storage_module.serialize(obj)
     __release_lock()
     return True
+
 
 def serialize_item(collection, item):
     """
@@ -89,9 +94,10 @@ def serialize_item(collection, item):
     if save_fn is None:
         rc = storage_module.serialize(collection)
     else:
-        rc = save_fn(collection,item)
+        rc = save_fn(collection, item)
     __release_lock(with_changes=True)
     return rc
+
 
 def serialize_delete(collection, item):
     """
@@ -103,19 +109,21 @@ def serialize_delete(collection, item):
     if delete_fn is None:
         rc = storage_module.serialize(collection)
     else:
-        rc = delete_fn(collection,item)
+        rc = delete_fn(collection, item)
     __release_lock(with_changes=True)
     return rc
 
-def deserialize(obj,topological=True):
+
+def deserialize(obj, topological=True):
     """
     Fill in an empty collection from disk or other storage
     """
     __grab_lock()
     storage_module = __get_storage_module(obj.collection_type())
-    rc = storage_module.deserialize(obj,topological)
+    rc = storage_module.deserialize(obj, topological)
     __release_lock()
     return rc
+
 
 def deserialize_raw(collection_type):
     """
@@ -129,6 +137,7 @@ def deserialize_raw(collection_type):
     __release_lock()
     return rc
 
+
 def deserialize_item(collection_type, item_name):
     """
     Get a specific record.
@@ -139,6 +148,7 @@ def deserialize_item(collection_type, item_name):
     __release_lock()
     return rc
 
+
 def deserialize_item_raw(collection_type, item_name):
     __grab_lock()
     storage_module = __get_storage_module(collection_type)
@@ -146,14 +156,14 @@ def deserialize_item_raw(collection_type, item_name):
     __release_lock()
     return rc
 
+
 def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
-    """    
+    """
     capi = cobbler_api.BootAPI()
-    return capi.get_module_from_file("serializers",collection_type,"serializer_catalog")
+    return capi.get_module_from_file("serializers", collection_type, "serializer_catalog")
 
 if __name__ == "__main__":
     __grab_lock()
     __release_lock()
-
