@@ -1,6 +1,6 @@
 """
 cobbler daemon for logging remote syslog traffic during kickstart
- 
+
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -34,14 +34,15 @@ import remote
 def main():
     core(logger=None)
 
-def core(api):
 
-    bootapi      = api
-    settings     = bootapi.settings()
-    xmlrpc_port  = settings.xmlrpc_port
+def core(api):
+    bootapi = api
+    settings = bootapi.settings()
+    xmlrpc_port = settings.xmlrpc_port
 
     regen_ss_file()
     do_xmlrpc_tasks(bootapi, settings, xmlrpc_port)
+
 
 def regen_ss_file():
     # this is only used for Kerberos auth at the moment.
@@ -52,61 +53,36 @@ def regen_ss_file():
     data = fd.read(512)
     fd.close()
 
-    fd = os.open(ssfile,os.O_CREAT|os.O_RDWR,0600)
-    os.write(fd,binascii.hexlify(data))
+    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0600)
+    os.write(fd, binascii.hexlify(data))
     os.close(fd)
 
     http_user = "apache"
-    if utils.check_dist() in [ "debian", "ubuntu" ]:
+    if utils.check_dist() in ["debian", "ubuntu"]:
         http_user = "www-data"
-    elif utils.check_dist() in [ "suse", "opensuse" ]:
+    elif utils.check_dist() in ["suse", "opensuse"]:
         http_user = "wwwrun"
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
     return 1
 
+
 def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port):
     do_xmlrpc_rw(bootapi, settings, xmlrpc_port)
 
-#def do_other_tasks(bootapi, settings, syslog_port, logger):
-#
-#    # FUTURE: this should also start the Web UI, if the dependencies
-#    # are available.
-# 
-#    if os.path.exists("/usr/bin/avahi-publish-service"):
-#        pid2 = os.fork()
-#        if pid2 == 0:
-#           do_syslog(bootapi, settings, syslog_port, logger)
-#        else:
-#           do_avahi(bootapi, settings, logger)
-#           os.waitpid(pid2, 0)
-#    else:
-#        do_syslog(bootapi, settings, syslog_port, logger)
 
-
-def log(logger,msg):
+def log(logger, msg):
     if logger is not None:
         logger.info(msg)
     else:
         print >>sys.stderr, msg
 
-#def do_avahi(bootapi, settings, logger):
-#    # publish via zeroconf.  This command will not terminate
-#    log(logger, "publishing avahi service")
-#    cmd = [ "/usr/bin/avahi-publish-service",
-#            "cobblerd",
-#            "_http._tcp",
-#            "%s" % settings.xmlrpc_port ]
-#    proc = subprocess.Popen(cmd, shell=False, stderr=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True)
-#    proc.communicate()[0]
-#    log(logger, "avahi service terminated") 
 
+def do_xmlrpc_rw(bootapi, settings, port):
 
-def do_xmlrpc_rw(bootapi,settings,port):
-
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi,remote.CobblerXMLRPCInterface)
+    xinterface = remote.ProxiedXMLRPCInterface(bootapi, remote.CobblerXMLRPCInterface)
     server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
-    server.logRequests = 0  # don't print stuff
+    server.logRequests = 0      # don't print stuff
     xinterface.logger.debug("XMLRPC running on %s" % port)
     server.register_instance(xinterface)
 
@@ -118,12 +94,9 @@ def do_xmlrpc_rw(bootapi,settings,port):
             # interrupted? try to serve again
             time.sleep(0.5)
 
+
 if __name__ == "__main__":
-
-    bootapi  = cobbler_api.BootAPI()
+    bootapi = cobbler_api.BootAPI()
     settings = bootapi.settings()
-
     regen_ss_file()
-
     do_xmlrpc_rw(bootapi, settings, 25151)
-
