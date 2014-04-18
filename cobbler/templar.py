@@ -34,28 +34,28 @@ import string
 
 import Cheetah
 major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = int(major) >= 2 and int(minor) >=4 and int(release) >= 2
+fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
 jinja2_available = False
-try: 
+try:
     import jinja2
     jinja2_available = True
 except:
     """ FIXME: log a message here """
     pass
-    
+
 
 class Templar:
 
-    def __init__(self,config,logger=None):
+    def __init__(self, config, logger=None):
         """
         Constructor
         """
 
-        self.config   = None
+        self.config = None
         self.settings = None
         if config:
-            self.config   = config
+            self.config = config
             self.settings = config.settings()
 
         self.last_errors = []
@@ -64,7 +64,7 @@ class Templar:
             logger = clogger.Logger()
         self.logger = logger
 
-    def check_for_invalid_imports(self,data):
+    def check_for_invalid_imports(self, data):
         """
         Ensure that Cheetah code is not importing Python modules
         that may allow for advanced priveledges by ensuring we whitelist
@@ -73,9 +73,9 @@ class Templar:
         lines = data.split("\n")
         for line in lines:
             if line.find("#import") != -1:
-               rest=line.replace("#import","").replace(" ","").strip()
-               if self.settings and rest not in self.settings.cheetah_import_whitelist:
-                   raise CX("potentially insecure import in template: %s" % rest)
+                rest = line.replace("#import", "").replace(" ", "").strip()
+                if self.settings and rest not in self.settings.cheetah_import_whitelist:
+                    raise CX("potentially insecure import in template: %s" % rest)
 
     def render(self, data_input, search_table, out_path, subject=None, template_type=None):
         """
@@ -88,9 +88,9 @@ class Templar:
         """
 
         if not isinstance(data_input, basestring):
-           raw_data = data_input.read()
+            raw_data = data_input.read()
         else:
-           raw_data = data_input
+            raw_data = data_input
         lines = raw_data.split('\n')
 
         if not template_type:
@@ -102,11 +102,11 @@ class Templar:
                 template_type = "cheetah"
 
         if len(lines) > 0 and lines[0].find("#template=") == 0:
-            # pull the template type out of the first line and then drop 
+            # pull the template type out of the first line and then drop
             # it and rejoin them to pass to the template language
             template_type = lines[0].split("=")[1].strip().lower()
             del lines[0]
-            raw_data = string.join(lines,"\n")
+            raw_data = string.join(lines, "\n")
 
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table, subject)
@@ -120,8 +120,8 @@ class Templar:
 
         # now apply some magic post-filtering that is used by cobbler import and some
         # other places.  Forcing folks to double escape things would be very unwelcome.
-        hp = search_table.get("http_port","80")
-        server = search_table.get("server","server.example.org")
+        hp = search_table.get("http_port", "80")
+        server = search_table.get("server", "server.example.org")
         if hp not in (80, '80'):
             repstr = "%s:%s" % (server, hp)
         else:
@@ -129,8 +129,8 @@ class Templar:
         search_table["http_server"] = repstr
 
         for x in search_table.keys():
-           if type(x) == str:
-               data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+            if type(x) == str:
+                data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
@@ -156,45 +156,45 @@ class Templar:
 
         self.check_for_invalid_imports(raw_data)
 
-        # backward support for Cobbler's legacy (and slightly more readable) 
+        # backward support for Cobbler's legacy (and slightly more readable)
         # template syntax.
-        raw_data = raw_data.replace("TEMPLATE::","$")
+        raw_data = raw_data.replace("TEMPLATE::", "$")
 
         # HACK:  the ksmeta field may contain nfs://server:/mount in which
         # case this is likely WRONG for kickstart, which needs the NFS
         # directive instead.  Do this to make the templates work.
         newdata = ""
-        if search_table.has_key("tree") and search_table["tree"].startswith("nfs://"): 
+        if "tree" in search_table and search_table["tree"].startswith("nfs://"):
             for line in raw_data.split("\n"):
-               if line.find("--url") != -1 and line.find("url ") != -1:
-                   rest = search_table["tree"][6:] # strip off "nfs://" part
-                   try:
-                       (server, dir) = rest.split(":",2)
-                   except:
-                       raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"])
-                   line = "nfs --server %s --dir %s" % (server,dir)
-                   # but put the URL part back in so koan can still see
-                   # what the original value was
-                   line = line + "\n" + "#url --url=%s" % search_table["tree"]
-               newdata = newdata + line + "\n"
-            raw_data = newdata 
+                if line.find("--url") != -1 and line.find("url ") != -1:
+                    rest = search_table["tree"][6:]        # strip off "nfs://" part
+                    try:
+                        (server, dir) = rest.split(":", 2)
+                    except:
+                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"])
+                    line = "nfs --server %s --dir %s" % (server, dir)
+                    # but put the URL part back in so koan can still see
+                    # what the original value was
+                    line = line + "\n" + "#url --url=%s" % search_table["tree"]
+                newdata = newdata + line + "\n"
+            raw_data = newdata
 
         # tell Cheetah not to blow up if it can't find a symbol for something
         raw_data = "#errorCatcher ListErrors\n" + raw_data
 
         table_copy = search_table.copy()
- 
+
         # for various reasons we may want to call a module inside a template and pass
         # it all of the template variables.  The variable "template_universe" serves
         # this purpose to make it easier to iterate through all of the variables without
         # using internal Cheetah variables
 
         search_table.update({
-           "template_universe" : table_copy
+           "template_universe": table_copy
         })
 
         # now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame':False})
+        t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame': False})
 
         if fix_cheetah_class:
             t.SNIPPET = functools.partial(t.SNIPPET, t)
