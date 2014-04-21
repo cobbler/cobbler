@@ -1205,7 +1205,7 @@ class Koan:
             find . | cpio -o -H newc | gzip -9 > ../initrd_final
             echo "...done"
         fi
-        """ % initrd
+        """ % (initrd, initrd)
 
     #---------------------------------------------------
 
