@@ -1,12 +1,14 @@
 
-import httplib, simplejson  # http://cheeseshop.python.org/pypi/simplejson
-                            # Here only used for prettyprinting
+import httplib
+import simplejson
+
 
 def prettyPrint(s):
     """Prettyprints the json response of an HTTPResponse object"""
 
     # HTTPResponse instance -> Python object -> str
     print simplejson.dumps(simplejson.loads(s.read()), sort_keys=True, indent=4)
+
 
 class Couch:
     """Basic wrapper class for operations on a couchDB"""
@@ -16,20 +18,20 @@ class Couch:
         self.port = port
 
     def connect(self):
-        return httplib.HTTPConnection(self.host, self.port) # No close()
+        return httplib.HTTPConnection(self.host, self.port)     # No close()
 
     # Database operations
 
     def createDb(self, dbName):
         """Creates a new database on the server"""
 
-        r = self.put(''.join(['/',dbName,'/']), "")
+        r = self.put(''.join(['/', dbName, '/']), "")
         return r.read()
 
     def deleteDb(self, dbName):
         """Deletes the database on the server"""
 
-        r = self.delete(''.join(['/',dbName,'/']))
+        r = self.delete(''.join(['/', dbName, '/']))
         return r.read()
 
     def listDb(self):
@@ -53,7 +55,7 @@ class Couch:
 
     def openDoc(self, dbName, docId):
         """Open a document in a given database"""
-        r = self.get(''.join(['/', dbName, '/', docId,]))
+        r = self.get(''.join(['/', dbName, '/', docId, ]))
         return r.read()
 
     def saveDoc(self, dbName, body, docId=None):
@@ -66,7 +68,7 @@ class Couch:
 
     def deleteDoc(self, dbName, docId):
         # XXX Crashed if resource is non-existent; not so for DELETE on db. Bug?
-        # XXX Does not work any more, on has to specify an revid 
+        # XXX Does not work any more, on has to specify an revid
         #     Either do html head to get the recten revid or provide it as parameter
         r = self.delete(''.join(['/', dbName, '/', docId]))
         return r.read()
@@ -98,4 +100,3 @@ class Couch:
         c = self.connect()
         c.request("DELETE", uri)
         return c.getresponse()
-

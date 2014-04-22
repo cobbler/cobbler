@@ -30,28 +30,29 @@ from utils import _
 
 #--------------------------------------------
 
+
 class Systems(collection.Collection):
 
     def collection_type(self):
         return "system"
 
-    def factory_produce(self,config,seed_data):
+    def factory_produce(self, config, seed_data):
         """
         Return a Distro forged from seed_data
         """
         return system.System(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False, logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
         name = name.lower()
         obj = self.find(name=name)
-        
+
         if obj is not None:
 
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [], logger)
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
@@ -63,11 +64,10 @@ class Systems(collection.Collection):
                 self.lock.release()
             self.config.serialize_delete(self, obj)
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
             return True
-       
+
         raise CX(_("cannot delete an object that does not exist: %s") % name)
-     
