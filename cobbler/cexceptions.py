@@ -25,18 +25,18 @@ import exceptions
 
 class CobblerException(exceptions.Exception):
 
-   def __init__(self, value, *args):
-       self.value = value % args
-       # this is a hack to work around some odd exception handling
-       # in older pythons
-       self.from_cobbler = 1
+    def __init__(self, value, *args):
+        self.value = value % args
+        # this is a hack to work around some odd exception handling
+        # in older pythons
+        self.from_cobbler = 1
 
-   def __str__(self):
-       return repr(self.value)
+    def __str__(self):
+        return repr(self.value)
 
 
 class CX(CobblerException):
-   pass
+    pass
 
 
 class FileNotFoundException(CobblerException):
