@@ -28,18 +28,19 @@ from utils import _
 
 #--------------------------------------------
 
+
 class Files(collection.Collection):
 
     def collection_type(self):
         return "file"
 
-    def factory_produce(self,config,seed_data):
+    def factory_produce(self, config, seed_data):
         """
         Return a File forged from seed_data
         """
         return file.File(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
