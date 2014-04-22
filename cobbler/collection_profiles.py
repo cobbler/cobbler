@@ -32,18 +32,19 @@ from utils import _
 
 #--------------------------------------------
 
+
 class Profiles(collection.Collection):
 
     def collection_type(self):
         return "profile"
 
-    def factory_produce(self,config,seed_data):
+    def factory_produce(self, config, seed_data):
         """
         Return a Distro forged from seed_data
         """
         return profile.Profile(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -64,9 +65,9 @@ class Profiles(collection.Collection):
                         self.config.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
                     else:
                         self.config.api.remove_system(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
- 
+
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", [], logger)
             self.lock.acquire()
             try:
@@ -75,7 +76,7 @@ class Profiles(collection.Collection):
                 self.lock.release()
             self.config.serialize_delete(self, obj)
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
                 if with_sync:
