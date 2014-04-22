@@ -40,7 +40,7 @@ from utils import _
 # default value -- when a new object is created, what is the default value for this field?
 #
 # subobject default -- this applies ONLY to subprofiles, and is most always set to <<inherit>>.  If this
-#                      is not item_profile.py it does not matter.  
+#                      is not item_profile.py it does not matter.
 #
 # display name -- how the field shows up in the web application and the "cobbler report" command
 #
@@ -61,7 +61,7 @@ from utils import _
 # the order in which the fields are listed (for all non-hidden fields) are the order they will
 # appear in the web application (top to bottom).   The command line sorts fields alphabetically.
 #
-# field_info.py also contains a set of "Groups" that describe what other fields are associated with 
+# field_info.py also contains a set of "Groups" that describe what other fields are associated with
 # what other fields.  This affects color coding and other display hints.  If you add a field
 # please edit field_info.py carefully to match.
 #
@@ -72,7 +72,7 @@ from utils import _
 #
 #   ctime, mtime -- times the object was modified, used internally by cobbler for API purposes
 #   uid -- also used for some external API purposes
-#   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it 
+#   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it
 #                   for RHEL split repos, this is a list of each of them in the install tree, used to generate
 #                   repo lines in the kickstart to allow installation of x>=RHEL5.  Otherwise unimportant.
 #   depth -- used for "cobbler list" to print the tree, makes it easier to load objects from disk also
@@ -90,30 +90,31 @@ from utils import _
 # must operate as normal with the default value for all fields and not choke on the default values.
 
 FIELDS = [
-   [ "name","",0,"Name",True,"Ex: Fedora-11-i386",0,"str"],
-   ["ctime",0,0,"",False,"",0,"float"],
-   ["mtime",0,0,"",False,"",0,"float"],
-   [ "uid","",0,"",False,"",0,"str"],
-   [ "owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
-   [ "kernel",None,0,"Kernel",True,"Absolute path to kernel on filesystem",0,"str"],
-   [ "initrd",None,0,"Initrd",True,"Absolute path to kernel on filesystem",0,"str"],
-   [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
-   [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
-   [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0,"dict"],
-   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','ppc64','s390', 'arm'],"str"],
-   [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",utils.get_valid_breeds(),"str"],
-   [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",utils.get_valid_os_versions(),"str"],
-   [ "source_repos",[],0,"Source Repos", False,"",0,"list"],
-   [ "depth",0,0,"Depth",False,"",0,"int"],
-   [ "comment","",0,"Comment",True,"Free form text description",0,"str"],
-   [ "tree_build_time",0,0,"Tree Build Time",False,"",0,"str"],
-   [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0,"list"],
-   [ "boot_files",{},0,"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
-   [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget",0,"list"],
-   [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0,"list"],
-   [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
-   [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"]
+   ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
+   ["ctime", 0, 0, "", False, "", 0, "float"],
+   ["mtime", 0, 0, "", False, "", 0, "float"],
+   ["uid", "", 0, "", False, "", 0, "str"],
+   ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
+   ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
+   ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
+   ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
+   ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
+   ["ks_meta", {}, 0, "Kickstart Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
+   ["arch", 'i386', 0, "Architecture", True, "", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390', 'arm'], "str"],
+   ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
+   ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
+   ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
+   ["depth", 0, 0, "Depth", False, "", 0, "int"],
+   ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+   ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
+   ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
+   ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+   ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
+   ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"],
+   ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
+   ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Spacewalk or Satellite Server", 0, "str"]
 ]
+
 
 class Distro(item.Item):
 
@@ -141,7 +142,7 @@ class Distro(item.Item):
         """
         return None
 
-    def set_kernel(self,kernel):
+    def set_kernel(self, kernel):
         """
         Specifies a kernel.  The kernel parameter is a full path, a filename
         in the configured kernel directory (set in /etc/cobbler.conf) or a
@@ -165,16 +166,16 @@ class Distro(item.Item):
         return True
 
     def set_breed(self, breed):
-        return utils.set_breed(self,breed)
+        return utils.set_breed(self, breed)
 
     def set_os_version(self, os_version):
-        return utils.set_os_version(self,os_version)
+        return utils.set_os_version(self, os_version)
 
-    def set_initrd(self,initrd):
+    def set_initrd(self, initrd):
         """
-	    Specifies an initrd image.  Path search works as in set_kernel.
-	    File must be named appropriately.
-	    """
+        Specifies an initrd image.  Path search works as in set_kernel.
+        File must be named appropriately.
+        """
         if initrd is None or initrd == "":
             raise CX("initrd not specified")
         if utils.find_initrd(initrd):
@@ -182,12 +183,12 @@ class Distro(item.Item):
             return True
         raise CX(_("initrd not found"))
 
-    def set_redhat_management_key(self,key):
-        return utils.set_redhat_management_key(self,key)
+    def set_redhat_management_key(self, key):
+        return utils.set_redhat_management_key(self, key)
 
-    def set_redhat_management_server(self,server):
-        return utils.set_redhat_management_server(self,server)
- 
+    def set_redhat_management_server(self, server):
+        return utils.set_redhat_management_server(self, server)
+
     def set_source_repos(self, repos):
         """
         A list of http:// URLs on the cobbler server that point to
@@ -196,7 +197,7 @@ class Distro(item.Item):
         """
         self.source_repos = repos
 
-    def set_arch(self,arch):
+    def set_arch(self, arch):
         """
         The field is mainly relevant to PXE provisioning.
 
@@ -215,7 +216,7 @@ class Distro(item.Item):
 
         Update: (7/2008) this is now used to build fake PXE trees for s390x also
         """
-        return utils.set_arch(self,arch)
+        return utils.set_arch(self, arch)
 
     def check_if_valid(self):
         if self.name is None:
@@ -227,14 +228,12 @@ class Distro(item.Item):
 
         if utils.file_is_remote(self.kernel):
             if not utils.remote_file_exists(self.kernel):
-                raise CX("Error with distro %s - kernel '%s' not found" % (self.name,self.kernel))
+                raise CX("Error with distro %s - kernel '%s' not found" % (self.name, self.kernel))
         elif not os.path.exists(self.kernel):
             raise CX("Error with distro %s - kernel not found" % (self.name))
 
         if utils.file_is_remote(self.initrd):
             if not utils.remote_file_exists(self.initrd):
-                raise CX("Error with distro %s - initrd path not found" % 
-                        (self.name))
+                raise CX("Error with distro %s - initrd path not found" % (self.name))
         elif not os.path.exists(self.initrd):
             raise CX("Error with distro %s - initrd path not found" % (self.name))
-
