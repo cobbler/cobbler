@@ -33,18 +33,19 @@ TESTMODE = False
 
 #--------------------------------------------
 
+
 class Repos(collection.Collection):
 
     def collection_type(self):
         return "repo"
 
-    def factory_produce(self,config,seed_data):
+    def factory_produce(self, config, seed_data):
         """
         Return a Distro forged from seed_data
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -55,7 +56,7 @@ class Repos(collection.Collection):
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
 
             self.lock.acquire()
@@ -66,10 +67,10 @@ class Repos(collection.Collection):
             self.config.serialize_delete(self, obj)
 
             if with_delete:
-                if with_triggers: 
+                if with_triggers:
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
-           
+
                 #FIXME: better use config.settings() webdir?
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name
                 if os.path.exists("/srv/www/"):
@@ -80,4 +81,3 @@ class Repos(collection.Collection):
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
-
