@@ -26,19 +26,20 @@ from utils import _
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-    [ "uid","",0,"",False,"",0,"str"],
-    ["depth",2,0,"",False,"",0,"float"],
-    ["name","",0,"Name",True,"Ex: F10-i386-webserver",0,"str"],
-    ["owners","SETTINGS:default_ownership","SETTINGS:default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
-    ["comment","",0,"Comment",True,"Free form text description",0,"str"],
-    ["ctime",0,0,"",False,"",0,"int"],
-    ["mtime",0,0,"",False,"",0,"int"],
-    ["class_name","",0,"Class Name",True,"Actual Class Name (leave blank to use the name field)",0,"str"],
-    ["is_definition",False,0,"Is Definition?",True,"Treat this class as a definition (puppet only)",0,"bool"],
-    ["params",{},0,"Parameters/Variables",True,"List of parameters/variables",0,"dict"],
-    ["packages",[],0,"Packages",True,"Package resources",0,"list"],
-    ["files",[],0,"Files",True,"File resources",0,"list"],
+    ["uid", "", 0, "", False, "", 0, "str"],
+    ["depth", 2, 0, "", False, "", 0, "float"],
+    ["name", "", 0, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
+    ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["ctime", 0, 0, "", False, "", 0, "int"],
+    ["mtime", 0, 0, "", False, "", 0, "int"],
+    ["class_name", "", 0, "Class Name", True, "Actual Class Name (leave blank to use the name field)", 0, "str"],
+    ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
+    ["params", {}, 0, "Parameters/Variables", True, "List of parameters/variables", 0, "dict"],
+    ["packages", [], 0, "Packages", True, "Package resources", 0, "list"],
+    ["files", [], 0, "Files", True, "File resources", 0, "list"],
 ]
+
 
 class Mgmtclass(item.Item):
 
@@ -54,16 +55,16 @@ class Mgmtclass(item.Item):
     def get_fields(self):
         return FIELDS
 
-    def set_packages(self,packages):
-        self.packages = utils.input_string_or_list(packages)    
+    def set_packages(self, packages):
+        self.packages = utils.input_string_or_list(packages)
         return True
 
-    def set_files(self,files):
+    def set_files(self, files):
         self.files = utils.input_string_or_list(files)
         return True
 
-    def set_params(self,params,inplace=False):
-        (success, value) = utils.input_string_or_hash(params,allow_multiples=True)
+    def set_params(self, params, inplace=False):
+        (success, value) = utils.input_string_or_hash(params, allow_multiples=True)
         if not success:
             raise CX(_("invalid parameters"))
         else:
@@ -77,15 +78,15 @@ class Mgmtclass(item.Item):
                 self.params = value
             return True
 
-    def set_is_definition(self,isdef):
+    def set_is_definition(self, isdef):
         self.is_definition = utils.input_boolean(isdef)
         return True
 
-    def set_class_name(self,name):
+    def set_class_name(self, name):
         if not isinstance(name, basestring):
             raise CX(_("class name must be a string"))
         for x in name:
-            if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
+            if not x.isalnum() and not x in ["_", "-", ".", ":", "+"]:
                 raise CX(_("invalid characters in class name: '%s'" % name))
         self.class_name = name
         return True
