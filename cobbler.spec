@@ -7,7 +7,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.4.3
+Version: 2.4.4
 Release: 1%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -334,6 +334,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /var/www/cobbler_webui_content/
 
 %changelog
+* Tue Apr 22 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.4
 * Sun Mar 09 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.3
 * Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
 * Mon Feb 10 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
