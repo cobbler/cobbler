@@ -59,8 +59,9 @@ start() {
         startproc -p /var/run/$SERVICE.pid @@install_scripts@@/cobblerd $CONFIG_ARGS
         rc_status -v
     elif [ -e $DEBIAN_VERSION ]; then
-        if [ -f $LOCKFILE ]; then
-            echo -n "already started, lock file found" 
+        pgrep -f "@@python_executable@@ @@install_scripts@@/cobblerd" > /dev/null 2>&1
+        if [ "$?" -eq 0 ]; then
+            echo -n "already started" 
             RETVAL=1
         elif @@python_executable@@ @@install_scripts@@/cobblerd; then
             echo -n "OK"
@@ -84,7 +85,7 @@ stop() {
     elif [ -f $DEBIAN_VERSION ]; then
         # Added this since Debian's start-stop-daemon doesn't support spawned processes, will remove
         # when cobblerd supports stopping or PID files.
-        if ps -ef | grep "@@python_executable@@ @@install_scripts@@/cobblerd" | grep -v grep | awk '{print $2}' | xargs kill &> /dev/null; then
+        if pkill -f "@@python_executable@@ @@install_scripts@@/cobblerd" > /dev/null 2>&1 ; then
             echo -n "OK"
             RETVAL=0
         else
@@ -118,7 +119,8 @@ case "$1" in
             checkproc @@install_scripts@@/cobblerd
             rc_status -v
         elif [ -f $DEBIAN_VERSION ]; then
-            if [ -f $LOCKFILE ]; then
+            pgrep -f "@@python_executable@@ @@install_scripts@@/cobblerd" > /dev/null 2>&1
+            if [ "$?" -eq 0 ]; then
                 RETVAL=0
                 echo "cobblerd is running."
             else

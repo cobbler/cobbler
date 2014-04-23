@@ -10,7 +10,7 @@ export DH_OPTIONS
 	dh $@ --with python2
 
 override_dh_auto_build:
-	python setup.py build
+	python setup.py build build_cfg --install-scripts=/usr/bin --install-data=/usr --install-lib=/usr/lib
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -20,5 +20,5 @@ override_dh_auto_test:
 	nosetests cobbler/*.py || true
 
 override_dh_auto_install:
-	python setup.py install -f --install-layout=deb --root=$(CURDIR)/debian/tmp --install-data=/usr
+	python setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/
 
