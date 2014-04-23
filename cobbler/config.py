@@ -48,251 +48,248 @@ import serializer
 
 from cexceptions import CX
 
+
 class Config:
 
-   has_loaded = False
-   __shared_state = {}
+    has_loaded = False
+    __shared_state = {}
 
 
-   def __init__(self,api):
+    def __init__(self, api):
+        """
+        Constructor.  Manages a definitive copy of all data collections with weakrefs
+        pointing back into the class so they can understand each other's contents
+        """
+        self.__dict__ = Config.__shared_state
+        if not Config.has_loaded:
+            self.__load(api)
 
-       """
-       Constructor.  Manages a definitive copy of all data collections with weakrefs
-       pointing back into the class so they can understand each other's contents
-       """
 
-       self.__dict__ = Config.__shared_state
-       if not Config.has_loaded:
-          self.__load(api)
-           
+    def __load(self, api):
+        Config.has_loaded = True
 
-   def __load(self,api):
+        self.init_time = time.time()
+        self.current_id = 0
+        self.api = api
+        self._distros = distros.Distros(weakref.proxy(self))
+        self._repos = repos.Repos(weakref.proxy(self))
+        self._profiles = profiles.Profiles(weakref.proxy(self))
+        self._systems = systems.Systems(weakref.proxy(self))
+        self._images = images.Images(weakref.proxy(self))
+        self._mgmtclasses = mgmtclasses.Mgmtclasses(weakref.proxy(self))
+        self._packages = packages.Packages(weakref.proxy(self))
+        self._files = files.Files(weakref.proxy(self))
+        self._settings = settings.Settings()         # not a true collection
 
-       Config.has_loaded  = True
+    def generate_uid(self):
+        """
+        Cobbler itself does not use this GUID's though they are provided
+        to allow for easier API linkage with other applications.
+        Cobbler uses unique names in each collection as the object id
+        aka primary key
+        """
+        data = "%s%s" % (time.time(), random.uniform(1, 9999999))
+        return binascii.b2a_base64(data).replace("=", "").strip()
 
-       self.init_time     = time.time()
-       self.current_id    = 0
-       self.api           = api
-       self._distros      = distros.Distros(weakref.proxy(self))
-       self._repos        = repos.Repos(weakref.proxy(self))
-       self._profiles     = profiles.Profiles(weakref.proxy(self))
-       self._systems      = systems.Systems(weakref.proxy(self))
-       self._images       = images.Images(weakref.proxy(self))
-       self._mgmtclasses  = mgmtclasses.Mgmtclasses(weakref.proxy(self))
-       self._packages     = packages.Packages(weakref.proxy(self))
-       self._files        = files.Files(weakref.proxy(self))
-       self._settings     = settings.Settings() # not a true collection
+    def __cmp(self, a, b):
+        return cmp(a.name, b.name)
 
-   def generate_uid(self):
-       """
-       Cobbler itself does not use this GUID's though they are provided
-       to allow for easier API linkage with other applications.
-       Cobbler uses unique names in each collection as the object id
-       aka primary key
-       """
-       data = "%s%s" % (time.time(), random.uniform(1,9999999))
-       return binascii.b2a_base64(data).replace("=","").strip()
-       
-   def __cmp(self,a,b):
-       return cmp(a.name,b.name)
+    def distros(self):
+        """
+        Return the definitive copy of the Distros collection
+        """
+        return self._distros
 
-   def distros(self):
-       """
-       Return the definitive copy of the Distros collection
-       """
-       return self._distros
+    def profiles(self):
+        """
+        Return the definitive copy of the Profiles collection
+        """
+        return self._profiles
 
-   def profiles(self):
-       """
-       Return the definitive copy of the Profiles collection
-       """
-       return self._profiles
+    def systems(self):
+        """
+        Return the definitive copy of the Systems collection
+        """
+        return self._systems
 
-   def systems(self):
-       """
-       Return the definitive copy of the Systems collection
-       """
-       return self._systems
+    def settings(self):
+        """
+        Return the definitive copy of the application settings
+        """
+        return self._settings
 
-   def settings(self):
-       """
-       Return the definitive copy of the application settings
-       """
-       return self._settings
+    def repos(self):
+        """
+        Return the definitive copy of the Repos collection
+        """
+        return self._repos
 
-   def repos(self):
-       """
-       Return the definitive copy of the Repos collection
-       """
-       return self._repos
+    def images(self):
+        """
+        Return the definitive copy of the Images collection
+        """
+        return self._images
 
-   def images(self):
-       """
-       Return the definitive copy of the Images collection
-       """
-       return self._images
-   
-   def mgmtclasses(self):
-       """
-       Return the definitive copy of the Mgmtclasses collection
-       """
-       return self._mgmtclasses
-    
-   def packages(self):
-       """
-       Return the definitive copy of the Packages collection
-       """
-       return self._packages
-   
-   def files(self):
-       """
-       Return the definitive copy of the Files collection
-       """
-       return self._files
+    def mgmtclasses(self):
+        """
+        Return the definitive copy of the Mgmtclasses collection
+        """
+        return self._mgmtclasses
 
-   def new_distro(self,is_subobject=False):
-       """
-       Create a new distro object with a backreference to this object
-       """
-       return distro.Distro(weakref.proxy(self),is_subobject=is_subobject)
+    def packages(self):
+        """
+        Return the definitive copy of the Packages collection
+        """
+        return self._packages
 
-   def new_system(self,is_subobject=False):
-       """
-       Create a new system with a backreference to this object
-       """
-       return system.System(weakref.proxy(self),is_subobject=is_subobject)
+    def files(self):
+        """
+        Return the definitive copy of the Files collection
+        """
+        return self._files
 
-   def new_profile(self,is_subobject=False):
-       """
-       Create a new profile with a backreference to this object
-       """
-       return profile.Profile(weakref.proxy(self),is_subobject=is_subobject)
+    def new_distro(self, is_subobject=False):
+        """
+        Create a new distro object with a backreference to this object
+        """
+        return distro.Distro(weakref.proxy(self), is_subobject=is_subobject)
 
-   def new_repo(self,is_subobject=False):
-       """
-       Create a new mirror to keep track of...
-       """
-       return repo.Repo(weakref.proxy(self),is_subobject=is_subobject)
+    def new_system(self, is_subobject=False):
+        """
+        Create a new system with a backreference to this object
+        """
+        return system.System(weakref.proxy(self), is_subobject=is_subobject)
 
-   def new_image(self,is_subobject=False):
-       """
-       Create a new image object...
-       """
-       return image.Image(weakref.proxy(self),is_subobject=is_subobject)
-   
-   def new_mgmtclass(self,is_subobject=False):
-       """
-       Create a new mgmtclass object...
-       """
-       return mgmtclass.Mgmtclass(weakref.proxy(self),is_subobject=is_subobject)
-    
-   def new_package(self,is_subobject=False):
-       """
-       Create a new package object...
-       """
-       return package.Package(weakref.proxy(self),is_subobject=is_subobject)
-    
-   def new_file(self,is_subobject=False):
-       """
-       Create a new image object...
-       """
-       return file.File(weakref.proxy(self),is_subobject=is_subobject)
+    def new_profile(self, is_subobject=False):
+        """
+        Create a new profile with a backreference to this object
+        """
+        return profile.Profile(weakref.proxy(self), is_subobject=is_subobject)
 
-   def clear(self):
-       """
-       Forget about all loaded configuration data
-       """
+    def new_repo(self, is_subobject=False):
+        """
+        Create a new mirror to keep track of...
+        """
+        return repo.Repo(weakref.proxy(self), is_subobject=is_subobject)
 
-       self._distros.clear(),
-       self._repos.clear(),
-       self._profiles.clear(),
-       self._images.clear()
-       self._systems.clear(),
-       self._mgmtclasses.clear(),
-       self._packages.clear(),
-       self._files.clear(),
-       return True
+    def new_image(self, is_subobject=False):
+        """
+        Create a new image object...
+        """
+        return image.Image(weakref.proxy(self), is_subobject=is_subobject)
 
-   def serialize(self):
-       """
-       Save the object hierarchy to disk, using the filenames referenced in each object.
-       """
-       serializer.serialize(self._distros)
-       serializer.serialize(self._repos)
-       serializer.serialize(self._profiles)
-       serializer.serialize(self._images)
-       serializer.serialize(self._systems)
-       serializer.serialize(self._mgmtclasses)
-       serializer.serialize(self._packages)
-       serializer.serialize(self._files)
-       return True
+    def new_mgmtclass(self, is_subobject=False):
+        """
+        Create a new mgmtclass object...
+        """
+        return mgmtclass.Mgmtclass(weakref.proxy(self), is_subobject=is_subobject)
 
-   def serialize_item(self,collection,item):
-       """
-       Save item in the collection, resaving the whole collection if needed,
-       but ideally just saving the item.
-       """
-       return serializer.serialize_item(collection,item)
-      
+    def new_package(self, is_subobject=False):
+        """
+        Create a new package object...
+        """
+        return package.Package(weakref.proxy(self), is_subobject=is_subobject)
 
-   def serialize_delete(self,collection,item):
-       """
-       Erase item from a storage file, if neccessary rewritting the file.
-       """
-       return serializer.serialize_delete(collection,item) 
+    def new_file(self, is_subobject=False):
+        """
+        Create a new image object...
+        """
+        return file.File(weakref.proxy(self), is_subobject=is_subobject)
 
-   def deserialize(self):
-       """
-       Load the object hierachy from disk, using the filenames referenced in each object.
-       """
-       for item in [
-           self._settings,
-           self._distros,
-           self._repos,
-           self._profiles,
-           self._images,
-           self._systems,
-           self._mgmtclasses,
-           self._packages,
-           self._files,
-           ]:
-           try:
-               if not serializer.deserialize(item): raise ""
-           except:
-               raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
-       return True
+    def clear(self):
+        """
+        Forget about all loaded configuration data
+        """
+        self._distros.clear(),
+        self._repos.clear(),
+        self._profiles.clear(),
+        self._images.clear()
+        self._systems.clear(),
+        self._mgmtclasses.clear(),
+        self._packages.clear(),
+        self._files.clear(),
+        return True
 
-   def deserialize_raw(self,collection_type):
-       """
-       Get object data from disk, not objects.
-       """
-       return serializer.deserialize_raw(collection_type)
+    def serialize(self):
+        """
+        Save the object hierarchy to disk, using the filenames referenced in each object.
+        """
+        serializer.serialize(self._distros)
+        serializer.serialize(self._repos)
+        serializer.serialize(self._profiles)
+        serializer.serialize(self._images)
+        serializer.serialize(self._systems)
+        serializer.serialize(self._mgmtclasses)
+        serializer.serialize(self._packages)
+        serializer.serialize(self._files)
+        return True
 
-   def deserialize_item_raw(self,collection_type,obj_name):
-       """
-       Get a raw single object.
-       """
-       return serializer.deserialize_item_raw(collection_type,obj_name)
+    def serialize_item(self, collection, item):
+        """
+        Save item in the collection, resaving the whole collection if needed,
+        but ideally just saving the item.
+        """
+        return serializer.serialize_item(collection, item)
 
-   def get_items(self,collection_type):
+    def serialize_delete(self, collection, item):
+        """
+        Erase item from a storage file, if neccessary rewritting the file.
+        """
+        return serializer.serialize_delete(collection, item)
+
+    def deserialize(self):
+        """
+        Load the object hierachy from disk, using the filenames referenced in each object.
+        """
+        for item in [
+            self._settings,
+            self._distros,
+            self._repos,
+            self._profiles,
+            self._images,
+            self._systems,
+            self._mgmtclasses,
+            self._packages,
+            self._files,
+            ]:
+            try:
+                if not serializer.deserialize(item):
+                    raise ""
+            except:
+                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
+        return True
+
+    def deserialize_raw(self, collection_type):
+        """
+        Get object data from disk, not objects.
+        """
+        return serializer.deserialize_raw(collection_type)
+
+    def deserialize_item_raw(self, collection_type, obj_name):
+        """
+        Get a raw single object.
+        """
+        return serializer.deserialize_item_raw(collection_type, obj_name)
+
+    def get_items(self, collection_type):
         if collection_type == "distro":
-            result=self._distros
+            result = self._distros
         elif collection_type == "profile":
-            result=self._profiles
+            result = self._profiles
         elif collection_type == "system":
-            result=self._systems
+            result = self._systems
         elif collection_type == "repo":
-            result=self._repos
+            result = self._repos
         elif collection_type == "image":
-            result=self._images
+            result = self._images
         elif collection_type == "mgmtclass":
-            result=self._mgmtclasses
+            result = self._mgmtclasses
         elif collection_type == "package":
-            result=self._packages
+            result = self._packages
         elif collection_type == "file":
-            result=self._files
+            result = self._files
         elif collection_type == "settings":
-            result=self._settings
+            result = self._settings
         else:
             raise CX("internal error, collection name %s not supported" % collection_type)
         return result
