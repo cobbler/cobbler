@@ -30,30 +30,31 @@ from utils import _
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ['name','',0,"Name",True,"",0,"str"],
-  ['arch','i386',0,"Architecture",True,"",["i386","x86_64","ia64","s390","ppc","ppc64", "arm"],"str"],
-  ['breed','redhat',0,"Breed",True,"",utils.get_valid_breeds(),"str"],
-  ['comment','',0,"Comment",True,"Free form text description",0,"str"],
-  ['ctime',0,0,"",False,"",0,"float"],
-  ['mtime',0,0,"",False,"",0,"float"],
-  ['file','',0,"File",True,"Path to local file or nfs://user@host:path",0,"str"],
-  ['depth',0,0,"",False,"",0,"int"],
-  ['image_type',"iso",0,"Image Type",True,"", ["iso","direct","memdisk","virt-image"],"str"], #FIXME:complete?
-  ['network_count',1,0,"Virt NICs",True,"",0,"int"],
-  ['os_version','',0,"OS Version",True,"ex: rhel4",utils.get_valid_os_versions(),"str"],
-  ['owners',"SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",[],"list"],
-  ['parent','',0,"",False,"",0,"str"],
-  ['kickstart','',0,"Kickstart",True,"Path to kickstart/answer file template",0,"str"],
-  ['virt_auto_boot',"SETTINGS:virt_auto_boot",0,"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
-  ['virt_bridge',"SETTINGS:default_virt_bridge",0,"Virt Bridge",True,"",0,"str"],
-  ['virt_cpus',1,0,"Virt CPUs",True,"",0,"int"],
-  ['virt_file_size',"SETTINGS:default_virt_file_size",0,"Virt File Size (GB)",True,"",0,"float"],
-  ["virt_disk_driver","SETTINGS:default_virt_disk_driver",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
-  ['virt_path','',0,"Virt Path",True,"Ex: /directory or VolGroup00",0,"str"],
-  ['virt_ram',"SETTINGS:default_virt_ram",0,"Virt RAM (MB)",True,"",0,"int"],
-  ['virt_type',"SETTINGS:default_virt_type",0,"Virt Type",True,"",["xenpv","xenfv","qemu","kvm", "vmware"],"str"],
-  ['uid',"",0,"",False,"",0,"str"]
+  ['name', '', 0, "Name", True, "", 0, "str"],
+  ['arch', 'i386', 0, "Architecture", True, "", ["i386", "x86_64", "ia64", "s390", "ppc", "ppc64", "arm"], "str"],
+  ['breed', 'redhat', 0, "Breed", True, "", utils.get_valid_breeds(), "str"],
+  ['comment', '', 0, "Comment", True, "Free form text description", 0, "str"],
+  ['ctime', 0, 0, "", False, "", 0, "float"],
+  ['mtime', 0, 0, "", False, "", 0, "float"],
+  ['file', '', 0, "File", True, "Path to local file or nfs://user@host:path", 0, "str"],
+  ['depth', 0, 0, "", False, "", 0, "int"],
+  ['image_type', "iso", 0, "Image Type", True, "", ["iso", "direct", "memdisk", "virt-image"], "str"],
+  ['network_count', 1, 0, "Virt NICs", True, "", 0, "int"],
+  ['os_version', '', 0, "OS Version", True, "ex: rhel4", utils.get_valid_os_versions(), "str"],
+  ['owners', "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
+  ['parent', '', 0, "", False, "", 0, "str"],
+  ['kickstart', '', 0, "Kickstart", True, "Path to kickstart/answer file template", 0, "str"],
+  ['virt_auto_boot', "SETTINGS:virt_auto_boot", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
+  ['virt_bridge', "SETTINGS:default_virt_bridge", 0, "Virt Bridge", True, "", 0, "str"],
+  ['virt_cpus', 1, 0, "Virt CPUs", True, "", 0, "int"],
+  ['virt_file_size', "SETTINGS:default_virt_file_size", 0, "Virt File Size (GB)", True, "", 0, "float"],
+  ["virt_disk_driver", "SETTINGS:default_virt_disk_driver", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
+  ['virt_path', '', 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
+  ['virt_ram', "SETTINGS:default_virt_ram", 0, "Virt RAM (MB)", True, "", 0, "int"],
+  ['virt_type', "SETTINGS:default_virt_type", 0, "Virt Type", True, "", ["xenpv", "xenfv", "qemu", "kvm", "vmware"], "str"],
+  ['uid', "", 0, "", False, "", 0, "str"]
 ]
+
 
 class Image(item.Item):
 
@@ -68,15 +69,15 @@ class Image(item.Item):
 
     def get_fields(self):
         return FIELDS
- 
-    def set_arch(self,arch):
+
+    def set_arch(self, arch):
         """
         The field is mainly relevant to PXE provisioning.
         see comments for set_arch in item_distro.py, this works the same.
         """
-        return utils.set_arch(self,arch)
+        return utils.set_arch(self, arch)
 
-    def set_kickstart(self,kickstart):
+    def set_kickstart(self, kickstart):
         """
         It may not make sense for images to have kickstarts.  It really doesn't.
         However if the image type is 'iso' koan can create a virtual floppy
@@ -93,7 +94,7 @@ class Image(item.Item):
         raise CX(_("kickstart not found for image"))
 
 
-    def set_file(self,filename):
+    def set_file(self, filename):
         """
         Stores the image location.  This should be accessible on all nodes
         that need to access it.  Format: can be one of the following:
@@ -141,13 +142,13 @@ class Image(item.Item):
         self.file = uri
         return True
 
-    def set_os_version(self,os_version):
-        return utils.set_os_version(self,os_version)
+    def set_os_version(self, os_version):
+        return utils.set_os_version(self, os_version)
 
-    def set_breed(self,breed):
-        return utils.set_breed(self,breed)
+    def set_breed(self, breed):
+        return utils.set_breed(self, breed)
 
-    def set_image_type(self,image_type):
+    def set_image_type(self, image_type):
         """
         Indicates what type of image this is.
         direct     = something like "memdisk", physical only
@@ -156,13 +157,13 @@ class Image(item.Item):
         memdisk    = hdd image (physical only)
         """
         if not image_type in self.get_valid_image_types():
-           raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(),", "))
+            raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(), ", "))
         self.image_type = image_type
         return True
 
-    def set_virt_cpus(self,num):
-        return utils.set_virt_cpus(self,num)
-        
+    def set_virt_cpus(self, num):
+        return utils.set_virt_cpus(self, num)
+
     def set_network_count(self, num):
         if num is None or num == "":
             num = 1
@@ -172,33 +173,32 @@ class Image(item.Item):
             raise CX("invalid network count (%s)" % num)
         return True
 
-    def set_virt_auto_boot(self,num):
-        return utils.set_virt_auto_boot(self,num)
+    def set_virt_auto_boot(self, num):
+        return utils.set_virt_auto_boot(self, num)
 
-    def set_virt_file_size(self,num):
-        return utils.set_virt_file_size(self,num)
+    def set_virt_file_size(self, num):
+        return utils.set_virt_file_size(self, num)
 
-    def set_virt_disk_driver(self,driver):
-        return utils.set_virt_disk_driver(self,driver)
+    def set_virt_disk_driver(self, driver):
+        return utils.set_virt_disk_driver(self, driver)
 
-    def set_virt_ram(self,num):
-        return utils.set_virt_ram(self,num)
+    def set_virt_ram(self, num):
+        return utils.set_virt_ram(self, num)
 
-    def set_virt_type(self,vtype):
-        return utils.set_virt_type(self,vtype)
+    def set_virt_type(self, vtype):
+        return utils.set_virt_type(self, vtype)
 
-    def set_virt_bridge(self,vbridge):
-        return utils.set_virt_bridge(self,vbridge)
+    def set_virt_bridge(self, vbridge):
+        return utils.set_virt_bridge(self, vbridge)
 
-    def set_virt_path(self,path):
-        return utils.set_virt_path(self,path)
+    def set_virt_path(self, path):
+        return utils.set_virt_path(self, path)
 
     def get_valid_image_types(self):
-        return ["direct","iso","memdisk","virt-clone"]
+        return ["direct", "iso", "memdisk", "virt-clone"]
 
     def get_parent(self):
         """
         Return object next highest up the tree.
         """
         return None  # no parent
-
