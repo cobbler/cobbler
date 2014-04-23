@@ -35,7 +35,7 @@
    },
    "rhel6": {
     "signatures":["Packages"],
-    "version_file":"(redhat|sl|centos|oraclelinux)-release-(?!notes)([\\w]*-)*6(Server)*[\\.-]+(.*)\\.rpm",
+    "version_file":"(redhat|sl|slf|centos|oraclelinux)-release-(?!notes)([\\w]*-)*6(Server)*[\\.-]+(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "kernel_arch_regex":null,
@@ -654,7 +654,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
-   },   
+   },
    "9.0": {
     "signatures":["boot"],
     "version_file":"device\\.hints",

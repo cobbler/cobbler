@@ -21,6 +21,8 @@
 + Server/
 + Client/
 + SL/
++ FermiPackages/
++ SITERPMS/
 + images/
 + images/pxeboot/
 + images/pxeboot/*
