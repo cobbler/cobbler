@@ -1,3 +1,9 @@
+cobbler (2.6.0-1.2) unstable; urgency=low
+
+  * Set proper paths in config files
+
+ --  Adrian Brzezinski <adrbxx@gmail.com>  Wed, 23 Apr 2014 00:19:50 +0200
+
 cobbler (2.6.0-1.1) unstable; urgency=low
 
   * Fixed virt-install version check - support for non rpm based distributions 
@@ -9,3 +15,4 @@ cobbler (2.6.0-1) unstable; urgency=low
   * Initial release. Orginal package splitted into two: cobbler and koan.
 
  -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 18:24:22 +0200
+
