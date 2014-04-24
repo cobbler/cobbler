@@ -54,17 +54,18 @@ import urllib2
 
 
 ERROR = 100
-INFO  = 10
+INFO = 10
 DEBUG = 5
 
 # FIXME: add --quiet depending on if not --verbose?
-RSYNC_CMD =  "rsync -a %s '%s' %s --progress"
+RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 
 # notes on locking:
 # BootAPI is a singleton object
 # the XMLRPC variants allow 1 simultaneous request
 # therefore we flock on /etc/cobbler/settings for now
 # on a request by request basis.
+
 
 class BootAPI:
 
@@ -85,9 +86,9 @@ class BootAPI:
         if not BootAPI.__has_loaded:
 
             if os.path.exists("/etc/cobbler/use.couch"):
-                 self.use_couch = True
+                self.use_couch = True
             else:
-                 self.use_couch = False
+                self.use_couch = False
 
             # NOTE: we do not log all API actions, because
             # a simple CLI invocation may call adds and such
@@ -111,7 +112,7 @@ class BootAPI:
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
-            BootAPI.__has_loaded   = True
+            BootAPI.__has_loaded = True
 
             # load the modules first, or nothing else works...
             module_loader.load_modules()
@@ -132,7 +133,7 @@ class BootAPI:
                 "module",
                 "authn_configfile"
             )
-            self.authz  = self.get_module_from_file(
+            self.authz = self.get_module_from_file(
                 "authorization",
                 "module",
                 "authz_allowall"
@@ -144,8 +145,8 @@ class BootAPI:
             # (most likely) for background tasks.
 
             self.kickgen = kickgen.KickGen(self._config)
-            self.yumgen  = yumgen.YumGen(self._config)
-            self.pxegen  = pxegen.PXEGen(self._config, logger=self.logger)
+            self.yumgen = yumgen.YumGen(self._config)
+            self.pxegen = pxegen.PXEGen(self._config, logger=self.logger)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
@@ -167,8 +168,8 @@ class BootAPI:
         """
         self.dist
         if self.dist == "redhat" and self.os_version < 5:
-           # doesn't support public_content_t
-           return False 
+            # doesn't support public_content_t
+            return False
         return True
 
     # ==========================================================
@@ -179,7 +180,7 @@ class BootAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT|os.O_RDWR, 0200)
+            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
             os.write(fd, "0")
             os.close(fd)
             return 0
@@ -189,11 +190,11 @@ class BootAPI:
 
     # ==========================================================
 
-    def log(self,msg,args=None,debug=False):
+    def log(self, msg, args=None, debug=False):
         if debug:
             logger = self.logger.debug
         else:
-            logger = self.logger.info 
+            logger = self.logger.info
         if args is None:
             logger("%s" % msg)
         else:
@@ -206,7 +207,7 @@ class BootAPI:
         What version is cobbler?
 
         If extended == False, returns a float for backwards compatibility
-         
+
         If extended == True, returns a dict:
 
             gitstamp      -- the last git commit hash
@@ -215,14 +216,13 @@ class BootAPI:
             version       -- something like "1.3.2"
             version_tuple -- something like [ 1, 3, 2 ]
         """
-
         config = ConfigParser()
         config.read("/etc/cobbler/version")
         data = {}
-        data["gitdate"] = config.get("cobbler","gitdate")
-        data["gitstamp"] = config.get("cobbler","gitstamp")
-        data["builddate"] = config.get("cobbler","builddate")
-        data["version"] = config.get("cobbler","version")
+        data["gitdate"] = config.get("cobbler", "gitdate")
+        data["gitstamp"] = config.get("cobbler", "gitstamp")
+        data["builddate"] = config.get("cobbler", "builddate")
+        data["version"] = config.get("cobbler", "version")
         # dont actually read the version_tuple from the version file
         data["version_tuple"] = []
         for num in data["version"].split("."):
@@ -231,7 +231,7 @@ class BootAPI:
         if not extended:
             # for backwards compatibility and use with koan's comparisons
             elems = data["version_tuple"]
-            return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
+            return int(elems[0]) + 0.1 * int(elems[1]) + 0.001 * int(elems[2])
         else:
             return data
 
@@ -244,24 +244,21 @@ class BootAPI:
         """
         return self._config.clear()
 
-    def __cmp(self,a,b):
-        return cmp(a.name,b.name)
-    # ==========================================================
+    def __cmp(self, a, b):
+        return cmp(a.name, b.name)
 
     def get_item(self, what, name):
-        self.log("get_item",[what,name],debug=True)
+        self.log("get_item", [what, name], debug=True)
         item = self._config.get_items(what).get(name)
-        self.log("done with get_item",[what,name],debug=True)
-        return item #self._config.get_items(what).get(name)
-
-    # =============================================================
+        self.log("done with get_item", [what, name], debug=True)
+        return item             # self._config.get_items(what).get(name)
 
     def get_items(self, what):
-        self.log("get_items",[what],debug=True)
+        self.log("get_items", [what], debug=True)
         items = self._config.get_items(what)
-        self.log("done with get_items",[what],debug=True)
-        return items #self._config.get_items(what)
-    
+        self.log("done with get_items", [what], debug=True)
+        return items            # self._config.get_items(what)
+
     def distros(self):
         """
         Return the current list of distributions
@@ -297,19 +294,19 @@ class BootAPI:
         Return the application configuration
         """
         return self._config.settings()
-    
+
     def mgmtclasses(self):
         """
         Return the current list of mgmtclasses
         """
         return self.get_items("mgmtclass")
-    
+
     def packages(self):
         """
         Return the current list of packages
         """
         return self.get_items("package")
-    
+
     def files(self):
         """
         Return the current list of files
@@ -324,12 +321,12 @@ class BootAPI:
         And is here to just avoid breaking older scripts.
         """
         return True
-    
+
     # ========================================================================
 
     def copy_item(self, what, ref, newname, logger=None):
-        self.log("copy_item(%s)"%what,[ref.name, newname])
-        return self.get_items(what).copy(ref,newname,logger=logger)
+        self.log("copy_item(%s)" % what, [ref.name, newname])
+        return self.get_items(what).copy(ref, newname, logger=logger)
 
     def copy_distro(self, ref, newname):
         return self.copy_item("distro", ref, newname, logger=None)
@@ -342,16 +339,16 @@ class BootAPI:
 
     def copy_repo(self, ref, newname):
         return self.copy_item("repo", ref, newname, logger=None)
-    
+
     def copy_image(self, ref, newname):
         return self.copy_item("image", ref, newname, logger=None)
-    
+
     def copy_mgmtclass(self, ref, newname):
         return self.copy_item("mgmtclass", ref, newname, logger=None)
-    
+
     def copy_package(self, ref, newname):
         return self.copy_item("package", ref, newname, logger=None)
-    
+
     def copy_file(self, ref, newname):
         return self.copy_item("file", ref, newname, logger=None)
 
@@ -362,14 +359,14 @@ class BootAPI:
             if isinstance(ref, basestring):
                 ref = self.get_item(what, ref)
                 if ref is None:
-                    return # nothing to remove
+                    return      # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
         return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
-    
-    def remove_profile(self,ref, recursive=False, delete=True, with_triggers=True, logger=None):
+
+    def remove_profile(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_system(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
@@ -380,21 +377,21 @@ class BootAPI:
 
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
-    
+
     def remove_mgmtclass(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
-    
+
     def remove_package(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
-    
+
     def remove_file(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         return self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     # ==========================================================================
 
     def rename_item(self, what, ref, newname, logger=None):
-        self.log("rename_item(%s)"%what,[ref.name,newname])
-        return self.get_items(what).rename(ref,newname,logger=logger)
+        self.log("rename_item(%s)" % what, [ref.name, newname])
+        return self.get_items(what).rename(ref, newname, logger=logger)
 
     def rename_distro(self, ref, newname, logger=None):
         return self.rename_item("distro", ref, newname, logger=logger)
@@ -407,84 +404,84 @@ class BootAPI:
 
     def rename_repo(self, ref, newname, logger=None):
         return self.rename_item("repo", ref, newname, logger=logger)
-    
+
     def rename_image(self, ref, newname, logger=None):
         return self.rename_item("image", ref, newname, logger=logger)
-    
+
     def rename_mgmtclass(self, ref, newname, logger=None):
         return self.rename_item("mgmtclass", ref, newname, logger=logger)
-    
+
     def rename_package(self, ref, newname, logger=None):
         return self.rename_item("package", ref, newname, logger=logger)
-    
+
     def rename_file(self, ref, newname, logger=None):
         return self.rename_item("file", ref, newname, logger=logger)
 
     # ==========================================================================
-   
+
     # FIXME: add a new_item method
 
-    def new_distro(self,is_subobject=False):
-        self.log("new_distro",[is_subobject])
+    def new_distro(self, is_subobject=False):
+        self.log("new_distro", [is_subobject])
         return self._config.new_distro(is_subobject=is_subobject)
 
-    def new_profile(self,is_subobject=False):
-        self.log("new_profile",[is_subobject])
+    def new_profile(self, is_subobject=False):
+        self.log("new_profile", [is_subobject])
         return self._config.new_profile(is_subobject=is_subobject)
-    
-    def new_system(self,is_subobject=False):
-        self.log("new_system",[is_subobject])
+
+    def new_system(self, is_subobject=False):
+        self.log("new_system", [is_subobject])
         return self._config.new_system(is_subobject=is_subobject)
 
-    def new_repo(self,is_subobject=False):
-        self.log("new_repo",[is_subobject])
+    def new_repo(self, is_subobject=False):
+        self.log("new_repo", [is_subobject])
         return self._config.new_repo(is_subobject=is_subobject)
-    
-    def new_image(self,is_subobject=False):
-        self.log("new_image",[is_subobject])
+
+    def new_image(self, is_subobject=False):
+        self.log("new_image", [is_subobject])
         return self._config.new_image(is_subobject=is_subobject)
-    
-    def new_mgmtclass(self,is_subobject=False):
-        self.log("new_mgmtclass",[is_subobject])
+
+    def new_mgmtclass(self, is_subobject=False):
+        self.log("new_mgmtclass", [is_subobject])
         return self._config.new_mgmtclass(is_subobject=is_subobject)
-    
-    def new_package(self,is_subobject=False):
-        self.log("new_package",[is_subobject])
+
+    def new_package(self, is_subobject=False):
+        self.log("new_package", [is_subobject])
         return self._config.new_package(is_subobject=is_subobject)
-    
-    def new_file(self,is_subobject=False):
-        self.log("new_file",[is_subobject])
+
+    def new_file(self, is_subobject=False):
+        self.log("new_file", [is_subobject])
         return self._config.new_file(is_subobject=is_subobject)
 
     # ==========================================================================
 
-    def add_item(self, what, ref, check_for_duplicate_names=False, save=True,logger=None):
-        self.log("add_item(%s)"%what,[ref.name])
-        return self.get_items(what).add(ref,check_for_duplicate_names=check_for_duplicate_names,save=save,logger=logger)
+    def add_item(self, what, ref, check_for_duplicate_names=False, save=True, logger=None):
+        self.log("add_item(%s)" % what, [ref.name])
+        return self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+        return self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
-    def add_profile(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    def add_profile(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True, logger=None):
-        return self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+        return self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
-    def add_repo(self, ref, check_for_duplicate_names=False,save=True,logger=None):
-        return self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    def add_repo(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
-    def add_image(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
-    
-    def add_mgmtclass(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
-    
-    def add_package(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
-    
-    def add_file(self, ref, check_for_duplicate_names=False,save=True, logger=None):
-        return self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save,logger=logger)
+    def add_image(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+
+    def add_mgmtclass(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+
+    def add_package(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+
+    def add_file(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        return self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     # ==========================================================================
 
@@ -492,22 +489,22 @@ class BootAPI:
     # methods do.
 
     def find_items(self, what, criteria=None):
-        self.log("find_items",[what])
+        self.log("find_items", [what])
         # defaults
         if criteria is None:
-            criteria={}
-        items=self._config.get_items(what)
+            criteria = {}
+        items = self._config.get_items(what)
         # empty criteria returns everything
         if criteria == {}:
-            res=items
+            res = items
         else:
-            res=items.find(return_list=True, no_errors=False, **criteria)
+            res = items.find(return_list=True, no_errors=False, **criteria)
         return res
 
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-        
+
     def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
@@ -519,59 +516,59 @@ class BootAPI:
 
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-    
+
     def find_mgmtclass(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.mgmtclasses().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-    
+
     def find_package(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.packages().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
-    
+
     def find_file(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._config.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     # ==========================================================================
 
-    def __since(self,mtime,collector,collapse=False):
+    def __since(self, mtime, collector, collapse=False):
         """
         Called by get_*_since functions.
         """
         results1 = collector()
         results2 = []
         for x in results1:
-           if x.mtime == 0 or x.mtime >= mtime:
-              if not collapse:
-                  results2.append(x)
-              else:
-                  results2.append(x.to_datastruct())
+            if x.mtime == 0 or x.mtime >= mtime:
+                if not collapse:
+                    results2.append(x)
+                else:
+                    results2.append(x.to_datastruct())
         return results2
 
-    def get_distros_since(self,mtime,collapse=False):
+    def get_distros_since(self, mtime, collapse=False):
         """
         Returns distros modified since a certain time (in seconds since Epoch)
         collapse=True specifies returning a hash instead of objects.
         """
-        return self.__since(mtime,self.distros,collapse=collapse)
+        return self.__since(mtime, self.distros, collapse=collapse)
 
-    def get_profiles_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.profiles,collapse=collapse)
+    def get_profiles_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.profiles, collapse=collapse)
 
-    def get_systems_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.systems,collapse=collapse)
+    def get_systems_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.systems, collapse=collapse)
 
-    def get_repos_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.repos,collapse=collapse)
+    def get_repos_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.repos, collapse=collapse)
 
-    def get_images_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.images,collapse=collapse)
-    
-    def get_mgmtclasses_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.mgmtclasses,collapse=collapse)
-    
-    def get_packages_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.packages,collapse=collapse)
-    
-    def get_files_since(self,mtime,collapse=False):
-        return self.__since(mtime,self.files,collapse=collapse)
+    def get_images_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.images, collapse=collapse)
+
+    def get_mgmtclasses_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.mgmtclasses, collapse=collapse)
+
+    def get_packages_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.packages, collapse=collapse)
+
+    def get_files_since(self, mtime, collapse=False):
+        return self.__since(mtime, self.files, collapse=collapse)
 
     # ==========================================================================
 
@@ -588,12 +585,12 @@ class BootAPI:
 
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
-            if not utils.load_signatures(tmpfile.name,cache=False):
+            if not utils.load_signatures(tmpfile.name, cache=False):
                 logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
                 return False
 
             # rewrite the real signature file and import it for real
-            f = open(self.settings().signature_path,"w")
+            f = open(self.settings().signature_path, "w")
             f.write(sigjson)
             f.close()
 
@@ -621,8 +618,8 @@ class BootAPI:
             raise CX(_("yum is not installed"))
 
         version = yum.__version__
-        (a,b,c) = version.split(".")
-        version = a* 1000 + b*100 + c
+        (a, b, c) = version.split(".")
+        version = a * 1000 + b * 100 + c
         if version < 324:
             raise CX(_("need yum > 3.2.4 to proceed"))
 
@@ -635,75 +632,75 @@ class BootAPI:
         for repo in repos:
             url = repo.urls[0]
             cobbler_repo = self.new_repo()
-            auto_name = repo.name.replace(" ","")
+            auto_name = repo.name.replace(" ", "")
             # FIXME: probably doesn't work for yum-rhn-plugin ATM
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
             print "auto adding: %s (%s)" % (auto_name, url)
-            self._config.repos().add(cobbler_repo,save=True)
+            self._config.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes
-        return True 
+        return True
 
     # ==========================================================================
 
-    def get_repo_config_for_profile(self,obj):
-        return self.yumgen.get_yum_config(obj,True)
-    
-    def get_repo_config_for_system(self,obj):
-        return self.yumgen.get_yum_config(obj,False)
+    def get_repo_config_for_profile(self, obj):
+        return self.yumgen.get_yum_config(obj, True)
+
+    def get_repo_config_for_system(self, obj):
+        return self.yumgen.get_yum_config(obj, False)
 
     # ==========================================================================
 
-    def get_template_file_for_profile(self,obj,path):
-        template_results = self.pxegen.write_templates(obj,False,path)
-        if template_results.has_key(path):
+    def get_template_file_for_profile(self, obj, path):
+        template_results = self.pxegen.write_templates(obj, False, path)
+        if path in template_results:
             return template_results[path]
         else:
             return "# template path not found for specified profile"
 
-    def get_template_file_for_system(self,obj,path):
-        template_results = self.pxegen.write_templates(obj,False,path)
-        if template_results.has_key(path):
+    def get_template_file_for_system(self, obj, path):
+        template_results = self.pxegen.write_templates(obj, False, path)
+        if path in template_results:
             return template_results[path]
         else:
             return "# template path not found for specified system"
 
     # ==========================================================================
 
-    def generate_kickstart(self,profile,system):
+    def generate_kickstart(self, profile, system):
         self.log("generate_kickstart")
         if system:
             return self.kickgen.generate_kickstart_for_system(system)
         else:
-            return self.kickgen.generate_kickstart_for_profile(profile) 
+            return self.kickgen.generate_kickstart_for_profile(profile)
 
     # ==========================================================================
 
-    def generate_gpxe(self,profile,system):
+    def generate_gpxe(self, profile, system):
         self.log("generate_gpxe")
         if system:
-            return self.pxegen.generate_gpxe("system",system)
+            return self.pxegen.generate_gpxe("system", system)
         else:
-            return self.pxegen.generate_gpxe("profile",profile)
+            return self.pxegen.generate_gpxe("profile", profile)
 
     # ==========================================================================
 
-    def generate_bootcfg(self,profile,system):
+    def generate_bootcfg(self, profile, system):
         self.log("generate_bootcfg")
         if system:
-            return self.pxegen.generate_bootcfg("system",system)
+            return self.pxegen.generate_bootcfg("system", system)
         else:
-            return self.pxegen.generate_bootcfg("profile",profile)
+            return self.pxegen.generate_bootcfg("profile", profile)
 
     # ==========================================================================
 
-    def generate_script(self,profile,system,name):
+    def generate_script(self, profile, system, name):
         self.log("generate_script")
         if system:
-            return self.pxegen.generate_script("system",system,name)
+            return self.pxegen.generate_script("system", system, name)
         else:
-            return self.pxegen.generate_script("profile",profile,name)
+            return self.pxegen.generate_script("profile", profile, name)
 
     # ==========================================================================
 
@@ -722,7 +719,7 @@ class BootAPI:
 
     # ==========================================================================
 
-    def dlcontent(self,force=False,logger=None):
+    def dlcontent(self, force=False, logger=None):
         """
         Downloads bootloader content that may not be avialable in packages
         for the given arch, ex: if installing on PPC, get syslinux. If installing
@@ -750,7 +747,7 @@ class BootAPI:
 
     # ==========================================================================
 
-    def sync(self,verbose=False, logger=None):
+    def sync(self, verbose=False, logger=None):
         """
         Take the values currently written to the configuration files in
         /etc, and /var, and build out the information tree found in
@@ -772,24 +769,24 @@ class BootAPI:
         return sync.sync_dhcp()
     # ==========================================================================
 
-    def get_sync(self,verbose=False,logger=None):
+    def get_sync(self, verbose=False, logger=None):
         self.dhcp = self.get_module_from_file(
            "dhcp",
            "module",
            "manage_isc"
-        ).get_manager(self._config,logger)
+        ).get_manager(self._config, logger)
         self.dns = self.get_module_from_file(
            "dns",
            "module",
            "manage_bind"
-        ).get_manager(self._config,logger)
+        ).get_manager(self._config, logger)
         self.tftpd = self.get_module_from_file(
            "tftpd",
            "module",
            "in_tftpd",
-        ).get_manager(self._config,logger)
+        ).get_manager(self._config, logger)
 
-        return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,tftpd=self.tftpd,verbose=verbose,logger=logger)
+        return action_sync.BootSync(self._config, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
 
     # ==========================================================================
 
@@ -798,27 +795,27 @@ class BootAPI:
         Take the contents of /var/lib/cobbler/repos and update them --
         or create the initial copy if no contents exist yet.
         """
-        self.log("reposync",[name])
+        self.log("reposync", [name])
         reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail, logger=logger)
         return reposync.run(name)
 
     # ==========================================================================
 
-    def status(self,mode,logger=None):
-        statusifier = action_status.BootStatusReport(self._config,mode,logger=logger)
+    def status(self, mode, logger=None):
+        statusifier = action_status.BootStatusReport(self._config, mode, logger=logger)
         return statusifier.run()
 
     # ==========================================================================
 
-    def import_tree(self,mirror_url,mirror_name,network_root=None,kickstart_file=None,rsync_flags=None,arch=None,breed=None,os_version=None,logger=None):
+    def import_tree(self, mirror_url, mirror_name, network_root=None, kickstart_file=None, rsync_flags=None, arch=None, breed=None, os_version=None, logger=None):
         """
         Automatically import a directory tree full of distribution files.
-        mirror_url can be a string that represents a path, a user@host 
-        syntax for SSH, or an rsync:// address.  If mirror_url is a 
-        filesystem path and mirroring is not desired, set network_root 
-        to something like "nfs://path/to/mirror_url/root" 
+        mirror_url can be a string that represents a path, a user@host
+        syntax for SSH, or an rsync:// address.  If mirror_url is a
+        filesystem path and mirroring is not desired, set network_root
+        to something like "nfs://path/to/mirror_url/root"
         """
-        self.log("import_tree",[mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
+        self.log("import_tree", [mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
 
         # both --path and --name are required arguments
         if mirror_url is None:
@@ -865,7 +862,7 @@ class BootAPI:
             if rsync_flags:
                 rsync_cmd = rsync_cmd + " " + rsync_flags
 
-            # if --available-as was specified, limit the files we 
+            # if --available-as was specified, limit the files we
             # pull down via rsync to just those that are critical
             # to detecting what the distro is
             if network_root is not None:
@@ -886,7 +883,7 @@ class BootAPI:
 
             if not network_root.endswith("/"):
                 network_root = network_root + "/"
-            valid_roots = [ "nfs://", "ftp://", "http://" ]
+            valid_roots = ["nfs://", "ftp://", "http://"]
             for valid_root in valid_roots:
                 if network_root.startswith(valid_root):
                     break
@@ -896,7 +893,7 @@ class BootAPI:
 
             if network_root.startswith("nfs://"):
                 try:
-                    (a,b,rest) = network_root.split(":",3)
+                    (a, b, rest) = network_root.split(":", 3)
                 except:
                     self.log("Network root given to --available-as is missing a colon, please see the manpage example.")
                     return False
@@ -906,7 +903,7 @@ class BootAPI:
         #    manager = importer_module.get_import_manager(self._config,logger)
         #    try:
         #        (found,pkgdir) = manager.check_for_signature(path,breed)
-        #        if found: 
+        #        if found:
         #            self.log("running import manager: %s" % manager.what())
         #            return manager.run(pkgdir,mirror_name,path,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
         #    except:
@@ -914,15 +911,15 @@ class BootAPI:
         #        self.log("error was: %s" % sys.exc_info()[1])
         #        continue
         #self.log("No import managers found a valid signature at the location specified")
-        ## FIXME: since we failed, we should probably remove the 
+        ## FIXME: since we failed, we should probably remove the
         ## path tree we created above so we don't leave cruft around
         #return False
-        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._config,logger)
-        return import_module.run(path,mirror_name,network_root,kickstart_file,arch,breed,os_version)
+        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._config, logger)
+        return import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
 
     # ==========================================================================
 
-    def acl_config(self,adduser=None,addgroup=None,removeuser=None,removegroup=None, logger=None):
+    def acl_config(self, adduser=None, addgroup=None, removeuser=None, removegroup=None, logger=None):
         """
         Configures users/groups to run the cobbler CLI as non-root.
         Pass in only one option at a time.  Powers "cobbler aclconfig"
@@ -951,47 +948,47 @@ class BootAPI:
         """
         return self._config.deserialize()
 
-    def deserialize_raw(self,collection_name):
+    def deserialize_raw(self, collection_name):
         """
         Get the collection back just as raw data.
         Cobbler internal use only.
         """
         return self._config.deserialize_raw(collection_name)
 
-    def deserialize_item_raw(self,collection_name,obj_name):
+    def deserialize_item_raw(self, collection_name, obj_name):
         """
         Get an object back as raw data.
         Can be very fast for shelve or catalog serializers
         Cobbler internal use only.
         """
-        return self._config.deserialize_item_raw(collection_name,obj_name)
+        return self._config.deserialize_item_raw(collection_name, obj_name)
 
     # ==========================================================================
 
-    def get_module_by_name(self,module_name):
+    def get_module_by_name(self, module_name):
         """
         Returns a loaded cobbler module named 'name', if one exists, else None.
         Cobbler internal use only.
         """
         return module_loader.get_module_by_name(module_name)
 
-    def get_module_from_file(self,section,name,fallback=None):
+    def get_module_from_file(self, section, name, fallback=None):
         """
         Looks in /etc/cobbler/modules.conf for a section called 'section'
         and a key called 'name', and then returns the module that corresponds
         to the value of that key.
         Cobbler internal use only.
         """
-        return module_loader.get_module_from_file(section,name,fallback)
+        return module_loader.get_module_from_file(section, name, fallback)
 
-    def get_module_name_from_file(self,section,name,fallback=None):
+    def get_module_name_from_file(self, section, name, fallback=None):
         """
         Looks up a module the same as get_module_from_file but returns
         the module name rather than the module itself
         """
-        return module_loader.get_module_from_file(section,name,fallback,just_name=True)
+        return module_loader.get_module_from_file(section, name, fallback, just_name=True)
 
-    def get_modules_in_category(self,category):
+    def get_modules_in_category(self, category):
         """
         Returns all modules in a given category, for instance "serializer", or "cli".
         Cobbler internal use only.
@@ -1000,27 +997,27 @@ class BootAPI:
 
     # ==========================================================================
 
-    def authenticate(self,user,password):
+    def authenticate(self, user, password):
         """
         (Remote) access control.
         Cobbler internal use only.
         """
-        rc = self.authn.authenticate(self,user,password)
-        self.log("authenticate",[user,rc])
-        return rc 
+        rc = self.authn.authenticate(self, user, password)
+        self.log("authenticate", [user, rc])
+        return rc
 
-    def authorize(self,user,resource,arg1=None,arg2=None):
+    def authorize(self, user, resource, arg1=None, arg2=None):
         """
         (Remote) access control.
         Cobbler internal use only.
         """
-        rc = self.authz.authorize(self,user,resource,arg1,arg2)
-        self.log("authorize",[user,resource,arg1,arg2,rc],debug=True)
+        rc = self.authz.authorize(self, user, resource, arg1, arg2)
+        self.log("authorize", [user, resource, arg1, arg2, rc], debug=True)
         return rc
 
     # ==========================================================================
 
-    def build_iso(self,iso=None,profiles=None,systems=None,buildisodir=None,distro=None,standalone=None,source=None, exclude_dns=None, mkisofs_opts=None, logger=None):
+    def build_iso(self, iso=None, profiles=None, systems=None, buildisodir=None, distro=None, standalone=None, source=None, exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._config, logger=logger)
         return builder.run(
            iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
@@ -1034,38 +1031,38 @@ class BootAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
+    def replicate(self, cobbler_master=None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
                   mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
         replicator = action_replicate.Replicate(self._config, logger=logger)
         return replicator.run(
-              cobbler_master       = cobbler_master,
-              distro_patterns      = distro_patterns,
-              profile_patterns     = profile_patterns,
-              system_patterns      = system_patterns,
-              repo_patterns        = repo_patterns,
-              image_patterns       = image_patterns,
-              mgmtclass_patterns   = mgmtclass_patterns,
-              package_patterns     = package_patterns,
-              file_patterns        = file_patterns,
-              prune                = prune,
-              omit_data            = omit_data,
-              sync_all             = sync_all,
-              use_ssl              = use_ssl
+              cobbler_master=cobbler_master,
+              distro_patterns=distro_patterns,
+              profile_patterns=profile_patterns,
+              system_patterns=system_patterns,
+              repo_patterns=repo_patterns,
+              image_patterns=image_patterns,
+              mgmtclass_patterns=mgmtclass_patterns,
+              package_patterns=package_patterns,
+              file_patterns=file_patterns,
+              prune=prune,
+              omit_data=omit_data,
+              sync_all=sync_all,
+              use_ssl=use_ssl
         )
 
     # ==========================================================================
 
-    def report(self, report_what = None, report_name = None, report_type = None, report_fields = None, report_noheaders = None):
+    def report(self, report_what=None, report_name=None, report_type=None, report_fields=None, report_noheaders=None):
         """
         Report functionality for cobbler
         """
         reporter = action_report.Report(self._config)
-        return reporter.run(report_what = report_what, report_name = report_name,\
-                            report_type = report_type, report_fields = report_fields,\
-                            report_noheaders = report_noheaders)
+        return reporter.run(report_what=report_what, report_name=report_name,\
+                            report_type=report_type, report_fields=report_fields,\
+                            report_noheaders=report_noheaders)
 
     # ==========================================================================
 
@@ -1078,15 +1075,15 @@ class BootAPI:
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(self._config,system,self,user,password,logger=logger).power("on")
+        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("on")
 
     def power_off(self, system, user=None, password=None, logger=None):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(self._config,system,self,user,password,logger=logger).power("off")
+        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("off")
 
-    def reboot(self,system, user=None, password=None, logger=None):
+    def reboot(self, system, user=None, password=None, logger=None):
         """
         Cycles power on a system that has power management configured.
         """
@@ -1100,7 +1097,7 @@ class BootAPI:
 
         @return: 0  the system is powered on, False if it's not or None on error
         """
-        return action_power.PowerTool(self._config, system, self, user, password, logger = logger).power("status")
+        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("status")
 
     # ==========================================================================
 
@@ -1108,7 +1105,7 @@ class BootAPI:
         """
         Clears console and anamon logs for system
         """
-        return action_log.LogTool(self._config,system,self, logger=logger).clear()
+        return action_log.LogTool(self._config, system, self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)
