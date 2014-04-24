@@ -39,146 +39,153 @@ import item_package
 import item_file
 import settings
 
-OBJECT_ACTIONS_MAP   = {
-   "distro"    : "add copy edit find list remove rename report".split(" "),
-   "profile"   : "add copy dumpvars edit find getks list remove rename report".split(" "),
-   "system"    : "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
-   "image"     : "add copy edit find list remove rename report".split(" "),
-   "repo"      : "add copy edit find list remove rename report".split(" "),
-   "mgmtclass" : "add copy edit find list remove rename report".split(" "),
-   "package"   : "add copy edit find list remove rename report".split(" "),
-   "file"      : "add copy edit find list remove rename report".split(" "),
-   "setting"   : "edit report".split(" "),
-   "signature" : "reload report update".split(" "),
-} 
+OBJECT_ACTIONS_MAP = {
+   "distro": "add copy edit find list remove rename report".split(" "),
+   "profile": "add copy dumpvars edit find getks list remove rename report".split(" "),
+   "system": "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
+   "image": "add copy edit find list remove rename report".split(" "),
+   "repo": "add copy edit find list remove rename report".split(" "),
+   "mgmtclass": "add copy edit find list remove rename report".split(" "),
+   "package": "add copy edit find list remove rename report".split(" "),
+   "file": "add copy edit find list remove rename report".split(" "),
+   "setting": "edit report".split(" "),
+   "signature": "reload report update".split(" ")
+}
+
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 # would like to use from_iterable here, but have to support python 2.4
 OBJECT_ACTIONS = []
 for actions in OBJECT_ACTIONS_MAP.values():
-   OBJECT_ACTIONS += actions
+    OBJECT_ACTIONS += actions
 DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version signature get-loaders hardlink".split()
 
 ####################################################
 
+
 def report_items(remote, otype):
-   if otype == "setting":
-       items = remote.get_settings()
-       keys = items.keys()
-       keys.sort()
-       for key in keys:
-           item = {'name':key, 'value':items[key]}
-           report_item(remote,otype,item=item)
-   elif otype == "signature":
-       items = remote.get_signatures()
-       total_breeds = 0
-       total_sigs = 0
-       if items.has_key("breeds"):
-           print "Currently loaded signatures:"
-           bkeys = items["breeds"].keys()
-           bkeys.sort()
-           total_breeds = len(bkeys)
-           for breed in bkeys:
-               print "%s:" % breed
-               oskeys = items["breeds"][breed].keys()
-               oskeys.sort()
-               if len(oskeys) > 0:
-                   total_sigs += len(oskeys)
-                   for osversion in oskeys:
-                       print "\t%s" % osversion
-               else:
-                   print "\t(none)"
-           print "\n%d breeds with %d total signatures loaded" % (total_breeds,total_sigs)
-       else:
-           print "No breeds found in the signature, a signature update is recommended"
-           sys.exit(1)
-   else:
-       items = remote.get_items(otype)
-       for x in items:
-           report_item(remote,otype,item=x)
+    if otype == "setting":
+        items = remote.get_settings()
+        keys = items.keys()
+        keys.sort()
+        for key in keys:
+            item = {'name': key, 'value': items[key]}
+            report_item(remote, otype, item=item)
+    elif otype == "signature":
+        items = remote.get_signatures()
+        total_breeds = 0
+        total_sigs = 0
+        if "breeds" in items:
+            print "Currently loaded signatures:"
+            bkeys = items["breeds"].keys()
+            bkeys.sort()
+            total_breeds = len(bkeys)
+            for breed in bkeys:
+                print "%s:" % breed
+                oskeys = items["breeds"][breed].keys()
+                oskeys.sort()
+                if len(oskeys) > 0:
+                    total_sigs += len(oskeys)
+                    for osversion in oskeys:
+                        print "\t%s" % osversion
+                else:
+                    print "\t(none)"
+            print "\n%d breeds with %d total signatures loaded" % (total_breeds, total_sigs)
+        else:
+            print "No breeds found in the signature, a signature update is recommended"
+            sys.exit(1)
+    else:
+        items = remote.get_items(otype)
+        for x in items:
+            report_item(remote, otype, item=x)
 
-def report_item(remote,otype,item=None,name=None):
-   if item is None:
-      if otype == "setting":
-          cur_settings = remote.get_settings()
-          try:
-              item = {'name':name, 'value':cur_settings[name]}
-          except:
-              print "Setting not found: %s" % name
-              sys.exit(1)
-      elif otype == "signature":
-          items = remote.get_signatures()
-          total_sigs = 0
-          if items.has_key("breeds"):
-              print "Currently loaded signatures:"
-              if items["breeds"].has_key(name):
-                  print "%s:" % name
-                  oskeys = items["breeds"][name].keys()
-                  oskeys.sort()
-                  if len(oskeys) > 0:
-                      total_sigs += len(oskeys)
-                      for osversion in oskeys:
-                          print "\t%s" % osversion
-                  else:
-                      print "\t(none)"
-                  print "\nBreed '%s' has %d total signatures" % (name,total_sigs)
-              else:
-                  print "No breed named '%s' found" % name
-                  sys.exit(1)
-          else:
-              print "No breeds found in the signature, a signature update is recommended"
-              sys.exit(1)
-          return
-      else:
-          item = remote.get_item(otype, name)
-          if item == "~":
-              print "No %s found: %s" % (otype, name)
-              sys.exit(1)
 
-   if otype == "distro":
-      data = utils.printable_from_fields(item, item_distro.FIELDS)
-   elif otype == "profile":
-      data = utils.printable_from_fields(item, item_profile.FIELDS)
-   elif otype == "system":
-      data = utils.printable_from_fields(item, item_system.FIELDS)
-   elif otype == "repo":
-      data = utils.printable_from_fields(item, item_repo.FIELDS)
-   elif otype == "image":
-      data = utils.printable_from_fields(item, item_image.FIELDS)
-   elif otype == "mgmtclass":
-      data = utils.printable_from_fields(item,item_mgmtclass.FIELDS)
-   elif otype == "package":
-      data = utils.printable_from_fields(item,item_package.FIELDS)
-   elif otype == "file":
-      data = utils.printable_from_fields(item,item_file.FIELDS)
-   elif otype == "setting":
-      data = "%-40s: %s" % (item['name'],item['value'])
-   print data
+def report_item(remote, otype, item=None, name=None):
+    if item is None:
+        if otype == "setting":
+            cur_settings = remote.get_settings()
+            try:
+                item = {'name': name, 'value': cur_settings[name]}
+            except:
+                print "Setting not found: %s" % name
+                sys.exit(1)
+        elif otype == "signature":
+            items = remote.get_signatures()
+            total_sigs = 0
+            if "breeds" in items:
+                print "Currently loaded signatures:"
+                if name in items["breeds"]:
+                    print "%s:" % name
+                    oskeys = items["breeds"][name].keys()
+                    oskeys.sort()
+                    if len(oskeys) > 0:
+                        total_sigs += len(oskeys)
+                        for osversion in oskeys:
+                            print "\t%s" % osversion
+                    else:
+                        print "\t(none)"
+                    print "\nBreed '%s' has %d total signatures" % (name, total_sigs)
+                else:
+                    print "No breed named '%s' found" % name
+                    sys.exit(1)
+            else:
+                print "No breeds found in the signature, a signature update is recommended"
+                sys.exit(1)
+            return
+        else:
+            item = remote.get_item(otype, name)
+            if item == "~":
+                print "No %s found: %s" % (otype, name)
+                sys.exit(1)
 
-def list_items(remote,otype):
-   items = remote.get_item_names(otype)
-   items.sort()
-   for x in items:
-      print "   %s" % x
+    if otype == "distro":
+        data = utils.printable_from_fields(item, item_distro.FIELDS)
+    elif otype == "profile":
+        data = utils.printable_from_fields(item, item_profile.FIELDS)
+    elif otype == "system":
+        data = utils.printable_from_fields(item, item_system.FIELDS)
+    elif otype == "repo":
+        data = utils.printable_from_fields(item, item_repo.FIELDS)
+    elif otype == "image":
+        data = utils.printable_from_fields(item, item_image.FIELDS)
+    elif otype == "mgmtclass":
+        data = utils.printable_from_fields(item, item_mgmtclass.FIELDS)
+    elif otype == "package":
+        data = utils.printable_from_fields(item, item_package.FIELDS)
+    elif otype == "file":
+        data = utils.printable_from_fields(item, item_file.FIELDS)
+    elif otype == "setting":
+        data = "%-40s: %s" % (item['name'], item['value'])
+    print data
+
+
+def list_items(remote, otype):
+    items = remote.get_item_names(otype)
+    items.sort()
+    for x in items:
+        print "   %s" % x
+
 
 def n2s(data):
-   """
-   Return spaces for None
-   """
-   if data is None:
-       return ""
-   return data
+    """
+    Return spaces for None
+    """
+    if data is None:
+        return ""
+    return data
+
 
 def opt(options, k, defval=""):
-   """
-   Returns an option from an Optparse values instance
-   """
-   try:
-      data = getattr(options, k) 
-   except:
-      # FIXME: debug only
-      # traceback.print_exc()
-      return defval
-   return n2s(data)
+    """
+    Returns an option from an Optparse values instance
+    """
+    try:
+        data = getattr(options, k)
+    except:
+        # FIXME: debug only
+        # traceback.print_exc()
+        return defval
+    return n2s(data)
+
 
 class BootCLI:
 
@@ -188,8 +195,8 @@ class BootCLI:
         self.url_cobbler_xmlrpc = utils.local_get_cobbler_xmlrpc_url()
 
         # FIXME: allow specifying other endpoints, and user+pass
-        self.parser        = optparse.OptionParser()
-        self.remote        = xmlrpclib.Server(self.url_cobbler_api)
+        self.parser = optparse.OptionParser()
+        self.remote = xmlrpclib.Server(self.url_cobbler_api)
         self.shared_secret = utils.get_shared_secret()
 
     def start_task(self, name, options):
@@ -243,7 +250,7 @@ class BootCLI:
         try:
             s.ping()
         except:
-            print >> sys.stderr, "cobblerd does not appear to be running/accessible" 
+            print >> sys.stderr, "cobblerd does not appear to be running/accessible"
             sys.exit(411)
 
         s = xmlrpclib.Server(self.url_cobbler_api)
@@ -266,8 +273,8 @@ class BootCLI:
         """
         Process the command line and do what the user asks.
         """
-        self.token         = self.remote.login("", self.shared_secret)
-        object_type   = self.get_object_type(args)
+        self.token = self.remote.login("", self.shared_secret)
+        object_type = self.get_object_type(args)
         object_action = self.get_object_action(object_type, args)
         direct_action = self.get_direct_action(object_type, args)
 
@@ -278,7 +285,7 @@ class BootCLI:
                 if object_action is not None:
                     self.object_command(object_type, object_action)
                 else:
-                    self.print_object_help(object_type)   
+                    self.print_object_help(object_type)
 
             elif direct_action is not None:
                 self.direct_command(direct_action)
@@ -294,13 +301,13 @@ class BootCLI:
                 print err.faultString
                 sys.exit(1)
 
-    def cleanup_fault_string(self,str):
+    def cleanup_fault_string(self, str):
         """
         Make a remote exception nicely readable by humans so it's not evident that is a remote
         fault.  Users should not have to understand tracebacks.
         """
         if str.find(">:") != -1:
-            (first, rest) = str.split(">:",1)
+            (first, rest) = str.split(">:", 1)
             if rest.startswith("\"") or rest.startswith("\'"):
                 rest = rest[1:]
             if rest.endswith("\"") or rest.endswith("\'"):
@@ -337,14 +344,14 @@ class BootCLI:
         """
         Process object-based commands such as "distro add" or "profile rename"
         """
-        task_id = -1 # if assigned, we must tail the logfile
-        
+        task_id = -1        # if assigned, we must tail the logfile
+
         fields = self.get_fields(object_type)
-        if object_action in [ "add", "edit", "copy", "rename", "find", "remove" ]:
+        if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
             utils.add_options_from_fields(object_type, self.parser, fields, object_action)
-        elif object_action in [ "list" ]:
+        elif object_action in ["list"]:
             pass
-        elif object_action not in ("reload","update"):
+        elif object_action not in ("reload", "update"):
             self.parser.add_option("--name", dest="name", help="name of object")
         elif object_action == "reload":
             self.parser.add_option("--filename", dest="filename", help="filename to load data from")
@@ -353,9 +360,9 @@ class BootCLI:
         # the first three don't require a name
         if object_action == "report":
             if options.name is not None:
-                report_item(self.remote,object_type,None,options.name)
+                report_item(self.remote, object_type, None, options.name)
             else:
-                report_items(self.remote,object_type)
+                report_items(self.remote, object_type)
         elif object_action == "list":
             list_items(self.remote, object_type)
         elif object_action == "find":
@@ -363,25 +370,25 @@ class BootCLI:
             for item in items:
                 print item
         elif object_action in OBJECT_ACTIONS:
-            if opt(options, "name") == "" and object_action not in ("reload","update"):
+            if opt(options, "name") == "" and object_action not in ("reload", "update"):
                 print "--name is required"
                 sys.exit(1)
-            if object_action in [ "add", "edit", "copy", "rename", "remove" ]:
+            if object_action in ["add", "edit", "copy", "rename", "remove"]:
                 try:
-                    if object_type == "setting":        
+                    if object_type == "setting":
                         settings = self.remote.get_settings()
                         if options.value == None:
                             raise RuntimeError("You must specify a --value when editing a setting")
-                        elif not settings.get('allow_dynamic_settings',False):
+                        elif not settings.get('allow_dynamic_settings', False):
                             raise RuntimeError("Dynamic settings changes are not enabled. Change the allow_dynamic_settings to 1 and restart cobblerd to enable dynamic settings changes")
                         elif options.name == 'allow_dynamic_settings':
                             raise RuntimeError("Cannot modify that setting live")
-                        elif self.remote.modify_setting(options.name,options.value,self.token):
+                        elif self.remote.modify_setting(options.name, options.value, self.token):
                             raise RuntimeError("Changing the setting failed")
                     else:
                         self.remote.xapi_object_edit(object_type, options.name, object_action, utils.strip_none(vars(options), omit_none=True), self.token)
                 except xmlrpclib.Fault, (err):
-                    (etype, emsg) = err.faultString.split(":",1)
+                    (etype, emsg) = err.faultString.split(":", 1)
                     print "exception on server: %s" % emsg
                     sys.exit(1)
                 except RuntimeError, (err):
@@ -389,30 +396,30 @@ class BootCLI:
                     sys.exit(1)
             elif object_action == "getks":
                 if object_type == "profile":
-                    data = self.remote.generate_kickstart(options.name,"")
+                    data = self.remote.generate_kickstart(options.name, "")
                 elif object_type == "system":
-                    data = self.remote.generate_kickstart("",options.name)
+                    data = self.remote.generate_kickstart("", options.name)
                 print data
             elif object_action == "dumpvars":
                 if object_type == "profile":
-                    data = self.remote.get_blended_data(options.name,"")
+                    data = self.remote.get_blended_data(options.name, "")
                 elif object_type == "system":
-                    data = self.remote.get_blended_data("",options.name)
+                    data = self.remote.get_blended_data("", options.name)
                 # FIXME: pretty-printing and sorting here
                 keys = data.keys()
                 keys.sort()
                 for x in keys:
-                   print "%s : %s" % (x, data[x])
-            elif object_action in [ "poweron", "poweroff", "powerstatus", "reboot" ]:
-                power={}
-                power["power"] = object_action.replace("power","")
+                    print "%s : %s" % (x, data[x])
+            elif object_action in ["poweron", "poweroff", "powerstatus", "reboot"]:
+                power = {}
+                power["power"] = object_action.replace("power", "")
                 power["systems"] = [options.name]
                 task_id = self.remote.background_power_system(power, self.token)
             elif object_action == "update":
-                task_id = self.remote.background_signature_update(utils.strip_none(vars(options),omit_none=True), self.token)
+                task_id = self.remote.background_signature_update(utils.strip_none(vars(options), omit_none=True), self.token)
             elif object_action == "reload":
-                filename = opt(options,"filename","/var/lib/cobbler/distro_signatures.json")
-                if not utils.load_signatures(filename,cache=True):
+                filename = opt(options, "filename", "/var/lib/cobbler/distro_signatures.json")
+                if not utils.load_signatures(filename, cache=True):
                     print "There was an error loading the signature data in %s." % filename
                     print "Please check the JSON file or run 'cobbler signature update'."
                     return False
@@ -421,13 +428,13 @@ class BootCLI:
             else:
                 raise exceptions.NotImplementedError()
         else:
-            raise exceptions.NotImplementedError() 
-            
+            raise exceptions.NotImplementedError()
+
         # FIXME: add tail/polling code here
         if task_id != -1:
             self.print_task(task_id)
             self.follow_task(task_id)
-                                                
+
         return True
 
     # BOOKMARK
@@ -435,48 +442,48 @@ class BootCLI:
         """
         Process non-object based commands like "sync" and "hardlink"
         """
-        task_id = -1 # if assigned, we must tail the logfile
+        task_id = -1        # if assigned, we must tail the logfile
 
         if action_name == "buildiso":
 
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
-            self.parser.add_option("--iso",      dest="iso",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
+            self.parser.add_option("--iso", dest="iso", default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
-            self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
-            self.parser.add_option("--tempdir",  dest="buildisodir",  help="(OPTIONAL) working directory")
-            self.parser.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
+            self.parser.add_option("--systems", dest="systems", help="(OPTIONAL) use these systems only")
+            self.parser.add_option("--tempdir", dest="buildisodir", help="(OPTIONAL) working directory")
+            self.parser.add_option("--distro", dest="distro", help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
             self.parser.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
-            self.parser.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
+            self.parser.add_option("--source", dest="source", help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
             self.parser.add_option("--exclude-dns", dest="exclude_dns", action="store_true", help="(OPTIONAL) prevents addition of name server addresses to the kernel boot options")
             self.parser.add_option("--mkisofs-opts", dest="mkisofs_opts", help="(OPTIONAL) extra options for mkisofs")
 
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("buildiso",options)
+            task_id = self.start_task("buildiso", options)
 
         elif action_name == "replicate":
-            self.parser.add_option("--master",      dest="master",             help="Cobbler server to replicate from.")
-            self.parser.add_option("--distros",     dest="distro_patterns",    help="patterns of distros to replicate")
-            self.parser.add_option("--profiles",    dest="profile_patterns",   help="patterns of profiles to replicate")
-            self.parser.add_option("--systems",     dest="system_patterns",    help="patterns of systems to replicate")
-            self.parser.add_option("--repos",       dest="repo_patterns",      help="patterns of repos to replicate")
-            self.parser.add_option("--image",       dest="image_patterns",     help="patterns of images to replicate")
+            self.parser.add_option("--master", dest="master", help="Cobbler server to replicate from.")
+            self.parser.add_option("--distros", dest="distro_patterns", help="patterns of distros to replicate")
+            self.parser.add_option("--profiles", dest="profile_patterns", help="patterns of profiles to replicate")
+            self.parser.add_option("--systems", dest="system_patterns", help="patterns of systems to replicate")
+            self.parser.add_option("--repos", dest="repo_patterns", help="patterns of repos to replicate")
+            self.parser.add_option("--image", dest="image_patterns", help="patterns of images to replicate")
             self.parser.add_option("--mgmtclasses", dest="mgmtclass_patterns", help="patterns of mgmtclasses to replicate")
-            self.parser.add_option("--packages",    dest="package_patterns",   help="patterns of packages to replicate")
-            self.parser.add_option("--files",       dest="file_patterns",      help="patterns of files to replicate")
-            self.parser.add_option("--omit-data",   dest="omit_data", action="store_true", help="do not rsync data")
-            self.parser.add_option("--sync-all",    dest="sync_all",  action="store_true", help="sync all data")
-            self.parser.add_option("--prune",       dest="prune",     action="store_true", help="remove objects (of all types) not found on the master")
-            self.parser.add_option("--use-ssl",     dest="use_ssl",   action="store_true", help="use ssl to access the Cobbler master server api")
+            self.parser.add_option("--packages", dest="package_patterns", help="patterns of packages to replicate")
+            self.parser.add_option("--files", dest="file_patterns", help="patterns of files to replicate")
+            self.parser.add_option("--omit-data", dest="omit_data", action="store_true", help="do not rsync data")
+            self.parser.add_option("--sync-all", dest="sync_all", action="store_true", help="sync all data")
+            self.parser.add_option("--prune", dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
+            self.parser.add_option("--use-ssl", dest="use_ssl", action="store_true", help="use ssl to access the Cobbler master server api")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("replicate",options)
+            task_id = self.start_task("replicate", options)
 
         elif action_name == "aclsetup":
-            self.parser.add_option("--adduser",            dest="adduser",            help="give acls to this user")
-            self.parser.add_option("--addgroup",           dest="addgroup",           help="give acls to this group")
-            self.parser.add_option("--removeuser",         dest="removeuser",         help="remove acls from this user")
-            self.parser.add_option("--removegroup",        dest="removegroup",        help="remove acls from this group")
+            self.parser.add_option("--adduser", dest="adduser", help="give acls to this user")
+            self.parser.add_option("--addgroup", dest="addgroup", help="give acls to this group")
+            self.parser.add_option("--removeuser", dest="removeuser", help="remove acls from this user")
+            self.parser.add_option("--removegroup", dest="removegroup", help="remove acls from this group")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("aclsetup",options)
+            task_id = self.start_task("aclsetup", options)
 
         elif action_name == "version":
             version = self.remote.extended_version()
@@ -486,41 +493,41 @@ class BootCLI:
 
         elif action_name == "hardlink":
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("hardlink",options)
+            task_id = self.start_task("hardlink", options)
         elif action_name == "reserialize":
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("reserialize",options)
+            task_id = self.start_task("reserialize", options)
         elif action_name == "status":
             (options, args) = self.parser.parse_args()
-            print self.remote.get_status("text",self.token)
+            print self.remote.get_status("text", self.token)
         elif action_name == "validateks":
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("validateks",options)
+            task_id = self.start_task("validateks", options)
         elif action_name == "get-loaders":
             self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("dlcontent",options)
+            task_id = self.start_task("dlcontent", options)
         elif action_name == "import":
-            self.parser.add_option("--arch",         dest="arch",           help="OS architecture being imported")
-            self.parser.add_option("--breed",        dest="breed",          help="the breed being imported")
-            self.parser.add_option("--os-version",   dest="os_version",     help="the version being imported")
-            self.parser.add_option("--path",         dest="path",         help="local path or rsync location")
-            self.parser.add_option("--name",         dest="name",           help="name, ex 'RHEL-5'")
-            self.parser.add_option("--available-as", dest="available_as",   help="tree is here, don't mirror")
-            self.parser.add_option("--kickstart",    dest="kickstart_file", help="assign this kickstart file")
-            self.parser.add_option("--rsync-flags",  dest="rsync_flags",    help="pass additional flags to rsync")
+            self.parser.add_option("--arch", dest="arch", help="OS architecture being imported")
+            self.parser.add_option("--breed", dest="breed", help="the breed being imported")
+            self.parser.add_option("--os-version", dest="os_version", help="the version being imported")
+            self.parser.add_option("--path", dest="path", help="local path or rsync location")
+            self.parser.add_option("--name", dest="name", help="name, ex 'RHEL-5'")
+            self.parser.add_option("--available-as", dest="available_as", help="tree is here, don't mirror")
+            self.parser.add_option("--kickstart", dest="kickstart_file", help="assign this kickstart file")
+            self.parser.add_option("--rsync-flags", dest="rsync_flags", help="pass additional flags to rsync")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("import",options)
+            task_id = self.start_task("import", options)
         elif action_name == "reposync":
-            self.parser.add_option("--only",           dest="only",             help="update only this repository name")
-            self.parser.add_option("--tries",          dest="tries",            help="try each repo this many times", default=1)
-            self.parser.add_option("--no-fail",        dest="nofail",           help="don't stop reposyncing if a failure occurs", action="store_true")
+            self.parser.add_option("--only", dest="only", help="update only this repository name")
+            self.parser.add_option("--tries", dest="tries", help="try each repo this many times", default=1)
+            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs", action="store_true")
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("reposync",options)
+            task_id = self.start_task("reposync", options)
         elif action_name == "aclsetup":
             (options, args) = self.parser.parse_args()
             # FIXME: missing options, add them here
-            task_id = self.start_task("aclsetup",options)
+            task_id = self.start_task("aclsetup", options)
         elif action_name == "check":
             results = self.remote.check(self.token)
             ct = 0
@@ -532,50 +539,50 @@ class BootCLI:
                 print "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
             else:
                 print "No configuration problems found.  All systems go."
-                
+
         elif action_name == "sync":
             (options, args) = self.parser.parse_args()
             self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
-            task_id = self.start_task("sync",options)
+            task_id = self.start_task("sync", options)
         elif action_name == "report":
             (options, args) = self.parser.parse_args()
             print "distros:\n=========="
-            report_items(self.remote,"distro")
+            report_items(self.remote, "distro")
             print "\nprofiles:\n=========="
-            report_items(self.remote,"profile")
+            report_items(self.remote, "profile")
             print "\nsystems:\n=========="
-            report_items(self.remote,"system")
+            report_items(self.remote, "system")
             print "\nrepos:\n=========="
-            report_items(self.remote,"repo")
+            report_items(self.remote, "repo")
             print "\nimages:\n=========="
-            report_items(self.remote,"image")
+            report_items(self.remote, "image")
             print "\nmgmtclasses:\n=========="
-            report_items(self.remote,"mgmtclass")
+            report_items(self.remote, "mgmtclass")
             print "\npackages:\n=========="
-            report_items(self.remote,"package")
+            report_items(self.remote, "package")
             print "\nfiles:\n=========="
-            report_items(self.remote,"file")
+            report_items(self.remote, "file")
         elif action_name == "list":
             # no tree view like 1.6?  This is more efficient remotely
             # for large configs and prevents xfering the whole config
             # though we could consider that...
             (options, args) = self.parser.parse_args()
             print "distros:"
-            list_items(self.remote,"distro")
+            list_items(self.remote, "distro")
             print "\nprofiles:"
-            list_items(self.remote,"profile")
+            list_items(self.remote, "profile")
             print "\nsystems:"
-            list_items(self.remote,"system")
+            list_items(self.remote, "system")
             print "\nrepos:"
-            list_items(self.remote,"repo")
+            list_items(self.remote, "repo")
             print "\nimages:"
-            list_items(self.remote,"image")
+            list_items(self.remote, "image")
             print "\nmgmtclasses:"
-            list_items(self.remote,"mgmtclass")
+            list_items(self.remote, "mgmtclass")
             print "\npackages:"
-            list_items(self.remote,"package")
+            list_items(self.remote, "package")
             print "\nfiles:"
-            list_items(self.remote,"file")
+            list_items(self.remote, "file")
         else:
             print "No such command: %s" % action_name
             sys.exit(1)
@@ -583,8 +590,8 @@ class BootCLI:
 
         # FIXME: add tail/polling code here
         if task_id != -1:
-            self.print_task(task_id) 
-            self.follow_task(task_id) 
+            self.print_task(task_id)
+            self.follow_task(task_id)
 
         return True
 
@@ -596,11 +603,11 @@ class BootCLI:
         atime = time.asctime(time.localtime(etime))
         print "task started (id=%s, time=%s)" % (name, atime)
 
-    
+
     def follow_task(self, task_id):
         logfile = "/var/log/cobbler/tasks/%s.log" % task_id
-        # adapted from:  http://code.activestate.com/recipes/157035/        
-        file = open(logfile,'r')
+        # adapted from:  http://code.activestate.com/recipes/157035/
+        file = open(logfile, 'r')
         #Find the size of the file and move to the end
         #st_results = os.stat(filename)
         #st_size = st_results[6]
@@ -621,7 +628,7 @@ class BootCLI:
             else:
                 if line.find(" | "):
                     line = line.split(" | ")[-1]
-                print line, # already has newline
+                print line,         # already has newline
 
 
     def print_object_help(self, object_type):
@@ -645,6 +652,7 @@ class BootCLI:
         print "cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS)
         sys.exit(2)
 
+
 def main():
     """
     CLI entry point
@@ -660,5 +668,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
