@@ -103,7 +103,7 @@ class PowerTool:
                 # If the desired state is actually a query for the status
                 # return different information than command return code
                 if desired_state == 'status':
-                    match = re.match('(^Status:\s)(on|off)', output, re.IGNORECASE)
+                    match = re.match('^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE|re.MULTILINE)
                     if match:
                         power_status = match.groups()[1]
                         if power_status.lower() == 'on':
