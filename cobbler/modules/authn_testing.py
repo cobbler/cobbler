@@ -25,7 +25,7 @@ import distutils.sysconfig
 import sys
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 
@@ -35,16 +35,15 @@ def register():
     """
     return "authn"
 
-def authenticate(api_handle,username,password):
+
+def authenticate(api_handle, username, password):
     """
     Validate a username/password combo, returning True/False
 
     Thanks to http://trac.edgewall.org/ticket/845 for supplying
     the algorithm info.
     """
-  
+
     if username == "testing" and password == "testing":
         return True
     return False
-
-
