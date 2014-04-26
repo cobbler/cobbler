@@ -18,7 +18,7 @@ import sys
 from cobbler import utils
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 
@@ -28,15 +28,15 @@ def register():
     """
     return "authn"
 
-def authenticate(api_handle,username,password):
+
+def authenticate(api_handle, username, password):
     """
     Validate a username/password combo, returning True/False
     Uses cobbler_auth_helper
     """
     ss = utils.get_shared_secret()
     if password == ss:
-       rc = True
+        rc = True
     else:
-       rc = False
+        rc = False
     return rc
-
