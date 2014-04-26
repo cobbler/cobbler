@@ -31,10 +31,10 @@ from utils import _
 
 
 def register():
-   """
-   The mandatory cobbler module registration hook.
-   """
-   return "manage"
+    """
+    The mandatory cobbler module registration hook.
+    """
+    return "manage"
 
 
 class InTftpdManager:
@@ -42,46 +42,46 @@ class InTftpdManager:
     def what(self):
         return "tftpd"
 
-    def __init__(self,config,logger):
+    def __init__(self, config, logger):
         """
         Constructor
         """
-        self.logger        = logger
+        self.logger = logger
         if self.logger is None:
             self.logger = clogger.Logger()
 
-        self.config        = config
-        self.templar       = templar.Templar(config)
+        self.config = config
+        self.templar = templar.Templar(config)
         self.settings_file = "/etc/xinetd.d/tftp"
-        self.pxegen        = pxegen.PXEGen(config, self.logger)
-        self.systems       = config.systems()
-        self.bootloc       = utils.tftpboot_location()
+        self.pxegen = pxegen.PXEGen(config, self.logger)
+        self.systems = config.systems()
+        self.bootloc = utils.tftpboot_location()
 
     def regen_hosts(self):
-        pass # not used
+        pass        # not used
 
     def write_dns_files(self):
-        pass # not used
+        pass        # not used
 
-    def write_boot_files_distro(self,distro):
+    def write_boot_files_distro(self, distro):
         # collapse the object down to a rendered datastructure
         # the second argument set to false means we don't collapse
         # hashes/arrays into a flat string
-        target      = utils.blender(self.config.api, False, distro)
+        target = utils.blender(self.config.api, False, distro)
 
         # Create metadata for the templar function
         # Right now, just using local_img_path, but adding more
         # cobbler variables here would probably be good
         metadata = {}
-        metadata["local_img_path"] = os.path.join(utils.tftpboot_location(),"images",distro.name)
-	# Create the templar instance.  Used to template the target directory
-	templater = templar.Templar(self.config)
+        metadata["local_img_path"] = os.path.join(utils.tftpboot_location(), "images", distro.name)
+        # Create the templar instance.  Used to template the target directory
+        templater = templar.Templar(self.config)
 
         # Loop through the hash of boot files,
         # executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
         for file in target["boot_files"].keys():
-            rendered_file = templater.render(file,metadata,None)
+            rendered_file = templater.render(file, metadata, None)
             try:
                 for f in glob.glob(target["boot_files"][file]):
                     if f == target["boot_files"][file]:
@@ -90,14 +90,14 @@ class InTftpdManager:
                     else:
                         # this was a glob, so figure out what the destination
                         # file path/name should be
-                        tgt_path,tgt_file=os.path.split(f)
-                        rnd_path,rnd_file=os.path.split(rendered_file)
-                        filedst = os.path.join(rnd_path,tgt_file)
+                        tgt_path, tgt_file = os.path.split(f)
+                        rnd_path, rnd_file = os.path.split(rendered_file)
+                        filedst = os.path.join(rnd_path, tgt_file)
                     if not os.path.isfile(filedst):
                         shutil.copyfile(f, filedst)
-                    self.config.api.log("copied file %s to %s for %s" % (f,filedst,distro.name))
+                    self.config.api.log("copied file %s to %s for %s" % (f, filedst, distro.name))
             except:
-                self.logger.error("failed to copy file %s to %s for %s" % (f,filedst,distro.name))
+                self.logger.error("failed to copy file %s to %s for %s" % (f, filedst, distro.name))
 
         return 0
 
@@ -119,7 +119,7 @@ class InTftpdManager:
         template_file = "/etc/cobbler/tftpd.template"
 
         try:
-            f = open(template_file,"r")
+            f = open(template_file, "r")
         except:
             raise CX(_("error reading template %s") % template_file)
         template_data = ""
@@ -127,26 +127,26 @@ class InTftpdManager:
         f.close()
 
         metadata = {
-            "user"      : "root",
-            "binary"    : "/usr/sbin/in.tftpd",
-            "args"      : "%s" % self.bootloc
+            "user": "root",
+            "binary": "/usr/sbin/in.tftpd",
+            "args": "%s" % self.bootloc
         }
         self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
-    def update_netboot(self,name):
+    def update_netboot(self, name):
         """
         Write out new pxelinux.cfg files to /tftpboot
         """
         system = self.systems.find(name=name)
         if system is None:
-            utils.die(self.logger,"error in system lookup for %s" % name)
+            utils.die(self.logger, "error in system lookup for %s" % name)
         menu_items = self.pxegen.get_menu_items()['pxe']
         self.pxegen.write_all_system_files(system, menu_items)
         # generate any templates listed in the system
         self.pxegen.write_templates(system)
 
-    def add_single_system(self,system):
+    def add_single_system(self, system):
         """
         Write out new pxelinux.cfg files to /tftpboot
         """
@@ -156,11 +156,11 @@ class InTftpdManager:
         # generate any templates listed in the distro
         self.pxegen.write_templates(system)
 
-    def add_single_distro(self,distro):
-        self.pxegen.copy_single_distro_files(distro,self.bootloc,False)
+    def add_single_distro(self, distro):
+        self.pxegen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
-    def sync(self,verbose=True):
+    def sync(self, verbose=True):
         """
         Write out all files to /tftpdboot
         """
@@ -176,7 +176,7 @@ class InTftpdManager:
         for d in self.config.distros():
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
-                self.pxegen.copy_single_distro_files(d,self.bootloc,False)
+                self.pxegen.copy_single_distro_files(d, self.bootloc, False)
             except CX, e:
                 self.logger.error(e.value)
 
@@ -192,5 +192,6 @@ class InTftpdManager:
         self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
 
-def get_manager(config,logger):
-    return InTftpdManager(config,logger)
+
+def get_manager(config, logger):
+    return InTftpdManager(config, logger)
