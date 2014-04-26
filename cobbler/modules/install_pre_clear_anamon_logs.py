@@ -26,7 +26,7 @@ from cexceptions import CX
 import glob
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 
@@ -35,15 +35,16 @@ def register():
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/pre/*"
 
+
 def run(api, args, logger):
     # FIXME: use the logger
 
     if len(args) < 3:
         raise CX("invalid invocation")
 
-#    objtype = args[0] # "system" or "profile"
-    name    = args[1] # name of system or profile
-#    ip      = args[2] # ip or "?"
+    # objtype = args[0]      # "system" or "profile"
+    name = args[1]          # name of system or profile
+    # ip = args[2]           # ip or "?"
 
     settings = api.settings()
     anamon_enabled = str(settings.anamon_enabled)
@@ -57,12 +58,10 @@ def run(api, args, logger):
                 except OSError:
                     pass
 
-    if str(anamon_enabled) in [ "true", "1", "y", "yes"]:
+    if str(anamon_enabled) in ["true", "1", "y", "yes"]:
         dirname = "/var/log/cobbler/anamon/%s" % name
         if os.path.isdir(dirname):
             unlink_files(os.path.join(dirname, "*"))
 
     # TODO - log somewhere that we cleared a systems anamon logs
     return 0
-
-
