@@ -12,7 +12,7 @@ import distutils.sysconfig
 import sys
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 import smtplib
@@ -20,10 +20,12 @@ import cobbler.templar as templar
 from cobbler.cexceptions import CX
 import utils
 
+
 def register():
-   # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
-   # the return of this method indicates the trigger type
-   return "/var/lib/cobbler/triggers/install/post/*"
+    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
+    # the return of this method indicates the trigger type
+    return "/var/lib/cobbler/triggers/install/post/*"
+
 
 def run(api, args, logger):
     # FIXME: make everything use the logger
@@ -31,12 +33,12 @@ def run(api, args, logger):
     settings = api.settings()
 
     # go no further if this feature is turned off
-    if not str(settings.build_reporting_enabled).lower() in [ "1", "yes", "y", "true"]:
+    if not str(settings.build_reporting_enabled).lower() in ["1", "yes", "y", "true"]:
         return 0
 
-    objtype = args[0] # "target" or "profile"
-    name    = args[1] # name of target or profile
-    boot_ip = args[2] # ip or "?"
+    objtype = args[0]   # "target" or "profile"
+    name = args[1]      # name of target or profile
+    boot_ip = args[2]   # ip or "?"
 
     if objtype == "system":
         target = api.find_system(name)
@@ -69,10 +71,10 @@ def run(api, args, logger):
 
     to_addr = ",".join(to_addr)
     metadata = {
-        "from_addr" : from_addr,
-        "to_addr"   : to_addr,
-        "subject"   : subject,
-        "boot_ip"   : boot_ip
+        "from_addr": from_addr,
+        "to_addr": to_addr,
+        "subject": subject,
+        "boot_ip": boot_ip
     }
     metadata.update(target)
 
@@ -81,9 +83,6 @@ def run(api, args, logger):
     input_template.close()
 
     message = templar.Templar(api._config).render(input_data, metadata, None)
-    
-    # for debug, call
-    # print message
 
     sendmail = True
     for prefix in settings.build_reporting_ignorelist:
@@ -98,7 +97,3 @@ def run(api, args, logger):
         server_handle.quit()
 
     return 0
-
-
-
-
