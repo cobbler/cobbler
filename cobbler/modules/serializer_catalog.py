@@ -34,15 +34,17 @@ import simplejson
 import exceptions
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 import cobbler.api as capi
+
 
 def can_use_json():
     version = sys.version[:3]
     version = float(version)
     return (version > 2.3)
+
 
 def register():
     """
@@ -50,23 +52,25 @@ def register():
     """
     return "serializer"
 
+
 def what():
     """
     Module identification function
     """
     return "serializer/catalog"
 
+
 def serialize_item(obj, item):
 
     if item.name is None or item.name == "":
-       raise exceptions.RuntimeError("name unset for object!")
-   
+        raise exceptions.RuntimeError("name unset for object!")
+
     # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases 
-    if obj.collection_type() in [ 'mgmtclass' ]:
-        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(),item.name)
+    # appending an 's' does not work in all cases
+    if obj.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(), item.name)
 
     datastruct = item.to_datastruct()
 
@@ -88,8 +92,8 @@ def serialize_item(obj, item):
             os.remove(filename)
         filename = filename + ".json"
         datastruct = item.to_datastruct()
-        fd = open(filename,"w+")
-        data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys = sort_keys, indent = indent)
+        fd = open(filename, "w+")
+        data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
         #data = data.encode('utf-8')
         fd.write(data)
 
@@ -99,21 +103,22 @@ def serialize_item(obj, item):
             print "downgrading json file back to yaml: %s" % filename
             os.remove(filename + ".json")
         datastruct = item.to_datastruct()
-        fd = open(filename,"w+")
+        fd = open(filename, "w+")
         data = yaml.dump(datastruct)
         fd.write(data)
 
     fd.close()
     return True
 
+
 def serialize_delete(obj, item):
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if obj.collection_type() in [ 'mgmtclass', ]:
-        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(),item.name)
+    if obj.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (obj.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(),item.name)
-    
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(), item.name)
+
     filename2 = filename + ".json"
     if os.path.exists(filename):
         os.remove(filename)
@@ -121,19 +126,20 @@ def serialize_delete(obj, item):
         os.remove(filename2)
     return True
 
+
 def deserialize_item_raw(collection_type, item_name):
     # this new fn is not really implemented performantly in this module.
     # yet.
-    
+
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if item_name in [ 'mgmtclass' ]:
-        filename = "/var/lib/cobbler/config/%ses.d/%s" % (collection_type(),item_name)
+    if item_name in ['mgmtclass']:
+        filename = "/var/lib/cobbler/config/%ses.d/%s" % (collection_type(), item_name)
     else:
-        filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type,item_name)
-    
+        filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type, item_name)
+
     filename2 = filename + ".json"
-    if os.path.exists(filename): 
+    if os.path.exists(filename):
         fd = open(filename)
         data = fd.read()
         return yaml.safe_load(data)
@@ -141,8 +147,8 @@ def deserialize_item_raw(collection_type, item_name):
         fd = open(filename2)
         data = fd.read()
         return simplejson.loads(data, encoding="utf-8")
-    else: 
-        return None  
+    else:
+        return None
 
 
 def serialize(obj):
@@ -155,36 +161,38 @@ def serialize(obj):
     if ctype == "settings":
         return True
     for x in obj:
-        serialize_item(obj,x)
+        serialize_item(obj, x)
     return True
+
 
 def deserialize_raw(collection_type):
     if collection_type == "settings":
-         fd = open("/etc/cobbler/settings")
-         datastruct = yaml.safe_load(fd.read())
-         fd.close()
-         return datastruct
+        fd = open("/etc/cobbler/settings")
+        datastruct = yaml.safe_load(fd.read())
+        fd.close()
+        return datastruct
     else:
-         results = []
-         # FIXME: Need a better way to support collections/items
-         # appending an 's' does not work in all cases
-         if collection_type in [ 'mgmtclass' ]:
-             all_files = glob.glob("/var/lib/cobbler/config/%ses.d/*" % collection_type)
-         else:
-             all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
-         
-         all_files = filter_upgrade_duplicates(all_files)
-         for f in all_files:
-             fd = open(f)
-             ydata = fd.read()
-             # ydata = ydata.decode()
-             if f.endswith(".json"):
-                 datastruct = simplejson.loads(ydata, encoding='utf-8')
-             else:
-                 datastruct = yaml.safe_load(ydata)
-             results.append(datastruct)
-             fd.close()
-         return results    
+        results = []
+        # FIXME: Need a better way to support collections/items
+        # appending an 's' does not work in all cases
+        if collection_type in ['mgmtclass']:
+            all_files = glob.glob("/var/lib/cobbler/config/%ses.d/*" % collection_type)
+        else:
+            all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
+
+        all_files = filter_upgrade_duplicates(all_files)
+        for f in all_files:
+            fd = open(f)
+            ydata = fd.read()
+            # ydata = ydata.decode()
+            if f.endswith(".json"):
+                datastruct = simplejson.loads(ydata, encoding='utf-8')
+            else:
+                datastruct = yaml.safe_load(ydata)
+            results.append(datastruct)
+            fd.close()
+        return results
+
 
 def filter_upgrade_duplicates(file_list):
     """
@@ -194,31 +202,33 @@ def filter_upgrade_duplicates(file_list):
     """
     bases = {}
     for f in file_list:
-       basekey = f.replace(".json","")
-       if f.endswith(".json"):
-           bases[basekey] = f
-       else:
-           lookup = bases.get(basekey,"")
-           if not lookup.endswith(".json"):
-              bases[basekey] = f
+        basekey = f.replace(".json", "")
+        if f.endswith(".json"):
+            bases[basekey] = f
+        else:
+            lookup = bases.get(basekey, "")
+            if not lookup.endswith(".json"):
+                bases[basekey] = f
     return bases.values()
 
-def deserialize(obj,topological=True):
+
+def deserialize(obj, topological=True):
     """
     Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.  
+    Object must "implement" Serializable.
     """
     datastruct = deserialize_raw(obj.collection_type())
     if topological and type(datastruct) == list:
-       datastruct.sort(__depth_cmp)
+        datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
     return True
 
+
 def __depth_cmp(item1, item2):
-    d1 = item1.get("depth",1)
-    d2 = item2.get("depth",1)
-    return cmp(d1,d2)
+    d1 = item1.get("depth", 1)
+    d2 = item2.get("depth", 1)
+    return cmp(d1, d2)
+
 
 if __name__ == "__main__":
-    print deserialize_item_raw("distro","D1")
-
+    print deserialize_item_raw("distro", "D1")
