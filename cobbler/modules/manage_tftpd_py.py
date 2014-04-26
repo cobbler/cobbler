@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import clogger
 
 from cexceptions import CX
-import templar 
+import templar
 import pxegen
 from utils import _
 
 
 def register():
-   """
-   The mandatory cobbler module registration hook.
-   """
-   return "manage"
+    """
+    The mandatory cobbler module registration hook.
+    """
+    return "manage"
 
 
 class TftpdPyManager:
@@ -37,40 +37,40 @@ class TftpdPyManager:
     def what(self):
         return "tftpd"
 
-    def __init__(self,config,logger):
+    def __init__(self, config, logger):
         """
         Constructor
         """
-        self.logger        = logger
+        self.logger = logger
         if self.logger is None:
             self.logger = clogger.Logger()
 
-        self.config        = config
-        self.templar       = templar.Templar(config)
+        self.config = config
+        self.templar = templar.Templar(config)
         self.settings_file = "/etc/xinetd.d/tftp"
 
     def regen_hosts(self):
-        pass # not used
+        pass        # not used
 
     def write_dns_files(self):
-        pass # not used
+        pass        # not used
 
-    def write_boot_files_distro(self,distro):
+    def write_boot_files_distro(self, distro):
         """
         Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
         currently.
         """
-        pass # not used.  Handed by tftp.py
+        pass        # not used.  Handed by tftp.py
 
     def write_boot_files(self):
         """
         Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
         currently.
         """
-        pass # not used.  Handed by tftp.py
+        pass        # not used.  Handed by tftp.py
 
-    def add_single_distro(self,distro):
-        pass # not used
+    def add_single_distro(self, distro):
+        pass        # not used
 
     def write_tftpd_files(self):
         """
@@ -80,7 +80,7 @@ class TftpdPyManager:
         template_file = "/etc/cobbler/tftpd.template"
 
         try:
-            f = open(template_file,"r")
+            f = open(template_file, "r")
         except:
             raise CX(_("error reading template %s") % template_file)
         template_data = ""
@@ -88,33 +88,33 @@ class TftpdPyManager:
         f.close()
 
         metadata = {
-            "user"      : "nobody",
-            "binary"    : "/usr/sbin/tftpd.py",
-            "args"      : "-v"
+            "user": "nobody",
+            "binary": "/usr/sbin/tftpd.py",
+            "args": "-v"
         }
 
         self.logger.info("generating %s" % self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file, None)
 
-    def sync(self,verbose=True):
+    def sync(self, verbose=True):
         """
         Write out files to /tftpdboot.  Mostly unused for the python server
         """
         self.logger.info("copying bootloaders")
-        pxegen.PXEGen(self.config,self.logger).copy_bootloaders()
+        pxegen.PXEGen(self.config, self.logger).copy_bootloaders()
 
-    def update_netboot(self,name):
+    def update_netboot(self, name):
         """
         Write out files to /tftpdboot.  Unused for the python server
         """
         pass
 
-    def add_single_system(self,name):
+    def add_single_system(self, name):
         """
         Write out files to /tftpdboot.  Unused for the python server
         """
         pass
 
-def get_manager(config,logger):
-    return TftpdPyManager(config,logger)
 
+def get_manager(config, logger):
+    return TftpdPyManager(config, logger)
