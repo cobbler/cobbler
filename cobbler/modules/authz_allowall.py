@@ -25,7 +25,7 @@ import distutils.sysconfig
 import sys
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 
@@ -35,11 +35,10 @@ def register():
     """
     return "authz"
 
-def authorize(api_handle,user,resource,arg1=None,arg2=None):
+
+def authorize(api_handle, user, resource, arg1=None, arg2=None):
     """
     Validate a user against a resource.
     NOTE: acls are not enforced as there is no group support in this module
     """
     return True
-
-
