@@ -29,19 +29,13 @@ import distutils.sysconfig
 import os
 import sys
 import glob
-import traceback
-import yaml # PyYAML
+import yaml
 import simplejson
 import exceptions
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
-
-from utils import _
-import utils
-from cexceptions import *
-import os
 
 import cobbler.api as capi
 

@@ -17,15 +17,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os.path, traceback, errno
-import re
+import os.path
 import clogger
 import pxegen
 import shutil
 import glob
 
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar
 
 from utils import _

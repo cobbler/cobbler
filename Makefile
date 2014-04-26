@@ -1,7 +1,5 @@
-#MESSAGESPOT=po/messages.pot
 
 TOP_DIR:=$(shell pwd)
-
 DESTDIR=/
 
 prefix=devinstall
@@ -9,25 +7,49 @@ statepath=/tmp/cobbler_settings/$(prefix)
 
 all: clean build
 
+
 clean:
-	-rm -rf build rpm-build
-	-rm -f *~
-	-rm -f cobbler/*.pyc
-	-rm -rf dist
-	-rm -rf buildiso
-	-rm -f MANIFEST
-	-rm -f koan/*.pyc
-	-rm -f config/version
-	-rm -f docs/*.1.gz 
-	-rm -f *.tmp
-	-rm -f *.log
+	@echo "cleaning python bytecode..."
+	@rm -f *.pyc
+	@rm -f cobbler/*.pyc
+	@rm -f cobbler/modules/*.pyc
+	@rm -f web/*.pyc
+	@rm -f web/cobbler_web/*.pyc
+	@rm -f web/cobbler_web/templatetags/*.pyc
+	@rm -f koan/*.pyc
+	@rm -f koan/live/*.pyc
+	@echo "cleaning build artifacts..."
+	@rm -rf build rpm-build
+	@rm -rf dist
+	@rm -f MANIFEST
+	@rm -f config/version
+	@rm -f docs/*.1.gz 
+	@echo "cleaning temp files..."
+	@rm -f *~
+	@rm -rf buildiso
+	@rm -f *.tmp
+	@rm -f *.log
 
 qa:
 	@echo "running pyflakes..."
-	@pyflakes cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
+	@pyflakes \
+		*.py \
+		cobbler/*.py \
+		cobbler/modules/*.py \
+		bin/cobbler* bin/*.py bin/koan \
+		web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
+#		koan/*.py \
+#		koan/live/*.py
 	@echo "running pep8..."
-	@pep8 -r --ignore E303,E501 cobbler/*.py bin/cobbler* bin/*.py bin/koan web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py
-
+	@pep8 -r --ignore E303,E501 \
+        *.py \
+        cobbler/*.py \
+        cobbler/modules/*.py \
+        bin/cobbler* bin/*.py bin/koan web/*.py \
+        web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
+#       koan/*.py \
+#       koan/live/*.py
+        
 test:
 	make savestate prefix=test
 	make rpms

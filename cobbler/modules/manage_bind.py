@@ -22,25 +22,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import time
-import sys
-import glob
-import traceback
-import errno
 import re
 
-
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar 
 
-import item_distro
-import item_profile
-import item_repo
-import item_system
-
 from utils import _
+from types import StringType
 
-from types import *
 
 def register():
    """
@@ -192,13 +182,13 @@ class BindManager:
               zone = (self.__expand_IPv6(zone + '::1'))[:19]
            zones[zone] = {}
 
-        for sys in self.systems:
-            for (name, interface) in sys.interfaces.iteritems():
+        for system in self.systems:
+            for (name, interface) in system.interfaces.iteritems():
                 host = interface["dns_name"]
                 ip   = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
                 ipv6_sec_addrs = interface["ipv6_secondaries"]
-                if not sys.is_management_supported(cidr_ok=False):
+                if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or ( ( not ip ) and ( not ipv6) ):
                     # gotsta have some dns_name and ip or else!
@@ -253,8 +243,8 @@ class BindManager:
         """
         settings_file = self.settings.bind_chroot_path + self.settings_file
         template_file = "/etc/cobbler/named.template"
-        forward_zones = self.settings.manage_forward_zones
-        reverse_zones = self.settings.manage_reverse_zones
+        # forward_zones = self.settings.manage_forward_zones
+        # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
@@ -311,8 +301,8 @@ zone "%(arpa)s." {
         """
         settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
         template_file = "/etc/cobbler/secondary.template"
-        forward_zones = self.settings.manage_forward_zones
-        reverse_zones = self.settings.manage_reverse_zones
+        # forward_zones = self.settings.manage_forward_zones
+        # reverse_zones = self.settings.manage_reverse_zones
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],

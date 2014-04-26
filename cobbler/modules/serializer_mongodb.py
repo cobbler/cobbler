@@ -23,19 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import distutils.sysconfig
-import os
 import sys
-import traceback
-import exceptions
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from utils import _
-import utils
-from cexceptions import *
-import os
 import ConfigParser
 
 pymongo_loaded = False
@@ -103,8 +96,8 @@ def deserialize_item_raw(collection_type, item_name):
     if not __connect():
         # FIXME: log error
         return False
-    collection = mongodb[obj.collection_type()]
-    data = collection.find_one({'name':item.name})
+    collection = mongodb[collection_type()]
+    data = collection.find_one({'name': item_name})
     return data
 
 def serialize(obj):
@@ -112,7 +105,6 @@ def serialize(obj):
     Save an object to the database.
     """
     # TODO: error detection
-    ctype = obj.collection_type()
     for x in obj:
         serialize_item(obj,x)
     return True

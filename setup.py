@@ -10,14 +10,12 @@ from distutils.command.build_py import build_py as _build_py
 from distutils import log
 from distutils import dep_util
 from distutils.dist import Distribution as _Distribution
-from string import Template
 from ConfigParser import ConfigParser
 
 import codecs
 import unittest
 import exceptions
 import pwd
-import types
 import shutil
 import subprocess
 
