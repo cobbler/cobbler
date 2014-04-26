@@ -21,33 +21,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
-import shutil
 import time
-import sys
-import glob
-import traceback
-import errno
-from shlex import shlex
-import utils
-from cexceptions import *
+from cexceptions import CX
 import templar 
-import item_distro
-import item_profile
-import item_repo
-import item_system
 from utils import _
 
 def register():
     return "manage"
+
 
 class DnsmasqManager:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,logger,dhcp=None):
+    def __init__(self, config, logger, dhcp=None):
         """
         Constructor
         """

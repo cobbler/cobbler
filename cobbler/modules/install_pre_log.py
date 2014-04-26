@@ -1,11 +1,5 @@
 import distutils.sysconfig
 import sys
-import os
-from utils import _
-import traceback
-import cexceptions
-import os
-import sys
 import time
 
 plib = distutils.sysconfig.get_python_lib()

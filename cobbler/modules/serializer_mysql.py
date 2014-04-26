@@ -23,21 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
  
 import distutils.sysconfig
-import os
 import sys
-import traceback
-import exceptions
 import simplejson
  
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
  
-from utils import _
-import utils
-from cexceptions import *
-import os
-import ConfigParser
  
 mysql_loaded = False
  
@@ -128,7 +120,6 @@ def serialize(obj):
     Save an object to the database.
     """
     # TODO: error detection
-    ctype = obj.collection_type()
     for x in obj:
         serialize_item(obj,x)
     return True

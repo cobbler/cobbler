@@ -8,8 +8,6 @@
 
 import distutils.sysconfig
 import sys
-import os
-import traceback
 from threading import Thread
 import time
 
@@ -34,11 +32,9 @@ def register():
 def run(api, args, logger):
     # FIXME: make everything use the logger
 
-    settings = api.settings()
-
     objtype = args[0] # "target" or "profile"
     name    = args[1] # name of target or profile
-    boot_ip = args[2] # ip or "?"
+    # boot_ip = args[2] # ip or "?"
 
     if objtype == "system":
         target = api.find_system(name)

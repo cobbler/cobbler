@@ -59,6 +59,7 @@ memsize = "%(MEMORY)s"
 """
 #ide1:0.filename = "%(PATH_TO_ISO)s"
 
+
 class VirtCreateException(exceptions.Exception):
     pass
 
@@ -157,7 +158,6 @@ def start_install(name=None,
     if len(disks) != 1:
        raise VirtCreateException("vmware support is limited to 1 virtual disk")
 
-    diskname = disks[0][0]
     disksize = disks[0][1]
 
     image = "%s/%s" % (IMAGE_DIR, name)

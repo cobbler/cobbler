@@ -24,27 +24,20 @@ import os.path
 import shutil
 import glob
 import re
-import simplejson
-import traceback
 
 import utils
-from cexceptions import *
 import templar
 
-import item_distro
-import item_profile
 import item_repo
-import item_system
 
 # Import aptsources module if available to obtain repo mirror.
 try:
-    from aptsources import distro
+    from aptsources import distro as debdistro
     from aptsources import sourceslist
     apt_available = True
 except:
     apt_available = False
 
-from utils import _
 
 def register():
    """
@@ -586,12 +579,6 @@ class ImportSignatureManager:
             seg = comps_path.rfind("ks_mirror")
             urlseg = comps_path[seg+10:]
 
-            # write a yum config file that shows how to use the repo.
-            if counter == 0:
-                dotrepo = "%s.repo" % distro.name
-            else:
-                dotrepo = "%s-%s.repo" % (distro.name, counter)
-
             fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
             repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
@@ -677,7 +664,7 @@ class ImportSignatureManager:
         """
         try:
             sources = sourceslist.SourcesList()
-            release = distro.get_distro()
+            release = debdistro.get_distro()
             release.get_sources(sources)
             mirrors = release.get_server_list()
             for mirror in mirrors:
