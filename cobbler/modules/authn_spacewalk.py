@@ -26,14 +26,16 @@ import sys
 import xmlrpclib
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
+
 
 def register():
     """
     The mandatory cobbler module registration hook.
     """
     return "authn"
+
 
 def __looks_like_a_token(password):
 
@@ -53,13 +55,14 @@ def __looks_like_a_token(password):
     #    return True # looks like a token, but we can't be sure
     #except:
     #    return False # definitely not a token
-     
-    return (len(password) > 45)  
 
-def authenticate(api_handle,username,password):
+    return (len(password) > 45)
+
+
+def authenticate(api_handle, username, password):
     """
     Validate a username/password combo, returning True/False
-    
+
     This will pass the username and password back to Spacewalk
     to see if this authentication request is valid.
 
@@ -75,7 +78,7 @@ def authenticate(api_handle,username,password):
         user_enabled = True
 
     if server == "xmlrpc.rhn.redhat.com":
-        return False # emergency fail, don't bother RHN!
+        return False        # emergency fail, don't bother RHN!
 
     spacewalk_url = "https://%s/rpc/api" % server
 
@@ -90,10 +93,10 @@ def authenticate(api_handle,username,password):
         # any login failed stuff in the logs that we don't need to send.
 
         try:
-            valid = client.auth.checkAuthToken(username,password)
+            valid = client.auth.checkAuthToken(username, password)
         except:
             # if the token is not a token this will raise an exception
-            # rather than return an integer.   
+            # rather than return an integer.
             valid = 0
 
         # problem at this point, 0xdeadbeef is valid as a token but if that
@@ -107,39 +110,39 @@ def authenticate(api_handle,username,password):
             # is just a simple username/pass!
 
             if user_enabled == 0:
-               # this feature must be explicitly enabled.
-               return False
+                # this feature must be explicitly enabled.
+                return False
 
 
             session = ""
             try:
-                session = client.auth.login(username,password)
+                session = client.auth.login(username, password)
             except:
                 # FIXME: should log exceptions that are not excepted
                 # as we could detect spacewalk java errors here that
                 # are not login related.
                 return False
-   
+
             # login success by username, role must also match
             roles = client.user.listRoles(session, username)
             if not ("config_admin" in roles or "org_admin" in roles):
-               return False
-                    
+                return False
+
         return True
-    
+
     else:
 
         # it's an older version of spacewalk, so just try the username/pass
         # OR: we know for sure it's not a token because it's not lowercase hex.
 
         if user_enabled == 0:
-           # this feature must be explicitly enabled.
-           return False
+            # this feature must be explicitly enabled.
+            return False
 
 
         session = ""
         try:
-            session = client.auth.login(username,password)
+            session = client.auth.login(username, password)
         except:
             return False
 
@@ -150,5 +153,6 @@ def authenticate(api_handle,username,password):
 
         return True
 
+
 if __name__ == "__main__":
-    print authenticate(None,"admin","redhat")
+    print authenticate(None, "admin", "redhat")
