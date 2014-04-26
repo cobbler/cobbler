@@ -40,7 +40,7 @@ import distutils.sysconfig
 import sys
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
@@ -56,7 +56,7 @@ CALLOC.argtypes = [c_uint, c_uint]
 
 STRDUP = LIBC.strdup
 STRDUP.argstypes = [c_char_p]
-STRDUP.restype = POINTER(c_char) # NOT c_char_p !!!!
+STRDUP.restype = POINTER(c_char)        # NOT c_char_p !!!!
 
 # Various constants
 PAM_PROMPT_ECHO_OFF = 1
@@ -64,11 +64,13 @@ PAM_PROMPT_ECHO_ON = 2
 PAM_ERROR_MSG = 3
 PAM_TEXT_INFO = 4
 
+
 def register():
     """
     The mandatory cobbler module registration hook.
     """
     return "authn"
+
 
 class PamHandle(Structure):
     """wrapper class for pam_handle_t"""
@@ -80,6 +82,7 @@ class PamHandle(Structure):
         Structure.__init__(self)
         self.handle = 0
 
+
 class PamMessage(Structure):
     """wrapper class for pam_message structure"""
     _fields_ = [
@@ -89,6 +92,7 @@ class PamMessage(Structure):
 
     def __repr__(self):
         return "<PamMessage %i '%s'>" % (self.msg_style, self.msg)
+
 
 class PamResponse(Structure):
     """wrapper class for pam_response structure"""
@@ -103,6 +107,7 @@ class PamResponse(Structure):
 CONV_FUNC = CFUNCTYPE(c_int,
         c_int, POINTER(POINTER(PamMessage)),
                POINTER(POINTER(PamResponse)), c_void_p)
+
 
 class PamConv(Structure):
     """wrapper class for pam_conv structure"""
@@ -119,6 +124,7 @@ PAM_START.argtypes = [c_char_p, c_char_p, POINTER(PamConv),
 PAM_AUTHENTICATE = LIBPAM.pam_authenticate
 PAM_AUTHENTICATE.restype = c_int
 PAM_AUTHENTICATE.argtypes = [PamHandle, c_int]
+
 
 def authenticate(api_handle, username, password):
     """
@@ -159,4 +165,3 @@ def authenticate(api_handle, username, password):
 
     retval = PAM_AUTHENTICATE(handle, 0)
     return retval == 0
-
