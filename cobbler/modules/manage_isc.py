@@ -31,10 +31,10 @@ from utils import _
 
 
 def register():
-   """
-   The mandatory cobbler module registration hook.
-   """
-   return "manage"
+    """
+    The mandatory cobbler module registration hook.
+    """
+    return "manage"
 
 
 class IscManager:
@@ -42,19 +42,19 @@ class IscManager:
     def what(self):
         return "isc"
 
-    def __init__(self,config,logger):
+    def __init__(self, config, logger):
         """
         Constructor
         """
-        self.logger        = logger
-        self.config        = config
-        self.api           = config.api
-        self.distros       = config.distros()
-        self.profiles      = config.profiles()
-        self.systems       = config.systems()
-        self.settings      = config.settings()
-        self.repos         = config.repos()
-        self.templar       = templar.Templar(config)
+        self.logger = logger
+        self.config = config
+        self.api = config.api
+        self.distros = config.distros()
+        self.profiles = config.profiles()
+        self.systems = config.systems()
+        self.settings = config.settings()
+        self.repos = config.repos()
+        self.templar = templar.Templar(config)
         self.settings_file = utils.dhcpconf_location(self.api)
 
     def write_dhcp_file(self):
@@ -67,7 +67,7 @@ class IscManager:
         blender_cache = {}
 
         try:
-            f2 = open(template_file,"r")
+            f2 = open(template_file, "r")
         except:
             raise CX(_("error reading template: %s") % template_file)
         template_data = ""
@@ -80,7 +80,7 @@ class IscManager:
 
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
-        dhcp_tags = { "default": {} }
+        dhcp_tags = {"default": {}}
         elilo = "/elilo-ia64.efi"
         yaboot = "/yaboot"
 
@@ -89,7 +89,7 @@ class IscManager:
                 continue
 
             profile = system.get_conceptual_parent()
-            distro  = profile.get_conceptual_parent()
+            distro = profile.get_conceptual_parent()
 
             # if distro is None then the profile is really an image
             # record!
@@ -101,8 +101,8 @@ class IscManager:
                 # without upgrade
                 interface["gateway"] = system.gateway
 
-                mac  = interface["mac_address"]
-                if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
+                mac = interface["mac_address"]
+                if interface["interface_type"] in ("slave", "bond_slave", "bridge_slave", "bonded_bridge_slave"):
                     if interface["interface_master"] not in system.interfaces:
                         # Can't write DHCP entry; master interface does not
                         # exist
@@ -111,11 +111,11 @@ class IscManager:
                     interface["ip_address"] = ip
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
                 else:
-                    ip   = interface["ip_address"]
+                    ip = interface["ip_address"]
                     host = interface["dns_name"]
 
                 if distro is not None:
-                    interface["distro"]  = distro.to_datastruct()
+                    interface["distro"] = distro.to_datastruct()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
@@ -126,7 +126,7 @@ class IscManager:
                 # the label the entry after the hostname if possible
                 if host is not None and host != "":
                     if name != "eth0":
-                        interface["name"] = "%s-%s" % (host,name)
+                        interface["name"] = "%s-%s" % (host, name)
                     else:
                         interface["name"] = "%s" % (host)
                 else:
@@ -134,10 +134,10 @@ class IscManager:
 
                 # add references to the system, profile, and distro
                 # for use in the template
-                if blender_cache.has_key(system.name):
+                if system.name in blender_cache:
                     blended_system = blender_cache[system.name]
                 else:
-                    blended_system  = utils.blender( self.api, False, system )
+                    blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
                 interface["next_server"] = blended_system["server"]
@@ -160,10 +160,10 @@ class IscManager:
 
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":
-                   dhcp_tag = "default"
+                    dhcp_tag = "default"
 
 
-                if not dhcp_tags.has_key(dhcp_tag):
+                if not dhcp_tag in dhcp_tags:
                     dhcp_tags[dhcp_tag] = {
                        mac: interface
                     }
@@ -172,12 +172,12 @@ class IscManager:
 
         # we are now done with the looping through each interface of each system
         metadata = {
-           "date"           : time.asctime(time.gmtime()),
-           "cobbler_server" : "%s:%s" % (self.settings.server,self.settings.http_port),
-           "next_server"    : self.settings.next_server,
-           "elilo"          : elilo,
-           "yaboot"         : yaboot,
-           "dhcp_tags"      : dhcp_tags
+           "date": time.asctime(time.gmtime()),
+           "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
+           "next_server": self.settings.next_server,
+           "elilo": elilo,
+           "yaboot": yaboot,
+           "dhcp_tags": dhcp_tags
         }
 
         if self.logger is not None:
@@ -185,8 +185,8 @@ class IscManager:
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def regen_ethers(self):
-        pass # ISC/BIND do not use this
+        pass            # ISC/BIND do not use this
 
 
-def get_manager(config,logger):
-    return IscManager(config,logger)
+def get_manager(config, logger):
+    return IscManager(config, logger)
