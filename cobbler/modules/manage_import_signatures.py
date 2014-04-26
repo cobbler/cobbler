@@ -40,37 +40,37 @@ except:
 
 
 def register():
-   """
-   The mandatory cobbler module registration hook.
-   """
-   return "manage/import"
+    """
+    The mandatory cobbler module registration hook.
+    """
+    return "manage/import"
 
 
 class ImportSignatureManager:
 
-    def __init__(self,config,logger):
+    def __init__(self, config, logger):
         """
         Constructor
         """
-        self.logger        = logger
-        self.config        = config
-        self.api           = config.api
-        self.distros       = config.distros()
-        self.profiles      = config.profiles()
-        self.systems       = config.systems()
-        self.settings      = config.settings()
-        self.repos         = config.repos()
-        self.templar       = templar.Templar(config)
+        self.logger = logger
+        self.config = config
+        self.api = config.api
+        self.distros = config.distros()
+        self.profiles = config.profiles()
+        self.systems = config.systems()
+        self.settings = config.settings()
+        self.repos = config.repos()
+        self.templar = templar.Templar(config)
 
-        self.signature     = None
-        self.found_repos   = {}
+        self.signature = None
+        self.found_repos = {}
 
 
     # required function for import modules
     def what(self):
         return "import/signatures"
 
-    def get_file_lines(self,filename):
+    def get_file_lines(self, filename):
         """
         Get lines from a file, which may or may not be compressed
         """
@@ -79,19 +79,19 @@ class ImportSignatureManager:
         if ftype.find("gzip") != -1:
             try:
                 import gzip
-                f = gzip.open(filename,'r')
+                f = gzip.open(filename, 'r')
                 lines = f.readlines()
                 f.close()
             except:
                 pass
         elif ftype.find("text") != -1:
-            f = open(filename,'r')
+            f = open(filename, 'r')
             lines = f.readlines()
             f.close()
         return lines
 
     # required function for import modules
-    def run(self,path,name,network_root=None,kickstart_file=None,arch=None,breed=None,os_version=None):
+    def run(self, path, name, network_root=None, kickstart_file=None, arch=None, breed=None, os_version=None):
         """
         path: the directory we are scanning for files
         name: the base name of the distro
@@ -113,14 +113,23 @@ class ImportSignatureManager:
         self.pkgdir = path
 
         # some fixups for the XMLRPC interface, which does not use "None"
-        if self.arch == "":           self.arch           = None
-        if self.name == "":           self.name           = None
-        if self.kickstart_file == "": self.kickstart_file = None
-        if self.os_version == "":     self.os_version     = None
-        if self.network_root == "":   self.network_root   = None
+        if self.arch == "":
+            self.arch = None
+
+        if self.name == "":
+            self.name = None
+
+        if self.kickstart_file == "":
+            self.kickstart_file = None
+
+        if self.os_version == "":
+            self.os_version = None
+
+        if self.network_root == "":
+            self.network_root = None
 
         if self.os_version and not self.breed:
-            utils.die(self.logger,"OS version can only be specified when a specific breed is selected")
+            utils.die(self.logger, "OS version can only be specified when a specific breed is selected")
 
         self.signature = self.scan_signatures()
         if not self.signature:
@@ -128,7 +137,7 @@ class ImportSignatureManager:
             return False
 
         # now walk the filesystem looking for distributions that match certain patterns
-        self.logger.info("Adding distros from path %s:"%self.path)
+        self.logger.info("Adding distros from path %s:" % self.path)
         distros_added = []
         os.path.walk(self.path, self.distro_adder, distros_added)
 
@@ -158,25 +167,25 @@ class ImportSignatureManager:
                 if self.os_version and self.os_version != version:
                     continue
                 for sig in sigdata["breeds"][breed][version]["signatures"]:
-                    pkgdir = os.path.join(self.path,sig)
+                    pkgdir = os.path.join(self.path, sig)
                     if os.path.exists(pkgdir):
-                        self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed,version))
+                        self.logger.debug("Found a candidate signature: breed=%s, version=%s" % (breed, version))
                         f_re = re.compile(sigdata["breeds"][breed][version]["version_file"])
-                        for (root,subdir,fnames) in os.walk(self.path):
-                            for fname in fnames+subdir:
+                        for (root, subdir, fnames) in os.walk(self.path):
+                            for fname in fnames + subdir:
                                 if f_re.match(fname):
                                     # if the version file regex exists, we use it
                                     # to scan the contents of the target version file
                                     # to ensure it's the right version
                                     if sigdata["breeds"][breed][version]["version_file_regex"]:
                                         vf_re = re.compile(sigdata["breeds"][breed][version]["version_file_regex"])
-                                        vf_lines = self.get_file_lines(os.path.join(root,fname))
+                                        vf_lines = self.get_file_lines(os.path.join(root, fname))
                                         for line in vf_lines:
                                             if vf_re.match(line):
                                                 break
                                         else:
                                             continue
-                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed,version))
+                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed, version))
                                     if not self.breed:
                                         self.breed = breed
                                     if not self.os_version:
@@ -198,7 +207,7 @@ class ImportSignatureManager:
             return self.signature["supported_repo_breeds"]
         return []
 
-    def distro_adder(self,distros_added,dirname,fnames):
+    def distro_adder(self, distros_added, dirname, fnames):
         """
         This is an os.path.walk routine that finds distributions in the directory
         to be scanned and then creates them.
@@ -222,7 +231,7 @@ class ImportSignatureManager:
             if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
                 continue
 
-            fullname = os.path.join(dirname,x)
+            fullname = os.path.join(dirname, x)
             if os.path.islink(fullname) and os.path.isdir(fullname):
                 if fullname.startswith(self.path):
                     # Prevent infinite loop with Sci Linux 5
@@ -233,23 +242,23 @@ class ImportSignatureManager:
 
             if re_img.match(x):
                 if x.find("PAE") == -1:
-                    initrd = os.path.join(dirname,x)
+                    initrd = os.path.join(dirname, x)
                 else:
                     pae_initrd = os.path.join(dirname, x)
 
             if re_krn.match(x):
                 if x.find("PAE") == -1:
-                    kernel = os.path.join(dirname,x)
+                    kernel = os.path.join(dirname, x)
                 else:
                     pae_kernel = os.path.join(dirname, x)
 
             # if we've collected a matching kernel and initrd pair, turn them in and add them to the list
             if initrd is not None and kernel is not None:
-                adtls.append(self.add_entry(dirname,kernel,initrd))
+                adtls.append(self.add_entry(dirname, kernel, initrd))
                 kernel = None
                 initrd = None
             elif pae_initrd is not None and pae_kernel is not None:
-                adtls.append(self.add_entry(dirname,pae_kernel,pae_initrd))
+                adtls.append(self.add_entry(dirname, pae_kernel, pae_initrd))
                 pae_kernel = None
                 pae_initrd = None
 
@@ -263,9 +272,9 @@ class ImportSignatureManager:
             adtls.append(self.add_entry(self.path, kernel, initrd))
             for adtl in adtls:
                 distros_added.extend(adtl)
-                
 
-    def add_entry(self,dirname,kernel,initrd):
+
+    def add_entry(self, dirname, kernel, initrd):
         """
         When we find a directory with a valid kernel/initrd in it, create the distribution objects
         as appropriate and save them.  This includes creating xen and rescue distros/profiles
@@ -273,15 +282,15 @@ class ImportSignatureManager:
         """
 
         # build a proposed name based on the directory structure
-        proposed_name = self.get_proposed_name(dirname,kernel)
+        proposed_name = self.get_proposed_name(dirname, kernel)
 
         # build a list of arches found in the packages directory
         archs = self.learn_arch_from_tree()
         if not archs and self.arch:
-            archs.append( self.arch )
+            archs.append(self.arch)
         else:
             if self.arch and self.arch not in archs:
-                utils.die(self.logger, "Given arch (%s) not found on imported tree %s"%(self.arch,self.path))
+                utils.die(self.logger, "Given arch (%s) not found on imported tree %s" % (self.arch, self.path))
 
         if len(archs) == 0:
             self.logger.error("No arch could be detected in %s, and none was specified via the --arch option" % dirname)
@@ -311,18 +320,18 @@ class ImportSignatureManager:
             distro.set_arch(pxe_arch)
             distro.set_breed(self.breed)
             distro.set_os_version(self.os_version)
-            distro.set_kernel_options(self.signature.get("kernel_options",""))
-            distro.set_kernel_options_post(self.signature.get("kernel_options_post",""))
-            distro.set_template_files(self.signature.get("template_files",""))
+            distro.set_kernel_options(self.signature.get("kernel_options", ""))
+            distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
+            distro.set_template_files(self.signature.get("template_files", ""))
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
-                boot_files += '$local_img_path/%s=%s/%s ' % (boot_file,self.path,boot_file)
+                boot_files += '$local_img_path/%s=%s/%s ' % (boot_file, self.path, boot_file)
             distro.set_boot_files(boot_files.strip())
 
             self.configure_tree_location(distro)
 
-            self.distros.add(distro,save=True)
+            self.distros.add(distro, save=True)
             distros_added.append(distro)
 
             # see if the profile name is already used, if so, skip it and
@@ -350,7 +359,7 @@ class ImportSignatureManager:
             else:
                 profile.set_virt_type("kvm")
 
-            self.profiles.add(profile,save=True)
+            self.profiles.add(profile, save=True)
 
         return distros_added
 
@@ -367,18 +376,18 @@ class ImportSignatureManager:
         # FIXME : this is called only once, should not be a walk
         os.path.walk(self.path, self.arch_walker, result)
 
-        if result.pop("amd64",False):
+        if result.pop("amd64", False):
             result["x86_64"] = 1
-        if result.pop("i686",False):
+        if result.pop("i686", False):
             result["i386"] = 1
-        if result.pop("i586",False):
+        if result.pop("i586", False):
             result["i386"] = 1
-        if result.pop("x86",False):
+        if result.pop("x86", False):
             result["i386"] = 1
 
         return result.keys()
 
-    def arch_walker(self,foo,dirname,fnames):
+    def arch_walker(self, foo, dirname, fnames):
         """
         Function for recursively searching through a directory for
         a kernel file matching a given architecture, called by
@@ -392,7 +401,7 @@ class ImportSignatureManager:
             if re_krn.match(x):
                 if self.signature["kernel_arch_regex"]:
                     re_krn2 = re.compile(self.signature["kernel_arch_regex"])
-                    krn_lines = self.get_file_lines(os.path.join(dirname,x))
+                    krn_lines = self.get_file_lines(os.path.join(dirname, x))
                     for line in krn_lines:
                         m = re_krn2.match(line)
                         if m:
@@ -404,11 +413,11 @@ class ImportSignatureManager:
                     for arch in self.get_valid_arches():
                         if x.find(arch) != -1:
                             foo[arch] = 1
-                    for arch in [ "i686" , "amd64" ]:
+                    for arch in ["i686", "amd64"]:
                         if x.find(arch) != -1:
                             foo[arch] = 1
 
-    def get_proposed_name(self,dirname,kernel=None):
+    def get_proposed_name(self, dirname, kernel=None):
         """
         Given a directory name where we have a kernel/initrd pair, try to autoname
         the distribution (and profile) object based on the contents of that path
@@ -427,17 +436,17 @@ class ImportSignatureManager:
                 name = name + "-xen"
 
         # Clear out some cruft from the proposed name
-        name = name.replace("--","-")
-        for x in ("-netboot","-ubuntu-installer","-amd64","-i386", \
-                  "-images","-pxeboot","-install","-isolinux","-boot", "-suseboot", \
-                  "-loader","-os","-tree","var-www-cobbler-","ks_mirror-"):
-            name = name.replace(x,"")
+        name = name.replace("--", "-")
+        for x in ("-netboot", "-ubuntu-installer", "-amd64", "-i386", \
+                  "-images", "-pxeboot", "-install", "-isolinux", "-boot", "-suseboot", \
+                  "-loader", "-os", "-tree", "var-www-cobbler-", "ks_mirror-"):
+            name = name.replace(x, "")
 
         # remove any architecture name related string, as real arch will be appended later
-        name = name.replace("chrp","ppc64")
-        for separator in [ '-' , '_'  , '.' ] :
-            for arch in ["i386","x86_64","ia64","ppc64","ppc32","ppc","x86","s390x","s390","386","amd"]:
-                name = name.replace("%s%s" % (separator,arch),"")
+        name = name.replace("chrp", "ppc64")
+        for separator in ['-', '_', '.']:
+            for arch in ["i386", "x86_64", "ia64", "ppc64", "ppc32", "ppc", "x86", "s390x", "s390", "386", "amd"]:
+                name = name.replace("%s%s" % (separator, arch), "")
 
         return name
 
@@ -457,11 +466,11 @@ class ImportSignatureManager:
             # SELinux Apache can't symlink to NFS (without some doing)
             if not os.path.exists(dest_link):
                 try:
-                    self.logger.info("trying symlink: %s -> %s" % (str(base),str(dest_link)))
+                    self.logger.info("trying symlink: %s -> %s" % (str(base), str(dest_link)))
                     os.symlink(base, dest_link)
                 except:
                     # this shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % { "base" : base, "dest" : dest_link })
+                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
             tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
             self.set_install_tree(distro, tree)
         else:
@@ -513,14 +522,14 @@ class ImportSignatureManager:
     # ==========================================================================
     # yum-specific
 
-    def yum_repo_adder(self,distro):
+    def yum_repo_adder(self, distro):
         """
         For yum, we recursively scan the rootdir for repos to add
         """
-        self.logger.info("starting descent into %s for %s" % (self.rootdir,distro.name))
+        self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
         os.path.walk(self.rootdir, self.yum_repo_scanner, distro)
 
-    def yum_repo_scanner(self,distro,dirname,fnames):
+    def yum_repo_scanner(self, distro, dirname, fnames):
         """
         This is an os.path.walk routine that looks for potential yum repositories
         to be added to the configuration for post-install usage.
@@ -531,9 +540,9 @@ class ImportSignatureManager:
             if x == "base" or x == "repodata":
                 self.logger.info("processing repo at : %s" % dirname)
                 # only run the repo scanner on directories that contain a comps.xml
-                gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname,x))
+                gloob1 = glob.glob("%s/%s/*comps*.xml" % (dirname, x))
                 if len(gloob1) >= 1:
-                    if matches.has_key(dirname):
+                    if dirname in matches:
                         self.logger.info("looks like we've already scanned here: %s" % dirname)
                         continue
                     self.logger.info("need to process repo/comps: %s" % dirname)
@@ -543,7 +552,7 @@ class ImportSignatureManager:
                     self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
                     continue
 
-    def yum_process_comps_file(self,comps_path,distro):
+    def yum_process_comps_file(self, comps_path, distro):
         """
         When importing Fedora/EL certain parts of the install tree can also be used
         as yum repos containing packages that might not yet be available via updates
@@ -560,11 +569,11 @@ class ImportSignatureManager:
             keeprepodata = False
 
         # figure out what our comps file is ...
-        self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % { "p1" : comps_path, "p2" : masterdir })
+        self.logger.info("looking for %(p1)s/%(p2)s/*comps*.xml" % {"p1": comps_path, "p2": masterdir})
         files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
         if len(files) == 0:
             self.logger.info("no comps found here: %s" % os.path.join(comps_path, masterdir))
-            return # no comps xml file found
+            return      # no comps xml file found
 
         # pull the filename from the longer part
         comps_file = files[0].split("/")[-1]
@@ -577,14 +586,14 @@ class ImportSignatureManager:
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
             seg = comps_path.rfind("ks_mirror")
-            urlseg = comps_path[seg+10:]
+            urlseg = comps_path[seg + 10:]
 
             fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
             repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
             repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
 
-            distro.source_repos.append([repo_url,repo_url2])
+            distro.source_repos.append([repo_url, repo_url2])
 
             # NOTE: the following file is now a Cheetah template, so it can be remapped
             # during sync, that's why we have the @@http_server@@ left as templating magic.
@@ -605,16 +614,16 @@ class ImportSignatureManager:
                 self.logger.info("Keeping repodata as-is :%s/repodata" % comps_path)
                 self.found_repos[comps_path] = 1
 
-            elif not self.found_repos.has_key(comps_path):
+            elif not comps_path in self.found_repos:
                 utils.remove_yum_olddata(comps_path)
-                cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags,os.path.join(comps_path, masterdir, comps_file), comps_path)
+                cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
                 utils.subprocess_call(self.logger, cmd, shell=True)
                 self.found_repos[comps_path] = 1
                 # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
                 p1 = os.path.join(comps_path, "repodata", "comps.xml")
                 p2 = os.path.join(comps_path, "base", "comps.xml")
                 if os.path.exists(p1) and os.path.exists(p2):
-                    shutil.copyfile(p1,p2)
+                    shutil.copyfile(p1, p2)
 
         except:
             self.logger.error("error launching createrepo (not installed?), ignoring")
@@ -623,7 +632,7 @@ class ImportSignatureManager:
     # ==========================================================================
     # apt-specific
 
-    def apt_repo_adder(self,distro):
+    def apt_repo_adder(self, distro):
         self.logger.info("adding apt repo for %s" % distro.name)
         # Obtain repo mirror from APT if available
         mirror = False
@@ -637,8 +646,8 @@ class ImportSignatureManager:
         repo.set_breed("apt")
         repo.set_arch(distro.arch)
         repo.set_keep_updated(True)
-        repo.set_apt_components("main universe") # TODO: make a setting?
-        repo.set_apt_dists("%s %s-updates %s-security" % ((distro.os_version,)*3))
+        repo.set_apt_components("main universe")        # TODO: make a setting?
+        repo.set_apt_dists("%s %s-updates %s-security" % ((distro.os_version,) * 3))
         repo.yumopts["--ignore-release-gpg"] = None
         repo.yumopts["--verbose"] = None
         repo.set_name(distro.name)
@@ -648,11 +657,11 @@ class ImportSignatureManager:
             repo.set_mirror(mirror)
         else:
             # NOTE : The location of the mirror should come from timezone
-            repo.set_mirror( "http://ftp.%s.debian.org/debian/dists/%s" % ( 'us' , distro.os_version ) )
+            repo.set_mirror("http://ftp.%s.debian.org/debian/dists/%s" % ('us', distro.os_version))
 
         self.logger.info("Added repos for %s" % distro.name)
         repos = self.config.repos()
-        repos.add(repo,save=True)
+        repos.add(repo, save=True)
         #FIXME:
         # Add the found/generated repos to the profiles
         # that were created during the import process
@@ -679,18 +688,19 @@ class ImportSignatureManager:
     # ==========================================================================
     # rhn-specific
 
-    def rhn_repo_adder(self,distro):
+    def rhn_repo_adder(self, distro):
         """ not currently used """
         return
 
     # ==========================================================================
     # rsync-specific
 
-    def rsync_repo_adder(self,distro):
+    def rsync_repo_adder(self, distro):
         """ not currently used """
         return
 
 # ==========================================================================
 
-def get_import_manager(config,logger):
-    return ImportSignatureManager(config,logger)
+
+def get_import_manager(config, logger):
+    return ImportSignatureManager(config, logger)
