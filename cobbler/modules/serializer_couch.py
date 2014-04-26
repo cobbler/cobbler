@@ -23,22 +23,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import distutils.sysconfig
 import sys
-import yaml # PyYAML
+import yaml
 import simplejson
 
 plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
+mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 import couch
 
-typez = [ "distro", "profile", "system", "image", "repo" ]
+typez = ["distro", "profile", "system", "image", "repo"]
 couchdb = couch.Couch('127.0.0.1')
 
+
 def __connect():
-   couchdb.connect()
-   for x in typez:
-       couchdb.createDb(x)
+    couchdb.connect()
+    for x in typez:
+        couchdb.createDb(x)
+
 
 def register():
     """
@@ -47,11 +49,13 @@ def register():
     # FIXME: only run this if enabled.
     return "serializer"
 
+
 def what():
     """
     Module identification function
     """
     return "serializer/couchdb"
+
 
 def serialize_item(obj, item):
     __connect()
@@ -64,16 +68,19 @@ def serialize_item(obj, item):
     data = simplejson.loads(data)
     return True
 
+
 def serialize_delete(obj, item):
     __connect()
     couchdb.deleteDoc(obj.collection_type(),
                     item.name)
     return True
 
+
 def deserialize_item_raw(collection_type, item_name):
     __connect()
     data = couchdb.openDoc(collection_type, item_name)
     return simplejson.loads(data, encoding="utf-8")
+
 
 def serialize(obj):
     """
@@ -86,49 +93,52 @@ def serialize(obj):
     if ctype == "settings":
         return True
     for x in obj:
-        serialize_item(obj,x)
+        serialize_item(obj, x)
     return True
+
 
 def deserialize_raw(collection_type):
     __connect()
     contents = simplejson.loads(couchdb.listDoc(collection_type))
     items = []
-    if contents.has_key("error") and contents.get("reason","").find("Missing") != -1:
+    if "error" in contents and contents.get("reason", "").find("Missing") != -1:
         # no items in the DB yet
         return []
     for x in contents["rows"]:
-       items.append(x["key"])
+        items.append(x["key"])
 
     if collection_type == "settings":
-         fd = open("/etc/cobbler/settings")
-         datastruct = yaml.safe_load(fd.read())
-         fd.close()
-         return datastruct
+        fd = open("/etc/cobbler/settings")
+        datastruct = yaml.safe_load(fd.read())
+        fd.close()
+        return datastruct
     else:
-         results = []
-         for f in items:
-             data = couchdb.openDoc(collection_type, f)
-             datastruct = simplejson.loads(data, encoding='utf-8')
-             results.append(datastruct)
-         return results    
+        results = []
+        for f in items:
+            data = couchdb.openDoc(collection_type, f)
+            datastruct = simplejson.loads(data, encoding='utf-8')
+            results.append(datastruct)
+        return results
 
-def deserialize(obj,topological=True):
+
+def deserialize(obj, topological=True):
     """
     Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.  
+    Object must "implement" Serializable.
     """
     __connect()
     datastruct = deserialize_raw(obj.collection_type())
     if topological and type(datastruct) == list:
-       datastruct.sort(__depth_cmp)
+        datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
     return True
 
+
 def __depth_cmp(item1, item2):
-    d1 = item1.get("depth",1)
-    d2 = item2.get("depth",1)
-    return cmp(d1,d2)
+    d1 = item1.get("depth", 1)
+    d2 = item2.get("depth", 1)
+    return cmp(d1, d2)
+
 
 if __name__ == "__main__":
-    print deserialize_item_raw("distro","D1")
-
+    print deserialize_item_raw("distro", "D1")
