@@ -233,7 +233,7 @@ class RepoSync:
         dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "wget -np -r -l inf -nd -P %s %s" % (dest_path, repo.mirror)
+        cmd = "wget -N -np -r -l inf -nd -P %s %s" % (dest_path, repo.mirror)
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc !=0:
