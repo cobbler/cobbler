@@ -39,7 +39,11 @@
 + pool/
 + dists/
 + dists/*/
++ dists/*/Release
 + main/
++ install/
++ install/netboot/ubuntu-installer/*/linux
++ install/netboot/ubuntu-installer/*/initrd.gz
 + main/debian-installer/
 + main/installer*/
 + main/installer*/current/
