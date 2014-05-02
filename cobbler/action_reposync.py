@@ -165,6 +165,8 @@ class RepoSync:
             return self.apt_sync(repo)
         elif repo.breed == "rsync":
             return self.rsync_sync(repo)
+        elif repo.breed == "wget":
+            return self.wget_sync(repo)
         else:
             utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
 
@@ -207,6 +209,31 @@ class RepoSync:
                 utils.log_exc(self.logger)
                 self.logger.error("createrepo failed.")
             del fnames[:]           # we're in the right place
+
+    # ====================================================================================
+
+    def wget_sync(self, repo):
+
+        """
+        Handle mirroring of directories using wget
+        """
+
+        repo_mirror = repo.mirror
+
+        if repo.rpm_list != "" and repo.rpm_list != []:
+            self.logger.warning("--rpm-list is not supported for wget'd repositories")
+
+        # FIXME: don't hardcode
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+
+        # FIXME: wrapper for subprocess that logs to logger
+        cmd = "wget -N -np -r -l inf -nd -P %s %s" % (dest_path, repo_mirror)
+        rc = utils.subprocess_call(self.logger, cmd)
+
+        if rc != 0:
+            utils.die(self.logger, "cobbler reposync failed")
+        os.path.walk(dest_path, self.createrepo_walker, repo)
+        self.create_local_file(dest_path, repo)
 
     # ====================================================================================
 
