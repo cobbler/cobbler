@@ -21,5 +21,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 VALID_REPO_BREEDS = [
-    "rsync", "rhn", "yum", "apt"
+    "rsync", "rhn", "yum", "apt", "wget"
 ]

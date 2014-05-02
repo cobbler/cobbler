@@ -41,7 +41,11 @@
 + pool/
 + dists/
 + dists/*/
++ dists/*/Release
 + main/
++ install/
++ install/netboot/ubuntu-installer/*/linux
++ install/netboot/ubuntu-installer/*/initrd.gz
 + main/debian-installer/
 + main/installer*/
 + main/installer*/current/
@@ -71,6 +75,7 @@
 + boot/x86_64/loader/initrd
 + boot/x86_64/loader/linux
 + suse/
++ suse/*
 
 #-----------------------------------------------
 # Exclude everything else
