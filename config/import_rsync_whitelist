@@ -73,6 +73,7 @@
 + boot/x86_64/loader/initrd
 + boot/x86_64/loader/linux
 + suse/
++ suse/*
 
 #-----------------------------------------------
 # Exclude everything else
