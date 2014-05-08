@@ -30,7 +30,7 @@ try:
     try:
         import subprocess as sub_process
     except:
-       import sub_process
+        from . import sub_process
     import urllib2
 except:
     ANCIENT_PYTHON = 1
@@ -43,26 +43,31 @@ import string
 import urlgrabber
 
 VIRT_STATE_NAME_MAP = {
-   0 : "running",
-   1 : "running",
-   2 : "running",
-   3 : "paused",
-   4 : "shutdown",
-   5 : "shutdown",
-   6 : "crashed"
+    0: "running",
+    1: "running",
+    2: "running",
+    3: "paused",
+    4: "shutdown",
+    5: "shutdown",
+    6: "crashed"
 }
 
 VALID_DRIVER_TYPES = ['raw', 'qcow', 'qcow2', 'vmdk', 'qed']
 
+
 class InfoException(exceptions.Exception):
+
     """
     Custom exception for tracking of fatal errors.
     """
-    def __init__(self,value,**args):
+
+    def __init__(self, value, **args):
         self.value = value % args
         self.from_koan = 1
+
     def __str__(self):
         return repr(self.value)
+
 
 def setupLogging(appname):
     """
@@ -72,14 +77,15 @@ def setupLogging(appname):
     import logging.handlers
 
     dateFormat = "%a, %d %b %Y %H:%M:%S"
-    fileFormat = "[%(asctime)s " + appname + " %(process)d] %(levelname)s (%(module)s:%(lineno)d) %(message)s"
+    fileFormat = "[%(asctime)s " + appname + \
+        " %(process)d] %(levelname)s (%(module)s:%(lineno)d) %(message)s"
     streamFormat = "%(asctime)s %(levelname)-8s %(message)s"
     filename = "/var/log/koan/koan.log"
 
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.DEBUG)
     fileHandler = logging.handlers.RotatingFileHandler(filename, "a",
-                                                       1024*1024, 5)
+                                                       1024 * 1024, 5)
 
     fileHandler.setFormatter(logging.Formatter(fileFormat,
                                                dateFormat))
@@ -94,32 +100,32 @@ def setupLogging(appname):
 
 def urlread(url):
     """
-    to support more distributions, implement (roughly) some 
+    to support more distributions, implement (roughly) some
     parts of urlread and urlgrab from urlgrabber, in ways that
     are less cool and less efficient.
     """
     print "- reading URL: %s" % url
     if url is None or url == "":
-        raise InfoException, "invalid URL: %s" % url
+        raise InfoException("invalid URL: %s" % url)
 
     elif url[0:3] == "nfs":
         try:
-            ndir  = os.path.dirname(url[6:])
+            ndir = os.path.dirname(url[6:])
             nfile = os.path.basename(url[6:])
-            nfsdir = tempfile.mkdtemp(prefix="koan_nfs",dir="/tmp")
-            nfsfile = os.path.join(nfsdir,nfile)
-            cmd = ["mount","-t","nfs","-o","ro", ndir, nfsdir]
+            nfsdir = tempfile.mkdtemp(prefix="koan_nfs", dir="/tmp")
+            nfsfile = os.path.join(nfsdir, nfile)
+            cmd = ["mount", "-t", "nfs", "-o", "ro", ndir, nfsdir]
             subprocess_call(cmd)
             fd = open(nfsfile)
             data = fd.read()
             fd.close()
-            cmd = ["umount",nfsdir]
+            cmd = ["umount", nfsdir]
             subprocess_call(cmd)
             return data
         except:
             traceback.print_exc()
-            raise InfoException, "Couldn't mount and read URL: %s" % url
-          
+            raise InfoException("Couldn't mount and read URL: %s" % url)
+
     elif url[0:4] == "http":
         try:
             fd = urllib2.urlopen(url)
@@ -135,7 +141,7 @@ def urlread(url):
                 fd.close()
                 return data
             traceback.print_exc()
-            raise InfoException, "Couldn't download: %s" % url
+            raise InfoException("Couldn't download: %s" % url)
     elif url[0:4] == "file":
         try:
             fd = open(url[5:])
@@ -143,12 +149,13 @@ def urlread(url):
             fd.close()
             return data
         except:
-            raise InfoException, "Couldn't read file from URL: %s" % url
-              
-    else:
-        raise InfoException, "Unhandled URL protocol: %s" % url
+            raise InfoException("Couldn't read file from URL: %s" % url)
 
-def urlgrab(url,saveto):
+    else:
+        raise InfoException("Unhandled URL protocol: %s" % url)
+
+
+def urlgrab(url, saveto):
     """
     like urlread, but saves contents to disk.
     see comments for urlread as to why it's this way.
@@ -158,7 +165,8 @@ def urlgrab(url,saveto):
     fd.write(data)
     fd.close()
 
-def subprocess_call(cmd,ignore_rc=0):
+
+def subprocess_call(cmd, ignore_rc=0):
     """
     Wrapper around subprocess.call(...)
     """
@@ -170,8 +178,9 @@ def subprocess_call(cmd,ignore_rc=0):
         print "cmdstr=(%s)" % cmd
         rc = os.system(cmd)
     if rc != 0 and not ignore_rc:
-        raise InfoException, "command failed (%s)" % rc
+        raise InfoException("command failed (%s)" % rc)
     return rc
+
 
 def subprocess_get_response(cmd, ignore_rc=False):
     """
@@ -189,10 +198,11 @@ def subprocess_get_response(cmd, ignore_rc=False):
         print "cmdstr=(%s)" % cmd
         rc = os.system(cmd)
     if not ignore_rc and rc != 0:
-        raise InfoException, "command failed (%s)" % rc
+        raise InfoException("command failed (%s)" % rc)
     return rc, result
 
-def input_string_or_hash(options,delim=None,allow_multiples=True):
+
+def input_string_or_hash(options, delim=None, allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -201,13 +211,13 @@ def input_string_or_hash(options,delim=None,allow_multiples=True):
 
     if options is None:
         return {}
-    elif type(options) == list:
+    elif isinstance(options, list):
         raise InfoException("No idea what to do with list: %s" % options)
-    elif type(options) == type(""):
+    elif isinstance(options, type("")):
         new_dict = {}
         tokens = string.split(options, delim)
         for t in tokens:
-            tokens2 = string.split(t,"=")
+            tokens2 = string.split(t, "=")
             if len(tokens2) == 1:
                 # this is a singleton option, no value
                 key = tokens2[0]
@@ -224,7 +234,7 @@ def input_string_or_hash(options,delim=None,allow_multiples=True):
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
-                if type(new_dict[key]) == list:
+                if isinstance(new_dict[key], list):
                     new_dict[key].append(value)
                 else:
                     new_dict[key] = [new_dict[key], value]
@@ -232,14 +242,15 @@ def input_string_or_hash(options,delim=None,allow_multiples=True):
                 new_dict[key] = value
 
         # dict.pop is not avail in 2.2
-        if new_dict.has_key(""):
-           del new_dict[""]
+        if "" in new_dict:
+            del new_dict[""]
         return new_dict
-    elif type(options) == type({}):
-        options.pop('',None)
+    elif isinstance(options, type({})):
+        options.pop('', None)
         return options
     else:
         raise InfoException("invalid input type: %s" % type(options))
+
 
 def hash_to_string(hash):
     """
@@ -249,20 +260,21 @@ def hash_to_string(hash):
     (though this last part should be changed to hashes)
     """
     buffer = ""
-    if type(hash) != dict:
-       return hash
+    if not isinstance(hash, dict):
+        return hash
     for key in hash:
-       value = hash[key]
-       if value is None:
-           buffer = buffer + str(key) + " "
-       elif type(value) == list:
-           # this value is an array, so we print out every
-           # key=value
-           for item in value:
-              buffer = buffer + str(key) + "=" + str(item) + " "
-       else:
-              buffer = buffer + str(key) + "=" + str(value) + " "
+        value = hash[key]
+        if value is None:
+            buffer = buffer + str(key) + " "
+        elif isinstance(value, list):
+            # this value is an array, so we print out every
+            # key=value
+            for item in value:
+                buffer = buffer + str(key) + "=" + str(item) + " "
+        else:
+            buffer = buffer + str(key) + "=" + str(value) + " "
     return buffer
+
 
 def nfsmount(input_path):
     # input:  [user@]server:/foo/bar/x.img as string
@@ -270,10 +282,10 @@ def nfsmount(input_path):
     # FIXME: move this function to util.py so other modules can use it
     # we have to mount it first
     filename = input_path.split("/")[-1]
-    dirpath = string.join(input_path.split("/")[:-1],"/")
+    dirpath = string.join(input_path.split("/")[:-1], "/")
     tempdir = tempfile.mkdtemp(suffix='.mnt', prefix='koan_', dir='/tmp')
     mount_cmd = [
-         "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
+        "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
     ]
     print "- running: %s" % mount_cmd
     rc = sub_process.call(mount_cmd)
@@ -296,11 +308,11 @@ def find_vm(conn, vmid):
 
     # this block of code borrowed from virt-manager:
     # get working domain's name
-    ids = conn.listDomainsID();
+    ids = conn.listDomainsID()
     for id in ids:
         vm = conn.lookupByID(id)
         vms.append(vm)
-        
+
     # get defined domain
     names = conn.listDefinedDomains()
     for name in names:
@@ -313,8 +325,9 @@ def find_vm(conn, vmid):
     for vm in vms:
         if vm.name() == vmid:
             return vm
-     
+
     raise InfoException("koan could not find the VM to watch: %s" % vmid)
+
 
 def get_vm_state(conn, vmid):
     """
@@ -322,149 +335,156 @@ def get_vm_state(conn, vmid):
     From Func:  fedorahosted.org/func
     """
     state = find_vm(conn, vmid).info()[0]
-    return VIRT_STATE_NAME_MAP.get(state,"unknown")
+    return VIRT_STATE_NAME_MAP.get(state, "unknown")
+
 
 def check_dist():
     """
-    Determines what distro we're running under.  
+    Determines what distro we're running under.
     """
     if os.path.exists("/etc/debian_version"):
-       import lsb_release
-       return lsb_release.get_distro_information()['ID'].lower()
+        import lsb_release
+        return lsb_release.get_distro_information()['ID'].lower()
     elif os.path.exists("/etc/SuSE-release"):
-       return "suse"
+        return "suse"
     else:
-       # valid for Fedora and all Red Hat / Fedora derivatives
-       return "redhat"
+        # valid for Fedora and all Red Hat / Fedora derivatives
+        return "redhat"
+
 
 def os_release():
+    """
+    This code is borrowed from Cobbler and really shouldn't be repeated.
+    """
 
-   """
-   This code is borrowed from Cobbler and really shouldn't be repeated.
-   """
+    if ANCIENT_PYTHON:
+        return ("unknown", 0)
 
-   if ANCIENT_PYTHON:
-      return ("unknown", 0)
+    if check_dist() == "redhat":
+        fh = open("/etc/redhat-release")
+        data = fh.read().lower()
+        if data.find("fedora") != -1:
+            make = "fedora"
+        elif data.find("centos") != -1:
+            make = "centos"
+        else:
+            make = "redhat"
+        release_index = data.find("release")
+        rest = data[release_index + 7:-1]
+        tokens = rest.split(" ")
+        for t in tokens:
+            try:
+                return (make, float(t))
+            except ValueError as ve:
+                pass
+        raise CX("failed to detect local OS version from /etc/redhat-release")
 
-   if check_dist() == "redhat":
-      fh = open("/etc/redhat-release")
-      data = fh.read().lower()
-      if data.find("fedora") != -1:
-         make = "fedora"
-      elif data.find("centos") != -1:
-         make = "centos"
-      else:
-         make = "redhat"
-      release_index = data.find("release")
-      rest = data[release_index+7:-1]
-      tokens = rest.split(" ")
-      for t in tokens:
-         try:
-             return (make,float(t))
-         except ValueError, ve:
-             pass
-      raise CX("failed to detect local OS version from /etc/redhat-release")
+    elif check_dist() == "debian":
+        import lsb_release
+        release = lsb_release.get_distro_information()['RELEASE']
+        return ("debian", release)
+    elif check_dist() == "ubuntu":
+        version = sub_process.check_output(
+            ("lsb_release", "--release", "--short")).rstrip()
+        make = "ubuntu"
+        return (make, float(version))
+    elif check_dist() in ("suse", "opensuse"):
+        fd = open("/etc/SuSE-release")
+        for line in fd.read().split("\n"):
+            if line.find("VERSION") != -1:
+                version = line.replace("VERSION = ", "")
+            if line.find("PATCHLEVEL") != -1:
+                rest = line.replace("PATCHLEVEL = ", "")
+        make = "suse"
+        return (make, float(version))
+    else:
+        return ("unknown", 0)
 
-   elif check_dist() == "debian":
-      import lsb_release
-      release = lsb_release.get_distro_information()['RELEASE']
-      return ("debian", release)
-   elif check_dist() == "ubuntu":
-      version = sub_process.check_output(("lsb_release","--release","--short")).rstrip()
-      make = "ubuntu"
-      return (make, float(version))
-   elif check_dist() in ("suse", "opensuse"):
-      fd = open("/etc/SuSE-release")
-      for line in fd.read().split("\n"):
-         if line.find("VERSION") != -1:
-            version = line.replace("VERSION = ","")
-         if line.find("PATCHLEVEL") != -1:
-            rest = line.replace("PATCHLEVEL = ","")
-      make = "suse"
-      return (make, float(version))
-   else:
-      return ("unknown",0)
 
 def uniqify(lst, purge=None):
-   temp = {}
-   for x in lst:
-      temp[x] = 1
-   if purge is not None:
-      temp2 = {}
-      for x in temp.keys():
-         if x != purge:
-            temp2[x] = 1
-      temp = temp2
-   return temp.keys()
+    temp = {}
+    for x in lst:
+        temp[x] = 1
+    if purge is not None:
+        temp2 = {}
+        for x in temp.keys():
+            if x != purge:
+                temp2[x] = 1
+        temp = temp2
+    return temp.keys()
+
 
 def get_network_info():
-   try:
-      import ethtool
-   except:
-      try:
-         import rhpl.ethtool
-         ethtool = rhpl.ethtool
-      except:
-           raise InfoException("the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
+    try:
+        import ethtool
+    except:
+        try:
+            import rhpl.ethtool
+            ethtool = rhpl.ethtool
+        except:
+            raise InfoException(
+                "the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
 
-   interfaces = {}
-   # get names
-   inames  = ethtool.get_devices()
+    interfaces = {}
+    # get names
+    inames = ethtool.get_devices()
 
-   for iname in inames:
-      mac = ethtool.get_hwaddr(iname)
+    for iname in inames:
+        mac = ethtool.get_hwaddr(iname)
 
-      if mac == "00:00:00:00:00:00":
-         mac = "?"
+        if mac == "00:00:00:00:00:00":
+            mac = "?"
 
-      try:
-         ip  = ethtool.get_ipaddr(iname)
-         if ip == "127.0.0.1":
+        try:
+            ip = ethtool.get_ipaddr(iname)
+            if ip == "127.0.0.1":
+                ip = "?"
+        except:
             ip = "?"
-      except:
-         ip  = "?"
 
-      bridge = 0
-      module = ""
+        bridge = 0
+        module = ""
 
-      try:
-         nm  = ethtool.get_netmask(iname)
-      except:
-         nm  = "?"
+        try:
+            nm = ethtool.get_netmask(iname)
+        except:
+            nm = "?"
 
-      interfaces[iname] = {
-         "ip_address"  : ip,
-         "mac_address" : mac,
-         "netmask"     : nm,
-         "bridge"      : bridge,
-         "module"      : module
-      }
+        interfaces[iname] = {
+            "ip_address": ip,
+            "mac_address": mac,
+            "netmask": nm,
+            "bridge": bridge,
+            "module": module
+        }
 
-   # print interfaces
-   return interfaces
+    # print interfaces
+    return interfaces
 
-def connect_to_server(server=None,port=None):
+
+def connect_to_server(server=None, port=None):
 
     if server is None:
-        server = os.environ.get("COBBLER_SERVER","")
+        server = os.environ.get("COBBLER_SERVER", "")
     if server == "":
         raise InfoException("--server must be specified")
 
-    if port is None: 
+    if port is None:
         port = 80
-        
+
     connect_ok = 0
 
     try_urls = [
-        "http://%s:%s/cobbler_api" % (server,port),
-        "https://%s:%s/cobbler_api" % (server,port),
+        "http://%s:%s/cobbler_api" % (server, port),
+        "https://%s:%s/cobbler_api" % (server, port),
     ]
     for url in try_urls:
         print "- looking for Cobbler at %s" % url
         server = __try_connect(url)
         if server is not None:
-           return server
-    raise InfoException ("Could not find Cobbler.")
+            return server
+    raise InfoException("Could not find Cobbler.")
+
 
 def create_xendomains_symlink(name):
     """
@@ -473,7 +493,7 @@ def create_xendomains_symlink(name):
     """
     src = "/etc/xen/%s" % name
     dst = "/etc/xen/auto/%s" % name
-    
+
     # Make sure symlink does not already exist.
     if os.path.exists(dst):
         print "Could not create %s symlink. File already exists in this location." % dst
@@ -492,22 +512,27 @@ def create_xendomains_symlink(name):
         print "Could not create %s symlink, source file %s is missing." % (dst, src)
         return False
 
-def libvirt_enable_autostart(domain_name):
-   import libvirt
-   try:
-      conn = libvirt.open("qemu:///system")
-      conn.listDefinedDomains()
-      domain = conn.lookupByName(domain_name)
-      domain.setAutostart(1)
-   except:
-      raise InfoException("libvirt could not find domain %s" % domain_name)
 
-   if not domain.autostart:
-      raise InfoException("Could not enable autostart on domain %s." % domain_name)
+def libvirt_enable_autostart(domain_name):
+    import libvirt
+    try:
+        conn = libvirt.open("qemu:///system")
+        conn.listDefinedDomains()
+        domain = conn.lookupByName(domain_name)
+        domain.setAutostart(1)
+    except:
+        raise InfoException("libvirt could not find domain %s" % domain_name)
+
+    if not domain.autostart:
+        raise InfoException(
+            "Could not enable autostart on domain %s." %
+            domain_name)
+
 
 def make_floppy(kickstart):
 
-    (fd, floppy_path) = tempfile.mkstemp(suffix='.floppy', prefix='tmp', dir="/tmp")
+    (fd, floppy_path) = tempfile.mkstemp(
+        suffix='.floppy', prefix='tmp', dir="/tmp")
     print "- creating floppy image at %s" % floppy_path
 
     # create the floppy image file
@@ -535,9 +560,9 @@ def make_floppy(kickstart):
     # download the kickstart file onto the mounted floppy
     print "- downloading %s" % kickstart
     save_file = os.path.join(mount_path, "unattended.txt")
-    urlgrabber.urlgrab(kickstart,filename=save_file)
+    urlgrabber.urlgrab(kickstart, filename=save_file)
 
-    # umount    
+    # umount
     cmd = "umount %s" % mount_path
     print "- %s" % cmd
     rc = os.system(cmd)
@@ -547,20 +572,22 @@ def make_floppy(kickstart):
     # return the path to the completed disk image to pass to virt-install
     return floppy_path
 
+
 def sync_file(ofile, nfile, uid, gid, mode):
     sub_process.call(['/usr/bin/diff', ofile, nfile])
     shutil.copy(nfile, ofile)
-    os.chmod(ofile,mode)
-    os.chown(ofile,uid,gid)
+    os.chmod(ofile, mode)
+    os.chown(ofile, uid, gid)
 
-#class ServerProxy(xmlrpclib.ServerProxy):
+# class ServerProxy(xmlrpclib.ServerProxy):
 #
 #    def __init__(self, url=None):
 #        try:
 #            xmlrpclib.ServerProxy.__init__(self, url, allow_none=True)
 #        except:
-#            # for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
+# for RHEL3's xmlrpclib -- cobblerd should strip Nones anyway
 #            xmlrpclib.ServerProxy.__init__(self, url)
+
 
 def __try_connect(url):
     try:
@@ -571,14 +598,18 @@ def __try_connect(url):
         traceback.print_exc()
         return None
 
+
 def create_qemu_image_file(path, size, driver_type):
     if driver_type not in VALID_DRIVER_TYPES:
-        raise InfoException, "Invalid QEMU image type: %s" % driver_type
-   
+        raise InfoException("Invalid QEMU image type: %s" % driver_type)
+
     cmd = ["qemu-img", "create", "-f", driver_type, path, "%sG" % size]
     try:
         subprocess_call(cmd)
     except:
         traceback.print_exc()
-        raise InfoException, "Image file create failed: %s" % string.join(cmd, " ")
-
+        raise InfoException(
+            "Image file create failed: %s" %
+            string.join(
+                cmd,
+                " "))
