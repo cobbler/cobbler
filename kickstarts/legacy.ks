@@ -45,7 +45,7 @@ $SNIPPET('pre_anamon')
 
 %packages
 
-$post --nochroot
+%post --nochroot
 $SNIPPET('log_ks_post_nochroot')
 %end
 
