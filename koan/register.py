@@ -26,19 +26,20 @@ import traceback
 try:
     from optparse import OptionParser
 except:
-    from opt_parse import OptionParser  # importing this for backwards compat with 2.2
+    # importing this for backwards compat with 2.2
+    from .opt_parse import OptionParser
 import exceptions
 try:
     import subprocess as sub_process
 except:
-    import sub_process
+    from . import sub_process
 import time
 import errno
 import sys
 import xmlrpclib
 import glob
 import socket
-import utils
+from . import utils
 import string
 import pprint
 
@@ -53,7 +54,7 @@ def main():
     p = OptionParser()
     p.add_option("-s", "--server",
                  dest="server",
-                 default=os.environ.get("COBBLER_SERVER",""),
+                 default=os.environ.get("COBBLER_SERVER", ""),
                  help="attach to this cobbler server")
     p.add_option("-f", "--fqdn",
                  dest="hostname",
@@ -73,23 +74,23 @@ def main():
                  help="indicates this is being run from a script")
 
     (options, args) = p.parse_args()
-    #if not os.getuid() == 0:
+    # if not os.getuid() == 0:
     #    print "koan requires root access"
     #    return 3
 
     try:
         k = Register()
-        k.server              = options.server
-        k.port                = options.port
-        k.profile             = options.profile
-        k.hostname            = options.hostname
-        k.batch               = options.batch
+        k.server = options.server
+        k.port = options.port
+        k.profile = options.profile
+        k.hostname = options.hostname
+        k.batch = options.batch
         k.run()
-    except Exception, e:
+    except Exception as e:
         (xa, xb, tb) = sys.exc_info()
         try:
-            getattr(e,"from_koan")
-            print str(e)[1:-1] # nice exception, no traceback needed
+            getattr(e, "from_koan")
+            print str(e)[1:-1]  # nice exception, no traceback needed
         except:
             print xa
             print xb
@@ -100,17 +101,22 @@ def main():
 
 #=======================================================
 
+
 class InfoException(exceptions.Exception):
+
     """
     Custom exception for tracking of fatal errors.
     """
-    def __init__(self,value,**args):
+
+    def __init__(self, value, **args):
         self.value = value % args
         self.from_koan = 1
+
     def __str__(self):
         return repr(self.value)
 
 #=======================================================
+
 
 class Register:
 
@@ -118,11 +124,11 @@ class Register:
         """
         Constructor.  Arguments will be filled in by optparse...
         """
-        self.server            = ""
-        self.port              = ""
-        self.profile           = ""
-        self.hostname          = ""
-        self.batch           = ""
+        self.server = ""
+        self.port = ""
+        self.profile = ""
+        self.hostname = ""
+        self.batch = ""
 
     #---------------------------------------------------
 
@@ -130,12 +136,12 @@ class Register:
         """
         Commence with the registration already.
         """
-      
+
         # not really required, but probably best that ordinary users don't try
         # to run this not knowing what it does.
         if os.getuid() != 0:
-           raise InfoException("root access is required to register")
- 
+            raise InfoException("root access is required to register")
+
         print "- preparing to koan home"
         self.conn = utils.connect_to_server(self.server, self.port)
         reg_info = {}
@@ -146,15 +152,16 @@ class Register:
         sysname = ""
         if self.hostname != "" and self.hostname != "*AUTO*":
             hostname = self.hostname
-            sysname  = self.hostname
+            sysname = self.hostname
         else:
             hostname = socket.getfqdn()
-            if hostname == "localhost.localdomain": 
+            if hostname == "localhost.localdomain":
                 if self.hostname == '*AUTO*':
                     hostname = ""
                     sysname = str(time.time())
                 else:
-                    raise InfoException("must specify --fqdn, could not discover")
+                    raise InfoException(
+                        "must specify --fqdn, could not discover")
             if sysname == "":
                 sysname = hostname
 
@@ -162,21 +169,23 @@ class Register:
             raise InfoException("must specify --profile")
 
         # we'll do a profile check here just to avoid some log noise on the remote end.
-        # network duplication checks and profile checks also happen on the remote end.
+        # network duplication checks and profile checks also happen on the
+        # remote end.
 
         avail_profiles = self.conn.get_profiles()
         matched_profile = False
         for x in avail_profiles:
-            if x.get("name","") == self.profile:
-               matched_profile=True
-               break
-        
+            if x.get("name", "") == self.profile:
+                matched_profile = True
+                break
+
         reg_info['name'] = sysname
         reg_info['profile'] = self.profile
         reg_info['hostname'] = hostname
-        
+
         if not matched_profile:
-            raise InfoException("no such remote profile, see 'koan --list-profiles'") 
+            raise InfoException(
+                "no such remote profile, see 'koan --list-profiles'")
 
         if not self.batch:
             self.conn.register_new_system(reg_info)
@@ -190,7 +199,6 @@ class Register:
                 print "- registration failed, ignoring because of --batch"
 
         return
-   
+
 if __name__ == "__main__":
     main()
- 
