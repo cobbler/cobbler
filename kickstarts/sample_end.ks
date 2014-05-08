@@ -55,7 +55,7 @@ $SNIPPET('pre_anamon')
 $SNIPPET('func_install_if_enabled')
 %end
 
-$post --nochroot
+%post --nochroot
 $SNIPPET('log_ks_post_nochroot')
 %end
 
