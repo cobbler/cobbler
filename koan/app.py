@@ -1718,6 +1718,9 @@ class Koan:
             from . import xencreate
             from . import qcreate
             from . import imagecreate
+            assert xencreate
+            assert qcreate
+            assert imagecreate
         except:
             traceback.print_exc()
             raise InfoException(
