@@ -363,7 +363,7 @@ if mswindows:
             STARTF_USESHOWWINDOW, CREATE_NEW_CONSOLE
         from win32event import WaitForSingleObject, INFINITE, WAIT_OBJECT_0
     else:
-        from _subprocess import *
+        from _subprocess import * # flake8: noqa
 
         class STARTUPINFO:
             dwFlags = 0

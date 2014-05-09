@@ -30,8 +30,8 @@ import os
 import re
 import shlex
 
-from . import app as koan
 from . import utils
+from cexceptions import InfoException
 
 # The virtinst module will no longer be availabe to import in some
 # distros. We need to get all the info we need from the virt-install
@@ -82,8 +82,9 @@ def _sanitize_disks(disks):
         if d[1] != 0 or d[0].startswith("/dev"):
             ret.append((d[0], d[1], driver_type))
         else:
-            raise koan.InfoException(
-                "this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+            raise InfoException(
+                "this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero"
+            )
 
     return ret
 
@@ -122,7 +123,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
                 if profile_bridge == "":
-                    raise koan.InfoException(
+                    raise InfoException(
                         "virt-bridge setting is not defined in cobbler")
                 intf_bridge = profile_bridge
 
@@ -227,12 +228,11 @@ def build_commandline(uri,
     if is_import:
         importpath = profile_data.get("file")
         if not importpath:
-            raise koan.InfoException("Profile 'file' required for image "
-                                     "install")
+            raise InfoException("Profile 'file' required for image install")
 
     elif "file" in profile_data:
         if is_xen:
-            raise koan.InfoException("Xen does not work with --image yet")
+            raise InfoException("Xen does not work with --image yet")
 
         # this is an image based installation
         input_path = profile_data["file"]
@@ -253,7 +253,7 @@ def build_commandline(uri,
     elif is_qemu or is_xen:
         # images don't need to source this
         if "install_tree" not in profile_data:
-            raise koan.InfoException(
+            raise InfoException(
                 "Cannot find install source in kickstart file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):
@@ -274,7 +274,7 @@ def build_commandline(uri,
             bridge = profile_data["virt_bridge"]
 
         if bridge == "":
-            raise koan.InfoException(
+            raise InfoException(
                 "virt-bridge setting is not defined in cobbler")
         nics = [(bridge, None)]
 

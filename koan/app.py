@@ -49,7 +49,6 @@ except:
     True = 1
     False = 0
 
-import exceptions
 import time
 import shutil
 import errno
@@ -57,6 +56,7 @@ import re
 import sys
 import string
 import socket
+from cexceptions import InfoException
 from . import utils
 from . import configurator
 
@@ -396,18 +396,6 @@ def main():
 #=======================================================
 
 
-class InfoException(exceptions.Exception):
-
-    """
-    Custom exception for tracking of fatal errors.
-    """
-
-    def __init__(self, value, **args):
-        self.value = value % args
-        self.from_koan = 1
-
-    def __str__(self):
-        return repr(self.value)
 
 #=======================================================
 

@@ -25,8 +25,8 @@ import os
 import traceback
 import tempfile
 import exceptions
-import app as koan
-from cextension import CX
+from cexceptions import CX, InfoException
+
 ANCIENT_PYTHON = 0
 try:
     try:
@@ -53,20 +53,6 @@ VIRT_STATE_NAME_MAP = {
 }
 
 VALID_DRIVER_TYPES = ['raw', 'qcow', 'qcow2', 'vmdk', 'qed']
-
-
-class InfoException(exceptions.Exception):
-
-    """
-    Custom exception for tracking of fatal errors.
-    """
-
-    def __init__(self, value, **args):
-        self.value = value % args
-        self.from_koan = 1
-
-    def __str__(self):
-        return repr(self.value)
 
 
 def setupLogging(appname):
@@ -291,7 +277,7 @@ def nfsmount(input_path):
     rc = sub_process.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)
-        raise koan.InfoException("nfs mount failed: %s" % dirpath)
+        raise InfoException("nfs mount failed: %s" % dirpath)
     # NOTE: option for a blocking install might be nice, so we could do this
     # automatically, if supported by virt-install
     print "after install completes, you may unmount and delete %s" % tempdir

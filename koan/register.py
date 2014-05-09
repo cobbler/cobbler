@@ -27,11 +27,11 @@ try:
 except:
     # importing this for backwards compat with 2.2
     from .opt_parse import OptionParser
-import exceptions
 import time
 import sys
 import socket
 from . import utils
+from cexceptions import InfoException
 import string
 
 # usage: cobbler-register [--server=server] [--fqdn=hostname] --profile=foo
@@ -104,24 +104,6 @@ def main():
         return 1
 
     return 0
-
-#=======================================================
-
-
-class InfoException(exceptions.Exception):
-
-    """
-    Custom exception for tracking of fatal errors.
-    """
-
-    def __init__(self, value, **args):
-        self.value = value % args
-        self.from_koan = 1
-
-    def __str__(self):
-        return repr(self.value)
-
-#=======================================================
 
 
 class Register:
