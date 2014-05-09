@@ -56,8 +56,6 @@ class KoanConfigure:
         self.stats = {}
         self.dist = utils.check_dist()
 
-    #----------------------------------------------------------------------
-
     def configure_repos(self):
         # Enables the possibility to use different types of repos
         if yum_available and self.dist == "redhat":
@@ -88,8 +86,6 @@ class KoanConfigure:
             self.stats['repos_status'] = "Success: Repos in sync"
         _tempfile.close()
 
-    #----------------------------------------------------------------------
-
     def configure_ldap(self):
         """Configure LDAP by running the specified LDAP command."""
         print "- Configuring LDAP"
@@ -98,8 +94,6 @@ class KoanConfigure:
             self.stats['ldap_status'] = "Success: LDAP has been configured"
         else:
             self.stats['ldap_status'] = "ERROR: configuring LDAP failed"
-
-    #----------------------------------------------------------------------
 
     def configure_monit(self):
         """Start or reload Monit"""
@@ -115,8 +109,6 @@ class KoanConfigure:
                 self.stats['monit_status'] = "Running: Monit has been started"
             else:
                 self.stats['monit_status'] = "Stopped: Failed to start monit"
-
-    #----------------------------------------------------------------------
 
     def configure_packages(self):
         # Enables the possibility to use different types of package
@@ -152,8 +144,7 @@ class KoanConfigure:
             action = packages[package]['action']
             # In the near future, will use install_name vs package
             # as it includes a more specific package name: "package-version"
-            #install_name = packages[package]['install_name']
-
+            # install_name = packages[package]['install_name']
             if yb.isPackageInstalled(package):
                 if action == 'create':
                     nsync += 1
@@ -189,8 +180,6 @@ class KoanConfigure:
             'nsync': nsync,
             'osync': osync,
             'fail': fail}
-
-    #----------------------------------------------------------------------
 
     def configure_directories(self):
         """ Configure directory resources."""
@@ -266,8 +255,6 @@ class KoanConfigure:
             'osync': osync,
             'fail': fail}
 
-    #----------------------------------------------------------------------
-
     def configure_files(self):
         """ Configure file resources."""
         print "- Configuring Files"
@@ -331,8 +318,6 @@ class KoanConfigure:
             'nsync': nsync,
             'osync': osync,
             'fail': fail}
-
-    #----------------------------------------------------------------------
 
     def run(self):
         # Configure resources in a specific order: repos, ldap, packages,

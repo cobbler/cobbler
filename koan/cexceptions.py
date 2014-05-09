@@ -36,7 +36,6 @@ class CobblerException(exceptions.Exception):
 
 
 class InfoException(exceptions.Exception):
-
     """
     Custom exception for tracking of fatal errors.
     """
@@ -47,6 +46,7 @@ class InfoException(exceptions.Exception):
 
     def __str__(self):
         return repr(self.value)
+
 
 class CX(CobblerException):
     pass

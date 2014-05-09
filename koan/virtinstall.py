@@ -364,7 +364,7 @@ def build_commandline(uri,
                     os_version = suse_version_re.match(os_version).groups()[0]
             # make sure virt-install knows about our os_version,
             # otherwise default it to generic26
-            #found = False
+            # found = False
             if os_version in supported_variants:
                 cmd += "--os-variant %s " % os_version
             else:

@@ -363,7 +363,7 @@ if mswindows:
             STARTF_USESHOWWINDOW, CREATE_NEW_CONSOLE
         from win32event import WaitForSingleObject, INFINITE, WAIT_OBJECT_0
     else:
-        from _subprocess import * # pyflakes.ignore
+        from _subprocess import *  # pyflakes.ignore
 
         class STARTUPINFO:
             dwFlags = 0
@@ -664,7 +664,7 @@ class Popen(object):
             default_startupinfo = STARTUPINFO()
             if startupinfo is None:
                 startupinfo = default_startupinfo
-            if not None in (p2cread, c2pwrite, errwrite):
+            if not any(p2cread, c2pwrite, errwrite):
                 startupinfo.dwFlags |= STARTF_USESTDHANDLES
                 startupinfo.hStdInput = p2cread
                 startupinfo.hStdOutput = c2pwrite

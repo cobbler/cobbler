@@ -393,12 +393,6 @@ def main():
 
     return 0
 
-#=======================================================
-
-
-
-#=======================================================
-
 
 class Koan:
 
@@ -437,13 +431,10 @@ class Koan:
         # look at /sbin/grubby --help for more info
         self.no_copy_default = None
 
-    #---------------------------------------------------
-
     def run(self):
         """
         koan's main function...
         """
-
         # we can get the info we need from either the cobbler server
         #  or a kickstart file
         if self.server is None:
@@ -543,8 +534,6 @@ class Koan:
         else:
             self.display()
 
-    # --------------------------------------------------
-
     def ask_profile(self):
         """
         Used by the live CD mode, if the system can not be auto-discovered, show a list of available
@@ -571,8 +560,6 @@ class Koan:
             if x["name"] == data:
                 return data
         return None
-
-    #---------------------------------------------------
 
     def autodetect_system(self, allow_interactive=False):
         """
@@ -620,8 +607,6 @@ class Koan:
             print "- Auto detected: %s" % detected_systems[0]
             return detected_systems[0]
 
-    #---------------------------------------------------
-
     def safe_load(self, hashv, primary_key, alternate_key=None, default=None):
         if primary_key in hashv:
             return hashv[primary_key]
@@ -629,8 +614,6 @@ class Koan:
             return hashv[alternate_key]
         else:
             return default
-
-    #---------------------------------------------------
 
     def net_install(self, after_download):
         """
@@ -809,8 +792,6 @@ class Koan:
         # perform specified action
         after_download(self, profile_data)
 
-    #---------------------------------------------------
-
     def get_install_tree_from_kickstart(self, profile_data):
         """
         Scan the kickstart configuration for either a "url" or "nfs" command
@@ -869,8 +850,6 @@ class Koan:
             # kickstart OS's...
             pass
 
-    #---------------------------------------------------
-
     def get_install_tree_from_profile_data(self, profile_data):
         """
         Split ks_meta to obtain the tree path. Generate the install_tree
@@ -913,8 +892,6 @@ class Koan:
         except:
             pass
 
-    #---------------------------------------------------
-
     def list(self, what):
         if what not in ["images", "profiles", "systems", "distros", "repos"]:
             raise InfoException("koan does not know how to list that")
@@ -923,8 +900,6 @@ class Koan:
             if "name" in x:
                 print x["name"]
         return True
-
-    #---------------------------------------------------
 
     def display(self):
         def after_download(self, profile_data):
@@ -936,8 +911,6 @@ class Koan:
                     print "%20s  : %s" % (x, value)
         return self.net_install(after_download)
 
-    #---------------------------------------------------
-
     def virt(self):
         """
         Handle virt provisioning.
@@ -947,8 +920,6 @@ class Koan:
             self.virt_net_install(profile_data)
 
         return self.net_install(after_download)
-
-    #---------------------------------------------------
 
     def update_files(self):
         """
@@ -1004,8 +975,6 @@ class Koan:
             utils.subprocess_call(cmd)
 
         return True
-
-    #---------------------------------------------------
 
     def update_config(self):
         """
@@ -1085,8 +1054,6 @@ class Koan:
             print "\t         Files:  %d      %d    %d     %.02f" % fstats
             print
 
-    #---------------------------------------------------
-
     def kexec_replace(self):
         """
         Prepare to morph existing system by downloading new kernel and initrd
@@ -1148,8 +1115,6 @@ class Koan:
             ])
             print "Kernel loaded; run 'kexec -e' to execute"
         return self.net_install(after_download)
-
-    #---------------------------------------------------
 
     def get_boot_loader_info(self):
         if ANCIENT_PYTHON:
@@ -1364,8 +1329,6 @@ class Koan:
 
         return self.net_install(after_download)
 
-    #---------------------------------------------------
-
     def get_insert_script(self, initrd):
         """
         Create bash script for inserting kickstart into initrd.
@@ -1391,8 +1354,6 @@ class Koan:
         fi
         """ % (initrd, initrd)
 
-    #---------------------------------------------------
-
     def build_initrd(self, initrd, kickstart, data):
         """
         Crack open an initrd and install the kickstart file.
@@ -1412,14 +1373,10 @@ class Koan:
         utils.subprocess_call(["/bin/bash", "/var/spool/koan/insert.sh"])
         shutil.copyfile("/var/spool/koan/initrd_final", initrd)
 
-    #---------------------------------------------------
-
     def connect_fail(self):
         raise InfoException(
             "Could not communicate with %s:%s" %
             (self.server, self.port))
-
-    #---------------------------------------------------
 
     def get_data(self, what, name=None):
         try:
@@ -1437,16 +1394,12 @@ class Koan:
             raise InfoException("No entry/entries found")
         return data
 
-    #---------------------------------------------------
-
     def get_ips(self, strdata):
         """
         Return a list of IP address strings found in argument.
         warning: not IPv6 friendly
         """
         return re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', strdata)
-
-    #---------------------------------------------------
 
     def get_macs(self, strdata):
         """
@@ -1456,8 +1409,6 @@ class Koan:
             r'[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F0-9]{2}:[A-F:0-9]{2}:[A-F:0-9]{2}',
             strdata.upper())
 
-    #---------------------------------------------------
-
     def is_ip(self, strdata):
         """
         Is strdata an IP?
@@ -1465,15 +1416,11 @@ class Koan:
         """
         return self.get_ips(strdata) and True or False
 
-    #---------------------------------------------------
-
     def is_mac(self, strdata):
         """
         Return whether the argument is a mac address.
         """
         return self.get_macs(strdata) and True or False
-
-    #---------------------------------------------------
 
     def get_distro_files(self, profile_data, download_root):
         """
@@ -1510,8 +1457,6 @@ class Koan:
             raise InfoException("error downloading files")
         profile_data['kernel_local'] = kernel_save
         profile_data['initrd_local'] = initrd_save
-
-    #---------------------------------------------------
 
     def calc_kernel_args(self, pd, replace_self=0):
         kickstart = self.safe_load(pd, 'kickstart')
@@ -1615,8 +1560,6 @@ class Koan:
         options = string.replace(options, "ksdevice=bootif", "ksdevice=link")
         return options
 
-    #---------------------------------------------------
-
     def virt_net_install(self, profile_data):
         """
         Invoke virt guest-install (or tweaked copy thereof)
@@ -1711,8 +1654,6 @@ class Koan:
             # else...
         return results
 
-    #---------------------------------------------------
-
     def load_virt_modules(self):
         try:
             from . import xencreate
@@ -1726,8 +1667,6 @@ class Koan:
             raise InfoException(
                 "no virtualization support available,\
                 install python-virtinst or virt-install?")
-
-    #---------------------------------------------------
 
     def virt_choose(self, pd):
         fullvirt = False
@@ -1766,8 +1705,6 @@ class Koan:
             raise InfoException("Unspecified virt type: %s" % self.virt_type)
         return (uuid, creator, fullvirt, can_poll)
 
-    #---------------------------------------------------
-
     def merge_disk_data(self, paths, sizes, drivers):
         counter = 0
         disks = []
@@ -1790,8 +1727,6 @@ class Koan:
             raise InfoException("Disk configuration not resolvable!")
         return disks
 
-    #---------------------------------------------------
-
     def calc_virt_name(self, profile_data):
         if self.virt_name is not None:
             # explicit override
@@ -1807,8 +1742,6 @@ class Koan:
         # keep libvirt happy with the names
         return name.replace(":", "_").replace(" ", "_")
 
-    #--------------------------------------------------
-
     def calc_virt_autoboot(self, data, override_autoboot=False):
         if override_autoboot:
             return True
@@ -1820,8 +1753,6 @@ class Koan:
             return True
 
         return False
-
-    #--------------------------------------------------
 
     def calc_virt_pxeboot(self, data, override_pxeboot=False):
         if override_pxeboot:
@@ -1835,8 +1766,6 @@ class Koan:
 
         return False
 
-    #--------------------------------------------------
-
     def calc_virt_filesize(self, data, default_filesize=0):
 
         # MAJOR FIXME: are there overrides?
@@ -1847,8 +1776,6 @@ class Koan:
         for t in tokens:
             accum.append(self.calc_virt_filesize2(data, size=t))
         return accum
-
-    #---------------------------------------------------
 
     def calc_virt_filesize2(self, data, default_filesize=1, size=0):
         """
@@ -1867,8 +1794,6 @@ class Koan:
             return default_filesize
         return int(size)
 
-    #---------------------------------------------------
-
     def calc_virt_drivers(self, data):
         driver = self.safe_load(data, 'virt_disk_driver', default='raw')
 
@@ -1885,8 +1810,6 @@ class Koan:
                 print "invalid disk driver specified, defaulting to 'raw'"
                 accum.append('raw')
         return accum
-
-    #---------------------------------------------------
 
     def calc_virt_ram(self, data, default_ram=64):
         """
@@ -1905,8 +1828,6 @@ class Koan:
             return default_ram
         return int(size)
 
-    #---------------------------------------------------
-
     def calc_virt_cpus(self, data, default_cpus=1):
         """
         Assign virtual CPUs if none is given in the profile.
@@ -1919,16 +1840,12 @@ class Koan:
             return default_cpus
         return isize
 
-    #---------------------------------------------------
-
     def calc_virt_mac(self, data):
         if not self.is_virt:
             return None  # irrelevant
         if self.is_mac(self.system):
             return self.system.upper()
         return self.random_mac()
-
-    #---------------------------------------------------
 
     def calc_virt_uuid(self, data):
         # TODO: eventually we may want to allow some koan CLI
@@ -1952,8 +1869,6 @@ class Koan:
             print "invalid UUID specified.  randomizing..."
             return None
         return my_id
-
-    #----------------------------------------------------
 
     def calc_virt_path(self, pd, name):
 
@@ -2000,8 +1915,6 @@ class Koan:
                 sizes=virt_sizes)
             paths.append(path)
         return paths
-
-    #---------------------------------------------------
 
     def calc_virt_path2(self, pd, name, offset=0, location=None, sizes=[]):
 

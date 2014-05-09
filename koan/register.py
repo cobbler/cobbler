@@ -118,8 +118,6 @@ class Register:
         self.hostname = ""
         self.batch = ""
 
-    #---------------------------------------------------
-
     def run(self):
         """
         Commence with the registration already.

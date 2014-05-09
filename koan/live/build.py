@@ -32,9 +32,7 @@ basef.close()
 
 # packages = [
 #  "kernel", "bash", "koan", "policycoreutils", "grub", "eject", "tree"
-#]
-
-#=======
+# ]
 
 
 def main(args):

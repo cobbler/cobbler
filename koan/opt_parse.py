@@ -1088,7 +1088,7 @@ class OptionContainer:
             return ""
         result = []
         for option in self.option_list:
-            if not option.help is SUPPRESS_HELP:
+            if option.help is not SUPPRESS_HELP:
                 result.append(formatter.format_option(option))
         return "".join(result)
 

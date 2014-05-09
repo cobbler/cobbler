@@ -457,7 +457,7 @@ def connect_to_server(server=None, port=None):
     if port is None:
         port = 80
 
-    #connect_ok = 0
+    # connect_ok = 0
 
     try_urls = [
         "http://%s:%s/cobbler_api" % (server, port),
