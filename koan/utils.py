@@ -25,6 +25,8 @@ import os
 import traceback
 import tempfile
 import exceptions
+import app as koan
+from cextension import CX
 ANCIENT_PYTHON = 0
 try:
     try:
@@ -35,8 +37,6 @@ try:
 except:
     ANCIENT_PYTHON = 1
 import shutil
-import errno
-import re
 import sys
 import xmlrpclib
 import string
@@ -375,7 +375,7 @@ def os_release():
         for t in tokens:
             try:
                 return (make, float(t))
-            except ValueError as ve:
+            except ValueError:
                 pass
         raise CX("failed to detect local OS version from /etc/redhat-release")
 
@@ -472,7 +472,7 @@ def connect_to_server(server=None, port=None):
     if port is None:
         port = 80
 
-    connect_ok = 0
+    #connect_ok = 0
 
     try_urls = [
         "http://%s:%s/cobbler_api" % (server, port),
@@ -609,7 +609,5 @@ def create_qemu_image_file(path, size, driver_type):
     except:
         traceback.print_exc()
         raise InfoException(
-            "Image file create failed: %s" %
-            string.join(
-                cmd,
-                " "))
+            "Image file create failed: %s" % string.join(cmd, " ")
+        )

@@ -152,7 +152,7 @@ class KoanConfigure:
             action = packages[package]['action']
             # In the near future, will use install_name vs package
             # as it includes a more specific package name: "package-version"
-            install_name = packages[package]['install_name']
+            #install_name = packages[package]['install_name']
 
             if yb.isPackageInstalled(package):
                 if action == 'create':

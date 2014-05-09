@@ -8,19 +8,18 @@ This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import random
 import os
 import traceback
 try:
@@ -29,19 +28,11 @@ except:
     # importing this for backwards compat with 2.2
     from .opt_parse import OptionParser
 import exceptions
-try:
-    import subprocess as sub_process
-except:
-    from . import sub_process
 import time
-import errno
 import sys
-import xmlrpclib
-import glob
 import socket
 from . import utils
 import string
-import pprint
 
 # usage: cobbler-register [--server=server] [--fqdn=hostname] --profile=foo
 
@@ -52,26 +43,41 @@ def main():
     """
 
     p = OptionParser()
-    p.add_option("-s", "--server",
-                 dest="server",
-                 default=os.environ.get("COBBLER_SERVER", ""),
-                 help="attach to this cobbler server")
-    p.add_option("-f", "--fqdn",
-                 dest="hostname",
-                 default="",
-                 help="override the discovered hostname")
-    p.add_option("-p", "--port",
-                 dest="port",
-                 default="80",
-                 help="cobbler port (default 80)")
-    p.add_option("-P", "--profile",
-                 dest="profile",
-                 default="",
-                 help="assign this profile to this system")
-    p.add_option("-b", "--batch",
-                 dest="batch",
-                 action="store_true",
-                 help="indicates this is being run from a script")
+    p.add_option(
+        "-s",
+        "--server",
+        dest="server",
+        default=os.environ.get("COBBLER_SERVER", ""),
+        help="attach to this cobbler server"
+    )
+    p.add_option(
+        "-f",
+        "--fqdn",
+        dest="hostname",
+        default="",
+        help="override the discovered hostname"
+    )
+    p.add_option(
+        "-p",
+        "--port",
+        dest="port",
+        default="80",
+        help="cobbler port (default 80)"
+    )
+    p.add_option(
+        "-P",
+        "--profile",
+        dest="profile",
+        default="",
+        help="assign this profile to this system"
+    )
+    p.add_option(
+        "-b",
+        "--batch",
+        dest="batch",
+        action="store_true",
+        help="indicates this is being run from a script"
+    )
 
     (options, args) = p.parse_args()
     # if not os.getuid() == 0:

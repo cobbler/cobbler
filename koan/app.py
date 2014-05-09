@@ -260,7 +260,8 @@ def main():
         "--add-reinstall-entry",
         dest="add_reinstall_entry",
         action="store_true",
-        help="when used with --replace-self, just add entry to grub, do not make it the default"
+        help="when used with --replace-self, just add entry to grub, \
+        do not make it the default"
     )
     p.add_option(
         "-C",
@@ -462,12 +463,14 @@ class Koan:
 
         # check to see that exclusive arguments weren't used together
         found = 0
-        for x in (self.is_virt, self.is_replace, self.is_update_files, self.is_display, self.list_items, self.is_update_config):
+        for x in (self.is_virt, self.is_replace, self.is_update_files,
+                  self.is_display, self.list_items, self.is_update_config):
             if x:
                 found = found + 1
         if found != 1:
             raise InfoException(
-                "choose: --virt, --replace-self, --update-files, --list=what, or --display")
+                "choose: --virt, --replace-self, --update-files, --list=what, or --display"
+            )
 
         # This set of options are only valid with --server
         if not self.server or self.server == "":
