@@ -342,7 +342,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{python_sitelib}/koan
 
 %if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
-%exclude %{python_sitelib}/koan/opt_parse.py
 %exclude %{python_sitelib}/koan/text_wrap.py
 %endif
 
