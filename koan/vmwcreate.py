@@ -1,5 +1,5 @@
 """
-Virtualization installation functions.  
+Virtualization installation functions.
 
 Copyright 2007-2008 Red Hat, Inc and Others.
 Michael DeHaan <michael.dehaan AT gmail>
@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import random
 import exceptions
+import app as koan
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"
@@ -57,11 +58,12 @@ scsi0:0.filename = "%(VMDK_IMAGE)s"
 displayName = "%(IMAGE_NAME)s"
 memsize = "%(MEMORY)s"
 """
-#ide1:0.filename = "%(PATH_TO_ISO)s"
+# ide1:0.filename = "%(PATH_TO_ISO)s"
 
 
 class VirtCreateException(exceptions.Exception):
     pass
+
 
 def random_mac():
     """
@@ -71,68 +73,74 @@ def random_mac():
     VMWare. Last 3 fields are random.
     return: MAC address string
     """
-    mac = [ 0x00, 0x50, 0x56,
-        random.randint(0x00, 0x3f),
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff) ]
+    mac = [0x00, 0x50, 0x56,
+           random.randint(0x00, 0x3f),
+           random.randint(0x00, 0xff),
+           random.randint(0x00, 0xff)]
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
-def make_disk(disksize,image):
-    cmd = "vmware-vdiskmanager -c -a lsilogic -s %sGb -t 0 %s" % (disksize, image)
+
+def make_disk(disksize, image):
+    cmd = "vmware-vdiskmanager -c -a lsilogic -s %sGb -t 0 %s" % (
+        disksize, image)
     print "- %s" % cmd
     rc = os.system(cmd)
     if rc != 0:
-       raise VirtCreateException("command failed")
+        raise VirtCreateException("command failed")
 
-def make_vmx(path,vmdk_image,image_name,mac_address,memory):
-    template_params =  {
-        "VMDK_IMAGE"  : vmdk_image,
-        "IMAGE_NAME"  : image_name,
-        "MAC_ADDRESS" : mac_address.lower(),
-        "MEMORY"      : memory
+
+def make_vmx(path, vmdk_image, image_name, mac_address, memory):
+    template_params = {
+        "VMDK_IMAGE": vmdk_image,
+        "IMAGE_NAME": image_name,
+        "MAC_ADDRESS": mac_address.lower(),
+        "MEMORY": memory
     }
     templated = TEMPLATE % template_params
-    fd = open(path,"w+")
+    fd = open(path, "w+")
     fd.write(templated)
     fd.close()
+
 
 def register_vmx(vmx_file):
     cmd = "vmware-cmd -s register %s" % vmx_file
     print "- %s" % cmd
     rc = os.system(cmd)
-    if rc!=0:
-       raise VirtCreateException("vmware registration failed")
-    
+    if rc != 0:
+        raise VirtCreateException("vmware registration failed")
+
+
 def start_vm(vmx_file):
-    os.chmod(vmx_file,0755)
+    os.chmod(vmx_file, 0o755)
     cmd = "vmware-cmd %s start" % vmx_file
     print "- %s" % cmd
     rc = os.system(cmd)
     if rc != 0:
-       raise VirtCreateException("vm start failed")
+        raise VirtCreateException("vm start failed")
 
-def start_install(name=None, 
-                  ram=None, 
-                  disks=None, 
+
+def start_install(name=None,
+                  ram=None,
+                  disks=None,
                   mac=None,
-                  uuid=None,  
+                  uuid=None,
                   extra=None,
-                  vcpus=None, 
-                  profile_data=None, 
-                  arch=None, 
-                  no_gfx=False, 
-                  fullvirt=True, 
-                  bridge=None, 
+                  vcpus=None,
+                  profile_data=None,
+                  arch=None,
+                  no_gfx=False,
+                  fullvirt=True,
+                  bridge=None,
                   virt_type=None,
                   virt_auto_boot=False,
                   qemu_driver_type=None,
                   qemu_net_type=None):
 
-    if profile_data.has_key("file"):
+    if "file" in profile_data:
         raise koan.InfoException("vmware does not work with --image yet")
 
     mac = None
-    if not profile_data.has_key("interfaces"):
+    if "interfaces" not in profile_data:
         print "- vmware installation requires a system, not a profile"
         return 1
     for iname in profile_data["interfaces"]:
@@ -156,16 +164,16 @@ def start_install(name=None,
         os.makedirs(VMX_DIR)
 
     if len(disks) != 1:
-       raise VirtCreateException("vmware support is limited to 1 virtual disk")
+        raise VirtCreateException(
+            "vmware support is limited to 1 virtual disk")
 
     disksize = disks[0][1]
 
     image = "%s/%s" % (IMAGE_DIR, name)
     print "- saving virt disk image as %s" % image
-    make_disk(disksize,image)
+    make_disk(disksize, image)
     vmx = "%s/%s" % (VMX_DIR, name)
     print "- saving vmx file as %s" % vmx
-    make_vmx(vmx,image,name,mac,ram)
+    make_vmx(vmx, image, name, mac, ram)
     register_vmx(vmx)
     start_vm(vmx)
-

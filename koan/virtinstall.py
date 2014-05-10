@@ -30,8 +30,8 @@ import os
 import re
 import shlex
 
-import app as koan
-import utils
+from . import utils
+from cexceptions import InfoException
 
 # The virtinst module will no longer be availabe to import in some
 # distros. We need to get all the info we need from the virt-install
@@ -39,7 +39,7 @@ import utils
 # as the virt-install command line tool has always been provided by
 # python-virtinst (and now the new virt-install rpm).
 rc, response = utils.subprocess_get_response(
-        shlex.split('virt-install --version'), True)
+    shlex.split('virt-install --version'), True)
 if rc == 0:
     virtinst_version = response
 else:
@@ -64,12 +64,13 @@ try:
 except:
     try:
         rc, response = utils.subprocess_get_response(
-                shlex.split('virt-install --os-variant list'))
+            shlex.split('virt-install --os-variant list'))
         variants = response.split('\n')
         for variant in variants:
             supported_variants.add(variant.split()[0])
     except:
-        pass # No problem, we'll just use generic
+        pass  # No problem, we'll just use generic
+
 
 def _sanitize_disks(disks):
     ret = []
@@ -81,9 +82,12 @@ def _sanitize_disks(disks):
         if d[1] != 0 or d[0].startswith("/dev"):
             ret.append((d[0], d[1], driver_type))
         else:
-            raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+            raise InfoException(
+                "this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero"
+            )
 
     return ret
+
 
 def _sanitize_nics(nics, bridge, profile_bridge, network_count):
     ret = []
@@ -93,7 +97,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
         nics = {}
         for i in range(int(network_count)):
             nics["foo%s" % i] = {
-                "interface_type" : "na",
+                "interface_type": "na",
                 "mac_address": None,
                 "virt_bridge": None,
             }
@@ -101,8 +105,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
     if not nics:
         return ret
 
-    interfaces = nics.keys()
-    interfaces.sort()
+    interfaces = sorted(nics.keys())
     counter = -1
     vlanpattern = re.compile("[a-zA-Z0-9]+\.[0-9]+")
 
@@ -110,8 +113,8 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
         counter = counter + 1
         intf = nics[iname]
 
-        if (intf["interface_type"] in ("master","bond","bridge","bonded_bridge_slave") or
-            vlanpattern.match(iname) or iname.find(":") != -1):
+        if (intf["interface_type"] in ("master", "bond", "bridge", "bonded_bridge_slave") or
+                vlanpattern.match(iname) or iname.find(":") != -1):
             continue
 
         mac = intf["mac_address"]
@@ -120,7 +123,8 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
                 if profile_bridge == "":
-                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+                    raise InfoException(
+                        "virt-bridge setting is not defined in cobbler")
                 intf_bridge = profile_bridge
 
         else:
@@ -134,6 +138,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
 
     return ret
 
+
 def create_image_file(disks=None, **kwargs):
     disks = _sanitize_disks(disks)
     for path, size, driver_type in disks:
@@ -144,6 +149,7 @@ def create_image_file(disks=None, **kwargs):
         if str(size) == "0":
             continue
         utils.create_qemu_image_file(path, size, driver_type)
+
 
 def build_commandline(uri,
                       name=None,
@@ -182,7 +188,8 @@ def build_commandline(uri,
     oldstyle_accelerate = False
 
     if not virtinst_version:
-        print ("- warning: old virt-install detected, a lot of features will be disabled")
+        print (
+            "- warning: old virt-install detected, a lot of features will be disabled")
         disable_autostart = True
         disable_boot_opt = True
         disable_virt_type = True
@@ -192,8 +199,8 @@ def build_commandline(uri,
         oldstyle_macs = True
         oldstyle_accelerate = True
 
-    import_exists = False # avoid duplicating --import parameter
-    disable_extra = False # disable --extra-args on --import
+    import_exists = False  # avoid duplicating --import parameter
+    disable_extra = False  # disable --extra-args on --import
     if osimport:
         disable_extra = True
 
@@ -221,12 +228,11 @@ def build_commandline(uri,
     if is_import:
         importpath = profile_data.get("file")
         if not importpath:
-            raise koan.InfoException("Profile 'file' required for image "
-                                     "install")
+            raise InfoException("Profile 'file' required for image install")
 
-    elif profile_data.has_key("file"):
+    elif "file" in profile_data:
         if is_xen:
-            raise koan.InfoException("Xen does not work with --image yet")
+            raise InfoException("Xen does not work with --image yet")
 
         # this is an image based installation
         input_path = profile_data["file"]
@@ -238,7 +244,7 @@ def build_commandline(uri,
             (tempdir, filename) = utils.nfsmount(input_path)
             cdrom = os.path.join(tempdir, filename)
 
-        kickstart = profile_data.get("kickstart","")
+        kickstart = profile_data.get("kickstart", "")
         if kickstart != "":
             # we have a (windows?) answer file we have to provide
             # to the ISO.
@@ -246,14 +252,14 @@ def build_commandline(uri,
             floppy = utils.make_floppy(kickstart)
     elif is_qemu or is_xen:
         # images don't need to source this
-        if not profile_data.has_key("install_tree"):
-            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
+        if "install_tree" not in profile_data:
+            raise InfoException(
+                "Cannot find install source in kickstart file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):
             profile_data["install_tree"] = profile_data["install_tree"] + "/"
 
         location = profile_data["install_tree"]
-
 
     disks = _sanitize_disks(disks)
     nics = _sanitize_nics(profile_data.get("interfaces"),
@@ -268,9 +274,9 @@ def build_commandline(uri,
             bridge = profile_data["virt_bridge"]
 
         if bridge == "":
-            raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+            raise InfoException(
+                "virt-bridge setting is not defined in cobbler")
         nics = [(bridge, None)]
-
 
     kernel = profile_data.get("kernel_local")
     initrd = profile_data.get("initrd_local")
@@ -358,17 +364,18 @@ def build_commandline(uri,
                     os_version = suse_version_re.match(os_version).groups()[0]
             # make sure virt-install knows about our os_version,
             # otherwise default it to generic26
-            found = False
+            # found = False
             if os_version in supported_variants:
                 cmd += "--os-variant %s " % os_version
             else:
-                print ("- warning: virt-install doesn't know this os_version, defaulting to generic26")
+                print (
+                    "- warning: virt-install doesn't know this os_version, defaulting to generic26")
                 cmd += "--os-variant generic26 "
         else:
             distro = "unix"
-            if breed in [ "debian", "suse", "redhat" ]:
+            if breed in ["debian", "suse", "redhat"]:
                 distro = "linux"
-            elif breed in [ "windows" ]:
+            elif breed in ["windows"]:
                 distro = "windows"
 
             cmd += "--os-type %s " % distro

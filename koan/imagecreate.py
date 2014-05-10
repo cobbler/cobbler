@@ -23,8 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import utils
-import virtinstall
+from . import utils
+from . import virtinstall
+
 
 def start_install(*args, **kwargs):
     cmd = virtinstall.build_commandline("import", *args, **kwargs)

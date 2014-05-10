@@ -26,6 +26,7 @@ requires python-virtinst-0.200 (or virt-install in later distros).
 import utils
 import virtinstall
 
+
 def start_install(*args, **kwargs):
     virtinstall.create_image_file(*args, **kwargs)
     cmd = virtinstall.build_commandline("qemu:///system", *args, **kwargs)

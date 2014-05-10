@@ -8,7 +8,8 @@
 
 __revision__ = "$Id: textwrap.py,v 1.32.8.2 2004/05/13 01:48:15 gward Exp $"
 
-import string, re
+import string
+import re
 
 # Do the right thing with boolean values for all known Python versions
 # (so this module can be copied to projects that don't depend on Python
@@ -30,7 +31,9 @@ __all__ = ['TextWrapper', 'wrap', 'fill']
 # since 0xa0 is not in range(128).
 _whitespace = '\t\n\x0b\x0c\r '
 
+
 class TextWrapper:
+
     """
     Object for wrapping/filling text.  The public interface consists of
     the wrap() and fill() methods; the other methods are just there for
@@ -90,7 +93,6 @@ class TextWrapper:
                                  r'[\"\']?'           # optional end-of-quote
                                  % string.lowercase)
 
-
     def __init__(self,
                  width=70,
                  initial_indent="",
@@ -106,7 +108,6 @@ class TextWrapper:
         self.replace_whitespace = replace_whitespace
         self.fix_sentence_endings = fix_sentence_endings
         self.break_long_words = break_long_words
-
 
     # -- Private methods -----------------------------------------------
     # (possibly useful for subclasses to override)
@@ -126,7 +127,6 @@ class TextWrapper:
             elif isinstance(text, unicode):
                 text = text.translate(self.unicode_whitespace_trans)
         return text
-
 
     def _split(self, text):
         """_split(text : string) -> [string]
@@ -154,9 +154,9 @@ class TextWrapper:
         """
         i = 0
         pat = self.sentence_end_re
-        while i < len(chunks)-1:
-            if chunks[i+1] == " " and pat.search(chunks[i]):
-                chunks[i+1] = "  "
+        while i < len(chunks) - 1:
+            if chunks[i + 1] == " " and pat.search(chunks[i]):
+                chunks[i + 1] = "  "
                 i += 2
             else:
                 i += 1
@@ -255,7 +255,6 @@ class TextWrapper:
 
         return lines
 
-
     # -- Public interface ----------------------------------------------
 
     def wrap(self, text):
@@ -268,7 +267,6 @@ class TextWrapper:
         converted to space.
         """
         text = self._munge_whitespace(text)
-        indent = self.initial_indent
         chunks = self._split(text)
         if self.fix_sentence_endings:
             self._fix_sentence_endings(chunks)
@@ -298,6 +296,7 @@ def wrap(text, width=70, **kwargs):
     """
     w = TextWrapper(width=width, **kwargs)
     return w.wrap(text)
+
 
 def fill(text, width=70, **kwargs):
     """Fill a single paragraph of text, returning a new string.

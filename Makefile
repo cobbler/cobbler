@@ -38,8 +38,8 @@ qa:
 		cobbler/modules/*.py \
 		bin/cobbler* bin/*.py bin/koan \
 		web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
-#		koan/*.py \
-#		koan/live/*.py
+		#koan/*.py
+		#koan/live/*.py
 	@echo "running pep8..."
 	@pep8 -r --ignore E303,E501 \
         *.py \
@@ -47,8 +47,8 @@ qa:
         cobbler/modules/*.py \
         bin/cobbler* bin/*.py bin/koan web/*.py \
         web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
-#       koan/*.py \
-#       koan/live/*.py
+        koan/*.py \
+        koan/live/*.py
         
 test:
 	make savestate prefix=test
