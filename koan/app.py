@@ -28,27 +28,8 @@ import random
 import os
 import traceback
 import shlex
-
-ANCIENT_PYTHON = 0
-try:
-    try:
-        from optparse import OptionParser
-    except:
-        # importing this for backwards compat with 2.2
-        from .opt_parse import OptionParser
-    try:
-        import subprocess as sub_process
-    except:
-        from . import sub_process
-except:
-    # the main "replace-self" codepath of koan must support
-    # Python 1.5.  Other sections may use 2.3 features (nothing newer)
-    # provided they are conditionally imported.  This is to support
-    # EL 2.1. -- mpd
-    ANCIENT_PYTHON = 1
-    True = 1
-    False = 0
-
+import subprocess
+from optparse import OptionParser
 import time
 import shutil
 import errno
@@ -99,11 +80,6 @@ def main():
     except:
         # most likely running RHEL3, where we don't need virt logging anyway
         pass
-
-    if ANCIENT_PYTHON:
-        print "- command line usage on this version of python is unsupported"
-        print "- usage via spacewalk APIs only.  Python x>=2.3 required"
-        return
 
     p = OptionParser()
     p.add_option(
@@ -696,21 +672,20 @@ class Koan:
                     # FIXME: auto never selects vmware, maybe it should if we
                     # find it?
 
-                    if not ANCIENT_PYTHON:
-                        cmd = sub_process.Popen(
-                            "/bin/uname -r",
-                            stdout=sub_process.PIPE,
-                            shell=True)
-                        uname_str = cmd.communicate()[0]
-                        if uname_str.find("xen") != -1:
-                            self.virt_type = "xenpv"
-                        elif os.path.exists("/usr/bin/qemu-img"):
-                            self.virt_type = "qemu"
-                        else:
-                            # assume Xen, we'll check to see if virt-type is
-                            # really usable later.
-                            raise InfoException(
-                                "Not running a Xen kernel and qemu is not installed")
+                    cmd = subprocess.Popen(
+                        "/bin/uname -r",
+                        stdout=subprocess.PIPE,
+                        shell=True)
+                    uname_str = cmd.communicate()[0]
+                    if uname_str.find("xen") != -1:
+                        self.virt_type = "xenpv"
+                    elif os.path.exists("/usr/bin/qemu-img"):
+                        self.virt_type = "qemu"
+                    else:
+                        # assume Xen, we'll check to see if virt-type is
+                        # really usable later.
+                        raise InfoException(
+                            "Not running a Xen kernel and qemu is not installed")
 
                 print "- no virt-type specified, auto-selecting %s" % self.virt_type
 
@@ -719,9 +694,9 @@ class Koan:
             # :)
 
             if self.virt_type in ["xenpv", "xenfv"]:
-                cmd = sub_process.Popen(
+                cmd = subprocess.Popen(
                     "uname -r",
-                    stdout=sub_process.PIPE,
+                    stdout=subprocess.PIPE,
                     shell=True)
                 uname_str = cmd.communicate()[0]
                 # correct kernel on dom0?
@@ -732,7 +707,7 @@ class Koan:
                 if not os.path.exists("/usr/sbin/xend"):
                     raise InfoException("xen package needs to be installed")
                 # xend running?
-                rc = sub_process.call(
+                rc = subprocess.call(
                     "/usr/sbin/xend status",
                     stderr=None,
                     stdout=None,
@@ -765,7 +740,7 @@ class Koan:
 
             # for both virt types
             if os.path.exists("/etc/rc.d/init.d/libvirtd"):
-                rc = sub_process.call(
+                rc = subprocess.call(
                     "/sbin/service libvirtd status",
                     stdout=None,
                     shell=True)
@@ -1117,14 +1092,8 @@ class Koan:
         return self.net_install(after_download)
 
     def get_boot_loader_info(self):
-        if ANCIENT_PYTHON:
-            # FIXME: implement this to work w/o subprocess
-            if os.path.exists("/etc/grub.conf"):
-                return (0, "grub")
-            else:
-                return (0, "lilo")
         cmd = ["/sbin/grubby", "--bootloader-probe"]
-        probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+        probe_process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         which_loader = probe_process.communicate()[0]
         return probe_process.returncode, which_loader
 
@@ -1177,14 +1146,11 @@ class Koan:
                         profile_data
                     )
 
-            if not ANCIENT_PYTHON:
-                arch_cmd = sub_process.Popen(
-                    "/bin/uname -m",
-                    stdout=sub_process.PIPE,
-                    shell=True)
-                arch = arch_cmd.communicate()[0]
-            else:
-                arch = "i386"
+            arch_cmd = subprocess.Popen(
+                "/bin/uname -m",
+                stdout=subprocess.PIPE,
+                shell=True)
+            arch = arch_cmd.communicate()[0]
 
             # Validate kernel argument length (limit depends on architecture --
             # see asm-*/setup.h).  For example:
@@ -1194,21 +1160,20 @@ class Koan:
             # asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             # asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             # arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
-            if not ANCIENT_PYTHON:
-                if arch.startswith("ppc") or arch.startswith("ia64"):
-                    if len(k_args) > 511:
-                        raise InfoException(
-                            "Kernel options are too long, 512 chars exceeded: %s" %
-                            k_args)
-                elif arch.startswith("s390"):
-                    if len(k_args) > 895:
-                        raise InfoException(
-                            "Kernel options are too long, 896 chars exceeded: %s" %
-                            k_args)
-                elif len(k_args) > 2048:
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
                     raise InfoException(
-                        "Kernel options are too long, 2048 chars exceeded: %s" %
+                        "Kernel options are too long, 512 chars exceeded: %s" %
                         k_args)
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException(
+                        "Kernel options are too long, 896 chars exceeded: %s" %
+                         k_args)
+            elif len(k_args) > 2048:
+                raise InfoException(
+                    "Kernel options are too long, 2048 chars exceeded: %s" %
+                    k_args)
 
             if use_grubby:
                 cmd = [
@@ -1244,25 +1209,24 @@ class Koan:
                     cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
 
                 # Are we running on ppc?
-                if not ANCIENT_PYTHON:
-                    if arch.startswith("ppc"):
-                        if "grub2" in probe_output:
-                            cmd.append("--grub2")
-                        else:
-                            cmd.append("--yaboot")
-                    elif arch.startswith("s390"):
-                        cmd.append("--zipl")
+                if arch.startswith("ppc"):
+                    if "grub2" in probe_output:
+                        cmd.append("--grub2")
+                    else:
+                        cmd.append("--yaboot")
+                elif arch.startswith("s390"):
+                    cmd.append("--zipl")
 
                 utils.subprocess_call(cmd)
 
                 # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-                if not ANCIENT_PYTHON and arch.startswith("ppc") and "grub2" not in probe_output:
+                if arch.startswith("ppc") and "grub2" not in probe_output:
                     # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition
                     # and doesn't require running ybin
                     print "- applying ybin changes"
                     cmd = ["/sbin/ybin"]
                     utils.subprocess_call(cmd)
-                elif not ANCIENT_PYTHON and arch.startswith("s390"):
+                elif arch.startswith("s390"):
                     print "- applying zipl changes"
                     cmd = ["/sbin/zipl"]
                     utils.subprocess_call(cmd)
@@ -1317,7 +1281,7 @@ class Koan:
                 # Set default grub entry for reboot
                 if not self.add_reinstall_entry:
                     print "- setting grub2 default entry"
-                    sub_process.call(default_cmd)
+                    subprocess.call(default_cmd)
 
                 # Run update-grub
                 utils.subprocess_call(cmd)
@@ -1959,10 +1923,10 @@ class Koan:
 
             args = "vgs -o vg_name"
             print "%s" % args
-            vgnames = sub_process.Popen(
+            vgnames = subprocess.Popen(
                 args,
                 shell=True,
-                stdout=sub_process.PIPE).communicate()[0]
+                stdout=subprocess.PIPE).communicate()[0]
             print vgnames
 
             if vgnames.find(vgname) == -1:
@@ -1973,7 +1937,7 @@ class Koan:
             # check free space
             args = "LANG=C vgs --noheadings -o vg_free --units g %s" % vgname
             print args
-            cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
+            cmd = subprocess.Popen(args, stdout=subprocess.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
             freespace_str = freespace_str.lower().replace(
@@ -1996,9 +1960,9 @@ class Koan:
                 # look for LVM partition named foo, create if doesn't exist
                 args = "lvs --noheadings -o lv_name %s" % vgname
                 print "%s" % args
-                lvs_str = sub_process.Popen(
+                lvs_str = subprocess.Popen(
                     args,
-                    stdout=sub_process.PIPE,
+                    stdout=subprocess.PIPE,
                     shell=True).communicate()[0]
                 print lvs_str
 
@@ -2013,7 +1977,7 @@ class Koan:
                     args = "lvcreate -L %sG -n %s %s" % (
                         virt_size, lvname, vgname)
                     print "%s" % args
-                    lv_create = sub_process.call(args, shell=True)
+                    lv_create = subprocess.call(args, shell=True)
                     if lv_create != 0:
                         raise InfoException("LVM creation failed")
 
@@ -2023,7 +1987,7 @@ class Koan:
 
                 # check whether we have SELinux enabled system
                 args = "/usr/sbin/selinuxenabled"
-                if os.path.exists(args) and sub_process.call(args) == 0:
+                if os.path.exists(args) and subprocess.call(args) == 0:
                     # required context type
                     context_type = "virt_image_t"
 
@@ -2031,7 +1995,7 @@ class Koan:
                     args = "/usr/bin/chcon -t %s %s" % (
                         context_type, partition_location)
                     print "%s" % args
-                    change_context = sub_process.call(
+                    change_context = subprocess.call(
                         args,
                         close_fds=True,
                         shell=True)
@@ -2041,7 +2005,7 @@ class Koan:
                     args = "/usr/sbin/semanage fcontext -a -t %s %s" % (
                         context_type, partition_location)
                     print "%s" % args
-                    change_context |= sub_process.call(
+                    change_context |= subprocess.call(
                         args,
                         close_fds=True,
                         shell=True)
