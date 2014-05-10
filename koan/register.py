@@ -22,11 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import traceback
-try:
-    from optparse import OptionParser
-except:
-    # importing this for backwards compat with 2.2
-    from .opt_parse import OptionParser
+from optparse import OptionParser
 import time
 import sys
 import socket
