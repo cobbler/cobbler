@@ -33,6 +33,7 @@ import xmlrpclib
 import string
 import urlgrabber
 import ethtool
+import time
 
 VIRT_STATE_NAME_MAP = {
     0: "running",
@@ -558,3 +559,7 @@ def create_qemu_image_file(path, size, driver_type):
         raise InfoException(
             "Image file create failed: %s" % string.join(cmd, " ")
         )
+
+
+def generate_timestamp():
+    return str(int(time.time()))
