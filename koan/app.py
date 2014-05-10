@@ -972,7 +972,7 @@ class Koan:
         if os.path.isfile(node_config_data):
             timestamp = utils.generate_timestamp()
             old_node_config_data = "".join(
-                (KOAN_CONF_DIR, default_config_filename, "_", timestamp)
+                (KOAN_CONF_DIR, timestamp, "_",  default_config_filename)
             )
             shutil.copyfile(node_config_data, old_node_config_data)
         f = open(node_config_data, 'w')
