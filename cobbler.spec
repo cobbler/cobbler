@@ -341,10 +341,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/cobbler-register
 %{python_sitelib}/koan
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
-%exclude %{python_sitelib}/koan/text_wrap.py
-%endif
-
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 /var/log/koan
