@@ -25,16 +25,8 @@ import os
 import traceback
 import tempfile
 from cexceptions import CX, InfoException
-
-ANCIENT_PYTHON = 0
-try:
-    try:
-        import subprocess as sub_process
-    except:
-        from . import sub_process
-    import urllib2
-except:
-    ANCIENT_PYTHON = 1
+import urllib2
+import subprocess
 import shutil
 import sys
 import xmlrpclib
@@ -118,13 +110,6 @@ def urlread(url):
             fd.close()
             return data
         except:
-            if ANCIENT_PYTHON:
-                # this logic is to support python 1.5 and EL 2
-                import urllib
-                fd = urllib.urlopen(url)
-                data = fd.read()
-                fd.close()
-                return data
             traceback.print_exc()
             raise InfoException("Couldn't download: %s" % url)
     elif url[0:4] == "file":
@@ -156,12 +141,7 @@ def subprocess_call(cmd, ignore_rc=0):
     Wrapper around subprocess.call(...)
     """
     print "- %s" % cmd
-    if not ANCIENT_PYTHON:
-        rc = sub_process.call(cmd)
-    else:
-        cmd = string.join(cmd, " ")
-        print "cmdstr=(%s)" % cmd
-        rc = os.system(cmd)
+    rc = subprocess.call(cmd)
     if rc != 0 and not ignore_rc:
         raise InfoException("command failed (%s)" % rc)
     return rc
@@ -174,14 +154,9 @@ def subprocess_get_response(cmd, ignore_rc=False):
     print "- %s" % cmd
     rc = 0
     result = ""
-    if not ANCIENT_PYTHON:
-        p = sub_process.Popen(cmd, stdout=sub_process.PIPE)
-        result = p.communicate()[0]
-        rc = p.wait()
-    else:
-        cmd = string.join(cmd, " ")
-        print "cmdstr=(%s)" % cmd
-        rc = os.system(cmd)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    result = p.communicate()[0]
+    rc = p.wait()
     if not ignore_rc and rc != 0:
         raise InfoException("command failed (%s)" % rc)
     return rc, result
@@ -273,7 +248,7 @@ def nfsmount(input_path):
         "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
     ]
     print "- running: %s" % mount_cmd
-    rc = sub_process.call(mount_cmd)
+    rc = subprocess.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)
         raise InfoException("nfs mount failed: %s" % dirpath)
@@ -341,10 +316,6 @@ def os_release():
     """
     This code is borrowed from Cobbler and really shouldn't be repeated.
     """
-
-    if ANCIENT_PYTHON:
-        return ("unknown", 0)
-
     if check_dist() == "redhat":
         fh = open("/etc/redhat-release")
         data = fh.read().lower()
@@ -369,7 +340,7 @@ def os_release():
         release = lsb_release.get_distro_information()['RELEASE']
         return ("debian", release)
     elif check_dist() == "ubuntu":
-        version = sub_process.check_output(
+        version = subprocess.check_output(
             ("lsb_release", "--release", "--short")).rstrip()
         make = "ubuntu"
         return (make, float(version))
@@ -559,7 +530,7 @@ def make_floppy(kickstart):
 
 
 def sync_file(ofile, nfile, uid, gid, mode):
-    sub_process.call(['/usr/bin/diff', ofile, nfile])
+    subprocess.call(['/usr/bin/diff', ofile, nfile])
     shutil.copy(nfile, ofile)
     os.chmod(ofile, mode)
     os.chown(ofile, uid, gid)
