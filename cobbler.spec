@@ -318,7 +318,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines
 Group: Applications/System
-Requires: python >= 2.0
+Requires: python >= 2.4
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: python-simplejson
@@ -342,7 +342,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{python_sitelib}/koan
 
 %if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
-%exclude %{python_sitelib}/koan/sub_process.py
 %exclude %{python_sitelib}/koan/opt_parse.py
 %exclude %{python_sitelib}/koan/text_wrap.py
 %endif
