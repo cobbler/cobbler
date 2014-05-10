@@ -62,6 +62,7 @@ Requires: createrepo
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
+Requires: python-dns
 Requires: rsync
 Requires: syslinux
 Requires: yum-utils
