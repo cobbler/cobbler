@@ -32,6 +32,7 @@ import sys
 import xmlrpclib
 import string
 import urlgrabber
+import ethtool
 
 VIRT_STATE_NAME_MAP = {
     0: "running",
@@ -371,16 +372,6 @@ def uniqify(lst, purge=None):
 
 
 def get_network_info():
-    try:
-        import ethtool
-    except:
-        try:
-            import rhpl.ethtool
-            ethtool = rhpl.ethtool
-        except:
-            raise InfoException(
-                "the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
-
     interfaces = {}
     # get names
     inames = ethtool.get_devices()
