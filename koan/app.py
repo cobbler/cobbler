@@ -967,10 +967,13 @@ class Koan:
             traceback.print_exc()
             self.connect_fail()
 
-        node_config_data = KOAN_CONF_DIR + 'localconfig.json'
+        default_config_filename = 'localconfig.json'
+        node_config_data = KOAN_CONF_DIR + default_config_filename
         if os.path.isfile(node_config_data):
             timestamp = utils.generate_timestamp()
-            old_node_config_data = timestamp + "localconfig.json"
+            old_node_config_data = "".join(
+                (KOAN_CONF_DIR, default_config_filename, "_", timestamp)
+            )
             shutil.copyfile(node_config_data, old_node_config_data)
         f = open(node_config_data, 'w')
         f.write(config)
