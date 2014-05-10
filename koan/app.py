@@ -42,6 +42,7 @@ from . import utils
 from . import configurator
 
 COBBLER_REQUIRED = 1.300
+KOAN_CONF_DIR = '/var/lib/koan/config/'
 
 """
 koan --virt [--profile=webserver|--system=name] --server=hostname
@@ -958,7 +959,6 @@ class Koan:
         a combination of mgmt-classes assigned to the system, profile, and
         distro.
         """
-        # FIXME get hostname from utils?
         hostname = socket.gethostname()
         server = self.xmlrpc_server
         try:
@@ -967,8 +967,11 @@ class Koan:
             traceback.print_exc()
             self.connect_fail()
 
-        # FIXME should we version this, maybe append a timestamp?
-        node_config_data = "/var/lib/koan/config/localconfig.json"
+        node_config_data = KOAN_CONF_DIR + 'localconfig.json'
+        if os.path.isfile(node_config_data):
+            timestamp = utils.generate_timestamp()
+            old_node_config_data = timestamp + "localconfig.json"
+            shutil.copyfile(node_config_data, old_node_config_data)
         f = open(node_config_data, 'w')
         f.write(config)
         f.close()
