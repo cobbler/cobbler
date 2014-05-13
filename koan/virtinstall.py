@@ -29,7 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import re
 import shlex
-
 from . import utils
 from cexceptions import InfoException
 

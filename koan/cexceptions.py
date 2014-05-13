@@ -20,22 +20,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import exceptions
 
-
-class CobblerException(exceptions.Exception):
+class KoanException(Exception):
 
     def __init__(self, value, *args):
         self.value = value % args
         # this is a hack to work around some odd exception handling
         # in older pythons
-        self.from_cobbler = 1
+        self.from_koan = 1
 
     def __str__(self):
         return repr(self.value)
 
 
-class InfoException(exceptions.Exception):
+class KX(KoanException):
+    pass
+
+
+class FileNotFoundException(KoanException):
+    pass
+
+
+class InfoException(Exception):
     """
     Custom exception for tracking of fatal errors.
     """
@@ -48,9 +54,9 @@ class InfoException(exceptions.Exception):
         return repr(self.value)
 
 
-class CX(CobblerException):
+class VirtCreateException(Exception):
     pass
 
 
-class FileNotFoundException(CobblerException):
+class OVZCreateException(Exception):
     pass

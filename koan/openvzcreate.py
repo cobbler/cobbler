@@ -20,11 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-import exceptions
-
-
-class OVZCreateException(exceptions.Exception):
-    pass
+from cexceptions import OVZCreateException
 
 
 def start_install(*args, **kwargs):
