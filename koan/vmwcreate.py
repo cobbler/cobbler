@@ -23,8 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import random
-import exceptions
-import app as koan
+from cexceptions import VirtCreateException, InfoException
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"
@@ -59,10 +58,6 @@ displayName = "%(IMAGE_NAME)s"
 memsize = "%(MEMORY)s"
 """
 # ide1:0.filename = "%(PATH_TO_ISO)s"
-
-
-class VirtCreateException(exceptions.Exception):
-    pass
 
 
 def random_mac():
@@ -137,7 +132,7 @@ def start_install(name=None,
                   qemu_net_type=None):
 
     if "file" in profile_data:
-        raise koan.InfoException("vmware does not work with --image yet")
+        raise InfoException("vmware does not work with --image yet")
 
     mac = None
     if "interfaces" not in profile_data:

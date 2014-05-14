@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import traceback
 import tempfile
-from cexceptions import CX, InfoException
 import urllib2
 import subprocess
 import shutil
@@ -34,6 +33,7 @@ import string
 import urlgrabber
 import ethtool
 import time
+from cexceptions import KX, InfoException
 
 VIRT_STATE_NAME_MAP = {
     0: "running",
@@ -335,7 +335,7 @@ def os_release():
                 return (make, float(t))
             except ValueError:
                 pass
-        raise CX("failed to detect local OS version from /etc/redhat-release")
+        raise KX("failed to detect local OS version from /etc/redhat-release")
 
     elif check_dist() == "debian":
         import lsb_release
