@@ -37,8 +37,8 @@ class HardLinker:
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
-        self.distro = utils.check_dist()
-        if self.distro == "ubuntu" or self.distro == "debian":
+        self.family = utils.get_family()
+        if self.family == "debian":
             self.hardlink = "/usr/bin/hardlink"
             self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror"
         else:

@@ -965,6 +965,24 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
         if rc != 0:
             raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
 
+def get_family():
+    """
+    Get family of running operating system.
+
+    Family is the base Linux distribution of a Linux distribution, with a set of common
+    """
+
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos")
+
+    dist = check_dist()
+    for item in redhat_list:
+        if item in dist:
+            return "redhat"
+    if dist in ("debian", "ubuntu"):
+        return "debian"
+    if "suse" in dist:
+        return "suse"
+    return dist
 
 def check_dist():
     """
@@ -978,7 +996,9 @@ def check_dist():
 
 
 def os_release():
-    if re.match("red ?hat|fedora|centos|scientific linux", check_dist()):
+
+    family = get_family()
+    if family == "redhat":
         fh = open("/etc/redhat-release")
         data = fh.read().lower()
         if data.find("fedora") != -1:
@@ -997,15 +1017,18 @@ def os_release():
                 pass
         raise CX("failed to detect local OS version from /etc/redhat-release")
 
-    elif check_dist() == "debian":
-        import lsb_release
-        release = lsb_release.get_distro_information()['RELEASE']
-        return ("debian", release)
-    elif check_dist() == "ubuntu":
-        version = subprocess_get(None, "lsb_release --release --short").rstrip()
-        make = "ubuntu"
-        return (make, float(version))
-    elif (re.match("suse", check_dist())) or (re.match("opensuse", check_dist())):
+    elif family == "debian":
+        distro = check_dist()
+        if distro == "debian":
+            import lsb_release
+            release = lsb_release.get_distro_information()['RELEASE']
+            return ("debian", release)
+        elif distro == "ubuntu":
+            version = subprocess_get(None, "lsb_release --release --short").rstrip()
+            make = "ubuntu"
+            return (make, float(version))
+
+    elif family == "suse":
         fd = open("/etc/SuSE-release")
         for line in fd.read().split("\n"):
             if line.find("VERSION") != -1:

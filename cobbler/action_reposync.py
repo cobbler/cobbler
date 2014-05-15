@@ -191,7 +191,7 @@ class RepoSync:
                     mdoptions.append("-g %s" % groupmdfile)
                 if "prestodelta" in rmd.repoData:
                     # need createrepo >= 0.9.7 to add deltas
-                    if utils.check_dist() in ("redhat", "fedora", "centos", "scientific linux", "suse", "opensuse"):
+                    if utils.get_family() in ("redhat", "suse"):
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
                         createrepo_ver = utils.subprocess_get(self.logger, cmd)
                         if createrepo_ver >= "0.9.7":

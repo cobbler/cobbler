@@ -58,9 +58,10 @@ def regen_ss_file():
     os.close(fd)
 
     http_user = "apache"
-    if utils.check_dist() in ["debian", "ubuntu"]:
+    family = utils.get_family()
+    if family == "debian":
         http_user = "www-data"
-    elif utils.check_dist() in ["suse", "opensuse"]:
+    elif family == "suse":
         http_user = "wwwrun"
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 

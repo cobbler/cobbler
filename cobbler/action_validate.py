@@ -90,7 +90,7 @@ class Validate:
 
         server = blended["server"]
         if not ks.startswith("/"):
-            url = self.kickstart
+            url = ks
         else:
             if is_profile:
                 url = "http://%s/cblr/svc/op/ks/profile/%s" % (server, obj.name)
