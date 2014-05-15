@@ -1002,7 +1002,7 @@ def os_release():
         release = lsb_release.get_distro_information()['RELEASE']
         return ("debian", release)
     elif check_dist() == "ubuntu":
-        version = subprocess.check_output(("lsb_release", "--release", "--short")).rstrip()
+        version = subprocess_get(None, "lsb_release --release --short").rstrip()
         make = "ubuntu"
         return (make, float(version))
     elif (re.match("suse", check_dist())) or (re.match("opensuse", check_dist())):
@@ -1575,8 +1575,8 @@ def safe_filter(var):
 def is_selinux_enabled():
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
-    args = "/usr/sbin/selinuxenabled"
-    selinuxenabled = subprocess.call(args, close_fds=True)
+    cmd = "/usr/sbin/selinuxenabled"
+    selinuxenabled = subprocess_call(None, cmd)
     if selinuxenabled == 0:
         return True
     else:
@@ -1777,7 +1777,7 @@ def os_system(cmd):
     os.system doesn't close file descriptors, so this is a wrapper
     to ensure we never use it.
     """
-    rc = subprocess.call(cmd, shell=True, close_fds=True)
+    rc = subprocess_call(None, cmd)
     return rc
 
 
