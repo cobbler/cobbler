@@ -748,19 +748,15 @@ def flatten(data):
     return data
 
 
-def uniquify(seq, idfun=None):
+def uniquify(seq):
     # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
     # FIXME: if this is actually slower than some other way, overhaul it
-    if idfun is None:
-        def idfun(x):
-            return x
     seen = {}
     result = []
     for item in seq:
-        marker = idfun(item)
-        if marker in seen:
+        if item in seen:
             continue
-        seen[marker] = 1
+        seen[item] = 1
         result.append(item)
     return result
 
