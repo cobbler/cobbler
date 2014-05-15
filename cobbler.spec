@@ -62,7 +62,6 @@ Requires: createrepo
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
-Requires: python-dns
 Requires: rsync
 Requires: syslinux
 Requires: yum-utils
@@ -138,8 +137,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 # cobbler
-rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler.conf
-
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd_rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/cobblerd
 
@@ -148,7 +145,6 @@ mkdir -p $RPM_BUILD_ROOT%{tftp_dir}/images
 %if 0%{?rhel} == 6
 # sysvinit
 mkdir -p %{_sysconfdir}/init.d
-mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service
 %else
 # systemd
@@ -157,9 +153,6 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 %endif
-
-# cobbler-web
-rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
 # koan
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
@@ -271,9 +264,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/cobbler
 %{python_sitelib}/cobbler*.egg-info
 %exclude %{python_sitelib}/koan
+%exclude %{python_sitelib}/cobbler/modules/nsupdate*
+
 
 # configuration
 %config(noreplace) %{_sysconfdir}/cobbler
+%exclude %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %dir %{apache_etc}
 %dir %{apache_etc}/conf.d
@@ -404,6 +401,27 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 /usr/share/cobbler/web
 %dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
 %endif
+
+# 
+# package: cobbler-nsupdate
+#
+
+%package -n cobbler-nsupdate
+
+Summary: module for dynamic dns updates
+Group: Applications/System
+Requires: cobbler
+Requires: python-dns
+
+%description -n cobbler-nsupdate
+Cobbler module providing secure dynamic dns updates
+
+%files -n cobbler-nsupdate
+%defattr(-,root,root,-)
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%{python_sitelib}/cobbler/modules/nsupdate*
+
+%doc AUTHORS COPYING README
 
 
 %changelog

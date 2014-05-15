@@ -7,6 +7,7 @@ etc/cobbler/power
 etc/cobbler/pxe
 etc/cobbler/reporting
 etc/cobbler/zone_templates
+etc/cobbler/settings.d
 var/log/cobbler/anamon
 var/log/cobbler/kicklog
 var/log/cobbler/syslog
