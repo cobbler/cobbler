@@ -1067,7 +1067,7 @@ class BootAPI:
     # ==========================================================================
 
     def get_kickstart_templates(self):
-        return utils.get_kickstar_templates(self)
+        return utils.get_kickstart_templates(self)
 
     # ==========================================================================
 
