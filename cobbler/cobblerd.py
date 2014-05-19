@@ -31,9 +31,6 @@ import api as cobbler_api
 import remote
 
 
-def main():
-    core(logger=None)
-
 
 def core(api):
     bootapi = api
