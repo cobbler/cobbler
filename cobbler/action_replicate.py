@@ -328,7 +328,7 @@ class Replicate:
         elif len(self.settings.cobbler_master) > 0:
             self.master = self.settings.cobbler_master
         else:
-            utils.die('No cobbler master specified, try --master.')
+            utils.die(self.logger, 'No cobbler master specified, try --master.')
 
         self.uri = '%s://%s/cobbler_api' % (protocol, self.master)
 

@@ -304,7 +304,7 @@ class RepoSync:
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            utils.die("rhn:// repos do not work with --mirror-locally=1")
+            utils.die(self.logger, "rhn:// repos do not work with --mirror-locally=1")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
