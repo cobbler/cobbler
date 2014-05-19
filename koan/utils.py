@@ -260,11 +260,12 @@ def nfsmount(input_path):
     print "after install completes, you may unmount and delete %s" % tempdir
     return (tempdir, filename)
 
-
-def find_vm(conn, vmid):
+def get_vms(conn):
     """
-    Extra bonus feature: vmid = -1 returns a list of everything
-    This function from Func:  fedorahosted.org/func
+    Get virtual machines
+
+    @param ? conn
+    @return list virtual machines
     """
 
     vms = []
@@ -282,9 +283,15 @@ def find_vm(conn, vmid):
         vm = conn.lookupByName(name)
         vms.append(vm)
 
-    if vmid == -1:
-        return vms
+    return vms
 
+def find_vm(conn, vmid):
+    """
+    Extra bonus feature: vmid = -1 returns a list of everything
+    This function from Func:  fedorahosted.org/func
+    """
+
+    vms = get_vms(conn)
     for vm in vms:
         if vm.name() == vmid:
             return vm
