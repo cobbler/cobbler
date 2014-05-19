@@ -109,6 +109,16 @@ class System(item.Item):
     TYPE_NAME = _("system")
     COLLECTION_TYPE = "system"
 
+    def __init__(self, *args, **kwargs):
+        super(System, self).__init__(*args, **kwargs)
+        self.interfaces = dict()
+        self.kernel_options = {}
+        self.kernel_options_post = {}
+        self.ks_meta = {}
+        self.fetchable_files = {}
+        self.boot_files = {}
+        self.template_files = {}
+
     def get_fields(self):
         return FIELDS
 

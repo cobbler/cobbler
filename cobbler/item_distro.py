@@ -122,9 +122,14 @@ class Distro(item.Item):
     COLLECTION_TYPE = "distro"
 
     def __init__(self, *args, **kwargs):
-        item.Item.__init__(self, *args, **kwargs)
+        super(Distro, self).__init__(*args, **kwargs)
+        self.kernel_options = {}
+        self.kernel_options_post = {}
         self.ks_meta = {}
         self.source_repos = []
+        self.fetchable_files = {}
+        self.boot_files = {}
+        self.template_files = {}
 
     def make_clone(self):
         ds = self.to_datastruct()
