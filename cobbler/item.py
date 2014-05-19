@@ -69,6 +69,14 @@ class Item(object):
         self.last_cached_mtime = 0
         self.cached_datastruct = ""
 
+    def get_fields(self):
+        """
+        Get serializable fields
+        Must be defined in any subclass
+        """
+
+        raise exceptions.NotImplementedError()
+
     def clear(self, is_subobject=False):
         """
         Reset this object.
