@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 
 import os
-import random
 from cexceptions import VirtCreateException, InfoException
 
 IMAGE_DIR = "/var/lib/vmware/images"
@@ -59,20 +58,6 @@ memsize = "%(MEMORY)s"
 """
 # ide1:0.filename = "%(PATH_TO_ISO)s"
 
-
-def random_mac():
-    """
-    from xend/server/netif.py
-    Generate a random MAC address.
-    Uses OUI 00-50-56, allocated to
-    VMWare. Last 3 fields are random.
-    return: MAC address string
-    """
-    mac = [0x00, 0x50, 0x56,
-           random.randint(0x00, 0x3f),
-           random.randint(0x00, 0xff),
-           random.randint(0x00, 0xff)]
-    return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
 def make_disk(disksize, image):
