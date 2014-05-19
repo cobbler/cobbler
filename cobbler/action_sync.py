@@ -208,7 +208,7 @@ class BootSync:
 
     def sync_dhcp(self):
         restart_dhcp = str(self.settings.restart_dhcp).lower()
-        which_dhcp_module = module_loader.get_module_from_file("dhcp", "module", just_name=True).strip()
+        which_dhcp_module = module_loader.get_module_name("dhcp", "module").strip()
 
         if self.settings.manage_dhcp:
             self.write_dhcp()
