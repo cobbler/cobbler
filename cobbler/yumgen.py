@@ -56,7 +56,7 @@ class YumGen:
 
         # chance old versions from upgrade do not have a source_repos
         # workaround for user bug
-        if not "source_repos" in blended:
+        if "source_repos" not in blended:
             blended["source_repos"] = []
 
         # tack on all the install source repos IF there is more than one.
@@ -66,13 +66,13 @@ class YumGen:
         included = {}
         for r in blended["source_repos"]:
             filename = self.settings.webdir + "/" + "/".join(r[0].split("/")[4:])
-            if not filename in included:
+            if filename not in included:
                 input_files.append(filename)
             included[filename] = 1
 
         for repo in blended["repos"]:
             path = os.path.join(self.settings.webdir, "repo_mirror", repo, "config.repo")
-            if not path in included:
+            if path not in included:
                 input_files.append(path)
             included[path] = 1
 
