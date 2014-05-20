@@ -133,7 +133,7 @@ class DnsmasqManager:
                 if dhcp_tag == "":
                     dhcp_tag = "default"
 
-                if not dhcp_tag in system_definitions:
+                if dhcp_tag not in system_definitions:
                     system_definitions[dhcp_tag] = ""
                 system_definitions[dhcp_tag] = system_definitions[dhcp_tag] + systxt
 
