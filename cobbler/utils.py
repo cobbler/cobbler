@@ -1132,8 +1132,7 @@ def cachefile(src, dst, api=None, logger=None):
         copyfile(src, cachefile, api=api, logger=logger)
 
     logger.debug("trying cachelink %s -> %s -> %s" % (src, cachefile, dst))
-    rc = os.link(cachefile, dst)
-    return rc
+    os.link(cachefile, dst)
 
 
 def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
@@ -1159,7 +1158,7 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
                     logger.info("removing: %s" % dst)
                 os.remove(dst)
             else:
-                return True
+                return
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
             if logger is not None:
@@ -1172,8 +1171,8 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         try:
             if logger is not None:
                 logger.info("trying hardlink %s -> %s" % (src, dst))
-            rc = os.link(src, dst)
-            return rc
+            os.link(src, dst)
+            return
         except (IOError, OSError):
             # hardlink across devices, or link already exists
             # we'll just symlink it if we can
@@ -1186,27 +1185,27 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         try:
             if logger is not None:
                 logger.info("trying symlink %s -> %s" % (src, dst))
-            rc = os.symlink(src, dst)
-            return rc
+            os.symlink(src, dst)
+            return
         except (IOError, OSError):
             pass
 
     if cache:
         try:
-            return cachefile(src, dst, api=api, logger=logger)
+            cachefile(src, dst, api=api, logger=logger)
+            return
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
-    return copyfile(src, dst, api=api, logger=logger)
+    copyfile(src, dst, api=api, logger=logger)
 
 
 def copyfile(src, dst, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst))
-        rc = shutil.copyfile(src, dst)
-        return rc
+        shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
             raise CX(_("Cannot read: %s") % src)
