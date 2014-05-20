@@ -6,7 +6,7 @@ import time
 import glob as _glob
 
 from distutils.core import setup, Command
-from distutils.command.build   import build as _build
+from distutils.command.build import build as _build
 from distutils.command.install import install as _install
 from distutils.command.build_py import build_py as _build_py
 from distutils import log
@@ -46,7 +46,7 @@ def glob(*args, **kwargs):
                     pass
                 else:
                     # We only handle directories if recursive was specified
-                    if recursive == True:
+                    if recursive:
                         results.extend(
                             # Add the basename of arg (the pattern) to elem and continue
                             glob(
@@ -435,7 +435,7 @@ class statebase(Command):
     user_options = [
         ('statepath=', None, 'directory to backup configuration'),
         ('root=', None, 'install everything relative to this alternate root directory')
-        ]
+    ]
 
     def initialize_options(self):
         self.statepath = statepath
@@ -629,24 +629,24 @@ if __name__ == "__main__":
             ("%scobbler/aux" % webroot, glob("aux/*")),
             # Configuration
             ("%s" % etcpath, ["build/config/cobbler.conf",
-                                "build/config/cobbler_web.conf",
-                                "build/config/cobblerd",
-                                "build/config/cobblerd.service",
-                                "build/config/settings"]),
+                              "build/config/cobbler_web.conf",
+                              "build/config/cobblerd",
+                              "build/config/cobblerd.service",
+                              "build/config/settings"]),
             ("%ssettings.d" % etcpath, glob("config/settings.d/*")),
             ("%s" % etcpath, ["config/auth.conf",
-                                 "config/cheetah_macros",
-                                 "config/cobbler_bash",
-                                 "config/cobblerd_rotate",
-                                 "config/completions",
-                                 "config/distro_signatures.json",
-                                 "config/import_rsync_whitelist",
-                                 "config/modules.conf",
-                                 "config/mongodb.conf",
-                                 "config/rsync.exclude",
-                                 "config/users.conf",
-                                 "config/users.digest",
-                                 "config/version"]),
+                              "config/cheetah_macros",
+                              "config/cobbler_bash",
+                              "config/cobblerd_rotate",
+                              "config/completions",
+                              "config/distro_signatures.json",
+                              "config/import_rsync_whitelist",
+                              "config/modules.conf",
+                              "config/mongodb.conf",
+                              "config/rsync.exclude",
+                              "config/users.conf",
+                              "config/users.digest",
+                              "config/version"]),
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%spxe" % etcpath, glob("templates/pxe/*")),
