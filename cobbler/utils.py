@@ -214,7 +214,7 @@ def get_config_filename(sys, interface):
     """
 
     interface = str(interface)
-    if not interface in sys.interfaces:
+    if interface not in sys.interfaces:
         return None
 
     if sys.name == "default":
@@ -619,7 +619,7 @@ def blender(api_handle, remove_hashes, root_obj):
     if arch.startswith("s390"):
         keyz = settings.kernel_options_s390x.keys()
         for k in keyz:
-            if not k in results:
+            if k not in results:
                 results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # Get topmost object to determine which breed we're dealing with
@@ -654,7 +654,7 @@ def blender(api_handle, remove_hashes, root_obj):
                     # prevent stomping on profile variables, which really only happens
                     # with the way we check for virt_bridge, which is a profile setting
                     # and an interface setting
-                    if not key in results:
+                    if key not in results:
                         results[key] = interface[key]
 
     # if the root object is a profile or system, add in all
@@ -826,7 +826,7 @@ def __consolidate(node, results):
 
 
 def hash_removals(results, subkey):
-    if not subkey in results:
+    if subkey not in results:
         return
     scan = results[subkey].keys()
     for k in scan:
@@ -867,7 +867,7 @@ def rsync_files(src, dst, args, logger=None, quiet=True):
     by args are appended to the command
     """
 
-    if args == None:
+    if args is None:
         args = ''
 
     RSYNC_CMD = "rsync -a %%s '%%s' %%s %s --exclude-from=/etc/cobbler/rsync.exclude" % args
@@ -1301,10 +1301,10 @@ def set_os_version(self, os_version):
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
-    if not self.breed in get_valid_breeds():
+    if self.breed not in get_valid_breeds():
         raise CX(_("fix --breed first before applying this setting"))
     matched = SIGNATURE_CACHE["breeds"][self.breed]
-    if not os_version in matched:
+    if os_version not in matched:
         nicer = ", ".join(matched)
         raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
     self.os_version = os_version
@@ -1327,7 +1327,7 @@ def set_repo_os_version(self, os_version):
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
-    if not self.breed in codes.VALID_REPO_BREEDS:
+    if self.breed not in codes.VALID_REPO_BREEDS:
         raise CX(_("fix --breed first before applying this setting"))
     self.os_version = os_version
     return True
@@ -1602,16 +1602,16 @@ class MntEntObj(object):
 
     def __init__(self, input=None):
         if input and isinstance(input, basestring):
-            (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts, \
+            (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
     def __dict__(self):
-        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, \
-                "mnt_type": self.mnt_type, "mnt_opts": self.mnt_opts, \
+        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir,
+                "mnt_type": self.mnt_type, "mnt_opts": self.mnt_opts,
                 "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
 
     def __str__(self):
-        return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type, \
+        return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type,
                                       self.mnt_opts, self.mnt_freq, self.mnt_passno)
 
 
