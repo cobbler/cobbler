@@ -185,7 +185,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path, logger=self.logger)
             if os.path.isdir(path):
-                if not x in ["aux", "web", "webui", "localmirror", "repo_mirror", "ks_mirror", "images", "links", "pub", "repo_profile", "repo_system", "svc", "rendered", ".link_cache"]:
+                if x not in ["aux", "web", "webui", "localmirror", "repo_mirror", "ks_mirror", "images", "links", "pub", "repo_profile", "repo_system", "svc", "rendered", ".link_cache"]:
                     # delete directories that shouldn't exist
                     utils.rmtree(path, logger=self.logger)
                 if x in ["kickstarts", "kickstarts_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
@@ -263,8 +263,8 @@ class BootSync:
             distros.append(distro)
 
         repos = [repo.name for repo in self.api.repos()
-                  if os.path.isdir(os.path.join(self.settings.webdir, "repo_mirror", repo.name))
-                  ]
+                   if os.path.isdir(os.path.join(self.settings.webdir, "repo_mirror", repo.name))
+        ]
 
         metadata = {
            "date": time.asctime(time.gmtime()),
