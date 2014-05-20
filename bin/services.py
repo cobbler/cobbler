@@ -104,7 +104,7 @@ def application(environ, start_response):
         print("content not found: %s" % my_uri)
         status = "404 NOT FOUND"
 
- #   req.content_type = "text/plain;charset=utf-8"
+    # req.content_type = "text/plain;charset=utf-8"
     response_headers = [('Content-type', 'text/plain;charset=utf-8'),
                         ('Content-Length', str(len(content)))]
     start_response(status, response_headers)
