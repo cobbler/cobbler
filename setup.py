@@ -628,11 +628,9 @@ if __name__ == "__main__":
             ("%sloaders" % libpath, []),
             ("%scobbler/aux" % webroot, glob("aux/*")),
             #Configuration
-            ("%s" % etcpath, ["build/config/cobbler.conf",
-                                "build/config/cobbler_web.conf",
-                                "build/config/cobblerd",
-                                "build/config/cobblerd.service",
+            ("%s" % etcpath, [  "build/config/cobblerd.service",
                                 "build/config/settings"]),
+            ("%ssettings.d" % etcpath, glob("config/settings.d/*")),
             ("%s" % etcpath, ["config/auth.conf",
                                  "config/cheetah_macros",
                                  "config/cobbler_bash",
