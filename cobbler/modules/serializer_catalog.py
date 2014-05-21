@@ -174,8 +174,8 @@ def deserialize_raw(collection_type):
         # include support
         for ival in datastruct.get("include", []):
             for ifile in glob.glob(ival):
-                with open(ifile,'r') as fd:
-                    datastruct.update( yaml.safe_load(fd.read()) )
+                with open(ifile, 'r') as fd:
+                    datastruct.update(yaml.safe_load(fd.read()))
 
         return datastruct
     else:
