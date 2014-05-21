@@ -150,7 +150,6 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd $RPM_BUILD_ROOT%{_sysconfdir}/
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service
 %else
 # systemd
-rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd
 rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
