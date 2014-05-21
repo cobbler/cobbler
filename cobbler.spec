@@ -137,6 +137,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 # cobbler
+rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler.conf
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd_rotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/cobblerd
 
@@ -145,6 +146,7 @@ mkdir -p $RPM_BUILD_ROOT%{tftp_dir}/images
 %if 0%{?rhel} == 6
 # sysvinit
 mkdir -p %{_sysconfdir}/init.d
+mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service
 %else
 # systemd
@@ -153,6 +155,9 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 %endif
+
+# cobbler-web
+rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
 # koan
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
