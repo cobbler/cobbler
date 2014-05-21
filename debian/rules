@@ -22,3 +22,9 @@ override_dh_auto_test:
 override_dh_auto_install:
 	python setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/
 
+override_dh_install:
+
+	rm $(CURDIR)/debian/tmp/etc/cobbler/settings.d/nsupdate*
+	rm $(CURDIR)/debian/tmp/usr/lib/python*/dist-packages/cobbler/modules/nsupdate*
+	dh_install
+

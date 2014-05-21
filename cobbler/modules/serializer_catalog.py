@@ -170,6 +170,13 @@ def deserialize_raw(collection_type):
         fd = open("/etc/cobbler/settings")
         datastruct = yaml.safe_load(fd.read())
         fd.close()
+
+        # include support
+        for ival in datastruct.get("include", []):
+            for ifile in glob.glob(ival):
+                with open(ifile, 'r') as fd:
+                    datastruct.update(yaml.safe_load(fd.read()))
+
         return datastruct
     else:
         results = []
