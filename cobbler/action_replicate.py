@@ -64,7 +64,7 @@ class Replicate:
         remotes = utils.loh_to_hoh(self.remote_data[obj_type], "uid")
 
         for (luid, ldata) in locals.iteritems():
-            if not luid in remotes:
+            if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
                     self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
@@ -257,7 +257,7 @@ class Replicate:
                 for pro in self.must_include["profile"].keys():
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
-                        if not parent in self.must_include["profile"]:
+                        if parent not in self.must_include["profile"]:
                             self.logger.debug("Adding parent profile %s for profile %s." % (parent, pro))
                             self.must_include["profile"][parent] = 1
                             loop_exit = False
