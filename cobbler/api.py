@@ -771,19 +771,19 @@ class BootAPI:
 
     def get_sync(self, verbose=False, logger=None):
         self.dhcp = self.get_module_from_file(
-           "dhcp",
-           "module",
-           "manage_isc"
+            "dhcp",
+            "module",
+            "manage_isc"
         ).get_manager(self._config, logger)
         self.dns = self.get_module_from_file(
-           "dns",
-           "module",
-           "manage_bind"
+            "dns",
+            "module",
+            "manage_bind"
         ).get_manager(self._config, logger)
         self.tftpd = self.get_module_from_file(
-           "tftpd",
-           "module",
-           "in_tftpd",
+            "tftpd",
+            "module",
+            "in_tftpd",
         ).get_manager(self._config, logger)
 
         return action_sync.BootSync(self._config, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
@@ -1023,7 +1023,11 @@ class BootAPI:
                   exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._config, logger=logger)
         return builder.run(
-           iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
+           iso=iso,
+           profiles=profiles, systems=systems,
+           buildisodir=buildisodir, distro=distro,
+           standalone=standalone, source=source,
+           exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
         )
 
     # ==========================================================================
@@ -1041,19 +1045,19 @@ class BootAPI:
         """
         replicator = action_replicate.Replicate(self._config, logger=logger)
         return replicator.run(
-              cobbler_master=cobbler_master,
-              distro_patterns=distro_patterns,
-              profile_patterns=profile_patterns,
-              system_patterns=system_patterns,
-              repo_patterns=repo_patterns,
-              image_patterns=image_patterns,
-              mgmtclass_patterns=mgmtclass_patterns,
-              package_patterns=package_patterns,
-              file_patterns=file_patterns,
-              prune=prune,
-              omit_data=omit_data,
-              sync_all=sync_all,
-              use_ssl=use_ssl
+            cobbler_master=cobbler_master,
+            distro_patterns=distro_patterns,
+            profile_patterns=profile_patterns,
+            system_patterns=system_patterns,
+            repo_patterns=repo_patterns,
+            image_patterns=image_patterns,
+            mgmtclass_patterns=mgmtclass_patterns,
+            package_patterns=package_patterns,
+            file_patterns=file_patterns,
+            prune=prune,
+            omit_data=omit_data,
+            sync_all=sync_all,
+            use_ssl=use_ssl
         )
 
     # ==========================================================================
