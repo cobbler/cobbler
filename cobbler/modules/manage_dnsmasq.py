@@ -140,11 +140,11 @@ class DnsmasqManager:
         # we are now done with the looping through each interface of each system
 
         metadata = {
-           "insert_cobbler_system_definitions": system_definitions.get("default", ""),
-           "date": time.asctime(time.gmtime()),
-           "cobbler_server": self.settings.server,
-           "next_server": self.settings.next_server,
-           "elilo": elilo
+            "insert_cobbler_system_definitions": system_definitions.get("default", ""),
+            "date": time.asctime(time.gmtime()),
+            "cobbler_server": self.settings.server,
+            "next_server": self.settings.next_server,
+            "elilo": elilo
         }
 
         # now add in other DHCP expansions that are not tagged with "default"
