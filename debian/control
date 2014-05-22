@@ -1,10 +1,10 @@
 Source: cobbler
 Section: admin
 Priority: optional
-Maintainer: Jasper Poppe <jpoppe@ebay.com>
+Maintainer: Jorgen Maas <jorgen.maas@gmail.com>
 Build-Depends: debhelper (>= 7), python-cheetah, python-yaml, git-core, python
 Standards-Version: 3.8.0
-Homepage: https://fedoraproject.org/cobbler
+Homepage: https://github.com/cobbler/cobbler
 
 Package: cobbler
 Architecture: all
