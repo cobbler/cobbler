@@ -309,11 +309,16 @@ class BootCheck:
         # FIXME: move zpxe.rexx to loaders
 
         bootloaders = {
-           "elilo": ["/var/lib/cobbler/loaders/elilo*.efi"],
-           "menu.c32": ["/usr/share/syslinux/menu.c32", "/usr/lib/syslinux/menu.c32", "/var/lib/cobbler/loaders/menu.c32"],
-           "yaboot": ["/var/lib/cobbler/loaders/yaboot*"],
-           "pxelinux.0": ["/usr/share/syslinux/pxelinux.0", "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0"],
-           "efi": ["/var/lib/cobbler/loaders/grub-x86.efi", "/var/lib/cobbler/loaders/grub-x86_64.efi"],
+            "elilo": ["/var/lib/cobbler/loaders/elilo*.efi"],
+            "menu.c32": ["/usr/share/syslinux/menu.c32",
+                         "/usr/lib/syslinux/menu.c32",
+                         "/var/lib/cobbler/loaders/menu.c32"],
+            "yaboot": ["/var/lib/cobbler/loaders/yaboot*"],
+            "pxelinux.0": ["/usr/share/syslinux/pxelinux.0",
+                           "/usr/lib/syslinux/pxelinux.0",
+                           "/var/lib/cobbler/loaders/pxelinux.0"],
+            "efi": ["/var/lib/cobbler/loaders/grub-x86.efi",
+                    "/var/lib/cobbler/loaders/grub-x86_64.efi"],
         }
 
         # look for bootloaders at the glob locations above
