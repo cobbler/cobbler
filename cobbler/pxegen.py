@@ -441,11 +441,17 @@ class PXEGen:
             distro = profile.get_conceptual_parent()
 
             if distro.name.find('nexenta') != -1:
-                contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False)
+                contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=profile, distro=distro, arch=distro.arch,
+                    include_header=False)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
-                grub_contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False, format="nexenta")
+                grub_contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=profile, distro=distro, arch=distro.arch,
+                    include_header=False, format="nexenta")
                 if grub_contents is not None:
                     grub_menu_items = grub_menu_items + grub_contents + "\n"
 
