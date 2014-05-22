@@ -74,7 +74,7 @@ DEFAULTS = {
     "isc_set_host_name": [0, "bool"],
     "iso_template_dir": ["/etc/cobbler/iso", "str"],
     "kerberos_realm": ["EXAMPLE.COM", "str"],
-    "kernel_options": [{"lang":" ", "text":None, "ksdevice": "eth0"}, "dict"],
+    "kernel_options": [{"lang": " ", "text": None, "ksdevice": "eth0"}, "dict"],
     "kernel_options_s390x": [{}, "dict"],
     "ldap_server": ["grimlock.devel.redhat.com", "str"],
     "ldap_base_dn": ["DC=devel,DC=redhat,DC=com", "str"],
@@ -137,8 +137,8 @@ DEFAULTS = {
 }
 
 FIELDS = [
-   ["name", "", "", "Name", True, "Ex: server", 0, "str"],
-   ["value", "", "", "Value", True, "Ex: 127.0.0.1", 0, "str"],
+    ["name", "", "", "Name", True, "Ex: server", 0, "str"],
+    ["value", "", "", "Value", True, "Ex: 127.0.0.1", 0, "str"],
 ]
 
 if os.path.exists("/srv/www/"):
