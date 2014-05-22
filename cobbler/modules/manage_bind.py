@@ -106,7 +106,7 @@ class BindManager:
         """
         zones = {}
         forward_zones = self.settings.manage_forward_zones
-        if type(forward_zones) != type([]):
+        if not isinstance(forward_zones, list):
             # gracefully handle when user inputs only a single zone
             # as a string instead of a list with only a single item
             forward_zones = [forward_zones]
@@ -171,7 +171,7 @@ class BindManager:
         """
         zones = {}
         reverse_zones = self.settings.manage_reverse_zones
-        if type(reverse_zones) != type([]):
+        if not isinstance(reverse_zones, list):
             # gracefully handle when user inputs only a single zone
             # as a string instead of a list with only a single item
             reverse_zones = [reverse_zones]
@@ -463,14 +463,14 @@ zone "%(arpa)s." {
         """
         default_template_file = "/etc/cobbler/zone.template"
         cobbler_server = self.settings.server
-        #this could be a config option too
+        # this could be a config option too
         serial_filename = "/var/lib/cobbler/bind_serial"
-        #need a counter for new bind format
+        # need a counter for new bind format
         serial = time.strftime("%Y%m%d00")
         try:
             serialfd = open(serial_filename, "r")
             old_serial = serialfd.readline()
-            #same date
+            # same date
             if serial[0:8] == old_serial[0:8]:
                 if int(old_serial[8:10]) < 99:
                     serial = "%s%.2i" % (serial[0:8], int(old_serial[8:10]) + 1)
