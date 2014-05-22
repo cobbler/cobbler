@@ -86,10 +86,10 @@ def run(api, args, logger):
 
     sendmail = True
     for prefix in settings.build_reporting_ignorelist:
-        if name.lower().startswith(prefix) == True:
+        if name.lower().startswith(prefix):
             sendmail = False
 
-    if sendmail == True:
+    if sendmail:
         # Send the mail
         # FIXME: on error, return non-zero
         server_handle = smtplib.SMTP(smtp_server)
