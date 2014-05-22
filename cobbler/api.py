@@ -124,8 +124,8 @@ class BootAPI:
             if not utils.load_signatures(self.settings().signature_path):
                 return
             else:
-                self.log("%d breeds and %d OS versions read from the signature file" % ( \
-                         len(utils.get_valid_breeds()), \
+                self.log("%d breeds and %d OS versions read from the signature file" % (
+                         len(utils.get_valid_breeds()),
                          len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(

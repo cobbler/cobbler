@@ -58,13 +58,13 @@ def main():
     op = optparse.OptionParser()
     op.set_defaults(daemonize=True, log_level=None)
     op.add_option('-B', '--daemonize', dest='daemonize', action='store_true',
-        help='run in background (default)')
+                  help='run in background (default)')
     op.add_option('-F', '--no-daemonize', dest='daemonize', action='store_false',
-        help='run in foreground (do not daemonize)')
+                  help='run in foreground (do not daemonize)')
     op.add_option('-f', '--log-file', dest='log_file', metavar='NAME',
-        help='file to log to')
+                  help='file to log to')
     op.add_option('-l', '--log-level', dest='log_level', metavar='LEVEL',
-        help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
+                  help='log level (ie. INFO, WARNING, ERROR, CRITICAL)')
 
     options, args = op.parse_args()
 

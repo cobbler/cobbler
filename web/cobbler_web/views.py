@@ -187,7 +187,7 @@ def get_fields(what, is_subobject, seed_item=None):
                         for l in y:
                             l = l.replace(" ", "\\ ")
                             tokens.append("%s=%s" % (x, l))
-                    elif y != None:
+                    elif y is not None:
                         tokens.append("%s" % x)
                 elem["value"] = " ".join(tokens)
 
@@ -296,7 +296,7 @@ def genlist(request, what, page=None):
         return login(request, next="/cobbler_web/%s/list" % what, expired=True)
 
     # get details from the session
-    if page == None:
+    if page is None:
         page = int(request.session.get("%s_page" % what, 1))
     limit = int(request.session.get("%s_limit" % what, 50))
     sort_field = request.session.get("%s_sort_field" % what, "name")
@@ -445,7 +445,7 @@ def generic_rename(request, what, obj_name=None, obj_newname=None):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/rename/%s/%s" % (what, obj_name, obj_newname), expired=True)
 
-    if obj_name == None:
+    if obj_name is None:
         return error_page(request, "You must specify a %s to rename" % what)
     if not remote.has_item(what, obj_name):
         return error_page(request, "Unknown %s specified" % what)
@@ -468,7 +468,7 @@ def generic_copy(request, what, obj_name=None, obj_newname=None):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/copy/%s/%s" % (what, obj_name, obj_newname), expired=True)
     # FIXME: shares all but one line with rename, merge it.
-    if obj_name == None:
+    if obj_name is None:
         return error_page(request, "You must specify a %s to rename" % what)
     if not remote.has_item(what, obj_name):
         return error_page(request, "Unknown %s specified" % what)
@@ -491,7 +491,7 @@ def generic_delete(request, what, obj_name=None):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/delete/%s" % (what, obj_name), expired=True)
     # FIXME: consolidate code with above functions.
-    if obj_name == None:
+    if obj_name is None:
         return error_page(request, "You must specify a %s to delete" % what)
     if not remote.has_item(what, obj_name):
         return error_page(request, "Unknown %s specified" % what)
@@ -681,7 +681,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
         editable = True
     deleteable = False
     ksdata = ""
-    if not ksfile_name is None:
+    if ksfile_name is not None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_kickstart", ksfile_name)
         deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
         ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
@@ -715,7 +715,7 @@ def ksfile_save(request):
     ksfile_name = request.POST.get('ksfile_name', None)
     ksdata = request.POST.get('ksdata', "").replace('\r\n', '\n')
 
-    if ksfile_name == None:
+    if ksfile_name is None:
         return HttpResponse("NO KSFILE NAME SPECIFIED")
     if editmode != 'edit':
         ksfile_name = "/var/lib/cobbler/kickstarts/" + ksfile_name
@@ -773,7 +773,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
         editable = True
     deleteable = False
     snippetdata = ""
-    if not snippet_name is None:
+    if snippet_name is not None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_snippet", snippet_name)
         deleteable = True
         snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
@@ -1074,7 +1074,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     While this is generally standardized, systems are a little bit special.
     """
     target = ""
-    if obj_name != None:
+    if obj_name is not None:
         target = "/%s" % obj_name
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/edit%s" % (what, target), expired=True)
@@ -1086,7 +1086,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         what = "profile"
         child = True
 
-    if not obj_name is None:
+    if obj_name is not None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_%s" % what, obj_name)
         obj = remote.get_item(what, obj_name, False)
     else:
@@ -1130,7 +1130,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     for field in fields:
         bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
-        if not fkey in sections:
+        if fkey not in sections:
             sections[fkey] = {}
             sections[fkey]['name'] = field['block_section']
             sections[fkey]['fields'] = []
@@ -1236,7 +1236,7 @@ def generic_save(request, what):
                         if single_value != "<<None>>":
                             value.insert(0, single_value)
 
-            if value != None:
+            if value is not None:
                 if value == "<<None>>":
                     value = ""
                 if value is not None and (not subobject or field['name'] != 'distro') and value != prev_value:

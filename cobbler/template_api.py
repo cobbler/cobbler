@@ -121,7 +121,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         kwargs['preprocessors'] = preprocessors
 
         # Instruct Cheetah to use this class as the base for all cheetah templates
-        if not 'baseclass' in kwargs:
+        if 'baseclass' not in kwargs:
             kwargs['baseclass'] = Template
 
         # Now let Cheetah do the actual compilation
@@ -143,7 +143,8 @@ class Template(BuiltinTemplate, MacrosTemplate):
         for snipclass in ('system', 'profile', 'distro'):
             if self.varExists('%s_name' % snipclass):
                 fullpath = '%s/per_%s/%s/%s' % (self.getVar('snippetsdir'),
-                    snipclass, file, self.getVar('%s_name' % snipclass))
+                                                snipclass, file,
+                                                self.getVar('%s_name' % snipclass))
                 try:
                     contents = utils.read_file_contents(fullpath, fetch_if_remote=True)
                     return contents
@@ -188,7 +189,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
             childList = self._CHEETAH__cheetahIncludes[snippet_contents].searchList()
             myList = self.searchList()
             for childElem in childList:
-                if not childElem in myList:
+                if childElem not in myList:
                     myList.append(childElem)
 
         return result
