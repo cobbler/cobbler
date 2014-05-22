@@ -69,12 +69,12 @@ class AclConfig:
         tftpboot = utils.tftpboot_location()
 
         PROCESS_DIRS = {
-           "/var/log/cobbler": "rwx",
-           "/var/log/cobbler/tasks": "rwx",
-           "/var/lib/cobbler": "rwx",
-           "/etc/cobbler": "rwx",
-           tftpboot: "rwx",
-           "/var/lib/cobbler/triggers": "rwx"
+            "/var/log/cobbler": "rwx",
+            "/var/log/cobbler/tasks": "rwx",
+            "/var/lib/cobbler": "rwx",
+            "/etc/cobbler": "rwx",
+            tftpboot: "rwx",
+            "/var/lib/cobbler/triggers": "rwx"
         }
         if not snipdir.startswith("/var/lib/cobbler/"):
             PROCESS_DIRS[snipdir] = "r"
