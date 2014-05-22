@@ -1197,6 +1197,14 @@ def generic_save(request, what):
             return error_page(request, "Could not create a new item %s, it already exists." % (obj_name))
         obj_id = remote.new_item(what, request.session['token'])
 
+    # system needs either profile or image to be set
+    # fail if both are not set
+    if what == "system":
+        profile = request.POST.getlist('profile')
+        image = request.POST.getlist('image')
+        if "<<None>>" in profile  and "<<None>>" in image:
+            return error_page(request, "Please provide either a valid profile or image for the system")
+
     # walk through our fields list saving things we know how to save
     fields = get_fields(what, subobject)
 
