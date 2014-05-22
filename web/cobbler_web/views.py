@@ -1203,7 +1203,7 @@ def generic_save(request, what):
         profile = request.POST.getlist('profile')
         image = request.POST.getlist('image')
         if "<<None>>" in profile  and "<<None>>" in image:
-            return error_page(request, "error")
+            return error_page(request, "Please provide either a valid profile or image for the system")
 
     # walk through our fields list saving things we know how to save
     fields = get_fields(what, subobject)
