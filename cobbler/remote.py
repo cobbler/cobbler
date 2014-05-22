@@ -62,10 +62,10 @@ EVENT_INFO = "notification"
 # for backwards compatibility with 1.6 and prev XMLRPC
 # do not remove!
 REMAP_COMPAT = {
-   "ksmeta": "ks_meta",
-   "kopts": "kernel_options",
-   "kopts_post": "kernel_options_post",
-   "netboot-enabled": "netboot_enabled"
+    "ksmeta": "ks_meta",
+    "kopts": "kernel_options",
+    "kopts_post": "kernel_options_post",
+    "netboot-enabled": "netboot_enabled"
 }
 
 
@@ -244,11 +244,13 @@ class CobblerXMLRPCInterface:
 
             if len(repos) > 0:
                 for name in repos:
-                    self.remote.api.reposync(tries=self.options.get("tries",
-                        3), name=name, nofail=nofail, logger=self.logger)
+                    self.remote.api.reposync(
+                        tries=self.options.get("tries", 3),
+                        name=name, nofail=nofail, logger=self.logger)
             else:
-                self.remote.api.reposync(tries=self.options.get("tries", 3),
-                        name=None, nofail=nofail, logger=self.logger)
+                self.remote.api.reposync(
+                    tries=self.options.get("tries", 3),
+                    name=None, nofail=nofail, logger=self.logger)
             return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
@@ -398,7 +400,7 @@ class CobblerXMLRPCInterface:
         Given a token returned from login, return the username
         that logged in with it.
         """
-        if not token in self.token_cache:
+        if token not in self.token_cache:
             raise CX("invalid token: %s" % token)
         else:
             return self.token_cache[token][1]
@@ -504,16 +506,16 @@ class CobblerXMLRPCInterface:
             next_page = None
 
         return (data, {
-                'page': page,
-                'prev_page': prev_page,
-                'next_page': next_page,
-                'pages': range(1, num_pages + 1),
-                'num_pages': num_pages,
-                'num_items': num_items,
-                'start_item': start_item,
-                'end_item': end_item,
-                'items_per_page': items_per_page,
-                'items_per_page_list': [10, 20, 50, 100, 200, 500],
+            'page': page,
+            'prev_page': prev_page,
+            'next_page': next_page,
+            'pages': range(1, num_pages + 1),
+            'num_pages': num_pages,
+            'num_items': num_items,
+            'start_item': start_item,
+            'end_item': end_item,
+            'items_per_page': items_per_page,
+            'items_per_page_list': [10, 20, 50, 100, 200, 500],
         })
 
     def __get_object(self, object_id):
@@ -877,7 +879,7 @@ class CobblerXMLRPCInterface:
         # support 1.6 field name exceptions for backwards compat
         attribute = REMAP_COMPAT.get(attribute, attribute)
         method = obj.remote_methods().get(attribute, None)
-        if method == None:
+        if method is None:
             # it's ok, the CLI will send over lots of junk we can't process
             # (like newname or in-place) so just go with it.
             return False
@@ -941,7 +943,7 @@ class CobblerXMLRPCInterface:
 
         self.check_access(token, "xedit_%s" % object_type, token)
 
-        if edit_type == "add" and not "clobber" in attributes:
+        if edit_type == "add" and "clobber" not in attributes:
             handle = 0
             try:
                 handle = self.get_item_handle(object_type, object_name)
@@ -998,7 +1000,7 @@ class CobblerXMLRPCInterface:
                     imods[modkey] = v
 
             if object_type == "system":
-                if not "delete_interface" in attributes and not "rename_interface" in attributes:
+                if "delete_interface" not in attributes and "rename_interface" not in attributes:
                     self.modify_system(handle, 'modify_interface', imods, token)
                 elif "delete_interface" in attributes:
                     self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
@@ -1298,7 +1300,7 @@ class CobblerXMLRPCInterface:
             return False
         systems = self.api.systems()
         obj = systems.find(name=name)
-        if obj == None:
+        if obj is None:
             # system not found!
             return False
         obj.set_netboot_enabled(0)
@@ -1325,7 +1327,7 @@ class CobblerXMLRPCInterface:
         # Find matching system record
         systems = self.api.systems()
         obj = systems.find(name=sys_name)
-        if obj == None:
+        if obj is None:
             # system not found!
             self._log("upload_log_data - WARNING - system '%s' not found in cobbler" % sys_name, token=token, name=sys_name)
 
@@ -1350,7 +1352,7 @@ class CobblerXMLRPCInterface:
                 if size != len(contents):
                     return False
 
-        #XXX - have an incoming dir and move after upload complete
+        # XXX - have an incoming dir and move after upload complete
         # SECURITY - ensure path remains under uploadpath
         tt = string.maketrans("/", "+")
         fn = string.translate(file, tt)
@@ -1378,7 +1380,7 @@ class CobblerXMLRPCInterface:
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
-                #truncate file
+                # truncate file
                 fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 try:
                     os.ftruncate(fd, 0)
@@ -1389,7 +1391,7 @@ class CobblerXMLRPCInterface:
                 os.lseek(fd, 0, 2)
             else:
                 os.lseek(fd, offset, 0)
-            #write contents
+            # write contents
             fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB, len(contents), 0, 2)
             try:
                 os.write(fd, contents)
@@ -1398,7 +1400,7 @@ class CobblerXMLRPCInterface:
                 fcntl.lockf(fd, fcntl.LOCK_UN, len(contents), 0, 2)
             if offset == -1:
                 if size is not None:
-                    #truncate file
+                    # truncate file
                     fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     try:
                         os.ftruncate(fd, size)
