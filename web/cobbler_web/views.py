@@ -39,8 +39,8 @@ def index(request):
 
     t = get_template('index.tmpl')
     html = t.render(RequestContext(request, {
-         'version': remote.extended_version(request.session['token'])['version'],
-         'username': username,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
     }))
     return HttpResponse(html)
 
@@ -167,7 +167,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
         # flatten hashes of all types, they can only be edited as text
         # as we have no HTML hash widget (yet)
-        if type(elem["value"]) == type({}):
+        if isinstance(elem["value"], dict):
             if elem["name"] == "mgmt_parameters":
                 #Render dictionary as YAML for Management Parameters field
                 tokens = []
@@ -210,7 +210,7 @@ def get_fields(what, is_subobject, seed_item=None):
         elem["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
 
         # flatten lists for those that aren't using select boxes
-        if type(elem["value"]) == type([]):
+        if isinstance(elem["value"], list):
             if elem["html_element"] != "select":
                 elem["value"] = string.join(elem["value"], sep=" ")
 
@@ -631,7 +631,7 @@ def import_run(request):
         "path": request.POST.get("path", ""),
         "breed": request.POST.get("breed", ""),
         "arch": request.POST.get("arch", "")
-        }
+    }
     remote.background_import(options, request.session['token'])
     return HttpResponseRedirect('/cobbler_web/task_created')
 
@@ -807,7 +807,7 @@ def snippet_save(request):
     snippet_name = request.POST.get('snippet_name', None)
     snippetdata = request.POST.get('snippetdata', "").replace('\r\n', '\n')
 
-    if snippet_name == None:
+    if snippet_name is None:
         return HttpResponse("NO SNIPPET NAME SPECIFIED")
     if editmode != 'edit':
         if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
@@ -842,9 +842,9 @@ def setting_list(request):
 
     t = get_template('settings.tmpl')
     html = t.render(RequestContext(request, {
-         'settings': results,
-         'version': remote.extended_version(request.session['token'])['version'],
-         'username': username,
+        'settings': results,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
     }))
     return HttpResponse(html)
 
@@ -857,7 +857,7 @@ def setting_edit(request, setting_name=None):
         return login(request, next="/cobbler_web/setting/edit/%s" % setting_name, expired=True)
 
     settings = remote.get_settings()
-    if not setting_name in settings:
+    if setting_name not in settings:
         return error_page(request, "Unknown setting: %s" % setting_name)
 
     cur_setting = {
@@ -870,7 +870,7 @@ def setting_edit(request, setting_name=None):
     for field in fields:
         bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
-        if not fkey in sections:
+        if fkey not in sections:
             sections[fkey] = {}
             sections[fkey]['name'] = field['block_section']
             sections[fkey]['fields'] = []
@@ -904,7 +904,7 @@ def setting_save(request):
         return error_page(request, "The setting name was not specified")
 
     settings = remote.get_settings()
-    if not setting_name in settings:
+    if setting_name not in settings:
         return error_page(request, "Unknown setting: %s" % setting_name)
 
     if remote.modify_setting(setting_name, setting_value, request.session['token']):
@@ -950,7 +950,7 @@ def eventlog(request, event=0):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/eventlog/%s" % str(event), expired=True)
     event_info = remote.get_events()
-    if not event in event_info:
+    if event not in event_info:
         return HttpResponse("event not found")
 
     data = event_info[event]
@@ -1202,7 +1202,7 @@ def generic_save(request, what):
     if what == "system":
         profile = request.POST.getlist('profile')
         image = request.POST.getlist('image')
-        if "<<None>>" in profile  and "<<None>>" in image:
+        if "<<None>>" in profile and "<<None>>" in image:
             return error_page(request, "Please provide either a valid profile or image for the system")
 
     # walk through our fields list saving things we know how to save
