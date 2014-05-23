@@ -68,6 +68,8 @@ REMAP_COMPAT = {
    "netboot-enabled": "netboot_enabled"
 }
 
+KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
+KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
 
 class CobblerThread(Thread):
     def __init__(self, event_id, remote, logatron, options):
@@ -1939,106 +1941,164 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sync")
         return self.api.sync()
 
-    def read_or_write_kickstart_template(self, kickstart_file, is_read, new_data, token):
+    def _validate_ks_template_path(self, path):
         """
-        Allows the web app to be used as a kickstart file editor.  For security
-        reasons we will only allow kickstart files to be edited if they reside in
-        /var/lib/cobbler/kickstarts/ or /etc/cobbler.  This limits the damage
-        doable by Evil who has a cobbler password but not a system password.
-        Also if living in /etc/cobbler the file must be a kickstart file.
+        Validate a kickstart template file path
+
+        @param str path kickstart template file path
         """
-        if is_read:
-            what = "read_kickstart_template"
-        else:
-            what = "write_kickstart_template"
 
-        self._log(what, name=kickstart_file, token=token)
-        self.check_access(token, what, kickstart_file, is_read)
+        if path.find("..") != -1 or not path.startswith("/"):
+            utils.die(self.logger, "Invalid kickstart template file location %s" % path)
 
-        if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
-            utils.die(self.logger, "tainted file location")
+        if not path.startswith(KICKSTART_TEMPLATE_BASE_DIR):
+            error = "Invalid kickstart template file location %s, it is not inside %s" % (path, KICKSTART_TEMPLATE_BASE_DIR)
+            utils.die(self.logger, error)
 
-        if not kickstart_file.startswith("/etc/cobbler/") and not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
-            utils.die(self.logger, "unable to view or edit kickstart in this location")
-
-        if kickstart_file.startswith("/etc/cobbler/"):
-            if not kickstart_file.endswith(".ks") and not kickstart_file.endswith(".cfg"):
-                # take care to not allow config files to be altered.
-                utils.die(self.logger, "this does not seem to be a kickstart file")
-            if not is_read and not os.path.exists(kickstart_file):
-                utils.die(self.logger, "new files must go in /var/lib/cobbler/kickstarts")
-
-        if is_read:
-            fileh = open(kickstart_file, "r")
-            data = fileh.read()
-            fileh.close()
-            return data
-        else:
-            if new_data == -1:
-                # delete requested
-                if not self.is_kickstart_in_use(kickstart_file, token):
-                    os.remove(kickstart_file)
-                else:
-                    utils.die(self.logger, "attempt to delete in-use file")
-            else:
-                fileh = open(kickstart_file, "w+")
-                fileh.write(new_data)
-                fileh.close()
-            return True
-
-    def read_or_write_snippet(self, snippet_file, is_read, new_data, token):
+    def read_kickstart_template_file(self, file_path, token):
         """
-        Allows the WebUI to be used as a snippet file editor.  For security
-        reasons we will only allow snippet files to be edited if they reside in
-        /var/lib/cobbler/snippets.
+        Read a kickstart template file
+
+        @param str file_path kickstart template file path
+        @param ? token
+        @return str file content
         """
-        # FIXME: duplicate code with kickstart view/edit
-        # FIXME: need to move to API level functions
 
-        if is_read:
-            what = "read_snippet"
+        what = "read_kickstart_template"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_template_path(file_path)
+
+        fileh = open(file_path, "r")
+        data = fileh.read()
+        fileh.close()
+
+        return data
+
+    def write_kickstart_template_file(self, file_path, data, token):
+        """
+        Write a kickstart template file
+
+        @param str file_path kickstart template file path
+        @param str data new file content
+        @param ? token
+        @return bool if operation was successful
+        """
+
+        what = "write_kickstart_template"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_template_path(file_path)
+
+        try:
+            utils.mkdir(os.path.dirname(file_path))
+        except:
+            utils.die(self.logger, "unable to create directory for kickstart template at %s" % file_path)
+
+        fileh = open(file_path, "w+")
+        fileh.write(data)
+        fileh.close()
+
+        return True
+
+    def remove_kickstart_template_file(self, file_path, token):
+        """
+        Remove a kickstart template file
+
+        @param str file_path kickstart template file path
+        @param ? token
+        @return bool if operation was successful
+        """
+
+        what = "write_kickstart_template"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_template_path(file_path)
+
+        if not self.is_kickstart_in_use(file_path, token):
+            os.remove(file_path)
         else:
-            what = "write_snippet"
+           utils.die(self.logger, "attempt to delete in-use file")
 
-        self._log(what, name=snippet_file, token=token)
-        self.check_access(token, what, snippet_file, is_read)
+        return True
 
-        if snippet_file.find("..") != -1 or not snippet_file.startswith("/"):
-            utils.die(self.logger, "tainted file location")
+    # FIXME: duplicated code for kickstart and snippet
+    # FIXME: need to move to API level functions
 
-        # FIXME: shouldn't we get snippetdir from the settings?
-        if not snippet_file.startswith("/var/lib/cobbler/snippets"):
-            utils.die(self.logger, "unable to view or edit snippet in this location")
+    def _validate_ks_snippet_path(self, path):
 
-        if is_read:
-            fileh = open(snippet_file, "r")
-            data = fileh.read()
-            fileh.close()
-            return data
-        else:
-            if new_data == -1:
-                # FIXME: no way to check if something is using it
-                os.remove(snippet_file)
-            else:
-                # path_part(a,b) checks for the path b to be inside path a. It is
-                # guaranteed to return either an empty string (meaning b is NOT inside
-                # a), or a path starting with '/'. If the path ends with '/' the sub-path
-                # is a directory so we don't write to it.
+        if path.find("..") != -1 or not path.startswith("/"):
+             utils.die(self.logger, "Invalid kickstart snippet file location %s" % path)
 
-                # FIXME: shouldn't we get snippetdir from the settings?
-                path_part = utils.path_tail("/var/lib/cobbler/snippets", snippet_file)
-                if path_part != "" and path_part[-1] != "/":
-                    try:
-                        utils.mkdir(os.path.dirname(snippet_file))
-                    except:
-                        utils.die(self.logger, "unable to create directory for snippet file: '%s'" % snippet_file)
-                    fileh = open(snippet_file, "w+")
-                    fileh.write(new_data)
-                    fileh.close()
-                else:
-                    utils.die(self.logger, "invalid snippet file specified: '%s'" % snippet_file)
-            return True
+        if not path.startswith(KICKSTART_SNIPPET_BASE_DIR):
+            error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, KICKSTART_SNIPPET_BASE_DIR)
+            utils.die(self.logger, error)
 
+    def read_kickstart_snippet_file(self, file_path, token):
+        """
+        Read a kickstart snippet file
+
+        @param str file_path kickstart snippet file path
+        @param ? token
+        @return str file content
+        """
+
+        what = "read_kickstart_snippet"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_snippet_path(file_path)
+
+        fileh = open(file_path, "r")
+        data = fileh.read()
+        fileh.close()
+
+        return data
+
+    def write_kickstart_snippet_file(self, file_path, data, token):
+        """
+        Write a kickstart snippet file
+
+        @param str file_path kickstart snippet file path
+        @param str data new file content
+        @param ? token
+        @return bool if operation was successful
+     """
+
+        what = "write_kickstart_snippet"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_snippet_path(file_path)
+
+        try:
+            utils.mkdir(os.path.dirname(file_path))
+        except:
+            utils.die(self.logger, "unable to create directory for snippet at %s" % file_path)
+
+        fileh = open(file_path, "w+")
+        fileh.write(data)
+        fileh.close()
+
+        return True
+
+    def remove_kickstart_snippet_file(self, file_path, token):
+        """
+        Remove a kickstart snippet file
+
+        @param str file_path kickstart snippet file path
+        @param ? token
+        @return bool if operation was successful
+        """
+
+        what = "write_kickstart_snippet"
+        self._log(what, name=file_path, token=token)
+        self.check_access(token, what, file_path, True)
+        self._validate_ks_snippet_path(file_path)
+
+        # FIXME: could check if snippet is in use
+        snippet_file_path = KICKSTART_SNIPPET_BASE_DIR + file_path
+        os.remove(file_path)
+
+        return True
 
     def power_system(self, object_id, power=None, token=None, user=None, password=None, logger=None):
         """
