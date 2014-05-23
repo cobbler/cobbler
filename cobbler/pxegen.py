@@ -755,6 +755,21 @@ class PXEGen:
 
         append_line = ""
         kopts = blended.get("kernel_options", dict())
+
+        # since network needs to be configured again (it was already in netboot) when kernel boots
+        # and we choose to do it dinamically, we need to set 'ksdevice' to one of
+        # the interfaces' MAC addresses in ppc systems.
+        # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
+        if system and arch and "ppc" in arch:
+            for intf in system.interfaces.keys():
+                # use first interface with defined IP and MAC, since these are required
+                # fields in a DHCP entry
+                mac_address = system.interfaces[intf]['mac_address']
+                ip_address = system.interfaces[intf]['ip_address']
+                if mac_address and ip_address:
+                    kopts['ksdevice'] = mac_address
+                    break
+
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line = ",%s" % kopts.pop("initrd")
