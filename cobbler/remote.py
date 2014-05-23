@@ -71,6 +71,7 @@ REMAP_COMPAT = {
 KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
 KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
 
+
 class CobblerThread(Thread):
     def __init__(self, event_id, remote, logatron, options):
         Thread.__init__(self)
@@ -2020,7 +2021,7 @@ class CobblerXMLRPCInterface:
         if not self.is_kickstart_in_use(file_path, token):
             os.remove(file_path)
         else:
-           utils.die(self.logger, "attempt to delete in-use file")
+            utils.die(self.logger, "attempt to delete in-use file")
 
         return True
 
@@ -2030,7 +2031,7 @@ class CobblerXMLRPCInterface:
     def _validate_ks_snippet_path(self, path):
 
         if path.find("..") != -1 or not path.startswith("/"):
-             utils.die(self.logger, "Invalid kickstart snippet file location %s" % path)
+            utils.die(self.logger, "Invalid kickstart snippet file location %s" % path)
 
         if not path.startswith(KICKSTART_SNIPPET_BASE_DIR):
             error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, KICKSTART_SNIPPET_BASE_DIR)
@@ -2098,7 +2099,7 @@ class CobblerXMLRPCInterface:
 
         # FIXME: could check if snippet is in use
         snippet_file_path = KICKSTART_SNIPPET_BASE_DIR + file_path
-        os.remove(file_path)
+        os.remove(snippet_file_path)
 
         return True
 
