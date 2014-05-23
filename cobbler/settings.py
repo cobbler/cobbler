@@ -258,7 +258,7 @@ class Settings:
         try:
             if name == "kernel_options":
                 # backwards compatibility -- convert possible string value to hash
-                (success, result) = utils.input_string_or_hash(self.__dict__[name], " ", allow_multiples=False)
+                (success, result) = utils.input_string_or_hash(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
             return self.__dict__[name]

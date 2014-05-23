@@ -23,8 +23,8 @@ def run(api, args, logger):
     restart_dhcp = str(settings.restart_dhcp).lower()
     restart_dns = str(settings.restart_dns).lower()
 
-    which_dhcp_module = module_loader.get_module_from_file("dhcp", "module", just_name=True).strip()
-    which_dns_module = module_loader.get_module_from_file("dns", "module", just_name=True).strip()
+    which_dhcp_module = module_loader.get_module_name("dhcp", "module").strip()
+    which_dns_module = module_loader.get_module_name("dns", "module").strip()
 
     # special handling as we don't want to restart it twice
     has_restarted_dnsmasq = False

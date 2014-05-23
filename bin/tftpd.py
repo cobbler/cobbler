@@ -61,7 +61,7 @@ import cobbler.templar
 import Cheetah      # need exception types
 
 from struct import pack, unpack
-from subprocess import Popen, PIPE, STDOUT, local_sock
+from subprocess import Popen, PIPE, STDOUT
 
 # Data/Defines
 TFTP_OPCODE_RRQ = 1
@@ -142,6 +142,8 @@ class RenderedFile:
         end = self.offset + size
         return self.data[self.offset:end]
 
+    def fileno(self):
+        return 0
 
 class Packet:
     """
@@ -998,7 +1000,7 @@ def new_req(sock, templar, fd, events):
         # this is the new_request handler.  (packet had better be an RRQ
         # request)
         if packet is None or packet.opcode != TFTP_OPCODE_RRQ:
-            local_sock.sendto(
+            sock.sendto(
                 ERRORPacket(2, "Unsupported initial request").marshall(), address)
             break
 

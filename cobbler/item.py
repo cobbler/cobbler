@@ -20,7 +20,7 @@ import pprint
 import fnmatch
 
 
-class Item:
+class Item(object):
 
     TYPE_NAME = "generic"
 
@@ -58,9 +58,24 @@ class Item:
         self.ctime = 0                  # to be filled in by collection class
         self.mtime = 0                  # to be filled in by collection class
         self.uid = ""                   # to be filled in by collection class
+        self.kernel_options = None
+        self.kernel_options_post = None
+        self.ks_meta = None
+        self.fetchable_files = None
+        self.boot_files = None
+        self.template_files = None
+        self.name = None
 
         self.last_cached_mtime = 0
         self.cached_datastruct = ""
+
+    def get_fields(self):
+        """
+        Get serializable fields
+        Must be defined in any subclass
+        """
+
+        raise exceptions.NotImplementedError()
 
     def clear(self, is_subobject=False):
         """
@@ -201,7 +216,7 @@ class Item:
             if inplace:
                 for key in value.keys():
                     if key.startswith("~"):
-                        del self.self.kernel_options_post[key[1:]]
+                        del self.kernel_options_post[key[1:]]
                     else:
                         self.kernel_options_post[key] = value[key]
             else:

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
+import random
 import traceback
 import tempfile
 import urllib2
@@ -259,11 +260,12 @@ def nfsmount(input_path):
     print "after install completes, you may unmount and delete %s" % tempdir
     return (tempdir, filename)
 
-
-def find_vm(conn, vmid):
+def get_vms(conn):
     """
-    Extra bonus feature: vmid = -1 returns a list of everything
-    This function from Func:  fedorahosted.org/func
+    Get virtual machines
+
+    @param ? conn
+    @return list virtual machines
     """
 
     vms = []
@@ -281,9 +283,15 @@ def find_vm(conn, vmid):
         vm = conn.lookupByName(name)
         vms.append(vm)
 
-    if vmid == -1:
-        return vms
+    return vms
 
+def find_vm(conn, vmid):
+    """
+    Extra bonus feature: vmid = -1 returns a list of everything
+    This function from Func:  fedorahosted.org/func
+    """
+
+    vms = get_vms(conn)
     for vm in vms:
         if vm.name() == vmid:
             return vm
@@ -560,6 +568,19 @@ def create_qemu_image_file(path, size, driver_type):
             "Image file create failed: %s" % string.join(cmd, " ")
         )
 
+def random_mac():
+    """
+    from xend/server/netif.py
+    Generate a random MAC address.
+    Uses OUI 00-50-56, allocated to
+    VMWare. Last 3 fields are random.
+    return: MAC address string
+    """
+    mac = [ 0x00, 0x50, 0x56,
+        random.randint(0x00, 0x3f),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff) ]
+    return ':'.join(map(lambda x: "%02x" % x, mac))
 
 def generate_timestamp():
     return str(int(time.time()))

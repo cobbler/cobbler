@@ -289,7 +289,7 @@ class TemplateIfParser(IfParser):
 
     def __init__(self, parser, *args, **kwargs):
         self.template_parser = parser
-        return super(TemplateIfParser, self).__init__(*args, **kwargs)
+        super(TemplateIfParser, self).__init__(*args, **kwargs)
 
     def create_var(self, value):
         return self.template_parser.compile_filter(value)

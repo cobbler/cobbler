@@ -101,7 +101,7 @@ def serialize_delete(obj, item):
 def deserialize_item_raw(collection_type, item_name):
     if not __connect():
         # FIXME: log error
-        return False
+        raise "Failed to connect"
     collection = mongodb[collection_type()]
     data = collection.find_one({'name': item_name})
     return data
@@ -120,7 +120,7 @@ def serialize(obj):
 def deserialize_raw(collection_type):
     if not __connect():
         # FIXME: log error
-        return False
+        raise "Failed to connect"
     collection = mongodb[collection_type]
     return collection.find()
 

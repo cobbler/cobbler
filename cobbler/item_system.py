@@ -109,6 +109,16 @@ class System(item.Item):
     TYPE_NAME = _("system")
     COLLECTION_TYPE = "system"
 
+    def __init__(self, *args, **kwargs):
+        super(System, self).__init__(*args, **kwargs)
+        self.interfaces = dict()
+        self.kernel_options = {}
+        self.kernel_options_post = {}
+        self.ks_meta = {}
+        self.fetchable_files = {}
+        self.boot_files = {}
+        self.template_files = {}
+
     def get_fields(self):
         return FIELDS
 
@@ -436,7 +446,7 @@ class System(item.Item):
         # be assumed to mean bonding slave/master
         interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "master", "slave", "na", ""]
         if type not in interface_types:
-            raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
+            raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
         if type == "na":
             type = ""
         elif type == "master":

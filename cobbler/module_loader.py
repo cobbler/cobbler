@@ -96,8 +96,17 @@ def load_modules(module_path=mod_path, blacklist=None):
 def get_module_by_name(name):
     return MODULE_CACHE.get(name, None)
 
+def get_module_name(category, field, fallback_module_name=None):
+    """
+    Get module name from configuration file
 
-def get_module_from_file(category, field, fallback_module_name=None, just_name=False):
+    @param string category field category in configuration file
+    @param string field field in configuration file
+    @param string fallback_module_name default value used if category/field is
+            not found in configuration file
+    @raise CX if unable to find configuration file
+    @return string module name
+    """
 
     try:
         value = cp.get(category, field)
@@ -106,9 +115,22 @@ def get_module_from_file(category, field, fallback_module_name=None, just_name=F
             value = fallback_module_name
         else:
             raise CX(_("Cannot find config file setting for: %s") % field)
-    if just_name:
-        return value
-    rc = MODULE_CACHE.get(value, None)
+    return value
+
+def get_module_from_file(category, field, fallback_module_name=None):
+    """
+    Get Python module, based on name defined in configuration file
+
+    @param string category field category in configuration file
+    @param string field field in configuration file
+    @param string fallback_module_name default value used if category/field is
+            not found in configuration file
+    @raise CX if unable to load Python module
+    @return module Python module
+    """
+
+    module_name = get_module_name(category, field, fallback_module_name)
+    rc = MODULE_CACHE.get(module_name, None)
     if rc is None:
         raise CX(_("Failed to load module for %s/%s") % (category, field))
     return rc

@@ -323,7 +323,7 @@ class build_man(Command):
             # Now create the manpage
             cmd = build_man._COMMAND % ('man', infile, outfile)
             if os.system(cmd):
-                log.announce("Creation of %s manpage failed." % man, log.ERROR)
+                self.announce("Creation of %s manpage failed." % man, log.ERROR)
                 exit(1)
 
 
