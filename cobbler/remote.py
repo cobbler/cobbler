@@ -556,13 +556,13 @@ class CobblerXMLRPCInterface:
         return self.get_item("image", name, flatten=flatten)
 
     def get_mgmtclass(self, name, flatten=False, token=None, **rest):
-        return self.get_mgmtclass("mgmtclass", name, flatten=flatten)
+        return self.get_item("mgmtclass", name, flatten=flatten)
 
     def get_package(self, name, flatten=False, token=None, **rest):
-        return self.get_package("package", name, flatten=flatten)
+        return self.get_item("package", name, flatten=flatten)
 
     def get_file(self, name, flatten=False, token=None, **rest):
-        return self.get_file("file", name, flatten=flatten)
+        return self.get_item("file", name, flatten=flatten)
 
     def get_items(self, what):
         """

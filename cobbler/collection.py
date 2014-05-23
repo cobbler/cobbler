@@ -58,6 +58,21 @@ class Collection:
         """
         raise exceptions.NotImplementedError
 
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
+        """
+        Remove an item from collection. This method must be overriden in any subclass.
+
+        @param str name item name
+        @param bool with_delete sync and run triggers
+        @param bool with_sync sync to server file system
+        @param bool with_triggers run "on delete" triggers
+        @param bool recursive recursively delete children
+        @param clogger logger
+        @raise exceptions.NotImplementedError
+        """
+
+        raise exceptions.NotImplementedError
+
     def clear(self):
         """
         Forget about objects in the collection.

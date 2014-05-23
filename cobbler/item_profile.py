@@ -74,6 +74,15 @@ class Profile(item.Item):
     TYPE_NAME = _("profile")
     COLLECTION_TYPE = "profile"
 
+    def __init__(self, *args, **kwargs):
+        super(Profile, self).__init__(*args, **kwargs)
+        self.kernel_options = {}
+        self.kernel_options_post = {}
+        self.ks_meta = {}
+        self.fetchable_files = {}
+        self.boot_files = {}
+        self.template_files = {}
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Profile(self.config)

@@ -56,6 +56,13 @@ class Repo(item.Item):
     TYPE_NAME = _("repo")
     COLLECTION_TYPE = "repo"
 
+    def __init__(self, *args, **kwargs):
+        super(Repo, self).__init__(*args, **kwargs)
+        self.breed = None
+        self.arch = None
+        self.environment = None
+        self.yumopts = None
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Repo(self.config)

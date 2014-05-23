@@ -191,7 +191,7 @@ class RepoSync:
                     mdoptions.append("-g %s" % groupmdfile)
                 if "prestodelta" in rmd.repoData:
                     # need createrepo >= 0.9.7 to add deltas
-                    if utils.check_dist() in ("redhat", "fedora", "centos", "scientific linux", "suse", "opensuse"):
+                    if utils.get_family() in ("redhat", "suse"):
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
                         createrepo_ver = utils.subprocess_get(self.logger, cmd)
                         if createrepo_ver >= "0.9.7":
@@ -304,7 +304,7 @@ class RepoSync:
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            utils.die("rhn:// repos do not work with --mirror-locally=1")
+            utils.die(self.logger, "rhn:// repos do not work with --mirror-locally=1")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")

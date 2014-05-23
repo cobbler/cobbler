@@ -1815,7 +1815,7 @@ class Koan:
             return None  # irrelevant
         if self.is_mac(self.system):
             return self.system.upper()
-        return self.random_mac()
+        return utils.random_mac()
 
     def calc_virt_uuid(self, data):
         # TODO: eventually we may want to allow some koan CLI

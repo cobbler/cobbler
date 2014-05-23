@@ -49,7 +49,7 @@ class BootCheck:
         (The CLI usage is "cobbler check" before "cobbler sync")
         """
         status = []
-        self.checked_dist = utils.check_dist()
+        self.checked_family = utils.get_family()
         self.check_name(status)
         self.check_selinux(status)
         if self.settings.manage_dhcp:
@@ -99,7 +99,7 @@ class BootCheck:
         return status
 
     def check_for_ksvalidator(self, status):
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if not os.path.exists("/usr/bin/ksvalidator"):
@@ -117,32 +117,19 @@ class BootCheck:
         if notes != "":
             notes = " (NOTE: %s)" % notes
         rc = 0
-        if self.checked_dist in (
-            "redhat",
-            "red hat enterprise linux server",
-            "fedora",
-            "centos",
-            "scientific linux",
-            "suse",
-            "opensuse"
-        ):
+        if self.checked_family in ("redhat", "suse"):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
                 return False
-        elif self.checked_dist in ["debian", "ubuntu"]:
+        elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
                 return False
-        elif self.checked_dist == "ubuntu":
-            if os.path.exists("/etc/init/%s.conf" % which):
-                rc = utils.subprocess_call(self.logger, "status %s > /dev/null 2>&1" % which, shell=True)
-            if rc != 0:
-                status.append(_("service %s is not running%s") % (which, notes))
         else:
             status.append(_("Unknown distribution type, cannot check for running service %s" % which))
             return False
@@ -155,7 +142,7 @@ class BootCheck:
                 status.append(_("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked") % {"xmlrpc": self.settings.xmlrpc_port})
 
     def check_yum(self, status):
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if not os.path.exists("/usr/bin/createrepo"):
@@ -165,15 +152,7 @@ class BootCheck:
         if not os.path.exists("/usr/bin/yumdownloader"):
             status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
         if self.settings.reposync_flags.find("-l"):
-            if self.checked_dist in (
-                "redhat",
-                "red hat enterprise linux server",
-                "fedora",
-                "centos",
-                "scientific linux",
-                "suse",
-                "opensuse"
-            ):
+            if self.checked_family in ("redhat", "suse"):
                 yum_utils_ver = utils.subprocess_get(self.logger, "/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
                 if yum_utils_ver < "1.1.17":
                     status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver)
@@ -209,7 +188,7 @@ class BootCheck:
         SELinux in enforcing mode.  FIXME: this method could use some
         refactoring in the future.
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         enabled = self.config.api.is_selinux_enabled()
@@ -253,15 +232,9 @@ class BootCheck:
         """
         Check if Apache is installed.
         """
-        if self.checked_dist in (
-            "redhat",
-            "red hat enterprise linux server",
-            "fedora",
-            "centos",
-            "scientific linux"
-        ):
+        if self.checked_family == "redhat":
             rc = utils.subprocess_get(self.logger, "httpd -v")
-        elif self.checked_dist == "suse" or self.checked_dist == "opensuse":
+        elif self.checked_family == "suse":
             rc = utils.subprocess_get(self.logger, "httpd2 -v")
         else:
             rc = utils.subprocess_get(self.logger, "apache2 -v")
@@ -339,7 +312,7 @@ class BootCheck:
         """
         Check if tftpd is installed
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if not os.path.exists("/etc/xinetd.d/tftp"):
@@ -349,7 +322,7 @@ class BootCheck:
         """
         Check if cobbler.conf's tftpboot directory exists
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         bootloc = utils.tftpboot_location()
@@ -362,7 +335,7 @@ class BootCheck:
         Check that configured tftpd boot directory matches with actual
         Check that tftpd is enabled to autostart
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if os.path.exists("/etc/xinetd.d/tftp"):
@@ -378,7 +351,7 @@ class BootCheck:
         """
         Check if the Cobbler tftp server is installed
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if not os.path.exists("/etc/xinetd.d/ctftp"):
@@ -388,7 +361,7 @@ class BootCheck:
         """
         Check if cobbler.conf's tftpboot directory exists
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         bootloc = utils.tftpboot_location()
@@ -400,7 +373,7 @@ class BootCheck:
         Check that configured tftpd boot directory matches with actual
         Check that tftpd is enabled to autostart
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if os.path.exists("/etc/xinetd.d/tftp"):
@@ -422,7 +395,7 @@ class BootCheck:
         """
         Check that rsync is enabled to autostart
         """
-        if self.checked_dist in ["debian", "ubuntu"]:
+        if self.checked_family == "debian":
             return
 
         if os.path.exists("/etc/xinetd.d/rsync"):

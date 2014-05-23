@@ -986,7 +986,7 @@ class BootAPI:
         Looks up a module the same as get_module_from_file but returns
         the module name rather than the module itself
         """
-        return module_loader.get_module_from_file(section, name, fallback, just_name=True)
+        return module_loader.get_module_from_file(section, name, fallback)
 
     def get_modules_in_category(self, category):
         """
@@ -1067,7 +1067,7 @@ class BootAPI:
     # ==========================================================================
 
     def get_kickstart_templates(self):
-        return utils.get_kickstar_templates(self)
+        return utils.get_kickstart_templates(self)
 
     # ==========================================================================
 

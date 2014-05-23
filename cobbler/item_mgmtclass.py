@@ -46,6 +46,10 @@ class Mgmtclass(item.Item):
     TYPE_NAME = _("mgmtclass")
     COLLECTION_TYPE = "mgmtclass"
 
+    def __init__(self, *args, **kwargs):
+        super(Mgmtclass, self).__init__(*args, **kwargs)
+        self.params = None
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Mgmtclass(self.config)

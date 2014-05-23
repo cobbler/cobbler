@@ -748,19 +748,15 @@ def flatten(data):
     return data
 
 
-def uniquify(seq, idfun=None):
+def uniquify(seq):
     # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
     # FIXME: if this is actually slower than some other way, overhaul it
-    if idfun is None:
-        def idfun(x):
-            return x
     seen = {}
     result = []
     for item in seq:
-        marker = idfun(item)
-        if marker in seen:
+        if item in seen:
             continue
-        seen[marker] = 1
+        seen[item] = 1
         result.append(item)
     return result
 
@@ -970,6 +966,26 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
             raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
 
 
+def get_family():
+    """
+    Get family of running operating system.
+
+    Family is the base Linux distribution of a Linux distribution, with a set of common
+    """
+
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos")
+
+    dist = check_dist()
+    for item in redhat_list:
+        if item in dist:
+            return "redhat"
+    if dist in ("debian", "ubuntu"):
+        return "debian"
+    if "suse" in dist:
+        return "suse"
+    return dist
+
+
 def check_dist():
     """
     Determines what distro we're running under.
@@ -982,7 +998,9 @@ def check_dist():
 
 
 def os_release():
-    if re.match("red ?hat|fedora|centos|scientific linux", check_dist()):
+
+    family = get_family()
+    if family == "redhat":
         fh = open("/etc/redhat-release")
         data = fh.read().lower()
         if data.find("fedora") != -1:
@@ -1001,15 +1019,18 @@ def os_release():
                 pass
         raise CX("failed to detect local OS version from /etc/redhat-release")
 
-    elif check_dist() == "debian":
-        import lsb_release
-        release = lsb_release.get_distro_information()['RELEASE']
-        return ("debian", release)
-    elif check_dist() == "ubuntu":
-        version = subprocess.check_output(("lsb_release", "--release", "--short")).rstrip()
-        make = "ubuntu"
-        return (make, float(version))
-    elif (re.match("suse", check_dist())) or (re.match("opensuse", check_dist())):
+    elif family == "debian":
+        distro = check_dist()
+        if distro == "debian":
+            import lsb_release
+            release = lsb_release.get_distro_information()['RELEASE']
+            return ("debian", release)
+        elif distro == "ubuntu":
+            version = subprocess_get(None, "lsb_release --release --short").rstrip()
+            make = "ubuntu"
+            return (make, float(version))
+
+    elif family == "suse":
         fd = open("/etc/SuSE-release")
         for line in fd.read().split("\n"):
             if line.find("VERSION") != -1:
@@ -1028,6 +1049,8 @@ def tftpboot_location():
     based on the distro on which cobblerd is running
     """
     (make, version) = os_release()
+    str_version = str(version)
+
     if make in ("fedora", "redhat", "centos"):
         return "/var/lib/tftpboot"
     elif make == "suse":
@@ -1039,9 +1062,9 @@ def tftpboot_location():
         return "/var/lib/tftpboot"
     elif make == "ubuntu" and os.path.exists("/srv/tftp"):
         return "/srv/tftp"
-    elif make == "debian" and int(version.split('.')[0]) < 6:
+    elif make == "debian" and int(str_version.split('.')[0]) < 6:
         return "/var/lib/tftpboot"
-    elif make == "debian" and int(version.split('.')[0]) >= 6:
+    elif make == "debian" and int(str_version.split('.')[0]) >= 6:
         return "/srv/tftp"
     else:
         return "/tftpboot"
@@ -1111,8 +1134,7 @@ def cachefile(src, dst, api=None, logger=None):
         copyfile(src, cachefile, api=api, logger=logger)
 
     logger.debug("trying cachelink %s -> %s -> %s" % (src, cachefile, dst))
-    rc = os.link(cachefile, dst)
-    return rc
+    os.link(cachefile, dst)
 
 
 def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
@@ -1138,7 +1160,7 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
                     logger.info("removing: %s" % dst)
                 os.remove(dst)
             else:
-                return True
+                return
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
             if logger is not None:
@@ -1151,8 +1173,8 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         try:
             if logger is not None:
                 logger.info("trying hardlink %s -> %s" % (src, dst))
-            rc = os.link(src, dst)
-            return rc
+            os.link(src, dst)
+            return
         except (IOError, OSError):
             # hardlink across devices, or link already exists
             # we'll just symlink it if we can
@@ -1165,27 +1187,27 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         try:
             if logger is not None:
                 logger.info("trying symlink %s -> %s" % (src, dst))
-            rc = os.symlink(src, dst)
-            return rc
+            os.symlink(src, dst)
+            return
         except (IOError, OSError):
             pass
 
     if cache:
         try:
-            return cachefile(src, dst, api=api, logger=logger)
+            cachefile(src, dst, api=api, logger=logger)
+            return
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
-    return copyfile(src, dst, api=api, logger=logger)
+    copyfile(src, dst, api=api, logger=logger)
 
 
 def copyfile(src, dst, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst))
-        rc = shutil.copyfile(src, dst)
-        return rc
+        shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
             raise CX(_("Cannot read: %s") % src)
@@ -1579,8 +1601,8 @@ def safe_filter(var):
 def is_selinux_enabled():
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
-    args = "/usr/sbin/selinuxenabled"
-    selinuxenabled = subprocess.call(args, close_fds=True)
+    cmd = "/usr/sbin/selinuxenabled"
+    selinuxenabled = subprocess_call(None, cmd)
     if selinuxenabled == 0:
         return True
     else:
@@ -1781,7 +1803,7 @@ def os_system(cmd):
     os.system doesn't close file descriptors, so this is a wrapper
     to ensure we never use it.
     """
-    rc = subprocess.call(cmd, shell=True, close_fds=True)
+    rc = subprocess_call(None, cmd)
     return rc
 
 
