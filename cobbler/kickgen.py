@@ -171,14 +171,14 @@ class KickGen:
                 yumopts = ''
                 for opt in repo_obj.yumopts:
                     yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
-                if not 'enabled' in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
+                if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
                         baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
-                        if not baseurl in included:
+                        if baseurl not in included:
                             buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                         included[baseurl] = 1
                     else:
-                        if not repo_obj.mirror in included:
+                        if repo_obj.mirror not in included:
                             buf = buf + "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
                         included[repo_obj.mirror] = 1
             else:
@@ -264,8 +264,9 @@ class KickGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            raw_data = utils.read_file_contents(kickstart_path, self.api.logger,
-                    self.settings.template_remote_kickstarts)
+            raw_data = utils.read_file_contents(
+                kickstart_path, self.api.logger,
+                self.settings.template_remote_kickstarts)
             if raw_data is None:
                 return "# kickstart is sourced externally: %s" % meta["kickstart"]
             distro = profile.get_conceptual_parent()
