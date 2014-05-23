@@ -96,6 +96,7 @@ def load_modules(module_path=mod_path, blacklist=None):
 def get_module_by_name(name):
     return MODULE_CACHE.get(name, None)
 
+
 def get_module_name(category, field, fallback_module_name=None):
     """
     Get module name from configuration file
@@ -116,6 +117,7 @@ def get_module_name(category, field, fallback_module_name=None):
         else:
             raise CX(_("Cannot find config file setting for: %s") % field)
     return value
+
 
 def get_module_from_file(category, field, fallback_module_name=None):
     """

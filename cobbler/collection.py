@@ -58,7 +58,7 @@ class Collection:
         """
         raise exceptions.NotImplementedError
 
-    def remove(self,name,with_delete=True,with_sync=True,with_triggers=True,recursive=False,logger=None):
+    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove an item from collection. This method must be overriden in any subclass.
 

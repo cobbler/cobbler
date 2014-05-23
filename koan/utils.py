@@ -260,6 +260,7 @@ def nfsmount(input_path):
     print "after install completes, you may unmount and delete %s" % tempdir
     return (tempdir, filename)
 
+
 def get_vms(conn):
     """
     Get virtual machines
@@ -284,6 +285,7 @@ def get_vms(conn):
         vms.append(vm)
 
     return vms
+
 
 def find_vm(conn, vmid):
     """
@@ -568,6 +570,7 @@ def create_qemu_image_file(path, size, driver_type):
             "Image file create failed: %s" % string.join(cmd, " ")
         )
 
+
 def random_mac():
     """
     from xend/server/netif.py
@@ -576,11 +579,12 @@ def random_mac():
     VMWare. Last 3 fields are random.
     return: MAC address string
     """
-    mac = [ 0x00, 0x50, 0x56,
+    mac = [0x00, 0x50, 0x56,
         random.randint(0x00, 0x3f),
         random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff) ]
+        random.randint(0x00, 0xff)]
     return ':'.join(map(lambda x: "%02x" % x, mac))
+
 
 def generate_timestamp():
     return str(int(time.time()))

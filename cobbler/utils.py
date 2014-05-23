@@ -965,6 +965,7 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
         if rc != 0:
             raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
 
+
 def get_family():
     """
     Get family of running operating system.
@@ -983,6 +984,7 @@ def get_family():
     if "suse" in dist:
         return "suse"
     return dist
+
 
 def check_dist():
     """

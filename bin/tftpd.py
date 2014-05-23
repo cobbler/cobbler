@@ -145,6 +145,7 @@ class RenderedFile:
     def fileno(self):
         return 0
 
+
 class Packet:
     """
     Represents a packet received (or sent?) from a tftp client.
