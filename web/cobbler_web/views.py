@@ -498,7 +498,9 @@ def generic_delete(request, what, obj_name=None):
     elif not remote.check_access_no_fail(request.session['token'], "remove_%s" % what, obj_name):
         return error_page(request, "You do not have permission to delete this %s" % what)
     else:
-        remote.remove_item(what, obj_name, request.session['token'])
+        # check whether object is to be deleted recursively
+        recursive = simplejson.loads(request.POST.get("recursive", "true"))
+        remote.remove_item(what, obj_name, request.session['token'], recursive)
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 
@@ -524,8 +526,10 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         return error_page(request, "Need to select some systems first")
 
     if multi_mode == "delete":
+        # check whether the objects are to be deleted recursively
+        recursive = simplejson.loads(request.POST.get("recursive_batch", "true"))
         for obj_name in names:
-            remote.remove_item(what, obj_name, request.session['token'])
+            remote.remove_item(what, obj_name, request.session['token'], recursive)
     elif what == "system" and multi_mode == "netboot":
         netboot_enabled = multi_arg  # values: enable or disable
         if netboot_enabled is None:

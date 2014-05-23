@@ -43,12 +43,6 @@ function obj_copy(old) {
         document.forms["action"].submit();
     }
 }
-function obj_delete(old) {
-    if (confirm("Delete {{ what }} (" + old + ") and all child objects?")) {
-        document.forms["action"].action = "/cobbler_web/{{ what }}/delete/" + old;
-        document.forms["action"].submit();
-    }
-}
 
 function action(otype) {
     sel_action = document.getElementById("actions").value
@@ -99,7 +93,8 @@ function action_multi(otype) {
         value = confirm("Confirm: Really disable all checked systems for PXE reinstallation?")
     }
     if ((action == "delete" ) && (param == "delete")) {
-        value = confirm("Confirm: Really delete all checked " + otype + "?" )
+        $('#dialog-batch' ).dialog( 'open' )
+        return;
     }
     if ((action == "buildiso" ) && (param == "enable")) {
         value = confirm("Confirm: Really buildiso for all checked " + otype + "?" )
@@ -116,7 +111,91 @@ function action_multi(otype) {
         alert("Operation aborted.")
     }
 }
+
+$(document).ready(function() {
+    $( "#dialog" ).dialog( {
+      autoOpen: false,
+      modal: true,
+      height: 160,
+      width: 330,
+      buttons: {
+        "OK": function() {
+            // get item's name
+            var item_name = $("#dialog").data("name");
+            // check if it's to be deleted recursively or not
+            var recursive = $("#recursive_delete").attr("checked");
+            var new_input = document.createElement('input');
+            new_input.name = "recursive";
+            new_input.value = recursive;
+            new_input.style.display = 'none';
+            document.forms["action"].appendChild(new_input);
+            document.forms["action"].action = "/cobbler_web/{{ what }}/delete/" + item_name;
+            document.forms["action"].submit();
+        },
+        "Cancel": function() {$( this ).dialog("close");}
+      }
+    }
+    );
+
+    $( "#dialog-batch" ).dialog( {
+      autoOpen: false,
+      modal: true,
+      height: 160,
+      width: 370,
+      buttons: {
+        "OK": function() {
+            // check if the selected items are to be deleted recursively or not
+            var recursive = $("#recursive_delete_batch").attr("checked");
+            var new_input = document.createElement('input');
+            new_input.name = "recursive_batch";
+            new_input.value = recursive;
+            new_input.style.display = 'none';
+            document.myform.appendChild(new_input);
+            document.myform.action = "/cobbler_web/{{ what }}/multi/delete/delete";
+            document.myform.submit();
+        },
+        "Cancel": function() {$( this ).dialog("close");}
+      }
+    }
+    );
+}
+);
+
 </script>
+
+<div id="dialog">
+  {% if what == "mgmtclass" %}
+  <p>Are you sure you want to delete this management class?</p>
+  {% else %}
+  <p>Are you sure you want to delete this {{ what }}?</p>
+  {% endif %}
+  <table style="margin-top: 10px">
+  <tbody>
+    <tr>
+      <td style="width: 25px"><input type="checkbox" id="recursive_delete" style="margin-right: 5px"/></td>
+      <td><label style="font-weight: normal">Recursive</label></td>
+    </tr>
+  </tbody>
+  </table>
+</div>
+
+<div id="dialog-batch">
+  {% if what == "mgmtclass" %}
+  <p>Are you sure you want to delete all selected management classes?</p>
+  {% else %}
+  <p>Are you sure you want to delete all selected {{ what }}s?</p>
+  {% endif %}
+  <table style="margin-top: 10px">
+  <tbody>
+    <tr>
+      <td style="width: 25px"><input type="checkbox" id="recursive_delete_batch" style="margin-right: 5px"/></td>
+      <td><label style="font-weight: normal">Recursive</label></td>
+    </tr>
+  </tbody>
+  </table>
+</div>
+
+
 <h1>{{ what|title }}s</h1>
 <hr />
 <ul id="submenubar">
@@ -186,7 +265,7 @@ function action_multi(otype) {
           <a class="action" href="/cobbler_web/{{ what }}/edit/{{ item.0.1 }}">Edit</a>
           <span class="action" onClick="javascript:obj_copy('{{ item.0.1 }}')">Copy</span> 
           <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
-          <span class="action" onClick="javascript:obj_delete('{{ item.0.1 }}')">Delete</span> 
+          <span class="action" onClick="javascript:$('#dialog' ).data('name', '{{ item.0.1 }}').dialog( 'open' )">Delete</span>
   {% ifequal what "system" %}
           <span class="action" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
   {% endifequal %}
