@@ -683,7 +683,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
     if not ksfile_name is None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_kickstart", ksfile_name)
         deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
-        ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
+        ksdata = remote.read_kickstart_template(ksfile_name, request.session['token'])
 
     t = get_template('ksfile_edit.tmpl')
     html = t.render(RequestContext(request, {
@@ -723,10 +723,10 @@ def ksfile_save(request):
     delete2 = request.POST.get('delete2', None)
 
     if delete1 and delete2:
-        remote.read_or_write_kickstart_template(ksfile_name, False, -1, request.session['token'])
+        remote.remove_kickstart_template(ksfile_name, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/ksfile/list')
     else:
-        remote.read_or_write_kickstart_template(ksfile_name, False, ksdata, request.session['token'])
+        remote.write_kickstart_template(ksfile_name, ksdata, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/ksfile/edit/file:%s' % ksfile_name)
 
 # ======================================================================
@@ -776,7 +776,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
     if not snippet_name is None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_snippet", snippet_name)
         deleteable = True
-        snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
+        snippetdata = remote.read_kickstart_snippet(snippet_name, request.session['token'])
 
     t = get_template('snippet_edit.tmpl')
     html = t.render(RequestContext(request, {
@@ -817,10 +817,10 @@ def snippet_save(request):
     delete2 = request.POST.get('delete2', None)
 
     if delete1 and delete2:
-        remote.read_or_write_snippet(snippet_name, False, -1, request.session['token'])
+        remote.remove_kickstart_snippet(snippet_name, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/snippet/list')
     else:
-        remote.read_or_write_snippet(snippet_name, False, snippetdata, request.session['token'])
+        remote.write_kickstart_snippet(snippet_name, snippetdata, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/snippet/edit/file:%s' % snippet_name)
 
 # ======================================================================
