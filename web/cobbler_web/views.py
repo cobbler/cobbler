@@ -648,7 +648,7 @@ def ksfile_list(request, page=None):
 
     ksfile_list = []
     for ksfile in ksfiles:
-        if ksfile.startswith("/var/lib/cobbler/kickstarts") or ksfile.startswith("/etc/cobbler"):
+        if ksfile.startswith("/var/lib/cobbler/kickstarts"):
             ksfile_list.append((ksfile, ksfile.replace('/var/lib/cobbler/kickstarts/', ''), 'editable'))
         elif ksfile.startswith("http://") or ksfile.startswith("ftp://"):
             ksfile_list.append((ksfile, ksfile, '', 'viewable'))
