@@ -162,22 +162,21 @@ class IscManager:
                 if dhcp_tag == "":
                     dhcp_tag = "default"
 
-
-                if not dhcp_tag in dhcp_tags:
+                if dhcp_tag not in dhcp_tags:
                     dhcp_tags[dhcp_tag] = {
-                       mac: interface
+                        mac: interface
                     }
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
 
         # we are now done with the looping through each interface of each system
         metadata = {
-           "date": time.asctime(time.gmtime()),
-           "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
-           "next_server": self.settings.next_server,
-           "elilo": elilo,
-           "yaboot": yaboot,
-           "dhcp_tags": dhcp_tags
+            "date": time.asctime(time.gmtime()),
+            "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
+            "next_server": self.settings.next_server,
+            "elilo": elilo,
+            "yaboot": yaboot,
+            "dhcp_tags": dhcp_tags
         }
 
         if self.logger is not None:

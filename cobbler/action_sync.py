@@ -267,11 +267,11 @@ class BootSync:
         ]
 
         metadata = {
-           "date": time.asctime(time.gmtime()),
-           "cobbler_server": self.settings.server,
-           "distros": distros,
-           "repos": repos,
-           "webdir": self.settings.webdir
+            "date": time.asctime(time.gmtime()),
+            "cobbler_server": self.settings.server,
+            "distros": distros,
+            "repos": repos,
+            "webdir": self.settings.webdir
         }
 
         self.templar.render(template_data, metadata, "/etc/rsyncd.conf", None)

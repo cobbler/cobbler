@@ -79,5 +79,5 @@ class File(resource.Resource):
             raise CX("group is required")
         if self.mode is None or self.mode == "":
             raise CX("mode is required")
-        if self.is_dir == False and self.template == "":
+        if not self.is_dir and self.template == "":
             raise CX("Template is required when not a directory")

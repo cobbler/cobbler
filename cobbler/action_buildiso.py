@@ -64,10 +64,10 @@ class BuildIso:
         """
         append_line = ""
         for (k, v) in koptdict.iteritems():
-            if v == None:
+            if v is None:
                 append_line += " %s" % k
             else:
-                if type(v) == list:
+                if isinstance(v, list):
                     for i in v:
                         append_line += " %s=%s" % (k, i)
                 else:
@@ -188,7 +188,7 @@ class BuildIso:
 
         # iterate through all selected systems
         for system in all_systems:
-## XXX
+            # XXX
             if system.name in which_systems or do_all_systems is True:
                 self.logger.info("processing system: %s" % system.name)
                 profile = system.get_conceptual_parent()
@@ -317,10 +317,10 @@ class BuildIso:
                     slave_ints = []
                     if len(data["interfaces"].keys()) >= 1:
                         for (iname, idata) in data["interfaces"].iteritems():
-                            if idata["management"] == True and idata["interface_type"] in ["master", "bond", "bridge"]:
+                            if idata["management"] and idata["interface_type"] in ["master", "bond", "bridge"]:
                                 # bonded/bridged management interface
                                 mgmt_ints_multi.append(iname)
-                            if idata["management"] == True and idata["interface_type"] not in ["master", "bond", "bridge", "slave", "bond_slave", "bridge_slave", "bonded_bridge_slave"]:
+                            if idata["management"] and idata["interface_type"] not in ["master", "bond", "bridge", "slave", "bond_slave", "bridge_slave", "bonded_bridge_slave"]:
                                 # single management interface
                                 mgmt_ints.append(iname)
 
@@ -515,7 +515,7 @@ class BuildIso:
                 utils.die(self.logger, "When building a standalone ISO, use --distro only instead of --profiles/--systems")
             elif distro is None:
                 utils.die(self.logger, "When building a standalone ISO, you must specify a --distro")
-            if source != None and not os.path.exists(source):
+            if source is not None and not os.path.exists(source):
                 utils.die(self.logger, "The source specified (%s) does not exist" % source)
 
         # if iso is none, create it in . as "kickstart.iso"
@@ -577,7 +577,7 @@ class BuildIso:
         else:
             self.generate_netboot_iso(imagesdir, isolinuxdir, profiles, systems, exclude_dns)
 
-        if mkisofs_opts == None:
+        if mkisofs_opts is None:
             mkisofs_opts = ""
         else:
             mkisofs_opts = mkisofs_opts.strip()

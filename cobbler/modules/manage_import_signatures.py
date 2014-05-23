@@ -437,8 +437,8 @@ class ImportSignatureManager:
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")
-        for x in ("-netboot", "-ubuntu-installer", "-amd64", "-i386", \
-                  "-images", "-pxeboot", "-install", "-isolinux", "-boot", "-suseboot", \
+        for x in ("-netboot", "-ubuntu-installer", "-amd64", "-i386",
+                  "-images", "-pxeboot", "-install", "-isolinux", "-boot", "-suseboot",
                   "-loader", "-os", "-tree", "var-www-cobbler-", "ks_mirror-"):
             name = name.replace(x, "")
 
@@ -614,7 +614,7 @@ class ImportSignatureManager:
                 self.logger.info("Keeping repodata as-is :%s/repodata" % comps_path)
                 self.found_repos[comps_path] = 1
 
-            elif not comps_path in self.found_repos:
+            elif comps_path not in self.found_repos:
                 utils.remove_yum_olddata(comps_path)
                 cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
                 utils.subprocess_call(self.logger, cmd, shell=True)
@@ -662,7 +662,7 @@ class ImportSignatureManager:
         self.logger.info("Added repos for %s" % distro.name)
         repos = self.config.repos()
         repos.add(repo, save=True)
-        #FIXME:
+        # FIXME:
         # Add the found/generated repos to the profiles
         # that were created during the import process
 
@@ -677,7 +677,7 @@ class ImportSignatureManager:
             release.get_sources(sources)
             mirrors = release.get_server_list()
             for mirror in mirrors:
-                if mirror[2] == True:
+                if mirror[2]:
                     mirror = mirror[1]
                     break
         except:

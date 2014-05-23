@@ -28,26 +28,26 @@ import codes
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
-  ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
-  ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
-  ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390', "arm", 'noarch', 'src'], "str"],
-  ["breed", "", 0, "Breed", True, "", codes.VALID_REPO_BREEDS, "str"],
-  ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-  ["ctime", 0, 0, "", False, "", 0, "float"],
-  ["depth", 2, 0, "", False, "", 0, "float"],
-  ["keep_updated", True, 0, "Keep Updated", True, "Update this repo on next 'cobbler reposync'?", 0, "bool"],
-  ["mirror", None, 0, "Mirror", True, "Address of yum or rsync repo to mirror", 0, "str"],
-  ["mtime", 0, 0, "", False, "", 0, "float"],
-  ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
-  ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
-  ["parent", None, 0, "", False, "", 0, "str"],
-  ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
-  ["uid", None, 0, "", False, "", 0, "str"],
-  ["createrepo_flags", '<<inherit>>', 0, "Createrepo Flags", True, "Flags to use with createrepo", 0, "dict"],
-  ["environment", {}, 0, "Environment Variables", True, "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
-  ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
-  ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
-  ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"]
+    ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
+    ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
+    ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390', "arm", 'noarch', 'src'], "str"],
+    ["breed", "", 0, "Breed", True, "", codes.VALID_REPO_BREEDS, "str"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["ctime", 0, 0, "", False, "", 0, "float"],
+    ["depth", 2, 0, "", False, "", 0, "float"],
+    ["keep_updated", True, 0, "Keep Updated", True, "Update this repo on next 'cobbler reposync'?", 0, "bool"],
+    ["mirror", None, 0, "Mirror", True, "Address of yum or rsync repo to mirror", 0, "str"],
+    ["mtime", 0, 0, "", False, "", 0, "float"],
+    ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
+    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
+    ["parent", None, 0, "", False, "", 0, "str"],
+    ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
+    ["uid", None, 0, "", False, "", 0, "str"],
+    ["createrepo_flags", '<<inherit>>', 0, "Createrepo Flags", True, "Flags to use with createrepo", 0, "dict"],
+    ["environment", {}, 0, "Environment Variables", True, "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
+    ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
+    ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
+    ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"]
 ]
 
 

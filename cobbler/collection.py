@@ -126,26 +126,26 @@ class Collection:
 
 
     SEARCH_REKEY = {
-           'kopts': 'kernel_options',
-           'kopts_post': 'kernel_options_post',
-           'ksmeta': 'ks_meta',
-           'inherit': 'parent',
-           'ip': 'ip_address',
-           'mac': 'mac_address',
-           'virt-auto-boot': 'virt_auto_boot',
-           'virt-file-size': 'virt_file_size',
-           'virt-disk-driver': 'virt_disk_driver',
-           'virt-ram': 'virt_ram',
-           'virt-path': 'virt_path',
-           'virt-type': 'virt_type',
-           'virt-bridge': 'virt_bridge',
-           'virt-cpus': 'virt_cpus',
-           'virt-host': 'virt_host',
-           'virt-group': 'virt_group',
-           'dhcp-tag': 'dhcp_tag',
-           'netboot-enabled': 'netboot_enabled',
-           'ldap-enabled': 'ldap_enabled',
-           'monit-enabled': 'monit_enabled'
+        'kopts': 'kernel_options',
+        'kopts_post': 'kernel_options_post',
+        'ksmeta': 'ks_meta',
+        'inherit': 'parent',
+        'ip': 'ip_address',
+        'mac': 'mac_address',
+        'virt-auto-boot': 'virt_auto_boot',
+        'virt-file-size': 'virt_file_size',
+        'virt-disk-driver': 'virt_disk_driver',
+        'virt-ram': 'virt_ram',
+        'virt-path': 'virt_path',
+        'virt-type': 'virt_type',
+        'virt-bridge': 'virt_bridge',
+        'virt-cpus': 'virt_cpus',
+        'virt-host': 'virt_host',
+        'virt-group': 'virt_group',
+        'dhcp-tag': 'dhcp_tag',
+        'netboot-enabled': 'netboot_enabled',
+        'ldap-enabled': 'ldap_enabled',
+        'monit-enabled': 'monit_enabled'
     }
 
     def __rekey(self, hash):
@@ -191,8 +191,9 @@ class Collection:
                 ref.set_mac_address("", iname)
                 ref.set_ip_address("", iname)
 
-        return self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
-                check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+        return self.add(
+            ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
+            check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
 
     def rename(self, ref, newname, with_sync=True, with_triggers=True, logger=None):
         """
@@ -389,7 +390,7 @@ class Collection:
 
         # update children cache in parent object
         parent = ref.get_parent()
-        if parent != None:
+        if parent is not None:
             parent.children[ref.name] = ref
 
         return True

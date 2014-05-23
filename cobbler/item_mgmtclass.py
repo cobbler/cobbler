@@ -90,7 +90,7 @@ class Mgmtclass(item.Item):
         if not isinstance(name, basestring):
             raise CX(_("class name must be a string"))
         for x in name:
-            if not x.isalnum() and not x in ["_", "-", ".", ":", "+"]:
+            if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise CX(_("invalid characters in class name: '%s'" % name))
         self.class_name = name
         return True

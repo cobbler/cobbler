@@ -40,16 +40,16 @@ import item_file
 import settings
 
 OBJECT_ACTIONS_MAP = {
-   "distro": "add copy edit find list remove rename report".split(" "),
-   "profile": "add copy dumpvars edit find getks list remove rename report".split(" "),
-   "system": "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
-   "image": "add copy edit find list remove rename report".split(" "),
-   "repo": "add copy edit find list remove rename report".split(" "),
-   "mgmtclass": "add copy edit find list remove rename report".split(" "),
-   "package": "add copy edit find list remove rename report".split(" "),
-   "file": "add copy edit find list remove rename report".split(" "),
-   "setting": "edit report".split(" "),
-   "signature": "reload report update".split(" ")
+    "distro": "add copy edit find list remove rename report".split(" "),
+    "profile": "add copy dumpvars edit find getks list remove rename report".split(" "),
+    "system": "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
+    "image": "add copy edit find list remove rename report".split(" "),
+    "repo": "add copy edit find list remove rename report".split(" "),
+    "mgmtclass": "add copy edit find list remove rename report".split(" "),
+    "package": "add copy edit find list remove rename report".split(" "),
+    "file": "add copy edit find list remove rename report".split(" "),
+    "setting": "edit report".split(" "),
+    "signature": "reload report update".split(" ")
 }
 
 OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
@@ -377,7 +377,7 @@ class BootCLI:
                 try:
                     if object_type == "setting":
                         settings = self.remote.get_settings()
-                        if options.value == None:
+                        if options.value is None:
                             raise RuntimeError("You must specify a --value when editing a setting")
                         elif not settings.get('allow_dynamic_settings', False):
                             raise RuntimeError("Dynamic settings changes are not enabled. Change the allow_dynamic_settings to 1 and restart cobblerd to enable dynamic settings changes")
@@ -608,7 +608,7 @@ class BootCLI:
         logfile = "/var/log/cobbler/tasks/%s.log" % task_id
         # adapted from:  http://code.activestate.com/recipes/157035/
         file = open(logfile, 'r')
-        #Find the size of the file and move to the end
+        # Find the size of the file and move to the end
         #st_results = os.stat(filename)
         #st_size = st_results[6]
         #file.seek(st_size)
@@ -660,9 +660,9 @@ def main():
     cli = BootCLI()
     cli.check_setup()
     rc = cli.run(sys.argv)
-    if rc == True or rc is None:
+    if rc or rc is None:
         sys.exit(0)
-    elif rc == False:
+    elif not rc:
         sys.exit(1)
     return sys.exit(rc)
 

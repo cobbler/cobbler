@@ -83,7 +83,7 @@ def load_modules(module_path=mod_path, blacklist=None):
             category = blip.register()
             if category:
                 MODULE_CACHE[modname] = blip
-            if not category in MODULES_BY_CATEGORY:
+            if category not in MODULES_BY_CATEGORY:
                 MODULES_BY_CATEGORY[category] = {}
             MODULES_BY_CATEGORY[category][modname] = blip
         except Exception:
@@ -139,7 +139,7 @@ def get_module_from_file(category, field, fallback_module_name=None):
 
 
 def get_modules_in_category(category):
-    if not category in MODULES_BY_CATEGORY:
+    if category not in MODULES_BY_CATEGORY:
         return []
     return MODULES_BY_CATEGORY[category].values()
 

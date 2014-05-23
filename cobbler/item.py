@@ -164,7 +164,7 @@ class Item(object):
         if not isinstance(name, basestring):
             raise CX(_("name must be a string"))
         for x in name:
-            if not x.isalnum() and not x in ["_", "-", ".", ":", "+"]:
+            if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise CX(_("invalid characters in name: '%s'" % name))
         self.name = name
         return True
@@ -350,8 +350,8 @@ class Item(object):
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "subnet", "netmask", "virt_bridge", \
-                       "dhcp_tag", "dns_name", "static_routes", "interface_type", \
+            if key in ["mac_address", "ip_address", "subnet", "netmask", "virt_bridge",
+                       "dhcp_tag", "dns_name", "static_routes", "interface_type",
                        "interface_master", "bonding_opts", "bridge_opts", "bonding", "bonding_master"]:
                 if key == "bonding":
                     key = "interface_type"      # bonding is deprecated
@@ -363,7 +363,7 @@ class Item(object):
                         if self.__find_compare(interface[key], value):
                             return True
 
-        if not key in data:
+        if key not in data:
             if not key_found_already:
                 if not no_errors:
                     # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
@@ -391,24 +391,24 @@ class Item(object):
 
         else:
             if isinstance(from_search, basestring):
-                if type(from_obj) == type([]):
+                if isinstance(from_obj, list):
                     from_search = utils.input_string_or_list(from_search)
                     for x in from_search:
                         if x not in from_obj:
                             return False
                     return True
 
-                if type(from_obj) == type({}):
+                if isinstance(from_obj, dict):
                     (junk, from_search) = utils.input_string_or_hash(from_search, allow_multiples=True)
                     for x in from_search.keys():
                         y = from_search[x]
-                        if not x in from_obj:
+                        if x not in from_obj:
                             return False
-                        if not (y == from_obj[x]):
+                        if not (y == from_obj[x]):  # XXX
                             return False
                     return True
 
-                if type(from_obj) == type(True):
+                if isinstance(from_obj, bool):
                     if from_search.lower() in ["true", "1", "y", "yes"]:
                         inp = True
                     else:

@@ -70,48 +70,61 @@ class PXEGen:
         # copy syslinux from one of two locations
         try:
             try:
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/pxelinux.0',
-                        dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern('/var/lib/cobbler/loaders/menu.c32',
-                        dst, api=self.api, cache=False, logger=self.logger)
+                utils.copyfile_pattern(
+                    '/var/lib/cobbler/loaders/pxelinux.0',
+                    dst, api=self.api, cache=False, logger=self.logger)
+                utils.copyfile_pattern(
+                    '/var/lib/cobbler/loaders/menu.c32',
+                    dst, api=self.api, cache=False, logger=self.logger)
             except:
-                utils.copyfile_pattern('/usr/share/syslinux/pxelinux.0',
-                        dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern('/usr/share/syslinux/menu.c32',
-                        dst, api=self.api, cache=False, logger=self.logger)
+                utils.copyfile_pattern(
+                    '/usr/share/syslinux/pxelinux.0',
+                    dst, api=self.api, cache=False, logger=self.logger)
+                utils.copyfile_pattern(
+                    '/usr/share/syslinux/menu.c32',
+                    dst, api=self.api, cache=False, logger=self.logger)
 
         except:
-            utils.copyfile_pattern('/usr/lib/syslinux/pxelinux.0',
-                    dst, api=self.api, cache=False, logger=self.logger)
-            utils.copyfile_pattern('/usr/lib/syslinux/menu.c32',
-                    dst, api=self.api, cache=False, logger=self.logger)
+            utils.copyfile_pattern(
+                '/usr/lib/syslinux/pxelinux.0',
+                dst, api=self.api, cache=False, logger=self.logger)
+            utils.copyfile_pattern(
+                '/usr/lib/syslinux/menu.c32',
+                dst, api=self.api, cache=False, logger=self.logger)
 
         # copy memtest only if we find it
-        utils.copyfile_pattern('/boot/memtest*', image_dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
+        utils.copyfile_pattern(
+            '/boot/memtest*', image_dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/elilo.efi', dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
+        utils.copyfile_pattern(
+            '/var/lib/cobbler/loaders/elilo.efi', dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
+        utils.copyfile_pattern(
+            '/var/lib/cobbler/loaders/yaboot', dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
 
         try:
-            utils.copyfile_pattern('/usr/lib/syslinux/memdisk',
-                    dst, api=self.api, cache=False, logger=self.logger)
+            utils.copyfile_pattern(
+                '/usr/lib/syslinux/memdisk',
+                dst, api=self.api, cache=False, logger=self.logger)
         except:
-            utils.copyfile_pattern('/usr/share/syslinux/memdisk', dst,
-                    require_match=False, api=self.api, cache=False, logger=self.logger)
+            utils.copyfile_pattern(
+                '/usr/share/syslinux/memdisk', dst,
+                require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # Copy gPXE/iPXE bootloader if it exists
-        utils.copyfile_pattern('/usr/share/*pxe/undionly.kpxe', dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
+        utils.copyfile_pattern(
+            '/usr/share/*pxe/undionly.kpxe', dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # Copy grub EFI bootloaders if possible:
-        utils.copyfile_pattern('/var/lib/cobbler/loaders/grub*.efi', grub_dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
+        utils.copyfile_pattern(
+            '/var/lib/cobbler/loaders/grub*.efi', grub_dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
 
         pxegrub_imported = False
         if os.path.isdir(os.path.join(self.bootloc, 'boot')):
@@ -179,7 +192,7 @@ class PXEGen:
             if os.path.isdir(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles')):
                 shutil.rmtree(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
             shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'kickstarts', 'install_profiles'),
-                           os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
+                            os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -383,15 +396,17 @@ class PXEGen:
                 # nexenta has a separate menu
                 continue
 
-            contents = self.write_pxe_file(filename=None, system=None,
-                    profile=profile, distro=distro,
-                    arch=distro.arch, include_header=False)
+            contents = self.write_pxe_file(
+                filename=None,
+                system=None, profile=profile, distro=distro, arch=distro.arch,
+                include_header=False)
             if contents is not None:
                 pxe_menu_items = pxe_menu_items + contents + "\n"
 
-            grub_contents = self.write_pxe_file(filename=None, system=None,
-                    profile=profile, distro=distro,
-                    arch=distro.arch, include_header=False, format="grub")
+            grub_contents = self.write_pxe_file(
+                filename=None,
+                system=None, profile=profile, distro=distro, arch=distro.arch,
+                include_header=False, format="grub")
             if grub_contents is not None:
                 grub_menu_items = grub_menu_items + grub_contents + "\n"
 
@@ -399,8 +414,10 @@ class PXEGen:
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
-                contents = self.write_pxe_file(filename=None, system=None,
-                        profile=None, distro=None, arch=image.arch, image=image)
+                contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=None, distro=None, arch=image.arch,
+                    image=image)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
@@ -441,11 +458,17 @@ class PXEGen:
             distro = profile.get_conceptual_parent()
 
             if distro.name.find('nexenta') != -1:
-                contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False)
+                contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=profile, distro=distro, arch=distro.arch,
+                    include_header=False)
                 if contents is not None:
                     pxe_menu_items = pxe_menu_items + contents + "\n"
 
-                grub_contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=distro.arch, include_header=False, format="nexenta")
+                grub_contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=profile, distro=distro, arch=distro.arch,
+                    include_header=False, format="nexenta")
                 if grub_contents is not None:
                     grub_menu_items = grub_menu_items + grub_contents + "\n"
 
@@ -523,7 +546,7 @@ class PXEGen:
 
 
     def write_pxe_file(self, filename, system, profile, distro, arch,
-            image=None, include_header=True, metadata=None, format="pxe"):
+                       image=None, include_header=True, metadata=None, format="pxe"):
         """
         Write a configuration file for the boot loader(s).
         More system-specific configuration may come in later, if so
@@ -593,11 +616,11 @@ class PXEGen:
                 kernel_path = None
                 initrd_path = None
 
-        if img_path is not None and not "img_path" in metadata:
+        if img_path is not None and "img_path" not in metadata:
             metadata["img_path"] = img_path
-        if kernel_path is not None and not "kernel_path" in metadata:
+        if kernel_path is not None and "kernel_path" not in metadata:
             metadata["kernel_path"] = kernel_path
-        if initrd_path is not None and not "initrd_path" in metadata:
+        if initrd_path is not None and "initrd_path" not in metadata:
             metadata["initrd_path"] = initrd_path
 
         # ---
@@ -679,7 +702,7 @@ class PXEGen:
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
-                image, arch, kickstart_path)
+                                                   image, arch, kickstart_path)
         metadata["kernel_options"] = kernel_options
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
@@ -701,7 +724,7 @@ class PXEGen:
         # store variables for templating
         metadata["menu_label"] = ""
         if profile:
-            if not arch in ["ia64", "ppc", "ppc64", "s390", "s390x"]:
+            if arch not in ["ia64", "ppc", "ppc64", "s390", "s390x"]:
                 metadata["menu_label"] = "MENU LABEL %s" % profile.name
                 metadata["profile_name"] = profile.name
         elif image:
@@ -731,7 +754,7 @@ class PXEGen:
         return buffer
 
     def build_kernel_options(self, system, profile, distro, image, arch,
-            kickstart_path):
+                             kickstart_path):
         """
         Builds the full kernel options line.
         """
@@ -950,7 +973,7 @@ class PXEGen:
 
             # If we're looking for a single template, skip if this ones
             # destination is not it.
-            if not path is None and path != dest:
+            if path is not None and path != dest:
                 continue
 
             # If we are writing output to a file, we allow files tobe

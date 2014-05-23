@@ -241,7 +241,7 @@ class Config:
         """
         Load the object hierachy from disk, using the filenames referenced in each object.
         """
-        for item in [
+        for item in (
             self._settings,
             self._distros,
             self._repos,
@@ -251,7 +251,7 @@ class Config:
             self._mgmtclasses,
             self._packages,
             self._files,
-            ]:
+        ):
             try:
                 if not serializer.deserialize(item):
                     raise ""
