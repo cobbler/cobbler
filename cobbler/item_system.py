@@ -211,11 +211,7 @@ class System(item.Item):
 
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
-        if not isinstance(name, basestring):
-            raise CX(_("name must be a string"))
-        for x in name:
-            if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
-                raise CX(_("invalid characters in name: %s") % x)
+        self.validate_name(name)
 
         # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
         # the default interface behaviour that's now removed. ;)
