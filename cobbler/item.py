@@ -18,10 +18,13 @@ from cexceptions import *
 from utils import _
 import pprint
 import fnmatch
+import re
 
 class Item:
 
     TYPE_NAME = "generic"
+
+    _re_name = re.compile(r'[a-zA-Z0-9_\-.:+]*$')
 
     def __init__(self,config,is_subobject=False):
         """
@@ -138,6 +141,13 @@ class Item:
            parent = parent.get_parent()
         return None
 
+    def validate_name(self, name):
+        """Validate name. Raises CX if the name if invalid"""
+        if not isinstance(name, basestring):
+            raise CX(_("name must be a string"))
+        if not self._re_name.match(name):
+            raise CX(_("invalid characters in name: '%s'" % name))
+
     def set_name(self,name):
         """
         All objects have names, and with the exception of System
@@ -145,11 +155,7 @@ class Item:
         """
         if self.name not in ["",None] and self.parent not in ["",None] and self.name == self.parent:
             raise CX(_("self parentage is weird"))
-        if not isinstance(name, basestring):
-            raise CX(_("name must be a string"))
-        for x in name:
-            if not x.isalnum() and not x in [ "_", "-", ".", ":", "+" ] :
-                raise CX(_("invalid characters in name: '%s'" % name)) 
+        self.validate_name(name)
         self.name = name
         return True
 
