@@ -108,7 +108,7 @@ class SmartIfTests(unittest.TestCase):
         Test a calculation is True, also checking the inverse "negate" case.
         """
         context = context or {}
-        self.assert_(calc.resolve(context))
+        self.assertTrue(calc.resolve(context))
         calc.negate = not calc.negate
         self.assertFalse(calc.resolve(context))
 
@@ -119,7 +119,7 @@ class SmartIfTests(unittest.TestCase):
         context = context or {}
         self.assertFalse(calc.resolve(context))
         calc.negate = not calc.negate
-        self.assert_(calc.resolve(context))
+        self.assertTrue(calc.resolve(context))
 
     def test_or(self):
         self.assertCalc(Or(self.true))
@@ -157,43 +157,43 @@ class SmartIfTests(unittest.TestCase):
 
     def test_parse_bits(self):
         var = IfParser([True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([False, 'and', True]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser(['not', False, 'and', 'not', False]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '=', 1]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '!=', 1]).parse()
         self.assertFalse(var.resolve({}))
 
         var = IfParser([3, '>', 2]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([1, '<', 2]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([2, 'not', 'in', [2, 3]]).parse()
         self.assertFalse(var.resolve({}))
 
     def test_boolean(self):
         var = IfParser([True, 'and', True, 'and', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False, 'or', False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([True, 'and', False, 'or', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
         var = IfParser([False, 'or', True, 'and', True]).parse()
-        self.assert_(var.resolve({}))
+        self.assertTrue(var.resolve({}))
 
         var = IfParser([True, 'and', True, 'and', False]).parse()
         self.assertFalse(var.resolve({}))
