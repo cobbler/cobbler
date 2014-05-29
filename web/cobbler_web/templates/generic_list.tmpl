@@ -68,11 +68,23 @@ function action_multi(otype) {
     param  = sel_batchaction.split("|")[1]
 
     if (action == "profile") {
-        param = window.prompt("New installation profile name for checked systems?","")
-        if ((param == null) || (param == "")) {
-            return
-        }
-        value = 1
+       $('#batchprofiledlg').dialog({
+          title: "New installation profile name for checked systems?",
+          width: 450,
+          height: 150,
+          buttons: {
+             "Go": function() {
+                param = $('#batchprofileslct').val();
+                value = 1;
+                document.myform.action = "/cobbler_web/" + otype + "/multi/" + action + "/" + param;
+                document.myform.submit();
+             },
+             "Cancel": function() { 
+                $('#batchprofiledlg').dialog('close');
+             }
+         }
+    });
+           return;
     }
     else {
         value = null
@@ -195,6 +207,12 @@ $(document).ready(function() {
   </table>
 </div>
 
+<div id="batchprofiledlg" style='display:none'>
+  <select id="batchprofileslct">
+    <option value="" selected="selected">Choose Profile</option>
+    {% for profile in profiles %}<option value="{{ profile.name }}">{{ profile.name }}</option>{% endfor %}</option>
+  </select>
+</div>
 
 <h1>{{ what|title }}s</h1>
 <hr />
