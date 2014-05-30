@@ -26,7 +26,7 @@ import collection
 from cexceptions import CX
 from utils import _
 
-#--------------------------------------------
+# --------------------------------------------
 
 
 class Files(collection.Collection):

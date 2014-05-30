@@ -31,7 +31,7 @@ OUTPUT_DIR = "config"
 
 
 #####################################################################
-## Helper Functions #################################################
+# # Helper Functions #################################################
 #####################################################################
 
 def glob(*args, **kwargs):
@@ -85,7 +85,7 @@ def gen_build_version():
     fd.close()
 
 #####################################################################
-## Custom Distribution Class ########################################
+# # Custom Distribution Class ########################################
 #####################################################################
 
 
@@ -97,7 +97,7 @@ class Distribution(_Distribution):
         _Distribution.__init__(self, *args, **kwargs)
 
 #####################################################################
-## Modify Build Stage  ##############################################
+# # Modify Build Stage  ##############################################
 #####################################################################
 
 
@@ -109,7 +109,7 @@ class build_py(_build_py):
         _build_py.run(self)
 
 #####################################################################
-## Modify Build Stage  ##############################################
+# # Modify Build Stage  ##############################################
 #####################################################################
 
 
@@ -120,7 +120,7 @@ class build(_build):
         _build.run(self)
 
 #####################################################################
-## Configure files ##################################################
+# # Configure files ##################################################
 #####################################################################
 
 
@@ -263,7 +263,7 @@ build.sub_commands.extend((
 ))
 
 #####################################################################
-## Build man pages ##################################################
+# # Build man pages ##################################################
 #####################################################################
 
 
@@ -328,7 +328,7 @@ class build_man(Command):
 
 
 #####################################################################
-## Modify Install Stage  ############################################
+# # Modify Install Stage  ############################################
 #####################################################################
 
 
@@ -384,7 +384,7 @@ class install(_install):
 
 
 #####################################################################
-## Test Command #####################################################
+# # Test Command #####################################################
 #####################################################################
 
 
@@ -426,7 +426,7 @@ class test_command(Command):
                           len(result.errors) > 0)))
 
 #####################################################################
-## state command base class #########################################
+# # state command base class #########################################
 #####################################################################
 
 
@@ -458,7 +458,7 @@ class statebase(Command):
                 shutil.copy2(frm, to)
 
 #####################################################################
-## restorestate command #############################################
+# # restorestate command #############################################
 #####################################################################
 
 
@@ -485,7 +485,7 @@ class restorestate(statebase):
         self._copy(os.path.join(self.statepath, 'rsync.template'), etcpath)
 
 #####################################################################
-## savestate command ################################################
+# # savestate command ################################################
 #####################################################################
 
 
@@ -518,10 +518,10 @@ class savestate(statebase):
 
 
 #####################################################################
-## Actual Setup.py Script ###########################################
+# # Actual Setup.py Script ###########################################
 #####################################################################
 if __name__ == "__main__":
-    ## Configurable installation roots for various data files.
+    # # Configurable installation roots for various data files.
 
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
@@ -653,7 +653,7 @@ if __name__ == "__main__":
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
             ("%sldap" % etcpath, glob("templates/ldap/*")),
-            #Build empty directories to hold triggers
+            # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),
             ("%striggers/add/profile/pre" % libpath, []),
@@ -688,7 +688,7 @@ if __name__ == "__main__":
             ("%striggers/sync/pre" % libpath, []),
             ("%striggers/sync/post" % libpath, []),
             ("%striggers/change" % libpath, []),
-            #Build empty directories to hold the database
+            # Build empty directories to hold the database
             ("%sconfig" % libpath, []),
             ("%sconfig/distros.d" % libpath, []),
             ("%sconfig/images.d" % libpath, []),
@@ -698,7 +698,7 @@ if __name__ == "__main__":
             ("%sconfig/mgmtclasses.d" % libpath, []),
             ("%sconfig/packages.d" % libpath, []),
             ("%sconfig/files.d" % libpath, []),
-            #Build empty directories to hold koan localconfig
+            # Build empty directories to hold koan localconfig
             ("/var/lib/koan/config", []),
             # logfiles
             ("%scobbler/kicklog" % logpath, []),
@@ -719,7 +719,7 @@ if __name__ == "__main__":
             ("%scobbler/pub" % webroot, []),
             ("%scobbler/rendered" % webroot, []),
             ("%scobbler/images" % webroot, []),
-            #A script that isn't really data, wsgi script
+            # A script that isn't really data, wsgi script
             ("%scobbler/svc/" % webroot, ["bin/services.py"]),
             # zone-specific templates directory
             ("%szone_templates" % etcpath, []),

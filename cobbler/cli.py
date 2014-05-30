@@ -609,9 +609,9 @@ class BootCLI:
         # adapted from:  http://code.activestate.com/recipes/157035/
         file = open(logfile, 'r')
         # Find the size of the file and move to the end
-        #st_results = os.stat(filename)
-        #st_size = st_results[6]
-        #file.seek(st_size)
+        # st_results = os.stat(filename)
+        # st_size = st_results[6]
+        # file.seek(st_size)
 
         while 1:
             where = file.tell()

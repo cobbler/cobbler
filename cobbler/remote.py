@@ -1060,7 +1060,7 @@ class CobblerXMLRPCInterface:
         Returns all of the kickstarts that are in use by the system.
         """
         self._log("get_kickstart_templates", token=token)
-        #self.check_access(token, "get_kickstart_templates")
+        # self.check_access(token, "get_kickstart_templates")
         return utils.get_kickstart_templates(self.api)
 
     def get_snippets(self, token=None, **rest):

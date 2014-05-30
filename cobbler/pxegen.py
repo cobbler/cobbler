@@ -131,7 +131,7 @@ class PXEGen:
             shutil.rmtree(os.path.join(self.bootloc, 'boot'))
         for i in self.distros:
             if 'nexenta' == i.breed and not pxegrub_imported:
-                #name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
+                # name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
                 shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'ks_mirror', i.name, 'boot'),
                                 os.path.join(self.bootloc, 'boot'))
                 pxegrub_imported = True

@@ -27,7 +27,7 @@ url_cobbler_api = None
 remote = None
 username = None
 
-#==================================================================================
+# ==================================================================================
 
 
 def index(request):
@@ -44,7 +44,7 @@ def index(request):
     }))
     return HttpResponse(html)
 
-#========================================================================
+# ========================================================================
 
 
 def task_created(request):
@@ -60,7 +60,7 @@ def task_created(request):
     }))
     return HttpResponse(html)
 
-#========================================================================
+# ========================================================================
 
 
 def error_page(request, message):
@@ -81,7 +81,7 @@ def error_page(request, message):
     }))
     return HttpResponse(html)
 
-#==================================================================================
+# ==================================================================================
 
 
 def get_fields(what, is_subobject, seed_item=None):
@@ -169,7 +169,7 @@ def get_fields(what, is_subobject, seed_item=None):
         # as we have no HTML hash widget (yet)
         if isinstance(elem["value"], dict):
             if elem["name"] == "mgmt_parameters":
-                #Render dictionary as YAML for Management Parameters field
+                # Render dictionary as YAML for Management Parameters field
                 tokens = []
                 for (x, y) in elem["value"].items():
                     if y is not None:
@@ -220,7 +220,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
     return fields
 
-#==================================================================================
+# ==================================================================================
 
 
 def __tweak_field(fields, field_name, attribute, value):
@@ -232,7 +232,7 @@ def __tweak_field(fields, field_name, attribute, value):
         if x["name"] == field_name:
             x[attribute] = value
 
-#==================================================================================
+# ==================================================================================
 
 
 def __format_columns(column_names, sort_field):
@@ -261,7 +261,7 @@ def __format_columns(column_names, sort_field):
     return dataset
 
 
-#==================================================================================
+# ==================================================================================
 
 
 def __format_items(items, column_names):
@@ -284,7 +284,7 @@ def __format_items(items, column_names):
         dataset.append(row)
     return dataset
 
-#==================================================================================
+# ==================================================================================
 
 
 def genlist(request, what, page=None):
@@ -885,7 +885,7 @@ def setting_edit(request, setting_name=None):
     t = get_template('generic_edit.tmpl')
     html = t.render(RequestContext(request, {
         'what': 'setting',
-        #'fields': fields,
+        # 'fields': fields,
         'sections': sections,
         'subobject': False,
         'editmode': 'edit',
@@ -1047,9 +1047,9 @@ def replicate(request):
     this command.
 
     """
-    #settings = remote.get_settings()
-    #options = settings # just load settings from file until we decide to ask user (later?)
-    #remote.background_replicate(options, request.session['token'])
+    # settings = remote.get_settings()
+    # options = settings # just load settings from file until we decide to ask user (later?)
+    # remote.background_replicate(options, request.session['token'])
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/replicate", expired=True)
     return HttpResponseRedirect("/cobbler_web/task_created")
@@ -1147,7 +1147,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     inames.sort()
     html = t.render(RequestContext(request, {
         'what': what,
-        #'fields': fields,
+        # 'fields': fields,
         'sections': sections,
         'subobject': child,
         'editmode': editmode,

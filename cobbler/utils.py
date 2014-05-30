@@ -342,10 +342,10 @@ def find_kernel(path):
         return None
 
     if os.path.isfile(path):
-        #filename = os.path.basename(path)
-        #if _re_kernel.match(filename):
+        # filename = os.path.basename(path)
+        # if _re_kernel.match(filename):
         #   return path
-        #elif filename == "vmlinuz":
+        # elif filename == "vmlinuz":
         #   return path
         return path
 
@@ -390,10 +390,10 @@ def find_initrd(path):
         return None
 
     if os.path.isfile(path):
-        #filename = os.path.basename(path)
-        #if _re_initrd.match(filename):
+        # filename = os.path.basename(path)
+        # if _re_initrd.match(filename):
         #   return path
-        #if filename == "initrd.img" or filename == "initrd":
+        # if filename == "initrd.img" or filename == "initrd":
         #   return path
         return path
 
@@ -579,12 +579,12 @@ def input_boolean(value):
 
 def update_settings_file(data):
     if 1:
-        #clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
+        # clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
         settings_file = file("/etc/cobbler/settings", "w")
         yaml.safe_dump(data, settings_file)
         settings_file.close()
         return True
-    #except:
+    # except:
     #    return False
 
 
@@ -1902,7 +1902,7 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
-        #for interface in ds["interfaces"].keys():
+        # for interface in ds["interfaces"].keys():
         #    for k in ds["interfaces"][interface].keys():
         #        if field_info.DEPRECATED_FIELDS.has_key(k):
         #            ds["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = ds["interfaces"][interface][k]
@@ -2011,7 +2011,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
 
     # FIXME: not supported in 2.0 ?
-    #if not object_action in ["dumpvars","find","remove","report","list"]:
+    # if not object_action in ["dumpvars","find","remove","report","list"]:
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
     # FIXME: not supported in 2.0 ?
     # if not matches_args(args,["dumpvars","report","list"]):

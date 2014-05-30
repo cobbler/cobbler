@@ -50,10 +50,10 @@ def __looks_like_a_token(password):
         # tokens are always lowercase, this isn't a token
         return False
 
-    #try:
+    # try:
     #    #data = binascii.unhexlify(password)
     #    return True # looks like a token, but we can't be sure
-    #except:
+    # except:
     #    return False # definitely not a token
 
     return (len(password) > 45)

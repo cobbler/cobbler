@@ -28,7 +28,7 @@ from cexceptions import CX
 import action_litesync
 from utils import _
 
-#--------------------------------------------
+# --------------------------------------------
 
 
 class Systems(collection.Collection):

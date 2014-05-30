@@ -3,7 +3,7 @@ from django.utils.datastructures import SortedDict
 
 register = template.Library()
 
-#==========================
+# ==========================
 
 # -*- coding: utf-8 -*-
 '''
@@ -22,9 +22,9 @@ from django import template
 register = template.Library()
 
 
-#===============================================================================
+# ===============================================================================
 # Calculation objects
-#===============================================================================
+# ===============================================================================
 
 class BaseCalc(object):
     def __init__(self, var1, var2=None, negate=False):
@@ -80,9 +80,9 @@ class In(BaseCalc):
         return var1 in var2
 
 
-#===============================================================================
+# ===============================================================================
 # Tests
-#===============================================================================
+# ===============================================================================
 
 class TestVar(object):
     """
@@ -280,9 +280,9 @@ class IfParser(object):
         return self.create_var(token)
 
 
-#===============================================================================
+# ===============================================================================
 # Actual templatetag code.
-#===============================================================================
+# ===============================================================================
 
 class TemplateIfParser(IfParser):
     error_class = template.TemplateSyntaxError
@@ -327,7 +327,7 @@ class SmartIfNode(template.Node):
         return nodes
 
 
-#@register.tag('if')
+# @register.tag('if')
 def smart_if(parser, token):
     '''
     A smarter {% if %} tag for django templates.
@@ -356,11 +356,11 @@ def smart_if(parser, token):
     return SmartIfNode(var, nodelist_true, nodelist_false)
 
 
-#==========================
+# ==========================
 
 ifinlist = register.tag(smart_if)
 
-#==========================
+# ==========================
 
 # Based on code found here:
 # http://stackoverflow.com/questions/2024660/django-sort-dict-in-template
