@@ -50,7 +50,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             extra="ks=http://example.com/ks.ks")
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --connect xen:/// --name foo --ram 256 --vcpus 1 "
              "--uuid ad6611b9-98e4-82c8-827f-051b6b6680d7 --vnc --paravirt "
              "--boot kernel=kernel,initrd=initrd,kernel_args=ks=http://example.com/ks.ks "
@@ -83,7 +83,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             })
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --connect xen:/// --name foo --ram 256 --vcpus 1 "
              "--vnc --hvm --pxe --arch x86_64 "
              "--os-variant fedora14 --disk path=/dev/foo1 "
@@ -106,7 +106,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             })
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
              "--vcpus 1 --vnc --virt-type qemu --machine pc --hvm --cdrom /some/cdrom/path.iso "
              "--os-type windows --disk path=/tmp/foo1.img,size=8 "
@@ -134,7 +134,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             extra="ks=http://example.com/ks.ks text kssendmac")
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
              "--vcpus 1 --vnc --virt-type qemu --machine pc --hvm "
              "--extra-args=ks=http://example.com/ks.ks text kssendmac "
@@ -166,7 +166,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             extra="ks=http://example.com/ks.ks text kssendmac")
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --connect qemu:///system --name foo --ram 256 "
              "--vcpus 1 --vnc --virt-type kvm --machine pc-1.0 "
              "--extra-args=ks=http://example.com/ks.ks text kssendmac "
@@ -193,7 +193,7 @@ class KoanVirtInstallTest(unittest.TestCase):
             })
 
         cmd = " ".join(cmd)
-        self.assertEquals(cmd,
+        self.assertEqual(cmd,
             ("virt-install --name foo --ram 256 --vcpus 1 --vnc --import "
              "--disk path=/some/install/image.img --network bridge=br0 "
              "--network bridge=br2 --wait 0 --noautoconsole")
@@ -218,7 +218,7 @@ class KoanVirtInstallTest(unittest.TestCase):
         for args, kargs in mock_subprocess.call_args_list:
             res.append(" ".join(args[0]))
 
-        self.assertEquals(res,
+        self.assertEqual(res,
             [
                 'qemu-img create -f qcow /path/to/imagedir/new_qcow_file 30G',
                 'qemu-img create -f qcow2 /path/to/imagedir/new_qcow2_file 30G',
