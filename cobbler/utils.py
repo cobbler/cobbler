@@ -1220,6 +1220,17 @@ def copyfile(src, dst, api=None, logger=None):
             # traceback.print_exc()
             # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
 
+def copyremotefile(src, dst1, api=None, logger=None):
+    try:
+        if logger is not None:
+           logger.info("copying: %s -> %s" % (src, dst1))
+        srcfile = urllib2.urlopen(src)
+        output = open(dst1, 'wb')
+        output.write(srcfile.read())
+        output.close()
+    except Exception, e:
+        raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e.message)))
+
 
 def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None, logger=None):
     files = glob.glob(pattern)

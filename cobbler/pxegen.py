@@ -163,17 +163,25 @@ class PXEGen:
         if initrd is None:
             raise CX("initrd not found: %(file)s, distro: %(distro)s" % {"file": d.initrd, "distro": d.name})
 
-        # Kernels referenced by remote URL are passed through to koan directly,
-        # no need for copying the kernel locally:
+        # Koan manages remote kernel itself, but for consistent PXE
+        # configurations the synchronization is still necessary
         if not utils.file_is_remote(kernel):
             b_kernel = os.path.basename(kernel)
             dst1 = os.path.join(distro_dir, b_kernel)
             utils.linkfile(kernel, dst1, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+        else:
+            b_kernel = os.path.basename(kernel)
+            dst1 = os.path.join(distro_dir, b_kernel)
+            utils.copyremotefile(kernel, dst1, api=None, logger=self.logger)
 
         if not utils.file_is_remote(initrd):
             b_initrd = os.path.basename(initrd)
             dst2 = os.path.join(distro_dir, b_initrd)
             utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+        else:
+            b_initrd = os.path.basename(initrd)
+            dst1 = os.path.join(distro_dir, b_initrd)
+            utils.copyremotefile(initrd, dst1, api=None, logger=self.logger)
 
         if "nexenta" == d.breed:
             try:
