@@ -34,6 +34,7 @@ import time
 import pwd
 import grp
 import simplejson as json
+from __future__ import print_function
 try:
     import yum
     sys.path.append('/usr/share/yum-cli')
@@ -63,7 +64,7 @@ class KoanConfigure:
 
     def configure_yum_repos(self):
         """Configure YUM repositories."""
-        print "- Configuring Repos"
+        print("- Configuring Repos")
         old_repo = '/etc/yum.repos.d/config.repo'
 
         # Stage a tempfile to hold new file contents
@@ -80,7 +81,7 @@ class KoanConfigure:
             else:
                 self.stats['repos_status'] = "Success: Repos in sync"
         else:
-            print "  %s not found, creating..." % (old_repo)
+            print("  %s not found, creating..." % (old_repo))
             open(old_repo, 'w').close()
             utils.sync_file(old_repo, new_repo, 0, 0, 644)
             self.stats['repos_status'] = "Success: Repos in sync"
@@ -88,7 +89,7 @@ class KoanConfigure:
 
     def configure_ldap(self):
         """Configure LDAP by running the specified LDAP command."""
-        print "- Configuring LDAP"
+        print("- Configuring LDAP")
         rc = subprocess.call(self.config['ldap_data'], shell="True")
         if rc == 0:
             self.stats['ldap_status'] = "Success: LDAP has been configured"
@@ -97,7 +98,7 @@ class KoanConfigure:
 
     def configure_monit(self):
         """Start or reload Monit"""
-        print "- Configuring Monit"
+        print("- Configuring Monit")
         ret = subprocess.call(['/sbin/service', 'monit', 'status'])
         if ret == 0:
             _ret = subprocess.call(['/usr/bin/monit', 'reload'])
@@ -118,7 +119,7 @@ class KoanConfigure:
 
     def configure_yum_packages(self):
         """Configure package resources."""
-        print "- Configuring Packages"
+        print("- Configuring Packages")
         runtime_start = time.time()
         nsync = 0
         osync = 0
@@ -160,12 +161,12 @@ class KoanConfigure:
         doTransaction = False
 
         if create_pkg_list:
-            print "  Packages out of sync: %s" % create_pkg_list
+            print("  Packages out of sync: %s" % create_pkg_list)
             ybc.installPkgs(create_pkg_list)
             osync += len(create_pkg_list)
             doTransaction = True
         if remove_pkg_list:
-            print "  Packages out of sync: %s" % remove_pkg_list
+            print("  Packages out of sync: %s" % remove_pkg_list)
             ybc.erasePkgs(remove_pkg_list)
             osync += len(remove_pkg_list)
             doTransaction = True
@@ -183,7 +184,7 @@ class KoanConfigure:
 
     def configure_directories(self):
         """ Configure directory resources."""
-        print "- Configuring Directories"
+        print("- Configuring Directories")
         runtime_start = time.time()
         nsync = 0
         osync = 0
@@ -212,7 +213,8 @@ class KoanConfigure:
                 '/var']
             if os.path.isdir(odir):
                 if os.path.realpath(odir) in protected_dirs:
-                    print " %s is a protected directory, skipping..." % os.path.realpath(odir)
+                    print(" %s is a protected directory, skipping..."
+                          % os.path.realpath(odir))
                     fail += 1
                     continue
 
@@ -234,13 +236,13 @@ class KoanConfigure:
                     else:
                         nsync += 1
                 else:
-                    print "  Directory out of sync, creating %s" % odir
+                    print("  Directory out of sync, creating %s" % odir)
                     os.makedirs(odir, nmode)
                     os.chown(odir, nuid, ngid)
                     osync += 1
             elif action == 'remove':
                 if os.path.isdir(odir):
-                    print "  Directory out of sync, removing %s" % odir
+                    print("  Directory out of sync, removing %s" % odir)
                     shutil.rmtree(odir)
                     osync += 1
                 else:
@@ -257,7 +259,7 @@ class KoanConfigure:
 
     def configure_files(self):
         """ Configure file resources."""
-        print "- Configuring Files"
+        print("- Configuring Files")
         runtime_start = time.time()
         nsync = 0
         osync = 0
@@ -299,7 +301,8 @@ class KoanConfigure:
                     utils.sync_file(ofile, nfile, nuid, ngid, nmode)
                     osync += 1
                 else:
-                    print "  Base directory not found, %s required." % (os.path.dirname(ofile))
+                    print("  Base directory not found, %s required."
+                          % (os.path.dirname(ofile)))
                     fail += 1
                 _tempfile.close()
             elif action == 'remove':
