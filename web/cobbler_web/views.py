@@ -363,7 +363,7 @@ def genlist(request, what, page=None):
         'username': username,
         'limit': limit,
         'batchactions': batchactions,
-        'profiles' : profiles,
+        'profiles': profiles,
     }))
     return HttpResponse(html)
 
