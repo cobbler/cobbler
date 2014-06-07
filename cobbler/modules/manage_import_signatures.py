@@ -159,7 +159,7 @@ class ImportSignatureManager:
         the signature directory and the version file
         """
         sigdata = self.api.get_signatures()
-        #self.logger.debug("signature cache: %s" % str(sigdata))
+        # self.logger.debug("signature cache: %s" % str(sigdata))
         for breed in sigdata["breeds"].keys():
             if self.breed and self.breed != breed:
                 continue
@@ -235,7 +235,7 @@ class ImportSignatureManager:
             if os.path.islink(fullname) and os.path.isdir(fullname):
                 if fullname.startswith(self.path):
                     # Prevent infinite loop with Sci Linux 5
-                    #self.logger.warning("avoiding symlink loop")
+                    # self.logger.warning("avoiding symlink loop")
                     continue
                 self.logger.info("following symlink: %s" % fullname)
                 os.path.walk(fullname, self.distro_adder, distros_added)

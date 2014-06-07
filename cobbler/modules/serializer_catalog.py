@@ -94,7 +94,7 @@ def serialize_item(obj, item):
         datastruct = item.to_datastruct()
         fd = open(filename, "w+")
         data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
-        #data = data.encode('utf-8')
+        # data = data.encode('utf-8')
         fd.write(data)
 
     else:

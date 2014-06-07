@@ -31,7 +31,7 @@ import os.path
 
 TESTMODE = False
 
-#--------------------------------------------
+# --------------------------------------------
 
 
 class Repos(collection.Collection):
@@ -71,7 +71,7 @@ class Repos(collection.Collection):
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
                     utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
-                #FIXME: better use config.settings() webdir?
+                # FIXME: better use config.settings() webdir?
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name
                 if os.path.exists("/srv/www/"):
                     path = "/srv/www/cobbler/repo_mirror/%s" % obj.name

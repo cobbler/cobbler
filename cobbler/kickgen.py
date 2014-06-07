@@ -106,8 +106,8 @@ class KickGen:
         # add some cobbler information to the XML file
         # maybe that should be configureable
         if addComment == 1:
-            #startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n#raw\n")
-            #endComment = document.createComment("\n#end raw\n")
+            # startComment = document.createComment("\ncobbler_system_name=$system_name\ncobbler_server=$server\n#raw\n")
+            # endComment = document.createComment("\n#end raw\n")
             cobblerElement = document.createElement("cobbler")
             cobblerElementSystem = xml.dom.minidom.Element("system_name")
             cobblerElementProfile = xml.dom.minidom.Element("profile_name")
@@ -129,9 +129,9 @@ class KickGen:
             # FIXME: this is all broken and no longer works.
             #        this entire if block should probably not be
             #        hard-coded anyway
-            #self.api.log(document.childNodes[2].childNodes)
-            #document.childNodes[1].insertBefore( cobblerElement, document.childNodes[2].childNodes[1])
-            #document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[0])
+            # self.api.log(document.childNodes[2].childNodes)
+            # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[2].childNodes[1])
+            # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[0])
 
         name = profile.name
         if system is not None:

@@ -31,9 +31,9 @@ class HardLinker:
         """
         Constructor
         """
-        #self.config   = config
-        #self.api      = config.api
-        #self.settings = config.settings()
+        # self.config   = config
+        # self.api      = config.api
+        # self.settings = config.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger

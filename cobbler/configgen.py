@@ -49,14 +49,14 @@ class ConfigGen:
         self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
         self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def resolve_resource_var(self, string_data):
         """Substitute variables in strings."""
         data = string.Template(string_data).substitute(self.host_vars)
         return data
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def resolve_resource_list(self, list_data):
         """Substitute variables in lists. Return new list."""
@@ -65,13 +65,13 @@ class ConfigGen:
             new_list.append(string.Template(item).substitute(self.host_vars))
         return new_list
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def get_cobbler_resource(self, resource):
         """Wrapper around cobbler blender method"""
         return cobbler.utils.blender(self.handle, False, self.system)[resource]
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def gen_config_data(self):
         """
@@ -148,7 +148,7 @@ class ConfigGen:
         config_data['files'] = file_data
         return config_data
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def gen_config_data_for_koan(self):
         """Encode configuration data. Return json object for Koan."""

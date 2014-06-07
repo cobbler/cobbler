@@ -20,7 +20,7 @@ from cexceptions import CX
 from utils import _
 import action_litesync
 
-#--------------------------------------------
+# --------------------------------------------
 
 
 class Images(collection.Collection):

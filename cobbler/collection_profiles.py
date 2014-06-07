@@ -30,7 +30,7 @@ from cexceptions import CX
 import action_litesync
 from utils import _
 
-#--------------------------------------------
+# --------------------------------------------
 
 
 class Profiles(collection.Collection):

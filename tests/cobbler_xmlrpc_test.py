@@ -319,7 +319,7 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
 
         # FIXME: if field in item_<type>.FIELDS defines possible values,
         # test all of them. This is valid for all item types
-        #for field in item_system.FIELDS:
+        # for field in item_system.FIELDS:
         #    (fname,def1,def2,display,editable,tooltip,values,type) = field
         #    if fname not in ["name","distro","parent"] and editable:
         #        if values and isinstance(values,list):
