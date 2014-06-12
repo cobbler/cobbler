@@ -249,8 +249,8 @@ class BootCLI:
         s = xmlrpclib.Server(self.url_cobbler_xmlrpc)
         try:
             s.ping()
-        except:
-            print >> sys.stderr, "cobblerd does not appear to be running/accessible"
+        except Exception, e:
+            print >> sys.stderr, "cobblerd does not appear to be running/accessible: %s" % repr(e)
             sys.exit(411)
 
         s = xmlrpclib.Server(self.url_cobbler_api)
