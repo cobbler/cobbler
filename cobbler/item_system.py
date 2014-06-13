@@ -63,11 +63,12 @@ FIELDS = [
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["*ip_address","",0,"IP Address",True,"",0,"str"],
-  ["*bonding","na",0,"Bonding Mode",True,"",["na","master","slave"],"str"],
-  ["*bonding_master","",0,"Bonding Master",True,"",0,"str"],
+  ["*interface_type","na",0,"Interface Type",True,"",["na","master","slave","bond","bond_slave","bridge","bridge_slave"],"str"],
+  ["*interface_master","",0,"Master Interface",True,"",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"",0,"str"],
+  ["*bridge_opts","",0,"Bridge Opts",True,"",0,"str"],
   ["*static",False,0,"Static",True,"Is this interface static?",0,"bool"],
-  ["*subnet","",0,"Subnet",True,"",0,"str"],
+  ["*netmask","",0,"Subnet Mask",True,"",0,"str"],
   ["*dhcp_tag","",0,"DHCP Tag",True,"",0,"str"],
   ["*dns_name","",0,"DNS Name",True,"",0,"str"],
   ["*static_routes",[],0,"Static Routes",True,"",0,"list"],
@@ -116,12 +117,16 @@ class System(item.Item):
                 "mac_address"    : "",
                 "ip_address"     : "",
                 "dhcp_tag"       : "",
-                "subnet"         : "",
+                "subnet"         : "", # deprecated
+                "netmask"        : "",
                 "virt_bridge"    : "",
                 "static"         : False,
-                "bonding"        : "",
-                "bonding_master" : "",
+                "interface_type"       : "",
+                "interface_master"     : "",
+                "bonding"              : "", # deprecated
+                "bonding_master"       : "", # deprecated
                 "bonding_opts"   : "",
+                "bridge_opts"    : "",
                 "dns_name"       : "",
                 "static_routes"  : [],
             }
@@ -333,9 +338,9 @@ class System(item.Item):
         self.name_servers_search = data
         return True
 
-    def set_subnet(self,subnet,interface):
+    def set_netmask(self,netmask,interface):
         intf = self.__get_interface(interface)
-        intf["subnet"] = subnet
+        intf["netmask"] = netmask
         return True
     
     def set_virt_bridge(self,bridge,interface):
@@ -345,18 +350,25 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
         return True
 
-    def set_bonding(self,bonding,interface):
-        if bonding not in ["master","slave","na",""] : 
-            raise CX(_("bonding value must be one of: master, slave, na"))
-        if bonding == "na":
-            bonding = ""
+    def set_interface_type(self,type,interface):
+        # master and slave are deprecated, and will
+        # be assumed to mean bonding slave/master
+        interface_types = ["bridge","bridge_slave","bond","bond_slave","master","slave","na",""]
+        if type not in interface_types:
+            raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
+        if type == "na":
+            type = ""
+        elif type == "master":
+            type = "bond"
+        elif type == "slave":
+            type = "bond_slave"
         intf = self.__get_interface(interface)
-        intf["bonding"] = bonding
+        intf["interface_type"] = type
         return True
 
-    def set_bonding_master(self,bonding_master,interface):
+    def set_interface_master(self,interface_master,interface):
         intf = self.__get_interface(interface)
-        intf["bonding_master"] = bonding_master
+        intf["interface_master"] = interface_master
         return True
 
     def set_bonding_opts(self,bonding_opts,interface):
@@ -389,6 +401,11 @@ class System(item.Item):
                 new_parent.children[self.name] = self
             return True
         raise CX(_("invalid profile name: %s") % profile_name)
+
+    def set_bridge_opts(self,bridge_opts,interface):
+        intf = self.__get_interface(interface)
+        intf["bridge_opts"] = bridge_opts
+        return True
 
     def set_image(self,image_name):
         """
@@ -524,11 +541,16 @@ class System(item.Item):
             if field == "dnsname"       : self.set_dns_name(value, interface)
             if field == "static"        : self.set_static(value, interface)
             if field == "dhcptag"       : self.set_dhcp_tag(value, interface)
-            if field == "subnet"        : self.set_subnet(value, interface)
+            if field == "subnet"        : self.set_netmask(value, interface)
+            if field == "netmask"       : self.set_netmask(value, interface)
             if field == "virtbridge"    : self.set_virt_bridge(value, interface)
-            if field == "bonding"       : self.set_bonding(value, interface)
-            if field == "bondingmaster" : self.set_bonding_master(value, interface)
-            if field == "bondingopts"   : self.set_bonding_opts(value, interface)
+            if field == "interfacetype"       : self.set_interface_type(value, interface)
+            if field == "interfacemaster"     : self.set_interface_master(value, interface)
+            if field == "bonding"             : self.set_interface_type(value, interface)   # deprecated
+            if field == "bondingmaster"       : self.set_interface_master(value, interface) # deprecated
+            if field == "bondingopts"         : self.set_bonding_opts(value, interface)
+            if field == "bridgeopts"          : self.set_bridge_opts(value, interface)
+
             if field == "staticroutes"  : self.set_static_routes(value, interface)
         return True
 

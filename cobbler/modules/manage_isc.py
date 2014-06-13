@@ -117,14 +117,14 @@ class IscManager:
                 interface["gateway"] = system.gateway
 
                 mac  = interface["mac_address"]
-                if interface["bonding"] == "slave":
-                    if interface["bonding_master"] not in system.interfaces:
+                if interface["interface_type"] in ("slave","bond_slave","bridge_slave"):
+                    if interface["interface_master"] not in system.interfaces:
                         # Can't write DHCP entry; master interface does not
                         # exist
                         continue
-                    ip = system.interfaces[interface["bonding_master"]]["ip_address"]
+                    ip = system.interfaces[interface["interface_master"]]["ip_address"]
                     interface["ip_address"] = ip
-                    host = system.interfaces[interface["bonding_master"]]["dns_name"]
+                    host = system.interfaces[interface["interface_master"]]["dns_name"]
                 else:
                     ip   = interface["ip_address"]
                     host = interface["dns_name"]

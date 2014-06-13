@@ -392,7 +392,7 @@ system:
         "''owners": {}
         "''profile": {}
         "''server'override": {}
-        "''subnet": {}
+        "''netmask": {}
         "''virt'bridge": {}
         "''virt'cpus": {}
         "''virt'file'size": {}
@@ -418,7 +418,7 @@ system:
         "''owners": {}
         "''profile": {}
         "''server'override": {}
-        "''subnet": {}
+        "''netmask": {}
         "''virt'bridge": {}
         "''virt'cpus": {}
         "''virt'file'size": {}
@@ -445,7 +445,7 @@ system:
         "''owners": {}
         "''profile": {}
         "''server'override": {}
-        "''subnet": {}
+        "''netmask": {}
         "''virt'bridge": {}
         "''virt'cpus": {}
         "''virt'file'size": {}
@@ -466,7 +466,7 @@ system:
         "''owners": {}
         "''profile": {}
         "''server'override": {}
-        "''subnet": {}
+        "''netmask": {}
         "''virt'bridge": {}
         "''virt'cpus": {}
         "''virt'file'size": {}
@@ -497,7 +497,7 @@ system:
         "''owners": {}
         "''profile": {}
         "''server'override": {}
-        "''subnet": {}
+        "''netmask": {}
         "''virt'bridge": {}
         "''virt'cpus": {}
         "''virt'file'size": {}

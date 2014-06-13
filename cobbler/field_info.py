@@ -45,7 +45,7 @@ USES_SELECT = [
    "image",
    "virt_type",
    "arch",
-   "*bonding",
+   "*interface_type",
    "parent",
    "breed",
    "os_version",
@@ -104,12 +104,13 @@ BLOCK_MAPPINGS = {
    "*ip_address"     : "Networking",
    "*dhcp_tag"       : "Networking",
    "*static"         : "Networking",
-   "*bonding"        : "Networking",
+   "*interface_type" : "Networking",
+   "*interface_master" : "Networking",
    "*bonding_opts"   : "Networking",
-   "*bonding_master" : "Networking",
+   "*bridge_opts"    : "Networking",
    "*dns_name"       : "Networking",
    "*static_routes"  : "Networking",
-   "*subnet"         : "Networking",
+   "*netmask"        : "Networking",
    "hostname"        : "Networking (Global)",
    "gateway"         : "Networking (Global)",
    "name_servers"         : "Networking (Global)",
@@ -137,4 +138,13 @@ ALTERNATE_OPTIONS = {
    "ks_meta"             : "--ksmeta",
    "kernel_options"      : "--kopts",
    "kernel_options_post" : "--kopts-post",
+}
+
+# Deprecated fields that have been renamed, but we need to account for them appearing in older 
+# datastructs that may not have been saved since the code change
+
+DEPRECATED_FIELDS = {
+   "subnet"         : "netmask",
+   "bonding"        : "interface_type",
+   "bonding_master" : "interface_master",
 }
