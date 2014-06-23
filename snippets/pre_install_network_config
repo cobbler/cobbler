@@ -75,17 +75,21 @@ get_ifname() {
                 #for $tiname in $ikeys
                     #set $tidata = $interfaces[$tiname]
                     #if $tidata["interface_type"].lower() in ("slave","bond_slave","bridge_slave") and $tidata["interface_master"].lower() == $iname
-                        #set $mac = $tidata["mac_address"]
+                        #if $tidata["mac_address"] != '':
+                            #set $mac = $tidata["mac_address"]
 #  Found a slave for this interface: $tiname ($mac)
-                        #break
+                            #break
+                        #end if
                     #else if $tidata["interface_type"].lower() == "bonded_bridge_slave" and $tidata["interface_master"].lower() == $iname
                         ## find a slave for this slave interface...
                         #for $stiname in $ikeys
                             #set $stidata = $interfaces[$stiname]
                             #if $stidata["interface_type"].lower() in ("slave","bond_slave","bridge_slave") and $stidata["interface_master"].lower() == $tiname
-                                #set $mac = $stidata["mac_address"]
+                                #if $stidata["mac_address"] != '':
+                                    #set $mac = $stidata["mac_address"]
 #  Found a slave for this interface: $tiname -> $stiname ($mac)
-                                #break
+                                    #break
+                                #end if
                             #end if
                         #end for
                     #end if
