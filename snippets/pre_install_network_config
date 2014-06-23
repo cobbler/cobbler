@@ -31,7 +31,7 @@ get_ifname() {
 #end raw
     #set ikeys = $interfaces.keys()
     #import re
-    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.:][0-9]+")
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
     #set $routepattern = $re.compile("[0-9/.]+:[0-9.]+")
     ##
     ## Determine if we should use the MAC address to configure the interfaces first
