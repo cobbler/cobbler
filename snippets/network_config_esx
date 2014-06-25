@@ -2,7 +2,7 @@
 
 #if $getVar("system_name","") != ""
     #set ikeys = $interfaces.keys()
-    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.:][0-9]+")
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
     #for $iname in $ikeys
         #set $idata    = $interfaces[$iname]
         #set $mac      = $idata["mac_address"]
