@@ -55,7 +55,9 @@ group {
         #if $iface.ip_address:
         fixed-address $iface.ip_address;
         #end if
-        #if $iface.hostname:
+        #if $iface.dns_name:
+        option host-name "$iface.dns_name";
+        #else if $iface.hostname:
         option host-name "$iface.hostname";
         #end if
         #if $iface.netmask:
