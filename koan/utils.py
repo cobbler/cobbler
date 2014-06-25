@@ -150,18 +150,24 @@ def subprocess_call(cmd, ignore_rc=0):
     return rc
 
 
-def subprocess_get_response(cmd, ignore_rc=False):
+def subprocess_get_response(cmd, ignore_rc=False, get_stderr=False):
     """
     Wrapper around subprocess.check_output(...)
     """
     print "- %s" % cmd
     rc = 0
     result = ""
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    result = p.communicate()[0]
+    if get_stderr:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+    else:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    result, stderr_result = p.communicate()
     rc = p.wait()
     if not ignore_rc and rc != 0:
         raise InfoException("command failed (%s)" % rc)
+    if get_stderr:
+        return rc, result, stderr_result
     return rc, result
 
 
