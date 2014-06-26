@@ -30,10 +30,11 @@ if you need to resolve this.
     </li>
 {% if deleteable %}
     <li>
-      <label class="delete" for="delete1">Delete</label>
       <input type="checkbox" name="delete1" value="delete1" />
-      <label class="delete" for="delete2">Really?</label>
+      <label class="delete" for="delete1">Delete</label>
+      <br>
       <input type="checkbox" name="delete2" value="delete2" />
+      <label class="delete" for="delete2">Really?</label>
       <span class="context-tip">Check both buttons and click save to delete this object</span>
     </li>
 {% else %}
