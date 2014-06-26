@@ -320,7 +320,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines
 Group: Applications/System
-Requires: python >= 2.4
+Requires: python >= 2.6
 Requires: python-ethtool
 %if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
