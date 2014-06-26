@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import print_function
+
 import os
 import traceback
 from optparse import OptionParser
@@ -29,7 +31,6 @@ import socket
 from . import utils
 from cexceptions import InfoException
 import string
-from __future__ import print_function
 
 # usage: cobbler-register [--server=server] [--fqdn=hostname] --profile=foo
 

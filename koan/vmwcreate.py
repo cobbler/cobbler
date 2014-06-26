@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import print_function
 
 import os
 from cexceptions import VirtCreateException, InfoException
-from __future__ import print_function
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"

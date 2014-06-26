@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 module for configuring repos, ldap, packages, files, and monit
 """
 
+from __future__ import print_function
+
 import filecmp
 import shutil
 from . import utils
@@ -34,7 +36,7 @@ import time
 import pwd
 import grp
 import simplejson as json
-from __future__ import print_function
+
 try:
     import yum
     sys.path.append('/usr/share/yum-cli')
