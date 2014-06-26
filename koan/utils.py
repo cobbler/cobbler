@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import print_function
+
 import os
 import random
 import traceback
@@ -35,7 +37,6 @@ import urlgrabber
 import ethtool
 import time
 from cexceptions import KX, InfoException
-from __future__ import print_function
 
 VIRT_STATE_NAME_MAP = {
     0: "running",

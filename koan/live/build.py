@@ -16,11 +16,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 # usage: --server=bootserver.example.com --koan="--profile=FOO"
 # requires latest git://git.fedoraproject.org/git/hosted/livecd
 
+from __future__ import print_function
+
 import optparse
 import subprocess
 import sys
 import os
-from __future__ import print_function
 
 # this configuration is the kickstart for the live CD, not the install system
 # tweak at your own risk

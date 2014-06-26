@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import print_function
+
 import random
 import os
 import traceback
@@ -40,7 +42,6 @@ import socket
 from cexceptions import InfoException
 from . import utils
 from . import configurator
-from __future__ import print_function
 
 COBBLER_REQUIRED = 1.300
 KOAN_CONF_DIR = '/var/lib/koan/config/'
@@ -1624,8 +1625,7 @@ class Koan:
             elif self.virt_type in ["openvz"]:
                 pass
             else:
-                print("- warning: don't know how to autoboot this ")
-                      "  virt type yet")
+                print("- warning: don't know how to autoboot this virt type yet")
             # else...
         return results
 
