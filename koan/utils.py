@@ -35,6 +35,7 @@ import urlgrabber
 import ethtool
 import time
 from cexceptions import KX, InfoException
+from __future__ import print_function
 
 VIRT_STATE_NAME_MAP = {
     0: "running",
@@ -84,7 +85,7 @@ def urlread(url):
     parts of urlread and urlgrab from urlgrabber, in ways that
     are less cool and less efficient.
     """
-    print "- reading URL: %s" % url
+    print("- reading URL: %s" % url)
     if url is None or url == "":
         raise InfoException("invalid URL: %s" % url)
 
@@ -143,7 +144,7 @@ def subprocess_call(cmd, ignore_rc=0):
     """
     Wrapper around subprocess.call(...)
     """
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = subprocess.call(cmd)
     if rc != 0 and not ignore_rc:
         raise InfoException("command failed (%s)" % rc)
@@ -154,7 +155,7 @@ def subprocess_get_response(cmd, ignore_rc=False, get_stderr=False):
     """
     Wrapper around subprocess.check_output(...)
     """
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = 0
     result = ""
     if get_stderr:
@@ -256,14 +257,14 @@ def nfsmount(input_path):
     mount_cmd = [
         "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
     ]
-    print "- running: %s" % mount_cmd
+    print("- running: %s" % mount_cmd)
     rc = subprocess.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)
         raise InfoException("nfs mount failed: %s" % dirpath)
     # NOTE: option for a blocking install might be nice, so we could do this
     # automatically, if supported by virt-install
-    print "after install completes, you may unmount and delete %s" % tempdir
+    print("after install completes, you may unmount and delete %s" % tempdir)
     return (tempdir, filename)
 
 
@@ -443,7 +444,7 @@ def connect_to_server(server=None, port=None):
         "https://%s:%s/cobbler_api" % (server, port),
     ]
     for url in try_urls:
-        print "- looking for Cobbler at %s" % url
+        print("- looking for Cobbler at %s" % url)
         server = __try_connect(url)
         if server is not None:
             return server
@@ -460,12 +461,14 @@ def create_xendomains_symlink(name):
 
     # Make sure symlink does not already exist.
     if os.path.exists(dst):
-        print "Could not create %s symlink. File already exists in this location." % dst
+        print("Could not create %s symlink. File already exists in this "
+              "location." % dst)
         return False
 
     # Verify that the destination is writable
     if not os.access(os.path.dirname(dst), os.W_OK):
-        print "Could not create %s symlink. Please check write permissions and ownership." % dst
+        print("Could not create %s symlink. Please check write permissions "
+              "and ownership." % dst)
         return False
 
     # check that xen config file exists and create symlink
@@ -473,7 +476,8 @@ def create_xendomains_symlink(name):
         os.symlink(src, dst)
         return True
     else:
-        print "Could not create %s symlink, source file %s is missing." % (dst, src)
+        print("Could not create %s symlink, source file %s is "
+              "missing." % (dst, src))
         return False
 
 
@@ -497,18 +501,18 @@ def make_floppy(kickstart):
 
     (fd, floppy_path) = tempfile.mkstemp(
         suffix='.floppy', prefix='tmp', dir="/tmp")
-    print "- creating floppy image at %s" % floppy_path
+    print("- creating floppy image at %s" % floppy_path)
 
     # create the floppy image file
     cmd = "dd if=/dev/zero of=%s bs=1440 count=1024" % floppy_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("dd failed")
 
     # vfatify
     cmd = "mkdosfs %s" % floppy_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("mkdosfs failed")
@@ -516,19 +520,19 @@ def make_floppy(kickstart):
     # mount the floppy
     mount_path = tempfile.mkdtemp(suffix=".mnt", prefix='tmp', dir="/tmp")
     cmd = "mount -o loop -t vfat %s %s" % (floppy_path, mount_path)
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("mount failed")
 
     # download the kickstart file onto the mounted floppy
-    print "- downloading %s" % kickstart
+    print("- downloading %s" % kickstart)
     save_file = os.path.join(mount_path, "unattended.txt")
     urlgrabber.urlgrab(kickstart, filename=save_file)
 
     # umount
     cmd = "umount %s" % mount_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("umount failed")

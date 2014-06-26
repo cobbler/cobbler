@@ -40,6 +40,7 @@ import socket
 from cexceptions import InfoException
 from . import utils
 from . import configurator
+from __future__ import print_function
 
 COBBLER_REQUIRED = 1.300
 KOAN_CONF_DIR = '/var/lib/koan/config/'
@@ -361,11 +362,11 @@ def main():
         (xa, xb, tb) = sys.exc_info()
         try:
             getattr(e, "from_koan")
-            print str(e)[1:-1]  # nice exception, no traceback needed
+            print(str(e)[1:-1])  # nice exception, no traceback needed
         except:
-            print xa
-            print xb
-            print string.join(traceback.format_list(traceback.extract_tb(tb)))
+            print(xa)
+            print(xb)
+            print(string.join(traceback.format_list(traceback.extract_tb(tb))))
         return 1
 
     return 0
@@ -443,9 +444,9 @@ class Koan:
 
         if not os.getuid() == 0:
             if self.is_virt:
-                print "warning: running as non root"
+                print("warning: running as non root")
             else:
-                print "this operation requires root access"
+                print("this operation requires root access")
                 return 3
 
         # if both --profile and --system were ommitted, autodiscover
@@ -523,17 +524,17 @@ class Koan:
             traceback.print_exc()
             self.connect_fail()
 
-        print "\n- which profile to install?\n"
+        print("\n- which profile to install?\n")
 
         for x in available_profiles:
-            print "%s" % x["name"]
+            print("%s" % x["name"])
 
         sys.stdout.write("\n?>")
 
         data = sys.stdin.readline().strip()
 
         for x in available_profiles:
-            print "comp (%s,%s)" % (x["name"], data)
+            print("comp (%s,%s)" % (x["name"], data))
             if x["name"] == data:
                 return data
         return None
@@ -581,7 +582,7 @@ class Koan:
             else:
                 return None
         elif len(detected_systems) == 1:
-            print "- Auto detected: %s" % detected_systems[0]
+            print("- Auto detected: %s" % detected_systems[0])
             return detected_systems[0]
 
     def safe_load(self, hashv, primary_key, alternate_key=None, default=None):
@@ -666,7 +667,8 @@ class Koan:
                         "xmlfile based installations are not supported")
 
                 elif "file" in profile_data:
-                    print "- ISO or Image based installation, always uses --virt-type=qemu"
+                    print("- ISO or Image based installation, always uses "
+                          "--virt-type=qemu")
                     self.virt_type = "qemu"
 
                 else:
@@ -688,7 +690,8 @@ class Koan:
                         raise InfoException(
                             "Not running a Xen kernel and qemu is not installed")
 
-                print "- no virt-type specified, auto-selecting %s" % self.virt_type
+                print("- no virt-type specified, auto-selecting %s"
+                      % self.virt_type)
 
             # now that we've figured out our virt-type, let's see if it is really usable
             # rather than showing obscure error messages from Xen to the user
@@ -816,9 +819,9 @@ class Koan:
                         break
 
             if self.safe_load(profile_data, "install_tree"):
-                print "install_tree:", profile_data["install_tree"]
+                print("install_tree:", profile_data["install_tree"])
             else:
-                print "warning: kickstart found but no install_tree found"
+                print("warning: kickstart found but no install_tree found")
 
         except:
             # unstable to download the kickstart, however this might not
@@ -862,9 +865,9 @@ class Koan:
                     profile_data["http_server"] + tree
 
             if self.safe_load(profile_data, "install_tree"):
-                print "install_tree:", profile_data["install_tree"]
+                print("install_tree:", profile_data["install_tree"])
             else:
-                print "warning: kickstart found but no install_tree found"
+                print("warning: kickstart found but no install_tree found")
         except:
             pass
 
@@ -874,7 +877,7 @@ class Koan:
         data = self.get_data(what)
         for x in data:
             if "name" in x:
-                print x["name"]
+                print(x["name"])
         return True
 
     def display(self):
@@ -884,7 +887,7 @@ class Koan:
                     value = profile_data[x]
                     if x == 'kernel_options':
                         value = self.calc_kernel_args(profile_data)
-                    print "%20s  : %s" % (x, value)
+                    print("%20s  : %s" % (x, value))
         return self.net_install(after_download)
 
     def virt(self):
@@ -924,9 +927,9 @@ class Koan:
         template_files = utils.input_string_or_hash(template_files)
         template_keys = template_files.keys()
 
-        print "- template map: %s" % template_files
+        print("- template map: %s" % template_files)
 
-        print "- processing for files to download..."
+        print("- processing for files to download...")
         for src in template_keys:
             dest = template_files[src]
             save_as = dest
@@ -936,7 +939,7 @@ class Koan:
                 # this is a file in the template system that is not to be
                 # downloaded
                 continue
-            print "- file: %s" % save_as
+            print("- file: %s" % save_as)
 
             pattern = "http://%s/cblr/svc/op/template/%s/%s/path/%s"
             if "interfaces" in profile_data:
@@ -979,7 +982,7 @@ class Koan:
         f.write(config)
         f.close()
 
-        print "- Starting configuration run for %s" % (hostname)
+        print("- Starting configuration run for %s" % (hostname))
         runtime_start = time.time()
         configure = configurator.KoanConfigure(config)
         stats = configure.run()
@@ -1009,31 +1012,31 @@ class Koan:
             total_resources = (nsync + osync + fail)
             total_runtime = (runtime_end - runtime_start)
 
-            print
-            print "\tResource Report"
-            print "\t-------------------------"
-            print "\t    In Sync: %d" % nsync
-            print "\tOut of Sync: %d" % osync
-            print "\t       Fail: %d" % fail
-            print "\t-------------------------"
-            print "\tTotal Resources: %d" % total_resources
-            print "\t  Total Runtime: %.02f" % total_runtime
+            print('')
+            print("\tResource Report")
+            print("\t-------------------------")
+            print("\t    In Sync: %d" % nsync)
+            print("\tOut of Sync: %d" % osync)
+            print("\t       Fail: %d" % fail)
+            print("\t-------------------------")
+            print("\tTotal Resources: %d" % total_resources)
+            print("\t  Total Runtime: %.02f" % total_runtime)
 
             for status in ["repos_status", "ldap_status", "monit_status"]:
                 if status in stats:
-                    print
-                    print "\t%s" % status
-                    print "\t-------------------------"
-                    print "\t%s" % stats[status]
-                    print "\t-------------------------"
+                    print('')
+                    print("\t%s" % status)
+                    print("\t-------------------------")
+                    print("\t%s" % stats[status])
+                    print("\t-------------------------")
 
-            print
-            print "\tResource |In Sync|OO Sync|Failed|Runtime"
-            print "\t----------------------------------------"
-            print "\t      Packages:  %d      %d    %d     %.02f" % pstats
-            print "\t   Directories:  %d      %d    %d     %.02f" % dstats
-            print "\t         Files:  %d      %d    %d     %.02f" % fstats
-            print
+            print('')
+            print("\tResource |In Sync|OO Sync|Failed|Runtime")
+            print("\t----------------------------------------")
+            print("\t      Packages:  %d      %d    %d     %.02f" % pstats)
+            print("\t   Directories:  %d      %d    %d     %.02f" % dstats)
+            print("\t         Files:  %d      %d    %d     %.02f" % fstats)
+            print('')
 
     def kexec_replace(self):
         """
@@ -1094,7 +1097,7 @@ class Koan:
                 '--command-line=%s' % (k_args,),
                 self.safe_load(profile_data, 'kernel_local')
             ])
-            print "Kernel loaded; run 'kexec -e' to execute"
+            print("Kernel loaded; run 'kexec -e' to execute")
         return self.net_install(after_download)
 
     def get_boot_loader_info(self):
@@ -1229,18 +1232,18 @@ class Koan:
                 if arch.startswith("ppc") and "grub2" not in probe_output:
                     # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition
                     # and doesn't require running ybin
-                    print "- applying ybin changes"
+                    print("- applying ybin changes")
                     cmd = ["/sbin/ybin"]
                     utils.subprocess_call(cmd)
                 elif arch.startswith("s390"):
-                    print "- applying zipl changes"
+                    print("- applying zipl changes")
                     cmd = ["/sbin/zipl"]
                     utils.subprocess_call(cmd)
                 else:
                     # if grubby --bootloader-probe returns lilo,
                     #    apply lilo changes
                     if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") != -1:
-                        print "- applying lilo changes"
+                        print("- applying lilo changes")
                         cmd = ["/sbin/lilo"]
                         utils.subprocess_call(cmd)
 
@@ -1286,16 +1289,16 @@ class Koan:
 
                 # Set default grub entry for reboot
                 if not self.add_reinstall_entry:
-                    print "- setting grub2 default entry"
+                    print("- setting grub2 default entry")
                     subprocess.call(default_cmd)
 
                 # Run update-grub
                 utils.subprocess_call(cmd)
 
             if not self.add_reinstall_entry:
-                print "- reboot to apply changes"
+                print("- reboot to apply changes")
             else:
-                print "- reinstallation entry added"
+                print("- reinstallation entry added")
 
         return self.net_install(after_download)
 
@@ -1415,12 +1418,12 @@ class Koan:
                     profile_data["http_server"], distro, initrd_short)
 
         try:
-            print "downloading initrd %s to %s" % (initrd_short, initrd_save)
-            print "url=%s" % initrd
+            print("downloading initrd %s to %s" % (initrd_short, initrd_save))
+            print("url=%s" % initrd)
             utils.urlgrab(initrd, initrd_save)
 
-            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
-            print "url=%s" % kernel
+            print("downloading kernel %s to %s" % (kernel_short, kernel_save))
+            print("url=%s" % kernel)
             utils.urlgrab(kernel, kernel_save)
         except:
             traceback.print_exc()
@@ -1583,7 +1586,7 @@ class Koan:
 
         if can_poll is not None and self.should_poll:
             import libvirt
-            print "- polling for virt completion"
+            print("- polling for virt completion")
             conn = None
             if can_poll == "xen":
                 conn = libvirt.open(None)
@@ -1596,14 +1599,16 @@ class Koan:
                 time.sleep(3)
                 state = utils.get_vm_state(conn, virtname)
                 if state == "running":
-                    print "- install is still running, sleeping for 1 minute (%s)" % ct
+                    print("- install is still running, sleeping for 1 minute "
+                          "(%s)" % ct)
                     ct = ct + 1
                     time.sleep(60)
                 elif state == "crashed":
-                    print "- the install seems to have crashed."
+                    print("- the install seems to have crashed.")
                     return "failed"
                 elif state == "shutdown":
-                    print "- shutdown VM detected, is the install done?  Restarting!"
+                    print("- shutdown VM detected, is the install done? "
+                          "Restarting!")
                     utils.find_vm(conn, virtname).create()
                     return results
                 else:
@@ -1612,15 +1617,15 @@ class Koan:
         if virt_auto_boot:
             if self.virt_type in ["xenpv", "xenfv"]:
                 if not utils.create_xendomains_symlink(virtname):
-                    print "- warning: failed to setup autoboot for %s, \
-                            it will have to be configured manually" % virtname
+                    print("- warning: failed to setup autoboot for %s, "
+                          "it will have to be configured manually" % virtname)
             elif self.virt_type in ["qemu", "kvm"]:
                 utils.libvirt_enable_autostart(virtname)
             elif self.virt_type in ["openvz"]:
                 pass
             else:
-                print "- warning: don't know how to autoboot this \
-                        virt type yet"
+                print("- warning: don't know how to autoboot this ")
+                      "  virt type yet")
             # else...
         return results
 
@@ -1691,9 +1696,9 @@ class Koan:
             disks.append([path, size, driver])
             counter = counter + 1
         if len(disks) == 0:
-            print "paths:   ", paths
-            print "sizes:   ", sizes
-            print "drivers: ", drivers
+            print("paths:   ", paths)
+            print("sizes:   ", sizes)
+            print("drivers: ", drivers)
             raise InfoException("Disk configuration not resolvable!")
         return disks
 
@@ -1760,7 +1765,7 @@ class Koan:
         if size is None or size == '':
             err = True
         if err:
-            print "invalid file size specified, using defaults"
+            print("invalid file size specified, using defaults")
             return default_filesize
         return int(size)
 
@@ -1777,7 +1782,7 @@ class Koan:
             if t in ('raw', 'qcow', 'qcow2', 'aio', 'vmdk', 'qed'):
                 accum.append(t)
             else:
-                print "invalid disk driver specified, defaulting to 'raw'"
+                print("invalid disk driver specified, defaulting to 'raw'")
                 accum.append('raw')
         return accum
 
@@ -1794,7 +1799,7 @@ class Koan:
         if size is None or size == '' or int(size) < default_ram:
             err = True
         if err:
-            print "invalid RAM size specified, using defaults."
+            print("invalid RAM size specified, using defaults.")
             return default_ram
         return int(size)
 
@@ -1836,7 +1841,7 @@ class Koan:
         if my_id is None or my_id == '' or not uuid_re.match(id):
             err = True
         if err and my_id is not None:
-            print "invalid UUID specified.  randomizing..."
+            print("invalid UUID specified.  randomizing...")
             return None
         return my_id
 
@@ -1863,7 +1868,7 @@ class Koan:
             else:
                 prefix = "/var/lib/vmware/images/"
             if not os.path.exists(prefix):
-                print "- creating: %s" % prefix
+                print("- creating: %s" % prefix)
                 os.makedirs(prefix)
             return ["%s/%s-disk0" % (prefix, name)]
 
@@ -1928,12 +1933,12 @@ class Koan:
                 vgname, lvname = location.split(':')[:2]
 
             args = "vgs -o vg_name"
-            print "%s" % args
+            print("%s" % args)
             vgnames = subprocess.Popen(
                 args,
                 shell=True,
                 stdout=subprocess.PIPE).communicate()[0]
-            print vgnames
+            print(vgnames)
 
             if vgnames.find(vgname) == -1:
                 raise InfoException(
@@ -1942,7 +1947,7 @@ class Koan:
 
             # check free space
             args = "LANG=C vgs --noheadings -o vg_free --units g %s" % vgname
-            print args
+            print(args)
             cmd = subprocess.Popen(args, stdout=subprocess.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
@@ -1951,7 +1956,7 @@ class Koan:
                 "").replace(
                 ',',
                 '.')  # remove gigabytes
-            print "(%s)" % freespace_str
+            print("(%s)" % freespace_str)
             freespace = int(float(freespace_str))
 
             virt_size = self.calc_virt_filesize(pd)
@@ -1965,12 +1970,12 @@ class Koan:
 
                 # look for LVM partition named foo, create if doesn't exist
                 args = "lvs --noheadings -o lv_name %s" % vgname
-                print "%s" % args
+                print("%s" % args)
                 lvs_str = subprocess.Popen(
                     args,
                     stdout=subprocess.PIPE,
                     shell=True).communicate()[0]
-                print lvs_str
+                print(lvs_str)
 
                 # have to create it?
                 found_lvs = False
@@ -1982,7 +1987,7 @@ class Koan:
                 if not found_lvs:
                     args = "lvcreate -L %sG -n %s %s" % (
                         virt_size, lvname, vgname)
-                    print "%s" % args
+                    print("%s" % args)
                     lv_create = subprocess.call(args, shell=True)
                     if lv_create != 0:
                         raise InfoException("LVM creation failed")
@@ -2000,7 +2005,7 @@ class Koan:
                     # change security context type to required one
                     args = "/usr/bin/chcon -t %s %s" % (
                         context_type, partition_location)
-                    print "%s" % args
+                    print("%s" % args)
                     change_context = subprocess.call(
                         args,
                         close_fds=True,
@@ -2010,7 +2015,7 @@ class Koan:
                     # between reboots
                     args = "/usr/sbin/semanage fcontext -a -t %s %s" % (
                         context_type, partition_location)
-                    print "%s" % args
+                    print("%s" % args)
                     change_context |= subprocess.call(
                         args,
                         close_fds=True,

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 from cexceptions import OVZCreateException
+from __future__ import print_function
 
 
 def start_install(*args, **kwargs):
@@ -92,7 +93,7 @@ def start_install(*args, **kwargs):
             CTID = int(vz_meta['CTID'])
             del vz_meta['CTID']
         except ValueError:
-            print "Invalid CTID in ks_meta. Exiting..."
+            print("Invalid CTID in ks_meta. Exiting...")
             return 1
     else:
         raise OVZCreateException(
