@@ -39,7 +39,7 @@ import item_image
 OBJECT_ACTIONS   = {
    "distro"  : "add copy edit find list remove rename report".split(" "),
    "profile" : "add copy dumpvars edit find getks list remove rename report".split(" "),
-   "system"  : "add copy dumpvars edit find getks list remove rename report poweron poweroff reboot".split(" "),
+   "system"  : "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
    "image"   : "add copy edit find list remove rename report".split(" "),
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
@@ -277,7 +277,7 @@ class BootCLI:
             keys.sort()
             for x in keys:
                print "%s : %s" % (x, data[x])
-        elif object_action in [ "poweron", "poweroff", "reboot" ]:
+        elif object_action in [ "poweron", "poweroff", "powerstatus", "reboot" ]:
             power={}
             power["power"] = object_action.replace("power","")
             power["systems"] = [options.name]
