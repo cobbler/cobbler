@@ -61,13 +61,10 @@ restorestate:
 	python setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
-		# Red Hat-based
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
 	elif [ -n "`getent passwd wwwrun`" ] ; then \
-		# Suse-based
 		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	elif [-n "`getent passwd www-data`"] ; then \
-		# Debian / Ubuntu
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
