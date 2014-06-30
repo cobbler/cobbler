@@ -409,7 +409,7 @@ class BootCLI:
                 keys = data.keys()
                 keys.sort()
                 for x in keys:
-                    print "%s : %s" % (x, data[x])
+                    print "%s: %s" % (x, data[x])
             elif object_action in ["poweron", "poweroff", "powerstatus", "reboot"]:
                 power = {}
                 power["power"] = object_action.replace("power", "")
@@ -535,7 +535,7 @@ class BootCLI:
                 print "The following are potential configuration items that you may want to fix:\n"
                 for r in results:
                     ct = ct + 1
-                    print "%s : %s" % (ct, r)
+                    print "%s: %s" % (ct, r)
                 print "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
             else:
                 print "No configuration problems found.  All systems go."
