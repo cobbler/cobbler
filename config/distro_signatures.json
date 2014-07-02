@@ -147,7 +147,7 @@
    },
    "cloudlinux6": {
     "signatures":["Packages"],
-    "version_file":"(cloudlinux)-release-(.)\\.rpm",
+    "version_file":"(cloudlinux)-release-(.*)\\.rpm",
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*).rpm",
     "kernel_arch_regex":null,
