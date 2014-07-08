@@ -204,5 +204,4 @@ ALTERNATE_OPTIONS = {
 # datastructs that may not have been saved since the code change
 
 DEPRECATED_FIELDS = {
-    "bonding": "interface_type",
 }
