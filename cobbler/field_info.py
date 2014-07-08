@@ -205,5 +205,4 @@ ALTERNATE_OPTIONS = {
 
 DEPRECATED_FIELDS = {
     "bonding": "interface_type",
-    "bonding_master": "interface_master",
 }
