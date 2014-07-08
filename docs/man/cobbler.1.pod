@@ -280,11 +280,11 @@ Example: --dns-name=mycomputer.example.com
 
 This is a per-interface parameter.  If you have multiple interfaces, it may be different for each interface, for example, assume a DMZ / dual-homed setup.
 
-=item --gateway and --subnet
+=item --gateway and --netmask
 
 If you are using static IP configurations and the interface is flagged --static=1, these will be applied.
 
-Subnet is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may use --static-routes for per-interface customizations if required.
+Netmask is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may use --static-routes for per-interface customizations if required.
 
 =item --hostname
 
@@ -298,7 +298,7 @@ Cobbler contains features that enable integration with power management for easi
 
 =item --static
 
-Indicates that this interface is statically configured.  Many fields (such as gateway/subnet) will
+Indicates that this interface is statically configured.  Many fields (such as gateway/netmask) will
 not be used unless this field is enabled.  
 
 This is a per-interface setting.   
@@ -346,7 +346,7 @@ This is described further on the Cobbler Wiki.
 
 =item --interface
 
-By default flags like --ip, --mac, --dhcp-tag, --dns-name, --subnet, --virt-bridge, and --static-routes operate on the first network interface defined for a system (eth0).  However, cobbler supports an arbitrary number of interfaces.  Using --interface=eth1 for instance, will allow creating and editing of a second interface.  
+By default flags like --ip, --mac, --dhcp-tag, --dns-name, --netmask, --virt-bridge, and --static-routes operate on the first network interface defined for a system (eth0).  However, cobbler supports an arbitrary number of interfaces.  Using --interface=eth1 for instance, will allow creating and editing of a second interface.  
 
 Interface naming notes:
 
@@ -375,7 +375,7 @@ Example:
 
 cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --interface-type=bond_slave --interface-master=bond0
 cobbler system edit --name=foo --interface=eth1 --mac=AA:BB:CC:DD:EE:01 --interface-type=bond_slave --interface-master=bond0
-cobbler system edit --name=foo --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip-address=192.168.0.63 --subnet=255.255.255.0 --gateway=192.168.0.1 --static=1
+cobbler system edit --name=foo --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip-address=192.168.0.63 --netmask=255.255.255.0 --gateway=192.168.0.1 --static=1
 
 More information about networking setup is available at https://github.com/cobbler/cobbler/wiki/Advanced-networking
 

@@ -172,7 +172,6 @@ class System(item.Item):
                 "mtu": "",
                 "ip_address": "",
                 "dhcp_tag": "",
-                "subnet": "",           # deprecated
                 "netmask": "",
                 "if_gateway": "",
                 "virt_bridge": "",
@@ -718,9 +717,6 @@ class System(item.Item):
                 self.set_dhcp_tag(value, interface)
 
             if field == "netmask":
-                self.set_netmask(value, interface)
-
-            if field == "subnet":
                 self.set_netmask(value, interface)
 
             if field == "ifgateway":

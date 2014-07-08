@@ -48,7 +48,7 @@ For exapmle:
 	        --mac=YOUR_MAC_HERE \
 	        --static=1 \
 	        --ip-address=YOUR_IP \
-	        --subnet=MASK \
+	        --netmask=MASK \
 	        --gateway=GATEWAY_IP \
 	        --name-servers=NAME_SERVERS_IPs
 

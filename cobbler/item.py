@@ -356,7 +356,7 @@ class Item(object):
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "subnet", "netmask", "virt_bridge",
+            if key in ["mac_address", "ip_address", "netmask", "virt_bridge",
                        "dhcp_tag", "dns_name", "static_routes", "interface_type",
                        "interface_master", "bonding_opts", "bridge_opts", "bonding", "bonding_master"]:
                 if key == "bonding":
