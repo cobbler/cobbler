@@ -358,11 +358,9 @@ class Item(object):
         if "interfaces" in data:
             if key in ["mac_address", "ip_address", "netmask", "virt_bridge",
                        "dhcp_tag", "dns_name", "static_routes", "interface_type",
-                       "interface_master", "bonding_opts", "bridge_opts", "bonding", "bonding_master"]:
+                       "interface_master", "bonding_opts", "bridge_opts", "bonding"]:
                 if key == "bonding":
                     key = "interface_type"      # bonding is deprecated
-                elif key == "bonding_master":
-                    key = "interface_master"    # bonding_master is deprecated
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems():
                     if value is not None and key in interface:

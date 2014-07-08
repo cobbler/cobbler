@@ -179,7 +179,6 @@ class System(item.Item):
                 "interface_type": "",
                 "interface_master": "",
                 "bonding": "",          # deprecated
-                "bonding_master": "",   # deprecated
                 "bonding_opts": "",
                 "bridge_opts": "",
                 "management": False,
@@ -733,9 +732,6 @@ class System(item.Item):
 
             if field == "bonding":
                 self.set_interface_type(value, interface)       # deprecated
-
-            if field == "bondingmaster":
-                self.set_interface_master(value, interface)     # deprecated
 
             if field == "bondingopts":
                 self.set_bonding_opts(value, interface)
