@@ -21,13 +21,13 @@
         #set $idata = $interfaces[$iname]
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("master","bond","bridge"):
+        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("bond","bridge"):
                 ## we have to globally turn off the config by mac feature as we can't
                 ## use it now
                 #set $configbymac = False
         #end if
         ## count the number of bonding devices we have.
-        #if $idata.get("interface_type", "").lower() in ("master","bond","bonded_bridge_slave")
+        #if $idata.get("interface_type", "").lower() in ("bond","bonded_bridge_slave")
             #set $numbondingdevs += 1
         #end if
         ## build a mapping of bridge slaves, since deb/ubuntu bridge slaves do not
@@ -83,7 +83,7 @@ echo "" >> /etc/network/interfaces
             #set $is_vlan = "false"
         #end if
         ## slave interfaces are assumed to be static
-        #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+        #if $iface_type in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #set $static = 1
         #end if 
         ## ===================================================================
@@ -93,9 +93,9 @@ echo "auto $iname" >> /etc/network/interfaces
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
-        #if $iface_type in ("master","bond","bonded_bridge_slave")
+        #if $iface_type in ("bond","bonded_bridge_slave")
           #pass
-        #elif $iface_type in ("slave","bond_slave") and $iface_master != ""
+        #elif $iface_type in ("bond_slave") and $iface_master != ""
           #pass
         #elif $iface_type == "bridge"
           #set $slave_ports = " ".join($bridge_slaves.get($iname,[]))
@@ -112,14 +112,14 @@ echo "  $bridge_opt" >> /etc/network/interfaces
         ## Actions based on static configuration
         ## ===================================================================
         #if $static
-            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+            #if $ip != "" and $iface_type not in ("bond_slave","bridge_slave","bonded_bridge_slave")
 echo "iface $iname inet static" >> /etc/network/interfaces 
 echo "   hwaddress $mac" >> /etc/network/interfaces
 echo "   address $ip" >> /etc/network/interfaces 
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 
                 #end if
-                #if $iface_type in ("master","bond")
+                #if $iface_type in ("bond")
                   #set $bondslaves = ""
                   #for $bondiname in $ikeys
                       #set $bondidata                = $interfaces[$bondiname]
@@ -138,7 +138,7 @@ echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
             #else
 echo "iface $iname inet manual" >> /etc/network/interfaces 
             #end if
-            #if $iface_type in ("slave","bond_slave") and $iface_master != ""
+            #if $iface_type in ("bond_slave") and $iface_master != ""
 echo "bond-master $iface_master" >> /etc/network/interfaces
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False

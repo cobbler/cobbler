@@ -11,7 +11,7 @@
         #set $netmask  = $idata["netmask"]
         #set $type     = $idata["interface_type"]
         #set $vlanid   = ""
-        #if $vlanpattern.match($iname) or $type in ("master","bond","bridge")
+        #if $vlanpattern.match($iname) or $type in ("bond","bridge")
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
             #set $is_vlan = "true"
