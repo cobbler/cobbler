@@ -20,13 +20,13 @@
         #set $idata = $interfaces[$iname]
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("master","bond","bridge"):
+        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("bond","bridge"):
                 ## we have to globally turn off the config by mac feature as we can't
                 ## use it now
                 #set $configbymac = False
         #end if
         ## count the number of bonding devices we have.
-        #if $idata.get("interface_type", "").lower() in ("master","bond","bonded_bridge_slave")
+        #if $idata.get("interface_type", "").lower() in ("bond","bonded_bridge_slave")
             #set $numbondingdevs += 1
         #end if
         ## enable IPv6 networking if we set an ipv6 address or turn on autoconfiguration
@@ -132,7 +132,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
             #set $is_vlan = "false"
         #end if
         ## slave interfaces are assumed to be static
-        #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+        #if $iface_type in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #set $static = 1
         #end if 
         ## ===================================================================
@@ -140,7 +140,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## ===================================================================
 echo "DEVICE=$iname" > $devfile
 echo "ONBOOT=yes" >> $devfile
-            #if $mac != "" and $iface_type not in ("master","bond","bridge","bonded_bridge_slave")
+            #if $mac != "" and $iface_type not in ("bond","bridge","bonded_bridge_slave")
             ## virtual interfaces don't get MACs
 echo "HWADDR=$mac" >> $devfile
 IFNAME=\$(ip -o link | grep -i '$mac' | sed -e 's/^[0-9]*: //' -e 's/:.*//')
@@ -156,7 +156,7 @@ fi
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
-        #if $iface_type in ("master","bond","bonded_bridge_slave")
+        #if $iface_type in ("bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
 if [ -f "/etc/modprobe.conf" ]; then
@@ -173,7 +173,7 @@ cat >> $devfile << EOF
 BONDING_OPTS="$bonding_opts"
 EOF
             #end if
-        #elif $iface_type in ("slave","bond_slave") and $iface_master != ""
+        #elif $iface_type in ("bond_slave") and $iface_master != ""
 echo "SLAVE=yes" >> $devfile
 echo "MASTER=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
@@ -203,7 +203,7 @@ echo "TYPE=Ethernet" >> $devfile
 #          following a reboot/hardware changes.
             #end if
 echo "BOOTPROTO=none" >> $devfile
-            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+            #if $ip != "" and $iface_type not in ("bond_slave","bridge_slave","bonded_bridge_slave")
                 ## Only configure static networking if an IP-address is configured
                 ## and if the interface isn't slaved to another interface (bridging or bonding)
 echo "IPADDR=$ip" >> $devfile
@@ -257,7 +257,7 @@ echo "MTU=$mtu" >> $devfile
         ## Non-slave DNS configuration, when applicable
         ## ===================================================================
         ## If the interface is anything but a slave then add DNSn entry
-        #if $iface_type.lower() not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+        #if $iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #set $nct = 0
             #for $nameserver in $name_servers
                 #set $nct = $nct + 1
