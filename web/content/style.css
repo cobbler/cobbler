@@ -55,7 +55,7 @@ input[type=checkbox] { background: none;  border: none; margin-right: 196px; mar
 label { font-weight: bold; }
 ol, ul { list-style: none; }
 textarea { height: 8em; width: 25em; margin-bottom: 4px; }
-pre textarea { height: 60em; width: 60em; }
+pre textarea { height: 30em; width: 60em; }
 
 /* Defining the classes */
 .button, .action {
