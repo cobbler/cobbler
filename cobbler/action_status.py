@@ -123,19 +123,19 @@ class BootStatusReport:
         ips = ip_data.keys()
         ips.sort()
         line = (
-               "ip",
-               "target",
-               "start",
-               "state",
+            "ip",
+            "target",
+            "start",
+            "state",
         )
         buf = format % line
         for ip in ips:
             elem = ip_data[ip]
             line = (
-               ip,
-               elem[MOST_RECENT_TARGET],
-               time.ctime(elem[MOST_RECENT_START]),
-               elem[STATE]
+                ip,
+                elem[MOST_RECENT_TARGET],
+                time.ctime(elem[MOST_RECENT_START]),
+                elem[STATE]
             )
             buf = buf + "\n" + format % line
         return buf
