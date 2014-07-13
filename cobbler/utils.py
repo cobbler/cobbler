@@ -1871,7 +1871,7 @@ def from_datastruct_from_fields(obj, seed_data, fields):
             for k in obj.interfaces[interface].keys():
                 if k in field_info.DEPRECATED_FIELDS:
                     if not field_info.DEPRECATED_FIELDS[k] in obj.interfaces[interface] or \
-                           obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
+                            obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
                         obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
             # populate fields that might be missing
             for int_field in int_fields:
