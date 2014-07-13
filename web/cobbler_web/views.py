@@ -325,7 +325,6 @@ def genlist(request, what, page=None):
     if what == "system":
         # FIXME: also list network, once working
         columns = ["name", "profile", "status", "netboot_enabled"]
-        profiles = remote.get_profiles()
         batchactions += [
             ["Power on", "power", "on"],
             ["Power off", "power", "off"],
