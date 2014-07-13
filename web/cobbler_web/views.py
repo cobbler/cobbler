@@ -11,17 +11,17 @@ import time
 import simplejson
 import string
 
-import cobbler.item_distro    as item_distro
-import cobbler.item_profile   as item_profile
-import cobbler.item_system    as item_system
-import cobbler.item_repo      as item_repo
-import cobbler.item_image     as item_image
+import cobbler.item_distro as item_distro
+import cobbler.item_profile as item_profile
+import cobbler.item_system as item_system
+import cobbler.item_repo as item_repo
+import cobbler.item_image as item_image
 import cobbler.item_mgmtclass as item_mgmtclass
-import cobbler.item_package   as item_package
-import cobbler.item_file      as item_file
-import cobbler.settings       as item_settings
-import cobbler.field_info     as field_info
-import cobbler.utils          as utils
+import cobbler.item_package as item_package
+import cobbler.item_file as item_file
+import cobbler.settings as item_settings
+import cobbler.field_info as field_info
+import cobbler.utils as utils
 
 url_cobbler_api = None
 remote = None
@@ -965,13 +965,13 @@ def eventlog(request, event=0):
 
     t = get_template('eventlog.tmpl')
     vars = {
-       'eventlog': eventlog,
-       'eventname': eventname,
-       'eventstate': eventstate,
-       'eventid': event,
-       'eventtime': eventtime,
-       'version': remote.extended_version(request.session['token'])['version'],
-       'username': username
+        'eventlog': eventlog,
+        'eventname': eventname,
+        'eventstate': eventstate,
+        'eventid': event,
+        'eventtime': eventtime,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username
     }
     html = t.render(RequestContext(request, vars))
     return HttpResponse(html)
