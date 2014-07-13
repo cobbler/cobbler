@@ -263,8 +263,7 @@ class BootSync:
             distros.append(distro)
 
         repos = [repo.name for repo in self.api.repos()
-                   if os.path.isdir(os.path.join(self.settings.webdir, "repo_mirror", repo.name))
-        ]
+                 if os.path.isdir(os.path.join(self.settings.webdir, "repo_mirror", repo.name))]
 
         metadata = {
             "date": time.asctime(time.gmtime()),
