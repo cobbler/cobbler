@@ -359,8 +359,8 @@ class XMLRPCSystem:
                 name = None
             except:
                 (etype, eval,) = sys.exc_info()[:2]
-                logging.warn("Exception retrieving rendered system: %s (%s):%s"
-                                % (name, eval, traceback.format_exc()))
+                logging.warn("Exception retrieving rendered system: %s (%s):%s" %
+                             (name, eval, traceback.format_exc()))
                 name = None
 
         if name is not None:
@@ -371,8 +371,8 @@ class XMLRPCSystem:
                 self.name = self.attrs["name"]
             except:
                 (etype, eval,) = sys.exc_info()[:2]
-                logging.warn("Exception Materializing system %s (%s):%s"
-                                % (name, eval, traceback.format_exc()))
+                logging.warn("Exception Materializing system %s (%s):%s" %
+                             (name, eval, traceback.format_exc()))
                 if ip_address in XMLRPCSystem.cache:
                     del XMLRPCSystem.cache[ip_address]
                 self.system = None
@@ -634,12 +634,11 @@ class Request:
            This method can set the state to be an ERROR state, so
            avoid setting state after calling this method.
         """
-        logging.info('host %s requesting %s' %
-            (self.system.name, self.filename))
+        logging.info('host %s requesting %s' % (self.system.name, self.filename))
 
         self.filename, self.type = self._remap_name(self.filename)
         logging.debug('host %s getting %s: %s' %
-                        (self.system.name, self.filename, self.type))
+                      (self.system.name, self.filename, self.type))
         if self.type == "template":
             # TODO: Add file magic here
             output = Popen([OPTIONS["file_cmd"], self.filename],
@@ -705,8 +704,7 @@ class Request:
             self.timeout = None
 
         OPTIONS["active"] -= 1
-        if (OPTIONS["idle"] > 0
-            and OPTIONS["active"] == 0 and OPTIONS["idle_timer"] is None):
+        if (OPTIONS["idle"] > 0 and OPTIONS["active"] == 0 and OPTIONS["idle_timer"] is None):
             io_loop.stop()
 
     def handle_timeout(self):
@@ -730,8 +728,7 @@ class Request:
                 # the FFFF are to permit wrap.  It's OK for the block
                 # number to wrap, since it's one client (and not unicast),
                 # so the client can figure that out.
-                if ((packet.block_number & 0xFFFF) ==
-                    ((self.block_count + 1) & 0xFFFF)):
+                if ((packet.block_number & 0xFFFF) == ((self.block_count + 1) & 0xFFFF)):
                     # Only update if they actually ack the packet we
                     # sent, but we'll still resend the last packet either way
                     self.block_count += 1
@@ -881,10 +878,10 @@ def read_packet(data, local_sock, remote_addr):
         local_sock.sendto(ERRORPacket(0, "Unknown request").marshall(), remote_addr)
         return None
 
-    if REQUESTS[opcode][REQ_CLASS] == None:
+    if REQUESTS[opcode][REQ_CLASS] is None:
         if opcode != TFTP_OPCODE_ERROR:
-                logging.warn("Unsupported request %d(%s) from %s"
-                        % (opcode, REQUESTS[opcode][REQ_NAME], remote_addr))
+                logging.warn("Unsupported request %d(%s) from %s" %
+                             (opcode, REQUESTS[opcode][REQ_NAME], remote_addr))
         local_sock.sendto(
             ERRORPacket(2, "Unsupported request").marshall(), remote_addr)
         return None
@@ -1058,15 +1055,15 @@ def main():
         usage=globals()['__doc__'],
         version=VERSION)
     parser.add_option('-v', '--verbose', action='store_true', default=False,
-                        help="Increase output verbosity")
+                      help="Increase output verbosity")
     parser.add_option('-d', '--debug', action='store_true', default=False,
-                        help="Debug (vastly increases output verbosity)")
+                      help="Debug (vastly increases output verbosity)")
     parser.add_option('-c', '--cache', action='store_true', default=True,
-                        help="Use a cache to help find hosts w/o IP address")
+                      help="Use a cache to help find hosts w/o IP address")
     parser.add_option('--cache-time', action='store', type="int", default=5 * 60,
-                        help="How long an ip->name mapping is valid")
+                      help="How long an ip->name mapping is valid")
     parser.add_option('--neg-cache-time', action='store', type="int", default=10,
-                        help="How long an ip->name mapping is valid")
+                      help="How long an ip->name mapping is valid")
 
     opts = opt_help.keys()
     opts.sort()
@@ -1074,7 +1071,7 @@ def main():
         v = opt_help[k]
         parser.add_option("--" + k, default=OPTIONS[k], type=v["type"], help=v["help"])
     parser.add_option('-B', dest="max_blksize", type="int", default=1428,
-                        help="alias for --max-blksize, for in.tftpd compatibility")
+                      help="alias for --max-blksize, for in.tftpd compatibility")
 
     # Actually read the args
     (options, args) = parser.parse_args()

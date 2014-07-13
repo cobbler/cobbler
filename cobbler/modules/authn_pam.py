@@ -74,9 +74,7 @@ def register():
 
 class PamHandle(Structure):
     """wrapper class for pam_handle_t"""
-    _fields_ = [
-            ("handle", c_void_p)
-            ]
+    _fields_ = [("handle", c_void_p)]
 
     def __init__(self):
         Structure.__init__(self)
@@ -85,10 +83,7 @@ class PamHandle(Structure):
 
 class PamMessage(Structure):
     """wrapper class for pam_message structure"""
-    _fields_ = [
-            ("msg_style", c_int),
-            ("msg", c_char_p),
-            ]
+    _fields_ = [("msg_style", c_int), ("msg", c_char_p)]
 
     def __repr__(self):
         return "<PamMessage %i '%s'>" % (self.msg_style, self.msg)
@@ -96,30 +91,21 @@ class PamMessage(Structure):
 
 class PamResponse(Structure):
     """wrapper class for pam_response structure"""
-    _fields_ = [
-            ("resp", c_char_p),
-            ("resp_retcode", c_int),
-            ]
+    _fields_ = [("resp", c_char_p), ("resp_retcode", c_int)]
 
     def __repr__(self):
         return "<PamResponse %i '%s'>" % (self.resp_retcode, self.resp)
 
-CONV_FUNC = CFUNCTYPE(c_int,
-        c_int, POINTER(POINTER(PamMessage)),
-               POINTER(POINTER(PamResponse)), c_void_p)
+CONV_FUNC = CFUNCTYPE(c_int, c_int, POINTER(POINTER(PamMessage)), POINTER(POINTER(PamResponse)), c_void_p)
 
 
 class PamConv(Structure):
     """wrapper class for pam_conv structure"""
-    _fields_ = [
-            ("conv", CONV_FUNC),
-            ("appdata_ptr", c_void_p)
-            ]
+    _fields_ = [("conv", CONV_FUNC), ("appdata_ptr", c_void_p)]
 
 PAM_START = LIBPAM.pam_start
 PAM_START.restype = c_int
-PAM_START.argtypes = [c_char_p, c_char_p, POINTER(PamConv),
-        POINTER(PamHandle)]
+PAM_START.argtypes = [c_char_p, c_char_p, POINTER(PamConv), POINTER(PamHandle)]
 
 PAM_AUTHENTICATE = LIBPAM.pam_authenticate
 PAM_AUTHENTICATE.restype = c_int
