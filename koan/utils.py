@@ -160,8 +160,7 @@ def subprocess_get_response(cmd, ignore_rc=False, get_stderr=False):
     rc = 0
     result = ""
     if get_stderr:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     result, stderr_result = p.communicate()
@@ -591,9 +590,9 @@ def random_mac():
     return: MAC address string
     """
     mac = [0x00, 0x50, 0x56,
-        random.randint(0x00, 0x3f),
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff)]
+           random.randint(0x00, 0x3f),
+           random.randint(0x00, 0xff),
+           random.randint(0x00, 0xff)]
     return ':'.join(map(lambda x: "%02x" % x, mac))
 
 
