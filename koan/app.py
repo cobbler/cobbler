@@ -1179,7 +1179,7 @@ class Koan:
                 if len(k_args) > 895:
                     raise InfoException(
                         "Kernel options are too long, 896 chars exceeded: %s" %
-                         k_args)
+                        k_args)
             elif len(k_args) > 2048:
                 raise InfoException(
                     "Kernel options are too long, 2048 chars exceeded: %s" %
