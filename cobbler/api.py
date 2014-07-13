@@ -1023,11 +1023,11 @@ class BootAPI:
                   exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._config, logger=logger)
         return builder.run(
-           iso=iso,
-           profiles=profiles, systems=systems,
-           buildisodir=buildisodir, distro=distro,
-           standalone=standalone, source=source,
-           exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
+            iso=iso,
+            profiles=profiles, systems=systems,
+            buildisodir=buildisodir, distro=distro,
+            standalone=standalone, source=source,
+            exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
         )
 
     # ==========================================================================
@@ -1067,8 +1067,8 @@ class BootAPI:
         Report functionality for cobbler
         """
         reporter = action_report.Report(self._config)
-        return reporter.run(report_what=report_what, report_name=report_name,\
-                            report_type=report_type, report_fields=report_fields,\
+        return reporter.run(report_what=report_what, report_name=report_name,
+                            report_type=report_type, report_fields=report_fields,
                             report_noheaders=report_noheaders)
 
     # ==========================================================================
