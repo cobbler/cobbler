@@ -214,10 +214,7 @@ class build_cfg(Command):
             # We copy the files to build/
             outfile = os.path.join(self.build_dir, infile)
             # check if the file is out of date
-            if self.force or dep_util.newer_group(
-                [infile, 'setup.py'],
-                outfile,
-                mode):
+            if self.force or dep_util.newer_group([infile, 'setup.py'], outfile, mode):
                 # It is. Configure it
                 self.configure_one_file(infile, outfile)
 
@@ -234,10 +231,7 @@ class build_cfg(Command):
                 os.makedirs(outdir)
             # Write it into build/
             with codecs.open(outfile, 'w', 'utf-8') as fh:
-                fh.write(self.substitute_values(
-                    before,
-                    self.configure_values)
-            )
+                fh.write(self.substitute_values(before, self.configure_values))
             # The last step is to copy the permission bits
             shutil.copymode(infile, outfile)
 
@@ -303,10 +297,7 @@ class build_man(Command):
             # We copy the files to build/
             outfile = os.path.join(self.build_dir, os.path.splitext(infile)[0] + '.gz')
             # check if the file is out of date
-            if self.force or dep_util.newer_group(
-                [infile],
-                outfile,
-                mode):
+            if self.force or dep_util.newer_group([infile], outfile, mode):
                 # It is. Configure it
                 self.build_one_file(infile, outfile)
 

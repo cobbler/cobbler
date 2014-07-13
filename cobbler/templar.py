@@ -190,7 +190,7 @@ class Templar:
         # using internal Cheetah variables
 
         search_table.update({
-           "template_universe": table_copy
+            "template_universe": table_copy
         })
 
         # now do full templating scan, where we will also templatify the snippet insertions

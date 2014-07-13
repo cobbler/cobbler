@@ -63,16 +63,15 @@ def serialize_item(obj, item):
     # blindly prevent conflict resolution
     couchdb.openDoc(obj.collection_type(), item.name)
     data = couchdb.saveDoc(obj.collection_type(),
-                  simplejson.dumps(datastruct, encoding="utf-8"),
-                  item.name)
+                           simplejson.dumps(datastruct, encoding="utf-8"),
+                           item.name)
     data = simplejson.loads(data)
     return True
 
 
 def serialize_delete(obj, item):
     __connect()
-    couchdb.deleteDoc(obj.collection_type(),
-                    item.name)
+    couchdb.deleteDoc(obj.collection_type(), item.name)
     return True
 
 
