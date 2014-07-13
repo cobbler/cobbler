@@ -4,6 +4,7 @@ from django.conf.urls import patterns, include
 # from django.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     (r'^', include('cobbler_web.urls')),
 )
