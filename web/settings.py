@@ -85,7 +85,7 @@ INSTALLED_APPS = (
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 
 TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
+    'django.core.context_processors.request',
 )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
