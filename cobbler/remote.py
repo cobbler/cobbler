@@ -1958,7 +1958,7 @@ class CobblerXMLRPCInterface:
             error = "Invalid kickstart template file location %s, it is not inside %s" % (path, KICKSTART_TEMPLATE_BASE_DIR)
             utils.die(self.logger, error)
 
-    def read_kickstart_template_file(self, file_path, token):
+    def read_kickstart_template(self, file_path, token):
         """
         Read a kickstart template file
 
@@ -1978,7 +1978,7 @@ class CobblerXMLRPCInterface:
 
         return data
 
-    def write_kickstart_template_file(self, file_path, data, token):
+    def write_kickstart_template(self, file_path, data, token):
         """
         Write a kickstart template file
 
@@ -2037,7 +2037,7 @@ class CobblerXMLRPCInterface:
             error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, KICKSTART_SNIPPET_BASE_DIR)
             utils.die(self.logger, error)
 
-    def read_kickstart_snippet_file(self, file_path, token):
+    def read_kickstart_snippet(self, file_path, token):
         """
         Read a kickstart snippet file
 
@@ -2057,7 +2057,7 @@ class CobblerXMLRPCInterface:
 
         return data
 
-    def write_kickstart_snippet_file(self, file_path, data, token):
+    def write_kickstart_snippet(self, file_path, data, token):
         """
         Write a kickstart snippet file
 
