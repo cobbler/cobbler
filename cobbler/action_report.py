@@ -53,7 +53,8 @@ class Report:
             elif internal and internal.group(1) in structure.keys():
                 outer = internal.group(1)
                 inner = internal.group(2)
-                if type(structure[outer]) is type({}) and inner in structure[outer]:
+                if isinstance(structure[outer], dict) and inner in structure[outer]:
+
                     item[field] = structure[outer][inner]
             elif "interfaces" in structure.keys():
                 for device in structure['interfaces'].keys():
