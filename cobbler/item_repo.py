@@ -30,7 +30,7 @@ import codes
 FIELDS = [
     ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
     ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
-    ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390', "arm", 'noarch', 'src'], "str"],
+    ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', "arm", 'noarch', 'src'], "str"],
     ["breed", "", 0, "Breed", True, "", codes.VALID_REPO_BREEDS, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
@@ -95,8 +95,6 @@ class Repo(item.Item):
                 self.set_arch("i386")
             elif mirror.find("ia64") != -1:
                 self.set_arch("ia64")
-            elif mirror.find("s390") != -1:
-                self.set_arch("s390x")
         self._guess_breed()
         return True
 

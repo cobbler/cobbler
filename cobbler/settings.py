@@ -75,7 +75,6 @@ DEFAULTS = {
     "iso_template_dir": ["/etc/cobbler/iso", "str"],
     "kerberos_realm": ["EXAMPLE.COM", "str"],
     "kernel_options": [{"lang": " ", "text": None, "ksdevice": "eth0"}, "dict"],
-    "kernel_options_s390x": [{}, "dict"],
     "ldap_server": ["grimlock.devel.redhat.com", "str"],
     "ldap_base_dn": ["DC=devel,DC=redhat,DC=com", "str"],
     "ldap_port": [389, "int"],
