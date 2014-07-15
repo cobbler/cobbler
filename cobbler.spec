@@ -3,8 +3,8 @@
 #
 # Supported/tested build targets:
 # - Fedora: 18, 19, 20
-# - RHEL: 6
-# - CentOS: 6
+# - RHEL: 6, 7
+# - CentOS: 6, 7
 # - OpenSuSE: 12.3, 13.1, Factory
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
@@ -46,7 +46,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.1
+Version: 2.6.2
 Release: 1%{?dist}
 Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -413,23 +413,45 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
-* Thu May 22 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.6.1
-* Tue Apr 22 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.4
-* Sun Apr 13 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.6.0
-* Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.3
-* Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
-* Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
-* Thu Jun 20 2013 James Cammarata <jimi@sngx.net> 2.4.0-1
-* Sun Jun 17 2012 James Cammarata <jimi@sngx.net> 2.2.3-2
-* Tue Jun 05 2012 James Cammarata <jimi@sngx.net> 2.2.3-1
-* Tue Nov 15 2011 Scott Henson <shenson@redhat.com> 2.2.2-1
-* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
-* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.0-1
-* Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
-* Thu Apr 15 2010 Devan Goodwin <dgoodwin@rm-rf.ca> 2.0.3.2-1
-* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
-* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-2
-* Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
-* Thu Feb 11 2010 Scott Henson <shenson@redhat.com> - 2.0.3-1
-* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
-* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail> - 2.0.0-1
+* Thu Jul 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.2 release
+* Thu May 22 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.1 release
+* Tue Apr 22 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.4 release
+* Sun Apr 13 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.0 release
+* Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.3 release
+* Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.2 release
+* Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.1 release
+* Thu Jun 20 2013 James Cammarata <jimi@sngx.net>
+- Cobbler 2.4.0-1 release
+* Sun Jun 17 2012 James Cammarata <jimi@sngx.net>
+- Cobbler 2.2.3-2 release
+* Tue Jun 05 2012 James Cammarata <jimi@sngx.net>
+- Cobbler 2.2.3-1 release
+* Tue Nov 15 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.2-1 release
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.1-1 release
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.0-1 release
+* Tue Apr 27 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.4-1 release
+* Thu Apr 15 2010 Devan Goodwin <dgoodwin@rm-rf.ca>
+- Cobbler 2.0.3.2-1 release
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-3 release
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-2 release
+* Mon Feb 15 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-1 release
+* Thu Feb 11 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3-1 release
+* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com>
+- Cobbler 2.0.2-1 release
+* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail>
+- Cobbler 2.0.0-1 release
