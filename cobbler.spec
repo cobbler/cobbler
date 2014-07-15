@@ -56,6 +56,7 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: git
 BuildRequires: openssl
+BuildRequires: python
 Requires: python >= 2.6
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
@@ -69,7 +70,6 @@ Requires: logrotate
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 BuildRequires: redhat-rpm-config
-BuildRequires: python-cheetah
 Requires: genisoimage
 Requires: python-cheetah
 Requires: PyYAML
