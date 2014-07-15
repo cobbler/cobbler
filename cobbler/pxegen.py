@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
-import shlex
 import glob
 import string
 import socket
@@ -230,38 +229,6 @@ class PXEGen:
                 image_based = True
                 image = profile
 
-        # hack: s390 generates files per system not per interface
-        if not image_based and distro.arch.startswith("s390"):
-            # Always write a system specific _conf and _parm file
-            f2 = os.path.join(self.bootloc, "s390x", "s_%s" % system.name)
-            cf = "%s_conf" % f2
-            pf = "%s_parm" % f2
-            template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
-            template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
-            blended = utils.blender(self.api, True, system)
-            self.templar.render(template_cf, blended, cf)
-            # FIXME: profiles also need this data!
-            # FIXME: the _conf and _parm files are limited to 80 characters in length
-            try:
-                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
-            except socket.gaierror:
-                ipaddress = blended["http_server"]
-            kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
-            # gather default kernel_options and default kernel_options_s390x
-            kopts = blended.get("kernel_options", "")
-            hkopts = shlex.split(utils.hash_to_string(kopts))
-            blended["kickstart_expanded"] = "ks=%s" % kickstart_path
-            blended["kernel_options"] = hkopts
-            self.templar.render(template_pf, blended, pf)
-
-            # Write system specific zPXE file
-            if system.is_management_supported():
-                self.write_pxe_file(f2, system, profile, distro, distro.arch)
-            else:
-                # ensure the file doesn't exist
-                utils.rmfile(f2)
-            return
-
         pxe_metadata = {'pxe_menu_items': menu_items}
 
         # generate one record for each described NIC ..
@@ -327,51 +294,7 @@ class PXEGen:
                     utils.rmfile(grub_path)
 
     def make_pxe_menu(self):
-        self.make_s390_pseudo_pxe_menu()
         self.make_actual_pxe_menu()
-
-    def make_s390_pseudo_pxe_menu(self):
-        s390path = os.path.join(self.bootloc, "s390x")
-        if not os.path.exists(s390path):
-            utils.mkdir(s390path)
-        profile_list = [profile for profile in self.profiles]
-        image_list = [image for image in self.images]
-
-        def sort_name(a, b):
-            return cmp(a.name, b.name)
-
-        profile_list.sort(sort_name)
-        image_list.sort(sort_name)
-        listfile = open(os.path.join(s390path, "profile_list"), "w+")
-        for profile in profile_list:
-            distro = profile.get_conceptual_parent()
-            if distro is None:
-                raise CX("profile is missing distribution: %s, %s" % (profile.name, profile.distro))
-            if distro.arch.startswith("s390"):
-                listfile.write("%s\n" % profile.name)
-                f2 = os.path.join(self.bootloc, "s390x", "p_%s" % profile.name)
-                self.write_pxe_file(f2, None, profile, distro, distro.arch)
-                cf = "%s_conf" % f2
-                pf = "%s_parm" % f2
-                template_cf = open("/etc/cobbler/pxe/s390x_conf.template")
-                template_pf = open("/etc/cobbler/pxe/s390x_parm.template")
-                blended = utils.blender(self.api, True, profile)
-                self.templar.render(template_cf, blended, cf)
-                # FIXME: profiles also need this data!
-                # FIXME: the _conf and _parm files are limited to 80 characters in length
-                try:
-                    ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
-                except socket.gaierror:
-                    ipaddress = blended["http_server"]
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
-                # gather default kernel_options and default kernel_options_s390x
-                kopts = blended.get("kernel_options", "")
-                hkopts = shlex.split(utils.hash_to_string(kopts))
-                blended["kickstart_expanded"] = "ks=%s" % kickstart_path
-                blended["kernel_options"] = hkopts
-                self.templar.render(template_pf, blended, pf)
-
-        listfile.close()
 
     def get_menu_items(self):
         """
@@ -560,10 +483,8 @@ class PXEGen:
         More system-specific configuration may come in later, if so
         that would appear inside the system object in api.py
 
-        NOTE: relevant to tftp and pseudo-PXE (s390) only
 
-        ia64 is mostly the same as syslinux stuff, s390 is a bit
-        short-circuited and simpler.  All of it goes through the
+        ia64 is mostly the same as syslinux stuff. All of it goes through the
         templating engine, see the templates in /etc/cobbler for
         more details
 
@@ -645,9 +566,7 @@ class PXEGen:
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.pxe_template_dir, "pxesystem.template")
 
-                    if arch.startswith("s390"):
-                        template = os.path.join(self.settings.pxe_template_dir, "pxesystem_s390x.template")
-                    elif arch == "ia64":
+                    if arch == "ia64":
                         template = os.path.join(self.settings.pxe_template_dir, "pxesystem_ia64.template")
                     elif arch.startswith("ppc"):
                         template = os.path.join(self.settings.pxe_template_dir, "pxesystem_ppc.template")
@@ -680,16 +599,12 @@ class PXEGen:
                         # Yaboot/OF doesn't support booting locally once you've
                         # booted off the network, so nothing left to do
                         return None
-                    elif arch is not None and arch.startswith("s390"):
-                        template = os.path.join(self.settings.pxe_template_dir, "pxelocal_s390x.template")
                     elif arch is not None and arch.startswith("ia64"):
                         template = os.path.join(self.settings.pxe_template_dir, "pxelocal_ia64.template")
                     else:
                         template = os.path.join(self.settings.pxe_template_dir, "pxelocal.template")
         else:
             # not a system record, so this is a profile record or an image
-            if arch.startswith("s390"):
-                template = os.path.join(self.settings.pxe_template_dir, "pxeprofile_s390x.template")
             if arch.startswith("arm"):
                 template = os.path.join(self.settings.pxe_template_dir, "pxeprofile_arm.template")
             elif format == "grub":
@@ -720,7 +635,7 @@ class PXEGen:
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if arch.startswith("ppc") or arch.startswith("s390"):
+        if arch.startswith("ppc"):
             # remove the prefix "append"
             # TODO: this looks like it's removing more than append, really
             # not sure what's up here...
@@ -732,7 +647,7 @@ class PXEGen:
         # store variables for templating
         metadata["menu_label"] = ""
         if profile:
-            if arch not in ["ia64", "ppc", "ppc64", "s390", "s390x"]:
+            if arch not in ["ia64", "ppc", "ppc64"]:
                 metadata["menu_label"] = "MENU LABEL %s" % profile.name
                 metadata["profile_name"] = profile.name
         elif image:

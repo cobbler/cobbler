@@ -70,7 +70,6 @@ class BootSync:
         self.images_dir = os.path.join(self.bootloc, "images")
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
-        self.s390_dir = os.path.join(self.bootloc, "s390x")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
 
 
@@ -157,8 +156,6 @@ class BootSync:
             os.symlink("../images", grub_images_link)
         if not os.path.exists(self.images_dir):
             utils.mkdir(self.images_dir, logger=self.logger)
-        if not os.path.exists(self.s390_dir):
-            utils.mkdir(self.s390_dir, logger=self.logger)
         if not os.path.exists(self.rendered_dir):
             utils.mkdir(self.rendered_dir, logger=self.logger)
         if not os.path.exists(self.yaboot_bin_dir):
@@ -196,7 +193,6 @@ class BootSync:
         utils.rmtree_contents(self.pxelinux_dir, logger=self.logger)
         utils.rmtree_contents(self.grub_dir, logger=self.logger)
         utils.rmtree_contents(self.images_dir, logger=self.logger)
-        utils.rmtree_contents(self.s390_dir, logger=self.logger)
         utils.rmtree_contents(self.yaboot_bin_dir, logger=self.logger)
         utils.rmtree_contents(self.yaboot_cfg_dir, logger=self.logger)
         utils.rmtree_contents(self.rendered_dir, logger=self.logger)

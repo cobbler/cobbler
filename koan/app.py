@@ -1073,18 +1073,12 @@ class Koan:
             # asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
             # asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
             # asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
-            # asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             # asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             # arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
                     raise InfoException(
                         "Kernel options are too long, 512 chars exceeded: %s" %
-                        k_args)
-            elif arch.startswith("s390"):
-                if len(k_args) > 895:
-                    raise InfoException(
-                        "Kernel options are too long, 896 chars exceeded: %s" %
                         k_args)
             elif len(k_args) > 2048:
                 raise InfoException(
@@ -1167,18 +1161,12 @@ class Koan:
             # asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
             # asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
             # asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
-            # asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             # asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             # arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
                     raise InfoException(
                         "Kernel options are too long, 512 chars exceeded: %s" %
-                        k_args)
-            elif arch.startswith("s390"):
-                if len(k_args) > 895:
-                    raise InfoException(
-                        "Kernel options are too long, 896 chars exceeded: %s" %
                         k_args)
             elif len(k_args) > 2048:
                 raise InfoException(
@@ -1224,8 +1212,6 @@ class Koan:
                         cmd.append("--grub2")
                     else:
                         cmd.append("--yaboot")
-                elif arch.startswith("s390"):
-                    cmd.append("--zipl")
 
                 utils.subprocess_call(cmd)
 
@@ -1235,10 +1221,6 @@ class Koan:
                     # and doesn't require running ybin
                     print("- applying ybin changes")
                     cmd = ["/sbin/ybin"]
-                    utils.subprocess_call(cmd)
-                elif arch.startswith("s390"):
-                    print("- applying zipl changes")
-                    cmd = ["/sbin/zipl"]
                     utils.subprocess_call(cmd)
                 else:
                     # if grubby --bootloader-probe returns lilo,

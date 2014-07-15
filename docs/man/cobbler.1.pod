@@ -99,7 +99,7 @@ Sets the architecture for the PXE bootloader and also controls how koan's --repl
 option will operate.
 
 The default setting ('standard') will use pxelinux.   Set to 'ia64' to use elilo.
-'ppc' and 'ppc64' use yaboot.  's390x' is not PXEable, but koan supports it for reinstalls.
+'ppc' and 'ppc64' use yaboot.
 
 'x86' and 'x86_64' effectively do the same thing as standard.  
 

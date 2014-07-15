@@ -609,20 +609,11 @@ def blender(api_handle, remove_hashes, root_obj):
     consolidated data.
     """
 
-    settings = api_handle.settings()
     tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
         __consolidate(node, results)
-
-    # hack -- s390 nodes get additional default kernel options
-    arch = results.get("arch", "?")
-    if arch.startswith("s390"):
-        keyz = settings.kernel_options_s390x.keys()
-        for k in keyz:
-            if k not in results:
-                results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # Get topmost object to determine which breed we're dealing with
     parent = root_obj.get_parent()
@@ -1321,9 +1312,9 @@ def set_arch(self, arch, repo=False):
         arch = "i386"
 
     if repo:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src", "arm"]
+        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "noarch", "src", "arm"]
     else:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "arm"]
+        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "arm"]
 
     if arch in valids:
         self.arch = arch
