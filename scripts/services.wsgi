@@ -55,7 +55,11 @@ def application(environ, start_response):
     # This MAC header is set by anaconda during a kickstart booted with the 
     # kssendmac kernel option. The field will appear here as something 
     # like: eth0 XX:XX:XX:XX:XX:XX
-    form["REMOTE_MAC"]  = form.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
+    form["REMOTE_MAC"]  = environ.get("HTTP_X_RHN_PROVISIONING_MAC_0", None)
+
+    # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume
+    # it's always present in this context.
+    form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
 
     # Read config for the XMLRPC port to connect to:
     fd = open("/etc/cobbler/settings")
@@ -76,6 +80,7 @@ def application(environ, start_response):
 
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr( cw, mode )
+    response_headers = [('Content-type', 'text/plain;charset=utf-8')]
     try:
         content = func( **form )
 
@@ -92,13 +97,16 @@ def application(environ, start_response):
                 content.find("# object not found") != -1:
             print("content not found: %s" % my_uri)
             status = "404 NOT FOUND"
+        elif content.find("# redirect") != -1:
+            status = "302 Found"
+            response_headers.append(('Location', content[:content.find("# redirect")]))
+            content = ""
     except xmlrpclib.Fault, (err):
         status = '500 SERVER ERROR'
         content = err.faultString
 	
  #   req.content_type = "text/plain;charset=utf-8"
-    response_headers = [('Content-type', 'text/plain;charset=utf-8'),
-                        ('Content-Length', str(len(content)))]
+    response_headers.append(('Content-Length', str(len(content))))
     start_response(status, response_headers)
 
     return [content]

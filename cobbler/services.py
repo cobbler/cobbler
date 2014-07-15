@@ -217,25 +217,18 @@ class CobblerSvc(object):
     def findks(self,system=None,profile=None,**rest):
         self.__xmlrpc_setup()
 
-        serverseg = self.server.replace("http://","")
-        serverseg = self.server.replace("/cobbler_api","")
-
         name = "?"    
-        type = "system"
         if system is not None:
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "/cblr/svc/op/ks/system/%s" % (system.name)
         elif profile is not None:
-            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
+            url = "/cblr/svc/op/ks/profile/%s" % (profile.name)
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
                 return "# autodetection %s" % name 
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "/cblr/svc/op/ks/system/%s" % (name)
                 
-        try: 
-            return urlgrabber.urlread(url)
-        except:
-            return "# kickstart retrieval failed (%s)" % url
+        return url + "# redirect"
 
     def puppet(self,hostname=None,**rest):
         self.__xmlrpc_setup()
