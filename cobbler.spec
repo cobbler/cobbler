@@ -3,9 +3,9 @@
 #
 # Supported/tested build targets:
 # - Fedora: 18, 19, 20
-# - RHEL: 6
-# - CentOS: 6
-# - OpenSuSE: 12.3, 13.1, Factory
+# - RHEL: 7
+# - CentOS: 7
+# - OpenSuSE: 12.3, 13.1, Factory, Tumbleweed
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
@@ -56,7 +56,8 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: git
 BuildRequires: openssl
-Requires: python >= 2.6
+BuildRequires: python
+Requires: python >= 2.7
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
 Requires: python-netaddr
@@ -67,14 +68,18 @@ Requires: syslinux
 Requires: yum-utils
 Requires: logrotate
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 BuildRequires: redhat-rpm-config
-BuildRequires: python-cheetah
+BuildRequires: systemd-units
 Requires: genisoimage
 Requires: python-cheetah
 Requires: PyYAML
 Requires: httpd
 Requires: mod_wsgi
+Requires(post): systemd-sysv
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
 %endif
 
 %if 0%{?suse_version} >= 1230
@@ -87,24 +92,6 @@ Requires: python-Cheetah
 Requires: apache2
 Requires: apache2-mod_wsgi
 Requires: cdrkit-cdrtools-compat
-%endif
-
-%if 0%{?fedora} >= 18
-BuildRequires: systemd-units
-Requires(post): systemd-sysv
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
-%endif
-
-%if 0%{?rhel} >= 6
-Requires(pre): /sbin/chkconfig
-Requires(post): /sbin/chkconfig
-Requires(preun): /sbin/chkconfig
-Requires(preun): /sbin/service
-%endif
-
-%if 0%{?suse_version} >= 1230
 %{?systemd_requires}
 Requires(pre): systemd
 Requires(post): systemd
@@ -143,18 +130,10 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd_rotate $RPM_BUILD_ROOT%{_sysco
 
 mkdir -p $RPM_BUILD_ROOT%{tftp_dir}/images
 
-%if 0%{?rhel} == 6
-# sysvinit
-mkdir -p %{_sysconfdir}/init.d
-mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
-rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service
-%else
-# systemd
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd
 rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
-%endif
 
 # cobbler-web
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
@@ -179,28 +158,6 @@ if (( $1 >= 2 )); then
         cp -r /etc/cobbler /var/lib/cobbler/backup/upgrade-${DATE}
     fi
 fi
-
-
-%if 0%{?rhel} == 6
-%post
-# package install
-if (( $1 == 1 )); then
-    /sbin/chkconfig --add cobblerd > /dev/null 2>&1
-    /etc/init.d/cobblerd start > /dev/null 2>&1
-    /etc/init.d/httpd restart > /dev/null 2>&1
-fi
-%preun
-# before last package is removed
-if (( $1 == 0 )); then
-    /sbin/chkconfig --del cobblerd > /dev/null 2>&1
-    /etc/init.d/cobblerd stop > /dev/null 2>&1
-fi 
-%postun
-# after last package is removed
-if (( $1 == 0 )); then
-    /etc/init.d/httpd condrestart > /dev/null 2>&1
-fi
-%endif
 
 
 %if 0%{?suse_version} >= 1230
@@ -228,7 +185,7 @@ fi
 %endif
 
 
-%if 0%{?fedora} >= 18
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 %post
 # package install
 if (( $1 == 1 )); then
@@ -281,11 +238,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{apache_etc}/conf.d
 %config(noreplace) %{apache_etc}/conf.d/cobbler.conf
 %exclude %{apache_etc}/conf.d/cobbler_web.conf
-%if 0%{?rhel} == 6
-/etc/init.d/cobblerd
-%else
 %{_unitdir}/cobblerd.service
-%endif
 
 # data
 %{tftp_dir}
@@ -361,7 +314,7 @@ Group: Applications/System
 Requires: python(abi) >= %{pyver}
 Requires: cobbler
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 Requires: httpd
 Requires: Django >= 1.4
 Requires: mod_wsgi
@@ -395,7 +348,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf
 %{apache_dir}/cobbler_webui_content/
 
-%if 0%{?fedora} >=18 || 0%{?rhel} >= 6
+%if 0%{?fedora} >=18 || 0%{?rhel} >= 7
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
@@ -430,23 +383,41 @@ Cobbler module providing secure dynamic dns updates
 
 
 %changelog
-* Sun Apr 12 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.6.0
-* Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.3
-* Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.2
-* Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.1
-* Thu Jun 20 2013 James Cammarata <jimi@sngx.net> 2.4.0-1
-* Sun Jun 17 2012 James Cammarata <jimi@sngx.net> 2.2.3-2
-* Tue Jun 05 2012 James Cammarata <jimi@sngx.net> 2.2.3-1
-* Tue Nov 15 2011 Scott Henson <shenson@redhat.com> 2.2.2-1
-* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.1-1
-* Wed Oct 05 2011 Scott Henson <shenson@redhat.com> 2.2.0-1
-* Tue Apr 27 2010 Scott Henson <shenson@redhat.com> - 2.0.4-1
-* Thu Apr 15 2010 Devan Goodwin <dgoodwin@rm-rf.ca> 2.0.3.2-1
-* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-3
-* Mon Mar  1 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-2
-* Mon Feb 15 2010 Scott Henson <shenson@redhat.com> - 2.0.3.1-1
-* Thu Feb 11 2010 Scott Henson <shenson@redhat.com> - 2.0.3-1
-* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com> - 2.0.2-1
-* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail> - 2.0.0-1
+* Sun Apr 12 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.0 release
+* Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.3 release
+* Sat Feb 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.2 release
+* Mon Feb 03 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.4.1 release
+* Thu Jun 20 2013 James Cammarata <jimi@sngx.net>
+- Cobbler 2.4.0-1 release
+* Sun Jun 17 2012 James Cammarata <jimi@sngx.net>
+- Cobbler 2.2.3-2 release
+* Tue Jun 05 2012 James Cammarata <jimi@sngx.net>
+- Cobbler 2.2.3-1 release
+* Tue Nov 15 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.2-1 release
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.1-1 release
+* Wed Oct 05 2011 Scott Henson <shenson@redhat.com>
+- Cobbler 2.2.0-1 release
+* Tue Apr 27 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.4-1 release
+* Thu Apr 15 2010 Devan Goodwin <dgoodwin@rm-rf.ca>
+- Cobbler 2.0.3.2-1 release
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-3 release
+* Mon Mar  1 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-2 release
+* Mon Feb 15 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3.1-1 release
+* Thu Feb 11 2010 Scott Henson <shenson@redhat.com>
+- Cobbler 2.0.3-1 release
+* Mon Nov 23 2009 John Eckersberg <jeckersb@redhat.com>
+- Cobbler 2.0.2-1 release
+* Tue Sep 15 2009 Michael DeHaan <michael.dehaan AT gmail>
+- Cobbler 2.0.0-1 release
 
 # EOF
