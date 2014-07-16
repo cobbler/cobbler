@@ -213,7 +213,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 # binaries
-%defattr(-,root,root,-)
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
@@ -279,7 +278,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 
 
 %files -n koan
-%defattr(-,root,root,-)
 /var/spool/koan
 /var/lib/koan
 %{_bindir}/koan
@@ -330,7 +328,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %files -n cobbler-web
-%defattr(-,root,root,-)
 %doc AUTHORS COPYING README
 
 %dir %{apache_etc}
@@ -365,7 +362,6 @@ Requires: python-dns
 Cobbler module providing secure dynamic dns updates
 
 %files -n cobbler-nsupdate
-%defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
 %{python_sitelib}/cobbler/modules/nsupdate*
 
