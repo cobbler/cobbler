@@ -84,6 +84,7 @@ FIELDS = [
     ["*static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
     ["*virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
     ["*ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
+    ["*ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
     ["*ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
     ["*ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
     ["*ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
@@ -184,6 +185,7 @@ class System(item.Item):
                 "dns_name": "",
                 "static_routes": [],
                 "ipv6_address": "",
+                "ipv6_prefix": "",
                 "ipv6_secondaries": [],
                 "ipv6_mtu": "",
                 "ipv6_static_routes": [],
@@ -480,6 +482,14 @@ class System(item.Item):
             return True
         raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
+    def set_ipv6_prefix(self, prefix, interface):
+        """
+        Assign a IPv6 prefix
+        """
+        intf = self.__get_interface(interface)
+        intf["ipv6_prefix"] = prefix.strip()
+        return True
+
     def set_ipv6_secondaries(self, addresses, interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(addresses)
@@ -737,6 +747,9 @@ class System(item.Item):
 
             if field == "ipv6address":
                 self.set_ipv6_address(value, interface)
+
+            if field == "ipv6prefix":
+                self.set_ipv6_prefix(value, interface)
 
             if field == "ipv6secondaries":
                 self.set_ipv6_secondaries(value, interface)

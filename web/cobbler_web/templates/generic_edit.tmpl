@@ -41,6 +41,7 @@ function intf_update_visibility()
     intf_enable_field("interface_master",is_slave)
     intf_enable_field("mtu",!is_slave)
     intf_enable_field("ipv6_address",!is_slave)
+    intf_enable_field("ipv6_prefix",!is_slave)
     intf_enable_field("ipv6_secondaries",!is_slave)
     intf_enable_field("ipv6_mtu",!is_slave)
     intf_enable_field("ipv6_static_routes",!is_slave)
@@ -122,6 +123,7 @@ function on_interface_add()
     interface_table[iname]["original"] = "0"
     interface_table[iname]["mtu"] = ""
     interface_table[iname]["ipv6_address"] = ""
+    interface_table[iname]["ipv6_prefix"] = ""
     interface_table[iname]["ipv6_secondaries"] = ""
     interface_table[iname]["ipv6_mtu"] = ""
     interface_table[iname]["ipv6_static_routes"] = ""
@@ -229,6 +231,7 @@ function save_intf(which)
     itable["original"]         = document.getElementById("original").value
     itable["mtu"]                  = get_enabled_field("mtu",!is_slave)
     itable["ipv6_address"]         = get_enabled_field("ipv6_address",!is_slave)
+    itable["ipv6_prefix"]          = get_enabled_field("ipv6_prefix",!is_slave)
     itable["ipv6_secondaries"]     = get_enabled_field("ipv6_secondaries",!is_slave)
     itable["ipv6_mtu"]             = get_enabled_field("ipv6_mtu",!is_slave)
     itable["ipv6_static_routes"]   = get_enabled_field("ipv6_static_routes",!is_slave)
@@ -260,6 +263,7 @@ function load_intf()
     document.getElementById("original").value         = interface_table[intf]["original"]
     document.getElementById("mtu").value                  = interface_table[intf]["mtu"]
     document.getElementById("ipv6_address").value         = interface_table[intf]["ipv6_address"]
+    document.getElementById("ipv6_prefix").value          = interface_table[intf]["ipv6_prefix"]
     document.getElementById("ipv6_secondaries").value     = interface_table[intf]["ipv6_secondaries"]
     document.getElementById("ipv6_mtu").value             = interface_table[intf]["ipv6_mtu"]
     document.getElementById("ipv6_static_routes").value   = interface_table[intf]["ipv6_static_routes"]
@@ -291,6 +295,7 @@ function clear_intf()
     document.getElementById("original").value             = "0"
     document.getElementById("mtu").value                  = ""
     document.getElementById("ipv6_address").value         = ""
+    document.getElementById("ipv6_prefix").value          = ""
     document.getElementById("ipv6_secondaries").value     = ""
     document.getElementById("ipv6_mtu").value             = ""
     document.getElementById("ipv6_static_routes").value   = ""
@@ -328,6 +333,7 @@ function build_interface_table()
     interface_table['{{ key }}']["original"]             = "1"
     interface_table['{{ key }}']["mtu"]                  = "{{ value.mtu }}"
     interface_table['{{ key }}']["ipv6_address"]         = "{{ value.ipv6_address }}"
+    interface_table['{{ key }}']["ipv6_prefix"]          = "{{ value.ipv6_prefix }}"
     interface_table['{{ key }}']["ipv6_secondaries"]     = "{{ value.ipv6_secondaries|join:" " }}"
     interface_table['{{ key }}']["ipv6_mtu"]             = "{{ value.ipv6_mtu }}"
     interface_table['{{ key }}']["ipv6_static_routes"]   = "{{ value.ipv6_static_routes|join:" " }}"
