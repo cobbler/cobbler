@@ -350,7 +350,7 @@ By default flags like --ip, --mac, --dhcp-tag, --dns-name, --netmask, --virt-bri
 
 Interface naming notes:
 
-Additional interfaces can be specified (for example: eth1, or any name you like, as long as it does not conflict with any reserved names such as kernel module names) for use with the edit command. Defining VLANs this way is also supported, of you want to add VLAN 5 on interface eth0, simply name your interface eth0:5.
+Additional interfaces can be specified (for example: eth1, or any name you like, as long as it does not conflict with any reserved names such as kernel module names) for use with the edit command. Defining VLANs this way is also supported, of you want to add VLAN 5 on interface eth0, simply name your interface eth0.5.
 
 Example:  
 
