@@ -141,7 +141,7 @@ restartservices:
 sdist:
 	python setup.py sdist
 
-rpms: clean release sdist
+rpms: sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \

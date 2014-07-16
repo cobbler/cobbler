@@ -540,6 +540,7 @@ if __name__ == "__main__":
         defaultpath = "/etc/sysconfig/"
 
     webcontent = webroot + "cobbler_webui_content/"
+    webimages = webcontent + "/images"
 
 
     setup(
@@ -611,7 +612,8 @@ if __name__ == "__main__":
             ("%sscripts" % libpath, glob("scripts/*")),
             ("%s" % libpath, ["config/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),
-            ("%s" % webcontent, glob("web/content/*.*")),
+            ("%s" % webcontent, glob("web/content/*")),
+            ("%s" % webimages, glob("web/content/images/*")),
             ("share/cobbler/web/cobbler_web", glob("web/cobbler_web/*.*")),
             ("share/cobbler/web/cobbler_web/templatetags", glob("web/cobbler_web/templatetags/*")),
             ("share/cobbler/web/cobbler_web/templates", glob("web/cobbler_web/templates/*")),
