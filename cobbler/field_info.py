@@ -140,6 +140,7 @@ BLOCK_MAPPINGS = {
    "*netmask"        : "Networking",
    "*if_gateway"     : "Networking",
    "*ipv6_address"   : "Networking",
+   "*ipv6_prefix"    : "Networking",
    "*ipv6_secondaries"      : "Networking",
    "*ipv6_mtu"              : "Networking",
    "*ipv6_static_routes"    : "Networking",
