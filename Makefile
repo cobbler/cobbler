@@ -21,7 +21,7 @@ clean:
 	@echo "cleaning build artifacts..."
 	@rm -rf build rpm-build
 	@rm -rf dist
-	@rm -f MANIFEST
+	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
 	@rm -f docs/*.1.gz 
 	@echo "cleaning temp files..."
@@ -49,6 +49,11 @@ qa:
         web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
         koan/*.py \
         koan/live/*.py
+
+release:
+	@echo "creating AUTHORS..."
+	@cp AUTHORS.in AUTHORS
+	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
 test:
 	make savestate prefix=test
