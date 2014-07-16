@@ -50,7 +50,7 @@ qa:
         koan/*.py \
         koan/live/*.py
 
-release:
+release: clean qa
 	@echo "creating AUTHORS..."
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
