@@ -648,8 +648,6 @@ class ImportSignatureManager:
         repo.set_keep_updated(True)
         repo.set_apt_components("main universe")        # TODO: make a setting?
         repo.set_apt_dists("%s %s-updates %s-security" % ((distro.os_version,) * 3))
-        repo.yumopts["--ignore-release-gpg"] = None
-        repo.yumopts["--verbose"] = None
         repo.set_name(distro.name)
         repo.set_os_version(distro.os_version)
 

@@ -138,10 +138,10 @@ restartservices:
 		/usr/sbin/service apache2 restart; \
 	fi
 
-sdist: clean
+sdist:
 	python setup.py sdist
 
-rpms: clean sdist
+rpms: clean release sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
