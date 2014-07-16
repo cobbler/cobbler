@@ -49,7 +49,7 @@ qa:
         web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
         koan/*.py \
         koan/live/*.py
-        
+
 test:
 	make savestate prefix=test
 	make rpms
