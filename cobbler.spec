@@ -11,9 +11,10 @@
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
 #
 
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
-%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?pyver: %global pyver %(%{__python2} -c "import sys ; print sys.version[:3]" || echo 0)}
 
 %global debug_package %{nil}
 %define _binaries_in_noarch_packages_terminate_build 0
@@ -56,7 +57,7 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: git
 BuildRequires: openssl
-BuildRequires: python
+BuildRequires: python2-devel
 Requires: python >= 2.7
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
@@ -116,12 +117,12 @@ other applications.
 
 
 %build
-%{__python} setup.py build
+%{__python2} setup.py build
 
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 # cobbler
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler.conf
@@ -219,9 +220,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/tftpd.py
 
 # python
-%{python_sitelib}/cobbler
-%{python_sitelib}/cobbler*.egg-info
-%exclude %{python_sitelib}/cobbler/modules/nsupdate*
+%{python2_sitelib}/cobbler
+%{python2_sitelib}/cobbler*.egg-info
+%exclude %{python2_sitelib}/cobbler/modules/nsupdate*
 
 
 # configuration
@@ -283,7 +284,7 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/koan
 %{_bindir}/ovz-install
 %{_bindir}/cobbler-register
-%{python_sitelib}/koan
+%{python2_sitelib}/koan
 
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
@@ -363,7 +364,7 @@ Cobbler module providing secure dynamic dns updates
 
 %files -n cobbler-nsupdate
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
-%{python_sitelib}/cobbler/modules/nsupdate*
+%{python2_sitelib}/cobbler/modules/nsupdate*
 
 %doc AUTHORS COPYING README
 
