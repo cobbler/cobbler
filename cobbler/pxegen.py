@@ -53,8 +53,6 @@ class PXEGen:
         self.images = config.images()
         self.templar = templar.Templar(config)
         self.bootloc = utils.tftpboot_location()
-        # FIXME: not used anymore, can remove?
-        self.verbose = False
 
     def copy_bootloaders(self):
         """

@@ -58,12 +58,12 @@ BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
     # general snippet. If none is found, a comment explaining the error is
     # substituted.
     "#def SNIPPET($file)",
-        "#set $snippet = $read_snippet($file)",
-        "#if $snippet",
-            "#include source=$snippet",
-        "#else",
-            "# Error: no snippet data for $file",
-        "#end if",
+    "#set $snippet = $read_snippet($file)",
+    "#if $snippet",
+    "#include source=$snippet",
+    "#else",
+    "# Error: no snippet data for $file",
+    "#end if",
     "#end def",
 ]) + "\n")
 

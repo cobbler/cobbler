@@ -163,10 +163,7 @@ http_port: 80
 # kernel options that should be present in every cobbler installation.
 # kernel options can also be applied at the distro/profile/system
 # level.
-kernel_options:
- ksdevice: bootif
- lang: ' '
- text: ~
+kernel_options: {}
 
 # configuration options if using the authn_ldap module. See the
 # the Wiki for details.  This can be ignored if you are not using
