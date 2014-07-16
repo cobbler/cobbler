@@ -57,7 +57,7 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: git
 BuildRequires: openssl
-BuildRequires: python2-devel
+BuildRequires: python-devel
 Requires: python >= 2.7
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
