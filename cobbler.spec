@@ -354,6 +354,7 @@ Summary: Web interface for Cobbler
 Group: Applications/System
 Requires: python(abi) >= %{pyver}
 Requires: cobbler
+Requires(post): openssl
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: httpd
