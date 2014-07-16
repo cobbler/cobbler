@@ -262,14 +262,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_sbindir}/tftpd.py
-%exclude %{_bindir}/cobbler-register
-%exclude %{_bindir}/koan
-%exclude %{_bindir}/ovz-install
 
 # python
 %{python_sitelib}/cobbler
 %{python_sitelib}/cobbler*.egg-info
-%exclude %{python_sitelib}/koan
 
 # configuration
 %config(noreplace) %{_sysconfdir}/cobbler
@@ -291,7 +287,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_var}/lib/cobbler
 %exclude %{apache_dir}/cobbler_webui_content
 %exclude %{_var}/lib/cobbler/webui_sessions
-%exclude %{_var}/lib/koan
 
 # share
 %{_usr}/share/cobbler
@@ -301,14 +296,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # log
 %{_var}/log/cobbler
-%exclude %{_var}/log/koan
-%exclude %{_var}/spool/koan
 
 # documentation
 %doc AUTHORS README COPYING docs/README.openvz docs/README.suse docs/README.mysql
 %{_mandir}/man1/cobbler.1.gz
-%exclude %{_mandir}/man1/cobbler-register.1.gz
-%exclude %{_mandir}/man1/koan.1.gz
 
 
 # 
