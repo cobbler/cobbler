@@ -27,6 +27,9 @@ Requires: tftp-server
 Requires: mod_wsgi
 Requires: createrepo
 Requires: python-cheetah
+%if 0%{?rhel} && 0%{?rhel} <= 5
+Requires: python-ctypes
+%endif
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
