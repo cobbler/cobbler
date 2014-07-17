@@ -227,8 +227,6 @@ class PXEGen:
         # generate one record for each described NIC ..
         for (name, interface) in system.interfaces.iteritems():
 
-            ip = interface["ip_address"]
-
             f1 = utils.get_config_filename(system, interface=name)
             if f1 is None:
                 self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name, name))
