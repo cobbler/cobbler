@@ -221,8 +221,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 
-%defattr(-,root,root,-)
-
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
@@ -277,7 +275,6 @@ network installation of new virtualized guests and reinstallation
 of an existing system.  For use with a boot-server configured with Cobbler
 
 %files -n koan
-%defattr(-,root,root,-)
 %dir /var/spool/koan
 %dir /var/lib/koan/config
 %{_bindir}/koan
@@ -318,13 +315,11 @@ RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/web/settings.py
 
 %files -n cobbler-web
-%defattr(-,root,root,-)
 %doc AUTHORS COPYING CHANGELOG README
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
-%defattr(-,apache,apache,-)
-/usr/share/cobbler/web
+%attr(-,apache,apache) /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
-/var/www/cobbler_webui_content/
+%attr(-,apache,apache) /var/www/cobbler_webui_content/
 
 %changelog
 * Sun Jul 13 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.5
