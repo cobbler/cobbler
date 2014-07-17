@@ -639,13 +639,12 @@ def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(request.session['token'])
 
    ksfile_list = []
+   base_dir = "/var/lib/cobbler/kickstarts/"
    for ksfile in ksfiles:
-      if ksfile.startswith("/var/lib/cobbler/kickstarts"):
-         ksfile_list.append((ksfile,ksfile.replace('/var/lib/cobbler/kickstarts/',''),'editable'))
-      elif ksfile.startswith("http://") or ksfile.startswith("ftp://"):
-         ksfile_list.append((ksfile,ksfile,'','viewable'))
+      if ksfile.startswith(base_dir):
+          ksfile_list.append((ksfile, ksfile.replace(base_dir, ''), 'editable'))
       else:
-         ksfile_list.append((ksfile,ksfile,None))
+          return error_page(request, "Invalid kickstart template at %s, outside %s" % (ksfile, base_dir))
 
    t = get_template('ksfile_list.tmpl')
    html = t.render(RequestContext(request,{
@@ -728,11 +727,12 @@ def snippet_list(request, page=None):
    snippets = remote.get_snippets(request.session['token'])
 
    snippet_list = []
+   base_dir = "/var/lib/cobbler/snippets/"
    for snippet in snippets:
-      if snippet.startswith("/var/lib/cobbler/snippets"):
-         snippet_list.append((snippet,snippet.replace("/var/lib/cobbler/snippets/",""),'editable'))
-      else:
-         snippet_list.append((snippet,snippet,None))
+       if snippet.startswith(base_dir):
+           snippet_list.append((snippet, snippet.replace(base_dir, ""), 'editable'))
+       else:
+           return error_page(request, "Invalid snippet at %s, outside %s" % (snippet, base_dir))
 
    t = get_template('snippet_list.tmpl')
    html = t.render(RequestContext(request,{
