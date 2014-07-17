@@ -302,6 +302,7 @@ Requires: mod_wsgi
 %if 0%{?fedora} || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 %endif
+Requires(post): openssl
 
 %description -n cobbler-web
 
