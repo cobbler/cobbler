@@ -1893,9 +1893,8 @@ class CobblerXMLRPCInterface:
         """
         Allows the web app to be used as a kickstart file editor.  For security
         reasons we will only allow kickstart files to be edited if they reside in
-        /var/lib/cobbler/kickstarts/ or /etc/cobbler.  This limits the damage
+        /var/lib/cobbler/kickstarts/.  This limits the damage
         doable by Evil who has a cobbler password but not a system password.
-        Also if living in /etc/cobbler the file must be a kickstart file.
         """
 
         if is_read:
@@ -1905,20 +1904,13 @@ class CobblerXMLRPCInterface:
 
         self._log(what,name=kickstart_file,token=token)
         self.check_access(token,what,kickstart_file,is_read)
- 
+
         if kickstart_file.find("..") != -1 or not kickstart_file.startswith("/"):
             utils.die(self.logger,"tainted file location")
 
-        if not kickstart_file.startswith("/etc/cobbler/") and not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
+        if not kickstart_file.startswith("/var/lib/cobbler/kickstarts"):
             utils.die(self.logger, "unable to view or edit kickstart in this location")
-        
-        if kickstart_file.startswith("/etc/cobbler/"):
-           if not kickstart_file.endswith(".ks") and not kickstart_file.endswith(".cfg"):
-              # take care to not allow config files to be altered.
-              utils.die(self.logger, "this does not seem to be a kickstart file")
-           if not is_read and not os.path.exists(kickstart_file):
-              utils.die(self.logger, "new files must go in /var/lib/cobbler/kickstarts")
-        
+
         if is_read:
             fileh = open(kickstart_file,"r")
             data = fileh.read()
