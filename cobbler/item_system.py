@@ -287,8 +287,7 @@ class System(item.Item):
     def is_management_supported(self, cidr_ok=True):
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan
-        only record.  Actually Itanium goes beyond all this and needs the IP all of the time
-        though this is enforced elsewhere (action_sync.py).
+        only record.
         """
         if self.name == "default":
             return True

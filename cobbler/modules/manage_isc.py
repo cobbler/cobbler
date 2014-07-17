@@ -81,7 +81,6 @@ class IscManager:
         # we used to just loop through each system, but now we must loop
         # through each network interface of each system.
         dhcp_tags = {"default": {}}
-        elilo = "/elilo-ia64.efi"
         yaboot = "/yaboot"
 
         for system in self.systems:
@@ -153,9 +152,7 @@ class IscManager:
                 interface["filename"] = "/pxelinux.0"
                 # can't use pxelinux.0 anymore
                 if distro is not None:
-                    if distro.arch == "ia64":
-                        interface["filename"] = elilo
-                    elif distro.arch.startswith("ppc"):
+                    if distro.arch.startswith("ppc"):
                         interface["filename"] = yaboot
 
                 dhcp_tag = interface["dhcp_tag"]
@@ -174,7 +171,6 @@ class IscManager:
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
             "next_server": self.settings.next_server,
-            "elilo": elilo,
             "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }

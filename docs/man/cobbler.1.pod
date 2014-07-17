@@ -57,13 +57,13 @@ If there is an rsync mirror, DVD, NFS, or filesystem tree available that you wou
 
 If you want to be explicit with distribution definition, however, here's how it works:
 
-B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=x86|x86_64|ia64] [--breed=redhat|debian|suse] [--template-files=string]>
+B<cobbler distro add --name=string --kernel=path --initrd=path [--kopts=string] [--kopts-post=string] [--ksmeta=string] [--arch=i386|x86_64|ppc|ppc64] [--breed=redhat|debian|suse] [--template-files=string]>
 
 =over
 
 =item name
 
-a string identifying the distribution, this should be something like "rhel4".
+a string identifying the distribution, this should be something like "rhel6".
 
 =item kernel
 
@@ -98,8 +98,7 @@ Example: "noapic"
 Sets the architecture for the PXE bootloader and also controls how koan's --replace-self
 option will operate.
 
-The default setting ('standard') will use pxelinux.   Set to 'ia64' to use elilo.
-'ppc' and 'ppc64' use yaboot.
+The default setting ('standard') will use pxelinux.   Set to 'ppc' and 'ppc64' to use yaboot.
 
 'x86' and 'x86_64' effectively do the same thing as standard.  
 
@@ -263,8 +262,6 @@ If cobbler is configured to generate a DHCP configuration (see advanced section)
 setting to define a specific IP for this system in DHCP.  Leaving off this parameter will result in no DHCP management for this particular system.
 
 Example: --ip-address=192.168.1.50
-
-Note for Itanium users:  this setting is always required for IA64 regardless of whether DHCP management is enabled.
 
 If DHCP management is disabled and the interface is labelled --static=1, this setting will be used for static IP configuration.
 
@@ -834,8 +831,6 @@ This allows DHCP to be managed via "cobbler system add" commands, when you speci
 Depending on your choice, cobbler will use /etc/cobbler/dhcpd.template or /etc/cobbler/dnsmasq.template as a starting point.  This file must be user edited for the user's particular networking environment.  Read the file and understand how the particular app (ISC dhcpd or dnsmasq) work before proceeding.
 
 If you already have DHCP configuration data that you would like to preserve (say DHCP was manually configured earlier), insert the relevant portions of it into the template file, as running "cobbler sync" will overwrite your previous configuration.
-
-NOTE: Itanium systems names also need to be assigned to a distro that was created with the "--arch=ia64" parameter. If you have Itanium systems, you must (for now) choose 'dhcp_isc' for /etc/cobbler/modules.conf and manage_dhcp in the /etc/cobbler/settings file, and are required to use --ip when creating the system object in order for those systems to PXE.  This is due to an elilo limitation.
 
 By default, the DHCP configuration file will be updated each time "cobbler sync" is run, and not until then, so it is important to remember to use "cobbler sync" when using this feature.  
 

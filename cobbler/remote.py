@@ -1526,7 +1526,7 @@ class CobblerXMLRPCInterface:
             else:
                 # some backwards compatibility fuzz
                 # repo.arch is mostly a text field
-                # distro.arch is i386/x86_64/ia64/etc
+                # distro.arch is i386/x86_64
                 if r["arch"] in ["i386", "x86", "i686"]:
                     if distro.arch in ["i386", "x86"]:
                         results.append(r)

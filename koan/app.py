@@ -642,12 +642,7 @@ class Koan:
 
         # find the correct file download location
         if not self.is_virt:
-            if os.path.exists("/boot/efi/EFI/redhat/elilo.conf"):
-                # elilo itanium support, may actually still work
-                download = "/boot/efi/EFI/redhat"
-            else:
-                # whew, we have a sane bootloader
-                download = "/boot"
+            download = "/boot"
 
         else:
             # ensure we have a good virt type choice and know where
@@ -1071,11 +1066,10 @@ class Koan:
             # Validate kernel argument length (limit depends on architecture --
             # see asm-*/setup.h).  For example:
             # asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
-            # asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
             # asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             # asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             # arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
-            if arch.startswith("ppc") or arch.startswith("ia64"):
+            if arch.startswith("ppc"):
                 if len(k_args) > 511:
                     raise InfoException(
                         "Kernel options are too long, 512 chars exceeded: %s" %
@@ -1159,11 +1153,10 @@ class Koan:
             # Validate kernel argument length (limit depends on architecture --
             # see asm-*/setup.h).  For example:
             # asm-i386/setup.h:#define COMMAND_LINE_SIZE 256
-            # asm-ia64/setup.h:#define COMMAND_LINE_SIZE  512
             # asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             # asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             # arch/x86/include/asm/setup.h:#define COMMAND_LINE_SIZE 2048
-            if arch.startswith("ppc") or arch.startswith("ia64"):
+            if arch.startswith("ppc"):
                 if len(k_args) > 511:
                     raise InfoException(
                         "Kernel options are too long, 512 chars exceeded: %s" %
