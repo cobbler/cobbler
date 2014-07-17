@@ -19,6 +19,7 @@ BuildRequires: redhat-rpm-config
 BuildRequires: git
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
+BuildRequires: python-setuptools
 
 Requires: python >= 2.3
 Requires: httpd
@@ -26,6 +27,9 @@ Requires: tftp-server
 Requires: mod_wsgi
 Requires: createrepo
 Requires: python-cheetah
+%if 0%{?rhel} && 0%{?rhel} <= 5
+Requires: python-ctypes
+%endif
 Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
@@ -33,21 +37,14 @@ Requires: PyYAML
 Requires: rsync
 Requires: syslinux
 
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: genisoimage
 %else
 Requires: mkisofs
 %endif
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%else
-BuildRequires: python-setuptools
-%endif
-%if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
 Requires: yum-utils
-%endif
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} || 0%{?rhel} >= 7
 BuildRequires: systemd-units
 Requires(post): systemd-sysv
 Requires(post): systemd-units
@@ -87,7 +84,7 @@ mv config/cobblerd_rotate $RPM_BUILD_ROOT/etc/logrotate.d/cobblerd
 
 mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} || 0%{?rhel} > 5
 mkdir -p $RPM_BUILD_ROOT/var/lib/tftpboot/images
 %else
 mkdir -p $RPM_BUILD_ROOT/tftpboot/images
@@ -95,7 +92,7 @@ mkdir -p $RPM_BUILD_ROOT/tftpboot/images
 
 rm -f $RPM_BUILD_ROOT/etc/cobbler/cobblerd
 
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} || 0%{?rhel} >= 7
 rm -rf $RPM_BUILD_ROOT/etc/init.d
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m0644 config/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
@@ -224,8 +221,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 
-%defattr(-,root,root,-)
-
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
@@ -233,7 +228,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
-%if 0%{?fedora} >= 16
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %{_unitdir}/cobblerd.service
 %else
 /etc/init.d/cobblerd
@@ -251,10 +246,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %config(noreplace) /etc/httpd/conf.d/cobbler.conf
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
 %exclude %{python_sitelib}/cobbler/sub_process.py*
-%endif
-%if 0%{?fedora} >= 9 || 0%{?rhel} > 5
+%if 0%{?fedora} || 0%{?rhel} > 5
 %{python_sitelib}/cobbler*.egg-info
 /var/lib/tftpboot/images
 %else
@@ -268,7 +261,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 Summary: Helper tool that performs cobbler orders on remote machines
 Group: Applications/System
 Requires: python >= 2.0
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 Requires: python-simplejson
 Requires: virt-install
@@ -282,7 +275,6 @@ network installation of new virtualized guests and reinstallation
 of an existing system.  For use with a boot-server configured with Cobbler
 
 %files -n koan
-%defattr(-,root,root,-)
 %dir /var/spool/koan
 %dir /var/lib/koan/config
 %{_bindir}/koan
@@ -290,11 +282,9 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/cobbler-register
 %{python_sitelib}/koan
 
-%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
 %exclude %{python_sitelib}/koan/sub_process.py*
 %exclude %{python_sitelib}/koan/opt_parse.py*
 %exclude %{python_sitelib}/koan/text_wrap.py*
-%endif
 
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
@@ -309,9 +299,10 @@ Group: Applications/System
 Requires: cobbler
 Requires: Django >= 1.1.2
 Requires: mod_wsgi
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%if 0%{?fedora} || 0%{?rhel} >= 6
 Requires: python(abi) >= %{pyver}
 %endif
+Requires(post): openssl
 
 %description -n cobbler-web
 
@@ -325,13 +316,11 @@ RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/web/settings.py
 
 %files -n cobbler-web
-%defattr(-,root,root,-)
 %doc AUTHORS COPYING CHANGELOG README
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
-%defattr(-,apache,apache,-)
-/usr/share/cobbler/web
+%attr(-,apache,apache) /usr/share/cobbler/web
 %dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
-/var/www/cobbler_webui_content/
+%attr(-,apache,apache) /var/www/cobbler_webui_content/
 
 %changelog
 * Sun Jul 13 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.5
