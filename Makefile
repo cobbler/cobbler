@@ -19,7 +19,7 @@ clean:
 	@rm -f koan/*.pyc
 	@rm -f koan/live/*.pyc
 	@echo "cleaning build artifacts..."
-	@rm -rf build rpm-build
+	@rm -rf build rpm-build release
 	@rm -rf dist
 	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
@@ -31,7 +31,7 @@ clean:
 	@rm -f *.log
 
 qa:
-	@echo "running pyflakes..."
+	@echo "checking: pyflakes..."
 	@pyflakes \
 		*.py \
 		cobbler/*.py \
@@ -40,7 +40,7 @@ qa:
 		web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
 		koan/*.py \
 		koan/live/*.py
-	@echo "running pep8..."
+	@echo "checking: pep8..."
 	@pep8 -r --ignore E303,E501 \
         *.py \
         cobbler/*.py \
@@ -50,10 +50,21 @@ qa:
         koan/*.py \
         koan/live/*.py
 
-release: clean qa
+authors:
 	@echo "creating AUTHORS..."
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
+
+sdist:
+	@echo "creating source distribution (sdist)..."
+	@python setup.py sdist > /dev/null
+
+release: clean qa authors sdist
+	@echo "preparing release directory..."
+	@mkdir release
+	@cp dist/*.gz release/
+	@cp cobbler.spec release/
+
 
 test:
 	make savestate prefix=test
@@ -138,10 +149,7 @@ restartservices:
 		/usr/sbin/service apache2 restart; \
 	fi
 
-sdist:
-	python setup.py sdist
-
-rpms: sdist
+rpms: release
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
