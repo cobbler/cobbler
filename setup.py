@@ -177,7 +177,8 @@ if __name__ == "__main__":
         webconfig  = "/etc/httpd/conf.d"
         webroot     = "/var/www/"
 
-    webcontent  = webroot + "cobbler_webui_content/"
+    webcontent = webroot + "cobbler_webui_content/"
+    webimages = webcontent + "/images/"
 
 
     setup(
@@ -224,7 +225,8 @@ if __name__ == "__main__":
             ("%sscripts" % libpath,         ["scripts/*"]),
             ("%s" % libpath,                ["config/distro_signatures.json"]),
             ("web",                         ["web/*.*"]),
-            ("%s" % webcontent,             ["web/content/*.*"]),
+            ("%s" % webcontent,             ["web/content/*"]),
+            ("%s" % webimages,              ["web/content/images/*"]),
             ("web/cobbler_web",             ["web/cobbler_web/*.*"]),
             ("web/cobbler_web/templatetags",["web/cobbler_web/templatetags/*"]),
             ("web/cobbler_web/templates",   ["web/cobbler_web/templates/*"]),
