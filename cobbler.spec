@@ -259,7 +259,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %exclude %{_var}/spool/koan
 
 # documentation
-%doc AUTHORS README COPYING docs/README.openvz docs/README.suse docs/README.mysql
+%doc AUTHORS README COPYING docs/README.openvz docs/README.suse
 %{_mandir}/man1/cobbler.1.gz
 %exclude %{_mandir}/man1/cobbler-register.1.gz
 %exclude %{_mandir}/man1/koan.1.gz

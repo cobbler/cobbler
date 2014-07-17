@@ -1,0 +1,9 @@
+# enable Func-integration? This makes sure each installed machine is set up
+# to use func out of the box, which is a powerful way to script and control
+# remote machines.  
+#
+# Func lives at http://fedorahosted.org/func
+#
+func_auto_setup: 0
+func_master: overlord.example.org
+

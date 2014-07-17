@@ -52,7 +52,6 @@ $SNIPPET('pre_anamon')
 %end
 
 %packages
-$SNIPPET('func_install_if_enabled')
 %end
 
 %post --nochroot
@@ -66,7 +65,6 @@ $yum_config_stanza
 # End yum configuration
 $SNIPPET('post_install_kernel_options')
 $SNIPPET('post_install_network_config')
-$SNIPPET('func_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')

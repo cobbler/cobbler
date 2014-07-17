@@ -1,0 +1,27 @@
+To enable this Func integration:
+
+- copy func.settings to /etc/cobbler/settings.d/
+- copy func_install_if_enabled to /var/lib/cobbler/snippets/
+- copy func_register_if_enabled to /var/lib/cobbler/snippets/
+
+Enable the snippets in your kickstart, eg:
+
+%packages
+$SNIPPET('func_install_if_enabled')
+
+%post
+$SNIPPET('func_install_if_enabled')
+
+
+Notes about Func Autosigning
+
+This may work better for you if you are using Func autosigning,
+otherwise the administrator will need to use certmaster-ca --sign
+hostname (see also certmaster-ca --list) to deal with machines.
+
+Not using autosigning is good if you don't trust all the hosts you
+are provisioning and don't want to enslave unwanted machines.
+
+Either choice is ok, just be aware of the manual steps required if
+you don't enable it, or the implications if you do.
+
