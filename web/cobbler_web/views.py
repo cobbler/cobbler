@@ -715,7 +715,7 @@ def ksfile_save(request):
       return HttpResponseRedirect('/cobbler_web/ksfile/list')
    else:
       remote.read_or_write_kickstart_template(ksfile_name,False,ksdata,request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/ksfile/edit/file:%s' % ksfile_name)
+      return HttpResponseRedirect('/cobbler_web/ksfile/list')
 
 # ======================================================================
 
@@ -803,7 +803,7 @@ def snippet_save(request):
       return HttpResponseRedirect('/cobbler_web/snippet/list')
    else:
       remote.read_or_write_snippet(snippet_name,False,snippetdata,request.session['token'])
-      return HttpResponseRedirect('/cobbler_web/snippet/edit/file:%s' % snippet_name)
+      return HttpResponseRedirect('/cobbler_web/snippet/list')
 
 # ======================================================================
 
