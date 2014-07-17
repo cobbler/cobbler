@@ -164,14 +164,8 @@ class BootLiteSync:
         profile = self.profiles.find(name=system_record.profile)
         if profile is not None:
             distro = self.distros.find(name=profile.get_conceptual_parent().name)
-            if distro is not None and distro in ["ia64", "IA64"]:
-                itanic = True
 
         for (name, interface) in system_record.interfaces.iteritems():
             filename = utils.get_config_filename(system_record, interface=name)
-
-            if not itanic:
-                utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
-                utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
-            else:
-                utils.rmfile(os.path.join(bootloc, filename))
+            utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+            utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))

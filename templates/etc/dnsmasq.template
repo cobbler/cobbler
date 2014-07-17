@@ -14,7 +14,6 @@ dhcp-lease-max=1000
 dhcp-authoritative
 dhcp-boot=pxelinux.0
 dhcp-boot=net:normalarch,pxelinux.0
-dhcp-boot=net:ia64,$elilo
 
 $insert_cobbler_system_definitions
 

@@ -41,8 +41,8 @@ class ContentDownloader:
     def run(self, force=False):
         """
         Download bootloader content for all of the latest bootloaders, since the user
-        has chosen to not supply their own.  You may ask "why not get this from yum", though
-        Fedora has no IA64 repo, for instance, and we also want this to be able to work on Debian and
+        has chosen to not supply their own.  You may ask "why not get this from yum",
+        we also want this to be able to work on Debian and
         further do not want folks to have to install a cross compiler.  For those that don't like this approach
         they can still source their cross-arch bootloader content manually.
         """
@@ -55,7 +55,6 @@ class ContentDownloader:
             ("%s/COPYING.elilo" % content_server, "%s/COPYING.elilo" % dest),
             ("%s/COPYING.yaboot" % content_server, "%s/COPYING.yaboot" % dest),
             ("%s/COPYING.syslinux" % content_server, "%s/COPYING.syslinux" % dest),
-            ("%s/elilo-3.8-ia64.efi" % content_server, "%s/elilo-ia64.efi" % dest),
             ("%s/yaboot-1.3.14-12" % content_server, "%s/yaboot" % dest),
             ("%s/pxelinux.0-3.86" % content_server, "%s/pxelinux.0" % dest),
             ("%s/menu.c32-3.86" % content_server, "%s/menu.c32" % dest),

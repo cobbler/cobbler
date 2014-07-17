@@ -94,11 +94,6 @@ class PXEGen:
             '/boot/memtest*', image_dst,
             require_match=False, api=self.api, cache=False, logger=self.logger)
 
-        # copy elilo which we include for IA64 targets
-        utils.copyfile_pattern(
-            '/var/lib/cobbler/loaders/elilo.efi', dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
             '/var/lib/cobbler/loaders/yaboot', dst,
@@ -255,15 +250,6 @@ class PXEGen:
 
                 # Only generating grub menus for these arch's:
                 grub_path = os.path.join(self.bootloc, "grub", f1.upper())
-
-            elif working_arch == "ia64":
-                # elilo expects files to be named "$name.conf" in the root
-                # and can not do files based on the MAC address
-                if ip is not None and ip != "":
-                    self.logger.warning("Warning: Itanium system object (%s) needs an IP address to PXE" % system.name)
-
-                filename = "%s.conf" % utils.get_config_filename(system, interface=name)
-                f2 = os.path.join(self.bootloc, filename)
 
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific yaboot.conf
@@ -481,11 +467,6 @@ class PXEGen:
         More system-specific configuration may come in later, if so
         that would appear inside the system object in api.py
 
-
-        ia64 is mostly the same as syslinux stuff. All of it goes through the
-        templating engine, see the templates in /etc/cobbler for
-        more details
-
         Can be used for different formats, "pxe" (default) and "grub".
         """
         if arch is None:
@@ -564,9 +545,7 @@ class PXEGen:
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.pxe_template_dir, "pxesystem.template")
 
-                    if arch == "ia64":
-                        template = os.path.join(self.settings.pxe_template_dir, "pxesystem_ia64.template")
-                    elif arch.startswith("ppc"):
+                    if arch.startswith("ppc"):
                         template = os.path.join(self.settings.pxe_template_dir, "pxesystem_ppc.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.pxe_template_dir, "pxesystem_arm.template")
@@ -597,8 +576,6 @@ class PXEGen:
                         # Yaboot/OF doesn't support booting locally once you've
                         # booted off the network, so nothing left to do
                         return None
-                    elif arch is not None and arch.startswith("ia64"):
-                        template = os.path.join(self.settings.pxe_template_dir, "pxelocal_ia64.template")
                     else:
                         template = os.path.join(self.settings.pxe_template_dir, "pxelocal.template")
         else:
@@ -628,7 +605,7 @@ class PXEGen:
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif "initrd_path" in metadata and (not arch or arch not in ["ia64", "ppc", "ppc64", "arm"]):
+        elif "initrd_path" in metadata and (not arch or arch not in ["ppc", "ppc64", "arm"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
@@ -645,7 +622,7 @@ class PXEGen:
         # store variables for templating
         metadata["menu_label"] = ""
         if profile:
-            if arch not in ["ia64", "ppc", "ppc64"]:
+            if arch not in ["ppc", "ppc64"]:
                 metadata["menu_label"] = "MENU LABEL %s" % profile.name
                 metadata["profile_name"] = profile.name
         elif image:

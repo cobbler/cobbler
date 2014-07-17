@@ -77,15 +77,6 @@ class DnsmasqManager:
         template_data = f2.read()
         f2.close()
 
-        # build each per-system definition
-        # as configured, this only works for ISC, patches accepted
-        # from those that care about Itanium.  elilo seems to be unmaintained
-        # so additional maintaince in other areas may be required to keep
-        # this working.
-
-        elilo = "/var/lib/cobbler/elilo-3.6-ia64.efi"
-
-
         system_definitions = {}
         counter = 0
 
@@ -144,7 +135,6 @@ class DnsmasqManager:
             "date": time.asctime(time.gmtime()),
             "cobbler_server": self.settings.server,
             "next_server": self.settings.next_server,
-            "elilo": elilo
         }
 
         # now add in other DHCP expansions that are not tagged with "default"
