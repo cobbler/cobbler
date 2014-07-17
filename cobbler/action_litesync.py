@@ -160,11 +160,6 @@ class BootLiteSync:
         # delete contents of kickstarts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
-        itanic = False
-        profile = self.profiles.find(name=system_record.profile)
-        if profile is not None:
-            distro = self.distros.find(name=profile.get_conceptual_parent().name)
-
         for (name, interface) in system_record.interfaces.iteritems():
             filename = utils.get_config_filename(system_record, interface=name)
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
