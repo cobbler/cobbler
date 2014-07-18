@@ -1,4 +1,6 @@
 Cobbler CHANGELOG
+- Jul 18 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.6
+  Minor update to resolve CVE-2014-3225
 - Jul 13 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.5
 - Apr 22 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.4
 - Mar 09 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.3
