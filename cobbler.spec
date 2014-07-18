@@ -47,9 +47,9 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.2
+Version: 2.6.3
 Release: 1%{?dist}
-Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
+Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -80,7 +80,6 @@ Requires: mod_wsgi
 
 %if 0%{?suse_version} >= 1230
 BuildRequires: apache2
-BuildRequires: python-Cheetah
 BuildRequires: distribution-release
 BuildRequires: systemd
 Requires: python-PyYAML
@@ -403,6 +402,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Fri Jul 18 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.3 release (CVE-2014-3225)
 * Thu Jul 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.2 release
 * Thu May 22 2014 Jörgen Maas <jorgen.maas@gmail.com>
