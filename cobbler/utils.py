@@ -1781,15 +1781,6 @@ def ram_consumption_of_guests(host, api):
     return ttl_ram
 
 
-def os_system(cmd):
-    """
-    os.system doesn't close file descriptors, so this is a wrapper
-    to ensure we never use it.
-    """
-    rc = subprocess_call(None, cmd)
-    return rc
-
-
 def clear_from_fields(obj, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
