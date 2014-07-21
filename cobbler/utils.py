@@ -1781,30 +1781,6 @@ def ram_consumption_of_guests(host, api):
     return ttl_ram
 
 
-def choose_virt_host(systems, api):
-    """
-    From a list of systems, choose a system that can best host a virtual
-    machine.  This initial engine is not as optimal as it could be, but
-    works by determining the system with the least amount of VM RAM deployed
-    as defined by the amount of virtual ram on each guest for each guest
-    that the hosts hosts.  Hop on pop.
-
-    This does assume hosts are reasonably homogenous.  In the future
-    this heuristic should be pluggable and be able to tap into other
-    external data sources and maybe basic usage stats.
-    """
-    if len(systems) == 0:
-        raise CX("empty candidate systems list")
-    least_host = systems[0]
-    least_host_ct = -1
-    for s in systems:
-        ct = ram_consumption_of_guests(s, api)
-        if (ct < least_host_ct) or (least_host_ct == -1):
-            least_host = s
-            least_host_ct = ct
-    return least_host.name
-
-
 def os_system(cmd):
     """
     os.system doesn't close file descriptors, so this is a wrapper
