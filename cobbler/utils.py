@@ -1763,24 +1763,6 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     return data
 
 
-def ram_consumption_of_guests(host, api):
-    guest_names = host.virt_guests
-    ttl_ram = 0
-    if len(guest_names) == 0:
-        # a system with no virt hosts already is our best
-        # candidate
-        return 0
-
-    for g in guest_names:
-        host_obj = api.find_system(g)
-        if host_obj is None:
-            # guest object was deleted but host was not updated
-            continue
-        host_data = blender(api, False, host_obj)
-        ttl_ram = ttl_ram + host_data["virt_ram"]
-    return ttl_ram
-
-
 def clear_from_fields(obj, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
