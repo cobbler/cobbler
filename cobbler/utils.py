@@ -1763,57 +1763,6 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     return data
 
 
-def ram_consumption_of_guests(host, api):
-    guest_names = host.virt_guests
-    ttl_ram = 0
-    if len(guest_names) == 0:
-        # a system with no virt hosts already is our best
-        # candidate
-        return 0
-
-    for g in guest_names:
-        host_obj = api.find_system(g)
-        if host_obj is None:
-            # guest object was deleted but host was not updated
-            continue
-        host_data = blender(api, False, host_obj)
-        ttl_ram = ttl_ram + host_data["virt_ram"]
-    return ttl_ram
-
-
-def choose_virt_host(systems, api):
-    """
-    From a list of systems, choose a system that can best host a virtual
-    machine.  This initial engine is not as optimal as it could be, but
-    works by determining the system with the least amount of VM RAM deployed
-    as defined by the amount of virtual ram on each guest for each guest
-    that the hosts hosts.  Hop on pop.
-
-    This does assume hosts are reasonably homogenous.  In the future
-    this heuristic should be pluggable and be able to tap into other
-    external data sources and maybe basic usage stats.
-    """
-    if len(systems) == 0:
-        raise CX("empty candidate systems list")
-    least_host = systems[0]
-    least_host_ct = -1
-    for s in systems:
-        ct = ram_consumption_of_guests(s, api)
-        if (ct < least_host_ct) or (least_host_ct == -1):
-            least_host = s
-            least_host_ct = ct
-    return least_host.name
-
-
-def os_system(cmd):
-    """
-    os.system doesn't close file descriptors, so this is a wrapper
-    to ensure we never use it.
-    """
-    rc = subprocess_call(None, cmd)
-    return rc
-
-
 def clear_from_fields(obj, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
@@ -1938,16 +1887,6 @@ def printable_from_fields(obj, fields):
     return buf
 
 
-def matches_args(args, list_of):
-    """
-    Used to simplify some code around which arguments to add when.
-    """
-    for x in args:
-        if x in list_of:
-            return True
-    return False
-
-
 def add_options_from_fields(object_type, parser, fields, object_action):
     if object_action in ["add", "edit", "find", "copy", "rename"]:
         for elem in fields:
@@ -2006,9 +1945,6 @@ def add_options_from_fields(object_type, parser, fields, object_action):
     # FIXME: not supported in 2.0 ?
     # if not object_action in ["dumpvars","find","remove","report","list"]:
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-    # FIXME: not supported in 2.0 ?
-    # if not matches_args(args,["dumpvars","report","list"]):
-    #    parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
 
 def get_remote_methods_from_fields(obj, fields):

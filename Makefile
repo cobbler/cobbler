@@ -9,7 +9,7 @@ all: clean build
 
 
 clean:
-	@echo "cleaning python bytecode..."
+	@echo "cleaning: python bytecode"
 	@rm -f *.pyc
 	@rm -f cobbler/*.pyc
 	@rm -f cobbler/modules/*.pyc
@@ -18,20 +18,20 @@ clean:
 	@rm -f web/cobbler_web/templatetags/*.pyc
 	@rm -f koan/*.pyc
 	@rm -f koan/live/*.pyc
-	@echo "cleaning build artifacts..."
+	@echo "cleaning: build artifacts"
 	@rm -rf build rpm-build release
 	@rm -rf dist
 	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
 	@rm -f docs/*.1.gz 
-	@echo "cleaning temp files..."
+	@echo "cleaning: temp files"
 	@rm -f *~
 	@rm -rf buildiso
 	@rm -f *.tmp
 	@rm -f *.log
 
 qa:
-	@echo "checking: pyflakes..."
+	@echo "checking: pyflakes"
 	@pyflakes \
 		*.py \
 		cobbler/*.py \
@@ -40,7 +40,7 @@ qa:
 		web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
 		koan/*.py \
 		koan/live/*.py
-	@echo "checking: pep8..."
+	@echo "checking: pep8"
 	@pep8 -r --ignore E303,E501 \
         *.py \
         cobbler/*.py \
@@ -51,20 +51,19 @@ qa:
         koan/live/*.py
 
 authors:
-	@echo "creating AUTHORS..."
+	@echo "creating: AUTHORS"
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
 sdist:
-	@echo "creating source distribution (sdist)..."
+	@echo "creating: sdist"
 	@python setup.py sdist > /dev/null
 
 release: clean qa authors sdist
-	@echo "preparing release directory..."
+	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
 	@cp cobbler.spec release/
-
 
 test:
 	make savestate prefix=test
