@@ -24,7 +24,6 @@ import sys
 import os
 import re
 import copy
-import socket
 import glob
 import random
 import subprocess
@@ -272,16 +271,6 @@ def get_random_mac(api_handle, virt_type="xenpv"):
         mac = get_random_mac(api_handle)
 
     return mac
-
-
-def resolve_ip(strdata):
-    """
-    Resolve the IP address and handle errors...
-    """
-    try:
-        return socket.gethostbyname(strdata)
-    except:
-        return None
 
 
 def find_matching_files(directory, regex):
