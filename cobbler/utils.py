@@ -24,7 +24,6 @@ import sys
 import os
 import re
 import copy
-import socket
 import glob
 import random
 import subprocess
@@ -153,12 +152,6 @@ def cheetah_exc(exc, full=False):
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def trace_me():
-    x = traceback.extract_stack()
-    bar = string.join(traceback.format_list(x))
-    return bar
-
-
 def pretty_hex(ip, length=8):
     """
     Pads an IP object with leading zeroes so that the result is
@@ -278,16 +271,6 @@ def get_random_mac(api_handle, virt_type="xenpv"):
         mac = get_random_mac(api_handle)
 
     return mac
-
-
-def resolve_ip(strdata):
-    """
-    Resolve the IP address and handle errors...
-    """
-    try:
-        return socket.gethostbyname(strdata)
-    except:
-        return None
 
 
 def find_matching_files(directory, regex):
