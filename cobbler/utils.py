@@ -153,12 +153,6 @@ def cheetah_exc(exc, full=False):
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def trace_me():
-    x = traceback.extract_stack()
-    bar = string.join(traceback.format_list(x))
-    return bar
-
-
 def pretty_hex(ip, length=8):
     """
     Pads an IP object with leading zeroes so that the result is
