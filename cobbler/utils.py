@@ -1887,16 +1887,6 @@ def printable_from_fields(obj, fields):
     return buf
 
 
-def matches_args(args, list_of):
-    """
-    Used to simplify some code around which arguments to add when.
-    """
-    for x in args:
-        if x in list_of:
-            return True
-    return False
-
-
 def add_options_from_fields(object_type, parser, fields, object_action):
     if object_action in ["add", "edit", "find", "copy", "rename"]:
         for elem in fields:
@@ -1955,9 +1945,6 @@ def add_options_from_fields(object_type, parser, fields, object_action):
     # FIXME: not supported in 2.0 ?
     # if not object_action in ["dumpvars","find","remove","report","list"]:
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
-    # FIXME: not supported in 2.0 ?
-    # if not matches_args(args,["dumpvars","report","list"]):
-    #    parser.add_option("--no-triggers", action="store_true", dest="notriggers", help="suppress trigger execution")
 
 
 def get_remote_methods_from_fields(obj, fields):
