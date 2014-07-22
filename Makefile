@@ -63,7 +63,12 @@ release: clean qa authors sdist
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
+	# FIXME: add code to set the release version
 	@cp cobbler.spec release/
+	@cp debian/cobbler.dsc release/
+	@cp debian/changelog release/debian.changelog
+	@cp debian/control release/debian.control
+	@cp debian/rules release/debian.rules
 
 test:
 	make savestate prefix=test
