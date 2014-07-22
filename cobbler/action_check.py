@@ -354,9 +354,6 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
-       if self.checked_dist in ["debian", "ubuntu"]:
-          return
-
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
@@ -393,9 +390,6 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
-       if self.checked_dist in ["debian", "ubuntu"]:
-          return
-
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
