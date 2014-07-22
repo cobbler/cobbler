@@ -79,6 +79,8 @@ class BootCheck:
        elif mode == "tftpd_py":
            self.check_ctftpd_bin(status)
            self.check_ctftpd_conf(status)
+       else :
+          status.append("Unmanaged tftpd server '%s'" % mode)
 
        self.check_service(status, "cobblerd")
 
