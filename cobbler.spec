@@ -371,7 +371,7 @@ Cobbler module providing secure dynamic dns updates
 
 
 %changelog
-* Sun Apr 12 2014 Jörgen Maas <jorgen.maas@gmail.com>
+* Sun Apr 13 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.0 release
 * Wed Mar 19 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.4.3 release
