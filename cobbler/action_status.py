@@ -69,7 +69,7 @@ class BootStatusReport:
     def catalog(self, profile_or_system, name, ip, start_or_stop, ts):
         ip_data = self.ip_data
 
-        if not ip in ip_data:
+        if ip not in ip_data:
             ip_data[ip] = [-1, -1, "?", 0, 0, "?"]
         elem = ip_data[ip]
 
