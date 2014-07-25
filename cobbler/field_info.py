@@ -48,6 +48,7 @@ USES_SELECT = [
     "profile",
     "distro",
     "image",
+    "kickstart",
     "image_type",
     "virt_type",
     "arch",
