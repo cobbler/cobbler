@@ -63,15 +63,14 @@ def glob(*args, **kwargs):
 #####################################################################
 
 def gen_build_version():
-    gitdate = "?"
-    gitstamp = "?"
     builddate = time.asctime()
-    if os.path.exists(".git"):
-        # for builds coming from git, include the date of the last commit
-        cmd = subprocess.Popen(["/usr/bin/git", "log", "--format=%h%n%ad", "-1"], stdout=subprocess.PIPE)
-        data = cmd.communicate()[0].strip()
-        if cmd.returncode == 0:
-            gitstamp, gitdate = data.split("\n")
+    cmd = subprocess.Popen(["/usr/bin/git", "log", "--format=%h%n%ad", "-1"], stdout=subprocess.PIPE)
+    data = cmd.communicate()[0].strip()
+    if cmd.returncode == 0:
+        gitstamp, gitdate = data.split("\n")
+    else:
+        gitdate = "?"
+        gitstamp = "?"
 
     fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
     config = ConfigParser()
