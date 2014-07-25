@@ -1076,19 +1076,22 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
       else:
          __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
       __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
-      __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
+      __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
    elif what == "system":
-      __tweak_field(fields, "profile", "choices",      __names_from_dicts(remote.get_profiles()))
-      __tweak_field(fields, "image", "choices",        __names_from_dicts(remote.get_images(),optional=True))
+      __tweak_field(fields, "profile", "choices", __names_from_dicts(remote.get_profiles()))
+      __tweak_field(fields, "image", "choices", __names_from_dicts(remote.get_images(),optional=True))
       __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
    elif what == "mgmtclass":
-        __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
-        __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
+      __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
+      __tweak_field(fields, "files", "choices", __names_from_dicts(remote.get_files()))
+   elif what == "image":
+      __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
+
 
    if what in ("distro","profile","system"):
-       __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
-       __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
-       __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
+      __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
+      __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
+      __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
 
    # if editing save the fields in the session for comparison later
    if editmode == "edit":
