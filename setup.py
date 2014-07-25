@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import glob, os, sys, time, yaml
+import glob, os, sys, time
+from ConfigParser import ConfigParser
 from distutils.core import setup, Command
 from distutils.command.build_py import build_py as _build_py
 import unittest
@@ -77,24 +78,24 @@ def gen_manpages():
 #####################################################################
 
 def gen_build_version():
-    fd = open(os.path.join(OUTPUT_DIR, "version"),"w+")
-    gitdate = "?"
-    gitstamp = "?"
     builddate = time.asctime()
-    if os.path.exists(".git"):
-       # for builds coming from git, include the date of the last commit
-       cmd = subprocess.Popen(["/usr/bin/git","log","--format=%h%n%ad","-1"],stdout=subprocess.PIPE)
-       data = cmd.communicate()[0].strip()
-       if cmd.returncode == 0:
-           gitstamp, gitdate = data.split("\n")
-    data = {
-       "gitdate" : gitdate,
-       "gitstamp"      : gitstamp,
-       "builddate"     : builddate,
-       "version"       : VERSION,
-       "version_tuple" : [ int(x) for x in VERSION.split(".")]
-    }
-    fd.write(yaml.dump(data))
+    cmd = subprocess.Popen(["/usr/bin/git", "log", "--format=%h%n%ad", "-1"], stdout=subprocess.PIPE)
+    data = cmd.communicate()[0].strip()
+    if cmd.returncode == 0:
+        gitstamp, gitdate = data.split("\n")
+    else:
+        gitdate = "?"
+        gitstamp = "?"
+
+    fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
+    config = ConfigParser()
+    config.add_section("cobbler")
+    config.set("cobbler","gitdate", gitdate)
+    config.set("cobbler","gitstamp", gitstamp)
+    config.set("cobbler","builddate", builddate)
+    config.set("cobbler","version", VERSION)
+    config.set("cobbler","version_tuple", [ int(x) for x in VERSION.split(".")])
+    config.write(fd)
     fd.close()
 
 #####################################################################
