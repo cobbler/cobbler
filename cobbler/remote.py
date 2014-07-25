@@ -1178,6 +1178,16 @@ class CobblerXMLRPCInterface:
         results.sort()
         return self.xmlrpc_hacks(results)
 
+    def get_valid_archs(self, token=None):
+        """
+        Return the list of valid architectures as read
+        in from the distro signatures data
+        """
+        self._log("get_valid_archs", token=token)
+        results = utils.get_valid_archs()
+        results.sort()
+        return self.xmlrpc_hacks(results)
+
     def get_repo_config_for_profile(self, profile_name, **rest):
         """
         Return the yum configuration a given profile should use to obtain
