@@ -117,14 +117,6 @@ def get_fields(what, is_subobject, seed_item=None):
     fields = []
     for row in field_data:
 
-        # if we are subprofile and see the field "distro", make it say parent
-        # with this really sneaky hack here
-        if is_subobject and row[0] == "distro":
-            row[0] = "parent"
-            row[3] = "Parent object"
-            row[5] = "Inherit settings from this profile"
-            row[6] = []
-
         elem = {
             "name": row[0],
             "dname": row[0].replace("*", ""),
@@ -499,8 +491,11 @@ def generic_delete(request, what, obj_name=None):
         return error_page(request, "You do not have permission to delete this %s" % what)
     else:
         # check whether object is to be deleted recursively
-        recursive = simplejson.loads(request.POST.get("recursive", "true"))
-        remote.remove_item(what, obj_name, request.session['token'], recursive)
+        recursive = simplejson.loads(request.POST.get("recursive", "false"))
+        try:
+            remote.xapi_object_edit(what, obj_name, "remove", {'name': obj_name, 'recursive': recursive}, request.session['token'])
+        except Exception, e:
+            return error_page(request, str(e))
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
 
@@ -510,7 +505,6 @@ def generic_delete(request, what, obj_name=None):
 @require_POST
 @csrf_protect
 def generic_domulti(request, what, multi_mode=None, multi_arg=None):
-
     """
     Process operations like profile reassignment, netboot toggling, and deletion
     which occur on all items that are checked on the list page.
@@ -518,18 +512,19 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/multi/%s/%s" % (what, multi_mode, multi_arg), expired=True)
 
-    # FIXME: cleanup
-    # FIXME: COMMENTS!!!11111???
-
     names = request.POST.get('names', '').strip().split()
     if names == "":
-        return error_page(request, "Need to select some systems first")
+        return error_page(request, "Need to select some '%s' objects first" % what)
 
     if multi_mode == "delete":
         # check whether the objects are to be deleted recursively
-        recursive = simplejson.loads(request.POST.get("recursive_batch", "true"))
+        recursive = simplejson.loads(request.POST.get("recursive_batch", "false"))
         for obj_name in names:
-            remote.remove_item(what, obj_name, request.session['token'], recursive)
+            try:
+                remote.xapi_object_edit(what, obj_name, "remove", {'name': obj_name, 'recursive': recursive}, request.session['token'])
+            except Exception, e:
+                return error_page(request, str(e))
+
     elif what == "system" and multi_mode == "netboot":
         netboot_enabled = multi_arg  # values: enable or disable
         if netboot_enabled is None:
@@ -544,6 +539,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             obj_id = remote.get_system_handle(obj_name, request.session['token'])
             remote.modify_system(obj_id, "netboot_enabled", netboot_enabled, request.session['token'])
             remote.save_system(obj_id, request.session['token'], "edit")
+
     elif what == "system" and multi_mode == "profile":
         profile = multi_arg
         if profile is None:
@@ -552,28 +548,33 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             obj_id = remote.get_system_handle(obj_name, request.session['token'])
             remote.modify_system(obj_id, "profile", profile, request.session['token'])
             remote.save_system(obj_id, request.session['token'], "edit")
+
     elif what == "system" and multi_mode == "power":
-        # FIXME: power should not loop, but send the list of all systems
-        # in one set.
+        # FIXME: power should not loop, but send the list of all systems in one set.
         power = multi_arg
         if power is None:
             return error_page(request, "Cannot modify systems without specifying power option")
         options = {"systems": names, "power": power}
         remote.background_power_system(options, request.session['token'])
+
     elif what == "system" and multi_mode == "buildiso":
         options = {"systems": names, "profiles": []}
         remote.background_buildiso(options, request.session['token'])
+
     elif what == "profile" and multi_mode == "buildiso":
         options = {"profiles": names, "systems": []}
         remote.background_buildiso(options, request.session['token'])
+
     elif what == "distro" and multi_mode == "buildiso":
         if len(names) > 1:
             return error_page(request, "You can only select one distro at a time to build an ISO for")
         options = {"standalone": True, "distro": str(names[0])}
         remote.background_buildiso(options, request.session['token'])
+
     elif what == "repo" and multi_mode == "reposync":
         options = {"repos": names, "tries": 3}
         remote.background_reposync(options, request.session['token'])
+
     else:
         return error_page(request, "Unknown batch operation on %ss: %s" % (what, str(multi_mode)))
 
