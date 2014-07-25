@@ -1084,6 +1084,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
    elif what == "mgmtclass":
         __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
         __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
+   elif what == "image":
+       __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
 
    if what in ("distro","profile","system"):
        __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(),optional=False))
