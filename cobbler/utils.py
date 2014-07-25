@@ -2038,6 +2038,20 @@ def get_valid_os_versions():
     return uniquify(os_versions)
 
 
+def get_valid_archs():
+    """
+    Return a list of valid architectures found in the import signatures
+    """
+    archs = []
+    try:
+        for breed in get_valid_breeds():
+            for os in SIGNATURE_CACHE["breeds"][breed].keys():
+                archs += SIGNATURE_CACHE["breeds"][breed][os]["supported_arches"]
+    except:
+        pass
+    return uniquify(archs)
+
+
 def get_shared_secret():
     """
     The 'web.ss' file is regenerated each time cobblerd restarts and is
