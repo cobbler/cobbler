@@ -1075,10 +1075,12 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
          __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
       else:
          __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
+      __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
       __tweak_field(fields, "repos", "choices",     __names_from_dicts(remote.get_repos()))
    elif what == "system":
       __tweak_field(fields, "profile", "choices",      __names_from_dicts(remote.get_profiles()))
       __tweak_field(fields, "image", "choices",        __names_from_dicts(remote.get_images(),optional=True))
+      __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
    elif what == "mgmtclass":
         __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
         __tweak_field(fields, "files", "choices",    __names_from_dicts(remote.get_files()))
