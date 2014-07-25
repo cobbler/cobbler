@@ -852,7 +852,7 @@ class CobblerXMLRPCInterface:
             return 0
         except:
             return 1
-   
+
     def __is_interface_field(self,f):
         if f in ("delete_interface","rename_interface"):
            return True
@@ -867,7 +867,7 @@ class CobblerXMLRPCInterface:
         """
         Extended API:  New style object manipulations, 2.0 and later
         Prefered over using new_, modify_, save_ directly.
-        Though we must preserve the old ways for backwards compatibility these 
+        Though we must preserve the old ways for backwards compatibility these
         cause much less XMLRPC traffic.
 
         edit_type - One of 'add', 'rename', 'copy', 'remove'
@@ -890,9 +890,11 @@ class CobblerXMLRPCInterface:
 
         if edit_type == "add":
             is_subobject = object_type == "profile" and "parent" in attributes
+            if is_subobject and "distro" in attributes:
+                raise CX("You can't change both 'parent' and 'distro'")
             if object_type == "system":
                 if "profile" not in attributes and "image" not in attributes:
-                    raise CX("You must specify a --profile or --image for new systems")
+                    raise CX("You must specify a 'profile' or 'image' for new systems")
             handle = self.new_item(object_type, token, is_subobject=is_subobject)
         else:
             handle = self.get_item_handle(object_type, object_name)
@@ -900,12 +902,22 @@ class CobblerXMLRPCInterface:
         if edit_type == "rename":
             self.rename_item(object_type, handle, attributes["newname"], token)
             handle = self.get_item_handle(object_type, attributes["newname"], token)
+
         if edit_type == "copy":
-            self.copy_item(object_type, handle, attributes["newname"], token)
-            handle = self.get_item_handle(object_type, attributes["newname"], token)
-        if edit_type in [ "copy", "rename" ]:
-            del attributes["name"] 
-            del attributes["newname"] 
+            is_subobject = object_type == "profile" and "parent" in attributes
+            if is_subobject:
+                if "distro" in attributes:
+                    raise CX("You can't change both 'parent' and 'distro'")
+                self.copy_item(object_type, handle, attributes["newname"], token)
+                handle = self.get_item_handle("profile", attributes["newname"], token)
+                self.modify_item("profile", handle, "parent", attributes["parent"], token)
+            else:
+                self.copy_item(object_type, handle, attributes["newname"], token)
+                handle = self.get_item_handle(object_type, attributes["newname"], token)
+
+        if edit_type in ["copy", "rename"]:
+            del attributes["name"]
+            del attributes["newname"]
 
         if edit_type != "remove":
             # FIXME: this doesn't know about interfaces yet!
@@ -943,13 +955,19 @@ class CobblerXMLRPCInterface:
                     ifargs = [attributes.get("interface",""),attributes.get("rename_interface","")]
                     self.modify_system(handle, 'rename_interface', ifargs, token)
         else:
-           recursive = attributes.get("recursive",False)
-           return self.remove_item(object_type, object_name, token, recursive=recursive)
+            # remove item
+            recursive = attributes.get("recursive", False)
+            if object_type == "profile" and recursive is False:
+                childs = len(self.api.find_items(object_type, criteria={'parent': attributes['name']}))
+                if childs > 0:
+                    raise CX("Can't delete this profile there are %s subprofiles and 'recursive' is set to 'False'" % childs)
+
+            return self.remove_item(object_type, object_name, token, recursive=recursive)
 
         # FIXME: use the bypass flag or not?
         return self.save_item(object_type, handle, token)
-        
- 
+
+
     def save_item(self,what,object_id,token,editmode="bypass"):
         """
         Saves a newly created or modified object to disk.
