@@ -145,17 +145,6 @@ enable_gpxe: 0
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
 
-# enable Func-integration?  This makes sure each installed machine is set up
-# to use func out of the box, which is a powerful way to script and control
-# remote machines.  
-# Func lives at http://fedorahosted.org/func
-# read more at https://github.com/cobbler/cobbler/wiki/Func-integration
-# you will need to mirror Fedora/EPEL packages for this feature, so see
-# https://github.com/cobbler/cobbler/wiki/Manage-yum-repos if you want cobbler
-# to help you with this
-func_auto_setup: 0
-func_master: overlord.example.org
-
 # change this port if Apache is not running plaintext on port
 # 80.  Most people can leave this alone.
 http_port: 80
