@@ -1572,9 +1572,6 @@ def get_kickstart_templates(api):
     for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
         if os.path.isfile(x):
             files[x] = 1
-    for x in glob.glob("/etc/cobbler/*.ks"):
-        if os.path.isfile(x):
-            files[x] = 1
 
     results = files.keys()
     results.sort()
