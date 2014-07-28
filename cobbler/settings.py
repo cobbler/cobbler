@@ -68,8 +68,6 @@ DEFAULTS = {
     "default_ownership": [["admin"], "list"],
     "enable_gpxe": [0, "bool"],
     "enable_menu": [1, "bool"],
-    "func_master": ["overlord.example.org", "str"],
-    "func_auto_setup": [0, "bool"],
     "http_port": [80, "int"],
     "isc_set_host_name": [0, "bool"],
     "iso_template_dir": ["/etc/cobbler/iso", "str"],
