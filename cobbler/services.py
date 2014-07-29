@@ -254,7 +254,16 @@ class CobblerSvc(object):
 
         classes = results.get("mgmt_classes", {})
         params = results.get("mgmt_parameters", {})
-        environ = results.get("status", "production")
+        environ = results.get("status", "")
+
+        data = {
+            "classes": classes,
+            "parameters": params,
+            "environment": environ,
+        }
+
+        if environ == "":
+            data.pop("environment", None)
 
         if settings.get("puppet_parameterized_classes", False):
             for ckey in classes.keys():
@@ -282,10 +291,4 @@ class CobblerSvc(object):
         else:
             classes = classes.keys()
 
-        newdata = {
-            "classes": classes,
-            "parameters": params,
-            "environment": environ,
-        }
-
-        return yaml.dump(newdata, default_flow_style=False)
+        return yaml.dump(data, default_flow_style=False)
