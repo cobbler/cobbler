@@ -871,6 +871,10 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s" % what, obj, attribute)
         method = obj.remote_methods().get(attribute, None)
+
+        if what == "system" and attribute == "kickstart":
+            self._validate_ks_template_path(arg)
+
         if method is None:
             # it's ok, the CLI will send over lots of junk we can't process
             # (like newname or in-place) so just go with it.
