@@ -868,12 +868,17 @@ class CobblerXMLRPCInterface:
         existing distro object handle.
         """
         self._log("modify_item(%s)" % what, object_id=object_id, attribute=attribute, token=token)
+
+        # sanity checks
+        if what == "system" and attribute == "kickstart":
+            self._validate_ks_template_path(arg)
+
+        if attribute == "name":
+            utils.die(self.logger, "Can't rename object. Please use the 'rename_%s' method" % what)
+
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s" % what, obj, attribute)
         method = obj.remote_methods().get(attribute, None)
-
-        if what == "system" and attribute == "kickstart":
-            self._validate_ks_template_path(arg)
 
         if method is None:
             # it's ok, the CLI will send over lots of junk we can't process
