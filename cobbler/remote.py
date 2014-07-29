@@ -823,7 +823,11 @@ class CobblerXMLRPCInterface:
         # support 1.6 field name exceptions for backwards compat
         attribute = REMAP_COMPAT.get(attribute,attribute)
         method = obj.remote_methods().get(attribute, None)
-        if method == None:
+
+        if what == "system" and attribute == "kickstart":
+            self._validate_ks_template_path(arg)
+
+        if method is None:
             # it's ok, the CLI will send over lots of junk we can't process
             # (like newname or in-place) so just go with it.
             return False
