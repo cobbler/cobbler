@@ -151,7 +151,7 @@ class Distro(item.Item):
 
     def get_parent(self):
         """
-        Distros don't have parent objects. 
+        Distros don't have parent objects.
         """
         return None
 
