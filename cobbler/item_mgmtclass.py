@@ -18,13 +18,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import utils
-import item
-from cexceptions import CX
-from utils import _
+from cobbler import utils
+from cobbler import item
+
+from cobbler.cexceptions import CX
+from cobbler.utils import _
+
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
-
 FIELDS = [
     ["uid", "", 0, "", False, "", 0, "str"],
     ["depth", 2, 0, "", False, "", 0, "float"],
@@ -50,22 +51,39 @@ class Mgmtclass(item.Item):
         super(Mgmtclass, self).__init__(*args, **kwargs)
         self.params = None
 
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Mgmtclass(self.config)
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
         return FIELDS
+
+
+    def check_if_valid(self):
+        if self.name is None or self.name == "":
+            raise CX("name is required")
+
+
+    #
+    # specific methods for item.Mgmtclass
+    #
 
     def set_packages(self, packages):
         self.packages = utils.input_string_or_list(packages)
         return True
 
+
     def set_files(self, files):
         self.files = utils.input_string_or_list(files)
         return True
+
 
     def set_params(self, params, inplace=False):
         (success, value) = utils.input_string_or_hash(params, allow_multiples=True)
@@ -82,9 +100,11 @@ class Mgmtclass(item.Item):
                 self.params = value
             return True
 
+
     def set_is_definition(self, isdef):
         self.is_definition = utils.input_boolean(isdef)
         return True
+
 
     def set_class_name(self, name):
         if not isinstance(name, basestring):
@@ -95,6 +115,4 @@ class Mgmtclass(item.Item):
         self.class_name = name
         return True
 
-    def check_if_valid(self):
-        if self.name is None or self.name == "":
-            raise CX("name is required")
+# EOF

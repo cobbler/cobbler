@@ -18,12 +18,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import utils
 import os
-import item
-from cexceptions import CX
 
-from utils import _
+from cobbler import utils
+from cobbler.utils import _
+from cobbler import item
+from cobbler.cexceptions import CX
+
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
 # entry to the list following some conventions to be described later.  You must also add a method called
