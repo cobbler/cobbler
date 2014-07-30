@@ -1,6 +1,4 @@
 """
-A Cobbler System.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -25,8 +23,8 @@ import item
 from cexceptions import CX
 from utils import _
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
     ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
@@ -106,6 +104,9 @@ FIELDS = [
 
 
 class System(item.Item):
+    """
+    A Cobbler system object.
+    """
 
     TYPE_NAME = _("system")
     COLLECTION_TYPE = "system"
@@ -120,8 +121,14 @@ class System(item.Item):
         self.boot_files = {}
         self.template_files = {}
 
+
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def get_fields(self):
         return FIELDS
+
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -129,35 +136,61 @@ class System(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
-    def delete_interface(self, name):
+
+    def from_datastruct(self, seed_data):
+        # FIXME: most definitely doesn't grok interfaces yet.
+        return utils.from_datastruct_from_fields(self, seed_data, FIELDS)
+
+
+    def get_parent(self):
         """
-        Used to remove an interface.
+        Return object next highest up the tree.
         """
-        if name in self.interfaces and len(self.interfaces) > 1:
-            del self.interfaces[name]
+        if (self.parent is None or self.parent == '') and self.profile:
+            return self.config.profiles().find(name=self.profile)
+        elif (self.parent is None or self.parent == '') and self.image:
+            return self.config.images().find(name=self.image)
         else:
-            if name not in self.interfaces:
-                # no interface here to delete
-                pass
-            else:
-                raise CX(_("At least one interface needs to be defined."))
+            return self.config.systems().find(name=self.parent)
+
+
+    def set_name(self, name):
+        """
+        Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
+        and fill that value in.
+        """
+
+        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
+            raise CX(_("self parentage is weird"))
+        self.validate_name(name)
+
+        # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
+        # the default interface behaviour that's now removed. ;)
+        # --Jasper Capel
+        if utils.is_mac(name):
+            intf = self.__get_interface("eth0")
+            if intf["mac_address"] == "":
+                intf["mac_address"] = name
+        elif utils.is_ip(name):
+            intf = self.__get_interface("eth0")
+            if intf["ip_address"] == "":
+                intf["ip_address"] = name
+        self.name = name
 
         return True
 
-    def rename_interface(self, names):
-        """
-        Used to rename an interface.
-        """
-        (name, newname) = names
-        if name not in self.interfaces:
-            raise CX(_("Interface %s does not exist" % name))
-        if newname in self.interfaces:
-            raise CX(_("Interface %s already exists" % newname))
-        else:
-            self.interfaces[newname] = self.interfaces[name]
-            del self.interfaces[name]
 
-        return True
+    def check_if_valid(self):
+        if self.name is None or self.name == "":
+            raise CX("name is required")
+        if self.profile is None or self.profile == "":
+            if self.image is None or self.image == "":
+                raise CX("Error with system %s - profile or image is required" % (self.name))
+
+
+    #
+    # specific methods for item.Distro
+    #
 
     def __get_interface(self, name):
 
@@ -196,51 +229,45 @@ class System(item.Item):
         return self.interfaces[name]
 
 
-    def from_datastruct(self, seed_data):
-        # FIXME: most definitely doesn't grok interfaces yet.
-        return utils.from_datastruct_from_fields(self, seed_data, FIELDS)
-
-    def get_parent(self):
+    def delete_interface(self, name):
         """
-        Return object next highest up the tree.
+        Used to remove an interface.
         """
-        if (self.parent is None or self.parent == '') and self.profile:
-            return self.config.profiles().find(name=self.profile)
-        elif (self.parent is None or self.parent == '') and self.image:
-            return self.config.images().find(name=self.image)
+        if name in self.interfaces and len(self.interfaces) > 1:
+            del self.interfaces[name]
         else:
-            return self.config.systems().find(name=self.parent)
-
-    def set_name(self, name):
-        """
-        Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
-        and fill that value in.
-        """
-
-        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
-            raise CX(_("self parentage is weird"))
-        self.validate_name(name)
-
-        # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
-        # the default interface behaviour that's now removed. ;)
-        # --Jasper Capel
-        if utils.is_mac(name):
-            intf = self.__get_interface("eth0")
-            if intf["mac_address"] == "":
-                intf["mac_address"] = name
-        elif utils.is_ip(name):
-            intf = self.__get_interface("eth0")
-            if intf["ip_address"] == "":
-                intf["ip_address"] = name
-        self.name = name
+            if name not in self.interfaces:
+                # no interface here to delete
+                pass
+            else:
+                raise CX(_("At least one interface needs to be defined."))
 
         return True
+
+
+    def rename_interface(self, names):
+        """
+        Used to rename an interface.
+        """
+        (name, newname) = names
+        if name not in self.interfaces:
+            raise CX(_("Interface %s does not exist" % name))
+        if newname in self.interfaces:
+            raise CX(_("Interface %s already exists" % newname))
+        else:
+            self.interfaces[newname] = self.interfaces[name]
+            del self.interfaces[name]
+
+        return True
+
 
     def set_redhat_management_key(self, key):
         return utils.set_redhat_management_key(self, key)
 
+
     def set_redhat_management_server(self, server):
         return utils.set_redhat_management_server(self, server)
+
 
     def set_server(self, server):
         """
@@ -252,11 +279,13 @@ class System(item.Item):
         self.server = server
         return True
 
+
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
             proxy = "<<inherit>>"
         self.proxy = proxy
         return True
+
 
     def get_mac_address(self, interface):
         """
@@ -271,6 +300,7 @@ class System(item.Item):
         else:
             return None
 
+
     def get_ip_address(self, interface):
         """
         Get the IP address, which may be implicit in the object name or explict with --ip-address.
@@ -283,6 +313,7 @@ class System(item.Item):
             return intf["ip_address"].strip()
         else:
             return ""
+
 
     def is_management_supported(self, cidr_ok=True):
         """
@@ -302,10 +333,12 @@ class System(item.Item):
                 return True
         return False
 
+
     def set_dhcp_tag(self, dhcp_tag, interface):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
         return True
+
 
     def set_dns_name(self, dns_name, interface):
         intf = self.__get_interface(interface)
@@ -321,11 +354,13 @@ class System(item.Item):
         intf["dns_name"] = dns_name
         return True
 
+
     def set_cnames(self, cnames, interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(cnames)
         intf["cnames"] = data
         return True
+
 
     def set_static_routes(self, routes, interface):
         intf = self.__get_interface(interface)
@@ -333,25 +368,30 @@ class System(item.Item):
         intf["static_routes"] = data
         return True
 
+
     def set_hostname(self, hostname):
         if hostname is None:
             hostname = ""
         self.hostname = hostname
         return True
 
+
     def set_status(self, status):
         self.status = status
         return True
+
 
     def set_static(self, truthiness, interface):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
         return True
 
+
     def set_management(self, truthiness, interface):
         intf = self.__get_interface(interface)
         intf["management"] = utils.input_boolean(truthiness)
         return True
+
 
     def set_ip_address(self, address, interface):
         """
@@ -373,6 +413,7 @@ class System(item.Item):
             intf["ip_address"] = address.strip()
             return True
         raise CX(_("invalid format for IP address (%s)") % address)
+
 
     def set_mac_address(self, address, interface):
         if address == "random":
@@ -402,12 +443,14 @@ class System(item.Item):
             raise CX(_("invalid format for gateway IP address (%s)") % gateway)
         return True
 
+
     def set_name_servers(self, data):
         if data == "<<inherit>>":
             data = []
         data = utils.input_string_or_list(data)
         self.name_servers = data
         return True
+
 
     def set_name_servers_search(self, data):
         if data == "<<inherit>>":
@@ -416,10 +459,12 @@ class System(item.Item):
         self.name_servers_search = data
         return True
 
+
     def set_netmask(self, netmask, interface):
         intf = self.__get_interface(interface)
         intf["netmask"] = netmask
         return True
+
 
     def set_if_gateway(self, gateway, interface):
         intf = self.__get_interface(interface)
@@ -427,6 +472,7 @@ class System(item.Item):
             intf["if_gateway"] = gateway
             return True
         raise CX(_("invalid gateway: %s" % gateway))
+
 
     def set_virt_bridge(self, bridge, interface):
         if bridge == "":
@@ -445,30 +491,36 @@ class System(item.Item):
         intf["interface_type"] = type
         return True
 
+
     def set_interface_master(self, interface_master, interface):
         intf = self.__get_interface(interface)
         intf["interface_master"] = interface_master
         return True
+
 
     def set_bonding_opts(self, bonding_opts, interface):
         intf = self.__get_interface(interface)
         intf["bonding_opts"] = bonding_opts
         return True
 
+
     def set_bridge_opts(self, bridge_opts, interface):
         intf = self.__get_interface(interface)
         intf["bridge_opts"] = bridge_opts
         return True
 
+
     def set_ipv6_autoconfiguration(self, truthiness):
         self.ipv6_autoconfiguration = utils.input_boolean(truthiness)
         return True
+
 
     def set_ipv6_default_device(self, interface_name):
         if interface_name is None:
             interface_name = ""
         self.ipv6_default_device = interface_name
         return True
+
 
     def set_ipv6_address(self, address, interface):
         """
@@ -481,6 +533,7 @@ class System(item.Item):
             return True
         raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
+
     def set_ipv6_prefix(self, prefix, interface):
         """
         Assign a IPv6 prefix
@@ -488,6 +541,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["ipv6_prefix"] = prefix.strip()
         return True
+
 
     def set_ipv6_secondaries(self, addresses, interface):
         intf = self.__get_interface(interface)
@@ -502,6 +556,7 @@ class System(item.Item):
         intf["ipv6_secondaries"] = secondaries
         return True
 
+
     def set_ipv6_default_gateway(self, address, interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):
@@ -509,21 +564,25 @@ class System(item.Item):
             return True
         raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
+
     def set_ipv6_static_routes(self, routes, interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
         intf["ipv6_static_routes"] = data
         return True
 
+
     def set_ipv6_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["ipv6_mtu"] = mtu
         return True
 
+
     def set_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
         return True
+
 
     def set_enable_gpxe(self, enable_gpxe):
         """
@@ -531,6 +590,7 @@ class System(item.Item):
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
         return True
+
 
     def set_profile(self, profile_name):
         """
@@ -557,6 +617,7 @@ class System(item.Item):
                 new_parent.children[self.name] = self
             return True
         raise CX(_("invalid profile name: %s") % profile_name)
+
 
     def set_image(self, image_name):
         """
@@ -585,14 +646,18 @@ class System(item.Item):
             return True
         raise CX(_("invalid image name (%s)") % image_name)
 
+
     def set_virt_cpus(self, num):
         return utils.set_virt_cpus(self, num)
+
 
     def set_virt_file_size(self, num):
         return utils.set_virt_file_size(self, num)
 
+
     def set_virt_disk_driver(self, driver):
         return utils.set_virt_disk_driver(self, driver)
+
 
     def set_virt_auto_boot(self, num):
         return utils.set_virt_auto_boot(self, num)
@@ -600,14 +665,18 @@ class System(item.Item):
     def set_virt_pxe_boot(self, num):
         return utils.set_virt_pxe_boot(self, num)
 
+
     def set_virt_ram(self, num):
         return utils.set_virt_ram(self, num)
+
 
     def set_virt_type(self, vtype):
         return utils.set_virt_type(self, vtype)
 
+
     def set_virt_path(self, path):
         return utils.set_virt_path(self, path, for_system=True)
+
 
     def set_netboot_enabled(self, netboot_enabled):
         """
@@ -625,6 +694,7 @@ class System(item.Item):
         """
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
         return True
+
 
     def set_kickstart(self, kickstart):
         """
@@ -663,12 +733,14 @@ class System(item.Item):
         self.power_type = power_type
         return True
 
+
     def set_power_user(self, power_user):
         if power_user is None:
             power_user = ""
         utils.safe_filter(power_user)
         self.power_user = power_user
         return True
+
 
     def set_power_pass(self, power_pass):
         if power_pass is None:
@@ -677,6 +749,7 @@ class System(item.Item):
         self.power_pass = power_pass
         return True
 
+
     def set_power_address(self, power_address):
         if power_address is None:
             power_address = ""
@@ -684,12 +757,14 @@ class System(item.Item):
         self.power_address = power_address
         return True
 
+
     def set_power_id(self, power_id):
         if power_id is None:
             power_id = ""
         utils.safe_filter(power_id)
         self.power_id = power_id
         return True
+
 
     def modify_interface(self, hash):
         """
@@ -767,12 +842,6 @@ class System(item.Item):
 
         return True
 
-    def check_if_valid(self):
-        if self.name is None or self.name == "":
-            raise CX("name is required")
-        if self.profile is None or self.profile == "":
-            if self.image is None or self.image == "":
-                raise CX("Error with system %s - profile or image is required" % (self.name))
 
     def set_template_remote_kickstarts(self, template):
         """
@@ -781,6 +850,7 @@ class System(item.Item):
         """
         self.template_remote_kickstarts = utils.input_boolean(template)
         return True
+
 
     def set_monit_enabled(self, monit_enabled):
         """
@@ -793,27 +863,16 @@ class System(item.Item):
         self.monit_enabled = utils.input_boolean(monit_enabled)
         return True
 
-    def set_ldap_enabled(self, ldap_enabled):
-        """
-        If true, allows per-system to start Monit to monitor system services such as apache.
-        If monit is not running it will start the service.
 
-        If false, no management of monit will take place. If monit is not running it will not
-        be started. If monit is running it will not be stopped or restarted.
-        """
+    def set_ldap_enabled(self, ldap_enabled):
         self.ldap_enabled = utils.input_boolean(ldap_enabled)
         return True
 
-    def set_repos_enabled(self, repos_enabled):
-        """
-        If true, allows per-system to start Monit to monitor system services such as apache.
-        If monit is not running it will start the service.
 
-        If false, no management of monit will take place. If monit is not running it will not
-        be started. If monit is running it will not be stopped or restarted.
-        """
+    def set_repos_enabled(self, repos_enabled):
         self.repos_enabled = utils.input_boolean(repos_enabled)
         return True
+
 
     def set_ldap_type(self, ldap_type):
         if ldap_type is None:
@@ -821,3 +880,5 @@ class System(item.Item):
         ldap_type = ldap_type.lower()
         self.ldap_type = ldap_type
         return True
+
+# EOF

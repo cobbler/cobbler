@@ -22,8 +22,8 @@ import resource
 from cexceptions import CX
 from utils import _
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
     ["uid", "", 0, "", False, "", 0, "str"],
     ["depth", 2, 0, "", False, "", 0, "float"],
@@ -43,23 +43,37 @@ class Package(resource.Resource):
     TYPE_NAME = _("package")
     COLLECTION_TYPE = "package"
 
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Package(self.config)
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
         return FIELDS
+
+
+    def check_if_valid(self):
+        if self.name is None or self.name == "":
+            raise CX("name is required")
+
+
+    #
+    # specific methods for item.Package
+    #
 
     def set_installer(self, installer):
         self.installer = installer.lower()
         return True
 
+
     def set_version(self, version):
         self.version = version
         return True
 
-    def check_if_valid(self):
-        if self.name is None or self.name == "":
-            raise CX("name is required")
+# EOF
