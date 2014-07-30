@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import os.path
+
+import codes
 import utils
 import item
 from cexceptions import CX
@@ -698,27 +701,33 @@ class System(item.Item):
 
     def set_kickstart(self, kickstart):
         """
-        Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
-        Or filesystem path. Minor checking of the URL is performed here.
+        Set the kickstart path, this must be a local file.
 
-        NOTE -- usage of the --kickstart parameter in the profile
-        is STRONGLY encouraged.  This is only for exception cases
-        where a user already has kickstarts made for each system
-        and can't leverage templating.  Profiles provide an important
-        abstraction layer -- assigning systems to defined and repeatable
-        roles.
+        @param: str kickstart path to a local kickstart file
+        @returns: True or CX
         """
-        if kickstart == "":
+        if not isinstance(kickstart, basestring):
+            raise CX("Invalid input, kickstart must be a string")
+
+        if kickstart.find("..") != -1:
+            raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
+
+        if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
+            raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
+
+        if not os.path.exists(kickstart):
+            raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
+
+        if kickstart == "" or kickstart is None:
+            self.kickstart = ""
+            return True
+
+        if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
-        if kickstart is None or kickstart in ["delete", "<<inherit>>"]:
-            self.kickstart = "<<inherit>>"
-            return True
-        kickstart = utils.find_kickstart(kickstart)
-        if kickstart:
-            self.kickstart = kickstart
-            return True
-        raise CX(_("kickstart not found: %s" % kickstart))
+
+        self.kickstart = kickstart
+        return True
 
 
     def set_power_type(self, power_type):

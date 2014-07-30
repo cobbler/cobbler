@@ -20,6 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+
+KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
+KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
+
+
 VALID_REPO_BREEDS = [
     "rsync", "rhn", "yum", "apt", "wget"
 ]
+
+
+# EOF

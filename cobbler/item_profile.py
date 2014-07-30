@@ -18,6 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import os.path
+
+import codes
 import utils
 import item
 from cexceptions import CX
@@ -117,8 +120,11 @@ class Profile(item.Item):
 
 
     def check_if_valid(self):
+        # name validation
         if self.name is None or self.name == "":
-            raise CX("name is required")
+            raise CX("Name is required")
+
+        # distro validation
         distro = self.get_conceptual_parent()
         if distro is None:
             raise CX("Error with profile %s - distro is required" % (self.name))
@@ -249,20 +255,33 @@ class Profile(item.Item):
 
     def set_kickstart(self, kickstart):
         """
-        Sets the kickstart.  This must be a NFS, HTTP, or FTP URL.
-        Or filesystem path.  Minor checking of the URL is performed here.
+        Set the kickstart path, this must be a local file.
+
+        @param: str kickstart path to a local kickstart file
+        @returns: True or CX
         """
+        if not isinstance(kickstart, basestring):
+            raise CX("Invalid input, kickstart must be a string")
+
+        if kickstart.find("..") != -1:
+            raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
+
+        if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
+            raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
+
+        if not os.path.exists(kickstart):
+            raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
+
         if kickstart == "" or kickstart is None:
             self.kickstart = ""
             return True
+
         if kickstart == "<<inherit>>":
             self.kickstart = kickstart
             return True
-        kickstart = utils.find_kickstart(kickstart)
-        if kickstart:
-            self.kickstart = kickstart
-            return True
-        raise CX(_("kickstart not found: %s") % kickstart)
+
+        self.kickstart = kickstart
+        return True
 
 
     def set_virt_auto_boot(self, num):
