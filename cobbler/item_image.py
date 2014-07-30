@@ -1,7 +1,4 @@
 """
-A Cobbler Image.  Tracks a virtual or physical image, as opposed to a answer
-file (kickstart) led installation.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -27,8 +24,8 @@ import item
 from cexceptions import CX
 from utils import _
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
     ['name', '', 0, "Name", True, "", 0, "str"],
     ['arch', 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
@@ -57,9 +54,17 @@ FIELDS = [
 
 
 class Image(item.Item):
+    """
+    A Cobbler Image.  Tracks a virtual or physical image, as opposed to a answer
+    file (kickstart) led installation.
+    """
 
     TYPE_NAME = _("image")
     COLLECTION_TYPE = "image"
+
+    #
+    # override some base class methods first (item.Item)
+    #
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -67,8 +72,21 @@ class Image(item.Item):
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
         return FIELDS
+
+
+    def get_parent(self):
+        """
+        Images have no parent object.
+        """
+        return None
+
+
+    #
+    # specific methods for item.Image
+    #
 
     def set_arch(self, arch):
         """
@@ -76,6 +94,7 @@ class Image(item.Item):
         see comments for set_arch in item_distro.py, this works the same.
         """
         return utils.set_arch(self, arch)
+
 
     def set_kickstart(self, kickstart):
         """
@@ -142,11 +161,14 @@ class Image(item.Item):
         self.file = uri
         return True
 
+
     def set_os_version(self, os_version):
         return utils.set_os_version(self, os_version)
 
+
     def set_breed(self, breed):
         return utils.set_breed(self, breed)
+
 
     def set_image_type(self, image_type):
         """
@@ -161,8 +183,10 @@ class Image(item.Item):
         self.image_type = image_type
         return True
 
+
     def set_virt_cpus(self, num):
         return utils.set_virt_cpus(self, num)
+
 
     def set_network_count(self, num):
         if num is None or num == "":
@@ -173,32 +197,36 @@ class Image(item.Item):
             raise CX("invalid network count (%s)" % num)
         return True
 
+
     def set_virt_auto_boot(self, num):
         return utils.set_virt_auto_boot(self, num)
+
 
     def set_virt_file_size(self, num):
         return utils.set_virt_file_size(self, num)
 
+
     def set_virt_disk_driver(self, driver):
         return utils.set_virt_disk_driver(self, driver)
+
 
     def set_virt_ram(self, num):
         return utils.set_virt_ram(self, num)
 
+
     def set_virt_type(self, vtype):
         return utils.set_virt_type(self, vtype)
+
 
     def set_virt_bridge(self, vbridge):
         return utils.set_virt_bridge(self, vbridge)
 
+
     def set_virt_path(self, path):
         return utils.set_virt_path(self, path)
+
 
     def get_valid_image_types(self):
         return ["direct", "iso", "memdisk", "virt-clone"]
 
-    def get_parent(self):
-        """
-        Return object next highest up the tree.
-        """
-        return None  # no parent
+# EOF

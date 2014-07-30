@@ -33,6 +33,7 @@ import fcntl
 import glob
 from threading import Thread
 
+import codes
 import utils
 from cexceptions import CX
 import item_distro
@@ -58,9 +59,6 @@ EVENT_FAILED = "failed"
 
 # normal events
 EVENT_INFO = "notification"
-
-KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
-KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
 
 
 class CobblerThread(Thread):
@@ -871,9 +869,6 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s" % what, obj, attribute)
         method = obj.remote_methods().get(attribute, None)
-
-        if what == "system" and attribute == "kickstart":
-            self._validate_ks_template_path(arg)
 
         if method is None:
             # it's ok, the CLI will send over lots of junk we can't process
@@ -1972,8 +1967,8 @@ class CobblerXMLRPCInterface:
         if path.find("..") != -1 or not path.startswith("/"):
             utils.die(self.logger, "Invalid kickstart template file location %s" % path)
 
-        if not path.startswith(KICKSTART_TEMPLATE_BASE_DIR):
-            error = "Invalid kickstart template file location %s, it is not inside %s" % (path, KICKSTART_TEMPLATE_BASE_DIR)
+        if not path.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
+            error = "Invalid kickstart template file location %s, it is not inside %s" % (path, codes.KICKSTART_TEMPLATE_BASE_DIR)
             utils.die(self.logger, error)
 
     def read_kickstart_template(self, file_path, token):
@@ -2051,8 +2046,8 @@ class CobblerXMLRPCInterface:
         if path.find("..") != -1 or not path.startswith("/"):
             utils.die(self.logger, "Invalid kickstart snippet file location %s" % path)
 
-        if not path.startswith(KICKSTART_SNIPPET_BASE_DIR):
-            error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, KICKSTART_SNIPPET_BASE_DIR)
+        if not path.startswith(codes.KICKSTART_SNIPPET_BASE_DIR):
+            error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, codes.KICKSTART_SNIPPET_BASE_DIR)
             utils.die(self.logger, error)
 
     def read_kickstart_snippet(self, file_path, token):
@@ -2116,7 +2111,7 @@ class CobblerXMLRPCInterface:
         self._validate_ks_snippet_path(file_path)
 
         # FIXME: could check if snippet is in use
-        snippet_file_path = KICKSTART_SNIPPET_BASE_DIR + file_path
+        snippet_file_path = codes.KICKSTART_SNIPPET_BASE_DIR + file_path
         os.remove(snippet_file_path)
 
         return True
