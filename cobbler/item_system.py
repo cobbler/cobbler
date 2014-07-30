@@ -715,7 +715,7 @@ class System(item.Item):
         if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
             raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
 
-        if not os.path.exists(kickstart):
+        if not os.path.isfile(kickstart):
             raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
 
         if kickstart == "" or kickstart is None:
