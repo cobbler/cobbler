@@ -246,7 +246,7 @@ class KickGen:
             obj = profile
 
         meta = utils.blender(self.api, False, obj)
-        kickstart_path = utils.find_kickstart(meta["kickstart"])
+        kickstart_path = meta["kickstart"]
 
         if not kickstart_path:
             return "# kickstart is missing or invalid: %s" % meta["kickstart"]

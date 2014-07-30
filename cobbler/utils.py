@@ -391,28 +391,6 @@ def find_initrd(path):
     return None
 
 
-def find_kickstart(url):
-    """
-    Check if a kickstart url looks like an http, ftp, nfs or local path.
-    If a local path is used, cobbler will copy the kickstart and serve
-    it over http.
-
-    Return None if the url format does not look valid.
-    """
-    if url is None:
-        return None
-    x = url.lstrip()
-    for y in ["http://", "nfs://", "ftp://", "/"]:
-        # make sure we get a lower-case protocol without
-        # affecting the rest of the string
-        x = re.sub(r"(?i)%s" % y, y, x, count=1)
-        if x.startswith(y):
-            if x.startswith("/") and not os.path.isfile(x):
-                return None
-            return x
-    return None
-
-
 def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     """
     Reads the contents of a file, which could be referenced locally
@@ -1574,6 +1552,7 @@ def get_kickstart_templates(api):
             files[x] = 1
 
     results = files.keys()
+    results.append("")      # allow the use-case to not select a kickstart
     results.sort()
     return results
 
