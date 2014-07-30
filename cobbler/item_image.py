@@ -19,10 +19,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import string
-import utils
-import item
-from cexceptions import CX
-from utils import _
+
+from cobbler import utils
+from cobbler import item
+from cobbler import validate
+
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
@@ -98,19 +101,18 @@ class Image(item.Item):
 
     def set_kickstart(self, kickstart):
         """
+        Set the kickstart path, this must be a local file.
+
         It may not make sense for images to have kickstarts.  It really doesn't.
         However if the image type is 'iso' koan can create a virtual floppy
         and shove an answer file on it, to script an installation.  This may
-        not be a kickstart per se, it might be a windows answer file (SIF) etc.
+        not be a kickstart per se, it might be a Windows answer file (SIF) etc.
+
+        @param: str kickstart path to a local kickstart file
+        @returns: True or CX
         """
-        if kickstart is None or kickstart == "" or kickstart == "delete":
-            self.kickstart = ""
-            return True
-        kickstart = utils.find_kickstart(kickstart)
-        if kickstart:
-            self.kickstart = kickstart
-            return True
-        raise CX(_("kickstart not found for image"))
+        self.kickstart = validate.kickstart_file_path(kickstart)
+        return True
 
 
     def set_file(self, filename):

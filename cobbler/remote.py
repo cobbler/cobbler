@@ -33,20 +33,21 @@ import fcntl
 import glob
 from threading import Thread
 
-import codes
-import utils
-from cexceptions import CX
-import item_distro
-import item_profile
-import item_system
-import item_repo
-import item_image
-import item_mgmtclass
-import item_package
-import item_file
-import clogger
-import pxegen
-import configgen
+from cobbler import codes
+from cobbler import utils
+from cobbler import item_distro
+from cobbler import item_profile
+from cobbler import item_system
+from cobbler import item_repo
+from cobbler import item_image
+from cobbler import item_mgmtclass
+from cobbler import item_package
+from cobbler import item_file
+from cobbler import clogger
+from cobbler import pxegen
+from cobbler import configgen
+
+from cobbler.cexceptions import CX
 
 
 EVENT_TIMEOUT = 7 * 24 * 60 * 60        # 1 week

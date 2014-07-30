@@ -18,11 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os.path
-
-from cobbler import codes
 from cobbler import utils
 from cobbler import item
+from cobbler import validate
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
@@ -260,27 +258,7 @@ class Profile(item.Item):
         @param: str kickstart path to a local kickstart file
         @returns: True or CX
         """
-        if not isinstance(kickstart, basestring):
-            raise CX("Invalid input, kickstart must be a string")
-
-        if kickstart.find("..") != -1:
-            raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
-
-        if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
-            raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
-
-        if not os.path.isfile(kickstart):
-            raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
-
-        if kickstart == "" or kickstart is None:
-            self.kickstart = ""
-            return True
-
-        if kickstart == "<<inherit>>":
-            self.kickstart = kickstart
-            return True
-
-        self.kickstart = kickstart
+        self.kickstart = validate.kickstart_file_path(kickstart)
         return True
 
 
