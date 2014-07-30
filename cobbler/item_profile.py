@@ -1,6 +1,4 @@
 """
-A Cobbler Profile.  A profile is a reference to a distribution, possibly some kernel options, possibly some Virt options, and some kickstart data.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -70,6 +68,9 @@ FIELDS = [
 
 
 class Profile(item.Item):
+    """
+    A Cobbler profile object.
+    """
 
     TYPE_NAME = _("profile")
     COLLECTION_TYPE = "profile"
@@ -83,14 +84,49 @@ class Profile(item.Item):
         self.boot_files = {}
         self.template_files = {}
 
+
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Profile(self.config)
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
+        """
+        Return the list of fields and their properties
+        """
         return FIELDS
+
+
+    def get_parent(self):
+        """
+        Return object next highest up the tree.
+        """
+        if self.parent is None or self.parent == '':
+            if self.distro is None:
+                return None
+            result = self.config.distros().find(name=self.distro)
+        else:
+            result = self.config.profiles().find(name=self.parent)
+        return result
+
+
+    def check_if_valid(self):
+        if self.name is None or self.name == "":
+            raise CX("name is required")
+        distro = self.get_conceptual_parent()
+        if distro is None:
+            raise CX("Error with profile %s - distro is required" % (self.name))
+
+
+    #
+    # specific methods for item.Profile
+    #
 
     def set_parent(self, parent_name):
         """
@@ -123,6 +159,7 @@ class Profile(item.Item):
             parent.children[self.name] = self
         return True
 
+
     def set_distro(self, distro_name):
         """
         Sets the distro.  This must be the name of an existing
@@ -139,11 +176,14 @@ class Profile(item.Item):
             return True
         raise CX(_("distribution not found"))
 
+
     def set_redhat_management_key(self, key):
         return utils.set_redhat_management_key(self, key)
 
+
     def set_redhat_management_server(self, server):
         return utils.set_redhat_management_server(self, server)
+
 
     def set_name_servers(self, data):
         # FIXME: move to utils since shared with system
@@ -153,6 +193,7 @@ class Profile(item.Item):
         self.name_servers = data
         return True
 
+
     def set_name_servers_search(self, data):
         if data == "<<inherit>>":
             data = []
@@ -160,9 +201,11 @@ class Profile(item.Item):
         self.name_servers_search = data
         return True
 
+
     def set_proxy(self, proxy):
         self.proxy = proxy
         return True
+
 
     def set_enable_gpxe(self, enable_gpxe):
         """
@@ -170,6 +213,7 @@ class Profile(item.Item):
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
         return True
+
 
     def set_enable_menu(self, enable_menu):
         """
@@ -179,6 +223,7 @@ class Profile(item.Item):
         self.enable_menu = utils.input_boolean(enable_menu)
         return True
 
+
     def set_template_remote_kickstarts(self, template):
         """
         Sets whether or not the server is configured to template remote
@@ -187,17 +232,20 @@ class Profile(item.Item):
         self.template_remote_kickstarts = utils.input_boolean(template)
         return True
 
+
     def set_dhcp_tag(self, dhcp_tag):
         if dhcp_tag is None:
             dhcp_tag = ""
         self.dhcp_tag = dhcp_tag
         return True
 
+
     def set_server(self, server):
         if server is None or server == "":
             server = "<<inherit>>"
         self.server = server
         return True
+
 
     def set_kickstart(self, kickstart):
         """
@@ -216,48 +264,40 @@ class Profile(item.Item):
             return True
         raise CX(_("kickstart not found: %s") % kickstart)
 
+
     def set_virt_auto_boot(self, num):
         return utils.set_virt_auto_boot(self, num)
+
 
     def set_virt_cpus(self, num):
         return utils.set_virt_cpus(self, num)
 
+
     def set_virt_file_size(self, num):
         return utils.set_virt_file_size(self, num)
+
 
     def set_virt_disk_driver(self, driver):
         return utils.set_virt_disk_driver(self, driver)
 
+
     def set_virt_ram(self, num):
         return utils.set_virt_ram(self, num)
+
 
     def set_virt_type(self, vtype):
         return utils.set_virt_type(self, vtype)
 
+
     def set_virt_bridge(self, vbridge):
         return utils.set_virt_bridge(self, vbridge)
+
 
     def set_virt_path(self, path):
         return utils.set_virt_path(self, path)
 
+
     def set_repos(self, repos, bypass_check=False):
         return utils.set_repos(self, repos, bypass_check)
 
-    def get_parent(self):
-        """
-        Return object next highest up the tree.
-        """
-        if self.parent is None or self.parent == '':
-            if self.distro is None:
-                return None
-            result = self.config.distros().find(name=self.distro)
-        else:
-            result = self.config.profiles().find(name=self.parent)
-        return result
-
-    def check_if_valid(self):
-        if self.name is None or self.name == "":
-            raise CX("name is required")
-        distro = self.get_conceptual_parent()
-        if distro is None:
-            raise CX("Error with profile %s - distro is required" % (self.name))
+# EOF

@@ -23,8 +23,8 @@ import utils
 from utils import _
 from cexceptions import CX
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
 
+# this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
     ["uid", "", 0, "", False, "", 0, "str"],
     ["depth", 2, 0, "", False, "", 0, "float"],
@@ -44,9 +44,16 @@ FIELDS = [
 
 
 class File(resource.Resource):
+    """
+    A Cobbler file object.
+    """
 
     TYPE_NAME = _("file")
     COLLECTION_TYPE = "file"
+
+    #
+    # override some base class methods first (item.Item)
+    #
 
     def make_clone(self):
         ds = self.to_datastruct()
@@ -54,15 +61,10 @@ class File(resource.Resource):
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
         return FIELDS
 
-    def set_is_dir(self, is_dir):
-        """
-        If true, treat file resource as a directory. Templates are ignored.
-        """
-        self.is_dir = utils.input_boolean(is_dir)
-        return True
 
     def check_if_valid(self):
         """
@@ -81,3 +83,17 @@ class File(resource.Resource):
             raise CX("mode is required")
         if not self.is_dir and self.template == "":
             raise CX("Template is required when not a directory")
+
+
+    #
+    # specific methods for item.File
+    #
+
+    def set_is_dir(self, is_dir):
+        """
+        If true, treat file resource as a directory. Templates are ignored.
+        """
+        self.is_dir = utils.input_boolean(is_dir)
+        return True
+
+# EOF

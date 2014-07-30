@@ -1,7 +1,4 @@
 """
-A cobbler distribution.  A distribution is a kernel, and initrd, and potentially
-some kernel options.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -117,6 +114,9 @@ FIELDS = [
 
 
 class Distro(item.Item):
+    """
+    A cobbler distribution object
+    """
 
     TYPE_NAME = _("distro")
     COLLECTION_TYPE = "distro"
@@ -131,92 +131,30 @@ class Distro(item.Item):
         self.boot_files = {}
         self.template_files = {}
 
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Distro(self.config)
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
+        """
+        Return the list of fields and their properties
+        """
         return FIELDS
+
 
     def get_parent(self):
         """
-        Return object next highest up the tree.
-        NOTE: conceptually there is no need for subdistros
+        Distros don't have parent objects. 
         """
         return None
 
-    def set_kernel(self, kernel):
-        """
-        Specifies a kernel.  The kernel parameter is a full path, a filename
-        in the configured kernel directory (set in /etc/cobbler.conf) or a
-        directory path that would contain a selectable kernel.  Kernel
-        naming conventions are checked, see docs in the utils module
-        for find_kernel.
-        """
-        if kernel is None or kernel == "":
-            raise CX("kernel not specified")
-        if utils.find_kernel(kernel):
-            self.kernel = kernel
-            return True
-        raise CX("kernel not found: %s" % kernel)
-
-    def set_tree_build_time(self, datestamp):
-        """
-        Sets the import time of the distro.
-        If not imported, this field is not meaningful.
-        """
-        self.tree_build_time = float(datestamp)
-        return True
-
-    def set_breed(self, breed):
-        return utils.set_breed(self, breed)
-
-    def set_os_version(self, os_version):
-        return utils.set_os_version(self, os_version)
-
-    def set_initrd(self, initrd):
-        """
-        Specifies an initrd image.  Path search works as in set_kernel.
-        File must be named appropriately.
-        """
-        if initrd is None or initrd == "":
-            raise CX("initrd not specified")
-        if utils.find_initrd(initrd):
-            self.initrd = initrd
-            return True
-        raise CX(_("initrd not found"))
-
-    def set_redhat_management_key(self, key):
-        return utils.set_redhat_management_key(self, key)
-
-    def set_redhat_management_server(self, server):
-        return utils.set_redhat_management_server(self, server)
-
-    def set_source_repos(self, repos):
-        """
-        A list of http:// URLs on the cobbler server that point to
-        yum configuration files that can be used to
-        install core packages.  Use by cobbler import only.
-        """
-        self.source_repos = repos
-
-    def set_arch(self, arch):
-        """
-        The field is mainly relevant to PXE provisioning.
-
-        Using an alternative distro type allows for dhcpd.conf templating
-        to "do the right thing" with those systems -- this also relates to
-        bootloader configuration files which have different syntax for different
-        distro types (because of the bootloaders).
-
-        This field is named "arch" because mainly on Linux, we only care about
-        the architecture, though if (in the future) new provisioning types
-        are added, an arch value might be something like "bsd_x86".
-
-        """
-        return utils.set_arch(self, arch)
 
     def check_if_valid(self):
         if self.name is None:
@@ -237,3 +175,90 @@ class Distro(item.Item):
                 raise CX("Error with distro %s - initrd path not found" % (self.name))
         elif not os.path.exists(self.initrd):
             raise CX("Error with distro %s - initrd path not found" % (self.name))
+
+
+    #
+    # specific methods for item.Distro
+    #
+
+    def set_kernel(self, kernel):
+        """
+        Specifies a kernel.  The kernel parameter is a full path, a filename
+        in the configured kernel directory (set in /etc/cobbler.conf) or a
+        directory path that would contain a selectable kernel.  Kernel
+        naming conventions are checked, see docs in the utils module
+        for find_kernel.
+        """
+        if kernel is None or kernel == "":
+            raise CX("kernel not specified")
+        if utils.find_kernel(kernel):
+            self.kernel = kernel
+            return True
+        raise CX("kernel not found: %s" % kernel)
+
+
+    def set_tree_build_time(self, datestamp):
+        """
+        Sets the import time of the distro.
+        If not imported, this field is not meaningful.
+        """
+        self.tree_build_time = float(datestamp)
+        return True
+
+
+    def set_breed(self, breed):
+        return utils.set_breed(self, breed)
+
+
+    def set_os_version(self, os_version):
+        return utils.set_os_version(self, os_version)
+
+
+    def set_initrd(self, initrd):
+        """
+        Specifies an initrd image.  Path search works as in set_kernel.
+        File must be named appropriately.
+        """
+        if initrd is None or initrd == "":
+            raise CX("initrd not specified")
+        if utils.find_initrd(initrd):
+            self.initrd = initrd
+            return True
+        raise CX(_("initrd not found"))
+
+
+    def set_redhat_management_key(self, key):
+        return utils.set_redhat_management_key(self, key)
+
+
+    def set_redhat_management_server(self, server):
+        return utils.set_redhat_management_server(self, server)
+
+
+    def set_source_repos(self, repos):
+        """
+        A list of http:// URLs on the cobbler server that point to
+        yum configuration files that can be used to
+        install core packages.  Use by cobbler import only.
+        """
+        self.source_repos = repos
+
+
+    def set_arch(self, arch):
+        """
+        The field is mainly relevant to PXE provisioning.
+
+        Using an alternative distro type allows for dhcpd.conf templating
+        to "do the right thing" with those systems -- this also relates to
+        bootloader configuration files which have different syntax for different
+        distro types (because of the bootloaders).
+
+        This field is named "arch" because mainly on Linux, we only care about
+        the architecture, though if (in the future) new provisioning types
+        are added, an arch value might be something like "bsd_x86".
+
+        """
+        return utils.set_arch(self, arch)
+
+
+# EOF

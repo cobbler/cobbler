@@ -1,6 +1,4 @@
 """
-An Item is a serializable thing that can appear in a Collection
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -23,9 +21,11 @@ import re
 
 
 class Item(object):
+    """
+    An Item is a serializable thing that can appear in a Collection
+    """
 
     TYPE_NAME = "generic"
-
     _re_name = re.compile(r'[a-zA-Z0-9_\-.:+]*$')
 
     def __init__(self, config, is_subobject=False):
@@ -40,17 +40,15 @@ class Item(object):
         a valid parent name and a name for themselves, so other required options can be
         gathered from items further up the cobbler tree.
 
-        Old cobbler:             New cobbler:
-        distro                   distro
-          profile                   profile
-            system                     profile  <-- created with is_subobject=True
+                           distro
+                               profile
+                                    profile  <-- created with is_subobject=True
                                          system   <-- created as normal
 
         For consistancy, there is some code supporting this in all object types, though it is only usable
         (and only should be used) for profiles at this time.  Objects that are children of
         objects of the same type (i.e. subprofiles) need to pass this in as True.  Otherwise, just
         use False for is_subobject and the parent object will (therefore) have a different type.
-
         """
 
         self.config = config
@@ -69,17 +67,55 @@ class Item(object):
         self.boot_files = None
         self.template_files = None
         self.name = None
-
         self.last_cached_mtime = 0
         self.cached_datastruct = ""
+
+
+    def __find_compare(self, from_search, from_obj):
+
+        if isinstance(from_obj, basestring):
+            # FIXME: fnmatch is only used for string to string comparisions
+            # which should cover most major usage, if not, this deserves fixing
+            if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
+                return True
+            else:
+                return False
+        else:
+            if isinstance(from_search, basestring):
+                if isinstance(from_obj, list):
+                    from_search = utils.input_string_or_list(from_search)
+                    for x in from_search:
+                        if x not in from_obj:
+                            return False
+                    return True
+                if isinstance(from_obj, dict):
+                    (junk, from_search) = utils.input_string_or_hash(from_search, allow_multiples=True)
+                    for x in from_search.keys():
+                        y = from_search[x]
+                        if x not in from_obj:
+                            return False
+                        if not (y == from_obj[x]):
+                            return False
+                    return True
+                if isinstance(from_obj, bool):
+                    if from_search.lower() in ["true", "1", "y", "yes"]:
+                        inp = True
+                    else:
+                        inp = False
+                    if inp == from_obj:
+                        return True
+                    return False
+
+            raise CX(_("find cannot compare type: %s") % type(from_obj))
+
 
     def get_fields(self):
         """
         Get serializable fields
         Must be defined in any subclass
         """
-
         raise exceptions.NotImplementedError()
+
 
     def clear(self, is_subobject=False):
         """
@@ -87,8 +123,13 @@ class Item(object):
         """
         utils.clear_from_fields(self, self.get_fields(), is_subobject=is_subobject)
 
+
     def make_clone(self):
+        """
+        Must be defined in any subclass
+        """
         raise exceptions.NotImplementedError
+
 
     def from_datastruct(self, seed_data):
         """
@@ -96,17 +137,22 @@ class Item(object):
         """
         return utils.from_datastruct_from_fields(self, seed_data, self.get_fields())
 
+
     def to_datastruct(self):
         return utils.to_datastruct_from_fields(self, self.get_fields())
+
 
     def printable(self):
         return utils.printable_from_fields(self, self.get_fields())
 
+
     def remote_methods(self):
         return utils.get_remote_methods_from_fields(self, self.get_fields())
 
+
     def set_uid(self, uid):
         self.uid = uid
+
 
     def get_children(self, sorted=True):
         """
@@ -119,6 +165,7 @@ class Item(object):
         for k in keys:
             results.append(self.children[k])
         return results
+
 
     def get_descendants(self):
         """
@@ -133,18 +180,19 @@ class Item(object):
             results.extend(grandkids)
         return results
 
+
     def get_parent(self):
         """
         For objects with a tree relationship, what's the parent object?
         """
         return None
 
+
     def get_conceptual_parent(self):
         """
         The parent may just be a superclass for something like a
         subprofile.  Get the first parent of a different type.
         """
-
         # FIXME: this is a workaround to get the type of an instance var
         # what's a more clean way to do this that's python 2.3 friendly?
         # this returns something like:  cobbler.item_system.System
@@ -158,12 +206,14 @@ class Item(object):
             parent = parent.get_parent()
         return None
 
+
     def validate_name(self, name):
         """Validate name. Raises CX if the name if invalid"""
         if not isinstance(name, basestring):
             raise CX(_("name must be a string"))
         if not self._re_name.match(name):
             raise CX(_("invalid characters in name: '%s'" % name))
+
 
     def set_name(self, name):
         """
@@ -176,11 +226,13 @@ class Item(object):
         self.name = name
         return True
 
+
     def set_comment(self, comment):
         if comment is None:
             comment = ""
         self.comment = comment
         return True
+
 
     def set_owners(self, data):
         """
@@ -191,6 +243,7 @@ class Item(object):
         owners = utils.input_string_or_list(data)
         self.owners = owners
         return True
+
 
     def set_kernel_options(self, options, inplace=False):
         """
@@ -211,6 +264,7 @@ class Item(object):
                 self.kernel_options = value
             return True
 
+
     def set_kernel_options_post(self, options, inplace=False):
         """
         Post kernel options are a space delimited list,
@@ -229,6 +283,7 @@ class Item(object):
             else:
                 self.kernel_options_post = value
             return True
+
 
     def set_ks_meta(self, options, inplace=False):
         """
@@ -250,6 +305,7 @@ class Item(object):
                 self.ks_meta = value
             return True
 
+
     def set_mgmt_classes(self, mgmt_classes):
         """
         Assigns a list of configuration management classes that can be assigned
@@ -258,6 +314,7 @@ class Item(object):
         mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
         return True
+
 
     def set_mgmt_parameters(self, mgmt_parameters):
         """
@@ -293,6 +350,7 @@ class Item(object):
             else:
                 self.template_files = value
             return True
+
 
     def set_boot_files(self, boot_files, inplace=False):
         """
@@ -338,6 +396,7 @@ class Item(object):
         data = self.to_datastruct()
         return [data.get(x, "") for x in sort_fields]
 
+
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
         data = self.to_datastruct()
@@ -382,46 +441,6 @@ class Item(object):
             return self.__find_compare(value, data[key])
 
 
-    def __find_compare(self, from_search, from_obj):
-
-        if isinstance(from_obj, basestring):
-            # FIXME: fnmatch is only used for string to string comparisions
-            # which should cover most major usage, if not, this deserves fixing
-            if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
-                return True
-            else:
-                return False
-
-        else:
-            if isinstance(from_search, basestring):
-                if isinstance(from_obj, list):
-                    from_search = utils.input_string_or_list(from_search)
-                    for x in from_search:
-                        if x not in from_obj:
-                            return False
-                    return True
-
-                if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_hash(from_search, allow_multiples=True)
-                    for x in from_search.keys():
-                        y = from_search[x]
-                        if x not in from_obj:
-                            return False
-                        if not (y == from_obj[x]):  # XXX
-                            return False
-                    return True
-
-                if isinstance(from_obj, bool):
-                    if from_search.lower() in ["true", "1", "y", "yes"]:
-                        inp = True
-                    else:
-                        inp = False
-                    if inp == from_obj:
-                        return True
-                    return False
-
-            raise CX(_("find cannot compare type: %s") % type(from_obj))
-
     def dump_vars(self, data, format=True):
         raw = utils.blender(self.config.api, False, self)
         if format:
@@ -429,17 +448,22 @@ class Item(object):
         else:
             return raw
 
+
     def set_depth(self, depth):
         self.depth = depth
+
 
     def set_ctime(self, ctime):
         self.ctime = ctime
 
+
     def set_mtime(self, mtime):
         self.mtime = mtime
 
+
     def set_parent(self, parent):
         self.parent = parent
+
 
     def check_if_valid(self):
         """
@@ -447,3 +471,5 @@ class Item(object):
         """
         if self.name is None or self.name == "":
             raise CX("Name is required")
+
+# EOF

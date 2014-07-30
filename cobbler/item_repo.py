@@ -1,6 +1,4 @@
 """
-A Cobbler repesentation of a yum repo.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -25,6 +23,7 @@ import item
 from cexceptions import CX
 from utils import _
 import codes
+
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 FIELDS = [
@@ -52,6 +51,9 @@ FIELDS = [
 
 
 class Repo(item.Item):
+    """
+    A Cobbler repo object.
+    """
 
     TYPE_NAME = _("repo")
     COLLECTION_TYPE = "repo"
@@ -63,14 +65,39 @@ class Repo(item.Item):
         self.environment = None
         self.yumopts = None
 
+    #
+    # override some base class methods first (item.Item)
+    #
+
     def make_clone(self):
         ds = self.to_datastruct()
         cloned = Repo(self.config)
         cloned.from_datastruct(ds)
         return cloned
 
+
     def get_fields(self):
         return FIELDS
+
+
+    def get_parent(self):
+        """
+        currently the Cobbler object space does not support subobjects of this object
+        as it is conceptually not useful.
+        """
+        return None
+
+
+    def check_if_valid(self):
+        if self.name is None:
+            raise CX("name is required")
+        if self.mirror is None:
+            raise CX("Error with repo %s - mirror is required" % (self.name))
+
+
+    #
+    # specific methods for item.File
+    #
 
     def _guess_breed(self):
         # backwards compatibility
@@ -81,6 +108,7 @@ class Repo(item.Item):
                 self.set_breed("rhn")
             else:
                 self.set_breed("rsync")
+
 
     def set_mirror(self, mirror):
         """
@@ -96,12 +124,14 @@ class Repo(item.Item):
         self._guess_breed()
         return True
 
+
     def set_keep_updated(self, keep_updated):
         """
         This allows the user to disable updates to a particular repo for whatever reason.
         """
         self.keep_updated = utils.input_boolean(keep_updated)
         return True
+
 
     def set_yumopts(self, options, inplace=False):
         """
@@ -119,6 +149,7 @@ class Repo(item.Item):
                 self.yumopts = value
             return True
 
+
     def set_environment(self, options, inplace=False):
         """
         Yum can take options from the environment.  This puts them there before
@@ -135,6 +166,7 @@ class Repo(item.Item):
                 self.environment = value
             return True
 
+
     def set_priority(self, priority):
         """
         Set the priority of the repository.  1= highest, 99=default
@@ -147,6 +179,7 @@ class Repo(item.Item):
         self.priority = priority
         return True
 
+
     def set_rpm_list(self, rpms):
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance,
@@ -155,6 +188,7 @@ class Repo(item.Item):
         """
         self.rpm_list = utils.input_string_or_list(rpms)
         return True
+
 
     def set_createrepo_flags(self, createrepo_flags):
         """
@@ -166,13 +200,16 @@ class Repo(item.Item):
         self.createrepo_flags = createrepo_flags
         return True
 
+
     def set_breed(self, breed):
         if breed:
             return utils.set_repo_breed(self, breed)
 
+
     def set_os_version(self, os_version):
         if os_version:
             return utils.set_repo_os_version(self, os_version)
+
 
     def set_arch(self, arch):
         """
@@ -180,27 +217,19 @@ class Repo(item.Item):
         """
         return utils.set_arch(self, arch, repo=True)
 
+
     def set_mirror_locally(self, value):
         self.mirror_locally = utils.input_boolean(value)
         return True
+
 
     def set_apt_components(self, value):
         self.apt_components = utils.input_string_or_list(value)
         return True
 
+
     def set_apt_dists(self, value):
         self.apt_dists = utils.input_string_or_list(value)
         return True
 
-    def get_parent(self):
-        """
-        currently the Cobbler object space does not support subobjects of this object
-        as it is conceptually not useful.
-        """
-        return None
-
-    def check_if_valid(self):
-        if self.name is None:
-            raise CX("name is required")
-        if self.mirror is None:
-            raise CX("Error with repo %s - mirror is required" % (self.name))
+# EOF
