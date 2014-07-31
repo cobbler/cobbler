@@ -23,6 +23,27 @@ from cobbler import codes
 from cobbler.cexceptions import CX
 
 
+
+def object_name(name, parent):
+    """
+    Validate the object name.
+
+    @param: str name (object name)
+    @param: str parent (parent object name)
+    @returns: name or CX
+    """
+    if not isinstance(name, basestring) or not isinstance(parent, basestring):
+        raise CX("Invalid input, name and parent must be strings")
+
+    if name not in ["", None] and parent not in ["", None] and name == parent:
+        raise CX("Self parentage is not allowed")
+
+    if not codes.RE_OBJECT_NAME.match(name):
+        raise CX("Invalid characters in name: '%s'" % name)
+
+    return name
+
+
 def kickstart_file_path(kickstart):
     """
     Validate the kickstart file path.

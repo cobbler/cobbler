@@ -156,32 +156,6 @@ class System(item.Item):
             return self.config.systems().find(name=self.parent)
 
 
-    def set_name(self, name):
-        """
-        Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
-        and fill that value in.
-        """
-
-        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
-            raise CX(_("self parentage is weird"))
-        self.validate_name(name)
-
-        # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
-        # the default interface behaviour that's now removed. ;)
-        # --Jasper Capel
-        if utils.is_mac(name):
-            intf = self.__get_interface("eth0")
-            if intf["mac_address"] == "":
-                intf["mac_address"] = name
-        elif utils.is_ip(name):
-            intf = self.__get_interface("eth0")
-            if intf["ip_address"] == "":
-                intf["ip_address"] = name
-        self.name = name
-
-        return True
-
-
     def check_if_valid(self):
         if self.name is None or self.name == "":
             raise CX("name is required")

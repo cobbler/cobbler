@@ -17,6 +17,7 @@ import fnmatch
 import exceptions
 
 from cobbler import utils
+from cobbler import validate
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
@@ -209,23 +210,14 @@ class Item(object):
         return None
 
 
-    def validate_name(self, name):
-        """Validate name. Raises CX if the name if invalid"""
-        if not isinstance(name, basestring):
-            raise CX(_("name must be a string"))
-        if not self._re_name.match(name):
-            raise CX(_("invalid characters in name: '%s'" % name))
-
-
     def set_name(self, name):
         """
-        All objects have names, and with the exception of System
-        they aren't picky about it.
+        Set the objects name.
+
+        @param: str name (object name string)
+        @returns: True or CX
         """
-        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
-            raise CX(_("self parentage is weird"))
-        self.validate_name(name)
-        self.name = name
+        self.name = validate.object_name(name, self.parent)
         return True
 
 
