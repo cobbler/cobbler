@@ -18,14 +18,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import utils
-import collection
-import item_distro as distro
-from cexceptions import CX
-import action_litesync
-from utils import _
 import os.path
 import glob
+
+from cobbler import utils
+from cobbler import collection
+from cobbler import item_distro as distro
+from cobbler import action_litesync
+
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Distros(collection.Collection):
