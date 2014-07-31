@@ -29,7 +29,6 @@ class Item(object):
     """
 
     TYPE_NAME = "generic"
-    _re_name = re.compile(r'[a-zA-Z0-9_\-.:+]*$')
 
     def __init__(self, config, is_subobject=False):
         """
@@ -231,8 +230,7 @@ class Item(object):
     def set_owners(self, data):
         """
         The owners field is a comment unless using an authz module that pays attention to it,
-        like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
-        docs for more info on CustomizableAuthorization.
+        like authz_ownership, which ships with Cobbler but is off by default.
         """
         owners = utils.input_string_or_list(data)
         self.owners = owners
