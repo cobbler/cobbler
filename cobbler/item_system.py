@@ -457,6 +457,7 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
         return True
 
+
     def set_interface_type(self, type, interface):
         interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "na", ""]
         if type not in interface_types:
