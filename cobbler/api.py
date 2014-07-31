@@ -22,35 +22,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import config
-import utils
-import action_sync
-import action_check
-import action_reposync
-import action_status
-import action_validate
-import action_buildiso
-import action_replicate
-import action_acl
-import action_report
-import action_power
-import action_log
-import action_hardlink
-import action_dlcontent
-from cexceptions import CX
-import module_loader
-import kickgen
-import yumgen
-import pxegen
-from utils import _
-from ConfigParser import ConfigParser
-
+import os
 import time
 import random
-import os
-import clogger
 import tempfile
 import urllib2
+
+from ConfigParser import ConfigParser
+
+from cobbler import clogger
+from cobbler import config
+from cobbler import utils
+from cobbler import action_sync
+from cobbler import action_check
+from cobbler import action_reposync
+from cobbler import action_status
+from cobbler import action_validate
+from cobbler import action_buildiso
+from cobbler import action_replicate
+from cobbler import action_acl
+from cobbler import action_report
+from cobbler import action_power
+from cobbler import action_log
+from cobbler import action_hardlink
+from cobbler import action_dlcontent
+from cobbler import module_loader
+from cobbler import kickgen
+from cobbler import yumgen
+from cobbler import pxegen
+
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 
 ERROR = 100
