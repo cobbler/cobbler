@@ -1,7 +1,4 @@
 """
-Validates whether the system is reasonably well configured for
-serving up content.  This is the code behind 'cobbler check'.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -30,6 +27,10 @@ import clogger
 
 
 class BootCheck:
+    """
+    Validates whether the system is reasonably well configured for
+    serving up content.  This is the code behind 'cobbler check'.
+    """
 
     def __init__(self, config, logger=None):
         """
@@ -98,6 +99,7 @@ class BootCheck:
 
         return status
 
+
     def check_for_ksvalidator(self, status):
         if self.checked_family == "debian":
             return
@@ -107,11 +109,13 @@ class BootCheck:
 
         return True
 
+
     def check_for_cman(self, status):
         # not doing rpm -q here to be cross-distro friendly
         if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
             status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
         return True
+
 
     def check_service(self, status, which, notes=""):
         if notes != "":
@@ -135,11 +139,13 @@ class BootCheck:
             return False
         return True
 
+
     def check_iptables(self, status):
         if os.path.exists("/etc/rc.d/init.d/iptables"):
             rc = utils.subprocess_call(self.logger, "/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
             if rc == 0:
                 status.append(_("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked") % {"xmlrpc": self.settings.xmlrpc_port})
+
 
     def check_yum(self, status):
         if self.checked_family == "debian":
@@ -156,6 +162,7 @@ class BootCheck:
                 yum_utils_ver = utils.subprocess_get(self.logger, "/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
                 if yum_utils_ver < "1.1.17":
                     status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver)
+
 
     def check_debmirror(self, status):
         if not os.path.exists("/usr/bin/debmirror"):
@@ -181,6 +188,7 @@ class BootCheck:
             status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
         if self.settings.next_server == "127.0.0.1":
             status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+
 
     def check_selinux(self, status):
         """
@@ -217,6 +225,7 @@ class BootCheck:
         if len(not_found) > 0:
             status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
 
+
     def check_for_unsynced_repos(self, status):
         need_sync = []
         for r in self.config.repos():
@@ -249,6 +258,7 @@ class BootCheck:
         if not os.path.exists("/usr/sbin/dhcpd"):
             status.append("dhcpd is not installed")
 
+
     def check_dnsmasq_bin(self, status):
         """
         Check if dnsmasq is installed
@@ -256,6 +266,7 @@ class BootCheck:
         rc = utils.subprocess_get(self.logger, "dnsmasq --help")
         if rc.find("Valid options") == -1:
             status.append("dnsmasq is not installed and/or in path")
+
 
     def check_bind_bin(self, status):
         """
@@ -266,6 +277,7 @@ class BootCheck:
         if rc.find("BIND") == -1:
             status.append("named is not installed and/or in path")
 
+
     def check_for_wget_curl(self, status):
         """
         Check to make sure wget or curl is installed
@@ -274,6 +286,7 @@ class BootCheck:
         rc2 = utils.subprocess_call(self.logger, "which curl")
         if rc1 != 0 and rc2 != 0:
             status.append("Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one of these utilities be installed.")
+
 
     def check_bootloaders(self, status):
         """
@@ -313,6 +326,7 @@ class BootCheck:
         if len(not_found) > 0:
             status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
 
+
     def check_tftpd_bin(self, status):
         """
         Check if tftpd is installed
@@ -322,6 +336,7 @@ class BootCheck:
 
         if not os.path.exists("/etc/xinetd.d/tftp"):
             status.append("missing /etc/xinetd.d/tftp, install tftp-server?")
+
 
     def check_tftpd_dir(self, status):
         """
@@ -352,6 +367,7 @@ class BootCheck:
         else:
             status.append("missing configuration file: /etc/xinetd.d/tftp")
 
+
     def check_ctftpd_bin(self, status):
         """
         Check if the Cobbler tftp server is installed
@@ -361,6 +377,7 @@ class BootCheck:
 
         if not os.path.exists("/etc/xinetd.d/ctftp"):
             status.append("missing /etc/xinetd.d/ctftp")
+
 
     def check_ctftpd_dir(self, status):
         """
@@ -372,6 +389,7 @@ class BootCheck:
         bootloc = utils.tftpboot_location()
         if not os.path.exists(bootloc):
             status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
+
 
     def check_ctftpd_conf(self, status):
         """
@@ -395,6 +413,7 @@ class BootCheck:
                     status.append(_("change 'disable' to 'no' in %(file)s") % {"file": "/etc/xinetd.d/ctftp"})
         else:
             status.append("missing configuration file: /etc/xinetd.d/ctftp")
+
 
     def check_rsync_conf(self, status):
         """
@@ -441,3 +460,5 @@ class BootCheck:
                 status.append(_("missing file: %(file)s") % {"file": self.settings.dhcpd_conf})
         else:
             status.append(_("missing file: %(file)s") % {"file": self.settings.dhcpd_conf})
+
+# EOF
