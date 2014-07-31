@@ -96,7 +96,6 @@ FIELDS = [
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
     ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Satellite, or Spacewalk", 0, "str"],
     ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Satellite or Spacewalk Server", 0, "str"],
-    ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
     ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
@@ -154,32 +153,6 @@ class System(item.Item):
             return self.config.images().find(name=self.image)
         else:
             return self.config.systems().find(name=self.parent)
-
-
-    def set_name(self, name):
-        """
-        Set the name.  If the name is a MAC or IP, and the first MAC and/or IP is not defined, go ahead
-        and fill that value in.
-        """
-
-        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
-            raise CX(_("self parentage is weird"))
-        self.validate_name(name)
-
-        # Stuff here defaults to eth0. Yes, it's ugly and hardcoded, but so was
-        # the default interface behaviour that's now removed. ;)
-        # --Jasper Capel
-        if utils.is_mac(name):
-            intf = self.__get_interface("eth0")
-            if intf["mac_address"] == "":
-                intf["mac_address"] = name
-        elif utils.is_ip(name):
-            intf = self.__get_interface("eth0")
-            if intf["ip_address"] == "":
-                intf["ip_address"] = name
-        self.name = name
-
-        return True
 
 
     def check_if_valid(self):
@@ -482,6 +455,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
         return True
+
 
     def set_interface_type(self, type, interface):
         interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "na", ""]
@@ -828,15 +802,6 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
-
-
-    def set_template_remote_kickstarts(self, template):
-        """
-        Sets whether or not the server is configured to template remote
-        kickstarts.
-        """
-        self.template_remote_kickstarts = utils.input_boolean(template)
         return True
 
 

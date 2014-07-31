@@ -63,8 +63,7 @@ FIELDS = [
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
     ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
     ["redhat_management_key", "<<inherit>>", "<<inherit>>", "Red Hat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["redhat_management_server", "<<inherit>>", "<<inherit>>", "Red Hat Management Server", True, "Address of Spacewalk or Satellite Server", 0, "str"],
-    ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"]
+    ["redhat_management_server", "<<inherit>>", "<<inherit>>", "Red Hat Management Server", True, "Address of Spacewalk or Satellite Server", 0, "str"]
 ]
 
 
@@ -225,15 +224,6 @@ class Profile(item.Item):
         PXE boot menu.  This is pretty forgiving for YAML's sake.
         """
         self.enable_menu = utils.input_boolean(enable_menu)
-        return True
-
-
-    def set_template_remote_kickstarts(self, template):
-        """
-        Sets whether or not the server is configured to template remote
-        kickstarts.
-        """
-        self.template_remote_kickstarts = utils.input_boolean(template)
         return True
 
 

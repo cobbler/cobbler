@@ -11,12 +11,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-import re
 import pprint
 import fnmatch
 import exceptions
 
 from cobbler import utils
+from cobbler import validate
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
@@ -28,7 +28,6 @@ class Item(object):
     """
 
     TYPE_NAME = "generic"
-    _re_name = re.compile(r'[a-zA-Z0-9_\-.:+]*$')
 
     def __init__(self, config, is_subobject=False):
         """
@@ -209,23 +208,14 @@ class Item(object):
         return None
 
 
-    def validate_name(self, name):
-        """Validate name. Raises CX if the name if invalid"""
-        if not isinstance(name, basestring):
-            raise CX(_("name must be a string"))
-        if not self._re_name.match(name):
-            raise CX(_("invalid characters in name: '%s'" % name))
-
-
     def set_name(self, name):
         """
-        All objects have names, and with the exception of System
-        they aren't picky about it.
+        Set the objects name.
+
+        @param: str name (object name string)
+        @returns: True or CX
         """
-        if self.name not in ["", None] and self.parent not in ["", None] and self.name == self.parent:
-            raise CX(_("self parentage is weird"))
-        self.validate_name(name)
-        self.name = name
+        self.name = validate.object_name(name, self.parent)
         return True
 
 
@@ -239,8 +229,7 @@ class Item(object):
     def set_owners(self, data):
         """
         The owners field is a comment unless using an authz module that pays attention to it,
-        like authz_ownership, which ships with Cobbler but is off by default.  Consult the Wiki
-        docs for more info on CustomizableAuthorization.
+        like authz_ownership, which ships with Cobbler but is off by default.
         """
         owners = utils.input_string_or_list(data)
         self.owners = owners

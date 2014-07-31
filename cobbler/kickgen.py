@@ -264,9 +264,7 @@ class KickGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            raw_data = utils.read_file_contents(
-                kickstart_path, self.api.logger,
-                self.settings.template_remote_kickstarts)
+            raw_data = utils.read_file_contents(kickstart_path, self.api.logger)
             if raw_data is None:
                 return "# kickstart is sourced externally: %s" % meta["kickstart"]
             distro = profile.get_conceptual_parent()
