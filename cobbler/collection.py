@@ -1,6 +1,4 @@
 """
-Base class for any serializable list of things...
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -21,25 +19,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import exceptions
-from cexceptions import CX
 import utils
 import time
 import os
 from threading import Lock
 
-import action_litesync
-import item_system
-import item_profile
-import item_distro
-import item_repo
-import item_image
-import item_mgmtclass
-import item_package
-import item_file
-from utils import _
+from cobbler import action_litesync
+from cobbler import item_system
+from cobbler import item_profile
+from cobbler import item_distro
+from cobbler import item_repo
+from cobbler import item_image
+from cobbler import item_mgmtclass
+from cobbler import item_package
+from cobbler import item_file
+
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 
 class Collection:
+    """
+    Base class for any serializable list of things.
+    """
 
     def __init__(self, config):
         """
@@ -51,12 +53,14 @@ class Collection:
         self.lite_sync = None
         self.lock = Lock()
 
+
     def factory_produce(self, config, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
         from datastructure seed_data
         """
         raise exceptions.NotImplementedError
+
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -73,17 +77,20 @@ class Collection:
 
         raise exceptions.NotImplementedError
 
+
     def clear(self):
         """
         Forget about objects in the collection.
         """
         self.listing = {}
 
+
     def get(self, name):
         """
         Return object with name in the collection
         """
         return self.listing.get(name.lower(), None)
+
 
     def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
@@ -124,7 +131,6 @@ class Collection:
         else:
             return matches
 
-
     SEARCH_REKEY = {
         'kopts': 'kernel_options',
         'kopts_post': 'kernel_options_post',
@@ -148,6 +154,7 @@ class Collection:
         'monit-enabled': 'monit_enabled'
     }
 
+
     def __rekey(self, hash):
         """
         Find calls from the command line ("cobbler system find")
@@ -164,6 +171,7 @@ class Collection:
                 newhash[x] = hash[x]
         return newhash
 
+
     def to_datastruct(self):
         """
         Serialize the collection
@@ -171,12 +179,14 @@ class Collection:
         datastruct = [x.to_datastruct() for x in self.listing.values()]
         return datastruct
 
+
     def from_datastruct(self, datastruct):
         if datastruct is None:
             return
         for seed_data in datastruct:
             item = self.factory_produce(self.config, seed_data)
             self.add(item)
+
 
     def copy(self, ref, newname, logger=None):
         ref = ref.make_clone()
@@ -194,6 +204,7 @@ class Collection:
         return self.add(
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+
 
     def rename(self, ref, newname, with_sync=True, with_triggers=True, logger=None):
         """
@@ -395,6 +406,7 @@ class Collection:
 
         return True
 
+
     def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):
         """
         Prevents adding objects with the same name.
@@ -457,6 +469,7 @@ class Collection:
                     if x.name != ref.name:
                         raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
 
+
     def printable(self):
         """
         Creates a printable representation of the collection suitable
@@ -473,6 +486,7 @@ class Collection:
         else:
             return _("No objects found")
 
+
     def __iter__(self):
         """
         Iterator for the collection.  Allows list comprehensions, etc
@@ -480,14 +494,18 @@ class Collection:
         for a in self.listing.values():
             yield a
 
+
     def __len__(self):
         """
         Returns size of the collection
         """
         return len(self.listing.values())
 
+
     def collection_type(self):
         """
         Returns the string key for the name of the collection (for use in messages for humans)
         """
         return exceptions.NotImplementedError
+
+# EOF
