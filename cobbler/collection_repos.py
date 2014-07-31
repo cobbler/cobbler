@@ -1,8 +1,4 @@
 """
-Repositories in cobbler are way to create a local mirror of a yum repository.
-When used in conjunction with a mirrored kickstart tree (see "cobbler import")
-outside bandwidth needs can be reduced and/or eliminated.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -22,22 +18,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import item_repo as repo
-import utils
-import collection
-from cexceptions import CX
-from utils import _
 import os.path
 
-TESTMODE = False
+from cobbler import item_repo as repo
+from cobbler import utils
+from cobbler import collection
 
-# --------------------------------------------
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Repos(collection.Collection):
+    """
+    Repositories in cobbler are way to create a local mirror of a yum repository.
+    When used in conjunction with a mirrored kickstart tree (see "cobbler import")
+    outside bandwidth needs can be reduced and/or eliminated.
+    """
 
     def collection_type(self):
         return "repo"
+
 
     def factory_produce(self, config, seed_data):
         """
@@ -45,11 +45,11 @@ class Repos(collection.Collection):
         """
         return repo.Repo(config).from_datastruct(seed_data)
 
+
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
-
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.
         name = name.lower()
@@ -81,3 +81,5 @@ class Repos(collection.Collection):
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
+
+# EOF

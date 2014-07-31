@@ -1,6 +1,4 @@
 """
-A package provides a container for package resources.
-
 Copyright 2010, Kelsey Hightower
 Kelsey Hightower <kelsey.hightower@gmail.com>
 
@@ -20,25 +18,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import item_package as package
-import utils
-import collection
-from cexceptions import CX
-from utils import _
+from cobbler import item_package as package
+from cobbler import utils
+from cobbler import collection
 
-# --------------------------------------------
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Packages(collection.Collection):
+    """
+    A package provides a container for package resources.
+    """
 
     def collection_type(self):
         return "package"
+
 
     def factory_produce(self, config, seed_data):
         """
         Return a Package forged from seed_data
         """
         return package.Package(config).from_datastruct(seed_data)
+
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -66,3 +68,5 @@ class Packages(collection.Collection):
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
+
+# EOF
