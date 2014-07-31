@@ -28,16 +28,18 @@ import exceptions
 import time
 import os
 
-import utils
-import item_distro
-import item_profile
-import item_system
-import item_repo
-import item_image
-import item_mgmtclass
-import item_package
-import item_file
-import settings
+from cobbler import utils
+from cobbler import item_distro
+from cobbler import item_profile
+from cobbler import item_system
+from cobbler import item_repo
+from cobbler import item_image
+from cobbler import item_mgmtclass
+from cobbler import item_package
+from cobbler import item_file
+from cobbler import settings
+from cobbler import field_info
+
 
 OBJECT_ACTIONS_MAP = {
     "distro": "add copy edit find list remove rename report".split(" "),
@@ -185,6 +187,67 @@ def opt(options, k, defval=""):
         # traceback.print_exc()
         return defval
     return n2s(data)
+
+
+def add_options_from_fields(object_type, parser, fields, object_action):
+    if object_action in ["add", "edit", "find", "copy", "rename"]:
+        for elem in fields:
+            k = elem[0]
+            if k.find("widget") != -1:
+                continue
+            # scrub interface tags so all fields get added correctly.
+            k = k.replace("*", "")
+            default = elem[1]
+            nicename = elem[3]
+            tooltip = elem[5]
+            choices = elem[6]
+            if k in field_info.ALTERNATE_OPTIONS:
+                niceopt = field_info.ALTERNATE_OPTIONS[k]
+            else:
+                niceopt = "--%s" % k.replace("_", "-")
+            desc = nicename
+            if tooltip != "":
+                desc = nicename + " (%s)" % tooltip
+
+            aliasopt = []
+            for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+                if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
+                    aliasopt.append("--%s" % deprecated_field)
+
+            if isinstance(choices, list) and len(choices) != 0:
+                if default not in choices:
+                    choices.append(default)
+                desc = desc + " (valid options: %s)" % ",".join(choices)
+                parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+                for alias in aliasopt:
+                    parser.add_option(alias, dest=k, help=desc, choices=choices)
+            else:
+                parser.add_option(niceopt, dest=k, help=desc)
+                for alias in aliasopt:
+                    parser.add_option(alias, dest=k, help=desc)
+
+        if object_type == "system":
+            # system object
+            parser.add_option("--interface", dest="interface", help="the interface to operate on (can only be specified once per command line)")
+            if object_action in ["add", "edit"]:
+                parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
+                parser.add_option("--rename-interface", dest="rename_interface")
+
+        if object_action in ["copy", "rename"]:
+            parser.add_option("--newname", help="new object name")
+
+        if object_action not in ["find"] and object_type != "setting":
+            parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
+            parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
+
+    elif object_action == "remove":
+        parser.add_option("--name", help="%s name to remove" % object_type)
+        parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
+
+    # FIXME: not supported in 2.0 ?
+    # if not object_action in ["dumpvars","find","remove","report","list"]:
+    #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
+
 
 
 class BootCLI:
@@ -348,7 +411,7 @@ class BootCLI:
 
         fields = self.get_fields(object_type)
         if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
-            utils.add_options_from_fields(object_type, self.parser, fields, object_action)
+            add_options_from_fields(object_type, self.parser, fields, object_action)
         elif object_action in ["list"]:
             pass
         elif object_action not in ("reload", "update"):
