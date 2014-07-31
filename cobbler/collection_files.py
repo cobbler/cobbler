@@ -1,6 +1,4 @@
 """
-Files provide a container for file resources.
-
 Copyright 2010, Kelsey Hightower
 Kelsey Hightower <kelsey.hightower@gmail.com>
 
@@ -20,25 +18,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import item_file as file
-import utils
-import collection
-from cexceptions import CX
-from utils import _
+from cobbler import item_file as file
+from cobbler import utils
+from cobbler import collection
 
-# --------------------------------------------
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Files(collection.Collection):
+    """
+    Files provide a container for file resources.
+    """
 
     def collection_type(self):
         return "file"
+
 
     def factory_produce(self, config, seed_data):
         """
         Return a File forged from seed_data
         """
         return file.File(config).from_datastruct(seed_data)
+
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -66,3 +68,5 @@ class Files(collection.Collection):
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
+
+# EOF

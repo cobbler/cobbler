@@ -1,9 +1,4 @@
 """
-A profile represents a distro paired with a kickstart file.
-For instance, FC5 with a kickstart file specifying OpenOffice
-might represent a 'desktop' profile.  For Virt, there are many
-additional options, with client-side defaults (not kept here).
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -23,20 +18,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import item_profile as profile
-import utils
-import collection
-from cexceptions import CX
-import action_litesync
-from utils import _
+from cobbler import item_profile as profile
+from cobbler import utils
+from cobbler import collection
+from cobbler import action_litesync
 
-# --------------------------------------------
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Profiles(collection.Collection):
+    """
+    A profile represents a distro paired with a kickstart file.
+    """
 
     def collection_type(self):
         return "profile"
+
 
     def factory_produce(self, config, seed_data):
         """
@@ -44,13 +42,12 @@ class Profiles(collection.Collection):
         """
         return profile.Profile(config).from_datastruct(seed_data)
 
+
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
-
         name = name.lower()
-
         if not recursive:
             for v in self.config.systems():
                 if v.profile is not None and v.profile.lower() == name:
@@ -85,3 +82,5 @@ class Profiles(collection.Collection):
             return True
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
+
+# EOF

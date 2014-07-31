@@ -54,6 +54,21 @@ class Collection:
         self.lock = Lock()
 
 
+    def __iter__(self):
+        """
+        Iterator for the collection.  Allows list comprehensions, etc.
+        """
+        for a in self.listing.values():
+            yield a
+
+
+    def __len__(self):
+        """
+        Returns size of the collection.
+        """
+        return len(self.listing.values())
+
+
     def factory_produce(self, config, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
@@ -66,15 +81,14 @@ class Collection:
         """
         Remove an item from collection. This method must be overriden in any subclass.
 
-        @param str name item name
-        @param bool with_delete sync and run triggers
-        @param bool with_sync sync to server file system
-        @param bool with_triggers run "on delete" triggers
-        @param bool recursive recursively delete children
-        @param clogger logger
-        @raise exceptions.NotImplementedError
+        @param: str name (item name)
+        @param: bool with_delete (sync and run triggers)
+        @param: bool with_sync (sync to server file system)
+        @param: bool with_triggers (run "on delete" triggers)
+        @param: bool recursive (recursively delete children)
+        @param: clogger logger (logger object)
+        @returns: exceptions.NotImplementedError
         """
-
         raise exceptions.NotImplementedError
 
 
@@ -99,7 +113,6 @@ class Collection:
         When return_list is set, can also return a list.  Empty list
         would be returned instead of None in that case.
         """
-
         matches = []
 
         # support the old style innovation without kwargs
@@ -485,21 +498,6 @@ class Collection:
             return "\n\n".join(results)
         else:
             return _("No objects found")
-
-
-    def __iter__(self):
-        """
-        Iterator for the collection.  Allows list comprehensions, etc
-        """
-        for a in self.listing.values():
-            yield a
-
-
-    def __len__(self):
-        """
-        Returns size of the collection
-        """
-        return len(self.listing.values())
 
 
     def collection_type(self):
