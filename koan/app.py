@@ -613,7 +613,7 @@ class Koan:
         if profile_data.get("kickstart", "") != "":
 
             # fix URLs
-            if profile_data["kickstart"][0] == "/" or profile_data["template_remote_kickstarts"]:
+            if profile_data["kickstart"][0] == "/":
                 if not self.system:
                     profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
                         profile_data['http_server'], profile_data['name'])

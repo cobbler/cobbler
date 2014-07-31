@@ -124,7 +124,6 @@ DEFAULTS = {
     "signature_path": ["/var/lib/cobbler/distro_signatures.json", "str"],
     "signature_url": ["http://www.cobblerd.org/signatures/latest.json", "str"],
     "snippetsdir": ["/var/lib/cobbler/snippets", "str"],
-    "template_remote_kickstarts": [0, "bool"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
     "xmlrpc_port": [25151, "int"],

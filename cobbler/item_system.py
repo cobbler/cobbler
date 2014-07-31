@@ -96,7 +96,6 @@ FIELDS = [
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
     ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Satellite, or Spacewalk", 0, "str"],
     ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Satellite or Spacewalk Server", 0, "str"],
-    ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
     ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
@@ -803,15 +802,6 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
-
-
-    def set_template_remote_kickstarts(self, template):
-        """
-        Sets whether or not the server is configured to template remote
-        kickstarts.
-        """
-        self.template_remote_kickstarts = utils.input_boolean(template)
         return True
 
 
