@@ -31,16 +31,18 @@ import shutil
 import string
 import traceback
 import errno
-from cexceptions import FileNotFoundException, CX
-import codes
 import netaddr
 import shlex
-import field_info
-import clogger
 import yaml
 import urllib2
 import simplejson
 import hashlib
+
+from cobbler import codes
+from cobbler import clogger
+from cobbler import field_info
+
+from cexceptions import FileNotFoundException, CX
 
 
 def md5(key):
