@@ -1,8 +1,4 @@
 """
-python API module for Cobbler
-see source for cobbler.py, or pydoc, for example usage.
-CLI apps and daemons should import api.py, and no other cobbler code.
-
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -70,11 +66,13 @@ RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 
 
 class BootAPI:
-
+    """
+    Python API module for Cobbler.
+    See source for cobbler.py, or pydoc, for example usage.
+    Cli apps and daemons should import api.py, and no other cobbler code.
+    """
     __shared_state = {}
     __has_loaded = False
-
-    # ===========================================================
 
     def __init__(self, is_cobblerd=False):
         """
@@ -1118,3 +1116,5 @@ class BootAPI:
 
     def get_os_details(self):
         return (self.dist, self.os_version)
+
+# EOF

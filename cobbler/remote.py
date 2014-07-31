@@ -1,6 +1,4 @@
 """
-Code for Cobbler's XMLRPC API
-
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
 
@@ -63,6 +61,9 @@ EVENT_INFO = "notification"
 
 
 class CobblerThread(Thread):
+    """
+    Code for Cobbler's XMLRPC API.
+    """
     def __init__(self, event_id, remote, logatron, options):
         Thread.__init__(self)
         self.event_id = event_id
@@ -2184,3 +2185,5 @@ class ProxiedXMLRPCInterface:
         except Exception, e:
             utils.log_exc(self.logger)
             raise e
+
+# EOF
