@@ -231,8 +231,7 @@ class Item(object):
         The owners field is a comment unless using an authz module that pays attention to it,
         like authz_ownership, which ships with Cobbler but is off by default.
         """
-        owners = utils.input_string_or_list(data)
-        self.owners = owners
+        self.owners = utils.input_string_or_list(data)
         return True
 
 

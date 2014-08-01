@@ -17,11 +17,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import re
 import os.path
 
-from cobbler import codes
 from cobbler.cexceptions import CX
 
+
+KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
+KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
+
+RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
+RE_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 6) + '$')
+RE_INFINIBAND_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
+RE_IPV4_ADDRESS = re.compile(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$')
+RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
 
 def object_name(name, parent):
@@ -41,7 +50,7 @@ def object_name(name, parent):
     if name != "" and parent != "" and name == parent:
         raise CX("Self parentage is not allowed")
 
-    if not codes.RE_OBJECT_NAME.match(name):
+    if not RE_OBJECT_NAME.match(name):
         raise CX("Invalid characters in name: '%s'" % name)
 
     return name
@@ -65,8 +74,8 @@ def kickstart_file_path(kickstart):
     if kickstart.find("..") != -1:
         raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
 
-    if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
-        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
+    if not kickstart.startswith(KICKSTART_TEMPLATE_BASE_DIR):
+        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, KICKSTART_TEMPLATE_BASE_DIR))
 
     if not os.path.isfile(kickstart):
         raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
@@ -86,7 +95,10 @@ def hostname(dnsname):
     else:
         dnsname = dnsname.strip()
 
-    if not codes.RE_HOSTNAME.match(dnsname):
+    if dnsname == "":
+        return dnsname
+
+    if not RE_HOSTNAME.match(dnsname):
         raise CX("Invalid hostname format")
 
     return dnsname
@@ -94,8 +106,8 @@ def hostname(dnsname):
 
 def mac_address(mac):
     """
-    Validate as an Infiniband mac address aswell as
-    an Eternet mac address.
+    Validate mac as an Infiniband mac address aswell
+    as an Eternet mac address.
 
     @param: str mac (mac address)
     @returns: str mac or CX
@@ -105,7 +117,10 @@ def mac_address(mac):
     else:
         mac = mac.strip()
 
-    if not codes.RE_MAC_ADDRESS.match(mac) or not codes.RE_INFINIBAND_MAC_ADDRESS.match(mac):
+    if mac == "random":
+        return mac
+
+    if not RE_MAC_ADDRESS.match(mac) or not RE_INFINIBAND_MAC_ADDRESS.match(mac):
         raise CX("Invalid mac address format")
 
     return mac
@@ -123,7 +138,10 @@ def ipv4_address(addr):
     else:
         addr = addr.strip()
 
-    if not codes.RE_IPV4_ADDRESS.match(addr):
+    if addr == "":
+        return addr
+
+    if not RE_IPV4_ADDRESS.match(addr):
         raise CX("Invalid IPv4 address format")
 
     return addr

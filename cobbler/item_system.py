@@ -316,16 +316,21 @@ class System(item.Item):
 
 
     def set_dns_name(self, dns_name, interface):
-        intf = self.__get_interface(interface)
-        # FIXME: move duplicate supression code to the object validation
-        # functions to take a harder line on supression?
-        if dns_name != "" and not str(self.config._settings.allow_duplicate_hostnames).lower() in ["1", "y", "yes"]:
+        """
+        Set DNS name for interface.
+
+        @param: str dns_name (dns name)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
+        dns_name = validate.hostname(dns_name)
+        if dns_name != "" and utils.input_boolen(self.config._settings.allow_duplicate_hostnames) is False:
             matched = self.config.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
-                    raise CX("dns-name duplicated: %s" % dns_name)
+                    raise CX("DNS name duplicated: %s" % dns_name)
 
-
+        intf = self.__get_interface(interface)
         intf["dns_name"] = dns_name
         return True
 
@@ -345,9 +350,13 @@ class System(item.Item):
 
 
     def set_hostname(self, hostname):
-        if hostname is None:
-            hostname = ""
-        self.hostname = hostname
+        """
+        Set hostname.
+
+        @param: str hostname (hostname for system)
+        @returns: True or CX
+        """
+        self.hostname = validate.hostname(hostname)
         return True
 
 
@@ -370,52 +379,54 @@ class System(item.Item):
 
     def set_ip_address(self, address, interface):
         """
-        Assign a IP or hostname in DHCP when this MAC boots.
-        Only works if manage_dhcp is set in /etc/cobbler/settings
-        """
-        intf = self.__get_interface(interface)
+        Set IPv4 address on interface.
 
-        # FIXME: move duplicate supression code to the object validation
-        # functions to take a harder line on supression?
-        if address != "" and not str(self.config._settings.allow_duplicate_ips).lower() in ["1", "y", "yes"]:
+        @param: str address (ip address)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
+        address = validate.ipv4_address(address)
+        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_ips) is False:
             matched = self.config.api.find_items("system", {"ip_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
 
-
-        if address == "" or utils.is_ip(address):
-            intf["ip_address"] = address.strip()
-            return True
-        raise CX(_("invalid format for IP address (%s)") % address)
+        intf = self.__get_interface(interface)
+        intf["ip_address"] = address
+        return True
 
 
     def set_mac_address(self, address, interface):
+        """
+        Set mc address on interface.
+
+        @param: str address (mac address)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
+        address = validate.mac_address(address)
         if address == "random":
             address = utils.get_random_mac(self.config.api)
-
-        # FIXME: move duplicate supression code to the object validation
-        # functions to take a harder line on supression?
-        if address != "" and not str(self.config._settings.allow_duplicate_macs).lower() in ["1", "y", "yes"]:
+        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_macs) is False:
             matched = self.config.api.find_items("system", {"mac_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("MAC address duplicated: %s" % address)
 
         intf = self.__get_interface(interface)
-        if address == "" or utils.is_mac(address):
-            intf["mac_address"] = address.strip()
-            return True
-        raise CX(_("invalid format for MAC address (%s)" % address))
+        intf["mac_address"] = address.strip()
+        return True
 
 
     def set_gateway(self, gateway):
-        if gateway is None:
-            gateway = ""
-        if utils.is_ip(gateway) or gateway == "":
-            self.gateway = gateway
-        else:
-            raise CX(_("invalid format for gateway IP address (%s)") % gateway)
+        """
+        Set a gateway IPv4 address.
+
+        @param: str gateway (ip address)
+        @returns: True or CX
+        """
+        self.gateway = validate.ipv4_address(gateway)
         return True
 
 
@@ -570,7 +581,7 @@ class System(item.Item):
 
     def set_profile(self, profile_name):
         """
-        Set the system to use a certain named profile.  The profile
+        Set the system to use a certain named profile. The profile
         must have already been loaded into the Profiles collection.
         """
         old_parent = self.get_parent()
