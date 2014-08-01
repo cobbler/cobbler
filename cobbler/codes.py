@@ -20,34 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import re
-
-
-#
-# restrict kickstarts and snippets to trusted directories (security)
-#
-
-KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
-KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
-
-
-#
-# validation regexes
-#
-
-RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:+]*$')
-
-RE_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 6) + '$')
-RE_INFINIBAND_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
-
-RE_IPV4_ADDRESS = re.compile(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$')
-RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
-
-
-#
-# object type validation
-#
-
 VALID_REPO_BREEDS = [
     "rsync", "rhn", "yum", "apt", "wget"
 ]
