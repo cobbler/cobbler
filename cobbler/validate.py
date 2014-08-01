@@ -17,20 +17,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import re
+import shlex
 import os.path
 
+from cobbler import codes
+
 from cobbler.cexceptions import CX
-
-
-KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
-KICKSTART_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
-
-RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
-RE_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 6) + '$')
-RE_INFINIBAND_MAC_ADDRESS = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
-RE_IPV4_ADDRESS = re.compile(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$')
-RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
 
 def object_name(name, parent):
@@ -50,17 +42,42 @@ def object_name(name, parent):
     if name != "" and parent != "" and name == parent:
         raise CX("Self parentage is not allowed")
 
-    if not RE_OBJECT_NAME.match(name):
+    if not codes.RE_OBJECT_NAME.match(name):
         raise CX("Invalid characters in name: '%s'" % name)
 
     return name
 
 
-def kickstart_file_path(kickstart):
+def snippet_file_path(snippet):
+    """
+    Validate the snippet file path.
+
+    @param: str snippet (absolute path to a local snippet file)
+    @returns: str snippet or CX
+    """
+    if not isinstance(snippet, basestring):
+        raise CX("Invalid input, snippet must be a string")
+    else:
+        snippet = snippet.strip()
+
+    if snippet.find("..") != -1:
+        raise CX("Invalid snippet template file location %s, must be absolute path" % snippet)
+
+    if not snippet.startswith(codes.SNIPPET_TEMPLATE_BASE_DIR):
+        raise CX("Invalid snippet template file location %s, it is not inside %s" % (snippet, codes.SNIPPET_TEMPLATE_BASE_DIR))
+
+    if not os.path.isfile(snippet):
+        raise CX("Invalid snippet template file location %s, file not found" % snippet)
+
+    return snippet
+
+
+def kickstart_file_path(kickstart, for_item=True):
     """
     Validate the kickstart file path.
 
     @param: str kickstart (absolute path to a local kickstart file)
+    @param: bool for_item (enable/disable special handling for Item objects)
     @returns: str kickstart or CX
     """
     if not isinstance(kickstart, basestring):
@@ -68,14 +85,20 @@ def kickstart_file_path(kickstart):
     else:
         kickstart = kickstart.strip()
 
-    if kickstart == "<<inherit>>" or kickstart == "":
+    if kickstart == "":
         return kickstart
+
+    if for_item is True:
+        # this kickstart value has special meaning for Items
+        # other callers of this function have no use for this
+        if kickstart == "<<inherit>>":
+            return kickstart
 
     if kickstart.find("..") != -1:
         raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
 
-    if not kickstart.startswith(KICKSTART_TEMPLATE_BASE_DIR):
-        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, KICKSTART_TEMPLATE_BASE_DIR))
+    if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
+        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
 
     if not os.path.isfile(kickstart):
         raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
@@ -98,7 +121,7 @@ def hostname(dnsname):
     if dnsname == "":
         return dnsname
 
-    if not RE_HOSTNAME.match(dnsname):
+    if not codes.RE_HOSTNAME.match(dnsname):
         raise CX("Invalid hostname format")
 
     return dnsname
@@ -115,12 +138,12 @@ def mac_address(mac):
     if not isinstance(mac, basestring):
         raise CX("Invalid input, mac must be a string")
     else:
-        mac = mac.strip()
+        mac = mac.lower().strip()
 
     if mac == "random":
         return mac
 
-    if not RE_MAC_ADDRESS.match(mac) or not RE_INFINIBAND_MAC_ADDRESS.match(mac):
+    if not (codes.RE_MAC_ADDRESS.match(mac) or codes.RE_INFINIBAND_MAC_ADDRESS.match(mac)):
         raise CX("Invalid mac address format")
 
     return mac
@@ -141,10 +164,38 @@ def ipv4_address(addr):
     if addr == "":
         return addr
 
-    if not RE_IPV4_ADDRESS.match(addr):
+    if not codes.RE_IPV4_ADDRESS.match(addr):
         raise CX("Invalid IPv4 address format")
 
     return addr
+
+
+def name_servers(nameservers, for_item=True):
+    """
+    Validate nameservers IP addresses.
+
+    @param: str/list nameservers (string or list of nameserver addresses)
+    @param: bool for_item (enable/disable special handling for Item objects)
+    """
+    if isinstance(nameservers, basestring):
+        nameservers = nameservers.strip()
+        if for_item is True:
+            # special handling for Items
+            if nameservers == "<<inherit>>" or nameservers == "":
+                nameservers = []
+                return nameservers
+
+        # convert string to a list; do the real validation
+        # in the isinstance(list) code block below
+        nameservers = shlex.split(nameservers)
+
+    if isinstance(nameservers, list):
+        for ns in nameservers:
+            ipv4_address(ns)
+    else:
+        raise CX("Invalid input type %s, expected str or list" % type(nameservers))
+
+    return nameservers
 
 
 # EOF

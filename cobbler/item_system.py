@@ -324,7 +324,7 @@ class System(item.Item):
         @returns: True or CX
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and utils.input_boolen(self.config._settings.allow_duplicate_hostnames) is False:
+        if dns_name != "" and utils.input_boolean(self.config._settings.allow_duplicate_hostnames) is False:
             matched = self.config.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
@@ -431,10 +431,13 @@ class System(item.Item):
 
 
     def set_name_servers(self, data):
-        if data == "<<inherit>>":
-            data = []
-        data = utils.input_string_or_list(data)
-        self.name_servers = data
+        """
+        Set the DNS servers.
+
+        @param: str/list data (string or list of nameservers)
+        @returns: True or CX
+        """
+        self.name_servers = validate.name_servers(data)
         return True
 
 

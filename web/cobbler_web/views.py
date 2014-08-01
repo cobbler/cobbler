@@ -649,15 +649,12 @@ def ksfile_list(request, page=None):
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/ksfile/list", expired=True)
+
     ksfiles = remote.get_kickstart_templates(request.session['token'])
 
     ksfile_list = []
-    base_dir = "/var/lib/cobbler/kickstarts/"
     for ksfile in ksfiles:
-        if ksfile.startswith(base_dir):
-            ksfile_list.append((ksfile, ksfile.replace(base_dir, ''), 'editable'))
-        else:
-            return error_page(request, "Invalid kickstart template at %s, outside %s" % (ksfile, base_dir))
+        ksfile_list.append((ksfile, ksfile.replace('/var/lib/cobbler/kickstarts/', ''), 'editable'))
 
     t = get_template('ksfile_list.tmpl')
     html = t.render(RequestContext(request, {
@@ -1107,20 +1104,26 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
     fields = get_fields(what, child, obj)
 
+    # create the kickstart pulldown list
+    # allow for an empty value in the webui
+    kickstart_list = remote.get_kickstart_templates()
+    kickstart_list.append("")
+    kickstart_list.sort()
+
     # populate some select boxes
     if what == "profile":
         if (obj and obj["parent"] not in (None, "")) or child:
             __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
         else:
             __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
-        __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
+        __tweak_field(fields, "kickstart", "choices", kickstart_list)
         __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
 
     elif what == "system":
         __tweak_field(fields, "profile", "choices", __names_from_dicts(remote.get_profiles()))
         __tweak_field(fields, "image", "choices", __names_from_dicts(remote.get_images(), optional=True))
-        __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
+        __tweak_field(fields, "kickstart", "choices", kickstart_list)
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
 
     elif what == "mgmtclass":
@@ -1137,7 +1140,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "arch", "choices", remote.get_valid_archs())
         __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
         __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
-        __tweak_field(fields, "kickstart", "choices", remote.get_kickstart_templates())
+        __tweak_field(fields, "kickstart", "choices", kickstart_list)
 
     # if editing save the fields in the session for comparison later
     if editmode == "edit":

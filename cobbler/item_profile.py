@@ -189,11 +189,13 @@ class Profile(item.Item):
 
 
     def set_name_servers(self, data):
-        # FIXME: move to utils since shared with system
-        if data == "<<inherit>>":
-            data = []
-        data = utils.input_string_or_list(data)
-        self.name_servers = data
+        """
+        Set the DNS servers.
+
+        @param: str/list data (string or list of nameservers)
+        @returns: True or CX
+        """
+        self.name_servers = validate.name_servers(data)
         return True
 
 
