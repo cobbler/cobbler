@@ -442,10 +442,13 @@ class System(item.Item):
 
 
     def set_name_servers_search(self, data):
-        if data == "<<inherit>>":
-            data = []
-        data = utils.input_string_or_list(data)
-        self.name_servers_search = data
+        """
+        Set the DNS search paths.
+
+        @param: str/list data (string or list of search domains)
+        @returns: True or CX
+        """
+        self.name_servers_search = validate.name_servers_search(data)
         return True
 
 

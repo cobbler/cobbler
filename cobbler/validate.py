@@ -198,4 +198,32 @@ def name_servers(nameservers, for_item=True):
     return nameservers
 
 
+def name_servers_search(search, for_item=True):
+    """
+    Validate nameservers search domains.
+
+    @param: str/list search (string or list of search domains)
+    @param: bool for_item (enable/disable special handling for Item objects)
+    """
+    if isinstance(search, basestring):
+        search = search.strip()
+        if for_item is True:
+            # special handling for Items
+            if search == "<<inherit>>" or search == "":
+                search = []
+                return search
+
+        # convert string to a list; do the real validation
+        # in the isinstance(list) code block below
+        search = shlex.split(search)
+
+    if isinstance(search, list):
+        for sl in nameservers:
+            hostname(sl)
+    else:
+        raise CX("Invalid input type %s, expected str or list" % type(nameservers))
+
+    return search
+
+
 # EOF
