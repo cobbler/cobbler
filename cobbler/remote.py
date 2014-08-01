@@ -44,6 +44,7 @@ from cobbler import item_file
 from cobbler import clogger
 from cobbler import pxegen
 from cobbler import configgen
+from cobbler import validate
 
 from cobbler.cexceptions import CX
 
@@ -1959,20 +1960,6 @@ class CobblerXMLRPCInterface:
         self.check_access(token, "sync")
         return self.api.sync()
 
-    def _validate_ks_template_path(self, path):
-        """
-        Validate a kickstart template file path
-
-        @param str path kickstart template file path
-        """
-
-        if path.find("..") != -1 or not path.startswith("/"):
-            utils.die(self.logger, "Invalid kickstart template file location %s" % path)
-
-        if not path.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
-            error = "Invalid kickstart template file location %s, it is not inside %s" % (path, codes.KICKSTART_TEMPLATE_BASE_DIR)
-            utils.die(self.logger, error)
-
     def read_kickstart_template(self, file_path, token):
         """
         Read a kickstart template file
@@ -1981,11 +1968,10 @@ class CobblerXMLRPCInterface:
         @param ? token
         @return str file content
         """
-
         what = "read_kickstart_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_template_path(file_path)
+        file_path = validate.kickstart_file_path(file_path, for_item=False)
 
         fileh = open(file_path, "r")
         data = fileh.read()
@@ -2006,7 +1992,7 @@ class CobblerXMLRPCInterface:
         what = "write_kickstart_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_template_path(file_path)
+        file_path = validate.kickstart_file_path(file_path, for_item=False)
 
         try:
             utils.mkdir(os.path.dirname(file_path))
@@ -2027,11 +2013,10 @@ class CobblerXMLRPCInterface:
         @param ? token
         @return bool if operation was successful
         """
-
         what = "write_kickstart_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_template_path(file_path)
+        file_path = validate.kickstart_file_path(file_path, for_item=False)
 
         if not self.is_kickstart_in_use(file_path, token):
             os.remove(file_path)
@@ -2039,18 +2024,6 @@ class CobblerXMLRPCInterface:
             utils.die(self.logger, "attempt to delete in-use file")
 
         return True
-
-    # FIXME: duplicated code for kickstart and snippet
-    # FIXME: need to move to API level functions
-
-    def _validate_ks_snippet_path(self, path):
-
-        if path.find("..") != -1 or not path.startswith("/"):
-            utils.die(self.logger, "Invalid kickstart snippet file location %s" % path)
-
-        if not path.startswith(codes.KICKSTART_SNIPPET_BASE_DIR):
-            error = "Invalid kickstart snippet file location %s, it is not inside %s" % (path, codes.KICKSTART_SNIPPET_BASE_DIR)
-            utils.die(self.logger, error)
 
     def read_kickstart_snippet(self, file_path, token):
         """
@@ -2060,11 +2033,10 @@ class CobblerXMLRPCInterface:
         @param ? token
         @return str file content
         """
-
         what = "read_kickstart_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_snippet_path(file_path)
+        file_path = validate.snippet_file_path(file_path)
 
         fileh = open(file_path, "r")
         data = fileh.read()
@@ -2080,12 +2052,11 @@ class CobblerXMLRPCInterface:
         @param str data new file content
         @param ? token
         @return bool if operation was successful
-     """
-
+        """
         what = "write_kickstart_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_snippet_path(file_path)
+        file_path = validate.snippet_file_path(file_path)
 
         try:
             utils.mkdir(os.path.dirname(file_path))
@@ -2110,10 +2081,10 @@ class CobblerXMLRPCInterface:
         what = "write_kickstart_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        self._validate_ks_snippet_path(file_path)
+        file_path = validate.snippet_file_path(file_path)
 
         # FIXME: could check if snippet is in use
-        snippet_file_path = codes.KICKSTART_SNIPPET_BASE_DIR + file_path
+        snippet_file_path = codes.SNIPPET_TEMPLATE_BASE_DIR + file_path
         os.remove(snippet_file_path)
 
         return True

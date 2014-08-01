@@ -1554,7 +1554,6 @@ def get_kickstart_templates(api):
             files[x] = 1
 
     results = files.keys()
-    results.append("")      # allow the use-case to not select a kickstart
     results.sort()
     return results
 
