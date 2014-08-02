@@ -34,3 +34,14 @@ cobbler4j/target
 
 # Testrun output
 test.log
+
+# Debian package residuals
+debian/files
+debian/*.debhelper.log
+debian/*.postinst.debhelper
+debian/*.prerm.debhelper
+debian/*.substvars
+debian/cobbler
+debian/koan
+debian/tmp
+
