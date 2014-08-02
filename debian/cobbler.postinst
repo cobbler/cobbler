@@ -7,4 +7,7 @@ if [ "$1" = "configure" ] ; then
     chmod 0700 /var/lib/cobbler/webui_sessions
     chown www-data:www-data /var/lib/cobbler/webui_cache
     chmod 0700 /var/lib/cobbler/webui_sessions
+
+    a2enmod proxy_http
+    /etc/init.d/apache2 reload
 fi
