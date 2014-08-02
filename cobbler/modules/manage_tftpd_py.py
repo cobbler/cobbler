@@ -41,7 +41,7 @@ def register():
 class TftpdPyManager:
 
     def what(self):
-        return "tftpd"
+        return "tftpd_py"
 
     def __init__(self,config,logger):
         """
