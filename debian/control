@@ -8,8 +8,8 @@ Homepage: http://www.cobblerd.org
 
 Package: cobbler
 Architecture: all
-Depends: ${python:Depends}, python, apache2, libapache2-mod-python, python-support, python-yaml, python-netaddr, python-cheetah, debmirror, syslinux | syslinux-common
-Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo
+Depends: ${python:Depends}, python, apache2, libapache2-mod-wsgi, python-support, python-yaml, python-netaddr, python-cheetah, debmirror, syslinux | syslinux-common, python-simplejson, python-urlgrabber, python-django
+Suggests: rsync, tftpd-hpa, mkisofs-hpa, dhcp3-server, createrepo
 Description: Install server
  Cobbler is a network install server.  Cobbler
  supports PXE, virtualized installs, and
@@ -25,7 +25,7 @@ Description: Install server
 Package: koan
 Architecture: all
 Depends: ${python:Depends}, python, python-support, python-yaml, python-netaddr, lvm2, libvirt-bin, virtinst, syslinux | syslinux-common
-Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo, selinux-utils
+Suggests: rsync, tftpd-hpa, mkisofs-hpa, dhcp3-server, createrepo, selinux-utils
 Description: kickstart-over-a-network (koan)
  Koan stands for kickstart-over-a-network.
  It's a Cobbler helper tool that supports virtualized guests installs
