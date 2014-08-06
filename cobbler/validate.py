@@ -218,10 +218,10 @@ def name_servers_search(search, for_item=True):
         search = shlex.split(search)
 
     if isinstance(search, list):
-        for sl in nameservers:
+        for sl in search:
             hostname(sl)
     else:
-        raise CX("Invalid input type %s, expected str or list" % type(nameservers))
+        raise CX("Invalid input type %s, expected str or list" % type(search))
 
     return search
 
