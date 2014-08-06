@@ -24,7 +24,10 @@
 # processname: /usr/bin/cobblerd
 
 # Sanity checks.
-[ -x /usr/bin/cobblerd ] || exit 0
+[ -x @@install_scripts@@/cobblerd ] || ( 
+    echo "Error, could not find executable: @@install_scripts@@/cobblerd"
+    exit 1
+)
 
 DEBIAN_VERSION=/etc/debian_version
 SUSE_RELEASE=/etc/SuSE-release
