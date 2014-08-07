@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import clogger
 import time
 import re
 
@@ -49,6 +50,9 @@ class BindManager:
         Constructor
         """
         self.logger = logger
+        if self.logger is None:
+            self.logger = clogger.Logger()
+
         self.config = config
         self.api = config.api
         self.distros = config.distros()
