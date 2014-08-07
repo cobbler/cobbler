@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import clogger
 import time
 import sys
 import glob
@@ -58,15 +59,18 @@ class BindManager:
         """
         Constructor
         """
-        self.logger        = logger
-        self.config        = config
-        self.api           = config.api
-        self.distros       = config.distros()
-        self.profiles      = config.profiles()
-        self.systems       = config.systems()
-        self.settings      = config.settings()
-        self.repos         = config.repos()
-        self.templar       = templar.Templar(config)
+        self.logger = logger
+        if self.logger is None:
+            self.logger = clogger.Logger()
+
+        self.config = config
+        self.api = config.api
+        self.distros = config.distros()
+        self.profiles = config.profiles()
+        self.systems = config.systems()
+        self.settings = config.settings()
+        self.repos = config.repos()
+        self.templar = templar.Templar(config)
         self.settings_file = utils.namedconf_location(self.api)
         self.zonefile_base = utils.zonefile_base(self.api)
 
