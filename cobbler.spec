@@ -9,7 +9,7 @@ License: GPLv2+
 AutoReq: no
 Version: 2.4.7
 Release: 1%{?dist}
-Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.6.tar.gz
+Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.7.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
