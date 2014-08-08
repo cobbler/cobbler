@@ -165,7 +165,7 @@ def build_commandline(uri,
                       vcpus=None,
                       profile_data=None,
                       arch=None,
-                      no_gfx=False,
+                      gfx_type=None,
                       fullvirt=False,
                       bridge=None,
                       virt_type=None,
@@ -318,10 +318,10 @@ def build_commandline(uri,
     if virt_auto_boot and not disable_autostart:
         cmd += "--autostart "
 
-    if no_gfx:
+    if gfx_type is None:
         cmd += "--nographics "
     else:
-        cmd += "--vnc "
+        cmd += "--%s " % gfx_type
 
     if is_qemu and virt_type:
         if not disable_virt_type:
