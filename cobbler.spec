@@ -7,9 +7,9 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.4.6
+Version: 2.4.7
 Release: 1%{?dist}
-Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.6.tar.gz
+Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.7.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -323,6 +323,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %attr(-,apache,apache) /var/www/cobbler_webui_content/
 
 %changelog
+* Fri Aug 08 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.7
 * Fri Jul 18 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.6
 - Minor update to resolve CVE-2014-3225 
 * Sun Jul 13 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.5
