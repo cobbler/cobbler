@@ -221,6 +221,13 @@ def main():
         help="disable Xen graphics (xenpv,xenfv)"
     )
     p.add_option(
+        "-g",
+        "--graphics",
+        action="store_true",
+        dest="gfx_type",
+        help="specify the graphics type: vnc, sdl, spice, none"
+    )
+    p.add_option(
         "",
         "--virt-auto-boot",
         action="store_true",
@@ -336,7 +343,6 @@ def main():
         k.force_path = options.force_path
         k.virt_type = options.virt_type
         k.virt_bridge = options.virt_bridge
-        k.no_gfx = options.no_gfx
         k.add_reinstall_entry = options.add_reinstall_entry
         k.kopts_override = options.kopts_override
         k.static_interface = options.static_interface
@@ -357,6 +363,12 @@ def main():
             k.virt_name = options.virt_name
         if options.port is not None:
             k.port = options.port
+        if options.gfx_type is not None and options.no_gfx is not None:
+            raise InfoException("Error: cannot specify both -n|--no_gfx and -g|--graphics")
+        if options.gfx_type == "none" or options.no_gfx is not None:
+            k.gfx_type = None
+        else:
+            k.gfx_type = options.gfx_type
         k.run()
 
     except Exception as e:
@@ -1555,7 +1567,7 @@ class Koan:
             vcpus=vcpus,
             profile_data=profile_data,
             arch=arch,
-            no_gfx=self.no_gfx,
+            gfx_type=self.gfx_type,
             fullvirt=fullvirt,
             bridge=self.virt_bridge,
             virt_type=self.virt_type,
