@@ -1208,6 +1208,17 @@ class Koan:
 
                 utils.subprocess_call(cmd)
 
+                # Need to remove the root= argument to prevent booting the current OS
+                cmd = [
+                    "/sbin/grubby",
+                    "--update-kernel",
+                    self.safe_load(
+                        profile_data,
+                        'kernel_local'),
+                    "--remove-args=root"]
+
+                utils.subprocess_call(cmd)
+
                 # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
                 if arch.startswith("ppc") and "grub2" not in probe_output:
                     # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition
