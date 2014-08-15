@@ -811,6 +811,18 @@ class CobblerXMLRPCInterface:
     def new_file(self,token):
         return self.new_item("file",token)
 
+    def _validate_ks_template_path(self, path):
+        """
+        validate a kickstart template file path
+
+        @param str path  kickstart template file path
+        """
+        if path.find("..") != -1 or not path.startswith("/"):
+            utils.die(self.logger, "Invalid kickstart template file location %s" % path)
+
+        if not path.startswith("/var/lib/cobbler/kickstarts"):
+            utils.die(self.logger, "Invalid kickstart template file location %s, it is not inside /var/lib/cobbler/kickstarts/" % path)
+
     def modify_item(self,what,object_id,attribute,arg,token):
         """
         Adjusts the value of a given field, specified by 'what' on a given object id.
@@ -824,7 +836,7 @@ class CobblerXMLRPCInterface:
         attribute = REMAP_COMPAT.get(attribute,attribute)
         method = obj.remote_methods().get(attribute, None)
 
-        if what == "system" and attribute == "kickstart":
+        if what in ["profile", "system"] and attribute == "kickstart":
             self._validate_ks_template_path(arg)
 
         if method is None:
@@ -833,7 +845,7 @@ class CobblerXMLRPCInterface:
             return False
             # raise CX("object has no method: %s" % attribute)
         return method(arg)
-    
+
     def modify_distro(self,object_id,attribute,arg,token):
         return self.modify_item("distro",object_id,attribute,arg,token)
     def modify_profile(self,object_id,attribute,arg,token):
