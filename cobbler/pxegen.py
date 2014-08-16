@@ -595,8 +595,12 @@ class PXEGen:
                 blended = utils.blender(self.api, True, system)
             else:
                 blended = utils.blender(self.api, True, profile)
-            kickstart_path = blended.get("kickstart","")
-            
+            kickstart_path = blended.get("kickstart", "")
+
+            # update metadata with all known information
+            # this allows for more powerful templating
+            metadata.update(blended)
+
         else:
             # this is an image we are making available, not kernel+initrd
             if image.image_type == "direct":
