@@ -3,8 +3,8 @@ import sys
 import unittest
 
 from cobbler import utils
-from newtests.cli.imports.import_base import CobblerImportTest
-from newtests.cli.imports.import_base import create_import_func
+from tests.cli.imports.import_base import CobblerImportTest
+from tests.cli.imports.import_base import create_import_func
 
 class Test_FreeBSD_Imports(CobblerImportTest):
    """
