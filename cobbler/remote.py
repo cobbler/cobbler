@@ -2026,7 +2026,7 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
         if power=="on":
-            rc=self.api.power_on(obj, user=user, password=passwrod, logger=logger)
+            rc=self.api.power_on(obj, user=user, password=password, logger=logger)
         elif power=="off":
             rc=self.api.power_off(obj, user=user, password=password, logger=logger)
         elif power=="status":
