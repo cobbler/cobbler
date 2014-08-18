@@ -850,10 +850,6 @@ If using dnsmasq, the template is /etc/cobbler/dnsmasq.template.  Read this file
 
 All managed files (whether zone files and named.conf for BIND, or dnsmasq.conf for dnsmasq) will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.
 
-=head2 SERVICE DISCOVERY (AVAHI)
-
-If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan with the koan --server=DISCOVER parameter.
-
 =head2 IMPORTING TREES
 
 Cobbler can auto-add distributions and profiles from remote sources, whether this is a filesystem path or an rsync mirror.  This can save a lot of time when setting up a new provisioning environment.  Import is a feature that many users will want to take advantage of, and is very simple to use.
