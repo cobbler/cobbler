@@ -357,13 +357,16 @@ def build_commandline(uri,
                 if suse_version_re.match(os_version):
                     os_version = suse_version_re.match(os_version).groups()[0]
             # make sure virt-install knows about our os_version,
-            # otherwise default it to generic26
+            # otherwise default it to virtio26 or generic26
             found = False
-            if os_version in supported_variants:
-                cmd += "--os-variant %s " % os_version
-            else:
-                print ("- warning: virt-install doesn't know this os_version, defaulting to generic26")
-                cmd += "--os-variant generic26 "
+            if os_version not in supported_variants:
+                if "virtio26" in supported_variants:
+                    os_version = "virtio26"
+                else:
+                    os_version = "generic26"
+                print("- warning: virt-install doesn't know this os_version, "
+                      "defaulting to %s" % os_version)
+            cmd += "--os-variant %s " % os_version
         else:
             distro = "unix"
             if breed in [ "debian", "suse", "redhat" ]:
