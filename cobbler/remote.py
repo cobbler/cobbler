@@ -31,7 +31,7 @@ import fcntl
 import glob
 from threading import Thread
 
-from cobbler import codes
+from cobbler import validate
 from cobbler import utils
 from cobbler import item_distro
 from cobbler import item_profile
@@ -44,7 +44,6 @@ from cobbler import item_file
 from cobbler import clogger
 from cobbler import pxegen
 from cobbler import configgen
-from cobbler import validate
 
 from cobbler.cexceptions import CX
 
@@ -2084,7 +2083,7 @@ class CobblerXMLRPCInterface:
         file_path = validate.snippet_file_path(file_path)
 
         # FIXME: could check if snippet is in use
-        snippet_file_path = codes.SNIPPET_TEMPLATE_BASE_DIR + file_path
+        snippet_file_path = validate.SNIPPET_TEMPLATE_BASE_DIR + file_path
         os.remove(snippet_file_path)
 
         return True

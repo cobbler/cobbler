@@ -48,8 +48,7 @@ from cobbler.cexceptions import CX
 # tooltip -- the caption to be shown in the web app or in "commandname --help" in the CLI
 #
 # values -- for fields that have a limited set of valid options and those options are always fixed
-#           (such as architecture type), the list of valid options goes in this field.  This should
-#           almost always be a constant from codes.py
+#           (such as architecture type), the list of valid options goes in this field.
 #
 # type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
 #
