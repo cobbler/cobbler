@@ -5,8 +5,14 @@ if [ -f /etc/default/grub ]; then
   sed -i '/^GRUB_CMDLINE_LINUX=/d' /etc/default/grub
   echo "GRUB_CMDLINE_LINUX=\"\$TMP_GRUB $kernel_options_post\"" >> /etc/default/grub
   grub2-mkconfig -o /boot/grub2/grub.cfg
+  if grep -E '/boot/efi (efi|vfat)' /etc/mtab 2>&1 >/dev/null; then
+    /bin/cp -f /boot/grub2/grub.cfg /boot/efi/EFI/redhat/grub.cfg
+  fi
 else
   /sbin/grubby --update-kernel=\$(/sbin/grubby --default-kernel) --args="$kernel_options_post"
+  if grep -E '/boot/efi (efi|vfat)' /etc/mtab 2>&1 >/dev/null; then
+    /bin/cp -f /boot/grub/grub.conf /boot/efi/EFI/redhat/grub.conf
+  fi
 fi
 # End post install kernel options update
 #end if
