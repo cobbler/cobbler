@@ -17,7 +17,6 @@ Url: http://www.cobblerd.org/
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git
-BuildRequires: PyYAML
 BuildRequires: python-cheetah
 BuildRequires: python-setuptools
 

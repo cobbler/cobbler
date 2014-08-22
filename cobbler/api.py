@@ -23,9 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import sys
-import yaml
 import config
 import utils
+from ConfigParser import ConfigParser
+
 import action_sync
 import action_check
 import action_reposync
@@ -207,7 +208,7 @@ class BootAPI:
         if debug:
             logger = self.logger.debug
         else:
-            logger = self.logger.info 
+            logger = self.logger.info
         if args is None:
             logger("%s" % msg)
         else:
@@ -220,7 +221,7 @@ class BootAPI:
         What version is cobbler?
 
         If extended == False, returns a float for backwards compatibility
-         
+
         If extended == True, returns a dict:
 
             gitstamp      -- the last git commit hash
@@ -229,13 +230,22 @@ class BootAPI:
             version       -- something like "1.3.2"
             version_tuple -- something like [ 1, 3, 2 ]
         """
-        fd = open("/etc/cobbler/version")
-        ydata = fd.read()
-        fd.close()
-        data = yaml.safe_load(ydata)
+
+        config = ConfigParser()
+        config.read("/etc/cobbler/version")
+        data = {}
+        data["gitdate"] = config.get("cobbler","gitdate")
+        data["gitstamp"] = config.get("cobbler","gitstamp")
+        data["builddate"] = config.get("cobbler","builddate")
+        data["version"] = config.get("cobbler","version")
+        # dont actually read the version_tuple from the version file
+        data["version_tuple"] = []
+        for num in data["version"].split("."):
+            data["version_tuple"].append(int(num))
+
         if not extended:
             # for backwards compatibility and use with koan's comparisons
-            elems = data["version_tuple"] 
+            elems = data["version_tuple"]
             return int(elems[0]) + 0.1*int(elems[1]) + 0.001*int(elems[2])
         else:
             return data
