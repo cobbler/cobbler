@@ -761,6 +761,22 @@
     "kernel_options_post":"",
     "boot_files":[]
    }
+   "virtio26": {
+    "signatures":[],
+    "version_file":"",
+    "version_file_regex":"",
+    "kernel_arch":"",
+    "kernel_arch_regex":"",
+    "supported_arches":["i386","x86_64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"",
+    "initrd_file":"",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   }
   }
  }
 }
