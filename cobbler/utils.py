@@ -1962,8 +1962,8 @@ def get_valid_archs():
     archs = []
     try:
         for breed in get_valid_breeds():
-            for os in SIGNATURE_CACHE["breeds"][breed].keys():
-                archs += SIGNATURE_CACHE["breeds"][breed][os]["supported_arches"]
+            for operating_system in SIGNATURE_CACHE["breeds"][breed].keys():
+                archs += SIGNATURE_CACHE["breeds"][breed][operating_system]["supported_arches"]
     except:
         pass
     return uniquify(archs)
