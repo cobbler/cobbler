@@ -38,7 +38,7 @@ import urllib2
 import simplejson
 import hashlib
 
-from cobbler import codes
+from cobbler import validate
 from cobbler import clogger
 from cobbler import field_info
 
@@ -1319,14 +1319,14 @@ def set_repo_os_version(self, os_version):
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
-    if self.breed not in codes.VALID_REPO_BREEDS:
+    if self.breed not in validate.VALID_REPO_BREEDS:
         raise CX(_("fix --breed first before applying this setting"))
     self.os_version = os_version
     return True
 
 
 def set_repo_breed(self, breed):
-    valid_breeds = codes.VALID_REPO_BREEDS
+    valid_breeds = validate.VALID_REPO_BREEDS
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
         return True

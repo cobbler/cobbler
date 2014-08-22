@@ -164,7 +164,7 @@ class System(item.Item):
 
 
     #
-    # specific methods for item.Distro
+    # specific methods for item.System
     #
 
     def __get_interface(self, name):
@@ -278,12 +278,9 @@ class System(item.Item):
 
     def get_ip_address(self, interface):
         """
-        Get the IP address, which may be implicit in the object name or explict with --ip-address.
-        Use the explicit location first.
+        Get the IP address for the given interface.
         """
-
         intf = self.__get_interface(interface)
-
         if intf["ip_address"] != "":
             return intf["ip_address"].strip()
         else:
@@ -315,6 +312,38 @@ class System(item.Item):
         return True
 
 
+    def set_cnames(self, cnames, interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(cnames)
+        intf["cnames"] = data
+        return True
+
+
+    def set_static_routes(self, routes, interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(routes)
+        intf["static_routes"] = data
+        return True
+
+
+    def set_status(self, status):
+        self.status = status
+        return True
+
+
+    def set_static(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["static"] = utils.input_boolean(truthiness)
+        return True
+
+
+    def set_management(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["management"] = utils.input_boolean(truthiness)
+        return True
+
+# ---
+
     def set_dns_name(self, dns_name, interface):
         """
         Set DNS name for interface.
@@ -335,20 +364,6 @@ class System(item.Item):
         return True
 
 
-    def set_cnames(self, cnames, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(cnames)
-        intf["cnames"] = data
-        return True
-
-
-    def set_static_routes(self, routes, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes)
-        intf["static_routes"] = data
-        return True
-
-
     def set_hostname(self, hostname):
         """
         Set hostname.
@@ -357,23 +372,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.hostname = validate.hostname(hostname)
-        return True
-
-
-    def set_status(self, status):
-        self.status = status
-        return True
-
-
-    def set_static(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["static"] = utils.input_boolean(truthiness)
-        return True
-
-
-    def set_management(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["management"] = utils.input_boolean(truthiness)
         return True
 
 
@@ -399,7 +397,7 @@ class System(item.Item):
 
     def set_mac_address(self, address, interface):
         """
-        Set mc address on interface.
+        Set mac address on interface.
 
         @param: str address (mac address)
         @param: str interface (interface name)
@@ -415,7 +413,7 @@ class System(item.Item):
                     raise CX("MAC address duplicated: %s" % address)
 
         intf = self.__get_interface(interface)
-        intf["mac_address"] = address.strip()
+        intf["mac_address"] = address
         return True
 
 
@@ -453,18 +451,31 @@ class System(item.Item):
 
 
     def set_netmask(self, netmask, interface):
+        """
+        Set the netmask for given interface.
+
+        @param: str netmask (netmask)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
         intf = self.__get_interface(interface)
-        intf["netmask"] = netmask
+        intf["netmask"] = validate.ipv4_netmask(netmask)
         return True
 
 
     def set_if_gateway(self, gateway, interface):
-        intf = self.__get_interface(interface)
-        if gateway == "" or utils.is_ip(gateway):
-            intf["if_gateway"] = gateway
-            return True
-        raise CX(_("invalid gateway: %s" % gateway))
+        """
+        Set the per-interface gateway.
 
+        @param: str gateway (ipv4 address for the gateway)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
+        intf = self.__get_interface(interface)
+        intf["if_gateway"] = validate.ipv4_address(gateway)
+        return True
+
+# --
 
     def set_virt_bridge(self, bridge, interface):
         if bridge == "":
@@ -517,14 +528,22 @@ class System(item.Item):
 
     def set_ipv6_address(self, address, interface):
         """
-        Assign a IP or hostname in DHCP when this MAC boots.
-        Only works if manage_dhcp is set in /etc/cobbler/settings
+        Set IPv6 address on interface.
+
+        @param: str address (ip address)
+        @param: str interface (interface name)
+        @returns: True or CX
         """
+        address = validate.ipv6_address(address)
+        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_ips) is False:
+            matched = self.config.api.find_items("system", {"ipv6_address": address})
+            for x in matched:
+                if x.name != self.name:
+                    raise CX("IP address duplicated: %s" % address)
+
         intf = self.__get_interface(interface)
-        if address == "" or utils.is_ip(address):
-            intf["ipv6_address"] = address.strip()
-            return True
-        raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+        intf["ipv6_address"] = address
+        return True
 
 
     def set_ipv6_prefix(self, prefix, interface):
