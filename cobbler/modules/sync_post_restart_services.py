@@ -57,6 +57,9 @@ def run(api, args, logger):
             rc = utils.subprocess_call(logger, "service dnsmasq restart", shell=True)
         elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
             rc = 0
+        elif which_dns_module == "manage_ndjbdns":
+            # N-DJBDNS picks up configuration changes automatically and does not need to be restarted.
+            pass
         else:
             logger.error("unknown DNS engine: %s" % which_dns_module)
             rc = 412
