@@ -72,14 +72,15 @@ class BootCheck:
                self.check_service(status,"dnsmasq")
 
        mode = self.config.api.get_sync().tftpd.what()
+       self.check_tftpd_dir(status)
        if mode == "in_tftpd":
            self.check_tftpd_bin(status)
-           self.check_tftpd_dir(status)
            self.check_tftpd_conf(status)
        elif mode == "tftpd_py":
            self.check_ctftpd_bin(status)
-           self.check_ctftpd_dir(status)
            self.check_ctftpd_conf(status)
+       else :
+          status.append("Unmanaged tftpd server '%s'" % mode)
 
        self.check_service(status, "cobblerd")
 
@@ -354,9 +355,6 @@ class BootCheck:
        """
        Check if cobbler.conf's tftpboot directory exists
        """
-       if self.checked_dist in ["debian", "ubuntu"]:
-          return
-
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
           status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
@@ -388,17 +386,6 @@ class BootCheck:
 
        if not os.path.exists("/etc/xinetd.d/ctftp"):
           status.append("missing /etc/xinetd.d/ctftp")
-
-   def check_ctftpd_dir(self,status):
-       """
-       Check if cobbler.conf's tftpboot directory exists
-       """
-       if self.checked_dist in ["debian", "ubuntu"]:
-          return
-
-       bootloc = utils.tftpboot_location()
-       if not os.path.exists(bootloc):
-          status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
 
    def check_ctftpd_conf(self,status):
        """
