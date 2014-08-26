@@ -23,13 +23,18 @@ clean:
 	@rm -rf dist
 	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
-	@rm -f docs/*.1.gz 
+	@rm -f docs/*.1.gz
 	@echo "cleaning: temp files"
 	@rm -f *~
 	@rm -rf buildiso
 	@rm -f *.tmp
 	@rm -f *.log
+	@echo "cleaning: documentation"
+	@cd docs; make clean > /dev/null 2>&1
 
+doc:
+	@echo "creating: documentation"
+	@cd docs; make html > /dev/null 2>&1
 qa:
 	@echo "checking: pyflakes"
 	@pyflakes \
@@ -57,11 +62,10 @@ sdist:
 	@echo "creating: sdist"
 	@python setup.py sdist > /dev/null
 
-release: clean qa authors sdist
+release: clean qa authors sdist doc
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
-	# FIXME: add code to set the release version
 	@cp cobbler.spec release/
 	@cp debian/cobbler.dsc release/
 	@cp debian/changelog release/debian.changelog
