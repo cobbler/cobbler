@@ -760,7 +760,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
-   }
+   },
    "virtio26": {
     "signatures":[],
     "version_file":"",
