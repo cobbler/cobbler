@@ -7,7 +7,7 @@ Release Notes
 Enhancements
 ============
 
-* Add --graphics option to Koan
+* Add ``--graphics`` option to Koan
 * Improved input validation and error handling
 * Support virtio26 for generic qemu fallback in Koan
 * Debian network config: add support for tagged vlan only bonding interfaces

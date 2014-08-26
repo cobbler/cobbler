@@ -137,7 +137,7 @@ Ubuntu
 
 TBD
 
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler26/xUbuntu_14.04/
+http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/xUbuntu_14.04/
 
 
 Packages from source
@@ -150,7 +150,7 @@ RPM
 
 .. code-block:: none
 
-$ make rpms
+    $ make rpms
     ... (lots of output) ...
     Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.src.rpm
     Wrote: /path/to/cobbler/rpm-build/cobbler-3.0.0-1.fc20.noarch.rpm
