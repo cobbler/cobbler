@@ -394,8 +394,8 @@ xmlrpc_port: 25151
 # information that can be used during kickstart and is automatically
 # set up in the cobbler kickstart templates.  By default, these
 # are only available at install time.  To make these repositories
-# usable on installed systems (since cobbler makes a very convient)
-# mirror, set this to 1.  Most users can safely set this to 1.  Users
+# usable on installed systems (since cobbler makes a very convenient
+# mirror) set this to 1.  Most users can safely set this to 1.  Users
 # who have a dual homed cobbler server, or are installing laptops that
 # will not always have access to the cobbler server may wish to leave
 # this as 0.  In that case, the cobbler mirrored yum repos are still
