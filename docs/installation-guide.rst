@@ -12,9 +12,7 @@ Prerequisites
 Packages
 ========
 
-Please note that installing any of the packages here via a package manager (such as yum or apt) can and will require a large number of ancilary packages, which we do 
-not document here. The package definition should automatically pull these packages in and install them along with Cobbler, however it is always best to verify these r
-equirements have been met prior to installing cobbler or any of its components.
+Please note that installing any of the packages here via a package manager (such as yum or apt) can and will require a large number of ancilary packages, which we do not document here. The package definition should automatically pull these packages in and install them along with Cobbler, however it is always best to verify these requirements have been met prior to installing cobbler or any of its components.
 
 First and foremost, Cobbler requires Python. Any version over 2.7 should work. Cobbler also requires the installation of the following packages:
 
@@ -230,15 +228,15 @@ This will do a full install, not just the web GUI. `make webtest` is a wrapper a
 Relocating your installation
 ++++++++++++++++++++++++++++
 
-Often folks don't have a very large `/var` partition, which is what Cobbler uses by default for mirroring install trees and the like.
+Often folks don't have a very large ``/var`` partition, which is what Cobbler uses by default for mirroring install trees and the like.
 
-You'll notice you can reconfigure the webdir location just by going into `/etc/cobbler/settings`, but it's not the best way to do things -- especially as the packaging process does include some files and directories in the stock path. This means that, for upgrades and the like, you'll be breaking things somewhat. Rather than attempting to reconfigure Cobbler, your Apache configuration, your file permissions, and your SELinux rules, the recommended course of action is very simple.
+You'll notice you can reconfigure the webdir location just by going into ``/etc/cobbler/settings``, but it's not the best way to do things -- especially as the packaging process does include some files and directories in the stock path. This means that, for upgrades and the like, you'll be breaking things somewhat. Rather than attempting to reconfigure Cobbler, your Apache configuration, your file permissions, and your SELinux rules, the recommended course of action is very simple.
 
-1. Copy everything you have already in `/var/www/cobbler` to another location -- for instance, `/opt/cobbler_data`
-2. Now just create a symlink or bind mount at `/var/www/cobbler` that points to `/opt/cobbler_data`.
+1. Copy everything you have already in ``/var/www/cobbler`` to another location -- for instance, ``/opt/cobbler_data``
+2. Now just create a symlink or bind mount at ``/var/www/cobbler`` that points to ``/opt/cobbler_data``.
 
 Done. You're up and running.
 
-If you decided to access Cobbler's data store over NFS (not recommended) you really want to mount NFS on `/var/www/cobbler` with SELinux context passed in as a parameter to mount versus the symlink. You may also have to deal with problems related to rootsquash. However if you are making a mirror of a Cobbler server for a multi-site setup, mounting read only is ok there.
+If you decided to access Cobbler's data store over NFS (not recommended) you really want to mount NFS on ``/var/www/cobbler`` with SELinux context passed in as a parameter to mount versus the symlink. You may also have to deal with problems related to rootsquash. However if you are making a mirror of a Cobbler server for a multi-site setup, mounting read only is ok there.
 
-Also Note: `/var/lib/cobbler` can not live on NFS, as this interferes with locking ("flock") Cobbler does around it's storage files.
+Also Note: ``/var/lib/cobbler`` can not live on NFS, as this interferes with locking ("flock") Cobbler does around it's storage files.
