@@ -109,6 +109,7 @@ class IscManager:
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
                     interface["ip_address"] = ip
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
+                    interface["if_gateway"] = system.interfaces[interface["interface_master"]]["if_gateway"]
                 else:
                     ip = interface["ip_address"]
                     host = interface["dns_name"]
