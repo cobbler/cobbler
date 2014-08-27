@@ -182,7 +182,7 @@ def ipv4_address(addr):
     if not netaddr.valid_ipv4(addr):
         raise CX("Invalid IPv4 address format (%s)" % addr)
 
-    if not netaddr.IPAddress(addr).is_hostmask():
+    if netaddr.IPAddress(addr).is_netmask():
         raise CX("Invalid IPv4 host address (%s)" % addr)
 
     return addr
