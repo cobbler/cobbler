@@ -156,7 +156,7 @@ echo "   mtu $mtu" >> /etc/network/interfaces
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 
                 #end if
-                #if $iface_type in ("bond")
+                #if $iface_type == "bond"
                   #set $bondslaves = ""
                   #for $bondiname in $ikeys
                       #set $bondidata                = $interfaces[$bondiname]
