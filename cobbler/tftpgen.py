@@ -114,11 +114,11 @@ class TFTPGen:
             require_match=False, api=self.api, cache=False, logger=self.logger)
 
         pxegrub_imported = False
-        if os.path.isdir(os.path.join(self.bootloc, 'boot')):
-            shutil.rmtree(os.path.join(self.bootloc, 'boot'))
         for i in self.distros:
             if 'nexenta' == i.breed and not pxegrub_imported:
                 # name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
+                if os.path.isdir(os.path.join(self.bootloc, 'boot')):
+                    shutil.rmtree(os.path.join(self.bootloc, 'boot'))
                 shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'distro_mirror', i.name, 'boot'),
                                 os.path.join(self.bootloc, 'boot'))
                 pxegrub_imported = True
