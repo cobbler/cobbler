@@ -61,7 +61,9 @@ group {
         #if $iface.netmask:
         option subnet-mask $iface.netmask;
         #end if
-        #if $iface.gateway:
+        #if $iface.if_gateway:
+        option routers $iface.if_gateway;
+        #else if $iface.gateway:
         option routers $iface.gateway;
         #end if
         #if $iface.enable_gpxe:
