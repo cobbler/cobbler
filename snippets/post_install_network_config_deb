@@ -19,6 +19,10 @@
     #for $iname in $ikeys
         ## look at the interface hash data for the specific interface
         #set $idata = $interfaces[$iname]
+        ## Ignore BMC interface
+        #if $idata.get("interface_type", "").lower() == "bmc"
+            #continue
+        #end if
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
         #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("bond","bridge"):
