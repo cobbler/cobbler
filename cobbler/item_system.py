@@ -71,7 +71,7 @@ FIELDS = [
     ["network_widget_c", "", 0, "", True, "", 0, "str"],                     # not a real field, a marker for the web app
     ["*mtu", "", 0, "MTU", True, "", 0, "str"],
     ["*ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave"], "str"],
+    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
     ["*interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
     ["*bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
     ["*bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
@@ -486,7 +486,7 @@ class System(item.Item):
 
 
     def set_interface_type(self, type, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "na", ""]
+        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", ""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
         if type == "na":
