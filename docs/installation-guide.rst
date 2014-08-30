@@ -1,6 +1,8 @@
 Install Guide
 -------------
 
+Setting up and running cobblerd is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts, apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
+
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or directly from source.
 
 Cobbler has both definite and optional prerequisites, based on the features you'd like to use. This section documents the definite prerequisites for both a basic installation and when building/installing from source.
@@ -120,8 +122,11 @@ openSUSE
 ########
 
 TBD
-
 http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/openSUSE_13.1/home:libertas-ict:cobbler30.repo
+
+
+
+
 
 Debian
 ######
@@ -184,10 +189,10 @@ To install cobbler from source on Debian Squeeze, the following steps need to be
 
     $ chown www-data /var/lib/cobbler/webui_sessions
 
-Change all `/var/www/cobbler` in `/etc/apache2/conf.d/cobbler.conf` to `/usr/share/cobbler/webroot/`
+Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/``
 Init script:
 - add Required-Stop line
-- path needs to be `/usr/local/...` or fix the install location
+- path needs to be ``/usr/local/...`` or fix the install location
 
 
 Source
@@ -222,7 +227,7 @@ To install the Cobbler web GUI, use this command:
 
     $ make webtest
 
-This will do a full install, not just the web GUI. `make webtest` is a wrapper around `make devinstall`, so your configuration files will also be saved when running this command.
+This will do a full install, not just the web GUI. ``make webtest`` is a wrapper around ``make devinstall``, so your configuration files will also be saved when running this command.
 
 
 Relocating your installation

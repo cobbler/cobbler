@@ -55,7 +55,7 @@ class ContentDownloader:
             ("%s/COPYING.elilo" % content_server, "%s/COPYING.elilo" % dest),
             ("%s/COPYING.yaboot" % content_server, "%s/COPYING.yaboot" % dest),
             ("%s/COPYING.syslinux" % content_server, "%s/COPYING.syslinux" % dest),
-            ("%s/yaboot-1.3.14-12" % content_server, "%s/yaboot" % dest),
+            ("%s/yaboot-1.3.17" % content_server, "%s/yaboot" % dest),
             ("%s/pxelinux.0-3.86" % content_server, "%s/pxelinux.0" % dest),
             ("%s/menu.c32-3.86" % content_server, "%s/menu.c32" % dest),
             ("%s/grub-0.97-x86.efi" % content_server, "%s/grub-x86.efi" % dest),

@@ -17,9 +17,7 @@ If the patch needs more work, we'll let you know in the comments.
 
 Do not mix work on different features in different pull requests/branches if at all possible as this makes it difficult to take only some of the work at one time, and to quickly slurp in some changes why others get hammered out.
 
-Once we merge in your pull request, you can remove the branch from your repo if you like.
-
-The AUTHORS file get created automatically when we release, so you will get the credtis you deserver :).
+Once we merge in your pull request, you can remove the branch from your repo if you like. The AUTHORS file is created automatically when we release.
 
 
 Setup
