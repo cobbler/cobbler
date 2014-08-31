@@ -39,6 +39,10 @@ get_ifname() {
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
+        ## Ignore BMC interface
+        #if $idata["interface_type"].lower() == "bmc"
+            #continue
+        #end if
         #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("bond","bridge","bonded_bridge_slave")
             #set $configbymac = False
         #end if
@@ -66,6 +70,10 @@ get_ifname() {
             #set $is_vlan = "true"
         #else
             #set $is_vlan = "false"
+        #end if
+        ## Ignore BMC interface
+        #if $iface_type.lower() == "bmc"
+            #continue
         #end if
         #if ($configbymac and $is_vlan == "false" and $iface_type.lower() not in ("bond_slave","bridge_slave","bonded_bridge_slave")) or $iface_type.lower() in ("bond","bridge")
             ## This is a physical interface, hand it to anaconda. Do not

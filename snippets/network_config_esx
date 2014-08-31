@@ -10,6 +10,9 @@
         #set $ip       = $idata["ip_address"]
         #set $netmask  = $idata["netmask"]
         #set $type     = $idata["interface_type"]
+        #if $type == "bmc"
+            #continue
+        #end if
         #if $vlanpattern.match($iname) or $type in ("bond","bridge")
             ## If this is a VLAN interface, skip it, anaconda doesn't know
             ## about VLANs.
