@@ -97,7 +97,7 @@ echo "auto $iname" >> /etc/network/interfaces
         ## ===================================================================
         #if $iface_type in ("bond","bonded_bridge_slave")
           #pass
-        #elif $iface_type in ("bond_slave") and $iface_master != ""
+        #elif $iface_type == "bond_slave" and $iface_master != ""
           #pass
         #elif $iface_type == "bridge"
           #set $slave_ports = " ".join($bridge_slaves.get($iname,[]))
@@ -124,7 +124,7 @@ echo "   netmask $netmask" >> /etc/network/interfaces
 echo "   mtu $mtu" >> /etc/network/interfaces
 	        #end if
 	    #end if
-            #if $ip == "" and $iface_type in ("bond") and $is_vlan == "false"
+            #if $ip == "" and $iface_type == "bond" and $is_vlan == "false"
 echo "iface $iname inet manual" >> /etc/network/interfaces 
                   #set $bondslaves = ""
                   #for $bondiname in $ikeys
@@ -177,7 +177,7 @@ echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
 echo "iface $iname inet manual" >> /etc/network/interfaces 
 	           #end if
             #end if
-            #if $iface_type in ("bond_slave") and $iface_master != ""
+            #if $iface_type == "bond_slave" and $iface_master != ""
 echo "bond-master $iface_master" >> /etc/network/interfaces
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
