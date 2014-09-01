@@ -77,10 +77,9 @@ group {
         #else
         filename "$iface.filename";
         #end if
-        ## Cobbler defaults to $next_server, but some users
-        ## may like to use $iface.system.server for proxied setups
-        next-server $next_server;
-        ## next-server $iface.next_server;
+        #if $iface.next_server:
+        next-server $iface.next_server;
+        #end if
     }
         #end for
 }
