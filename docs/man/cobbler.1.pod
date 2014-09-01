@@ -283,6 +283,12 @@ If you are using static IP configurations and the interface is flagged --static=
 
 Netmask is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may use --static-routes for per-interface customizations if required.
 
+=item --if-gateway
+
+If you are using static IP configurations and have multiple interfaces, use this to define different gateway for each interface.
+
+This is a per-interface setting.
+
 =item --hostname
 
 This field corresponds to the hostname set in a systems /etc/sysconfig/network file.  This has no bearing on DNS, even when manage_dns is enabled.  Use --dns-name instead for that feature.
