@@ -63,6 +63,7 @@ DEFAULT_WHITELIST = [
     'silent',
     'slurp',
     'raw',
+    'while',
 ]
 
 WHITELIST = data.get('safe_templating_whitelist', DEFAULT_WHITELIST)
