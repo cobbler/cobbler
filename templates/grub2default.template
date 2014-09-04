@@ -1,0 +1,3 @@
+set timeout=-1
+
+$pxe_menu_items

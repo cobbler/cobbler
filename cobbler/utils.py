@@ -1233,9 +1233,9 @@ def set_arch(self,arch,repo=False):
        arch = "i386"
 
    if repo:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "aarch64", "ppc64le", "noarch", "src" ]
    else:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "aarch64", "ppc64le" ]
 
    if arch in valids:
        self.arch = arch

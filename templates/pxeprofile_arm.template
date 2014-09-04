@@ -1,0 +1,4 @@
+menuentry "$profile_name" {
+       linux (tftp)$kernel_path $kernel_options
+       initrd (tftp)$initrd_path
+}

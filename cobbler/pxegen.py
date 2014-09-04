@@ -114,6 +114,14 @@ class PXEGen:
         utils.copyfile_pattern('/var/lib/cobbler/loaders/yaboot', dst,
                 require_match=False, api=self.api, cache=False, logger=self.logger)
 
+        # copy bootaa64.efi which we include for aarch64 targets
+        aa64bootloader = '/var/lib/cobbler/loaders/bootaa64.efi'
+        if os.path.exists(aa64bootloader):
+            if not os.path.exists(os.path.join(dst, 'aarch64')):
+                os.mkdir(os.path.join(dst, 'aarch64'))
+            utils.copyfile_pattern(aa64bootloader, os.path.join(dst, 'aarch64'),
+                require_match=False, api=self.api, cache=False, logger=self.logger)
+
         try:
             utils.copyfile_pattern('/usr/lib/syslinux/memdisk',
                     dst, api=self.api, cache=False, logger=self.logger)
@@ -311,6 +319,9 @@ class PXEGen:
                 if os.path.lexists(f3):
                     utils.rmfile(f3)
                 os.symlink("../yaboot", f3)
+            elif working_arch == 'aarch64':
+                f2 = None
+                grub_path = os.path.join(self.bootloc, "aarch64", f1.upper())
             else:
                 continue 
 
@@ -402,6 +413,7 @@ class PXEGen:
         # the default menus:
         pxe_menu_items = ""
         grub_menu_items = ""
+        arm_menu_items = ""
 
         # For now, profiles are the only items we want grub EFI boot menu entries for:
         for profile in profile_list:
@@ -409,6 +421,13 @@ class PXEGen:
                # This profile has been excluded from the menu
                continue
             distro = profile.get_conceptual_parent()
+            if distro.arch == 'aarch64':
+                arm_contents = self.write_pxe_file(filename=None, system=None,
+                    profile=profile, distro=distro,
+                    arch=distro.arch, include_header=False)
+                if grub_contents is not None:
+                    arm_menu_items = arm_menu_items + arm_contents + "\n"
+                continue
             # xen distros can be ruled out as they won't boot
             if distro.name.find("-xen") != -1 or distro.arch not in ["i386", "x86_64"]:
                 # can't PXE Xen
@@ -459,6 +478,15 @@ class PXEGen:
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
+
+        # Write the aarch64 menu:
+        metadata = { "pxe_menu_items" : arm_menu_items }
+        outfile = os.path.join(self.bootloc, "aarch64", "grub.cfg")
+        template_src = open(os.path.join(self.settings.pxe_template_dir,"grub2default.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
+
 
     def write_memtest_pxe(self,filename):
         """
@@ -555,7 +583,10 @@ class PXEGen:
         # choose a template
         if system:
             if format == "grub":
-                template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
+                if arch == 'aarch64':
+                    template = os.path.join(self.settings.pxe_template_dir,"pxesystem_arm.template")
+                else:
+                    template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
             else: # pxe
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.pxe_template_dir,"pxesystem.template")
@@ -598,6 +629,8 @@ class PXEGen:
 
             if arch.startswith("s390"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
+            if arch.startswith("aarch64"):
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_arm.template")
             elif format == "grub":
                 template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
             else:
@@ -614,7 +647,7 @@ class PXEGen:
                 image, arch, kickstart_path)
         metadata["kernel_options"] = kernel_options
 
-        if metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64"]):
+        if metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64", "aarch64"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "

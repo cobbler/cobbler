@@ -1,0 +1,6 @@
+set defailt="0"
+set timeout=1
+menuentry "$system_name" {
+       linux (tftp)$kernel_path $kernel_options
+       initrd (tftp)$initrd_path
+}
