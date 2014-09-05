@@ -425,7 +425,7 @@ class PXEGen:
                 arm_contents = self.write_pxe_file(filename=None, system=None,
                     profile=profile, distro=distro,
                     arch=distro.arch, include_header=False)
-                if grub_contents is not None:
+                if arm_contents is not None:
                     arm_menu_items = arm_menu_items + arm_contents + "\n"
                 continue
             # xen distros can be ruled out as they won't boot
