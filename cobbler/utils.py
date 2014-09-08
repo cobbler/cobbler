@@ -1540,14 +1540,18 @@ def set_virt_cpus(self, num):
 
 
 def get_kickstart_templates(api):
+    """
+    Return a list of all kickstarts in use and available
+    under /var/lib/cobbler/kickstarts/
+    """
     files = {}
     for x in api.profiles():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.exists(x.kickstart):
+            if os.path.isfile(x.kickstart):
                 files[x.kickstart] = 1
     for x in api.systems():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.exists(x.kickstart):
+            if os.path.isfile(x.kickstart):
                 files[x.kickstart] = 1
     for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
         if os.path.isfile(x):
@@ -1555,7 +1559,12 @@ def get_kickstart_templates(api):
 
     results = files.keys()
     results.sort()
-    return results
+    # empty and inherit are valid values
+    # and we want them as the first options in cobbler-web
+    kslist = ["", "<<inherit>>"]
+    for ks in results:
+        kslist.append(ks)
+    return kslist
 
 
 def safe_filter(var):

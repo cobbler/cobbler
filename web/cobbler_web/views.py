@@ -1105,10 +1105,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     fields = get_fields(what, child, obj)
 
     # create the kickstart pulldown list
-    # allow for an empty value in the webui
     kickstart_list = remote.get_kickstart_templates()
-    kickstart_list.append("")
-    kickstart_list.sort()
 
     # populate some select boxes
     if what == "profile":
