@@ -654,7 +654,9 @@ def ksfile_list(request, page=None):
 
     ksfile_list = []
     for ksfile in ksfiles:
-        ksfile_list.append((ksfile, ksfile.replace('/var/lib/cobbler/kickstarts/', ''), 'editable'))
+        # handle special values
+        if ksfile not in ["", "<<inherit>>"]:
+            ksfile_list.append((ksfile, ksfile, 'editable'))
 
     t = get_template('ksfile_list.tmpl')
     html = t.render(RequestContext(request, {
