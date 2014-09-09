@@ -748,7 +748,7 @@ def snippet_list(request, page=None):
     base_dir = "/var/lib/cobbler/snippets/"
     for snippet in snippets:
         if snippet.startswith(base_dir):
-            snippet_list.append((snippet, snippet.replace(base_dir, ""), 'editable'))
+            snippet_list.append((snippet, snippet, 'editable'))
         else:
             return error_page(request, "Invalid snippet at %s, outside %s" % (snippet, base_dir))
 
@@ -813,6 +813,7 @@ def snippet_save(request):
 
     if snippet_name is None:
         return HttpResponse("NO SNIPPET NAME SPECIFIED")
+
     if editmode != 'edit':
         if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
             snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
