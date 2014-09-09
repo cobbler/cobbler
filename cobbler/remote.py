@@ -2004,7 +2004,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def remove_kickstart_template_file(self, file_path, token):
+    def remove_kickstart_template(self, file_path, token):
         """
         Remove a kickstart template file
 
