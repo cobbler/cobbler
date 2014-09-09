@@ -2068,7 +2068,7 @@ class CobblerXMLRPCInterface:
 
         return True
 
-    def remove_kickstart_snippet_file(self, file_path, token):
+    def remove_kickstart_snippet(self, file_path, token):
         """
         Remove a kickstart snippet file
 
@@ -2081,10 +2081,7 @@ class CobblerXMLRPCInterface:
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
         file_path = validate.snippet_file_path(file_path)
-
-        # FIXME: could check if snippet is in use
-        snippet_file_path = validate.SNIPPET_TEMPLATE_BASE_DIR + file_path
-        os.remove(snippet_file_path)
+        os.remove(file_path)
 
         return True
 
