@@ -2055,7 +2055,7 @@ class CobblerXMLRPCInterface:
         what = "write_kickstart_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.snippet_file_path(file_path)
+        file_path = validate.snippet_file_path(file_path, new_snippet=True)
 
         try:
             utils.mkdir(os.path.dirname(file_path))

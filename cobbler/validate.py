@@ -60,11 +60,12 @@ def object_name(name, parent):
     return name
 
 
-def snippet_file_path(snippet):
+def snippet_file_path(snippet, new_snippet=False):
     """
     Validate the snippet file path.
 
     @param: str snippet (absolute path to a local snippet file)
+    @param: bool new_snippet (when set to true new filenames are allowed)
     @returns: str snippet or CX
     """
     if not isinstance(snippet, basestring):
@@ -78,7 +79,7 @@ def snippet_file_path(snippet):
     if not snippet.startswith(SNIPPET_TEMPLATE_BASE_DIR):
         raise CX("Invalid snippet template file location %s, it is not inside %s" % (snippet, SNIPPET_TEMPLATE_BASE_DIR))
 
-    if not os.path.isfile(snippet):
+    if not os.path.isfile(snippet) and not new_snippet:
         raise CX("Invalid snippet template file location %s, file not found" % snippet)
 
     return snippet
