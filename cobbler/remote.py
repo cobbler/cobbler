@@ -1991,7 +1991,7 @@ class CobblerXMLRPCInterface:
         what = "write_kickstart_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.kickstart_file_path(file_path, for_item=False)
+        file_path = validate.kickstart_file_path(file_path, for_item=False, new_kickstart=True)
 
         try:
             utils.mkdir(os.path.dirname(file_path))

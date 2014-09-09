@@ -84,12 +84,13 @@ def snippet_file_path(snippet):
     return snippet
 
 
-def kickstart_file_path(kickstart, for_item=True):
+def kickstart_file_path(kickstart, for_item=True, new_kickstart=False):
     """
     Validate the kickstart file path.
 
     @param: str kickstart (absolute path to a local kickstart file)
     @param: bool for_item (enable/disable special handling for Item objects)
+    @param: bool new_kickstart (when set to true new filenames are allowed)
     @returns: str kickstart or CX
     """
     if not isinstance(kickstart, basestring):
@@ -113,7 +114,7 @@ def kickstart_file_path(kickstart, for_item=True):
     if not kickstart.startswith(KICKSTART_TEMPLATE_BASE_DIR):
         raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, KICKSTART_TEMPLATE_BASE_DIR))
 
-    if not os.path.isfile(kickstart):
+    if not os.path.isfile(kickstart) and not new_kickstart:
         raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
 
     return kickstart
