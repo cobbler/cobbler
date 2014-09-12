@@ -42,6 +42,9 @@ authn_pam_service: "login"
 # How long the authentication token is valid for, in seconds
 auth_token_expiration: 3600
 
+# location of templates used for boot loader config generation
+boot_loader_conf_template_dir: "/etc/cobbler/pxe"
+
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
 # sender: optional
@@ -266,10 +269,6 @@ power_template_dir: "/etc/cobbler/power"
 # boot order, otherwise leave this disabled.   See the manpage
 # for --netboot-enabled.
 pxe_just_once: 0
-
-# the templates used for PXE config generation are sourced
-# from what directory?
-pxe_template_dir: "/etc/cobbler/pxe"
 
 # Path to where system consoles are 
 consoles: "/var/consoles"
