@@ -28,7 +28,7 @@ import time
 import utils
 from cexceptions import CX
 import templar
-import pxegen
+import tftpgen
 import clogger
 from utils import _
 import cobbler.module_loader as module_loader
@@ -56,12 +56,12 @@ class BootSync:
         self.settings = config.settings()
         self.repos = config.repos()
         self.templar = templar.Templar(config, self.logger)
-        self.pxegen = pxegen.PXEGen(config, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(config, self.logger)
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
         self.bootloc = utils.tftpboot_location()
-        self.pxegen.verbose = verbose
+        self.tftpgen.verbose = verbose
         self.dns.verbose = verbose
         self.dhcp.verbose = verbose
 
@@ -107,13 +107,13 @@ class BootSync:
         for d in self.distros:
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
-                self.pxegen.copy_single_distro_files(d, self.settings.webdir, True)
-                self.pxegen.write_templates(d, write_file=True)
+                self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
+                self.tftpgen.write_templates(d, write_file=True)
             except CX, e:
                 self.logger.error(e.value)
 
         # make the default pxe menu anyway...
-        self.pxegen.make_pxe_menu()
+        self.tftpgen.make_pxe_menu()
 
         if self.settings.manage_dhcp:
             self.write_dhcp()

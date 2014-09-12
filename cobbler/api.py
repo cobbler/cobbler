@@ -45,7 +45,7 @@ from cobbler import action_dlcontent
 from cobbler import module_loader
 from cobbler import kickgen
 from cobbler import yumgen
-from cobbler import pxegen
+from cobbler import tftpgen
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
@@ -141,12 +141,12 @@ class BootAPI:
 
             # FIXME: pass more loggers around, and also see that those
             # using things via tasks construct their own kickgen/yumgen/
-            # pxegen versus reusing this one, which has the wrong logger
+            # tftpgen versus reusing this one, which has the wrong logger
             # (most likely) for background tasks.
 
             self.kickgen = kickgen.KickGen(self._config)
             self.yumgen = yumgen.YumGen(self._config)
-            self.pxegen = pxegen.PXEGen(self._config, logger=self.logger)
+            self.tftpgen = tftpgen.TFTPGen(self._config, logger=self.logger)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
@@ -653,14 +653,14 @@ class BootAPI:
     # ==========================================================================
 
     def get_template_file_for_profile(self, obj, path):
-        template_results = self.pxegen.write_templates(obj, False, path)
+        template_results = self.tftpgen.write_templates(obj, False, path)
         if path in template_results:
             return template_results[path]
         else:
             return "# template path not found for specified profile"
 
     def get_template_file_for_system(self, obj, path):
-        template_results = self.pxegen.write_templates(obj, False, path)
+        template_results = self.tftpgen.write_templates(obj, False, path)
         if path in template_results:
             return template_results[path]
         else:
@@ -680,27 +680,27 @@ class BootAPI:
     def generate_gpxe(self, profile, system):
         self.log("generate_gpxe")
         if system:
-            return self.pxegen.generate_gpxe("system", system)
+            return self.tftpgen.generate_gpxe("system", system)
         else:
-            return self.pxegen.generate_gpxe("profile", profile)
+            return self.tftpgen.generate_gpxe("profile", profile)
 
     # ==========================================================================
 
     def generate_bootcfg(self, profile, system):
         self.log("generate_bootcfg")
         if system:
-            return self.pxegen.generate_bootcfg("system", system)
+            return self.tftpgen.generate_bootcfg("system", system)
         else:
-            return self.pxegen.generate_bootcfg("profile", profile)
+            return self.tftpgen.generate_bootcfg("profile", profile)
 
     # ==========================================================================
 
     def generate_script(self, profile, system, name):
         self.log("generate_script")
         if system:
-            return self.pxegen.generate_script("system", system, name)
+            return self.tftpgen.generate_script("system", system, name)
         else:
-            return self.pxegen.generate_script("profile", profile, name)
+            return self.tftpgen.generate_script("profile", profile, name)
 
     # ==========================================================================
 

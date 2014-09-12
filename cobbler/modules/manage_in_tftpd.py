@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os.path
 import clogger
-import pxegen
+import tftpgen
 import shutil
 import glob
 
@@ -53,7 +53,7 @@ class InTftpdManager:
         self.config = config
         self.templar = templar.Templar(config)
         self.settings_file = "/etc/xinetd.d/tftp"
-        self.pxegen = pxegen.PXEGen(config, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(config, self.logger)
         self.systems = config.systems()
         self.bootloc = utils.tftpboot_location()
 
@@ -141,32 +141,32 @@ class InTftpdManager:
         system = self.systems.find(name=name)
         if system is None:
             utils.die(self.logger, "error in system lookup for %s" % name)
-        menu_items = self.pxegen.get_menu_items()['pxe']
-        self.pxegen.write_all_system_files(system, menu_items)
+        menu_items = self.tftpgen.get_menu_items()['pxe']
+        self.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the system
-        self.pxegen.write_templates(system)
+        self.tftpgen.write_templates(system)
 
     def add_single_system(self, system):
         """
         Write out new pxelinux.cfg files to /tftpboot
         """
         # write the PXE files for the system
-        menu_items = self.pxegen.get_menu_items()['pxe']
-        self.pxegen.write_all_system_files(system, menu_items)
+        menu_items = self.tftpgen.get_menu_items()['pxe']
+        self.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the distro
-        self.pxegen.write_templates(system)
+        self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
-        self.pxegen.copy_single_distro_files(distro, self.bootloc, False)
+        self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
     def sync(self, verbose=True):
         """
         Write out all files to /tftpdboot
         """
-        self.pxegen.verbose = verbose
+        self.tftpgen.verbose = verbose
         self.logger.info("copying bootloaders")
-        self.pxegen.copy_bootloaders()
+        self.tftpgen.copy_bootloaders()
 
         self.logger.info("copying distros to tftpboot")
 
@@ -176,21 +176,21 @@ class InTftpdManager:
         for d in self.config.distros():
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
-                self.pxegen.copy_single_distro_files(d, self.bootloc, False)
+                self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
             except CX, e:
                 self.logger.error(e.value)
 
         self.logger.info("copying images")
-        self.pxegen.copy_images()
+        self.tftpgen.copy_images()
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        menu_items = self.pxegen.get_menu_items()['pxe']
+        menu_items = self.tftpgen.get_menu_items()['pxe']
         for x in self.systems:
-            self.pxegen.write_all_system_files(x, menu_items)
+            self.tftpgen.write_all_system_files(x, menu_items)
 
         self.logger.info("generating PXE menu structure")
-        self.pxegen.make_pxe_menu()
+        self.tftpgen.make_pxe_menu()
 
 
 def get_manager(config, logger):
