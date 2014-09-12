@@ -43,7 +43,7 @@ authn_pam_service: "login"
 auth_token_expiration: 3600
 
 # location of templates used for boot loader config generation
-boot_loader_conf_template_dir: "/etc/cobbler/pxe"
+boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"
 
 # Email out a report when cobbler finishes installing a system.
 # enabled: set to 1 to turn this feature on
