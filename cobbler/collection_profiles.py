@@ -79,7 +79,7 @@ class Profiles(collection.Collection):
                 if with_sync:
                     lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_profile(name)
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

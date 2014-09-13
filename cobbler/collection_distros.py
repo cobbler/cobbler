@@ -110,6 +110,5 @@ class Distros(collection.Collection):
                 if not found:
                     utils.rmtree(path)
 
-        return True
 
 # EOF

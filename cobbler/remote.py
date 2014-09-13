@@ -712,7 +712,8 @@ class CobblerXMLRPCInterface:
         self._log("remove_item (%s, recursive=%s)" % (what, recursive), name=name, token=token)
         obj = self.api.get_item(what, name)
         self.check_access(token, "remove_%s" % what, obj)
-        return self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
+        self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
+        return True
 
     def remove_distro(self, name, token, recursive=1):
         return self.remove_item("distro", name, token, recursive)
@@ -745,7 +746,8 @@ class CobblerXMLRPCInterface:
         self._log("copy_item(%s)" % what, object_id=object_id, token=token)
         self.check_access(token, "copy_%s" % what)
         obj = self.__get_object(object_id)
-        return self.api.copy_item(what, obj, newname)
+        self.api.copy_item(what, obj, newname)
+        return True
 
     def copy_distro(self, object_id, newname, token=None):
         return self.copy_item("distro", object_id, newname, token)
@@ -777,7 +779,8 @@ class CobblerXMLRPCInterface:
         """
         self._log("rename_item(%s)" % what, object_id=object_id, token=token)
         obj = self.__get_object(object_id)
-        return self.api.rename_item(what, obj, newname)
+        self.api.rename_item(what, obj, newname)
+        return True
 
     def rename_distro(self, object_id, newname, token=None):
         return self.rename_item("distro", object_id, newname, token)
@@ -1021,7 +1024,8 @@ class CobblerXMLRPCInterface:
                 if childs > 0:
                     raise CX("Can't delete this profile there are %s subprofiles and 'recursive' is set to 'False'" % childs)
 
-            return self.remove_item(object_type, object_name, token, recursive=recursive)
+            self.remove_item(object_type, object_name, token, recursive=recursive)
+            return True
 
         # FIXME: use the bypass flag or not?
         return self.save_item(object_type, handle, token)
@@ -1035,10 +1039,10 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "save_%s" % what, obj)
         if editmode == "new":
-            rc = self.api.add_item(what, obj, check_for_duplicate_names=True)
+            self.api.add_item(what, obj, check_for_duplicate_names=True)
         else:
-            rc = self.api.add_item(what, obj)
-        return rc
+            self.api.add_item(what, obj)
+        return True
 
     def save_distro(self, object_id, token, editmode="bypass"):
         return self.save_item("distro", object_id, token, editmode=editmode)

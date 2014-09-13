@@ -78,7 +78,7 @@ class Repos(collection.Collection):
                 if os.path.exists(path):
                     utils.rmtree(path)
 
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

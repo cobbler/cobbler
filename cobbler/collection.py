@@ -212,7 +212,7 @@ class Collection:
                 ref.set_mac_address("", iname)
                 ref.set_ip_address("", iname)
 
-        return self.add(
+        self.add(
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
 
@@ -224,7 +224,7 @@ class Collection:
         """
         # Nothing to do when it is the same name
         if newname == ref.name:
-            return True
+            return
 
         # make a copy of the object, but give it a new name.
         oldname = ref.name
@@ -297,16 +297,13 @@ class Collection:
 
         # now delete the old version
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
-        return True
+        return
 
 
     def add(self, ref, save=False, with_copy=False, with_triggers=True, with_sync=True, quick_pxe_update=False,
             check_for_duplicate_names=False, check_for_duplicate_netinfo=False, logger=None):
         """
-        Add an object to the collection, if it's valid.  Returns True
-        if the object was added to the collection.  Returns False if the
-        object specified by ref deems itself invalid (and therefore
-        won't be added to the collection).
+        Add an object to the collection
 
         with_copy is a bit of a misnomer, but lots of internal add operations
         can run with "with_copy" as False. True means a real final commit, as if
@@ -316,13 +313,12 @@ class Collection:
         during deserialization, in which case extra semantics around the add don't really apply.
         So, in that case, don't run any triggers and don't deal with any actual files.
         """
-        if ref is None or ref.name is None:
-            return False
+        if ref is None:
+            raise CX("Unable to add a None object")
+        if ref.name is None:
+            raise CX("Unable to add an object without a name")
 
-        try:
-            ref.check_if_valid()
-        except CX:
-            return False
+        ref.check_if_valid()
 
         if ref.uid == '':
             ref.uid = self.collection_mgr.generate_uid()
@@ -409,8 +405,6 @@ class Collection:
         parent = ref.get_parent()
         if parent is not None:
             parent.children[ref.name] = ref
-
-        return True
 
 
     def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):

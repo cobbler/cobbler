@@ -326,31 +326,31 @@ class CobblerAPI:
 
     def copy_item(self, what, ref, newname, logger=None):
         self.log("copy_item(%s)" % what, [ref.name, newname])
-        return self.get_items(what).copy(ref, newname, logger=logger)
+        self.get_items(what).copy(ref, newname, logger=logger)
 
     def copy_distro(self, ref, newname):
-        return self.copy_item("distro", ref, newname, logger=None)
+        self.copy_item("distro", ref, newname, logger=None)
 
     def copy_profile(self, ref, newname):
-        return self.copy_item("profile", ref, newname, logger=None)
+        self.copy_item("profile", ref, newname, logger=None)
 
     def copy_system(self, ref, newname):
-        return self.copy_item("system", ref, newname, logger=None)
+        self.copy_item("system", ref, newname, logger=None)
 
     def copy_repo(self, ref, newname):
-        return self.copy_item("repo", ref, newname, logger=None)
+        self.copy_item("repo", ref, newname, logger=None)
 
     def copy_image(self, ref, newname):
-        return self.copy_item("image", ref, newname, logger=None)
+        self.copy_item("image", ref, newname, logger=None)
 
     def copy_mgmtclass(self, ref, newname):
-        return self.copy_item("mgmtclass", ref, newname, logger=None)
+        self.copy_item("mgmtclass", ref, newname, logger=None)
 
     def copy_package(self, ref, newname):
-        return self.copy_item("package", ref, newname, logger=None)
+        self.copy_item("package", ref, newname, logger=None)
 
     def copy_file(self, ref, newname):
-        return self.copy_item("file", ref, newname, logger=None)
+        self.copy_item("file", ref, newname, logger=None)
 
     # ==========================================================================
 
@@ -361,61 +361,61 @@ class CobblerAPI:
                 if ref is None:
                     return      # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
-        return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
+        self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_profile(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_system(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_mgmtclass(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_package(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_file(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     # ==========================================================================
 
     def rename_item(self, what, ref, newname, logger=None):
         self.log("rename_item(%s)" % what, [ref.name, newname])
-        return self.get_items(what).rename(ref, newname, logger=logger)
+        self.get_items(what).rename(ref, newname, logger=logger)
 
     def rename_distro(self, ref, newname, logger=None):
-        return self.rename_item("distro", ref, newname, logger=logger)
+        self.rename_item("distro", ref, newname, logger=logger)
 
     def rename_profile(self, ref, newname, logger=None):
-        return self.rename_item("profile", ref, newname, logger=logger)
+        self.rename_item("profile", ref, newname, logger=logger)
 
     def rename_system(self, ref, newname, logger=None):
-        return self.rename_item("system", ref, newname, logger=logger)
+        self.rename_item("system", ref, newname, logger=logger)
 
     def rename_repo(self, ref, newname, logger=None):
-        return self.rename_item("repo", ref, newname, logger=logger)
+        self.rename_item("repo", ref, newname, logger=logger)
 
     def rename_image(self, ref, newname, logger=None):
-        return self.rename_item("image", ref, newname, logger=logger)
+        self.rename_item("image", ref, newname, logger=logger)
 
     def rename_mgmtclass(self, ref, newname, logger=None):
-        return self.rename_item("mgmtclass", ref, newname, logger=logger)
+        self.rename_item("mgmtclass", ref, newname, logger=logger)
 
     def rename_package(self, ref, newname, logger=None):
-        return self.rename_item("package", ref, newname, logger=logger)
+        self.rename_item("package", ref, newname, logger=logger)
 
     def rename_file(self, ref, newname, logger=None):
-        return self.rename_item("file", ref, newname, logger=logger)
+        self.rename_item("file", ref, newname, logger=logger)
 
     # ==========================================================================
 
@@ -457,31 +457,31 @@ class CobblerAPI:
 
     def add_item(self, what, ref, check_for_duplicate_names=False, save=True, logger=None):
         self.log("add_item(%s)" % what, [ref.name])
-        return self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_profile(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True, logger=None):
-        return self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_repo(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_image(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_mgmtclass(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_package(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_file(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     # ==========================================================================
 
