@@ -710,7 +710,8 @@ class CobblerXMLRPCInterface:
         Note that this requires the name of the distro, not an item handle.
         """
         self._log("remove_item (%s, recursive=%s)" % (what, recursive), name=name, token=token)
-        self.check_access(token, "remove_item", name)
+        obj = self.api.get_item(what, name)
+        self.check_access(token, "remove_%s" % what, obj)
         return self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
 
     def remove_distro(self, name, token, recursive=1):
