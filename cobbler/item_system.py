@@ -44,6 +44,7 @@ FIELDS = [
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["depth", 2, 0, "", False, "", 0, "int"],
     ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
     ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
     ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], "str"],
     ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
@@ -252,6 +253,14 @@ class System(item.Item):
         if server is None or server == "":
             server = "<<inherit>>"
         self.server = server
+        return True
+
+
+    def set_next_server(self, server):
+        if server is None or server == "":
+            self.next_server = "<<inherit>>"
+        else:
+            self.next_server = validate.ipv4_address(server)
         return True
 
 

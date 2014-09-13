@@ -164,6 +164,7 @@ BLOCK_MAPPINGS = {
     "network_widget_a": "Networking",
     "network_widget_b": "Networking",
     "server": "Advanced",
+    "next_server": "Advanced",
     "redhat_management_key": "Management",
     "redhat_management_server": "Management",
     "createrepo_flags": "Advanced",

@@ -140,7 +140,7 @@ class IscManager:
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
-                interface["next_server"] = blended_system["server"]
+                interface["next_server"] = blended_system["next_server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
