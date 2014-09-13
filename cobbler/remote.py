@@ -42,7 +42,7 @@ from cobbler import item_mgmtclass
 from cobbler import item_package
 from cobbler import item_file
 from cobbler import clogger
-from cobbler import pxegen
+from cobbler import tftpgen
 from cobbler import configgen
 
 from cobbler.cexceptions import CX
@@ -115,7 +115,7 @@ class CobblerXMLRPCInterface:
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
-        self.pxegen = pxegen.PXEGen(api._config, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(api._config, self.logger)
 
     def check(self, token):
         """
@@ -1645,10 +1645,10 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
+                    hash["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
                         None, obj, profile, distro, arch)
                 else:
-                    hash["pxelinux.cfg"] = self.pxegen.write_pxe_file(
+                    hash["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
                         None, obj, None, None, arch, image=profile)
 
             return self.xmlrpc_hacks(hash)

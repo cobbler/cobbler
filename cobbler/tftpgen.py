@@ -1,5 +1,5 @@
 """
-Builds out filesystem trees/data based on the object tree.
+Generate files provided by TFTP server based on Cobbler object tree.
 This is the code behind 'cobbler sync'.
 
 Copyright 2006-2009, Red Hat, Inc and Others
@@ -34,9 +34,9 @@ from cexceptions import CX
 import templar
 
 
-class PXEGen:
+class TFTPGen:
     """
-    Handles building out PXE stuff
+    Generate files provided by TFTP server
     """
     def __init__(self, config, logger):
         """
