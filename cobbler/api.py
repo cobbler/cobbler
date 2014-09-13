@@ -59,13 +59,13 @@ DEBUG = 5
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 
 # notes on locking:
-# BootAPI is a singleton object
+# CobblerAPI is a singleton object
 # the XMLRPC variants allow 1 simultaneous request
 # therefore we flock on /etc/cobbler/settings for now
 # on a request by request basis.
 
 
-class BootAPI:
+class CobblerAPI:
     """
     Python API module for Cobbler.
     See source for cobbler.py, or pydoc, for example usage.
@@ -81,9 +81,9 @@ class BootAPI:
 
         # FIXME: this should be switchable through some simple system
 
-        self.__dict__ = BootAPI.__shared_state
+        self.__dict__ = CobblerAPI.__shared_state
         self.perms_ok = False
-        if not BootAPI.__has_loaded:
+        if not CobblerAPI.__has_loaded:
 
             if os.path.exists("/etc/cobbler/use.couch"):
                 self.use_couch = True
@@ -112,7 +112,7 @@ class BootAPI:
             self.dist = utils.check_dist()
             self.os_version = utils.os_release()
 
-            BootAPI.__has_loaded = True
+            CobblerAPI.__has_loaded = True
 
             # load the modules first, or nothing else works...
             module_loader.load_modules()

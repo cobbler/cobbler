@@ -43,7 +43,7 @@ class ConfigGen:
     def __init__(self, hostname):
         """Constructor. Requires a Cobbler API handle."""
         self.hostname = hostname
-        self.handle = capi.BootAPI()
+        self.handle = capi.CobblerAPI()
         self.system = self.handle.find_system(hostname=self.hostname)
         self.host_vars = self.get_cobbler_resource('ks_meta')
         self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
