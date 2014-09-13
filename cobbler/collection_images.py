@@ -30,11 +30,11 @@ class Images(collection.Collection):
         return "image"
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, collection_mgr, seed_data):
         """
         Return a Distro forged from seed_data
         """
-        return image.Image(config).from_datastruct(seed_data)
+        return image.Image(collection_mgr).from_datastruct(seed_data)
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=True, logger=None):
@@ -49,7 +49,7 @@ class Images(collection.Collection):
 
         # first see if any Groups use this distro
         if not recursive:
-            for v in self.config.systems():
+            for v in self.collection_mgr.systems():
                 if v.image is not None and v.image.lower() == name:
                     raise CX(_("removal would orphan system: %s") % v.name)
 
@@ -60,13 +60,13 @@ class Images(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.config.api.remove_system(k, recursive=True, logger=logger)
+                    self.collection_mgr.api.remove_system(k, recursive=True, logger=logger)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
+                    lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_image(name)
 
             self.lock.acquire()
@@ -74,12 +74,12 @@ class Images(collection.Collection):
                 del self.listing[name]
             finally:
                 self.lock.release()
-            self.config.serialize_delete(self, obj)
+            self.collection_mgr.serialize_delete(self, obj)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [], logger)
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
             return True
 

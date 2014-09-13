@@ -72,7 +72,7 @@ class Repo(item.Item):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = Repo(self.config)
+        cloned = Repo(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 

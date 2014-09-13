@@ -42,19 +42,19 @@ class IscManager:
     def what(self):
         return "isc"
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
         self.logger = logger
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
         self.settings_file = utils.dhcpconf_location(self.api)
 
     def write_dhcp_file(self):
@@ -184,5 +184,5 @@ class IscManager:
         pass            # ISC/BIND do not use this
 
 
-def get_manager(config, logger):
-    return IscManager(config, logger)
+def get_manager(collection_mgr, logger):
+    return IscManager(collection_mgr, logger)

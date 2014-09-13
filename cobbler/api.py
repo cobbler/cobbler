@@ -27,7 +27,7 @@ import urllib2
 from ConfigParser import ConfigParser
 
 from cobbler import clogger
-from cobbler import config
+from cobbler import collection_manager
 from cobbler import utils
 from cobbler import action_sync
 from cobbler import action_check
@@ -117,7 +117,7 @@ class CobblerAPI:
             # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            self._config = config.Config(self)
+            self._collection_mgr = collection_manager.CollectionManager(self)
             self.deserialize()
 
             # import signatures
@@ -144,9 +144,9 @@ class CobblerAPI:
             # tftpgen versus reusing this one, which has the wrong logger
             # (most likely) for background tasks.
 
-            self.kickgen = kickgen.KickGen(self._config)
-            self.yumgen = yumgen.YumGen(self._config)
-            self.tftpgen = tftpgen.TFTPGen(self._config, logger=self.logger)
+            self.kickgen = kickgen.KickGen(self._collection_mgr)
+            self.yumgen = yumgen.YumGen(self._collection_mgr)
+            self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
@@ -242,22 +242,22 @@ class CobblerAPI:
         Forget about current list of profiles, distros, and systems
         # FIXME: is this used anymore?
         """
-        return self._config.clear()
+        return self._collection_mgr.clear()
 
     def __cmp(self, a, b):
         return cmp(a.name, b.name)
 
     def get_item(self, what, name):
         self.log("get_item", [what, name], debug=True)
-        item = self._config.get_items(what).get(name)
+        item = self._collection_mgr.get_items(what).get(name)
         self.log("done with get_item", [what, name], debug=True)
-        return item             # self._config.get_items(what).get(name)
+        return item             # self._collection_mgr.get_items(what).get(name)
 
     def get_items(self, what):
         self.log("get_items", [what], debug=True)
-        items = self._config.get_items(what)
+        items = self._collection_mgr.get_items(what)
         self.log("done with get_items", [what], debug=True)
-        return items            # self._config.get_items(what)
+        return items            # self._collection_mgr.get_items(what)
 
     def distros(self):
         """
@@ -293,7 +293,7 @@ class CobblerAPI:
         """
         Return the application configuration
         """
-        return self._config.settings()
+        return self._collection_mgr.settings()
 
     def mgmtclasses(self):
         """
@@ -423,35 +423,35 @@ class CobblerAPI:
 
     def new_distro(self, is_subobject=False):
         self.log("new_distro", [is_subobject])
-        return self._config.new_distro(is_subobject=is_subobject)
+        return self._collection_mgr.new_distro(is_subobject=is_subobject)
 
     def new_profile(self, is_subobject=False):
         self.log("new_profile", [is_subobject])
-        return self._config.new_profile(is_subobject=is_subobject)
+        return self._collection_mgr.new_profile(is_subobject=is_subobject)
 
     def new_system(self, is_subobject=False):
         self.log("new_system", [is_subobject])
-        return self._config.new_system(is_subobject=is_subobject)
+        return self._collection_mgr.new_system(is_subobject=is_subobject)
 
     def new_repo(self, is_subobject=False):
         self.log("new_repo", [is_subobject])
-        return self._config.new_repo(is_subobject=is_subobject)
+        return self._collection_mgr.new_repo(is_subobject=is_subobject)
 
     def new_image(self, is_subobject=False):
         self.log("new_image", [is_subobject])
-        return self._config.new_image(is_subobject=is_subobject)
+        return self._collection_mgr.new_image(is_subobject=is_subobject)
 
     def new_mgmtclass(self, is_subobject=False):
         self.log("new_mgmtclass", [is_subobject])
-        return self._config.new_mgmtclass(is_subobject=is_subobject)
+        return self._collection_mgr.new_mgmtclass(is_subobject=is_subobject)
 
     def new_package(self, is_subobject=False):
         self.log("new_package", [is_subobject])
-        return self._config.new_package(is_subobject=is_subobject)
+        return self._collection_mgr.new_package(is_subobject=is_subobject)
 
     def new_file(self, is_subobject=False):
         self.log("new_file", [is_subobject])
-        return self._config.new_file(is_subobject=is_subobject)
+        return self._collection_mgr.new_file(is_subobject=is_subobject)
 
     # ==========================================================================
 
@@ -493,7 +493,7 @@ class CobblerAPI:
         # defaults
         if criteria is None:
             criteria = {}
-        items = self._config.get_items(what)
+        items = self._collection_mgr.get_items(what)
         # empty criteria returns everything
         if criteria == {}:
             res = items
@@ -503,28 +503,28 @@ class CobblerAPI:
 
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_profile(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.profiles().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_system(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.systems().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.systems().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_repo(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.repos().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_image(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.images().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_mgmtclass(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.mgmtclasses().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.mgmtclasses().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_package(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.packages().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.packages().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     def find_file(self, name=None, return_list=False, no_errors=False, **kargs):
-        return self._config.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+        return self._collection_mgr.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
     # ==========================================================================
 
@@ -637,7 +637,7 @@ class CobblerAPI:
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
             print "auto adding: %s (%s)" % (auto_name, url)
-            self._config.repos().add(cobbler_repo, save=True)
+            self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes
         return True
@@ -714,7 +714,7 @@ class CobblerAPI:
         their TFTP servers for PXE, etc.
         """
         self.log("check")
-        check = action_check.BootCheck(self._config, logger=logger)
+        check = action_check.BootCheck(self._collection_mgr, logger=logger)
         return check.run()
 
     # ==========================================================================
@@ -727,7 +727,7 @@ class CobblerAPI:
         """
         # FIXME: teach code that copies it to grab from the right place
         self.log("dlcontent")
-        grabber = action_dlcontent.ContentDownloader(self._config, logger=logger)
+        grabber = action_dlcontent.ContentDownloader(self._collection_mgr, logger=logger)
         return grabber.run(force)
 
     # ==========================================================================
@@ -742,7 +742,7 @@ class CobblerAPI:
         kickstart format correctness.
         """
         self.log("validateks")
-        validator = action_validate.Validate(self._config, logger=logger)
+        validator = action_validate.Validate(self._collection_mgr, logger=logger)
         return validator.run()
 
     # ==========================================================================
@@ -774,19 +774,19 @@ class CobblerAPI:
             "dhcp",
             "module",
             "manage_isc"
-        ).get_manager(self._config, logger)
+        ).get_manager(self._collection_mgr, logger)
         self.dns = self.get_module_from_file(
             "dns",
             "module",
             "manage_bind"
-        ).get_manager(self._config, logger)
+        ).get_manager(self._collection_mgr, logger)
         self.tftpd = self.get_module_from_file(
             "tftpd",
             "module",
             "in_tftpd",
-        ).get_manager(self._config, logger)
+        ).get_manager(self._collection_mgr, logger)
 
-        return action_sync.BootSync(self._config, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
+        return action_sync.BootSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
 
     # ==========================================================================
 
@@ -796,13 +796,13 @@ class CobblerAPI:
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync", [name])
-        reposync = action_reposync.RepoSync(self._config, tries=tries, nofail=nofail, logger=logger)
+        reposync = action_reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
         return reposync.run(name)
 
     # ==========================================================================
 
     def status(self, mode, logger=None):
-        statusifier = action_status.BootStatusReport(self._config, mode, logger=logger)
+        statusifier = action_status.BootStatusReport(self._collection_mgr, mode, logger=logger)
         return statusifier.run()
 
     # ==========================================================================
@@ -900,7 +900,7 @@ class CobblerAPI:
 
         # importer_modules = self.get_modules_in_category("manage/import")
         # for importer_module in importer_modules:
-        #    manager = importer_module.get_import_manager(self._config,logger)
+        #    manager = importer_module.get_import_manager(self._collection_mgr,logger)
         #    try:
         #        (found,pkgdir) = manager.check_for_signature(path,breed)
         #        if found:
@@ -914,7 +914,7 @@ class CobblerAPI:
         # # FIXME: since we failed, we should probably remove the
         # # path tree we created above so we don't leave cruft around
         # return False
-        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._config, logger)
+        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._collection_mgr, logger)
         return import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
 
     # ==========================================================================
@@ -924,7 +924,7 @@ class CobblerAPI:
         Configures users/groups to run the cobbler CLI as non-root.
         Pass in only one option at a time.  Powers "cobbler aclconfig"
         """
-        acl = action_acl.AclConfig(self._config, logger)
+        acl = action_acl.AclConfig(self._collection_mgr, logger)
         return acl.run(
             adduser=adduser,
             addgroup=addgroup,
@@ -936,24 +936,24 @@ class CobblerAPI:
 
     def serialize(self):
         """
-        Save the config file(s) to disk.
+        Save the collections to disk.
         Cobbler internal use only.
         """
-        return self._config.serialize()
+        return self._collection_mgr.serialize()
 
     def deserialize(self):
         """
-        Load the current configuration from config file(s)
+        Load collections from disk.
         Cobbler internal use only.
         """
-        return self._config.deserialize()
+        return self._collection_mgr.deserialize()
 
     def deserialize_raw(self, collection_name):
         """
         Get the collection back just as raw data.
         Cobbler internal use only.
         """
-        return self._config.deserialize_raw(collection_name)
+        return self._collection_mgr.deserialize_raw(collection_name)
 
     def deserialize_item_raw(self, collection_name, obj_name):
         """
@@ -961,7 +961,7 @@ class CobblerAPI:
         Can be very fast for shelve or catalog serializers
         Cobbler internal use only.
         """
-        return self._config.deserialize_item_raw(collection_name, obj_name)
+        return self._collection_mgr.deserialize_item_raw(collection_name, obj_name)
 
     # ==========================================================================
 
@@ -1021,7 +1021,7 @@ class CobblerAPI:
                   profiles=None, systems=None, buildisodir=None, distro=None,
                   standalone=None, source=None,
                   exclude_dns=None, mkisofs_opts=None, logger=None):
-        builder = action_buildiso.BuildIso(self._config, logger=logger)
+        builder = action_buildiso.BuildIso(self._collection_mgr, logger=logger)
         return builder.run(
             iso=iso,
             profiles=profiles, systems=systems,
@@ -1033,7 +1033,7 @@ class CobblerAPI:
     # ==========================================================================
 
     def hardlink(self, logger=None):
-        linker = action_hardlink.HardLinker(self._config, logger=logger)
+        linker = action_hardlink.HardLinker(self._collection_mgr, logger=logger)
         return linker.run()
 
     # ==========================================================================
@@ -1043,7 +1043,7 @@ class CobblerAPI:
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
-        replicator = action_replicate.Replicate(self._config, logger=logger)
+        replicator = action_replicate.Replicate(self._collection_mgr, logger=logger)
         return replicator.run(
             cobbler_master=cobbler_master,
             distro_patterns=distro_patterns,
@@ -1066,7 +1066,7 @@ class CobblerAPI:
         """
         Report functionality for cobbler
         """
-        reporter = action_report.Report(self._config)
+        reporter = action_report.Report(self._collection_mgr)
         return reporter.run(report_what=report_what, report_name=report_name,
                             report_type=report_type, report_fields=report_fields,
                             report_noheaders=report_noheaders)
@@ -1082,13 +1082,13 @@ class CobblerAPI:
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("on")
+        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
 
     def power_off(self, system, user=None, password=None, logger=None):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("off")
+        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
 
     def reboot(self, system, user=None, password=None, logger=None):
         """
@@ -1104,7 +1104,7 @@ class CobblerAPI:
 
         @return: 0  the system is powered on, False if it's not or None on error
         """
-        return action_power.PowerTool(self._config, system, self, user, password, logger=logger).power("status")
+        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
 
     # ==========================================================================
 
@@ -1112,7 +1112,7 @@ class CobblerAPI:
         """
         Clears console and anamon logs for system
         """
-        return action_log.LogTool(self._config, system, self, logger=logger).clear()
+        return action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)

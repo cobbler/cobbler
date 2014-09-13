@@ -57,19 +57,19 @@ class Repos(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
 
             self.lock.acquire()
             try:
                 del self.listing[name]
             finally:
                 self.lock.release()
-            self.config.serialize_delete(self, obj)
+            self.collection_mgr.serialize_delete(self, obj)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
                 # FIXME: better use config.settings() webdir?
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name

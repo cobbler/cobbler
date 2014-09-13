@@ -47,16 +47,16 @@ except:
 
 class Templar:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
 
-        self.config = None
+        self.collection_mgr = None
         self.settings = None
-        if config:
-            self.config = config
-            self.settings = config.settings()
+        if collection_mgr:
+            self.collection_mgr = collection_mgr
+            self.settings = collection_mgr.settings()
 
         self.last_errors = []
 

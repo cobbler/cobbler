@@ -129,7 +129,7 @@ class System(item.Item):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = System(self.config)
+        cloned = System(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 
@@ -144,11 +144,11 @@ class System(item.Item):
         Return object next highest up the tree.
         """
         if (self.parent is None or self.parent == '') and self.profile:
-            return self.config.profiles().find(name=self.profile)
+            return self.collection_mgr.profiles().find(name=self.profile)
         elif (self.parent is None or self.parent == '') and self.image:
-            return self.config.images().find(name=self.image)
+            return self.collection_mgr.images().find(name=self.image)
         else:
-            return self.config.systems().find(name=self.parent)
+            return self.collection_mgr.systems().find(name=self.parent)
 
 
     def check_if_valid(self):
@@ -349,8 +349,8 @@ class System(item.Item):
         @returns: True or CX
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and utils.input_boolean(self.config._settings.allow_duplicate_hostnames) is False:
-            matched = self.config.api.find_items("system", {"dns_name": dns_name})
+        if dns_name != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_hostnames) is False:
+            matched = self.collection_mgr.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
                     raise CX("DNS name duplicated: %s" % dns_name)
@@ -380,8 +380,8 @@ class System(item.Item):
         @returns: True or CX
         """
         address = validate.ipv4_address(address)
-        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_ips) is False:
-            matched = self.config.api.find_items("system", {"ip_address": address})
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+            matched = self.collection_mgr.api.find_items("system", {"ip_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
@@ -401,9 +401,9 @@ class System(item.Item):
         """
         address = validate.mac_address(address)
         if address == "random":
-            address = utils.get_random_mac(self.config.api)
-        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_macs) is False:
-            matched = self.config.api.find_items("system", {"mac_address": address})
+            address = utils.get_random_mac(self.collection_mgr.api)
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_macs) is False:
+            matched = self.collection_mgr.api.find_items("system", {"mac_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("MAC address duplicated: %s" % address)
@@ -531,8 +531,8 @@ class System(item.Item):
         @returns: True or CX
         """
         address = validate.ipv6_address(address)
-        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_ips) is False:
-            matched = self.config.api.find_items("system", {"ipv6_address": address})
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+            matched = self.collection_mgr.api.find_items("system", {"ipv6_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
@@ -614,7 +614,7 @@ class System(item.Item):
 
         self.image = ""         # mutual exclusion rule
 
-        p = self.config.profiles().find(name=profile_name)
+        p = self.collection_mgr.profiles().find(name=profile_name)
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1            # subprofiles have varying depths.
@@ -641,7 +641,7 @@ class System(item.Item):
 
         self.profile = ""       # mutual exclusion rule
 
-        img = self.config.images().find(name=image_name)
+        img = self.collection_mgr.images().find(name=image_name)
 
         if img is not None:
             self.image = image_name

@@ -34,18 +34,18 @@ class BuildIso:
     """
     Handles conversion of internal state to the isolinux tree layout
     """
-    def __init__(self, config, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose=False, logger=None):
         """
         Constructor
         """
         self.verbose = verbose
-        self.config = config
-        self.settings = config.settings()
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.distros = config.distros()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.distros = collection_mgr.distros()
         self.distmap = {}
         self.distctr = 0
         self.source = ""

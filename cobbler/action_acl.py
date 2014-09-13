@@ -2,7 +2,7 @@
 Configures acls for various users/groups so they can access the cobbler command
 line as non-root.  Now that CLI is largely remoted (XMLRPC) this is largely just
 useful for not having to log in (access to shared-secret) file but also grants
-access to hand-edit various config files and other useful things.
+access to hand-edit various collections files and other useful things.
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -30,13 +30,13 @@ import clogger
 
 class AclConfig:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.api = config.api
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.settings = collection_mgr.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger

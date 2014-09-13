@@ -41,18 +41,18 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self, config, tries=1, nofail=False, logger=None):
+    def __init__(self, collection_mgr, tries=1, nofail=False, logger=None):
         """
         Constructor
         """
         self.verbose = True
-        self.api = config.api
-        self.config = config
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
+        self.api = collection_mgr.api
+        self.collection_mgr = collection_mgr
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
         self.rflags = self.settings.reposync_flags
         self.tries = tries
         self.nofail = nofail

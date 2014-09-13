@@ -90,7 +90,7 @@ class Profile(item.Item):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = Profile(self.config)
+        cloned = Profile(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 
@@ -109,9 +109,9 @@ class Profile(item.Item):
         if self.parent is None or self.parent == '':
             if self.distro is None:
                 return None
-            result = self.config.distros().find(name=self.distro)
+            result = self.collection_mgr.distros().find(name=self.distro)
         else:
-            result = self.config.profiles().find(name=self.parent)
+            result = self.collection_mgr.profiles().find(name=self.parent)
         return result
 
 
@@ -151,7 +151,7 @@ class Profile(item.Item):
             # check must be done in two places as set_parent could be called before/after
             # set_name...
             raise CX(_("self parentage is weird"))
-        found = self.config.profiles().find(name=parent_name)
+        found = self.collection_mgr.profiles().find(name=parent_name)
         if found is None:
             raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name
@@ -167,7 +167,7 @@ class Profile(item.Item):
         Sets the distro.  This must be the name of an existing
         Distro object in the Distros collection.
         """
-        d = self.config.distros().find(name=distro_name)
+        d = self.collection_mgr.distros().find(name=distro_name)
         if d is not None:
             old_parent = self.get_parent()
             if isinstance(old_parent, item.Item):

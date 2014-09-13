@@ -50,7 +50,7 @@ class Package(resource.Resource):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = Package(self.config)
+        cloned = Package(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 

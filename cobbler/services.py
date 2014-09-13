@@ -25,7 +25,7 @@ import xmlrpclib
 import time
 import urlgrabber
 import yaml
-import config
+import collection_manager
 import simplejson
 
 
@@ -39,7 +39,7 @@ class CobblerSvc(object):
         self.server = server
         self.remote = None
         self.req = req
-        self.config = config.Config(self)
+        self.collection_mgr = collection_manager.CollectionManager(self)
 
     def __xmlrpc_setup(self):
         """
@@ -225,7 +225,7 @@ class CobblerSvc(object):
     def findks(self, system=None, profile=None, **rest):
         self.__xmlrpc_setup()
 
-        serverseg = "http//%s" % self.config._settings.server
+        serverseg = "http//%s" % self.collection_mgr._settings.server
 
         name = "?"
         if system is not None:

@@ -36,23 +36,23 @@ class BootLiteSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, config, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose=False, logger=None):
         """
         Constructor
         """
         self.verbose = verbose
-        self.config = config
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.images = config.images()
-        self.settings = config.settings()
-        self.repos = config.repos()
+        self.collection_mgr = collection_mgr
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.images = collection_mgr.images()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
-        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(config, logger)
-        self.sync = config.api.get_sync(verbose, logger=self.logger)
+        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(collection_mgr, logger)
+        self.sync = collection_mgr.api.get_sync(verbose, logger=self.logger)
         self.sync.make_tftpboot()
 
     def add_single_distro(self, name):

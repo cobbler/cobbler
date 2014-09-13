@@ -37,7 +37,7 @@ class TftpdPyManager:
     def what(self):
         return "tftpd"
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
@@ -45,8 +45,8 @@ class TftpdPyManager:
         if self.logger is None:
             self.logger = clogger.Logger()
 
-        self.config = config
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.templar = templar.Templar(collection_mgr)
         self.settings_file = "/etc/xinetd.d/tftp"
 
     def regen_hosts(self):
@@ -101,7 +101,7 @@ class TftpdPyManager:
         Write out files to /tftpdboot.  Mostly unused for the python server
         """
         self.logger.info("copying bootloaders")
-        tftpgen.TFTPGen(self.config, self.logger).copy_bootloaders()
+        tftpgen.TFTPGen(self.collection_mgr, self.logger).copy_bootloaders()
 
     def update_netboot(self, name):
         """
@@ -116,5 +116,5 @@ class TftpdPyManager:
         pass
 
 
-def get_manager(config, logger):
-    return TftpdPyManager(config, logger)
+def get_manager(collection_mgr, logger):
+    return TftpdPyManager(collection_mgr, logger)

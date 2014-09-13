@@ -40,13 +40,13 @@ class PowerTool:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, config, system, api, force_user=None, force_pass=None, logger=None):
+    def __init__(self, collection_mgr, system, api, force_user=None, force_pass=None, logger=None):
         """
         Power library constructor requires a cobbler system object.
         """
         self.system = system
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         self.api = api
         self.logger = self.api.logger
         self.force_user = force_user
@@ -92,7 +92,7 @@ class PowerTool:
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS", "")
 
         template = utils.get_power_template(self.system.power_type)
-        tmp = templar.Templar(self.api._config)
+        tmp = templar.Templar(self.api._collection_mgr)
         template_data = tmp.render(template, meta, None, self.system)
 
         # Try the power command 5 times before giving up.

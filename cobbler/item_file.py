@@ -59,7 +59,7 @@ class File(resource.Resource):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = File(self.config)
+        cloned = File(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 

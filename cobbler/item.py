@@ -29,9 +29,9 @@ class Item(object):
 
     TYPE_NAME = "generic"
 
-    def __init__(self, config, is_subobject=False):
+    def __init__(self, collection_mgr, is_subobject=False):
         """
-        Constructor.  Requires a back reference to the Config management object.
+        Constructor.  Requires a back reference to the CollectionManager object.
 
         NOTE: is_subobject is used for objects that allow inheritance in their trees.  This
         inheritance refers to conceptual inheritance, not Python inheritance.  Objects created
@@ -52,12 +52,12 @@ class Item(object):
         use False for is_subobject and the parent object will (therefore) have a different type.
         """
 
-        self.config = config
-        self.settings = self.config._settings
+        self.collection_mgr = collection_mgr
+        self.settings = self.collection_mgr._settings
         self.clear(is_subobject)        # reset behavior differs for inheritance cases
         self.parent = ''                # all objects by default are not subobjects
         self.children = {}              # caching for performance reasons, not serialized
-        self.log_func = self.config.api.log
+        self.log_func = self.collection_mgr.api.log
         self.ctime = 0                  # to be filled in by collection class
         self.mtime = 0                  # to be filled in by collection class
         self.uid = ""                   # to be filled in by collection class
@@ -432,7 +432,7 @@ class Item(object):
 
 
     def dump_vars(self, data, format=True):
-        raw = utils.blender(self.config.api, False, self)
+        raw = utils.blender(self.collection_mgr.api, False, self)
         if format:
             return pprint.pformat(raw)
         else:
