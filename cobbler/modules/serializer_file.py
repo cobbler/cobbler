@@ -1,6 +1,6 @@
 """
-Serializer code for cobbler.
-As of 8/2009, this is the "best" serializer option.
+Cobbler's file-based object serializer.
+As of 9/2014, this is Cobbler's default serializer and the most stable one.
 It uses multiple JSON files in /var/lib/cobbler/config/distros.d, profiles.d, etc
 
 Copyright 2006-2009, Red Hat, Inc and Others
