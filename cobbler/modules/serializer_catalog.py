@@ -77,7 +77,7 @@ def serialize_item(obj, item):
     jsonable = can_use_json()
 
     if jsonable:
-        if capi.BootAPI().settings().serializer_pretty_json:
+        if capi.CobblerAPI().settings().serializer_pretty_json:
             sort_keys = True
             indent = 4
         else:
