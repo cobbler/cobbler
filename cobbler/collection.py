@@ -353,25 +353,20 @@ class Collection:
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
-        if not save:
-            # don't need to run triggers, so add it already ...
-            self.lock.acquire()
-            try:
-                self.listing[ref.name.lower()] = ref
-            finally:
-                self.lock.release()
+        # failure of a pre trigger will prevent the object from being added
+        if save and with_triggers:
+            utils.run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_
+
+        self.lock.acquire()
+        try:
+            self.listing[ref.name.lower()] = ref
+        finally:
+            self.lock.release()
+
+        if save:
 
         # perform filesystem operations
         if save:
-            # failure of a pre trigger will prevent the object from being added
-            if with_triggers:
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(), [], logger)
-            self.lock.acquire()
-            try:
-                self.listing[ref.name.lower()] = ref
-            finally:
-                self.lock.release()
-
             # save just this item if possible, if not, save
             # the whole collection
             self.collection_mgr.serialize_item(self, ref)
