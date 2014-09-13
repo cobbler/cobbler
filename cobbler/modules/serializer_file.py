@@ -57,7 +57,7 @@ def what():
     """
     Module identification function
     """
-    return "serializer/catalog"
+    return "serializer/file"
 
 
 def serialize_item(obj, item):
