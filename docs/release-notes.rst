@@ -7,6 +7,10 @@ Release Notes
 Enhancements
 ============
 
+* DHCP configuration now also supports the per interface gateway setting
+* A new interface_type ``BMC`` was added which also can be managed with DHCP
+* Yaboot was updated to 1.3.17
+* Add ability to have per-profile/per-system ``next_server`` values (#1196)
 * Add ``--graphics`` option to Koan
 * Improved input validation and error handling
 * Support virtio26 for generic QEMU fallback in Koan
@@ -28,6 +32,8 @@ Enhancements
 Bugfixes
 ========
 
+* Several improvements to Debian/Ubuntu packaging
+* Some class/method names have been changed to make the more intuitive for developers
 * Remove ``root=`` argument in Koan when using grubby and replace-self to avoid booting the current OS
 * Exit with an error if the cobblerd executable can't be found (#1108, #1135)
 * Fix cobbler sync bug by xmlrpclib returning NoneType object
@@ -49,7 +55,7 @@ Bugfixes
 Upgrade notes
 =============
 
-* The template_remote_kickstarts feature has been removed
+* Support for remote kickstart templates and files been removed (eg. kickstart=http://)
 * All object names are now validated like that of the system object
 * The use of ``parent`` and ``distro`` on subprofiles are now mutually exclusive
 * Support for s390/s390x has been removed
