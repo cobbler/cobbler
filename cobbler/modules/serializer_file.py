@@ -1,10 +1,7 @@
 """
 Serializer code for cobbler.
 As of 8/2009, this is the "best" serializer option.
-It uses multiple files in /var/lib/cobbler/config/distros.d, profiles.d, etc
-And JSON, when possible, and YAML, when not.
-It is particularly fast, especially when using JSON.   YAML, not so much.
-It also knows how to upgrade the old "single file" configs to .d versions.
+It uses multiple JSON files in /var/lib/cobbler/config/distros.d, profiles.d, etc
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -40,11 +37,6 @@ sys.path.insert(0, mod_path)
 import cobbler.api as capi
 
 
-def can_use_json():
-    version = sys.version[:3]
-    version = float(version)
-    return (version > 2.3)
-
 
 def register():
     """
@@ -74,38 +66,18 @@ def serialize_item(obj, item):
 
     datastruct = item.to_datastruct()
 
-    jsonable = can_use_json()
-
-    if jsonable:
-        if capi.CobblerAPI().settings().serializer_pretty_json:
-            sort_keys = True
-            indent = 4
-        else:
-            sort_keys = False
-            indent = None
-
-        # avoid using JSON on python 2.3 where we can encounter
-        # unicode problems with simplejson pre 2.0
-
-        if os.path.exists(filename):
-            print "upgrading yaml file to json: %s" % filename
-            os.remove(filename)
-        filename = filename + ".json"
-        datastruct = item.to_datastruct()
-        fd = open(filename, "w+")
-        data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
-        # data = data.encode('utf-8')
-        fd.write(data)
-
+    if capi.CobblerAPI().settings().serializer_pretty_json:
+        sort_keys = True
+        indent = 4
     else:
+        sort_keys = False
+        indent = None
 
-        if os.path.exists(filename + ".json"):
-            print "downgrading json file back to yaml: %s" % filename
-            os.remove(filename + ".json")
-        datastruct = item.to_datastruct()
-        fd = open(filename, "w+")
-        data = yaml.dump(datastruct)
-        fd.write(data)
+    filename += ".json"
+    datastruct = item.to_datastruct()
+    fd = open(filename, "w+")
+    data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
+    fd.write(data)
 
     fd.close()
     return True
@@ -119,11 +91,9 @@ def serialize_delete(obj, item):
     else:
         filename = "/var/lib/cobbler/config/%ss.d/%s" % (obj.collection_type(), item.name)
 
-    filename2 = filename + ".json"
+    filename += ".json"
     if os.path.exists(filename):
         os.remove(filename)
-    if os.path.exists(filename2):
-        os.remove(filename2)
     return True
 
 
@@ -138,13 +108,9 @@ def deserialize_item_raw(collection_type, item_name):
     else:
         filename = "/var/lib/cobbler/config/%ss.d/%s" % (collection_type, item_name)
 
-    filename2 = filename + ".json"
+    filename += ".json"
     if os.path.exists(filename):
         fd = open(filename)
-        data = fd.read()
-        return yaml.safe_load(data)
-    elif os.path.exists(filename2):
-        fd = open(filename2)
         data = fd.read()
         return simplejson.loads(data, encoding="utf-8")
     else:
@@ -187,36 +153,13 @@ def deserialize_raw(collection_type):
         else:
             all_files = glob.glob("/var/lib/cobbler/config/%ss.d/*" % collection_type)
 
-        all_files = filter_upgrade_duplicates(all_files)
         for f in all_files:
             fd = open(f)
-            ydata = fd.read()
-            # ydata = ydata.decode()
-            if f.endswith(".json"):
-                datastruct = simplejson.loads(ydata, encoding='utf-8')
-            else:
-                datastruct = yaml.safe_load(ydata)
+            json_data = fd.read()
+            datastruct = simplejson.loads(json_data, encoding='utf-8')
             results.append(datastruct)
             fd.close()
         return results
-
-
-def filter_upgrade_duplicates(file_list):
-    """
-    In a set of files, some ending with .json, some not, return
-    the list of files with the .json ones taking priority over
-    the ones that are not.
-    """
-    bases = {}
-    for f in file_list:
-        basekey = f.replace(".json", "")
-        if f.endswith(".json"):
-            bases[basekey] = f
-        else:
-            lookup = bases.get(basekey, "")
-            if not lookup.endswith(".json"):
-                bases[basekey] = f
-    return bases.values()
 
 
 def deserialize(obj, topological=True):
