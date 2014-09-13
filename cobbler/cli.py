@@ -250,7 +250,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
 
 
 
-class BootCLI:
+class CobblerCLI:
 
     def __init__(self):
         # Load server ip and ports from local config
@@ -720,7 +720,7 @@ def main():
     """
     CLI entry point
     """
-    cli = BootCLI()
+    cli = CobblerCLI()
     cli.check_setup()
     rc = cli.run(sys.argv)
     if rc or rc is None:
