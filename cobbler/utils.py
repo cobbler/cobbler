@@ -1587,11 +1587,11 @@ def get_kickstart_templates(api):
     files = {}
     for x in api.profiles():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.exists(x.kickstart):
+            if os.path.isfile(x.kickstart):
                 files[x.kickstart] = 1
     for x in api.systems():
         if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.exists(x.kickstart):
+            if os.path.isfile(x.kickstart):
                 files[x.kickstart] = 1
     for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
         if os.path.isfile(x):
@@ -1599,7 +1599,10 @@ def get_kickstart_templates(api):
 
     results = files.keys()
     results.sort()
-    return results
+    kslist = ["", "<<inherit>>"]
+    for ks in results:
+        kslist.append(ks)
+    return kslist
 
 def safe_filter(var):
     if var is None:
