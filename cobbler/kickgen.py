@@ -170,7 +170,8 @@ class KickGen:
             if repo_obj is not None:
                 yumopts = ''
                 for opt in repo_obj.yumopts:
-                    yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
+                    if not opt in ['enabled', 'gpgcheck']:
+                        yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
                         baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
