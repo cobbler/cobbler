@@ -30,6 +30,7 @@ mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
 import ConfigParser
+import yaml
 
 pymongo_loaded = False
 
@@ -114,14 +115,25 @@ def serialize(collection):
     """
 
     # TODO: error detection
-    for x in collection:
-        serialize_item(collection, x)
+    ctype = collection.collection_type()
+    if ctype != "settings":
+        for x in collection:
+            serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
-    __connect()
-    collection = mongodb[collection_type]
-    return collection.find()
+
+    # FIXME: code to load settings file should not be replicated in all
+    #   serializer subclasses
+    if collection_type == "settings":
+        fd = open("/etc/cobbler/settings")
+        datastruct = yaml.safe_load(fd.read())
+        fd.close()
+        return datastruct
+    else:
+        __connect()
+        collection = mongodb[collection_type]
+        return collection.find()
 
 
 def deserialize(collection, topological=True):

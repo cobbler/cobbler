@@ -96,10 +96,9 @@ def serialize(collection):
 
     __connect()
     ctype = collection.collection_type()
-    if ctype == "settings":
-        return
-    for x in collection:
-        serialize_item(collection, x)
+    if ctype != "settings":
+        for x in collection:
+            serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
@@ -112,6 +111,8 @@ def deserialize_raw(collection_type):
     for x in contents["rows"]:
         items.append(x["key"])
 
+    # FIXME: code to load settings file should not be replicated in all
+    #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
         datastruct = yaml.safe_load(fd.read())

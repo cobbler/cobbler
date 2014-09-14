@@ -123,6 +123,9 @@ def serialize(collection):
 
 
 def deserialize_raw(collection_type):
+
+    # FIXME: code to load settings file should not be replicated in all
+    #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
         datastruct = yaml.safe_load(fd.read())
