@@ -1,1 +1,0 @@
-authconfig --enableshadow --enableldap --enableldapauth --enablelocauthorize --enablecache --enablemkhomedir --updateall --ldapserver=$ldapserver --ldapbasedn=$ldapbasedn

@@ -36,8 +36,7 @@ import clogger
 class ConfigGen:
     """
     Generate configuration data for Cobbler's management resources:
-    repos, ldap, files and packages. Mainly used by Koan to
-    configure remote systems.
+    repos, files and packages. Mainly used by Koan to configure systems.
     """
 
     def __init__(self, hostname):
@@ -75,13 +74,12 @@ class ConfigGen:
 
     def gen_config_data(self):
         """
-        Generate configuration data for repos, ldap, files and packages.
+        Generate configuration data for repos, files and packages.
         Returns a dict.
         """
         config_data = {
             'repo_data': self.handle.get_repo_config_for_system(self.system),
             'repos_enabled': self.get_cobbler_resource('repos_enabled'),
-            'ldap_enabled': self.get_cobbler_resource('ldap_enabled'),
         }
         package_set = set()
         file_set = set()
@@ -92,16 +90,6 @@ class ConfigGen:
                 package_set.add(package)
             for file in _mgmtclass.files:
                 file_set.add(file)
-
-        # Generate LDAP data
-        if self.get_cobbler_resource("ldap_enabled"):
-            if self.system.ldap_type in ["", "none"]:
-                utils.die(self.logger, "LDAP management type not set for this system (%s, %s)" % (self.system.ldap_type, self.system.name))
-            else:
-                template = utils.get_ldap_template(self.system.ldap_type)
-                t = Template(file=template, searchList=[self.host_vars])
-                print t
-                config_data['ldap_data'] = t.respond()
 
         # Generate Package data
         pkg_data = {}

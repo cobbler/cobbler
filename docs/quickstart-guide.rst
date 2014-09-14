@@ -285,8 +285,6 @@ First, we'll create a system object based on the profile that was created during
     Kernel Options (Post Install)  : {}
     Kickstart                      : <<inherit>>
     Kickstart Metadata             : {}
-    LDAP Enabled                   : False
-    LDAP Management Type           : authconfig
     Management Classes             : []
     Management Parameters          : <<inherit>>
     Name Servers                   : []

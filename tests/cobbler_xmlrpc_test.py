@@ -185,8 +185,6 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
           ["kernel_options_post",["a=1 b=2 c=3 c=4 c=5 d e"],[]],
           ["kickstart",[self.redhat_kickstart,self.suse_autoyast,self.ubuntu_preseed],["/path/to/bad/kickstart",]],
           ["ks_meta",["a=1 b=2 c=3 c=4 c=5 d e",],[]],
-          ["ldap_enabled", [], []],
-          ["ldap_type", [], []],
           ["mgmt_classes",["one two three",],[]],
           ["mgmt_parameters",["<<inherit>>"],["badyaml"]], # needs more test cases that are valid yaml
           ["name",["testsystem0"],[]],

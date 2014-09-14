@@ -163,7 +163,6 @@ class Collection:
         'virt-group': 'virt_group',
         'dhcp-tag': 'dhcp_tag',
         'netboot-enabled': 'netboot_enabled',
-        'ldap-enabled': 'ldap_enabled'
     }
 
 
