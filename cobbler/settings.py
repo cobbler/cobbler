@@ -104,8 +104,6 @@ DEFAULTS = {
     "pxe_just_once": [0, "bool"],
     "pxe_template_dir": ["/etc/cobbler/pxe", "str"],
     "redhat_management_permissive": [0, "bool"],
-    "redhat_management_type": ["off", "str"],
-    "redhat_management_key": ["", "str"],
     "redhat_management_server": ["xmlrpc.rhn.redhat.com", "str"],
     "register_new_installs": [0, "bool"],
     "remove_old_puppet_certs_automatically": [0, "bool"],

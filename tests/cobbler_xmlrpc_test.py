@@ -142,8 +142,6 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
           ["mgmt_classes",["one two three",],[]],
           ["os_version",["generic26",],["bados",]],
           ["owners",["user1 user2 user3",],[]],
-          ["redhat_management_key",["abcd1234",],[]],
-          ["redhat_management_server",["1.1.1.1",],[]],
         ]
 
         self.profile_fields = [
@@ -166,8 +164,6 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
           ["name_servers_search",["example.com foo.bar.com"],[]],
           ["owners",["user1 user2 user3"],[]],
           ["proxy",["testproxy"],[]],
-          ["redhat_management_key",["abcd1234",],[]],
-          ["redhat_management_server",["1.1.1.1"],[]],
           ["server",["1.1.1.1"],[]],
           ["virt_auto_boot",["1","0"],["yes","no"]],
           ["virt_bridge",["<<inherit>>","br0","virbr0","xenbr0"],[]],
@@ -197,8 +193,6 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
           ["netboot_enabled",["yes","YES","1","0","no"],[]],
           ["owners",["user1 user2 user3"],[]],
           ["profile",["testprofile0"],["badprofile",]],
-          ["redhat_management_key",["abcd1234",],[]],
-          ["redhat_management_server",["1.1.1.1"],[]],
           ["repos_enabled", [], []],
           ["status",["development","testing","acceptance","production"],[]],
           ["proxy",["testproxy"],[]],
