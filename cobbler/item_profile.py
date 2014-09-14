@@ -62,9 +62,7 @@ FIELDS = [
     ["mgmt_parameters", "<<inherit>>", "<<inherit>>", "Management Parameters", True, "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
-    ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
-    ["redhat_management_key", "<<inherit>>", "<<inherit>>", "Red Hat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["redhat_management_server", "<<inherit>>", "<<inherit>>", "Red Hat Management Server", True, "Address of Spacewalk or Satellite Server", 0, "str"]
+    ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"]
 ]
 
 
@@ -179,14 +177,6 @@ class Profile(item.Item):
             d.children[self.name] = self
             return True
         raise CX(_("distribution not found"))
-
-
-    def set_redhat_management_key(self, key):
-        return utils.set_redhat_management_key(self, key)
-
-
-    def set_redhat_management_server(self, server):
-        return utils.set_redhat_management_server(self, server)
 
 
     def set_name_servers(self, data):

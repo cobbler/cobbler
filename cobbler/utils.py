@@ -1260,16 +1260,6 @@ def path_tail(apath, bpath):
     return result
 
 
-def set_redhat_management_key(self, key):
-    self.redhat_management_key = key
-    return True
-
-
-def set_redhat_management_server(self, server):
-    self.redhat_management_server = server
-    return True
-
-
 def set_arch(self, arch, repo=False):
     if arch is None or arch == "" or arch == "standard" or arch == "x86":
         arch = "i386"

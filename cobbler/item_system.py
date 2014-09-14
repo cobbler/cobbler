@@ -95,8 +95,6 @@ FIELDS = [
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
-    ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Satellite, or Spacewalk", 0, "str"],
-    ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Satellite or Spacewalk Server", 0, "str"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
     ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
@@ -234,14 +232,6 @@ class System(item.Item):
             del self.interfaces[name]
 
         return True
-
-
-    def set_redhat_management_key(self, key):
-        return utils.set_redhat_management_key(self, key)
-
-
-    def set_redhat_management_server(self, server):
-        return utils.set_redhat_management_server(self, server)
 
 
     def set_server(self, server):
