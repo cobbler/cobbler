@@ -92,12 +92,6 @@ def serialize_delete(obj, item):
     collection.remove({'name': item.name})
 
 
-def deserialize_item_raw(collection_type, item_name):
-    __connect()
-    collection = mongodb[collection_type()]
-    data = collection.find_one({'name': item_name})
-    return data
-
 def serialize(obj):
     """
     Save an object to the database.
@@ -130,5 +124,3 @@ def __depth_cmp(item1, item2):
     return cmp(d1, d2)
 
 
-if __name__ == "__main__":
-    print deserialize_item_raw("distro", "D1")

@@ -95,26 +95,6 @@ def serialize_delete(obj, item):
         os.remove(filename)
 
 
-def deserialize_item_raw(collection_type, item_name):
-    # this new fn is not really implemented performantly in this module.
-    # yet.
-
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if item_name in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection_type(), item_name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection_type, item_name)
-
-    filename += ".json"
-    if os.path.exists(filename):
-        fd = open(filename)
-        data = fd.read()
-        return simplejson.loads(data, encoding="utf-8")
-    else:
-        return None
-
-
 def serialize(obj):
     """
     Save an object to disk.  Object must "implement" Serializable.
@@ -174,6 +154,3 @@ def __depth_cmp(item1, item2):
     d2 = item2.get("depth", 1)
     return cmp(d1, d2)
 
-
-if __name__ == "__main__":
-    print deserialize_item_raw("distro", "D1")

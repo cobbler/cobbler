@@ -119,35 +119,6 @@ def deserialize(obj, topological=True):
     __release_lock()
 
 
-def deserialize_raw(collection_type):
-    """
-    Return the datastructure corresponding to the serialized
-    disk state, without going through the Cobbler object system.
-    Much faster, when you don't need the objects.
-    """
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    storage_module.deserialize_raw(collection_type)
-    __release_lock()
-
-
-def deserialize_item(collection_type, item_name):
-    """
-    Get a specific record.
-    """
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    storage_module.deserialize_item(collection_type, item_name)
-    __release_lock()
-
-
-def deserialize_item_raw(collection_type, item_name):
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    storage_module.deserialize_item_raw(collection_type, item_name)
-    __release_lock()
-
-
 def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf

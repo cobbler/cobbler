@@ -942,21 +942,6 @@ class CobblerAPI:
         """
         return self._collection_mgr.deserialize()
 
-    def deserialize_raw(self, collection_name):
-        """
-        Get the collection back just as raw data.
-        Cobbler internal use only.
-        """
-        return self._collection_mgr.deserialize_raw(collection_name)
-
-    def deserialize_item_raw(self, collection_name, obj_name):
-        """
-        Get an object back as raw data.
-        Can be very fast for shelve or catalog serializers
-        Cobbler internal use only.
-        """
-        return self._collection_mgr.deserialize_item_raw(collection_name, obj_name)
-
     # ==========================================================================
 
     def get_module_by_name(self, module_name):

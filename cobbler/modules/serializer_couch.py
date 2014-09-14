@@ -73,12 +73,6 @@ def serialize_delete(obj, item):
     couchdb.deleteDoc(obj.collection_type(), item.name)
 
 
-def deserialize_item_raw(collection_type, item_name):
-    __connect()
-    data = couchdb.openDoc(collection_type, item_name)
-    return simplejson.loads(data, encoding="utf-8")
-
-
 def serialize(obj):
     """
     Save an object to disk.  Object must "implement" Serializable.
@@ -135,5 +129,3 @@ def __depth_cmp(item1, item2):
     return cmp(d1, d2)
 
 
-if __name__ == "__main__":
-    print deserialize_item_raw("distro", "D1")

@@ -243,18 +243,6 @@ class CollectionManager:
             except:
                 raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
 
-    def deserialize_raw(self, collection_type):
-        """
-        Get object data from disk, not objects.
-        """
-        return serializer.deserialize_raw(collection_type)
-
-    def deserialize_item_raw(self, collection_type, obj_name):
-        """
-        Get a raw single object.
-        """
-        return serializer.deserialize_item_raw(collection_type, obj_name)
-
     def get_items(self, collection_type):
         if collection_type == "distro":
             result = self._distros
