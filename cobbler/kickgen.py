@@ -23,11 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import urlparse
 
-import utils
-from cexceptions import FileNotFoundException, CX
-import templar
+from cobbler import utils
+from cobbler import validate
+from cobbler import templar
 
-from utils import _
+from cobbler.cexceptions import FileNotFoundException, CX
+from cobbler.utils import _
 
 import xml.dom.minidom
 
@@ -170,7 +171,8 @@ class KickGen:
             if repo_obj is not None:
                 yumopts = ''
                 for opt in repo_obj.yumopts:
-                    if not opt in ['enabled', 'gpgcheck', 'gpgkey']:
+                    # filter invalid values to the repo statement in kickstarts
+                    if not opt.lower() in validate.KICKSTART_REPO_BLACKLIST:
                         yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:

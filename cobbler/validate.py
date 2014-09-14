@@ -36,6 +36,9 @@ REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
 
 VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
 
+# blacklist invalid values to the repo statement in kickstarts
+KICKSTART_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
+
 
 def object_name(name, parent):
     """
