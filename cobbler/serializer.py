@@ -132,6 +132,3 @@ def __get_storage_module(collection_type):
     capi = cobbler_api.CobblerAPI()
     return capi.get_module_from_file("serializers", collection_type, "serializer_file")
 
-if __name__ == "__main__":
-    __grab_lock()
-    __release_lock()
