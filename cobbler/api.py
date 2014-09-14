@@ -239,13 +239,6 @@ class CobblerAPI:
 
     # ==========================================================
 
-    def clear(self):
-        """
-        Forget about current list of profiles, distros, and systems
-        # FIXME: is this used anymore?
-        """
-        return self._collection_mgr.clear()
-
     def __cmp(self, a, b):
         return cmp(a.name, b.name)
 

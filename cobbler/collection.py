@@ -48,7 +48,7 @@ class Collection:
         Constructor.
         """
         self.collection_mgr = collection_mgr
-        self.clear()
+        self.listing = {}
         self.api = self.collection_mgr.api
         self.lite_sync = None
         self.lock = Lock()
@@ -90,13 +90,6 @@ class Collection:
         @returns: exceptions.NotImplementedError
         """
         raise exceptions.NotImplementedError
-
-
-    def clear(self):
-        """
-        Forget about objects in the collection.
-        """
-        self.listing = {}
 
 
     def get(self, name):

@@ -196,19 +196,6 @@ class CollectionManager:
         """
         return file.File(weakref.proxy(self), is_subobject=is_subobject)
 
-    def clear(self):
-        """
-        Forget about all loaded collections
-        """
-        self._distros.clear()
-        self._repos.clear()
-        self._profiles.clear()
-        self._images.clear()
-        self._systems.clear()
-        self._mgmtclasses.clear()
-        self._packages.clear()
-        self._files.clear()
-
     def serialize(self):
         """
         Save the object hierarchy to disk, using the filenames referenced in each object.

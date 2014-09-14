@@ -181,12 +181,9 @@ class Settings:
         """
         Constructor.
         """
-        self.clear()
+        self._clear()
 
-    def clear(self):
-        """
-        Reset this object to reasonable default values.
-        """
+    def _clear(self):
         self.__dict__ = {}
         for key in DEFAULTS.keys():
             self.__dict__[key] = DEFAULTS[key][0]
@@ -214,7 +211,7 @@ class Settings:
             print _("warning: not loading empty structure for %s") % self.filename()
             return
 
-        self.clear()
+        self._clear()
         self.__dict__.update(datastruct)
 
         return self
