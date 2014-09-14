@@ -103,7 +103,6 @@ We have a development mailing list at https://fedorahosted.org/mailman/listinfo/
 Discuss development related questions, roadmap, and other things there, rather than on the general user list.
 
 It is a very good idea to mention your pull request (copy/paste, etc) to the development mailing list for discussion.
-list for discussion.
 
 
 Debugging
