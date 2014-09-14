@@ -266,7 +266,7 @@ class CobblerXMLRPCInterface:
 
     def get_events(self, for_user=""):
         """
-        Returns a hash(key=event id) = [ statetime, name, state, [read_by_who] ]
+        Returns a dict(key=event id) = [ statetime, name, state, [read_by_who] ]
         If for_user is set to a string, it will only return events the user
         has not seen yet.  If left unset, it will return /all/ events.
         """
@@ -321,7 +321,7 @@ class CobblerXMLRPCInterface:
             role_name  -- used to check token against authn/authz layers
             thr_obj_fn -- function handle to run in a background thread
             name       -- display name to show in logs/events
-            args       -- usually this is a single hash, containing options
+            args       -- usually this is a single dict, containing options
             on_done    -- an optional second function handle to run after success (and only success)
         Returns a task id.
         """
@@ -521,10 +521,10 @@ class CobblerXMLRPCInterface:
 
     def get_item(self, what, name, flatten=False):
         """
-        Returns a hash describing a given object.
+        Returns a dict describing a given object.
         what -- "distro", "profile", "system", "image", "repo", etc
         name -- the object name to retrieve
-        flatten -- reduce hashes to string representations (True/False)
+        flatten -- reduce dicts to string representations (True/False)
         """
         self._log("get_item(%s,%s)" % (what, name))
         item = self.api.get_item(what, name)
@@ -560,7 +560,7 @@ class CobblerXMLRPCInterface:
 
     def get_items(self, what):
         """
-        Returns a list of hashes.
+        Returns a list of dicts.
         what is the name of a cobbler object type, as described for get_item.
         Individual list elements are the same for get_item.
         """
@@ -601,8 +601,8 @@ class CobblerXMLRPCInterface:
 
     def find_items(self, what, criteria=None, sort_field=None, expand=True):
         """
-        Returns a list of hashes.
-        Works like get_items but also accepts criteria as a hash to search on.
+        Returns a list of dicts.
+        Works like get_items but also accepts criteria as a dict to search on.
         Example:  { "name" : "*.example.org" }
         Wildcards work as described by 'pydoc fnmatch'.
         """
@@ -641,7 +641,7 @@ class CobblerXMLRPCInterface:
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
-        Returns a list of hashes as with find_items but additionally supports
+        Returns a list of dicts as with find_items but additionally supports
         returning just a portion of the total list, for instance in supporting
         a web app that wants to show a limited amount of items per page.
         """
@@ -981,7 +981,7 @@ class CobblerXMLRPCInterface:
 
         if edit_type != "remove":
             # FIXME: this doesn't know about interfaces yet!
-            # if object type is system and fields add to hash and then
+            # if object type is system and fields add to dict and then
             # modify when done, rather than now.
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
@@ -993,7 +993,7 @@ class CobblerXMLRPCInterface:
                             "in_place" in attributes and attributes["in_place"]:
                         details = self.get_item(object_type, object_name)
                         v2 = details[k]
-                        (ok, input) = utils.input_string_or_hash(v)
+                        (ok, input) = utils.input_string_or_dict(v)
                         for (a, b) in input.iteritems():
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
@@ -1140,7 +1140,7 @@ class CobblerXMLRPCInterface:
 
     def get_settings(self, token=None, **rest):
         """
-        Return the contents of /etc/cobbler/settings, which is a hash.
+        Return the contents of /etc/cobbler/settings, which is a dict.
         """
         self._log("get_settings", token=token)
         results = self.api.settings().to_datastruct()
@@ -1625,21 +1625,21 @@ class CobblerXMLRPCInterface:
         self._log("get_system_as_rendered", name=name, token=token)
         obj = self.api.find_system(name=name)
         if obj is not None:
-            hash = utils.blender(self.api, True, obj)
+            _dict = utils.blender(self.api, True, obj)
             # Generate a pxelinux.cfg?
             image_based = False
             profile = obj.get_conceptual_parent()
             distro = profile.get_conceptual_parent()
 
             # the management classes stored in the system are just a list
-            # of names, so we need to turn it into a full list of hashes
+            # of names, so we need to turn it into a full list of dictionaries
             # (right now we just use the params field)
-            mcs = hash["mgmt_classes"]
-            hash["mgmt_classes"] = {}
+            mcs = _dict["mgmt_classes"]
+            _dict["mgmt_classes"] = {}
             for m in mcs:
                 c = self.api.find_mgmtclass(name=m)
                 if c:
-                    hash["mgmt_classes"][m] = c.to_datastruct()
+                    _dict["mgmt_classes"][m] = c.to_datastruct()
 
             arch = None
             if distro is None and profile.COLLECTION_TYPE == "image":
@@ -1650,13 +1650,13 @@ class CobblerXMLRPCInterface:
 
             if obj.is_management_supported():
                 if not image_based:
-                    hash["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
                         None, obj, profile, distro, arch)
                 else:
-                    hash["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
                         None, obj, None, None, arch, image=profile)
 
-            return self.xmlrpc_hacks(hash)
+            return self.xmlrpc_hacks(_dict)
         return self.xmlrpc_hacks({})
 
     def get_repo_as_rendered(self, name, token=None, **rest):

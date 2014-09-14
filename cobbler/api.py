@@ -540,7 +540,7 @@ class CobblerAPI:
     def get_distros_since(self, mtime, collapse=False):
         """
         Returns distros modified since a certain time (in seconds since Epoch)
-        collapse=True specifies returning a hash instead of objects.
+        collapse=True specifies returning a dict instead of objects.
         """
         return self.__since(mtime, self.distros, collapse=collapse)
 

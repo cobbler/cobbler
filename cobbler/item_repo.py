@@ -135,9 +135,9 @@ class Repo(item.Item):
     def set_yumopts(self, options, inplace=False):
         """
         Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dictionary.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
             raise CX(_("invalid yum options"))
         else:
@@ -153,7 +153,7 @@ class Repo(item.Item):
         Yum can take options from the environment.  This puts them there before
         each reposync.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
             raise CX(_("invalid environment options"))
         else:

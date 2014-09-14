@@ -90,7 +90,7 @@ class Item(object):
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_hash(from_search, allow_multiples=True)
+                    (junk, from_search) = utils.input_string_or_dict(from_search, allow_multiples=True)
                     for x in from_search.keys():
                         y = from_search[x]
                         if x not in from_obj:
@@ -232,9 +232,9 @@ class Item(object):
     def set_kernel_options(self, options, inplace=False):
         """
         Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dict.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             raise CX(_("invalid kernel options"))
         else:
@@ -250,9 +250,9 @@ class Item(object):
     def set_kernel_options_post(self, options, inplace=False):
         """
         Post kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dict.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             raise CX(_("invalid post kernel options"))
         else:
@@ -267,11 +267,11 @@ class Item(object):
 
     def set_ks_meta(self, options, inplace=False):
         """
-        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
+        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             return False
         else:
@@ -311,7 +311,7 @@ class Item(object):
         A comma seperated list of source=destination templates
         that should be generated during a sync.
         """
-        (success, value) = utils.input_string_or_hash(template_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
         if not success:
             return False
         else:
@@ -329,7 +329,7 @@ class Item(object):
         A comma seperated list of req_name=source_file_path
         that should be fetchable via tftp
         """
-        (success, value) = utils.input_string_or_hash(boot_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
         if not success:
             return False
         else:
@@ -347,7 +347,7 @@ class Item(object):
         A comma seperated list of virt_name=path_to_template
         that should be fetchable via tftp or a webserver
         """
-        (success, value) = utils.input_string_or_hash(fetchable_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
         if not success:
             return False
         else:

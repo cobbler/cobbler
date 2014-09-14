@@ -233,7 +233,7 @@ class Settings:
                 elif DEFAULTS[name][1] == "list":
                     value = utils.input_string_or_list(value)
                 elif DEFAULTS[name][1] == "dict":
-                    value = utils.input_string_or_hash(value)[1]
+                    value = utils.input_string_or_dict(value)[1]
             except:
                 raise AttributeError
 
@@ -248,8 +248,8 @@ class Settings:
     def __getattr__(self, name):
         try:
             if name == "kernel_options":
-                # backwards compatibility -- convert possible string value to hash
-                (success, result) = utils.input_string_or_hash(self.__dict__[name], allow_multiples=False)
+                # backwards compatibility -- convert possible string value to dict
+                (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
             return self.__dict__[name]

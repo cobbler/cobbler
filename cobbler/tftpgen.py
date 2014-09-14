@@ -475,7 +475,7 @@ class TFTPGen:
         if metadata is None:
             metadata = {}
 
-        (rval, settings) = utils.input_string_or_hash(self.settings.to_datastruct())
+        (rval, settings) = utils.input_string_or_dict(self.settings.to_datastruct())
         if rval:
             for key in settings.keys():
                 metadata[key] = settings[key]
@@ -695,7 +695,7 @@ class TFTPGen:
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line = ",%s" % kopts.pop("initrd")
-        hkopts = utils.hash_to_string(kopts)
+        hkopts = utils.dict_to_string(kopts)
         append_line = "%s %s" % (append_line, hkopts)
 
         # kickstart path rewriting (get URLs for local files)
@@ -805,12 +805,12 @@ class TFTPGen:
     def write_templates(self, obj, write_file=False, path=None):
         """
         A semi-generic function that will take an object
-        with a template_files hash {source:destiation}, and
+        with a template_files dict {source:destiation}, and
         generate a rendered file.  The write_file option
         allows for generating of the rendered output without
         actually creating any files.
 
-        The return value is a hash of the destination file
+        The return value is a dict of the destination file
         names (after variable substitution is done) and the
         data in the file.
         """
@@ -846,7 +846,7 @@ class TFTPGen:
             pass
         blended.update(templates)       # make available at top level
 
-        (success, templates) = utils.input_string_or_hash(templates)
+        (success, templates) = utils.input_string_or_dict(templates)
 
         if not success:
             return results

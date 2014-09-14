@@ -717,11 +717,11 @@ class System(item.Item):
         self.power_id = power_id
 
 
-    def modify_interface(self, hash):
+    def modify_interface(self, _dict):
         """
         Used by the WUI to modify an interface more-efficiently
         """
-        for (key, value) in hash.iteritems():
+        for (key, value) in _dict.iteritems():
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 

@@ -159,21 +159,21 @@ class Collection:
     }
 
 
-    def __rekey(self, hash):
+    def __rekey(self, _dict):
         """
         Find calls from the command line ("cobbler system find")
         don't always match with the keys from the datastructs and this
         makes them both line up without breaking compatibility with either.
         Thankfully we don't have a LOT to remap.
         """
-        newhash = {}
-        for x in hash.keys():
+        new_dict = {}
+        for x in _dict.keys():
             if x in self.SEARCH_REKEY:
                 newkey = self.SEARCH_REKEY[x]
-                newhash[newkey] = hash[x]
+                new_dict[newkey] = _dict[x]
             else:
-                newhash[x] = hash[x]
-        return newhash
+                new_dict[x] = _dict[x]
+        return new_dict
 
 
     def to_datastruct(self):

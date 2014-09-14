@@ -60,8 +60,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def remove_objects_not_on_master(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_to_hoh(self.remote_data[obj_type], "uid")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
         for (luid, ldata) in locals.iteritems():
             if luid not in remotes:
@@ -74,8 +74,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def add_objects_not_on_local(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_sort_by_key(self.remote_data[obj_type], "depth")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
 
         for rdata in remotes:
 
@@ -97,8 +97,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def replace_objects_newer_on_remote(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_to_hoh(self.remote_data[obj_type], "uid")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
         for (ruid, rdata) in remotes.iteritems():
             # do not add the system if it is not on the transfer list
@@ -218,8 +218,8 @@ class Replicate:
         }
 
         for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot], "name").keys()
-            self.remote_dict[ot] = utils.loh_to_hoh(self.remote_data[ot], "name")
+            self.remote_names[ot] = utils.lod_to_dod(self.remote_data[ot], "name").keys()
+            self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
             if self.sync_all:
                 for names in self.remote_dict[ot]:
                     self.must_include[ot][names] = 1

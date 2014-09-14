@@ -135,7 +135,7 @@ class Profile(item.Item):
         Instead of a --distro, set the parent of this object to another profile
         and use the values from the parent instead of this one where the values
         for this profile aren't filled in, and blend them together where they
-        are hashes.  Basically this enables profile inheritance.  To use this,
+        are dictionaries.  Basically this enables profile inheritance.  To use this,
         the object MUST have been constructed with is_subobject=True or the
         default values for everything will be screwed up and this will likely NOT
         work.  So, API users -- make sure you pass is_subobject=True into the

@@ -172,7 +172,7 @@ def subprocess_get_response(cmd, ignore_rc=False, get_stderr=False):
     return rc, result
 
 
-def input_string_or_hash(options, delim=None, allow_multiples=True):
+def input_string_or_dict(options, delim=None, allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -222,7 +222,7 @@ def input_string_or_hash(options, delim=None, allow_multiples=True):
         raise InfoException("invalid input type: %s" % type(options))
 
 
-def hash_to_string(hash):
+def dict_to_string(hash):
     """
     Convert a hash to a printable string.
     used primarily in the kernel options string

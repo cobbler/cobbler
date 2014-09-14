@@ -84,7 +84,7 @@ class Mgmtclass(item.Item):
 
 
     def set_params(self, params, inplace=False):
-        (success, value) = utils.input_string_or_hash(params, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
             raise CX(_("invalid parameters"))
         else:

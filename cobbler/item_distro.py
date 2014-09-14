@@ -63,7 +63,7 @@ from cobbler.cexceptions import CX
 # please edit field_info.py carefully to match.
 #
 # additional:  see field_info.py for some display hints.  By default in the web app all fields
-# are text fields unless field_info.py lists the field in one of those hashes.
+# are text fields unless field_info.py lists the field in one of those dictionaries.
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #

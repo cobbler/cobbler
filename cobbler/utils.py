@@ -481,7 +481,7 @@ def input_string_or_list(options):
         raise CX(_("invalid input type"))
 
 
-def input_string_or_hash(options, allow_multiples=True):
+def input_string_or_dict(options, allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -565,10 +565,10 @@ def grab_tree(api_handle, obj):
     return results
 
 
-def blender(api_handle, remove_hashes, root_obj):
+def blender(api_handle, remove_dicts, root_obj):
     """
     Combine all of the data in an object tree from the perspective
-    of that point on the tree, and produce a merged hash containing
+    of that point on the tree, and produce a merged dictionary containing
     consolidated data.
     """
 
@@ -590,13 +590,13 @@ def blender(api_handle, remove_hashes, root_obj):
 
     if breed == "redhat":
         # determine if we have room to add kssendmac to the kernel options line
-        kernel_txt = hash_to_string(results["kernel_options"])
+        kernel_txt = dict_to_string(results["kernel_options"])
         if len(kernel_txt) < 244:
             results["kernel_options"]["kssendmac"] = None
 
     # convert post kernel options to string
     if "kernel_options_post" in results:
-        results["kernel_options_post"] = hash_to_string(results["kernel_options_post"])
+        results["kernel_options_post"] = dict_to_string(results["kernel_options_post"])
 
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
@@ -637,7 +637,7 @@ def blender(api_handle, remove_hashes, root_obj):
     results["mgmt_parameters"] = mgmt_parameters
 
     # sanitize output for koan and kernel option lines, etc
-    if remove_hashes:
+    if remove_dicts:
         results = flatten(results)
 
     # the password field is inputed as escaped strings but Cheetah
@@ -673,27 +673,27 @@ def blender(api_handle, remove_hashes, root_obj):
 
 
 def flatten(data):
-    # convert certain nested hashes to strings.
+    # convert certain nested dicts to strings.
     # this is only really done for the ones koan needs as strings
     # this should not be done for everything
     if data is None:
         return None
     if "environment" in data:
-        data["environment"] = hash_to_string(data["environment"])
+        data["environment"] = dict_to_string(data["environment"])
     if "kernel_options" in data:
-        data["kernel_options"] = hash_to_string(data["kernel_options"])
+        data["kernel_options"] = dict_to_string(data["kernel_options"])
     if "kernel_options_post" in data:
-        data["kernel_options_post"] = hash_to_string(data["kernel_options_post"])
+        data["kernel_options_post"] = dict_to_string(data["kernel_options_post"])
     if "yumopts" in data:
-        data["yumopts"] = hash_to_string(data["yumopts"])
+        data["yumopts"] = dict_to_string(data["yumopts"])
     if "ks_meta" in data:
-        data["ks_meta"] = hash_to_string(data["ks_meta"])
+        data["ks_meta"] = dict_to_string(data["ks_meta"])
     if "template_files" in data:
-        data["template_files"] = hash_to_string(data["template_files"])
+        data["template_files"] = dict_to_string(data["template_files"])
     if "boot_files" in data:
-        data["boot_files"] = hash_to_string(data["boot_files"])
+        data["boot_files"] = dict_to_string(data["boot_files"])
     if "fetchable_files" in data:
-        data["fetchable_files"] = hash_to_string(data["fetchable_files"])
+        data["fetchable_files"] = dict_to_string(data["fetchable_files"])
     if "repos" in data and isinstance(data["repos"], list):
         data["repos"] = " ".join(data["repos"])
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
@@ -720,7 +720,7 @@ def uniquify(seq):
 def __consolidate(node, results):
     """
     Merge data from a given node with the aggregate of all
-    data from past scanned nodes.  Hashes and arrays are treated
+    data from past scanned nodes.  Dictionaries and arrays are treated
     specially.
     """
     node_data = node.to_datastruct()
@@ -742,12 +742,12 @@ def __consolidate(node, results):
 
         data_item = node_data_copy[field]
         if field in results:
-            # now merge data types seperately depending on whether they are hash, list,
+            # now merge data types seperately depending on whether they are dict, list,
             # or scalar.
             fielddata = results[field]
 
             if isinstance(fielddata, dict):
-                # interweave hash results
+                # interweave dict results
                 results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
                 # add to lists (cobbler doesn't have many lists)
@@ -769,15 +769,15 @@ def __consolidate(node, results):
     # key entry "foo", and also the entry "!foo", allowing for removal
     # of kernel options set in a distro later in a profile, etc.
 
-    hash_removals(results, "kernel_options")
-    hash_removals(results, "kernel_options_post")
-    hash_removals(results, "ks_meta")
-    hash_removals(results, "template_files")
-    hash_removals(results, "boot_files")
-    hash_removals(results, "fetchable_files")
+    dict_removals(results, "kernel_options")
+    dict_removals(results, "kernel_options_post")
+    dict_removals(results, "ks_meta")
+    dict_removals(results, "template_files")
+    dict_removals(results, "boot_files")
+    dict_removals(results, "fetchable_files")
 
 
-def hash_removals(results, subkey):
+def dict_removals(results, subkey):
     if subkey not in results:
         return
     scan = results[subkey].keys()
@@ -789,18 +789,18 @@ def hash_removals(results, subkey):
             del results[subkey][k]
 
 
-def hash_to_string(hash):
+def dict_to_string(_dict):
     """
-    Convert a hash to a printable string.
+    Convert a dictionary to a printable string.
     used primarily in the kernel options string
     and for some legacy stuff where koan expects strings
-    (though this last part should be changed to hashes)
+    (though this last part should be changed to dictionaries)
     """
     buffer = ""
-    if not isinstance(hash, dict):
-        return hash
-    for key in hash:
-        value = hash[key]
+    if not isinstance(_dict, dict):
+        return _dict
+    for key in _dict:
+        value = _dict[key]
         if not value:
             buffer = buffer + str(key) + " "
         elif isinstance(value, list):
@@ -1801,7 +1801,7 @@ def to_datastruct_from_fields(obj, fields):
 
 def printable_from_fields(obj, fields):
     """
-    Obj is a hash datastructure, fields is something like item_distro.FIELDS
+    Obj is a dict datastructure, fields is something like item_distro.FIELDS
     """
     buf = ""
     keys = []
@@ -1820,7 +1820,7 @@ def printable_from_fields(obj, fields):
             # FIXME: move examples one field over, use description here.
             buf = buf + "%-30s : %s\n" % (nicename, obj[k])
 
-    # somewhat brain-melting special handling to print the hashes
+    # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
     if "interfaces" in obj:
         for iname in obj["interfaces"].keys():
@@ -2035,10 +2035,10 @@ def strip_none(data, omit_none=False):
 # -------------------------------------------------------
 
 
-def loh_to_hoh(datastruct, indexkey):
+def lod_to_dod(datastruct, indexkey):
     """
-    things like get_distros() returns a list of a hashes
-    convert this to a hash of hashes keyed off of an arbitrary field
+    things like get_distros() returns a list of a dictionaries
+    convert this to a dict of dicts keyed off of an arbitrary field
 
     EX:  [  { "a" : 2 }, { "a : 3 } ]  ->  { "2" : { "a" : 2 }, "3" : { "a" : "3" }
 
@@ -2051,9 +2051,9 @@ def loh_to_hoh(datastruct, indexkey):
 # -------------------------------------------------------
 
 
-def loh_sort_by_key(datastruct, indexkey):
+def lod_sort_by_key(datastruct, indexkey):
     """
-    Sorts a list of hashes by a given key in the hashes
+    Sorts a list of dictionaries by a given key in the dictionaries
     note: this is a destructive operation
     """
     datastruct.sort(lambda a, b: a[indexkey] < b[indexkey])
