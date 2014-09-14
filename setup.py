@@ -644,7 +644,6 @@ if __name__ == "__main__":
             ("%spxe" % etcpath, glob("templates/pxe/*")),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
-            ("%sldap" % etcpath, glob("templates/ldap/*")),
             # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),

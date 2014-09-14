@@ -56,6 +56,7 @@ Bugfixes
 Upgrade notes
 =============
 
+* Support for LDAP configuration through Koan has been removed.
 * Support for redhat_management (Spacewalk/Satelite) has been moved to contrib. Users of this functionality should checkout contrib/redhat-management/README.
 * Monit support has been removed; you really need to use a CMS to manage your services.
 * Support for remote kickstart templates and files been removed (eg. kickstart=http://).

@@ -96,8 +96,6 @@ FIELDS = [
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
-    ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
-    ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
     ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
 ]
 
@@ -839,21 +837,8 @@ class System(item.Item):
         return True
 
 
-    def set_ldap_enabled(self, ldap_enabled):
-        self.ldap_enabled = utils.input_boolean(ldap_enabled)
-        return True
-
-
     def set_repos_enabled(self, repos_enabled):
         self.repos_enabled = utils.input_boolean(repos_enabled)
-        return True
-
-
-    def set_ldap_type(self, ldap_type):
-        if ldap_type is None:
-            ldap_type = ""
-        ldap_type = ldap_type.lower()
-        self.ldap_type = ldap_type
         return True
 
 # EOF

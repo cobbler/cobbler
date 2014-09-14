@@ -19,7 +19,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 
-module for configuring repos, ldap, packages and files
+module for configuring repos, packages and files
 """
 
 from __future__ import print_function
@@ -50,7 +50,7 @@ class KoanConfigure:
 
     """
     Used for all configuration methods, used by koan
-    to configure repos, ldap, files and packages.
+    to configure repos, files and packages.
     """
 
     def __init__(self, config):
@@ -88,15 +88,6 @@ class KoanConfigure:
             utils.sync_file(old_repo, new_repo, 0, 0, 644)
             self.stats['repos_status'] = "Success: Repos in sync"
         _tempfile.close()
-
-    def configure_ldap(self):
-        """Configure LDAP by running the specified LDAP command."""
-        print("- Configuring LDAP")
-        rc = subprocess.call(self.config['ldap_data'], shell="True")
-        if rc == 0:
-            self.stats['ldap_status'] = "Success: LDAP has been configured"
-        else:
-            self.stats['ldap_status'] = "ERROR: configuring LDAP failed"
 
     def configure_packages(self):
         # Enables the possibility to use different types of package
@@ -310,12 +301,10 @@ class KoanConfigure:
             'fail': fail}
 
     def run(self):
-        # Configure resources in a specific order: repos, ldap, packages,
+        # Configure resources in a specific order: repos, packages,
         # directories, files
         if self.config['repos_enabled']:
             self.configure_repos()
-        if self.config['ldap_enabled']:
-            self.configure_ldap()
         self.configure_packages()
         self.configure_directories()
         self.configure_files()

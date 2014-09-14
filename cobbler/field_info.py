@@ -77,8 +77,6 @@ USES_CHECKBOX = [
     "virt_pxe_boot",
     "*repos_enabled",
     "repos_enabled",
-    "*ldap_enabled",
-    "ldap_enabled",
     "is_definition",
 ]
 
@@ -173,8 +171,6 @@ BLOCK_MAPPINGS = {
     "packages": "Resources",
     "files": "Resources",
     "repos_enabled": "Management",
-    "ldap_enabled": "Management",
-    "ldap_type": "Management",
 }
 
 BLOCK_MAPPINGS_ORDER = {

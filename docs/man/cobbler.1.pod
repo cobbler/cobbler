@@ -323,10 +323,6 @@ While it is recommended that the --kickstart parameter is only used within for t
 If set false, the system will be provisionable through koan but not through
 standard PXE.  This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object.  The default value allows PXE.   Cobbler contains a PXE boot loop prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can automatically trip off this value after a system gets done installing.  This can prevent installs from appearing in an endless loop when the system is set to PXE first in the BIOS order.
 
-=item --ldap-enabled, --ldap-type
-
-Cobbler contains features that enable ldap management for easier configuration after system provisioning. If set true, koan will run the ldap command as defined by the systems ldap_type. The default value is false. 
-
 =item --repos-enabled
 
 If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.

@@ -2007,17 +2007,6 @@ def local_get_cobbler_api_url():
     return "%s://%s:%s/cobbler_api" % (protocol, ip, port)
 
 
-def get_ldap_template(ldaptype=None):
-    """
-    Return ldap command for type
-    """
-    if ldaptype:
-        ldappath = "/etc/cobbler/ldap/ldap_%s.template" % ldaptype
-        if os.path.isfile(ldappath):
-            return ldappath
-    return None
-
-
 def local_get_cobbler_xmlrpc_url():
     # Load xmlrpc port
     try:
