@@ -52,17 +52,23 @@ def what():
     return "serializer/file"
 
 
-def serialize_item(obj, item):
+def serialize_item(collection, item):
+    """
+    Save a collection item to file system
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
 
     if item.name is None or item.name == "":
-        raise exceptions.RuntimeError("name unset for object!")
+        raise exceptions.RuntimeError("name unset for item!")
 
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if obj.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (obj.collection_type(), item.name)
+    if collection.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (obj.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
 
     datastruct = item.to_datastruct()
 
@@ -82,29 +88,38 @@ def serialize_item(obj, item):
     fd.close()
 
 
-def serialize_delete(obj, item):
+def serialize_delete(collection, item):
+    """
+    Delete a collection item from file system
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if obj.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (obj.collection_type(), item.name)
+    if collection.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (obj.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
 
     filename += ".json"
     if os.path.exists(filename):
         os.remove(filename)
 
 
-def serialize(obj):
+def serialize(collection):
     """
-    Save an object to disk.  Object must "implement" Serializable.
-    FIXME: Return False on access/permission errors.
-    This should NOT be used by API if serialize_item is available.
+    Save a collection to file system
+
+    @param Collection collection collection
     """
-    ctype = obj.collection_type()
+
+    # do not serialize settings
+    ctype = collection.collection_type()
     if ctype != "settings":
-        for x in obj:
-            serialize_item(obj, x)
+        for x in collection:
+            serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
@@ -138,15 +153,36 @@ def deserialize_raw(collection_type):
         return results
 
 
-def deserialize(obj, topological=True):
+def filter_upgrade_duplicates(file_list):
     """
-    Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.
+    In a set of files, some ending with .json, some not, return
+    the list of files with the .json ones taking priority over
+    the ones that are not.
     """
-    datastruct = deserialize_raw(obj.collection_type())
+    bases = {}
+    for f in file_list:
+        basekey = f.replace(".json", "")
+        if f.endswith(".json"):
+            bases[basekey] = f
+        else:
+            lookup = bases.get(basekey, "")
+            if not lookup.endswith(".json"):
+                bases[basekey] = f
+    return bases.values()
+
+
+def deserialize(collection, topological=True):
+    """
+    Load a collection from file system
+
+    @param Collection collection collection
+    @param bool topological
+    """
+
+    datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    obj.from_datastruct(datastruct)
+    collection.from_datastruct(datastruct)
 
 
 def __depth_cmp(item1, item2):

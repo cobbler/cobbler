@@ -198,8 +198,9 @@ class CollectionManager:
 
     def serialize(self):
         """
-        Save the object hierarchy to disk, using the filenames referenced in each object.
+        Save all collections to disk
         """
+
         serializer.serialize(self._distros)
         serializer.serialize(self._repos)
         serializer.serialize(self._profiles)
@@ -211,22 +212,32 @@ class CollectionManager:
 
     def serialize_item(self, collection, item):
         """
-        Save item in the collection, resaving the whole collection if needed,
-        but ideally just saving the item.
+        Save a collection item to disk
+
+        @param Collection collection Collection
+        @param Item item collection item
         """
+
         return serializer.serialize_item(collection, item)
 
     def serialize_delete(self, collection, item):
         """
-        Erase item from a storage file, if neccessary rewritting the file.
+        Delete a collection item from disk
+
+        @param Collection collection collection
+        @param Item item collection item
         """
+
         return serializer.serialize_delete(collection, item)
 
     def deserialize(self):
         """
-        Load the object hierachy from disk, using the filenames referenced in each object.
+        Load all collections from disk
+
+        @raise CX if there is an error in deserialization
         """
-        for item in (
+
+        for collection in (
             self._settings,
             self._distros,
             self._repos,
@@ -238,10 +249,10 @@ class CollectionManager:
             self._files,
         ):
             try:
-                if not serializer.deserialize(item):
+                if not serializer.deserialize(collection):
                     raise ""
             except:
-                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
+                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % collection.collection_type())
 
     def get_items(self, collection_type):
         if collection_type == "distro":

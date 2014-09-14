@@ -71,20 +71,27 @@ def __release_lock(with_changes=False):
         LOCK_HANDLE.close()
 
 
-def serialize(obj):
+def serialize(collection):
     """
-    Save a collection to disk or other storage.
+    Save a collection to disk
+
+    @param Collection collection collection
     """
+
     __grab_lock()
-    storage_module = __get_storage_module(obj.collection_type())
-    storage_module.serialize(obj)
+    storage_module = __get_storage_module(collection.collection_type())
+    storage_module.serialize(collection)
     __release_lock()
 
 
 def serialize_item(collection, item):
     """
-    Save an item.
+    Save a collection item to disk
+
+    @param Collection collection collection
+    @param Item item collection item
     """
+
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
     save_fn = getattr(storage_module, "serialize_item", None)
@@ -97,8 +104,12 @@ def serialize_item(collection, item):
 
 def serialize_delete(collection, item):
     """
-    Delete an object from a saved state.
+    Delete a collection item from disk
+
+    @param Collection collection collection
+    @param Item item collection item
     """
+
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
     delete_fn = getattr(storage_module, "serialize_delete", None)
@@ -109,13 +120,16 @@ def serialize_delete(collection, item):
     __release_lock(with_changes=True)
 
 
-def deserialize(obj, topological=True):
+def deserialize(collection, topological=True):
     """
-    Fill in an empty collection from disk or other storage
+    Load a collection from disk
+
+    @param Collection collection collection
+    @param bool topological
     """
     __grab_lock()
-    storage_module = __get_storage_module(obj.collection_type())
-    storage_module.deserialize(obj, topological)
+    storage_module = __get_storage_module(collection.collection_type())
+    storage_module.deserialize(collection, topological)
     __release_lock()
 
 

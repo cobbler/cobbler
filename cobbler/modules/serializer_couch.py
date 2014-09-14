@@ -57,34 +57,49 @@ def what():
     return "serializer/couchdb"
 
 
-def serialize_item(obj, item):
+def serialize_item(collection, item):
+    """
+    Save a collection item to database
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
     __connect()
     datastruct = item.to_datastruct()
     # blindly prevent conflict resolution
-    couchdb.openDoc(obj.collection_type(), item.name)
-    data = couchdb.saveDoc(obj.collection_type(),
+    couchdb.openDoc(collection.collection_type(), item.name)
+    data = couchdb.saveDoc(collection.collection_type(),
                            simplejson.dumps(datastruct, encoding="utf-8"),
                            item.name)
     data = simplejson.loads(data)
 
 
-def serialize_delete(obj, item):
-    __connect()
-    couchdb.deleteDoc(obj.collection_type(), item.name)
+def serialize_delete(collection, item):
+    """
+    Delete a collection item from database
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
+    couchdb.deleteDoc(collection.collection_type(), item.name)
 
 
-def serialize(obj):
+def serialize(collection):
     """
-    Save an object to disk.  Object must "implement" Serializable.
-    FIXME: Return False on access/permission errors.
-    This should NOT be used by API if serialize_item is available.
+    Save a collection to disk
+    API should usually use serialize_item() instead
+
+    @param Collection collection collection
     """
+
     __connect()
-    ctype = obj.collection_type()
+    ctype = collection.collection_type()
     if ctype == "settings":
         return
-    for x in obj:
-        serialize_item(obj, x)
+    for x in collection:
+        serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
@@ -111,16 +126,19 @@ def deserialize_raw(collection_type):
         return results
 
 
-def deserialize(obj, topological=True):
+def deserialize(collection, topological=True):
     """
-    Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.
+    Load a collection from database
+
+    @param Collection collection collection
+    @param bool topological
     """
+
     __connect()
-    datastruct = deserialize_raw(obj.collection_type())
+    datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    obj.from_datastruct(datastruct)
+    collection.from_datastruct(datastruct)
 
 
 def __depth_cmp(item1, item2):

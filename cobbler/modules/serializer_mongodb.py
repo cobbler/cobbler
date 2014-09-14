@@ -76,9 +76,16 @@ def what():
     return "serializer/mongodb"
 
 
-def serialize_item(obj, item):
+def serialize_item(collection, item):
+    """
+    Save a collection item to database
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
     __connect()
-    collection = mongodb[obj.collection_type()]
+    collection = mongodb[collection.collection_type()]
     data = collection.find_one({'name': item.name})
     if data:
         collection.update({'name': item.name}, item.to_datastruct())
@@ -86,19 +93,29 @@ def serialize_item(obj, item):
         collection.insert(item.to_datastruct())
 
 
-def serialize_delete(obj, item):
+def serialize_delete(collection, item):
+    """
+    Delete a collection item from database
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
     __connect()
-    collection = mongodb[obj.collection_type()]
+    collection = mongodb[collection.collection_type()]
     collection.remove({'name': item.name})
 
 
-def serialize(obj):
+def serialize(collection):
     """
-    Save an object to the database.
+    Save a collection to database
+
+    @param Collection collection collection
     """
+
     # TODO: error detection
-    for x in obj:
-        serialize_item(obj, x)
+    for x in collection:
+        serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
@@ -107,15 +124,18 @@ def deserialize_raw(collection_type):
     return collection.find()
 
 
-def deserialize(obj, topological=True):
+def deserialize(collection, topological=True):
     """
-    Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.
+    Load a collection from database
+
+    @param Collection collection collection
+    @param bool topological
     """
-    datastruct = deserialize_raw(obj.collection_type())
+
+    datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    obj.from_datastruct(datastruct)
+    collection.from_datastruct(datastruct)
 
 
 def __depth_cmp(item1, item2):
