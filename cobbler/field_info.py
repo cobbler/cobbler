@@ -79,8 +79,6 @@ USES_CHECKBOX = [
     "repos_enabled",
     "*ldap_enabled",
     "ldap_enabled",
-    "*monit_enabled",
-    "monit_enabled",
     "is_definition",
 ]
 
@@ -179,7 +177,6 @@ BLOCK_MAPPINGS = {
     "repos_enabled": "Management",
     "ldap_enabled": "Management",
     "ldap_type": "Management",
-    "monit_enabled": "Management",
 }
 
 BLOCK_MAPPINGS_ORDER = {

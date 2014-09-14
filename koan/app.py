@@ -1030,7 +1030,7 @@ class Koan:
             print("\tTotal Resources: %d" % total_resources)
             print("\t  Total Runtime: %.02f" % total_runtime)
 
-            for status in ["repos_status", "ldap_status", "monit_status"]:
+            for status in ["repos_status", "ldap_status"]:
                 if status in stats:
                     print('')
                     print("\t%s" % status)

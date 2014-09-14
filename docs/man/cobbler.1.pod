@@ -331,10 +331,6 @@ standard PXE.  This will allow the system to fall back to default PXE boot behav
 
 Cobbler contains features that enable ldap management for easier configuration after system provisioning. If set true, koan will run the ldap command as defined by the systems ldap_type. The default value is false. 
 
-=item --monit-enabled
-
-If set true, koan will reload monit after each configuration run. The default value is false.
-
 =item --repos-enabled
 
 If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.

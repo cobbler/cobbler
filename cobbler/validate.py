@@ -32,9 +32,9 @@ SNIPPET_TEMPLATE_BASE_DIR = "/var/lib/cobbler/snippets/"
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
-VALID_REPO_BREEDS = [
-    "rsync", "rhn", "yum", "apt", "wget"
-]
+REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
+
+VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
 
 
 def object_name(name, parent):

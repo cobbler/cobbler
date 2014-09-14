@@ -19,7 +19,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 
-module for configuring repos, ldap, packages, files, and monit
+module for configuring repos, ldap, packages and files
 """
 
 from __future__ import print_function
@@ -50,7 +50,7 @@ class KoanConfigure:
 
     """
     Used for all configuration methods, used by koan
-    to configure repos, ldap, files, packages, and monit.
+    to configure repos, ldap, files and packages.
     """
 
     def __init__(self, config):
@@ -97,21 +97,6 @@ class KoanConfigure:
             self.stats['ldap_status'] = "Success: LDAP has been configured"
         else:
             self.stats['ldap_status'] = "ERROR: configuring LDAP failed"
-
-    def configure_monit(self):
-        """Start or reload Monit"""
-        print("- Configuring Monit")
-        ret = subprocess.call(['/sbin/service', 'monit', 'status'])
-        if ret == 0:
-            _ret = subprocess.call(['/usr/bin/monit', 'reload'])
-            if _ret == 0:
-                self.stats['monit_status'] = "Running: Monit has been reloaded"
-        else:
-            _ret = subprocess.call(['/sbin/service', 'monit', 'start'])
-            if _ret == 0:
-                self.stats['monit_status'] = "Running: Monit has been started"
-            else:
-                self.stats['monit_status'] = "Stopped: Failed to start monit"
 
     def configure_packages(self):
         # Enables the possibility to use different types of package
@@ -326,7 +311,7 @@ class KoanConfigure:
 
     def run(self):
         # Configure resources in a specific order: repos, ldap, packages,
-        # directories, files, monit
+        # directories, files
         if self.config['repos_enabled']:
             self.configure_repos()
         if self.config['ldap_enabled']:
@@ -334,7 +319,5 @@ class KoanConfigure:
         self.configure_packages()
         self.configure_directories()
         self.configure_files()
-        if self.config['monit_enabled']:
-            self.configure_monit()
 
         return self.stats

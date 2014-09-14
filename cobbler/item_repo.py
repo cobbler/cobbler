@@ -31,7 +31,7 @@ FIELDS = [
     ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
     ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
     ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ppc', 'ppc64', "arm", 'noarch', 'src'], "str"],
-    ["breed", "", 0, "Breed", True, "", validate.VALID_REPO_BREEDS, "str"],
+    ["breed", "", 0, "Breed", True, "", validate.REPO_BREEDS, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 2, 0, "", False, "", 0, "float"],

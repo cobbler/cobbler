@@ -42,17 +42,17 @@ FIELDS = [
     ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
     ["kickstart", "<<inherit>>", 0, "Kickstart", True, "Path to kickstart template", 0, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["depth", 2, 0, "", False, "", 0, "int"],
     ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
     ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], "str"],
+    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
     ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
     ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
     ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
     ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
     ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
+    ["depth", 2, 0, "", False, "", 0, "int"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
     ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", utils.get_power_types(), "str"],
@@ -100,7 +100,6 @@ FIELDS = [
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
     ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
-    ["monit_enabled", False, 0, "Monit Enabled", True, "(re)configure monit on this machine at next config update?", 0, "bool"],
     ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
 ]
 
@@ -847,18 +846,6 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
-
-
-    def set_monit_enabled(self, monit_enabled):
-        """
-        If true, allows per-system to start Monit to monitor system services such as apache.
-        If monit is not running it will start the service.
-
-        If false, no management of monit will take place. If monit is not running it will not
-        be started. If monit is running it will not be stopped or restarted.
-        """
-        self.monit_enabled = utils.input_boolean(monit_enabled)
         return True
 
 

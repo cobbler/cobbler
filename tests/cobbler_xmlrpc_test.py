@@ -193,7 +193,6 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
           ["ldap_type", [], []],
           ["mgmt_classes",["one two three",],[]],
           ["mgmt_parameters",["<<inherit>>"],["badyaml"]], # needs more test cases that are valid yaml
-          ["monit_enabled", [], []],
           ["name",["testsystem0"],[]],
           ["netboot_enabled",["yes","YES","1","0","no"],[]],
           ["owners",["user1 user2 user3"],[]],
