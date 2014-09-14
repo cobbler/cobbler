@@ -183,7 +183,7 @@ class KickGen:
             if repo_obj is not None:
                 yumopts=''
                 for opt in repo_obj.yumopts:
-                    if not opt in ['enabled', 'gpgcheck']:
+                    if not opt in ['enabled', 'gpgcheck', 'gpgkey']:
                         yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
