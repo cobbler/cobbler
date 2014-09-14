@@ -55,6 +55,7 @@ Bugfixes
 Upgrade notes
 =============
 
+* Monit support has been removed; you really need to use a CMS to manage your servics
 * Support for remote kickstart templates and files been removed (eg. kickstart=http://)
 * All object names are now validated like that of the system object
 * The use of ``parent`` and ``distro`` on subprofiles are now mutually exclusive
