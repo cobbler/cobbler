@@ -66,13 +66,11 @@ def serialize_item(obj, item):
                            simplejson.dumps(datastruct, encoding="utf-8"),
                            item.name)
     data = simplejson.loads(data)
-    return True
 
 
 def serialize_delete(obj, item):
     __connect()
     couchdb.deleteDoc(obj.collection_type(), item.name)
-    return True
 
 
 def deserialize_item_raw(collection_type, item_name):
@@ -90,10 +88,9 @@ def serialize(obj):
     __connect()
     ctype = obj.collection_type()
     if ctype == "settings":
-        return True
+        return
     for x in obj:
         serialize_item(obj, x)
-    return True
 
 
 def deserialize_raw(collection_type):
@@ -130,7 +127,6 @@ def deserialize(obj, topological=True):
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
-    return True
 
 
 def __depth_cmp(item1, item2):

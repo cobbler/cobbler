@@ -500,8 +500,6 @@ class BuildIso:
         cfg.write("MENU END\n")
         cfg.close()
 
-        return
-
 
     def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, source=None, exclude_dns=None, mkisofs_opts=None):
 
@@ -595,4 +593,3 @@ class BuildIso:
         self.logger.info("You may wish to delete: %s" % buildisodir)
         self.logger.info("The output file is: %s" % iso)
 
-        return True

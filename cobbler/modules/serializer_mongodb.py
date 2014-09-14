@@ -39,6 +39,7 @@ try:
 except:
     # FIXME: log message
     pass
+from cexceptions import CX
 
 cp = ConfigParser.ConfigParser()
 cp.read("/etc/cobbler/mongodb.conf")
@@ -53,10 +54,9 @@ def __connect():
     global mongodb
     try:
         mongodb = Connection('localhost', 27017)['cobbler']
-        return True
     except:
         # FIXME: log error
-        return False
+        raise CX("Unable to connect to Mongo database")
 
 
 def register():
@@ -77,35 +77,26 @@ def what():
 
 
 def serialize_item(obj, item):
-    if not __connect():
-        # FIXME: log error
-        return False
+    __connect()
     collection = mongodb[obj.collection_type()]
     data = collection.find_one({'name': item.name})
     if data:
         collection.update({'name': item.name}, item.to_datastruct())
     else:
         collection.insert(item.to_datastruct())
-    return True
 
 
 def serialize_delete(obj, item):
-    if not __connect():
-        # FIXME: log error
-        return False
+    __connect()
     collection = mongodb[obj.collection_type()]
     collection.remove({'name': item.name})
-    return True
 
 
 def deserialize_item_raw(collection_type, item_name):
-    if not __connect():
-        # FIXME: log error
-        raise "Failed to connect"
+    __connect()
     collection = mongodb[collection_type()]
     data = collection.find_one({'name': item_name})
     return data
-
 
 def serialize(obj):
     """
@@ -114,13 +105,10 @@ def serialize(obj):
     # TODO: error detection
     for x in obj:
         serialize_item(obj, x)
-    return True
 
 
 def deserialize_raw(collection_type):
-    if not __connect():
-        # FIXME: log error
-        raise "Failed to connect"
+    __connect()
     collection = mongodb[collection_type]
     return collection.find()
 
@@ -134,7 +122,6 @@ def deserialize(obj, topological=True):
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
-    return True
 
 
 def __depth_cmp(item1, item2):

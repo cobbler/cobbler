@@ -112,7 +112,6 @@ class Image(item.Item):
         @returns: True or CX
         """
         self.kickstart = validate.kickstart_file_path(kickstart)
-        return True
 
 
     def set_file(self, filename):
@@ -161,7 +160,6 @@ class Image(item.Item):
             raise CX(_("a hostname must be specified with authentication details"))
 
         self.file = uri
-        return True
 
 
     def set_os_version(self, os_version):
@@ -183,7 +181,6 @@ class Image(item.Item):
         if image_type not in self.get_valid_image_types():
             raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(), ", "))
         self.image_type = image_type
-        return True
 
 
     def set_virt_cpus(self, num):
@@ -197,7 +194,6 @@ class Image(item.Item):
             self.network_count = int(num)
         except:
             raise CX("invalid network count (%s)" % num)
-        return True
 
 
     def set_virt_auto_boot(self, num):

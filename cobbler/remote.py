@@ -138,7 +138,7 @@ class CobblerXMLRPCInterface:
             webdir = "/srv/www/cobbler/"
 
         def runner(self):
-            return self.remote.api.build_iso(
+            self.remote.api.build_iso(
                 self.options.get("iso", webdir + "/pub/generated.iso"),
                 self.options.get("profiles", None),
                 self.options.get("systems", None),
@@ -159,7 +159,7 @@ class CobblerXMLRPCInterface:
 
     def background_aclsetup(self, options, token):
         def runner(self):
-            return self.remote.api.acl_config(
+            self.remote.api.acl_config(
                 self.options.get("adduser", None),
                 self.options.get("addgroup", None),
                 self.options.get("removeuser", None),
@@ -173,17 +173,17 @@ class CobblerXMLRPCInterface:
         Download bootloaders and other support files.
         """
         def runner(self):
-            return self.remote.api.dlcontent(self.options.get("force", False), self.logger)
+            self.remote.api.dlcontent(self.options.get("force", False), self.logger)
         return self.__start_task(runner, token, "get_loaders", "Download Bootloader Content", options)
 
     def background_sync(self, options, token):
         def runner(self):
-            return self.remote.api.sync(self.options.get("verbose", False), logger=self.logger)
+            self.remote.api.sync(self.options.get("verbose", False), logger=self.logger)
         return self.__start_task(runner, token, "sync", "Sync", options)
 
     def background_hardlink(self, options, token):
         def runner(self):
-            return self.remote.api.hardlink(logger=self.logger)
+            self.remote.api.hardlink(logger=self.logger)
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
     def background_validateks(self, options, token):
@@ -194,7 +194,7 @@ class CobblerXMLRPCInterface:
     def background_replicate(self, options, token):
         def runner(self):
             # FIXME: defaults from settings here should come from views, fix in views.py
-            return self.remote.api.replicate(
+            self.remote.api.replicate(
                 self.options.get("master", None),
                 self.options.get("distro_patterns", ""),
                 self.options.get("profile_patterns", ""),
@@ -214,7 +214,7 @@ class CobblerXMLRPCInterface:
 
     def background_import(self, options, token):
         def runner(self):
-            return self.remote.api.import_tree(
+            self.remote.api.import_tree(
                 self.options.get("path", None),
                 self.options.get("name", None),
                 self.options.get("available_as", None),
@@ -245,7 +245,6 @@ class CobblerXMLRPCInterface:
                 self.remote.api.reposync(
                     tries=self.options.get("tries", 3),
                     name=None, nofail=nofail, logger=self.logger)
-            return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
     def background_power_system(self, options, token):
@@ -256,13 +255,12 @@ class CobblerXMLRPCInterface:
                     self.remote.power_system(object_id, self.options.get("power", ""), token, logger=self.logger)
                 except:
                     self.logger.warning("failed to execute power task on %s" % str(x))
-            return True
         self.check_access(token, "power")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power", ""), options)
 
     def background_signature_update(self, options, token):
         def runner(self):
-            return self.remote.api.signature_update(self.logger)
+            self.remote.api.signature_update(self.logger)
         self.check_access(token, "sigupdate")
         return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
@@ -881,7 +879,8 @@ class CobblerXMLRPCInterface:
             # (like newname or in-place) so just go with it.
             return False
             # raise CX("object has no method: %s" % attribute)
-        return method(arg)
+        method(arg)
+        return True
 
     def modify_distro(self, object_id, attribute, arg, token):
         return self.modify_item("distro", object_id, attribute, arg, token)
@@ -1028,7 +1027,8 @@ class CobblerXMLRPCInterface:
             return True
 
         # FIXME: use the bypass flag or not?
-        return self.save_item(object_type, handle, token)
+        self.save_item(object_type, handle, token)
+        return True
 
     def save_item(self, what, object_id, token, editmode="bypass"):
         """
@@ -1951,7 +1951,8 @@ class CobblerXMLRPCInterface:
         """
         self._log("sync_dhcp", token=token)
         self.check_access(token, "sync")
-        return self.api.sync_dhcp()
+        self.api.sync_dhcp()
+        return True
 
     def sync(self, token):
         """
@@ -1962,7 +1963,8 @@ class CobblerXMLRPCInterface:
         # FIXME: performance
         self._log("sync", token=token)
         self.check_access(token, "sync")
-        return self.api.sync()
+        self.api.sync()
+        return True
 
     def read_kickstart_template(self, file_path, token):
         """
@@ -2098,17 +2100,21 @@ class CobblerXMLRPCInterface:
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "power_system", obj)
-        if power == "on":
-            rc = self.api.power_on(obj, user=user, password=password, logger=logger)
-        elif power == "off":
-            rc = self.api.power_off(obj, user=user, password=password, logger=logger)
-        elif power == "status":
-            rc = self.api.power_status(obj, user=user, password=password, logger=logger)
-        elif power == "reboot":
-            rc = self.api.reboot(obj, user=user, password=password, logger=logger)
-        else:
-            utils.die(self.logger, "invalid power mode '%s', expected on/off/status/reboot" % power)
-        return rc
+        try:
+            if power == "on":
+                self.api.power_on(obj, user=user, password=password, logger=logger)
+            elif power == "off":
+                self.api.power_off(obj, user=user, password=password, logger=logger)
+            elif power == "status":
+                self.api.power_status(obj, user=user, password=password, logger=logger)
+            elif power == "reboot":
+                self.api.reboot(obj, user=user, password=password, logger=logger)
+            else:
+                utils.die(self.logger, "invalid power mode '%s', expected on/off/status/reboot" % power)
+        except:
+            return False
+
+        return True
 
     def get_config_data(self, hostname):
         """
@@ -2124,8 +2130,8 @@ class CobblerXMLRPCInterface:
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "clear_system_logs", obj)
-        rc = self.api.clear_logs(obj, logger=logger)
-        return rc
+        self.api.clear_logs(obj, logger=logger)
+        return True
 
 # *********************************************************************************
 

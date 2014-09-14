@@ -216,15 +216,11 @@ class Item(object):
         @returns: True or CX
         """
         self.name = validate.object_name(name, self.parent)
-        return True
-
 
     def set_comment(self, comment):
         if comment is None:
             comment = ""
         self.comment = comment
-        return True
-
 
     def set_owners(self, data):
         """
@@ -232,8 +228,6 @@ class Item(object):
         like authz_ownership, which ships with Cobbler but is off by default.
         """
         self.owners = utils.input_string_or_list(data)
-        return True
-
 
     def set_kernel_options(self, options, inplace=False):
         """
@@ -252,8 +246,6 @@ class Item(object):
                         self.kernel_options[key] = value[key]
             else:
                 self.kernel_options = value
-            return True
-
 
     def set_kernel_options_post(self, options, inplace=False):
         """
@@ -272,8 +264,6 @@ class Item(object):
                         self.kernel_options_post[key] = value[key]
             else:
                 self.kernel_options_post = value
-            return True
-
 
     def set_ks_meta(self, options, inplace=False):
         """
@@ -293,8 +283,6 @@ class Item(object):
                         self.ks_meta[key] = value[key]
             else:
                 self.ks_meta = value
-            return True
-
 
     def set_mgmt_classes(self, mgmt_classes):
         """
@@ -303,8 +291,6 @@ class Item(object):
         """
         mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
-        return True
-
 
     def set_mgmt_parameters(self, mgmt_parameters):
         """
@@ -319,8 +305,6 @@ class Item(object):
             if type(data) is not dict:
                 raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
             self.mgmt_parameters = data
-        return True
-
 
     def set_template_files(self, template_files, inplace=False):
         """
@@ -339,8 +323,6 @@ class Item(object):
                         self.template_files[key] = value[key]
             else:
                 self.template_files = value
-            return True
-
 
     def set_boot_files(self, boot_files, inplace=False):
         """
@@ -359,8 +341,6 @@ class Item(object):
                         self.boot_files[key] = value[key]
             else:
                 self.boot_files = value
-            return True
-
 
     def set_fetchable_files(self, fetchable_files, inplace=False):
         """
@@ -379,8 +359,6 @@ class Item(object):
                         self.fetchable_files[key] = value[key]
             else:
                 self.fetchable_files = value
-            return True
-
 
     def sort_key(self, sort_fields=[]):
         data = self.to_datastruct()

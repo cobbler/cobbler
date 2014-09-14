@@ -358,4 +358,3 @@ class Replicate:
         self.logger.info("Syncing")
         self.api.sync(logger=self.logger)
         self.logger.info("Done")
-        return True

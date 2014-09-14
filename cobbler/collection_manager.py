@@ -200,15 +200,14 @@ class CollectionManager:
         """
         Forget about all loaded collections
         """
-        self._distros.clear(),
-        self._repos.clear(),
-        self._profiles.clear(),
+        self._distros.clear()
+        self._repos.clear()
+        self._profiles.clear()
         self._images.clear()
-        self._systems.clear(),
-        self._mgmtclasses.clear(),
-        self._packages.clear(),
-        self._files.clear(),
-        return True
+        self._systems.clear()
+        self._mgmtclasses.clear()
+        self._packages.clear()
+        self._files.clear()
 
     def serialize(self):
         """
@@ -222,7 +221,6 @@ class CollectionManager:
         serializer.serialize(self._mgmtclasses)
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
-        return True
 
     def serialize_item(self, collection, item):
         """
@@ -257,7 +255,6 @@ class CollectionManager:
                     raise ""
             except:
                 raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
-        return True
 
     def deserialize_raw(self, collection_type):
         """

@@ -228,8 +228,6 @@ class Report:
         if report_type == "doku":
             self.logger.flat(self.reporting_doku(data, order, noheaders))
 
-        return True
-
     def reporting_sorter(self, a, b):
         """
         Used for sorting cobbler objects for report commands
@@ -244,7 +242,6 @@ class Report:
         collection.sort(self.reporting_sorter)
         for x in collection:
             self.logger.flat(x.printable())
-        return True
 
     def reporting_list_names2(self, collection, name):
         """
@@ -253,7 +250,6 @@ class Report:
         obj = collection.get(name)
         if obj is not None:
             self.logger.flat(obj.printable())
-        return True
 
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
         """
@@ -297,7 +293,6 @@ class Report:
 
         self.print_formatted_data(data=data, order=out_order, report_type=report_type, noheaders=report_noheaders)
 
-        return True
 
     def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders):
         """
@@ -323,7 +318,6 @@ class Report:
 
         self.print_formatted_data(data=data, order=fields_list, report_type=report_type, noheaders=report_noheaders)
 
-        return True
 
     # -------------------------------------------------------
 

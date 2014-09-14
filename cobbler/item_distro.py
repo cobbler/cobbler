@@ -191,7 +191,7 @@ class Distro(item.Item):
             raise CX("kernel not specified")
         if utils.find_kernel(kernel):
             self.kernel = kernel
-            return True
+            return
         raise CX("kernel not found: %s" % kernel)
 
 
@@ -201,7 +201,6 @@ class Distro(item.Item):
         If not imported, this field is not meaningful.
         """
         self.tree_build_time = float(datestamp)
-        return True
 
 
     def set_breed(self, breed):
@@ -221,7 +220,7 @@ class Distro(item.Item):
             raise CX("initrd not specified")
         if utils.find_initrd(initrd):
             self.initrd = initrd
-            return True
+            return
         raise CX(_("initrd not found"))
 
 

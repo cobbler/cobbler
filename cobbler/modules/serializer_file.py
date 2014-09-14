@@ -80,7 +80,6 @@ def serialize_item(obj, item):
     fd.write(data)
 
     fd.close()
-    return True
 
 
 def serialize_delete(obj, item):
@@ -94,7 +93,6 @@ def serialize_delete(obj, item):
     filename += ".json"
     if os.path.exists(filename):
         os.remove(filename)
-    return True
 
 
 def deserialize_item_raw(collection_type, item_name):
@@ -124,11 +122,9 @@ def serialize(obj):
     This should NOT be used by API if serialize_item is available.
     """
     ctype = obj.collection_type()
-    if ctype == "settings":
-        return True
-    for x in obj:
-        serialize_item(obj, x)
-    return True
+    if ctype != "settings":
+        for x in obj:
+            serialize_item(obj, x)
 
 
 def deserialize_raw(collection_type):
@@ -171,7 +167,6 @@ def deserialize(obj, topological=True):
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
     obj.from_datastruct(datastruct)
-    return True
 
 
 def __depth_cmp(item1, item2):

@@ -147,7 +147,6 @@ class RepoSync:
         if report_failure:
             utils.die(self.logger, "overall reposync failed, at least one repo failed to synchronize")
 
-        return True
 
     # ==================================================================================
 
@@ -158,15 +157,15 @@ class RepoSync:
         """
 
         if repo.breed == "rhn":
-            return self.rhn_sync(repo)
+            self.rhn_sync(repo)
         elif repo.breed == "yum":
-            return self.yum_sync(repo)
+            self.yum_sync(repo)
         elif repo.breed == "apt":
-            return self.apt_sync(repo)
+            self.apt_sync(repo)
         elif repo.breed == "rsync":
-            return self.rsync_sync(repo)
+            self.rsync_sync(repo)
         elif repo.breed == "wget":
-            return self.wget_sync(repo)
+            self.wget_sync(repo)
         else:
             utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
 

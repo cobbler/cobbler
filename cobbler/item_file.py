@@ -96,6 +96,5 @@ class File(resource.Resource):
         If true, treat file resource as a directory. Templates are ignored.
         """
         self.is_dir = utils.input_boolean(is_dir)
-        return True
 
 # EOF

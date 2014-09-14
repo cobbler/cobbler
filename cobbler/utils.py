@@ -1271,7 +1271,7 @@ def set_arch(self, arch, repo=False):
 
     if arch in valids:
         self.arch = arch
-        return True
+        return
 
     raise CX("arch choices include: %s" % ", ".join(valids))
 
@@ -1279,7 +1279,7 @@ def set_arch(self, arch, repo=False):
 def set_os_version(self, os_version):
     if os_version == "" or os_version is None:
         self.os_version = ""
-        return True
+        return
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
@@ -1290,14 +1290,13 @@ def set_os_version(self, os_version):
         nicer = ", ".join(matched)
         raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
     self.os_version = os_version
-    return True
 
 
 def set_breed(self, breed):
     valid_breeds = get_valid_breeds()
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
-        return True
+        return
     nicer = ", ".join(valid_breeds)
     raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
@@ -1305,21 +1304,21 @@ def set_breed(self, breed):
 def set_repo_os_version(self, os_version):
     if os_version == "" or os_version is None:
         self.os_version = ""
-        return True
+        return
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
     if self.breed not in validate.REPO_BREEDS:
         raise CX(_("fix --breed first before applying this setting"))
     self.os_version = os_version
-    return True
+    return
 
 
 def set_repo_breed(self, breed):
     valid_breeds = validate.REPO_BREEDS
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
-        return True
+        return
     nicer = ", ".join(valid_breeds)
     raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
@@ -1328,7 +1327,7 @@ def set_repos(self, repos, bypass_check=False):
     # allow the magic inherit string to persist
     if repos == "<<inherit>>":
         self.repos = "<<inherit>>"
-        return True
+        return
 
     # store as an array regardless of input type
     if repos is None:
@@ -1336,13 +1335,11 @@ def set_repos(self, repos, bypass_check=False):
     else:
         self.repos = input_string_or_list(repos)
     if bypass_check:
-        return True
+        return
 
     for r in self.repos:
         if self.collection_mgr.repos().find(name=r) is None:
             raise CX(_("repo %s is not defined") % r)
-
-    return True
 
 
 def set_virt_file_size(self, num):
@@ -1357,11 +1354,11 @@ def set_virt_file_size(self, num):
 
     if num is None or num == "":
         self.virt_file_size = 0
-        return True
+        return
 
     if num == "<<inherit>>":
         self.virt_file_size = "<<inherit>>"
-        return True
+        return
 
     if isinstance(num, basestring) and num.find(",") != -1:
         tokens = num.split(",")
@@ -1370,7 +1367,7 @@ def set_virt_file_size(self, num):
             self.set_virt_file_size(t)
         # if no exceptions raised, good enough
         self.virt_file_size = num
-        return True
+        return
 
     try:
         inum = int(num)
@@ -1378,11 +1375,10 @@ def set_virt_file_size(self, num):
             raise CX(_("invalid virt file size (%s)" % num))
         if inum >= 0:
             self.virt_file_size = inum
-            return True
+            return
         raise CX(_("invalid virt file size (%s)" % num))
     except:
         raise CX(_("invalid virt file size (%s)" % num))
-    return True
 
 
 def set_virt_disk_driver(self, driver):
@@ -1397,7 +1393,6 @@ def set_virt_disk_driver(self, driver):
     #        and it's up to the user not to enter an
     #        unsupported disk format
     self.virt_disk_driver = driver
-    return True
 
 
 def set_virt_auto_boot(self, num):
@@ -1409,18 +1404,17 @@ def set_virt_auto_boot(self, num):
 
     if num == "<<inherit>>":
         self.virt_auto_boot = "<<inherit>>"
-        return True
+        return
 
     # num is a non-negative integer (0 means default)
     try:
         inum = int(num)
         if (inum == 0) or (inum == 1):
             self.virt_auto_boot = inum
-            return True
+            return
         raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
-    return True
 
 
 def set_virt_pxe_boot(self, num):
@@ -1435,11 +1429,10 @@ def set_virt_pxe_boot(self, num):
         inum = int(num)
         if (inum == 0) or (inum == 1):
             self.virt_pxe_boot = inum
-            return True
+            return
         raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
-    return True
 
 
 def set_virt_ram(self, num):
@@ -1451,7 +1444,7 @@ def set_virt_ram(self, num):
 
     if num == "<<inherit>>":
         self.virt_ram = "<<inherit>>"
-        return True
+        return
 
     # num is a non-negative integer (0 means default)
     try:
@@ -1460,11 +1453,10 @@ def set_virt_ram(self, num):
             raise CX(_("invalid virt ram size (%s)" % num))
         if inum >= 0:
             self.virt_ram = inum
-            return True
+            return
         raise CX(_("invalid virt ram size (%s)" % num))
     except:
         raise CX(_("invalid virt ram size (%s)" % num))
-    return True
 
 
 def set_virt_type(self, vtype):
@@ -1474,12 +1466,11 @@ def set_virt_type(self, vtype):
 
     if vtype == "<<inherit>>":
         self.virt_type = "<<inherit>>"
-        return True
+        return
 
     if vtype.lower() not in ["qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto"]:
         raise CX(_("invalid virt type (%s)" % vtype))
     self.virt_type = vtype
-    return True
 
 
 def set_virt_bridge(self, vbridge):
@@ -1489,7 +1480,6 @@ def set_virt_bridge(self, vbridge):
     if vbridge is None or vbridge == "":
         vbridge = self.settings.default_virt_bridge
     self.virt_bridge = vbridge
-    return True
 
 
 def set_virt_path(self, path, for_system=False):
@@ -1502,7 +1492,6 @@ def set_virt_path(self, path, for_system=False):
         if path == "":
             path = "<<inherit>>"
     self.virt_path = path
-    return True
 
 
 def set_virt_cpus(self, num):
@@ -1514,11 +1503,11 @@ def set_virt_cpus(self, num):
     """
     if num == "" or num is None:
         self.virt_cpus = 1
-        return True
+        return
 
     if num == "<<inherit>>":
         self.virt_cpus = "<<inherit>>"
-        return True
+        return
 
     try:
         num = int(str(num))
@@ -1526,7 +1515,6 @@ def set_virt_cpus(self, num):
         raise CX(_("invalid number of virtual CPUs (%s)" % num))
 
     self.virt_cpus = num
-    return True
 
 
 def get_kickstart_templates(api):
@@ -1909,16 +1897,13 @@ def load_signatures(filename, cache=True):
     Loads the import signatures for distros
     """
     global SIGNATURE_CACHE
-    try:
-        f = open(filename, "r")
-        sigjson = f.read()
-        f.close()
-        sigdata = simplejson.loads(sigjson)
-        if cache:
-            SIGNATURE_CACHE = sigdata
-        return True
-    except:
-        return False
+
+    f = open(filename, "r")
+    sigjson = f.read()
+    f.close()
+    sigdata = simplejson.loads(sigjson)
+    if cache:
+        SIGNATURE_CACHE = sigdata
 
 
 def get_valid_breeds():

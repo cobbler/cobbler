@@ -213,8 +213,6 @@ class System(item.Item):
             else:
                 raise CX(_("At least one interface needs to be defined."))
 
-        return True
-
 
     def rename_interface(self, names):
         """
@@ -229,8 +227,6 @@ class System(item.Item):
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
 
-        return True
-
 
     def set_server(self, server):
         """
@@ -240,7 +236,6 @@ class System(item.Item):
         if server is None or server == "":
             server = "<<inherit>>"
         self.server = server
-        return True
 
 
     def set_next_server(self, server):
@@ -248,14 +243,12 @@ class System(item.Item):
             self.next_server = "<<inherit>>"
         else:
             self.next_server = validate.ipv4_address(server)
-        return True
 
 
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
             proxy = "<<inherit>>"
         self.proxy = proxy
-        return True
 
 
     def get_mac_address(self, interface):
@@ -305,38 +298,32 @@ class System(item.Item):
     def set_dhcp_tag(self, dhcp_tag, interface):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
-        return True
 
 
     def set_cnames(self, cnames, interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(cnames)
         intf["cnames"] = data
-        return True
 
 
     def set_static_routes(self, routes, interface):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
         intf["static_routes"] = data
-        return True
 
 
     def set_status(self, status):
         self.status = status
-        return True
 
 
     def set_static(self, truthiness, interface):
         intf = self.__get_interface(interface)
         intf["static"] = utils.input_boolean(truthiness)
-        return True
 
 
     def set_management(self, truthiness, interface):
         intf = self.__get_interface(interface)
         intf["management"] = utils.input_boolean(truthiness)
-        return True
 
 # ---
 
@@ -357,7 +344,6 @@ class System(item.Item):
 
         intf = self.__get_interface(interface)
         intf["dns_name"] = dns_name
-        return True
 
 
     def set_hostname(self, hostname):
@@ -368,7 +354,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.hostname = validate.hostname(hostname)
-        return True
 
 
     def set_ip_address(self, address, interface):
@@ -388,7 +373,6 @@ class System(item.Item):
 
         intf = self.__get_interface(interface)
         intf["ip_address"] = address
-        return True
 
 
     def set_mac_address(self, address, interface):
@@ -410,7 +394,6 @@ class System(item.Item):
 
         intf = self.__get_interface(interface)
         intf["mac_address"] = address
-        return True
 
 
     def set_gateway(self, gateway):
@@ -421,7 +404,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.gateway = validate.ipv4_address(gateway)
-        return True
 
 
     def set_name_servers(self, data):
@@ -432,7 +414,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.name_servers = validate.name_servers(data)
-        return True
 
 
     def set_name_servers_search(self, data):
@@ -443,7 +424,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.name_servers_search = validate.name_servers_search(data)
-        return True
 
 
     def set_netmask(self, netmask, interface):
@@ -456,7 +436,6 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
         intf["netmask"] = validate.ipv4_netmask(netmask)
-        return True
 
 
     def set_if_gateway(self, gateway, interface):
@@ -469,7 +448,6 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
         intf["if_gateway"] = validate.ipv4_address(gateway)
-        return True
 
 # --
 
@@ -478,7 +456,6 @@ class System(item.Item):
             bridge = self.settings.default_virt_bridge
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
-        return True
 
 
     def set_interface_type(self, type, interface):
@@ -489,37 +466,31 @@ class System(item.Item):
             type = ""
         intf = self.__get_interface(interface)
         intf["interface_type"] = type
-        return True
 
 
     def set_interface_master(self, interface_master, interface):
         intf = self.__get_interface(interface)
         intf["interface_master"] = interface_master
-        return True
 
 
     def set_bonding_opts(self, bonding_opts, interface):
         intf = self.__get_interface(interface)
         intf["bonding_opts"] = bonding_opts
-        return True
 
 
     def set_bridge_opts(self, bridge_opts, interface):
         intf = self.__get_interface(interface)
         intf["bridge_opts"] = bridge_opts
-        return True
 
 
     def set_ipv6_autoconfiguration(self, truthiness):
         self.ipv6_autoconfiguration = utils.input_boolean(truthiness)
-        return True
 
 
     def set_ipv6_default_device(self, interface_name):
         if interface_name is None:
             interface_name = ""
         self.ipv6_default_device = interface_name
-        return True
 
 
     def set_ipv6_address(self, address, interface):
@@ -539,7 +510,6 @@ class System(item.Item):
 
         intf = self.__get_interface(interface)
         intf["ipv6_address"] = address
-        return True
 
 
     def set_ipv6_prefix(self, prefix, interface):
@@ -548,7 +518,6 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
         intf["ipv6_prefix"] = prefix.strip()
-        return True
 
 
     def set_ipv6_secondaries(self, addresses, interface):
@@ -562,14 +531,13 @@ class System(item.Item):
                 raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
         intf["ipv6_secondaries"] = secondaries
-        return True
 
 
     def set_ipv6_default_gateway(self, address, interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):
             intf["ipv6_default_gateway"] = address.strip()
-            return True
+            return
         raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
 
@@ -577,19 +545,16 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
         intf["ipv6_static_routes"] = data
-        return True
 
 
     def set_ipv6_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["ipv6_mtu"] = mtu
-        return True
 
 
     def set_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
-        return True
 
 
     def set_enable_gpxe(self, enable_gpxe):
@@ -597,7 +562,6 @@ class System(item.Item):
         Sets whether or not the system will use gPXE for booting.
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
-        return True
 
 
     def set_profile(self, profile_name):
@@ -610,7 +574,7 @@ class System(item.Item):
             self.profile = ""
             if isinstance(old_parent, item.Item):
                 old_parent.children.pop(self.name, 'pass')
-            return True
+            return
 
         self.image = ""         # mutual exclusion rule
 
@@ -623,7 +587,7 @@ class System(item.Item):
             new_parent = self.get_parent()
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
-            return True
+            return
         raise CX(_("invalid profile name: %s") % profile_name)
 
 
@@ -637,7 +601,7 @@ class System(item.Item):
             self.image = ""
             if isinstance(old_parent, item.Item):
                 old_parent.children.pop(self.name, 'pass')
-            return True
+            return
 
         self.profile = ""       # mutual exclusion rule
 
@@ -651,7 +615,7 @@ class System(item.Item):
             new_parent = self.get_parent()
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
-            return True
+            return
         raise CX(_("invalid image name (%s)") % image_name)
 
 
@@ -701,7 +665,6 @@ class System(item.Item):
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
-        return True
 
 
     def set_kickstart(self, kickstart):
@@ -712,7 +675,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.kickstart = validate.kickstart_file_path(kickstart)
-        return True
 
 
     def set_power_type(self, power_type):
@@ -725,7 +687,6 @@ class System(item.Item):
         if power_type not in choices:
             raise CX("power management type must be one of: %s" % ",".join(choices))
         self.power_type = power_type
-        return True
 
 
     def set_power_user(self, power_user):
@@ -733,7 +694,6 @@ class System(item.Item):
             power_user = ""
         utils.safe_filter(power_user)
         self.power_user = power_user
-        return True
 
 
     def set_power_pass(self, power_pass):
@@ -741,7 +701,6 @@ class System(item.Item):
             power_pass = ""
         utils.safe_filter(power_pass)
         self.power_pass = power_pass
-        return True
 
 
     def set_power_address(self, power_address):
@@ -749,7 +708,6 @@ class System(item.Item):
             power_address = ""
         utils.safe_filter(power_address)
         self.power_address = power_address
-        return True
 
 
     def set_power_id(self, power_id):
@@ -757,7 +715,6 @@ class System(item.Item):
             power_id = ""
         utils.safe_filter(power_id)
         self.power_id = power_id
-        return True
 
 
     def modify_interface(self, hash):
@@ -834,11 +791,9 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
 
 
     def set_repos_enabled(self, repos_enabled):
         self.repos_enabled = utils.input_boolean(repos_enabled)
-        return True
 
 # EOF

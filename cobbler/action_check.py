@@ -107,14 +107,11 @@ class BootCheck:
         if not os.path.exists("/usr/bin/ksvalidator"):
             status.append("ksvalidator was not found, install pykickstart")
 
-        return True
-
 
     def check_for_cman(self, status):
         # not doing rpm -q here to be cross-distro friendly
         if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
             status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
-        return True
 
 
     def check_service(self, status, which, notes=""):
@@ -126,18 +123,17 @@ class BootCheck:
                 rc = utils.subprocess_call(self.logger, "/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
-                return False
+                return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
-                return False
+                return
         else:
             status.append(_("Unknown distribution type, cannot check for running service %s" % which))
-            return False
-        return True
+            return
 
 
     def check_iptables(self, status):

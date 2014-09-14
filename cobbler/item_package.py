@@ -70,11 +70,8 @@ class Package(resource.Resource):
 
     def set_installer(self, installer):
         self.installer = installer.lower()
-        return True
-
 
     def set_version(self, version):
         self.version = version
-        return True
 
 # EOF

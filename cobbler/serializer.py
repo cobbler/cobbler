@@ -51,7 +51,6 @@ def __grab_lock():
                 fd.close()
             LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
             fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
-        return True
     except:
         # this is pretty much FATAL, avoid corruption and quit now.
         traceback.print_exc()
@@ -70,7 +69,6 @@ def __release_lock(with_changes=False):
         LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
         LOCK_HANDLE.close()
-    return True
 
 
 def serialize(obj):
@@ -81,7 +79,6 @@ def serialize(obj):
     storage_module = __get_storage_module(obj.collection_type())
     storage_module.serialize(obj)
     __release_lock()
-    return True
 
 
 def serialize_item(collection, item):
@@ -92,11 +89,10 @@ def serialize_item(collection, item):
     storage_module = __get_storage_module(collection.collection_type())
     save_fn = getattr(storage_module, "serialize_item", None)
     if save_fn is None:
-        rc = storage_module.serialize(collection)
+        storage_module.serialize(collection)
     else:
-        rc = save_fn(collection, item)
+        save_fn(collection, item)
     __release_lock(with_changes=True)
-    return rc
 
 
 def serialize_delete(collection, item):
@@ -107,11 +103,10 @@ def serialize_delete(collection, item):
     storage_module = __get_storage_module(collection.collection_type())
     delete_fn = getattr(storage_module, "serialize_delete", None)
     if delete_fn is None:
-        rc = storage_module.serialize(collection)
+        storage_module.serialize(collection)
     else:
-        rc = delete_fn(collection, item)
+        delete_fn(collection, item)
     __release_lock(with_changes=True)
-    return rc
 
 
 def deserialize(obj, topological=True):
@@ -120,9 +115,8 @@ def deserialize(obj, topological=True):
     """
     __grab_lock()
     storage_module = __get_storage_module(obj.collection_type())
-    rc = storage_module.deserialize(obj, topological)
+    storage_module.deserialize(obj, topological)
     __release_lock()
-    return rc
 
 
 def deserialize_raw(collection_type):
@@ -133,9 +127,8 @@ def deserialize_raw(collection_type):
     """
     __grab_lock()
     storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_raw(collection_type)
+    storage_module.deserialize_raw(collection_type)
     __release_lock()
-    return rc
 
 
 def deserialize_item(collection_type, item_name):
@@ -144,17 +137,15 @@ def deserialize_item(collection_type, item_name):
     """
     __grab_lock()
     storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_item(collection_type, item_name)
+    storage_module.deserialize_item(collection_type, item_name)
     __release_lock()
-    return rc
 
 
 def deserialize_item_raw(collection_type, item_name):
     __grab_lock()
     storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_item_raw(collection_type, item_name)
+    storage_module.deserialize_item_raw(collection_type, item_name)
     __release_lock()
-    return rc
 
 
 def __get_storage_module(collection_type):

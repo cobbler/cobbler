@@ -482,10 +482,12 @@ class CobblerCLI:
                 task_id = self.remote.background_signature_update(utils.strip_none(vars(options), omit_none=True), self.token)
             elif object_action == "reload":
                 filename = opt(options, "filename", "/var/lib/cobbler/distro_signatures.json")
-                if not utils.load_signatures(filename, cache=True):
+                try:
+                    utils.load_signatures(filename, cache=True)
+                except:
                     print "There was an error loading the signature data in %s." % filename
                     print "Please check the JSON file or run 'cobbler signature update'."
-                    return False
+                    return
                 else:
                     print "Signatures were successfully loaded"
             else:
@@ -498,7 +500,6 @@ class CobblerCLI:
             self.print_task(task_id)
             self.follow_task(task_id)
 
-        return True
 
     # BOOKMARK
     def direct_command(self, action_name):

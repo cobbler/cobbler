@@ -121,10 +121,12 @@ class CobblerAPI:
             self.deserialize()
 
             # import signatures
-            if not utils.load_signatures(self.settings().signature_path):
+            try:
+                utils.load_signatures(self.settings().signature_path)
+            except:
                 return
-            else:
-                self.log("%d breeds and %d OS versions read from the signature file" % (
+
+            self.log("%d breeds and %d OS versions read from the signature file" % (
                          len(utils.get_valid_breeds()),
                          len(utils.get_valid_os_versions())))
 
@@ -320,7 +322,7 @@ class CobblerAPI:
         This can be called is no longer used by cobbler.
         And is here to just avoid breaking older scripts.
         """
-        return True
+        pass
 
     # ========================================================================
 
@@ -585,19 +587,19 @@ class CobblerAPI:
 
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
-            if not utils.load_signatures(tmpfile.name, cache=False):
+            try:
+                utils.load_signatures(tmpfile.name, cache=False)
+            except:
                 logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
-                return False
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
             f.write(sigjson)
             f.close()
 
-            return utils.load_signatures(self.settings().signature_path)
+            utils.load_signatures(self.settings().signature_path)
         except:
             utils.log_exc(logger)
-            return False
 
     # ==========================================================================
 
@@ -640,7 +642,6 @@ class CobblerAPI:
             self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes
-        return True
 
     # ==========================================================================
 
@@ -756,7 +757,7 @@ class CobblerAPI:
         """
         self.log("sync")
         sync = self.get_sync(verbose=verbose, logger=logger)
-        return sync.run()
+        sync.run()
 
     # ==========================================================================
 
@@ -766,7 +767,7 @@ class CobblerAPI:
         """
         self.log("sync_dhcp")
         sync = self.get_sync(verbose=verbose, logger=logger)
-        return sync.sync_dhcp()
+        sync.sync_dhcp()
     # ==========================================================================
 
     def get_sync(self, verbose=False, logger=None):
@@ -797,7 +798,7 @@ class CobblerAPI:
         """
         self.log("reposync", [name])
         reposync = action_reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
-        return reposync.run(name)
+        reposync.run(name)
 
     # ==========================================================================
 
@@ -915,7 +916,7 @@ class CobblerAPI:
         # # path tree we created above so we don't leave cruft around
         # return False
         import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._collection_mgr, logger)
-        return import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
+        import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
 
     # ==========================================================================
 
@@ -925,7 +926,7 @@ class CobblerAPI:
         Pass in only one option at a time.  Powers "cobbler aclconfig"
         """
         acl = action_acl.AclConfig(self._collection_mgr, logger)
-        return acl.run(
+        acl.run(
             adduser=adduser,
             addgroup=addgroup,
             removeuser=removeuser,
@@ -939,7 +940,7 @@ class CobblerAPI:
         Save the collections to disk.
         Cobbler internal use only.
         """
-        return self._collection_mgr.serialize()
+        self._collection_mgr.serialize()
 
     def deserialize(self):
         """
@@ -1022,7 +1023,7 @@ class CobblerAPI:
                   standalone=None, source=None,
                   exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._collection_mgr, logger=logger)
-        return builder.run(
+        builder.run(
             iso=iso,
             profiles=profiles, systems=systems,
             buildisodir=buildisodir, distro=distro,
@@ -1082,13 +1083,13 @@ class CobblerAPI:
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
 
     def power_off(self, system, user=None, password=None, logger=None):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
 
     def reboot(self, system, user=None, password=None, logger=None):
         """
@@ -1096,7 +1097,7 @@ class CobblerAPI:
         """
         self.power_off(system, user, password, logger=logger)
         time.sleep(5)
-        return self.power_on(system, user, password, logger=logger)
+        self.power_on(system, user, password, logger=logger)
 
     def power_status(self, system, user=None, password=None, logger=None):
         """
@@ -1104,7 +1105,7 @@ class CobblerAPI:
 
         @return: 0  the system is powered on, False if it's not or None on error
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
 
     # ==========================================================================
 
@@ -1112,7 +1113,7 @@ class CobblerAPI:
         """
         Clears console and anamon logs for system
         """
-        return action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
+        action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)

@@ -204,7 +204,6 @@ class TFTPGen:
             os.makedirs(images_dir)
         newfile = os.path.join(images_dir, img.name)
         utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
-        return True
 
     def write_all_system_files(self, system, menu_items):
 

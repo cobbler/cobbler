@@ -25,6 +25,7 @@ import shutil
 import glob
 import re
 
+from cexceptions import CX
 import utils
 import templar
 
@@ -133,8 +134,9 @@ class ImportSignatureManager:
 
         self.signature = self.scan_signatures()
         if not self.signature:
-            self.logger.error("No signature matched in %s" % path)
-            return False
+            error_msg = "No signature matched in %s" % path
+            self.logger.error(error_msg)
+            raise CX(error_msg)
 
         # now walk the filesystem looking for distributions that match certain patterns
         self.logger.info("Adding distros from path %s:" % self.path)
@@ -143,7 +145,7 @@ class ImportSignatureManager:
 
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
-            return False
+            return
 
         # find out if we can auto-create any repository records from the install tree
         if self.network_root is None:
@@ -151,7 +153,6 @@ class ImportSignatureManager:
             # FIXME: this automagic is not possible (yet) without mirroring
             self.repo_finder(distros_added)
 
-        return True
 
     def scan_signatures(self):
         """

@@ -141,7 +141,6 @@ class BootSync:
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
-        return True
 
     def make_tftpboot(self):
         """
@@ -213,20 +212,22 @@ class BootSync:
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
                     if rc != 0:
-                        self.logger.error("dhcpd -t failed")
-                        return False
+                        error_msg = "dhcpd -t failed"
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
                     service_restart = "service %s restart" % service_name
                     rc = utils.subprocess_call(self.logger, service_restart, shell=True)
                     if rc != 0:
-                        self.logger.error("%s failed" % service_name)
-                        return False
+                        error_msg = "%s failed" % service_name
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
             elif which_dhcp_module == "manage_dnsmasq":
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
                     if rc != 0:
-                        self.logger.error("service dnsmasq restart failed")
-                        return False
-        return True
+                        error_msg = "service dnsmasq restart failed"
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
 
     def clean_link_cache(self):
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:

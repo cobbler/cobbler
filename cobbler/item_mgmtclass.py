@@ -77,12 +77,10 @@ class Mgmtclass(item.Item):
 
     def set_packages(self, packages):
         self.packages = utils.input_string_or_list(packages)
-        return True
 
 
     def set_files(self, files):
         self.files = utils.input_string_or_list(files)
-        return True
 
 
     def set_params(self, params, inplace=False):
@@ -98,12 +96,10 @@ class Mgmtclass(item.Item):
                         self.params[key] = value[key]
             else:
                 self.params = value
-            return True
 
 
     def set_is_definition(self, isdef):
         self.is_definition = utils.input_boolean(isdef)
-        return True
 
 
     def set_class_name(self, name):
@@ -113,6 +109,5 @@ class Mgmtclass(item.Item):
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise CX(_("invalid characters in class name: '%s'" % name))
         self.class_name = name
-        return True
 
 # EOF
