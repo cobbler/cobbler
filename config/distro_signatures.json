@@ -705,7 +705,7 @@
     "kernel_options_post":"",
     "boot_files":["install.img"]
    },
-  "xenserver620": {
+   "xenserver620": {
     "signatures":["packages.xenserver"],
     "version_file":"^XS-REPOSITORY$",
     "version_file_regex":"^.*product=\"XenServer\" version=\"6\\.2\\.([0-9]+)\".*$",
@@ -760,7 +760,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
-   }
+   },
    "virtio26": {
     "signatures":[],
     "version_file":"",
