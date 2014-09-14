@@ -94,11 +94,7 @@ def serialize_item(collection, item):
 
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
-    save_fn = getattr(storage_module, "serialize_item", None)
-    if save_fn is None:
-        storage_module.serialize(collection)
-    else:
-        save_fn(collection, item)
+    storage_module.serialize_item(collection, item)
     __release_lock(with_changes=True)
 
 
@@ -112,11 +108,7 @@ def serialize_delete(collection, item):
 
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
-    delete_fn = getattr(storage_module, "serialize_delete", None)
-    if delete_fn is None:
-        storage_module.serialize(collection)
-    else:
-        delete_fn(collection, item)
+    storage_module.serialize_delete(collection, item)
     __release_lock(with_changes=True)
 
 
