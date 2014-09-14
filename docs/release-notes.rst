@@ -56,7 +56,8 @@ Upgrade notes
 =============
 
 * Support for redhat_management (Spacewalk/Satelite) has been moved to contrib
-* Monit support has been removed; you really need to use a CMS to manage your servics
+  Users of this functionality should checkout contrib/redhat-management/README
+* Monit support has been removed; you really need to use a CMS to manage your services
 * Support for remote kickstart templates and files been removed (eg. kickstart=http://)
 * All object names are now validated like that of the system object
 * The use of ``parent`` and ``distro`` on subprofiles are now mutually exclusive
@@ -67,5 +68,6 @@ Upgrade notes
 * Cobbler now requires python 2.7 and Koan now requires python 2.6
 * Red Hat specific default kernel options have been removed from the settings file
 * Support for Func integration has been moved to contrib
+  Users of this functionality should checkout contrib/func/README
 * Deprecated Koan LiveCD: moved to contrib
 
