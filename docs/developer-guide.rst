@@ -70,13 +70,14 @@ Standards
 +++++++++
 
 We're not overly picky, but please follow the python PEP8 standards we want to adhere to (see Makefile).
-* always use under_scores, not camelCase
-* always four (4) spaces, not tabs
-* avoid one line if statements
-* validate your code by using `make qa`
-* keep things simple, keep in mind that this is a tool for sysadmins and not python developers
-* use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged with the app, which usually runs afoul of distribution packaging guidelines
-* at least for now we have to support Python 2.7 for Cobbler and ython 2.6 for Koan
+
+* Always use under_scores, not camelCase.
+* Always four (4) spaces, not tabs.
+* Avoid one line if statements.
+* Validate your code by using ``make qa``.
+* Keep things simple, keep in mind that this is a tool for sysadmins and not python developers.
+* Use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged with the app, which usually runs afoul of distribution packaging guidelines.
+* At least for now we have to support Python 2.7 for Cobbler and ython 2.6 for Koan.
 
 You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.net, as there are folks around to answer questions, etc.
 
