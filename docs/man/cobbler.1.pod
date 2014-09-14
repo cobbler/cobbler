@@ -161,11 +161,11 @@ The name of a previously defined cobbler distribution. This value is required.
 
 =item kickstart
 
-Local filesystem path to a kickstart file.  http:// URLs (even CGI's) are also accepted, but a local file path is recommended, so that the kickstart templating engine can be taken advantage of.
+Local filesystem path to a kickstart file.
 
-If this parameter is not provided, the kickstart file will default to /var/lib/cobbler/kickstarts/default.ks.  This file is initially blank, meaning default kickstarts are not automated "out of the box".  Admins can change the default.ks if they desire.
+If this parameter is not provided, the kickstart file will default to /var/lib/cobbler/kickstarts/default.ks. This file is initially blank, meaning default kickstarts are not automated "out of the box". Admins can change the default.ks if they desire.
 
-When using kickstart files, they can be placed anywhere on the filesystem, but the recommended path is /var/lib/cobbler/kickstarts.   If using the webapp to create new kickstarts, this is where the web application will put them.
+When using kickstart files, they must be placed in /var/lib/cobbler/kickstarts. If using the webapp to create new kickstarts, this is where the web application will put them.
 
 =item nameservers
 
@@ -763,7 +763,8 @@ B<cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --na
 
 B<cobbler reposync>
 
-B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras">
+B<cobbler profile add --name=p1 --distro=existing_distro_name --kickstart=/var/lib/cobbler/kickstarts/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras">
+
 
 =head2 VIRTUALIZATION
 
@@ -803,12 +804,9 @@ Additionally, note that all files generated for the pxe menu configurations are 
 
 The --ksmeta options above require more explanation.
 
-If and only if --kickstart options reference filesystem URLs, --ksmeta allows for templating of the kickstart files to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere in the kickstart file where the string "$bar" appeared would be replaced with the string "llama".  
+If and only if --kickstart options reference filesystem URIs, --ksmeta allows for templating of the kickstart files to achieve advanced functions.  If the --ksmeta option for a profile read --ksmeta="foo=7 bar=llama", anywhere in the kickstart file where the string "$bar" appeared would be replaced with the string "llama".  
 
 To apply these changes, "cobbler sync" must be run to generate custom kickstarts for each profile/system.
-
-For NFS and HTTP kickstart URLs, the "--ksmeta" options will have no effect. This is a good reason to let
-cobbler manage your kickstart files, though the URL functionality is provided for integration with legacy infrastructure, possibly including web apps that already generate kickstarts.
 
 Templated kickstart files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah template can be done to a kickstart template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
