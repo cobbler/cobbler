@@ -55,6 +55,7 @@ Bugfixes
 Upgrade notes
 =============
 
+* Support for redhat_management (Spacewalk/Satelite) has been moved to contrib
 * Monit support has been removed; you really need to use a CMS to manage your servics
 * Support for remote kickstart templates and files been removed (eg. kickstart=http://)
 * All object names are now validated like that of the system object
@@ -65,6 +66,6 @@ Upgrade notes
 * Support for deprecated fieldnames (``subnet``, ``bonding_master``, ``bonding``) has been removed
 * Cobbler now requires python 2.7 and Koan now requires python 2.6
 * Red Hat specific default kernel options have been removed from the settings file
-* Deprecated Func integration: moved to contrib
+* Support for Func integration has been moved to contrib
 * Deprecated Koan LiveCD: moved to contrib
 
