@@ -32,6 +32,7 @@ Enhancements
 Bugfixes
 ========
 
+* Filter out ``gpgcheck`` and ``enabled`` which are not valid in kickstart.
 * Several improvements to Debian/Ubuntu packaging.
 * Some class/method names have been changed to make the code more intuitive for developers.
 * Remove ``root=`` argument in Koan when using grubby and replace-self to avoid booting the current OS.
