@@ -83,19 +83,12 @@ class Mgmtclass(item.Item):
         self.files = utils.input_string_or_list(files)
 
 
-    def set_params(self, params, inplace=False):
+    def set_params(self, params):
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
             raise CX(_("invalid parameters"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.params[key[1:]]
-                    else:
-                        self.params[key] = value[key]
-            else:
-                self.params = value
+            self.params = value
 
 
     def set_is_definition(self, isdef):

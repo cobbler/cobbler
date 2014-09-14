@@ -132,7 +132,7 @@ class Repo(item.Item):
         self.keep_updated = utils.input_boolean(keep_updated)
 
 
-    def set_yumopts(self, options, inplace=False):
+    def set_yumopts(self, options):
         """
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a dictionary.
@@ -141,14 +141,10 @@ class Repo(item.Item):
         if not success:
             raise CX(_("invalid yum options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    self.yumopts[key] = value[key]
-            else:
-                self.yumopts = value
+            self.yumopts = value
 
 
-    def set_environment(self, options, inplace=False):
+    def set_environment(self, options):
         """
         Yum can take options from the environment.  This puts them there before
         each reposync.
@@ -157,11 +153,7 @@ class Repo(item.Item):
         if not success:
             raise CX(_("invalid environment options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    self.environment[key] = value[key]
-            else:
-                self.environment = value
+            self.environment = value
 
 
     def set_priority(self, priority):

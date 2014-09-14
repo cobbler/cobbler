@@ -229,7 +229,7 @@ class Item(object):
         """
         self.owners = utils.input_string_or_list(data)
 
-    def set_kernel_options(self, options, inplace=False):
+    def set_kernel_options(self, options):
         """
         Kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a dict.
@@ -238,16 +238,9 @@ class Item(object):
         if not success:
             raise CX(_("invalid kernel options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.kernel_options[key[1:]]
-                    else:
-                        self.kernel_options[key] = value[key]
-            else:
-                self.kernel_options = value
+            self.kernel_options = value
 
-    def set_kernel_options_post(self, options, inplace=False):
+    def set_kernel_options_post(self, options):
         """
         Post kernel options are a space delimited list,
         like 'a=b c=d e=f g h i=j' or a dict.
@@ -256,16 +249,9 @@ class Item(object):
         if not success:
             raise CX(_("invalid post kernel options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.kernel_options_post[key[1:]]
-                    else:
-                        self.kernel_options_post[key] = value[key]
-            else:
-                self.kernel_options_post = value
+            self.kernel_options_post = value
 
-    def set_ks_meta(self, options, inplace=False):
+    def set_ks_meta(self, options):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system
@@ -275,14 +261,7 @@ class Item(object):
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.ks_meta[key[1:]]
-                    else:
-                        self.ks_meta[key] = value[key]
-            else:
-                self.ks_meta = value
+            self.ks_meta = value
 
     def set_mgmt_classes(self, mgmt_classes):
         """
@@ -306,7 +285,7 @@ class Item(object):
                 raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
             self.mgmt_parameters = data
 
-    def set_template_files(self, template_files, inplace=False):
+    def set_template_files(self, template_files):
         """
         A comma seperated list of source=destination templates
         that should be generated during a sync.
@@ -315,16 +294,9 @@ class Item(object):
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.template_files[key[1:]]
-                    else:
-                        self.template_files[key] = value[key]
-            else:
-                self.template_files = value
+            self.template_files = value
 
-    def set_boot_files(self, boot_files, inplace=False):
+    def set_boot_files(self, boot_files):
         """
         A comma seperated list of req_name=source_file_path
         that should be fetchable via tftp
@@ -333,16 +305,9 @@ class Item(object):
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.boot_files[key[1:]]
-                    else:
-                        self.boot_files[key] = value[key]
-            else:
-                self.boot_files = value
+            self.boot_files = value
 
-    def set_fetchable_files(self, fetchable_files, inplace=False):
+    def set_fetchable_files(self, fetchable_files):
         """
         A comma seperated list of virt_name=path_to_template
         that should be fetchable via tftp or a webserver
@@ -351,14 +316,7 @@ class Item(object):
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.fetchable_files[key[1:]]
-                    else:
-                        self.fetchable_files[key] = value[key]
-            else:
-                self.fetchable_files = value
+            self.fetchable_files = value
 
     def sort_key(self, sort_fields=[]):
         data = self.to_datastruct()
