@@ -41,7 +41,7 @@ def register():
 class InTftpdManager:
 
     def what(self):
-        return "tftpd"
+        return "in_tftpd"
 
     def __init__(self,config,logger):
         """
