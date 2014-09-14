@@ -24,7 +24,7 @@ import subprocess
 try:
     import coverage
 except:
-    converage = None
+    coverage = None
 
 VERSION = "2.9.0"
 OUTPUT_DIR = "config"
