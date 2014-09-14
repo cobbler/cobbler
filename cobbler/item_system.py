@@ -100,7 +100,6 @@ FIELDS = [
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
     ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
-    ["monit_enabled", False, 0, "Monit Enabled", True, "(re)configure monit on this machine at next config update?", 0, "bool"],
     ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
 ]
 
@@ -847,18 +846,6 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
-
-
-    def set_monit_enabled(self, monit_enabled):
-        """
-        If true, allows per-system to start Monit to monitor system services such as apache.
-        If monit is not running it will start the service.
-
-        If false, no management of monit will take place. If monit is not running it will not
-        be started. If monit is running it will not be stopped or restarted.
-        """
-        self.monit_enabled = utils.input_boolean(monit_enabled)
         return True
 
 

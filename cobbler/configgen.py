@@ -36,7 +36,7 @@ import clogger
 class ConfigGen:
     """
     Generate configuration data for Cobbler's management resources:
-    repos, ldap, files, packages, and monit. Mainly used by Koan to
+    repos, ldap, files and packages. Mainly used by Koan to
     configure remote systems.
     """
 
@@ -75,14 +75,13 @@ class ConfigGen:
 
     def gen_config_data(self):
         """
-        Generate configuration data for repos, ldap, files,
-        packages, and monit. Returns a dict.
+        Generate configuration data for repos, ldap, files and packages.
+        Returns a dict.
         """
         config_data = {
             'repo_data': self.handle.get_repo_config_for_system(self.system),
             'repos_enabled': self.get_cobbler_resource('repos_enabled'),
             'ldap_enabled': self.get_cobbler_resource('ldap_enabled'),
-            'monit_enabled': self.get_cobbler_resource('monit_enabled')
         }
         package_set = set()
         file_set = set()

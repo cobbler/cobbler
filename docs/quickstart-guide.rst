@@ -289,7 +289,6 @@ First, we'll create a system object based on the profile that was created during
     LDAP Management Type           : authconfig
     Management Classes             : []
     Management Parameters          : <<inherit>>
-    Monit Enabled                  : False
     Name Servers                   : []
     Name Servers Search Path       : []
     Netboot Enabled                : True
