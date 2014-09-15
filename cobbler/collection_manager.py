@@ -148,54 +148,6 @@ class CollectionManager:
         """
         return self._files
 
-    def new_distro(self, is_subobject=False):
-        """
-        Create a new distro object with a backreference to this object
-        """
-        return distro.Distro(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_system(self, is_subobject=False):
-        """
-        Create a new system with a backreference to this object
-        """
-        return system.System(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_profile(self, is_subobject=False):
-        """
-        Create a new profile with a backreference to this object
-        """
-        return profile.Profile(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_repo(self, is_subobject=False):
-        """
-        Create a new mirror to keep track of...
-        """
-        return repo.Repo(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_image(self, is_subobject=False):
-        """
-        Create a new image object...
-        """
-        return image.Image(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_mgmtclass(self, is_subobject=False):
-        """
-        Create a new mgmtclass object...
-        """
-        return mgmtclass.Mgmtclass(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_package(self, is_subobject=False):
-        """
-        Create a new package object...
-        """
-        return package.Package(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_file(self, is_subobject=False):
-        """
-        Create a new image object...
-        """
-        return file.File(weakref.proxy(self), is_subobject=is_subobject)
-
     def serialize(self):
         """
         Save all collections to disk

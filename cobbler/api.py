@@ -42,6 +42,14 @@ from cobbler import action_power
 from cobbler import action_log
 from cobbler import action_hardlink
 from cobbler import action_dlcontent
+from cobbler import item_distro
+from cobbler import item_file
+from cobbler import item_image
+from cobbler import item_mgmtclass
+from cobbler import item_package
+from cobbler import item_profile
+from cobbler import item_repo
+from cobbler import item_system
 from cobbler import module_loader
 from cobbler import kickgen
 from cobbler import yumgen
@@ -418,35 +426,35 @@ class CobblerAPI:
 
     def new_distro(self, is_subobject=False):
         self.log("new_distro", [is_subobject])
-        return self._collection_mgr.new_distro(is_subobject=is_subobject)
+        return item_distro.Distro(self._collection_mgr, is_subobject=is_subobject)
 
     def new_profile(self, is_subobject=False):
         self.log("new_profile", [is_subobject])
-        return self._collection_mgr.new_profile(is_subobject=is_subobject)
+        return item_profile.Profile(self._collection_mgr, is_subobject=is_subobject)
 
     def new_system(self, is_subobject=False):
         self.log("new_system", [is_subobject])
-        return self._collection_mgr.new_system(is_subobject=is_subobject)
+        return item_system.System(self._collection_mgr, is_subobject=is_subobject)
 
     def new_repo(self, is_subobject=False):
         self.log("new_repo", [is_subobject])
-        return self._collection_mgr.new_repo(is_subobject=is_subobject)
+        return item_repo.Repo(self._collection_mgr, is_subobject=is_subobject)
 
     def new_image(self, is_subobject=False):
         self.log("new_image", [is_subobject])
-        return self._collection_mgr.new_image(is_subobject=is_subobject)
+        return item_image.Image(self._collection_mgr, is_subobject=is_subobject)
 
     def new_mgmtclass(self, is_subobject=False):
         self.log("new_mgmtclass", [is_subobject])
-        return self._collection_mgr.new_mgmtclass(is_subobject=is_subobject)
+        return item_mgmtclass.Mgmtclass(self._collection_mgr, is_subobject=is_subobject)
 
     def new_package(self, is_subobject=False):
         self.log("new_package", [is_subobject])
-        return self._collection_mgr.new_package(is_subobject=is_subobject)
+        return item_package.Package(self._collection_mgr, is_subobject=is_subobject)
 
     def new_file(self, is_subobject=False):
         self.log("new_file", [is_subobject])
-        return self._collection_mgr.new_file(is_subobject=is_subobject)
+        return item_file.File(self._collection_mgr, is_subobject=is_subobject)
 
     # ==========================================================================
 
