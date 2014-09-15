@@ -41,9 +41,14 @@
     #if $numbondingdevs > 0
 
 # we have bonded interfaces, so set max_bonds
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
+MODPROBE_CONF="/etc/modprobe.conf"
+if [ -d "/etc/modprobe.d" ]; then
+     MODPROBE_CONF="/etc/modprobe.d/post_install_network_config.conf"
 fi
+touch "\$MODPROBE_CONF"
+if [ -f "\$MODPROBE_CONF" ]; then
+    echo "options bonding max_bonds=$numbondingdevs" >> \$MODPROBE_CONF
+
     #end if
     ## =============================================================================
     ## create a staging directory to build out our network scripts into
@@ -146,11 +151,11 @@ echo "HWADDR=$mac" >> $devfile
 IFNAME=\$(ip -o link | grep -i '$mac' | sed -e 's/^[0-9]*: //' -e 's/:.*//')
             ## Rename this interface in modprobe.conf
             ## FIXME: if both interfaces startwith eth this is wrong
-if [ -f "/etc/modprobe.conf" ] && [ \$IFNAME ]; then
-    grep \$IFNAME /etc/modprobe.conf | sed "s/\$IFNAME/$iname/" >> /etc/modprobe.conf.cobbler
-    grep -v \$IFNAME /etc/modprobe.conf >> /etc/modprobe.conf.new
-    rm -f /etc/modprobe.conf
-    mv /etc/modprobe.conf.new /etc/modprobe.conf
+if [ -f "\$MODPROBE_CONF" ] && [ \$IFNAME ]; then
+    grep \$IFNAME \$MODPROBE_CONF | sed "s/\$IFNAME/$iname/" >> \$MODPROBE_CONF.cobbler
+    grep -v \$IFNAME \$MODPROBE_CONF >> \$MODPROBE_CONF.new
+    rm -f \$MODPROBE_CONF
+    mv \$MODPROBE_CONF.new \$MODPROBE_CONF
 fi
             #end if
         ## ===================================================================
@@ -159,13 +164,13 @@ fi
         #if $iface_type in ("master","bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> /etc/modprobe.conf.cobbler
+if [ -f "\$MODPROBE_CONF" ]; then
+    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> \$MODPROBE_CONF.cobbler
 fi
             #else
             ## Add required entry to modprobe.conf
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
+if [ -f "\$MODPROBE_CONF" ]; then
+    echo "alias $iname bonding" >> \$MODPROBE_CONF.cobbler
 fi
             #end if
             #if $bonding_opts != ""
@@ -330,9 +335,9 @@ rm -f /etc/sysconfig/network-scripts/ifcfg-$iname
     #end for
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
-if [ -f "/etc/modprobe.conf" ]; then
-cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
-rm -f /etc/modprobe.conf.cobbler
+if [ -f "\$MODPROBE_CONF" ]; then
+cat \$MODPROBE_CONF.cobbler >> \$MODPROBE_CONF
+rm -f \$MODPROBE_CONF.cobbler
 fi
 #end if
 # End post_install_network_config generated code
