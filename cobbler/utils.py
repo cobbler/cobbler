@@ -1767,17 +1767,6 @@ def from_dict_from_fields(item, item_dict, fields):
     return item
 
 
-def get_methods_from_fields(item, fields):
-    ds = {}
-    for elem in fields:
-        k = elem[0]
-        # modify interfaces is handled differently, and need not work this way
-        if k.startswith("*") or k.find("widget") != -1:
-            continue
-        setfn = getattr(item, "set_%s" % k)
-        ds[k] = setfn
-    return ds
-
 
 def to_dict_from_fields(item, fields):
     _dict = {}
