@@ -461,7 +461,7 @@ class Collection:
                         raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
 
 
-    def printable(self):
+    def to_string(self):
         """
         Creates a printable representation of the collection suitable
         for reading by humans or parsing from scripts.  Actually scripts
@@ -472,7 +472,7 @@ class Collection:
         values.sort()                       # sort the copy (2.3 fix)
         results = []
         for i, v in enumerate(values):
-            results.append(v.printable())
+            results.append(v.to_string())
         if len(values) > 0:
             return "\n\n".join(results)
         else:

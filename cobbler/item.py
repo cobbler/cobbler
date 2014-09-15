@@ -143,8 +143,8 @@ class Item(object):
         return utils.to_dict_from_fields(self, self.get_fields())
 
 
-    def printable(self):
-        return utils.printable_from_fields(self, self.get_fields())
+    def to_string(self):
+        return utils.to_string_from_fields(self, self.get_fields())
 
 
     def remote_methods(self):

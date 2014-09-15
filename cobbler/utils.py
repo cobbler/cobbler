@@ -1799,7 +1799,7 @@ def to_dict_from_fields(item, fields):
     return _dict
 
 
-def printable_from_fields(item_dict, fields):
+def to_string_from_fields(item_dict, fields):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
     """

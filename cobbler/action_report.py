@@ -241,7 +241,7 @@ class Report:
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
         for x in collection:
-            self.logger.flat(x.printable())
+            self.logger.flat(x.to_string())
 
     def reporting_list_names2(self, collection, name):
         """
@@ -249,7 +249,7 @@ class Report:
         """
         obj = collection.get(name)
         if obj is not None:
-            self.logger.flat(obj.printable())
+            self.logger.flat(obj.to_string())
 
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
         """

@@ -191,7 +191,7 @@ class Settings:
     def set(self, name, value):
         return self.__setattr__(name, value)
 
-    def printable(self):
+    def to_string(self):
         buf = ""
         buf = buf + _("defaults\n")
         buf = buf + _("kernel options  : %s\n") % self.__dict__['kernel_options']
