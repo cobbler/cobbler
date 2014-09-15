@@ -66,11 +66,11 @@ def serialize_item(collection, item):
     """
 
     __connect()
-    datastruct = item.to_datastruct()
+    _dict = item.to_dict()
     # blindly prevent conflict resolution
     couchdb.openDoc(collection.collection_type(), item.name)
     data = couchdb.saveDoc(collection.collection_type(),
-                           simplejson.dumps(datastruct, encoding="utf-8"),
+                           simplejson.dumps(_dict, encoding="utf-8"),
                            item.name)
     data = simplejson.loads(data)
 
@@ -115,15 +115,15 @@ def deserialize_raw(collection_type):
     #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
-        datastruct = yaml.safe_load(fd.read())
+        _dict = yaml.safe_load(fd.read())
         fd.close()
-        return datastruct
+        return _dict
     else:
         results = []
         for f in items:
             data = couchdb.openDoc(collection_type, f)
-            datastruct = simplejson.loads(data, encoding='utf-8')
-            results.append(datastruct)
+            _dict = simplejson.loads(data, encoding='utf-8')
+            results.append(_dict)
         return results
 
 
@@ -139,7 +139,10 @@ def deserialize(collection, topological=True):
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    collection.from_datastruct(datastruct)
+    if type(datastruct) == list:
+        collection.from_list(datastruct)
+    elif type(datastruct) == dict:
+        collection.from_dict(datastruct)
 
 
 def __depth_cmp(item1, item2):

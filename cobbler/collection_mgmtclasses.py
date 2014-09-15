@@ -35,11 +35,11 @@ class Mgmtclasses(collection.Collection):
         return "mgmtclass"
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, config, item_dict):
         """
-        Return a mgmtclass forged from seed_data
+        Return a mgmtclass forged from item_dict
         """
-        return mgmtclass.Mgmtclass(config).from_datastruct(seed_data)
+        return mgmtclass.Mgmtclass(config).from_dict(item_dict)
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):

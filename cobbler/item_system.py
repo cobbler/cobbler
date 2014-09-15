@@ -128,15 +128,15 @@ class System(item.Item):
 
 
     def make_clone(self):
-        ds = self.to_datastruct()
+        _dict = self.to_dict()
         cloned = System(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 
-    def from_datastruct(self, seed_data):
+    def from_dict(self, seed_data):
         # FIXME: most definitely doesn't grok interfaces yet.
-        return utils.from_datastruct_from_fields(self, seed_data, FIELDS)
+        return utils.from_dict_from_fields(self, seed_data, FIELDS)
 
 
     def get_parent(self):

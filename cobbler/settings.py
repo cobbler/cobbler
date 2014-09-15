@@ -197,22 +197,22 @@ class Settings:
         buf = buf + _("kernel options  : %s\n") % self.__dict__['kernel_options']
         return buf
 
-    def to_datastruct(self):
+    def to_dict(self):
         """
         Return an easily serializable representation of the config.
         """
         return self.__dict__
 
-    def from_datastruct(self, datastruct):
+    def from_dict(self, _dict):
         """
-        Modify this object to load values in datastruct.
+        Modify this object to load values in dictionary.
         """
-        if datastruct is None:
+        if _dict is None:
             print _("warning: not loading empty structure for %s") % self.filename()
             return
 
         self._clear()
-        self.__dict__.update(datastruct)
+        self.__dict__.update(_dict)
 
         return self
 
@@ -238,7 +238,7 @@ class Settings:
                 raise AttributeError
 
             self.__dict__[name] = value
-            if not utils.update_settings_file(self.to_datastruct()):
+            if not utils.update_settings_file(self.to_dict()):
                 raise AttributeError
 
             return 0

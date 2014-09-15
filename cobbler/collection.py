@@ -72,7 +72,7 @@ class Collection:
     def factory_produce(self, collection_mgr, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
-        from datastructure seed_data
+        from dict
         """
         raise exceptions.NotImplementedError
 
@@ -176,19 +176,19 @@ class Collection:
         return new_dict
 
 
-    def to_datastruct(self):
+    def to_list(self):
         """
         Serialize the collection
         """
-        datastruct = [x.to_datastruct() for x in self.listing.values()]
-        return datastruct
+        _list = [x.to_dict() for x in self.listing.values()]
+        return _list
 
 
-    def from_datastruct(self, datastruct):
-        if datastruct is None:
+    def from_list(self, _list):
+        if _list is None:
             return
-        for seed_data in datastruct:
-            item = self.factory_produce(self.collection_mgr, seed_data)
+        for item_dict in _list:
+            item = self.factory_produce(self.collection_mgr, item_dict)
             self.add(item)
 
 

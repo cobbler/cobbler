@@ -89,9 +89,9 @@ def serialize_item(collection, item):
     collection = mongodb[collection.collection_type()]
     data = collection.find_one({'name': item.name})
     if data:
-        collection.update({'name': item.name}, item.to_datastruct())
+        collection.update({'name': item.name}, item.to_dict())
     else:
-        collection.insert(item.to_datastruct())
+        collection.insert(item.to_dict())
 
 
 def serialize_delete(collection, item):
@@ -127,9 +127,9 @@ def deserialize_raw(collection_type):
     #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
-        datastruct = yaml.safe_load(fd.read())
+        _dict = yaml.safe_load(fd.read())
         fd.close()
-        return datastruct
+        return _dict
     else:
         __connect()
         collection = mongodb[collection_type]
@@ -147,7 +147,10 @@ def deserialize(collection, topological=True):
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    collection.from_datastruct(datastruct)
+    if type(datastruct) == dict:
+        collection.from_dict(datastruct)
+    elif type(datastruct) == list:
+        collection.from_list(datastruct)
 
 
 def __depth_cmp(item1, item2):

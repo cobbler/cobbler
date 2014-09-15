@@ -270,7 +270,10 @@ class Report:
         count = 0
         for x in collection:
             item = {}
-            structure = x.to_datastruct()
+            if x.ITEM_TYPE == "settings":
+                structure = x.to_dict()
+            else:
+                structure = x.to_list()
 
             for (key, value) in structure.iteritems():
                 # exception for systems which could have > 1 interface
@@ -312,7 +315,10 @@ class Report:
         fields_list = report_fields.replace(' ', '').split(',')
 
         for x in collection:
-            structure = x.to_datastruct()
+            if x.ITEM_TYPE == "settings":
+                structure = x.to_dict()
+            else:
+                structure = x.to_list()
             item = self.fielder(structure, fields_list)
             data.append(item)
 

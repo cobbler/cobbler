@@ -475,7 +475,7 @@ class TFTPGen:
         if metadata is None:
             metadata = {}
 
-        (rval, settings) = utils.input_string_or_dict(self.settings.to_datastruct())
+        (rval, settings) = utils.input_string_or_dict(self.settings.to_dict())
         if rval:
             for key in settings.keys():
                 metadata[key] = settings[key]

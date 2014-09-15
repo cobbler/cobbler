@@ -551,13 +551,13 @@ def update_settings_file(data):
     #    return False
 
 
-def grab_tree(api_handle, obj):
+def grab_tree(api_handle, item):
     """
     Climb the tree and get every node.
     """
     settings = api_handle.settings()
-    results = [obj]
-    parent = obj.get_parent()
+    results = [item]
+    parent = item.get_parent()
     while parent is not None:
         results.append(parent)
         parent = parent.get_parent()
@@ -620,7 +620,7 @@ def blender(api_handle, remove_dicts, root_obj):
         for r in results.get("repos", []):
             repo = api_handle.find_repo(name=r)
             if repo:
-                repo_data.append(repo.to_datastruct())
+                repo_data.append(repo.to_dict())
         # FIXME: sort the repos in the array based on the
         #        repo priority field so that lower priority
         #        repos come first in the array
@@ -723,7 +723,7 @@ def __consolidate(node, results):
     data from past scanned nodes.  Dictionaries and arrays are treated
     specially.
     """
-    node_data = node.to_datastruct()
+    node_data = node.to_dict()
 
     # if the node has any data items labelled <<inherit>> we need to expunge them.
     # so that they do not override the supernodes.
@@ -1710,7 +1710,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     return data
 
 
-def clear_from_fields(obj, fields, is_subobject=False):
+def clear_from_fields(item, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
     """
@@ -1725,14 +1725,14 @@ def clear_from_fields(obj, fields, is_subobject=False):
         if isinstance(val, basestring):
             if val.startswith("SETTINGS:"):
                 setkey = val.split(":")[-1]
-                val = getattr(obj.settings, setkey)
-        setattr(obj, elems[0], val)
+                val = getattr(item.settings, setkey)
+        setattr(item, elems[0], val)
 
-    if obj.COLLECTION_TYPE == "system":
-        obj.interfaces = {}
+    if item.COLLECTION_TYPE == "system":
+        item.interfaces = {}
 
 
-def from_datastruct_from_fields(obj, seed_data, fields):
+def from_dict_from_fields(item, item_dict, fields):
     int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
@@ -1744,71 +1744,71 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         # deprecated field switcheroo
         if src_k in field_info.DEPRECATED_FIELDS:
             dst_k = field_info.DEPRECATED_FIELDS[src_k]
-        if src_k in seed_data:
-            setattr(obj, dst_k, seed_data[src_k])
+        if src_k in item_dict:
+            setattr(item, dst_k, item_dict[src_k])
 
-    if obj.uid == '':
-        obj.uid = obj.config.generate_uid()
+    if item.uid == '':
+        item.uid = item.config.generate_uid()
 
     # special handling for interfaces
-    if obj.COLLECTION_TYPE == "system":
-        obj.interfaces = copy.deepcopy(seed_data["interfaces"])
+    if item.COLLECTION_TYPE == "system":
+        item.interfaces = copy.deepcopy(item_dict["interfaces"])
         # deprecated field switcheroo for interfaces
-        for interface in obj.interfaces.keys():
-            for k in obj.interfaces[interface].keys():
+        for interface in item.interfaces.keys():
+            for k in item.interfaces[interface].keys():
                 if k in field_info.DEPRECATED_FIELDS:
-                    if not field_info.DEPRECATED_FIELDS[k] in obj.interfaces[interface] or \
-                            obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
-                        obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
+                    if not field_info.DEPRECATED_FIELDS[k] in item.interfaces[interface] or \
+                            item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
+                        item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = item.interfaces[interface][k]
             # populate fields that might be missing
             for int_field in int_fields:
-                if not int_field[0][1:] in obj.interfaces[interface]:
-                    obj.interfaces[interface][int_field[0][1:]] = int_field[1]
-    return obj
+                if not int_field[0][1:] in item.interfaces[interface]:
+                    item.interfaces[interface][int_field[0][1:]] = int_field[1]
+    return item
 
 
-def get_methods_from_fields(obj, fields):
+def get_methods_from_fields(item, fields):
     ds = {}
     for elem in fields:
         k = elem[0]
         # modify interfaces is handled differently, and need not work this way
         if k.startswith("*") or k.find("widget") != -1:
             continue
-        setfn = getattr(obj, "set_%s" % k)
+        setfn = getattr(item, "set_%s" % k)
         ds[k] = setfn
     return ds
 
 
-def to_datastruct_from_fields(obj, fields):
-    ds = {}
+def to_dict_from_fields(item, fields):
+    _dict = {}
     for elem in fields:
         k = elem[0]
         if k.startswith("*") or k.find("widget") != -1:
             continue
-        data = getattr(obj, k)
-        ds[k] = data
+        data = getattr(item, k)
+        _dict[k] = data
     # interfaces on systems require somewhat special handling
     # they are the only exception in Cobbler.
-    if obj.COLLECTION_TYPE == "system":
-        ds["interfaces"] = copy.deepcopy(obj.interfaces)
-        # for interface in ds["interfaces"].keys():
-        #    for k in ds["interfaces"][interface].keys():
+    if item.COLLECTION_TYPE == "system":
+        _dict["interfaces"] = copy.deepcopy(item.interfaces)
+        # for interface in _dict["interfaces"].keys():
+        #    for k in _dict["interfaces"][interface].keys():
         #        if field_info.DEPRECATED_FIELDS.has_key(k):
-        #            ds["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = ds["interfaces"][interface][k]
+        #            _dict["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = _dict["interfaces"][interface][k]
 
-    return ds
+    return _dict
 
 
-def printable_from_fields(obj, fields):
+def printable_from_fields(item_dict, fields):
     """
-    Obj is a dict datastructure, fields is something like item_distro.FIELDS
+    item_dict is a dictionary, fields is something like item_distro.FIELDS
     """
     buf = ""
     keys = []
     for elem in fields:
         keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("Name", obj["name"])
+    buf = buf + "%-30s : %s\n" % ("Name", item_dict["name"])
     for (k, nicename, editable) in keys:
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
@@ -1818,36 +1818,36 @@ def printable_from_fields(obj, fields):
 
         if k != "name":
             # FIXME: move examples one field over, use description here.
-            buf = buf + "%-30s : %s\n" % (nicename, obj[k])
+            buf = buf + "%-30s : %s\n" % (nicename, item_dict[k])
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
-    if "interfaces" in obj:
-        for iname in obj["interfaces"].keys():
+    if "interfaces" in item_dict:
+        for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
             buf = buf + "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
                 nkey = k.replace("*", "")
                 if k.startswith("*") and editable:
-                    buf = buf + "%-30s : %s\n" % (nicename, obj["interfaces"][iname].get(nkey, ""))
+                    buf = buf + "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
 
     return buf
 
 
-def get_remote_methods_from_fields(obj, fields):
+def get_remote_methods_from_fields(item, fields):
     """
     Return the name of set functions for all fields, keyed by the field name.
     """
-    ds = {}
+    setters = {}
     for elem in fields:
         name = elem[0].replace("*", "")
         if name.find("widget") == -1:
-            ds[name] = getattr(obj, "set_%s" % name)
-    if obj.COLLECTION_TYPE == "system":
-        ds["modify_interface"] = getattr(obj, "modify_interface")
-        ds["delete_interface"] = getattr(obj, "delete_interface")
-        ds["rename_interface"] = getattr(obj, "rename_interface")
-    return ds
+            setters[name] = getattr(item, "set_%s" % name)
+    if item.COLLECTION_TYPE == "system":
+        setters["modify_interface"] = getattr(item, "modify_interface")
+        setters["delete_interface"] = getattr(item, "delete_interface")
+        setters["rename_interface"] = getattr(item, "rename_interface")
+    return setters
 
 
 def get_power_types():
@@ -2035,7 +2035,7 @@ def strip_none(data, omit_none=False):
 # -------------------------------------------------------
 
 
-def lod_to_dod(datastruct, indexkey):
+def lod_to_dod(_list, indexkey):
     """
     things like get_distros() returns a list of a dictionaries
     convert this to a dict of dicts keyed off of an arbitrary field
@@ -2044,20 +2044,20 @@ def lod_to_dod(datastruct, indexkey):
 
     """
     results = {}
-    for item in datastruct:
+    for item in _list:
         results[item[indexkey]] = item
     return results
 
 # -------------------------------------------------------
 
 
-def lod_sort_by_key(datastruct, indexkey):
+def lod_sort_by_key(_list, indexkey):
     """
     Sorts a list of dictionaries by a given key in the dictionaries
     note: this is a destructive operation
     """
-    datastruct.sort(lambda a, b: a[indexkey] < b[indexkey])
-    return datastruct
+    _list.sort(lambda a, b: a[indexkey] < b[indexkey])
+    return _list
 
 
 def dhcpconf_location(api):

@@ -39,11 +39,11 @@ class Distros(collection.Collection):
         return "distro"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a Distro forged from seed_data
+        Return a Distro forged from item_dict
         """
-        return distro.Distro(collection_mgr).from_datastruct(seed_data)
+        return distro.Distro(collection_mgr).from_dict(item_dict)
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):

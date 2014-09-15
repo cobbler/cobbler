@@ -56,9 +56,10 @@ class Mgmtclass(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
+
+        _dict = self.to_dict()
         cloned = Mgmtclass(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 

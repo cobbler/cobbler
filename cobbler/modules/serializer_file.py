@@ -70,7 +70,7 @@ def serialize_item(collection, item):
     else:
         filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
 
-    datastruct = item.to_datastruct()
+    _dict = item.to_dict()
 
     if capi.CobblerAPI().settings().serializer_pretty_json:
         sort_keys = True
@@ -80,9 +80,9 @@ def serialize_item(collection, item):
         indent = None
 
     filename += ".json"
-    datastruct = item.to_datastruct()
+    _dict = item.to_dict()
     fd = open(filename, "w+")
-    data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
+    data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
     fd.write(data)
 
     fd.close()
@@ -128,16 +128,16 @@ def deserialize_raw(collection_type):
     #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
-        datastruct = yaml.safe_load(fd.read())
+        _dict = yaml.safe_load(fd.read())
         fd.close()
 
         # include support
-        for ival in datastruct.get("include", []):
+        for ival in _dict.get("include", []):
             for ifile in glob.glob(ival):
                 with open(ifile, 'r') as fd:
-                    datastruct.update(yaml.safe_load(fd.read()))
+                    _dict.update(yaml.safe_load(fd.read()))
 
-        return datastruct
+        return _dict
     else:
         results = []
         # FIXME: Need a better way to support collections/items
@@ -150,8 +150,8 @@ def deserialize_raw(collection_type):
         for f in all_files:
             fd = open(f)
             json_data = fd.read()
-            datastruct = simplejson.loads(json_data, encoding='utf-8')
-            results.append(datastruct)
+            _dict = simplejson.loads(json_data, encoding='utf-8')
+            results.append(_dict)
             fd.close()
         return results
 
@@ -185,7 +185,10 @@ def deserialize(collection, topological=True):
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    collection.from_datastruct(datastruct)
+    if type(datastruct) == dict:
+        collection.from_dict(datastruct)
+    elif type(datastruct) == list:
+        collection.from_list(datastruct)
 
 
 def __depth_cmp(item1, item2):

@@ -542,7 +542,7 @@ class CobblerAPI:
                 if not collapse:
                     results2.append(x)
                 else:
-                    results2.append(x.to_datastruct())
+                    results2.append(x.to_dict())
         return results2
 
     def get_distros_since(self, mtime, collapse=False):

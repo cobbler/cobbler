@@ -362,7 +362,7 @@ class CobblerXMLRPCInterface:
 
     def __sorter(self, a, b):
         """
-        Helper function to sort two datastructure representations of
+        Helper function to sort two dict representations of
         cobbler objects by name.
         """
         return cmp(a["name"], b["name"])
@@ -529,7 +529,7 @@ class CobblerXMLRPCInterface:
         self._log("get_item(%s,%s)" % (what, name))
         item = self.api.get_item(what, name)
         if item is not None:
-            item = item.to_datastruct()
+            item = item.to_dict()
         if flatten:
             item = utils.flatten(item)
         return self.xmlrpc_hacks(item)
@@ -565,7 +565,7 @@ class CobblerXMLRPCInterface:
         Individual list elements are the same for get_item.
         """
         # FIXME: is the xmlrpc_hacks method still required ?
-        item = [x.to_datastruct() for x in self.api.get_items(what)]
+        item = [x.to_dict() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(item)
 
     def get_item_names(self, what):
@@ -612,7 +612,7 @@ class CobblerXMLRPCInterface:
         if not expand:
             items = [x.name for x in items]
         else:
-            items = [x.to_datastruct() for x in items]
+            items = [x.to_dict() for x in items]
         return self.xmlrpc_hacks(items)
 
     def find_distro(self, criteria={}, expand=False, token=None, **rest):
@@ -649,7 +649,7 @@ class CobblerXMLRPCInterface:
         items = self.api.find_items(what, criteria=criteria)
         items = self.__sort(items, sort_field)
         (items, pageinfo) = self.__paginate(items, page, items_per_page)
-        items = [x.to_datastruct() for x in items]
+        items = [x.to_dict() for x in items]
         return self.xmlrpc_hacks({
             'items': items,
             'pageinfo': pageinfo
@@ -1143,7 +1143,7 @@ class CobblerXMLRPCInterface:
         Return the contents of /etc/cobbler/settings, which is a dict.
         """
         self._log("get_settings", token=token)
-        results = self.api.settings().to_datastruct()
+        results = self.api.settings().to_dict()
         self._log("my settings are: %s" % results, debug=True)
         return self.xmlrpc_hacks(results)
 
@@ -1639,7 +1639,7 @@ class CobblerXMLRPCInterface:
             for m in mcs:
                 c = self.api.find_mgmtclass(name=m)
                 if c:
-                    _dict["mgmt_classes"][m] = c.to_datastruct()
+                    _dict["mgmt_classes"][m] = c.to_dict()
 
             arch = None
             if distro is None and profile.COLLECTION_TYPE == "image":

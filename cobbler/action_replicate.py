@@ -86,7 +86,7 @@ class Replicate:
             if not rdata["uid"] in locals:
                 creator = getattr(self.api, "new_%s" % obj_type)
                 newobj = creator()
-                newobj.from_datastruct(rdata)
+                newobj.from_dict(rdata)
                 try:
                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                     if not self.api.add_item(obj_type, newobj, logger=self.logger):
@@ -114,7 +114,7 @@ class Replicate:
                         self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                     creator = getattr(self.api, "new_%s" % obj_type)
                     newobj = creator()
-                    newobj.from_datastruct(rdata)
+                    newobj.from_dict(rdata)
                     try:
                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
                         if not self.api.add_item(obj_type, newobj):

@@ -69,7 +69,7 @@ class Item(object):
         self.template_files = None
         self.name = None
         self.last_cached_mtime = 0
-        self.cached_datastruct = ""
+        self.cached_dict = ""
 
 
     def __find_compare(self, from_search, from_obj):
@@ -132,15 +132,15 @@ class Item(object):
         raise exceptions.NotImplementedError
 
 
-    def from_datastruct(self, seed_data):
+    def from_dict(self, _dict):
         """
         Modify this object to take on values in seed_data
         """
-        return utils.from_datastruct_from_fields(self, seed_data, self.get_fields())
+        return utils.from_dict_from_fields(self, _dict, self.get_fields())
 
 
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self, self.get_fields())
+    def to_dict(self):
+        return utils.to_dict_from_fields(self, self.get_fields())
 
 
     def printable(self):
@@ -319,13 +319,13 @@ class Item(object):
             self.fetchable_files = value
 
     def sort_key(self, sort_fields=[]):
-        data = self.to_datastruct()
+        data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
 
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
-        data = self.to_datastruct()
+        data = self.to_dict()
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):

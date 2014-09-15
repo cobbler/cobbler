@@ -35,11 +35,11 @@ class Files(collection.Collection):
         return "file"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a File forged from seed_data
+        Return a File forged from item_dict
         """
-        return file.File(collection_mgr).from_datastruct(seed_data)
+        return file.File(collection_mgr).from_dict(item_dict)
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
