@@ -194,13 +194,10 @@ class Item(object):
         The parent may just be a superclass for something like a
         subprofile.  Get the first parent of a different type.
         """
-        # FIXME: this is a workaround to get the type of an instance var
-        # what's a more clean way to do this that's python 2.3 friendly?
-        # this returns something like:  cobbler.item_system.System
-        mtype = str(self).split(" ")[0][1:]
+        mtype = type(self)
         parent = self.get_parent()
         while parent is not None:
-            ptype = str(parent).split(" ")[0][1:]
+            ptype = type(parent)
             if mtype != ptype:
                 self.conceptual_parent = parent
                 return parent
