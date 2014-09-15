@@ -404,7 +404,7 @@ class TFTPGen:
         # Write the PXE menu:
         metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-        template_src = open(os.path.join(self.settings.pxe_template_dir, "pxedefault.template"))
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
@@ -412,7 +412,7 @@ class TFTPGen:
         # Write the grub menu:
         metadata = {"grub_menu_items": menu_items['grub']}
         outfile = os.path.join(self.bootloc, "grub", "efidefault")
-        template_src = open(os.path.join(self.settings.pxe_template_dir, "efidefault.template"))
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "efidefault.template"))
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
@@ -421,7 +421,7 @@ class TFTPGen:
         menu_items = self.get_menu_items_nexenta()
         metadata = {"grub_menu_items": menu_items['grub']}
         outfile = os.path.join(self.bootloc, "boot", 'grub', 'menu.lst')
-        template_src = open(os.path.join(self.settings.pxe_template_dir, "nexenta_grub_menu.template"))
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "nexenta_grub_menu.template"))
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
@@ -439,7 +439,7 @@ class TFTPGen:
         metadata = {}
         buffer = ""
 
-        template = os.path.join(self.settings.pxe_template_dir, "pxeprofile.template")
+        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
 
         # store variables for templating
         metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
@@ -538,25 +538,25 @@ class TFTPGen:
         if system:
             if format == "grub":
                 if system.netboot_enabled:
-                    template = os.path.join(self.settings.pxe_template_dir, "grubsystem.template")
+                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
                 else:
-                    local = os.path.join(self.settings.pxe_template_dir, "grublocal.template")
+                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grublocal.template")
                     if os.path.exists(local):
                         template = local
             else:   # pxe
                 if system.netboot_enabled:
-                    template = os.path.join(self.settings.pxe_template_dir, "pxesystem.template")
+                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
                     if arch.startswith("ppc"):
-                        template = os.path.join(self.settings.pxe_template_dir, "pxesystem_ppc.template")
+                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
                     elif arch.startswith("arm"):
-                        template = os.path.join(self.settings.pxe_template_dir, "pxesystem_arm.template")
+                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
                         # ESXi uses a very different pxe method, using more files than
                         # a standard kickstart and different options - so giving it a dedicated
                         # PXE template makes more sense than shoe-horning it into the existing
                         # templates
-                        template = os.path.join(self.settings.pxe_template_dir, "pxesystem_esxi.template")
+                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
                     if arch is not None and arch.startswith("ppc"):
@@ -579,20 +579,20 @@ class TFTPGen:
                         # booted off the network, so nothing left to do
                         return None
                     else:
-                        template = os.path.join(self.settings.pxe_template_dir, "pxelocal.template")
+                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxelocal.template")
         else:
             # not a system record, so this is a profile record or an image
             if arch.startswith("arm"):
-                template = os.path.join(self.settings.pxe_template_dir, "pxeprofile_arm.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_arm.template")
             elif format == "grub":
-                template = os.path.join(self.settings.pxe_template_dir, "grubprofile.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubprofile.template")
             elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
-                template = os.path.join(self.settings.pxe_template_dir, "pxeprofile_esxi.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")
             elif 'nexenta' == format:
-                template = os.path.join(self.settings.pxe_template_dir, 'nexenta_profile.template')
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, 'nexenta_profile.template')
             else:
-                template = os.path.join(self.settings.pxe_template_dir, "pxeprofile.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
 
 
         if kernel_path is not None:
@@ -968,23 +968,23 @@ class TFTPGen:
         if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
             # all of these use a standard kernel/initrd setup so
             # they all use the same gPXE template
-            template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_linux.template" % what.lower())
+            template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_linux.template" % what.lower())
         elif distro.breed == 'vmware':
             if distro.os_version == 'esx4':
                 # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
-                template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_linux.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_linux.template" % what.lower())
             elif distro.os_version == 'esxi4':
-                template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_esxi4.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi4.template" % what.lower())
             elif distro.os_version.startswith('esxi5'):
-                template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_esxi5.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi5.template" % what.lower())
             elif distro.os_version.startswith('esxi6'):
-                template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_esxi6.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi6.template" % what.lower())
         elif distro.breed == 'freebsd':
-            template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_freebsd.template" % what.lower())
+            template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_freebsd.template" % what.lower())
 
         if what == "system":
             if not netboot_enabled:
-                template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_local.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_local.template" % what.lower())
 
         if not template:
             return "# unsupported breed/os version"
@@ -1038,7 +1038,7 @@ class TFTPGen:
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.join(self.settings.pxe_template_dir, "bootcfg_%s_%s.template" % (what.lower(), distro.os_version))
+        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg_%s_%s.template" % (what.lower(), distro.os_version))
         if not os.path.exists(template):
             return "# boot.cfg template not found for the %s named %s (filename=%s)" % (what, name, template)
 

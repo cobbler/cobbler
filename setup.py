@@ -641,7 +641,7 @@ if __name__ == "__main__":
                               "config/version"]),
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
-            ("%spxe" % etcpath, glob("templates/pxe/*")),
+            ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers

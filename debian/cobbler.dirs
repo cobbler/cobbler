@@ -4,7 +4,7 @@ var/lib/cobbler/kickstarts
 var/lib/cobbler/isos
 etc/cobbler
 etc/cobbler/power
-etc/cobbler/pxe
+etc/cobbler/boot_loader_conf
 etc/cobbler/reporting
 etc/cobbler/zone_templates
 etc/cobbler/settings.d
