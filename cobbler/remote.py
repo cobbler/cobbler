@@ -872,7 +872,7 @@ class CobblerXMLRPCInterface:
         self._log("modify_item(%s)" % what, object_id=object_id, attribute=attribute, token=token)
         obj = self.__get_object(object_id)
         self.check_access(token, "modify_%s" % what, obj, attribute)
-        method = obj.remote_methods().get(attribute, None)
+        method = obj.get_setter_methods().get(attribute, None)
 
         if method is None:
             # it's ok, the CLI will send over lots of junk we can't process

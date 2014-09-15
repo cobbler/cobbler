@@ -147,8 +147,8 @@ class Item(object):
         return utils.to_string_from_fields(self, self.get_fields())
 
 
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self, self.get_fields())
+    def get_setter_methods(self):
+        return utils.get_setter_methods_from_fields(self, self.get_fields())
 
 
     def set_uid(self, uid):

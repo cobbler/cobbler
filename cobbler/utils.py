@@ -1821,7 +1821,7 @@ def to_string_from_fields(item_dict, fields):
     return buf
 
 
-def get_remote_methods_from_fields(item, fields):
+def get_setter_methods_from_fields(item, fields):
     """
     Return the name of set functions for all fields, keyed by the field name.
     """
