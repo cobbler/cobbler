@@ -1,11 +1,8 @@
-Release Notes
--------------
-
-3.0.0
-+++++
+Release Notes for Cobbler 3.0.0
+-------------------------------
 
 Enhancements
-============
+++++++++++++
 
 * DHCP configuration now also supports the per interface gateway setting.
 * A new interface_type ``BMC`` was added which also can be managed with DHCP.
@@ -30,7 +27,7 @@ Enhancements
 * Make kickstart selectable from a pulldown list in cobbler-web (#991).
 
 Bugfixes
-========
+++++++++
 
 * Kickstart repo statement, filter invalid values: ``gpgcheck``, ``gpgkey`` and ``enabled`` (#323).
 * Several improvements to Debian/Ubuntu packaging.
@@ -54,7 +51,7 @@ Bugfixes
 * List of authors is now automagically generated.
 
 Upgrade notes
-=============
++++++++++++++
 
 * Support for LDAP configuration through Koan has been removed.
 * Support for redhat_management (Spacewalk/Satelite) has been moved to contrib. Users of this functionality should checkout contrib/redhat-management/README.
