@@ -26,7 +26,7 @@ from utils import _
 import clogger
 
 
-class BootCheck:
+class CobblerCheck:
     """
     Validates whether the system is reasonably well configured for
     serving up content.  This is the code behind 'cobbler check'.

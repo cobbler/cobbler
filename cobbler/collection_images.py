@@ -66,7 +66,7 @@ class Images(collection.Collection):
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_image(name)
 
             self.lock.acquire()

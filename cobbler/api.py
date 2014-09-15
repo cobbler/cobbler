@@ -716,7 +716,7 @@ class CobblerAPI:
         their TFTP servers for PXE, etc.
         """
         self.log("check")
-        check = action_check.BootCheck(self._collection_mgr, logger=logger)
+        check = action_check.CobblerCheck(self._collection_mgr, logger=logger)
         return check.run()
 
     # ==========================================================================
@@ -788,7 +788,7 @@ class CobblerAPI:
             "in_tftpd",
         ).get_manager(self._collection_mgr, logger)
 
-        return action_sync.BootSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
+        return action_sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
 
     # ==========================================================================
 
@@ -804,7 +804,7 @@ class CobblerAPI:
     # ==========================================================================
 
     def status(self, mode, logger=None):
-        statusifier = action_status.BootStatusReport(self._collection_mgr, mode, logger=logger)
+        statusifier = action_status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
         return statusifier.run()
 
     # ==========================================================================

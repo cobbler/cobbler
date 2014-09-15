@@ -323,7 +323,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+            self.lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:

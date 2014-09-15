@@ -77,7 +77,7 @@ class Profiles(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_profile(name)
             return
 

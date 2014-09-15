@@ -34,7 +34,7 @@ from utils import _
 import cobbler.module_loader as module_loader
 
 
-class BootSync:
+class CobblerSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
