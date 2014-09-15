@@ -41,8 +41,9 @@ class Systems(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        return system.System(collection_mgr).from_dict(item_dict)
-
+        new_system = system.System(collection_mgr)
+        new_system.from_dict(item_dict)
+        return new_system
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """

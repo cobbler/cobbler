@@ -1764,8 +1764,6 @@ def from_dict_from_fields(item, item_dict, fields):
             for int_field in int_fields:
                 if not int_field[0][1:] in item.interfaces[interface]:
                     item.interfaces[interface][int_field[0][1:]] = int_field[1]
-    return item
-
 
 
 def to_dict_from_fields(item, fields):

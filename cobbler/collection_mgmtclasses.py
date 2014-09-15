@@ -39,8 +39,9 @@ class Mgmtclasses(collection.Collection):
         """
         Return a mgmtclass forged from item_dict
         """
-        return mgmtclass.Mgmtclass(config).from_dict(item_dict)
-
+        new_mgmtclass = mgmtclass.Mgmtclass(config)
+        new_mgmtclass.from_dict(item_dict)
+        return new_mgmtclass
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """

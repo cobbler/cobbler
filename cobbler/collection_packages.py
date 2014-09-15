@@ -39,7 +39,9 @@ class Packages(collection.Collection):
         """
         Return a Package forged from item_dict
         """
-        return package.Package(collection_mgr).from_dict(item_dict)
+        new_package = package.Package(collection_mgr)
+        new_package.from_dict(item_dict)
+        return new_package
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):

@@ -40,8 +40,9 @@ class Profiles(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        return profile.Profile(collection_mgr).from_dict(item_dict)
-
+        new_profile = profile.Profile(collection_mgr)
+        new_profile.from_dict(item_dict)
+        return new_profile
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """

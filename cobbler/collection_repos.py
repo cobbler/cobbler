@@ -43,8 +43,9 @@ class Repos(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        return repo.Repo(config).from_dict(item_dict)
-
+        new_repo = repo.Repo(config)
+        new_repo.from_dict(item_dict)
+        return new_repo
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """

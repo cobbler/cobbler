@@ -34,8 +34,9 @@ class Images(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        return image.Image(collection_mgr).from_dict(item_dict)
-
+        new_image = image.Image(collection_mgr)
+        new_image.from_dict(item_dict)
+        return new_image
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=True, logger=None):
         """

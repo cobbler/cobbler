@@ -136,7 +136,7 @@ class Item(object):
         """
         Modify this object to take on values in seed_data
         """
-        return utils.from_dict_from_fields(self, _dict, self.get_fields())
+        utils.from_dict_from_fields(self, _dict, self.get_fields())
 
 
     def to_dict(self):

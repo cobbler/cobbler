@@ -43,8 +43,9 @@ class Distros(collection.Collection):
         """
         Return a Distro forged from item_dict
         """
-        return distro.Distro(collection_mgr).from_dict(item_dict)
-
+        new_distro = distro.Distro(collection_mgr)
+        new_distro.from_dict(item_dict)
+        return new_distro
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
