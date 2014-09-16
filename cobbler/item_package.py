@@ -49,9 +49,9 @@ class Package(resource.Resource):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
+        _dict = self.to_dict()
         cloned = Package(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -70,11 +70,8 @@ class Package(resource.Resource):
 
     def set_installer(self, installer):
         self.installer = installer.lower()
-        return True
-
 
     def set_version(self, version):
         self.version = version
-        return True
 
 # EOF

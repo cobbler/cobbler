@@ -481,7 +481,7 @@ def input_string_or_list(options):
         raise CX(_("invalid input type"))
 
 
-def input_string_or_hash(options, allow_multiples=True):
+def input_string_or_dict(options, allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -551,13 +551,13 @@ def update_settings_file(data):
     #    return False
 
 
-def grab_tree(api_handle, obj):
+def grab_tree(api_handle, item):
     """
     Climb the tree and get every node.
     """
     settings = api_handle.settings()
-    results = [obj]
-    parent = obj.get_parent()
+    results = [item]
+    parent = item.get_parent()
     while parent is not None:
         results.append(parent)
         parent = parent.get_parent()
@@ -565,10 +565,10 @@ def grab_tree(api_handle, obj):
     return results
 
 
-def blender(api_handle, remove_hashes, root_obj):
+def blender(api_handle, remove_dicts, root_obj):
     """
     Combine all of the data in an object tree from the perspective
-    of that point on the tree, and produce a merged hash containing
+    of that point on the tree, and produce a merged dictionary containing
     consolidated data.
     """
 
@@ -590,13 +590,13 @@ def blender(api_handle, remove_hashes, root_obj):
 
     if breed == "redhat":
         # determine if we have room to add kssendmac to the kernel options line
-        kernel_txt = hash_to_string(results["kernel_options"])
+        kernel_txt = dict_to_string(results["kernel_options"])
         if len(kernel_txt) < 244:
             results["kernel_options"]["kssendmac"] = None
 
     # convert post kernel options to string
     if "kernel_options_post" in results:
-        results["kernel_options_post"] = hash_to_string(results["kernel_options_post"])
+        results["kernel_options_post"] = dict_to_string(results["kernel_options_post"])
 
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
@@ -620,7 +620,7 @@ def blender(api_handle, remove_hashes, root_obj):
         for r in results.get("repos", []):
             repo = api_handle.find_repo(name=r)
             if repo:
-                repo_data.append(repo.to_datastruct())
+                repo_data.append(repo.to_dict())
         # FIXME: sort the repos in the array based on the
         #        repo priority field so that lower priority
         #        repos come first in the array
@@ -637,7 +637,7 @@ def blender(api_handle, remove_hashes, root_obj):
     results["mgmt_parameters"] = mgmt_parameters
 
     # sanitize output for koan and kernel option lines, etc
-    if remove_hashes:
+    if remove_dicts:
         results = flatten(results)
 
     # the password field is inputed as escaped strings but Cheetah
@@ -673,27 +673,27 @@ def blender(api_handle, remove_hashes, root_obj):
 
 
 def flatten(data):
-    # convert certain nested hashes to strings.
+    # convert certain nested dicts to strings.
     # this is only really done for the ones koan needs as strings
     # this should not be done for everything
     if data is None:
         return None
     if "environment" in data:
-        data["environment"] = hash_to_string(data["environment"])
+        data["environment"] = dict_to_string(data["environment"])
     if "kernel_options" in data:
-        data["kernel_options"] = hash_to_string(data["kernel_options"])
+        data["kernel_options"] = dict_to_string(data["kernel_options"])
     if "kernel_options_post" in data:
-        data["kernel_options_post"] = hash_to_string(data["kernel_options_post"])
+        data["kernel_options_post"] = dict_to_string(data["kernel_options_post"])
     if "yumopts" in data:
-        data["yumopts"] = hash_to_string(data["yumopts"])
+        data["yumopts"] = dict_to_string(data["yumopts"])
     if "ks_meta" in data:
-        data["ks_meta"] = hash_to_string(data["ks_meta"])
+        data["ks_meta"] = dict_to_string(data["ks_meta"])
     if "template_files" in data:
-        data["template_files"] = hash_to_string(data["template_files"])
+        data["template_files"] = dict_to_string(data["template_files"])
     if "boot_files" in data:
-        data["boot_files"] = hash_to_string(data["boot_files"])
+        data["boot_files"] = dict_to_string(data["boot_files"])
     if "fetchable_files" in data:
-        data["fetchable_files"] = hash_to_string(data["fetchable_files"])
+        data["fetchable_files"] = dict_to_string(data["fetchable_files"])
     if "repos" in data and isinstance(data["repos"], list):
         data["repos"] = " ".join(data["repos"])
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
@@ -720,10 +720,10 @@ def uniquify(seq):
 def __consolidate(node, results):
     """
     Merge data from a given node with the aggregate of all
-    data from past scanned nodes.  Hashes and arrays are treated
+    data from past scanned nodes.  Dictionaries and arrays are treated
     specially.
     """
-    node_data = node.to_datastruct()
+    node_data = node.to_dict()
 
     # if the node has any data items labelled <<inherit>> we need to expunge them.
     # so that they do not override the supernodes.
@@ -742,12 +742,12 @@ def __consolidate(node, results):
 
         data_item = node_data_copy[field]
         if field in results:
-            # now merge data types seperately depending on whether they are hash, list,
+            # now merge data types seperately depending on whether they are dict, list,
             # or scalar.
             fielddata = results[field]
 
             if isinstance(fielddata, dict):
-                # interweave hash results
+                # interweave dict results
                 results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
                 # add to lists (cobbler doesn't have many lists)
@@ -769,15 +769,15 @@ def __consolidate(node, results):
     # key entry "foo", and also the entry "!foo", allowing for removal
     # of kernel options set in a distro later in a profile, etc.
 
-    hash_removals(results, "kernel_options")
-    hash_removals(results, "kernel_options_post")
-    hash_removals(results, "ks_meta")
-    hash_removals(results, "template_files")
-    hash_removals(results, "boot_files")
-    hash_removals(results, "fetchable_files")
+    dict_removals(results, "kernel_options")
+    dict_removals(results, "kernel_options_post")
+    dict_removals(results, "ks_meta")
+    dict_removals(results, "template_files")
+    dict_removals(results, "boot_files")
+    dict_removals(results, "fetchable_files")
 
 
-def hash_removals(results, subkey):
+def dict_removals(results, subkey):
     if subkey not in results:
         return
     scan = results[subkey].keys()
@@ -789,18 +789,18 @@ def hash_removals(results, subkey):
             del results[subkey][k]
 
 
-def hash_to_string(hash):
+def dict_to_string(_dict):
     """
-    Convert a hash to a printable string.
+    Convert a dictionary to a printable string.
     used primarily in the kernel options string
     and for some legacy stuff where koan expects strings
-    (though this last part should be changed to hashes)
+    (though this last part should be changed to dictionaries)
     """
     buffer = ""
-    if not isinstance(hash, dict):
-        return hash
-    for key in hash:
-        value = hash[key]
+    if not isinstance(_dict, dict):
+        return _dict
+    for key in _dict:
+        value = _dict[key]
         if not value:
             buffer = buffer + str(key) + " "
         elif isinstance(value, list):
@@ -1271,7 +1271,7 @@ def set_arch(self, arch, repo=False):
 
     if arch in valids:
         self.arch = arch
-        return True
+        return
 
     raise CX("arch choices include: %s" % ", ".join(valids))
 
@@ -1279,7 +1279,7 @@ def set_arch(self, arch, repo=False):
 def set_os_version(self, os_version):
     if os_version == "" or os_version is None:
         self.os_version = ""
-        return True
+        return
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
@@ -1290,14 +1290,13 @@ def set_os_version(self, os_version):
         nicer = ", ".join(matched)
         raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
     self.os_version = os_version
-    return True
 
 
 def set_breed(self, breed):
     valid_breeds = get_valid_breeds()
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
-        return True
+        return
     nicer = ", ".join(valid_breeds)
     raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
@@ -1305,21 +1304,21 @@ def set_breed(self, breed):
 def set_repo_os_version(self, os_version):
     if os_version == "" or os_version is None:
         self.os_version = ""
-        return True
+        return
     self.os_version = os_version.lower()
     if self.breed is None or self.breed == "":
         raise CX(_("cannot set --os-version without setting --breed first"))
     if self.breed not in validate.REPO_BREEDS:
         raise CX(_("fix --breed first before applying this setting"))
     self.os_version = os_version
-    return True
+    return
 
 
 def set_repo_breed(self, breed):
     valid_breeds = validate.REPO_BREEDS
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
-        return True
+        return
     nicer = ", ".join(valid_breeds)
     raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
 
@@ -1328,7 +1327,7 @@ def set_repos(self, repos, bypass_check=False):
     # allow the magic inherit string to persist
     if repos == "<<inherit>>":
         self.repos = "<<inherit>>"
-        return True
+        return
 
     # store as an array regardless of input type
     if repos is None:
@@ -1336,13 +1335,11 @@ def set_repos(self, repos, bypass_check=False):
     else:
         self.repos = input_string_or_list(repos)
     if bypass_check:
-        return True
+        return
 
     for r in self.repos:
         if self.collection_mgr.repos().find(name=r) is None:
             raise CX(_("repo %s is not defined") % r)
-
-    return True
 
 
 def set_virt_file_size(self, num):
@@ -1357,11 +1354,11 @@ def set_virt_file_size(self, num):
 
     if num is None or num == "":
         self.virt_file_size = 0
-        return True
+        return
 
     if num == "<<inherit>>":
         self.virt_file_size = "<<inherit>>"
-        return True
+        return
 
     if isinstance(num, basestring) and num.find(",") != -1:
         tokens = num.split(",")
@@ -1370,7 +1367,7 @@ def set_virt_file_size(self, num):
             self.set_virt_file_size(t)
         # if no exceptions raised, good enough
         self.virt_file_size = num
-        return True
+        return
 
     try:
         inum = int(num)
@@ -1378,11 +1375,10 @@ def set_virt_file_size(self, num):
             raise CX(_("invalid virt file size (%s)" % num))
         if inum >= 0:
             self.virt_file_size = inum
-            return True
+            return
         raise CX(_("invalid virt file size (%s)" % num))
     except:
         raise CX(_("invalid virt file size (%s)" % num))
-    return True
 
 
 def set_virt_disk_driver(self, driver):
@@ -1397,7 +1393,6 @@ def set_virt_disk_driver(self, driver):
     #        and it's up to the user not to enter an
     #        unsupported disk format
     self.virt_disk_driver = driver
-    return True
 
 
 def set_virt_auto_boot(self, num):
@@ -1409,18 +1404,17 @@ def set_virt_auto_boot(self, num):
 
     if num == "<<inherit>>":
         self.virt_auto_boot = "<<inherit>>"
-        return True
+        return
 
     # num is a non-negative integer (0 means default)
     try:
         inum = int(num)
         if (inum == 0) or (inum == 1):
             self.virt_auto_boot = inum
-            return True
+            return
         raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
-    return True
 
 
 def set_virt_pxe_boot(self, num):
@@ -1435,11 +1429,10 @@ def set_virt_pxe_boot(self, num):
         inum = int(num)
         if (inum == 0) or (inum == 1):
             self.virt_pxe_boot = inum
-            return True
+            return
         raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
     except:
         raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
-    return True
 
 
 def set_virt_ram(self, num):
@@ -1451,7 +1444,7 @@ def set_virt_ram(self, num):
 
     if num == "<<inherit>>":
         self.virt_ram = "<<inherit>>"
-        return True
+        return
 
     # num is a non-negative integer (0 means default)
     try:
@@ -1460,11 +1453,10 @@ def set_virt_ram(self, num):
             raise CX(_("invalid virt ram size (%s)" % num))
         if inum >= 0:
             self.virt_ram = inum
-            return True
+            return
         raise CX(_("invalid virt ram size (%s)" % num))
     except:
         raise CX(_("invalid virt ram size (%s)" % num))
-    return True
 
 
 def set_virt_type(self, vtype):
@@ -1474,12 +1466,11 @@ def set_virt_type(self, vtype):
 
     if vtype == "<<inherit>>":
         self.virt_type = "<<inherit>>"
-        return True
+        return
 
     if vtype.lower() not in ["qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto"]:
         raise CX(_("invalid virt type (%s)" % vtype))
     self.virt_type = vtype
-    return True
 
 
 def set_virt_bridge(self, vbridge):
@@ -1489,7 +1480,6 @@ def set_virt_bridge(self, vbridge):
     if vbridge is None or vbridge == "":
         vbridge = self.settings.default_virt_bridge
     self.virt_bridge = vbridge
-    return True
 
 
 def set_virt_path(self, path, for_system=False):
@@ -1502,7 +1492,6 @@ def set_virt_path(self, path, for_system=False):
         if path == "":
             path = "<<inherit>>"
     self.virt_path = path
-    return True
 
 
 def set_virt_cpus(self, num):
@@ -1514,11 +1503,11 @@ def set_virt_cpus(self, num):
     """
     if num == "" or num is None:
         self.virt_cpus = 1
-        return True
+        return
 
     if num == "<<inherit>>":
         self.virt_cpus = "<<inherit>>"
-        return True
+        return
 
     try:
         num = int(str(num))
@@ -1526,7 +1515,6 @@ def set_virt_cpus(self, num):
         raise CX(_("invalid number of virtual CPUs (%s)" % num))
 
     self.virt_cpus = num
-    return True
 
 
 def get_kickstart_templates(api):
@@ -1722,7 +1710,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     return data
 
 
-def clear_from_fields(obj, fields, is_subobject=False):
+def clear_from_fields(item, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
     """
@@ -1737,14 +1725,14 @@ def clear_from_fields(obj, fields, is_subobject=False):
         if isinstance(val, basestring):
             if val.startswith("SETTINGS:"):
                 setkey = val.split(":")[-1]
-                val = getattr(obj.settings, setkey)
-        setattr(obj, elems[0], val)
+                val = getattr(item.settings, setkey)
+        setattr(item, elems[0], val)
 
-    if obj.COLLECTION_TYPE == "system":
-        obj.interfaces = {}
+    if item.COLLECTION_TYPE == "system":
+        item.interfaces = {}
 
 
-def from_datastruct_from_fields(obj, seed_data, fields):
+def from_dict_from_fields(item, item_dict, fields):
     int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
@@ -1756,71 +1744,58 @@ def from_datastruct_from_fields(obj, seed_data, fields):
         # deprecated field switcheroo
         if src_k in field_info.DEPRECATED_FIELDS:
             dst_k = field_info.DEPRECATED_FIELDS[src_k]
-        if src_k in seed_data:
-            setattr(obj, dst_k, seed_data[src_k])
+        if src_k in item_dict:
+            setattr(item, dst_k, item_dict[src_k])
 
-    if obj.uid == '':
-        obj.uid = obj.config.generate_uid()
+    if item.uid == '':
+        item.uid = item.config.generate_uid()
 
     # special handling for interfaces
-    if obj.COLLECTION_TYPE == "system":
-        obj.interfaces = copy.deepcopy(seed_data["interfaces"])
+    if item.COLLECTION_TYPE == "system":
+        item.interfaces = copy.deepcopy(item_dict["interfaces"])
         # deprecated field switcheroo for interfaces
-        for interface in obj.interfaces.keys():
-            for k in obj.interfaces[interface].keys():
+        for interface in item.interfaces.keys():
+            for k in item.interfaces[interface].keys():
                 if k in field_info.DEPRECATED_FIELDS:
-                    if not field_info.DEPRECATED_FIELDS[k] in obj.interfaces[interface] or \
-                            obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
-                        obj.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = obj.interfaces[interface][k]
+                    if not field_info.DEPRECATED_FIELDS[k] in item.interfaces[interface] or \
+                            item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
+                        item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = item.interfaces[interface][k]
             # populate fields that might be missing
             for int_field in int_fields:
-                if not int_field[0][1:] in obj.interfaces[interface]:
-                    obj.interfaces[interface][int_field[0][1:]] = int_field[1]
-    return obj
+                if not int_field[0][1:] in item.interfaces[interface]:
+                    item.interfaces[interface][int_field[0][1:]] = int_field[1]
 
 
-def get_methods_from_fields(obj, fields):
-    ds = {}
-    for elem in fields:
-        k = elem[0]
-        # modify interfaces is handled differently, and need not work this way
-        if k.startswith("*") or k.find("widget") != -1:
-            continue
-        setfn = getattr(obj, "set_%s" % k)
-        ds[k] = setfn
-    return ds
-
-
-def to_datastruct_from_fields(obj, fields):
-    ds = {}
+def to_dict_from_fields(item, fields):
+    _dict = {}
     for elem in fields:
         k = elem[0]
         if k.startswith("*") or k.find("widget") != -1:
             continue
-        data = getattr(obj, k)
-        ds[k] = data
+        data = getattr(item, k)
+        _dict[k] = data
     # interfaces on systems require somewhat special handling
     # they are the only exception in Cobbler.
-    if obj.COLLECTION_TYPE == "system":
-        ds["interfaces"] = copy.deepcopy(obj.interfaces)
-        # for interface in ds["interfaces"].keys():
-        #    for k in ds["interfaces"][interface].keys():
+    if item.COLLECTION_TYPE == "system":
+        _dict["interfaces"] = copy.deepcopy(item.interfaces)
+        # for interface in _dict["interfaces"].keys():
+        #    for k in _dict["interfaces"][interface].keys():
         #        if field_info.DEPRECATED_FIELDS.has_key(k):
-        #            ds["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = ds["interfaces"][interface][k]
+        #            _dict["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = _dict["interfaces"][interface][k]
 
-    return ds
+    return _dict
 
 
-def printable_from_fields(obj, fields):
+def to_string_from_fields(item_dict, fields):
     """
-    Obj is a hash datastructure, fields is something like item_distro.FIELDS
+    item_dict is a dictionary, fields is something like item_distro.FIELDS
     """
     buf = ""
     keys = []
     for elem in fields:
         keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("Name", obj["name"])
+    buf = buf + "%-30s : %s\n" % ("Name", item_dict["name"])
     for (k, nicename, editable) in keys:
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
@@ -1830,36 +1805,36 @@ def printable_from_fields(obj, fields):
 
         if k != "name":
             # FIXME: move examples one field over, use description here.
-            buf = buf + "%-30s : %s\n" % (nicename, obj[k])
+            buf = buf + "%-30s : %s\n" % (nicename, item_dict[k])
 
-    # somewhat brain-melting special handling to print the hashes
+    # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
-    if "interfaces" in obj:
-        for iname in obj["interfaces"].keys():
+    if "interfaces" in item_dict:
+        for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
             buf = buf + "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
                 nkey = k.replace("*", "")
                 if k.startswith("*") and editable:
-                    buf = buf + "%-30s : %s\n" % (nicename, obj["interfaces"][iname].get(nkey, ""))
+                    buf = buf + "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
 
     return buf
 
 
-def get_remote_methods_from_fields(obj, fields):
+def get_setter_methods_from_fields(item, fields):
     """
     Return the name of set functions for all fields, keyed by the field name.
     """
-    ds = {}
+    setters = {}
     for elem in fields:
         name = elem[0].replace("*", "")
         if name.find("widget") == -1:
-            ds[name] = getattr(obj, "set_%s" % name)
-    if obj.COLLECTION_TYPE == "system":
-        ds["modify_interface"] = getattr(obj, "modify_interface")
-        ds["delete_interface"] = getattr(obj, "delete_interface")
-        ds["rename_interface"] = getattr(obj, "rename_interface")
-    return ds
+            setters[name] = getattr(item, "set_%s" % name)
+    if item.COLLECTION_TYPE == "system":
+        setters["modify_interface"] = getattr(item, "modify_interface")
+        setters["delete_interface"] = getattr(item, "delete_interface")
+        setters["rename_interface"] = getattr(item, "rename_interface")
+    return setters
 
 
 def get_power_types():
@@ -1909,16 +1884,13 @@ def load_signatures(filename, cache=True):
     Loads the import signatures for distros
     """
     global SIGNATURE_CACHE
-    try:
-        f = open(filename, "r")
-        sigjson = f.read()
-        f.close()
-        sigdata = simplejson.loads(sigjson)
-        if cache:
-            SIGNATURE_CACHE = sigdata
-        return True
-    except:
-        return False
+
+    f = open(filename, "r")
+    sigjson = f.read()
+    f.close()
+    sigdata = simplejson.loads(sigjson)
+    if cache:
+        SIGNATURE_CACHE = sigdata
 
 
 def get_valid_breeds():
@@ -2050,29 +2022,29 @@ def strip_none(data, omit_none=False):
 # -------------------------------------------------------
 
 
-def loh_to_hoh(datastruct, indexkey):
+def lod_to_dod(_list, indexkey):
     """
-    things like get_distros() returns a list of a hashes
-    convert this to a hash of hashes keyed off of an arbitrary field
+    things like get_distros() returns a list of a dictionaries
+    convert this to a dict of dicts keyed off of an arbitrary field
 
     EX:  [  { "a" : 2 }, { "a : 3 } ]  ->  { "2" : { "a" : 2 }, "3" : { "a" : "3" }
 
     """
     results = {}
-    for item in datastruct:
+    for item in _list:
         results[item[indexkey]] = item
     return results
 
 # -------------------------------------------------------
 
 
-def loh_sort_by_key(datastruct, indexkey):
+def lod_sort_by_key(_list, indexkey):
     """
-    Sorts a list of hashes by a given key in the hashes
+    Sorts a list of dictionaries by a given key in the dictionaries
     note: this is a destructive operation
     """
-    datastruct.sort(lambda a, b: a[indexkey] < b[indexkey])
-    return datastruct
+    _list.sort(lambda a, b: a[indexkey] < b[indexkey])
+    return _list
 
 
 def dhcpconf_location(api):

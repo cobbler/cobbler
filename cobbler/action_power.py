@@ -33,6 +33,7 @@ import re
 import utils
 import templar
 import clogger
+from cexceptions import CX
 
 
 class PowerTool:
@@ -110,13 +111,15 @@ class PowerTool:
                             return True
                         else:
                             return False
-                    utils.die(self.logger, "command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output))
-                    return None
-                break
+                    error_msg = "command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output)
+                    utils.die(self.logger, error_msg)
+                    raise CX(error_msg)
+                return None
             else:
                 time.sleep(2)
 
         if not rc == 0:
-            utils.die(self.logger, "command failed (rc=%s), please validate the physical setup and cobbler config" % rc)
+            error_msg = "command failed (rc=%s), please validate the physical setup and cobbler config" % rc
+            utils.die(self.logger, error_msg)
+            raise CX(error_msg)
 
-        return rc

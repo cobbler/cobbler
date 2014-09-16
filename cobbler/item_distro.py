@@ -63,7 +63,7 @@ from cobbler.cexceptions import CX
 # please edit field_info.py carefully to match.
 #
 # additional:  see field_info.py for some display hints.  By default in the web app all fields
-# are text fields unless field_info.py lists the field in one of those hashes.
+# are text fields unless field_info.py lists the field in one of those dictionaries.
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #
@@ -134,9 +134,10 @@ class Distro(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
+
+        _dict = self.to_dict()
         cloned = Distro(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -191,7 +192,7 @@ class Distro(item.Item):
             raise CX("kernel not specified")
         if utils.find_kernel(kernel):
             self.kernel = kernel
-            return True
+            return
         raise CX("kernel not found: %s" % kernel)
 
 
@@ -201,7 +202,6 @@ class Distro(item.Item):
         If not imported, this field is not meaningful.
         """
         self.tree_build_time = float(datestamp)
-        return True
 
 
     def set_breed(self, breed):
@@ -221,7 +221,7 @@ class Distro(item.Item):
             raise CX("initrd not specified")
         if utils.find_initrd(initrd):
             self.initrd = initrd
-            return True
+            return
         raise CX(_("initrd not found"))
 
 

@@ -69,7 +69,7 @@ class Item(object):
         self.template_files = None
         self.name = None
         self.last_cached_mtime = 0
-        self.cached_datastruct = ""
+        self.cached_dict = ""
 
 
     def __find_compare(self, from_search, from_obj):
@@ -90,7 +90,7 @@ class Item(object):
                             return False
                     return True
                 if isinstance(from_obj, dict):
-                    (junk, from_search) = utils.input_string_or_hash(from_search, allow_multiples=True)
+                    (junk, from_search) = utils.input_string_or_dict(from_search, allow_multiples=True)
                     for x in from_search.keys():
                         y = from_search[x]
                         if x not in from_obj:
@@ -132,23 +132,23 @@ class Item(object):
         raise exceptions.NotImplementedError
 
 
-    def from_datastruct(self, seed_data):
+    def from_dict(self, _dict):
         """
         Modify this object to take on values in seed_data
         """
-        return utils.from_datastruct_from_fields(self, seed_data, self.get_fields())
+        utils.from_dict_from_fields(self, _dict, self.get_fields())
 
 
-    def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self, self.get_fields())
+    def to_dict(self):
+        return utils.to_dict_from_fields(self, self.get_fields())
 
 
-    def printable(self):
-        return utils.printable_from_fields(self, self.get_fields())
+    def to_string(self):
+        return utils.to_string_from_fields(self, self.get_fields())
 
 
-    def remote_methods(self):
-        return utils.get_remote_methods_from_fields(self, self.get_fields())
+    def get_setter_methods(self):
+        return utils.get_setter_methods_from_fields(self, self.get_fields())
 
 
     def set_uid(self, uid):
@@ -194,13 +194,10 @@ class Item(object):
         The parent may just be a superclass for something like a
         subprofile.  Get the first parent of a different type.
         """
-        # FIXME: this is a workaround to get the type of an instance var
-        # what's a more clean way to do this that's python 2.3 friendly?
-        # this returns something like:  cobbler.item_system.System
-        mtype = str(self).split(" ")[0][1:]
+        mtype = type(self)
         parent = self.get_parent()
         while parent is not None:
-            ptype = str(parent).split(" ")[0][1:]
+            ptype = type(parent)
             if mtype != ptype:
                 self.conceptual_parent = parent
                 return parent
@@ -216,15 +213,11 @@ class Item(object):
         @returns: True or CX
         """
         self.name = validate.object_name(name, self.parent)
-        return True
-
 
     def set_comment(self, comment):
         if comment is None:
             comment = ""
         self.comment = comment
-        return True
-
 
     def set_owners(self, data):
         """
@@ -232,69 +225,40 @@ class Item(object):
         like authz_ownership, which ships with Cobbler but is off by default.
         """
         self.owners = utils.input_string_or_list(data)
-        return True
 
-
-    def set_kernel_options(self, options, inplace=False):
+    def set_kernel_options(self, options):
         """
         Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dict.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             raise CX(_("invalid kernel options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.kernel_options[key[1:]]
-                    else:
-                        self.kernel_options[key] = value[key]
-            else:
-                self.kernel_options = value
-            return True
+            self.kernel_options = value
 
-
-    def set_kernel_options_post(self, options, inplace=False):
+    def set_kernel_options_post(self, options):
         """
         Post kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dict.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             raise CX(_("invalid post kernel options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.kernel_options_post[key[1:]]
-                    else:
-                        self.kernel_options_post[key] = value[key]
-            else:
-                self.kernel_options_post = value
-            return True
+            self.kernel_options_post = value
 
-
-    def set_ks_meta(self, options, inplace=False):
+    def set_ks_meta(self, options):
         """
-        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a hash.
+        A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system
         to preprocess kickstart files
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=True)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.ks_meta[key[1:]]
-                    else:
-                        self.ks_meta[key] = value[key]
-            else:
-                self.ks_meta = value
-            return True
-
+            self.ks_meta = value
 
     def set_mgmt_classes(self, mgmt_classes):
         """
@@ -303,8 +267,6 @@ class Item(object):
         """
         mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
-        return True
-
 
     def set_mgmt_parameters(self, mgmt_parameters):
         """
@@ -319,77 +281,48 @@ class Item(object):
             if type(data) is not dict:
                 raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
             self.mgmt_parameters = data
-        return True
 
-
-    def set_template_files(self, template_files, inplace=False):
+    def set_template_files(self, template_files):
         """
         A comma seperated list of source=destination templates
         that should be generated during a sync.
         """
-        (success, value) = utils.input_string_or_hash(template_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.template_files[key[1:]]
-                    else:
-                        self.template_files[key] = value[key]
-            else:
-                self.template_files = value
-            return True
+            self.template_files = value
 
-
-    def set_boot_files(self, boot_files, inplace=False):
+    def set_boot_files(self, boot_files):
         """
         A comma seperated list of req_name=source_file_path
         that should be fetchable via tftp
         """
-        (success, value) = utils.input_string_or_hash(boot_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.boot_files[key[1:]]
-                    else:
-                        self.boot_files[key] = value[key]
-            else:
-                self.boot_files = value
-            return True
+            self.boot_files = value
 
-
-    def set_fetchable_files(self, fetchable_files, inplace=False):
+    def set_fetchable_files(self, fetchable_files):
         """
         A comma seperated list of virt_name=path_to_template
         that should be fetchable via tftp or a webserver
         """
-        (success, value) = utils.input_string_or_hash(fetchable_files, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
         if not success:
             return False
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.fetchable_files[key[1:]]
-                    else:
-                        self.fetchable_files[key] = value[key]
-            else:
-                self.fetchable_files = value
-            return True
-
+            self.fetchable_files = value
 
     def sort_key(self, sort_fields=[]):
-        data = self.to_datastruct()
+        data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
 
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
-        data = self.to_datastruct()
+        data = self.to_dict()
         for (key, value) in kwargs.iteritems():
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):

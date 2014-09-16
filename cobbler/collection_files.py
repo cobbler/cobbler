@@ -35,11 +35,13 @@ class Files(collection.Collection):
         return "file"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a File forged from seed_data
+        Return a File forged from item_dict
         """
-        return file.File(collection_mgr).from_datastruct(seed_data)
+        new_file = file.File(collection_mgr)
+        new_file.from_dict(item_dict)
+        return new_file
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
@@ -65,7 +67,7 @@ class Files(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

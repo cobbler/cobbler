@@ -39,12 +39,13 @@ class Distros(collection.Collection):
         return "distro"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a Distro forged from seed_data
+        Return a Distro forged from item_dict
         """
-        return distro.Distro(collection_mgr).from_datastruct(seed_data)
-
+        new_distro = distro.Distro(collection_mgr)
+        new_distro.from_dict(item_dict)
+        return new_distro
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -71,7 +72,7 @@ class Distros(collection.Collection):
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_distro(name)
             self.lock.acquire()
             try:
@@ -110,6 +111,5 @@ class Distros(collection.Collection):
                 if not found:
                     utils.rmtree(path)
 
-        return True
 
 # EOF

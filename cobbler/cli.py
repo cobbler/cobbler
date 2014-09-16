@@ -140,21 +140,21 @@ def report_item(remote, otype, item=None, name=None):
                 sys.exit(1)
 
     if otype == "distro":
-        data = utils.printable_from_fields(item, item_distro.FIELDS)
+        data = utils.to_string_from_fields(item, item_distro.FIELDS)
     elif otype == "profile":
-        data = utils.printable_from_fields(item, item_profile.FIELDS)
+        data = utils.to_string_from_fields(item, item_profile.FIELDS)
     elif otype == "system":
-        data = utils.printable_from_fields(item, item_system.FIELDS)
+        data = utils.to_string_from_fields(item, item_system.FIELDS)
     elif otype == "repo":
-        data = utils.printable_from_fields(item, item_repo.FIELDS)
+        data = utils.to_string_from_fields(item, item_repo.FIELDS)
     elif otype == "image":
-        data = utils.printable_from_fields(item, item_image.FIELDS)
+        data = utils.to_string_from_fields(item, item_image.FIELDS)
     elif otype == "mgmtclass":
-        data = utils.printable_from_fields(item, item_mgmtclass.FIELDS)
+        data = utils.to_string_from_fields(item, item_mgmtclass.FIELDS)
     elif otype == "package":
-        data = utils.printable_from_fields(item, item_package.FIELDS)
+        data = utils.to_string_from_fields(item, item_package.FIELDS)
     elif otype == "file":
-        data = utils.printable_from_fields(item, item_file.FIELDS)
+        data = utils.to_string_from_fields(item, item_file.FIELDS)
     elif otype == "setting":
         data = "%-40s: %s" % (item['name'], item['value'])
     print data
@@ -482,10 +482,12 @@ class CobblerCLI:
                 task_id = self.remote.background_signature_update(utils.strip_none(vars(options), omit_none=True), self.token)
             elif object_action == "reload":
                 filename = opt(options, "filename", "/var/lib/cobbler/distro_signatures.json")
-                if not utils.load_signatures(filename, cache=True):
+                try:
+                    utils.load_signatures(filename, cache=True)
+                except:
                     print "There was an error loading the signature data in %s." % filename
                     print "Please check the JSON file or run 'cobbler signature update'."
-                    return False
+                    return
                 else:
                     print "Signatures were successfully loaded"
             else:
@@ -498,7 +500,6 @@ class CobblerCLI:
             self.print_task(task_id)
             self.follow_task(task_id)
 
-        return True
 
     # BOOKMARK
     def direct_command(self, action_name):

@@ -62,4 +62,3 @@ class LogTool:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
             except OSError, e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
-        return 0

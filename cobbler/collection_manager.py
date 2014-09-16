@@ -148,72 +148,11 @@ class CollectionManager:
         """
         return self._files
 
-    def new_distro(self, is_subobject=False):
-        """
-        Create a new distro object with a backreference to this object
-        """
-        return distro.Distro(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_system(self, is_subobject=False):
-        """
-        Create a new system with a backreference to this object
-        """
-        return system.System(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_profile(self, is_subobject=False):
-        """
-        Create a new profile with a backreference to this object
-        """
-        return profile.Profile(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_repo(self, is_subobject=False):
-        """
-        Create a new mirror to keep track of...
-        """
-        return repo.Repo(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_image(self, is_subobject=False):
-        """
-        Create a new image object...
-        """
-        return image.Image(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_mgmtclass(self, is_subobject=False):
-        """
-        Create a new mgmtclass object...
-        """
-        return mgmtclass.Mgmtclass(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_package(self, is_subobject=False):
-        """
-        Create a new package object...
-        """
-        return package.Package(weakref.proxy(self), is_subobject=is_subobject)
-
-    def new_file(self, is_subobject=False):
-        """
-        Create a new image object...
-        """
-        return file.File(weakref.proxy(self), is_subobject=is_subobject)
-
-    def clear(self):
-        """
-        Forget about all loaded collections
-        """
-        self._distros.clear(),
-        self._repos.clear(),
-        self._profiles.clear(),
-        self._images.clear()
-        self._systems.clear(),
-        self._mgmtclasses.clear(),
-        self._packages.clear(),
-        self._files.clear(),
-        return True
-
     def serialize(self):
         """
-        Save the object hierarchy to disk, using the filenames referenced in each object.
+        Save all collections to disk
         """
+
         serializer.serialize(self._distros)
         serializer.serialize(self._repos)
         serializer.serialize(self._profiles)
@@ -222,26 +161,35 @@ class CollectionManager:
         serializer.serialize(self._mgmtclasses)
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
-        return True
 
     def serialize_item(self, collection, item):
         """
-        Save item in the collection, resaving the whole collection if needed,
-        but ideally just saving the item.
+        Save a collection item to disk
+
+        @param Collection collection Collection
+        @param Item item collection item
         """
+
         return serializer.serialize_item(collection, item)
 
     def serialize_delete(self, collection, item):
         """
-        Erase item from a storage file, if neccessary rewritting the file.
+        Delete a collection item from disk
+
+        @param Collection collection collection
+        @param Item item collection item
         """
+
         return serializer.serialize_delete(collection, item)
 
     def deserialize(self):
         """
-        Load the object hierachy from disk, using the filenames referenced in each object.
+        Load all collections from disk
+
+        @raise CX if there is an error in deserialization
         """
-        for item in (
+
+        for collection in (
             self._settings,
             self._distros,
             self._repos,
@@ -253,23 +201,10 @@ class CollectionManager:
             self._files,
         ):
             try:
-                if not serializer.deserialize(item):
+                if not serializer.deserialize(collection):
                     raise ""
             except:
-                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % item.collection_type())
-        return True
-
-    def deserialize_raw(self, collection_type):
-        """
-        Get object data from disk, not objects.
-        """
-        return serializer.deserialize_raw(collection_type)
-
-    def deserialize_item_raw(self, collection_type, obj_name):
-        """
-        Get a raw single object.
-        """
-        return serializer.deserialize_item_raw(collection_type, obj_name)
+                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % collection.collection_type())
 
     def get_items(self, collection_type):
         if collection_type == "distro":

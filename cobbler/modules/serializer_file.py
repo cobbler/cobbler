@@ -52,19 +52,25 @@ def what():
     return "serializer/file"
 
 
-def serialize_item(obj, item):
+def serialize_item(collection, item):
+    """
+    Save a collection item to file system
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
 
     if item.name is None or item.name == "":
-        raise exceptions.RuntimeError("name unset for object!")
+        raise exceptions.RuntimeError("name unset for item!")
 
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if obj.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (obj.collection_type(), item.name)
+    if collection.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (obj.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
 
-    datastruct = item.to_datastruct()
+    _dict = item.to_dict()
 
     if capi.CobblerAPI().settings().serializer_pretty_json:
         sort_keys = True
@@ -74,76 +80,64 @@ def serialize_item(obj, item):
         indent = None
 
     filename += ".json"
-    datastruct = item.to_datastruct()
+    _dict = item.to_dict()
     fd = open(filename, "w+")
-    data = simplejson.dumps(datastruct, encoding="utf-8", sort_keys=sort_keys, indent=indent)
+    data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
     fd.write(data)
 
     fd.close()
-    return True
 
 
-def serialize_delete(obj, item):
+def serialize_delete(collection, item):
+    """
+    Delete a collection item from file system
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
-    if obj.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (obj.collection_type(), item.name)
+    if collection.collection_type() in ['mgmtclass']:
+        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (obj.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
 
     filename += ".json"
     if os.path.exists(filename):
         os.remove(filename)
-    return True
 
 
-def deserialize_item_raw(collection_type, item_name):
-    # this new fn is not really implemented performantly in this module.
-    # yet.
-
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if item_name in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection_type(), item_name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection_type, item_name)
-
-    filename += ".json"
-    if os.path.exists(filename):
-        fd = open(filename)
-        data = fd.read()
-        return simplejson.loads(data, encoding="utf-8")
-    else:
-        return None
-
-
-def serialize(obj):
+def serialize(collection):
     """
-    Save an object to disk.  Object must "implement" Serializable.
-    FIXME: Return False on access/permission errors.
-    This should NOT be used by API if serialize_item is available.
+    Save a collection to file system
+
+    @param Collection collection collection
     """
-    ctype = obj.collection_type()
-    if ctype == "settings":
-        return True
-    for x in obj:
-        serialize_item(obj, x)
-    return True
+
+    # do not serialize settings
+    ctype = collection.collection_type()
+    if ctype != "settings":
+        for x in collection:
+            serialize_item(collection, x)
 
 
 def deserialize_raw(collection_type):
+
+    # FIXME: code to load settings file should not be replicated in all
+    #   serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
-        datastruct = yaml.safe_load(fd.read())
+        _dict = yaml.safe_load(fd.read())
         fd.close()
 
         # include support
-        for ival in datastruct.get("include", []):
+        for ival in _dict.get("include", []):
             for ifile in glob.glob(ival):
                 with open(ifile, 'r') as fd:
-                    datastruct.update(yaml.safe_load(fd.read()))
+                    _dict.update(yaml.safe_load(fd.read()))
 
-        return datastruct
+        return _dict
     else:
         results = []
         # FIXME: Need a better way to support collections/items
@@ -156,22 +150,45 @@ def deserialize_raw(collection_type):
         for f in all_files:
             fd = open(f)
             json_data = fd.read()
-            datastruct = simplejson.loads(json_data, encoding='utf-8')
-            results.append(datastruct)
+            _dict = simplejson.loads(json_data, encoding='utf-8')
+            results.append(_dict)
             fd.close()
         return results
 
 
-def deserialize(obj, topological=True):
+def filter_upgrade_duplicates(file_list):
     """
-    Populate an existing object with the contents of datastruct.
-    Object must "implement" Serializable.
+    In a set of files, some ending with .json, some not, return
+    the list of files with the .json ones taking priority over
+    the ones that are not.
     """
-    datastruct = deserialize_raw(obj.collection_type())
+    bases = {}
+    for f in file_list:
+        basekey = f.replace(".json", "")
+        if f.endswith(".json"):
+            bases[basekey] = f
+        else:
+            lookup = bases.get(basekey, "")
+            if not lookup.endswith(".json"):
+                bases[basekey] = f
+    return bases.values()
+
+
+def deserialize(collection, topological=True):
+    """
+    Load a collection from file system
+
+    @param Collection collection collection
+    @param bool topological
+    """
+
+    datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
         datastruct.sort(__depth_cmp)
-    obj.from_datastruct(datastruct)
-    return True
+    if type(datastruct) == dict:
+        collection.from_dict(datastruct)
+    elif type(datastruct) == list:
+        collection.from_list(datastruct)
 
 
 def __depth_cmp(item1, item2):
@@ -179,6 +196,3 @@ def __depth_cmp(item1, item2):
     d2 = item2.get("depth", 1)
     return cmp(d1, d2)
 
-
-if __name__ == "__main__":
-    print deserialize_item_raw("distro", "D1")

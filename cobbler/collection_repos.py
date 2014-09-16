@@ -39,12 +39,13 @@ class Repos(collection.Collection):
         return "repo"
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, config, item_dict):
         """
-        Return a Distro forged from seed_data
+        Return a Distro forged from item_dict
         """
-        return repo.Repo(config).from_datastruct(seed_data)
-
+        new_repo = repo.Repo(config)
+        new_repo.from_dict(item_dict)
+        return new_repo
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -78,7 +79,7 @@ class Repos(collection.Collection):
                 if os.path.exists(path):
                     utils.rmtree(path)
 
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

@@ -228,8 +228,6 @@ class Report:
         if report_type == "doku":
             self.logger.flat(self.reporting_doku(data, order, noheaders))
 
-        return True
-
     def reporting_sorter(self, a, b):
         """
         Used for sorting cobbler objects for report commands
@@ -243,8 +241,7 @@ class Report:
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
         for x in collection:
-            self.logger.flat(x.printable())
-        return True
+            self.logger.flat(x.to_string())
 
     def reporting_list_names2(self, collection, name):
         """
@@ -252,8 +249,7 @@ class Report:
         """
         obj = collection.get(name)
         if obj is not None:
-            self.logger.flat(obj.printable())
-        return True
+            self.logger.flat(obj.to_string())
 
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
         """
@@ -274,7 +270,10 @@ class Report:
         count = 0
         for x in collection:
             item = {}
-            structure = x.to_datastruct()
+            if x.ITEM_TYPE == "settings":
+                structure = x.to_dict()
+            else:
+                structure = x.to_list()
 
             for (key, value) in structure.iteritems():
                 # exception for systems which could have > 1 interface
@@ -297,7 +296,6 @@ class Report:
 
         self.print_formatted_data(data=data, order=out_order, report_type=report_type, noheaders=report_noheaders)
 
-        return True
 
     def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders):
         """
@@ -317,13 +315,15 @@ class Report:
         fields_list = report_fields.replace(' ', '').split(',')
 
         for x in collection:
-            structure = x.to_datastruct()
+            if x.ITEM_TYPE == "settings":
+                structure = x.to_dict()
+            else:
+                structure = x.to_list()
             item = self.fielder(structure, fields_list)
             data.append(item)
 
         self.print_formatted_data(data=data, order=fields_list, report_type=report_type, noheaders=report_noheaders)
 
-        return True
 
     # -------------------------------------------------------
 

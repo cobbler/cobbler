@@ -51,7 +51,6 @@ def __grab_lock():
                 fd.close()
             LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
             fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
-        return True
     except:
         # this is pretty much FATAL, avoid corruption and quit now.
         traceback.print_exc()
@@ -70,91 +69,60 @@ def __release_lock(with_changes=False):
         LOCK_HANDLE = open("/var/lib/cobbler/lock", "r")
         fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
         LOCK_HANDLE.close()
-    return True
 
 
-def serialize(obj):
+def serialize(collection):
     """
-    Save a collection to disk or other storage.
+    Save a collection to disk
+
+    @param Collection collection collection
     """
+
     __grab_lock()
-    storage_module = __get_storage_module(obj.collection_type())
-    storage_module.serialize(obj)
+    storage_module = __get_storage_module(collection.collection_type())
+    storage_module.serialize(collection)
     __release_lock()
-    return True
 
 
 def serialize_item(collection, item):
     """
-    Save an item.
+    Save a collection item to disk
+
+    @param Collection collection collection
+    @param Item item collection item
     """
+
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
-    save_fn = getattr(storage_module, "serialize_item", None)
-    if save_fn is None:
-        rc = storage_module.serialize(collection)
-    else:
-        rc = save_fn(collection, item)
+    storage_module.serialize_item(collection, item)
     __release_lock(with_changes=True)
-    return rc
 
 
 def serialize_delete(collection, item):
     """
-    Delete an object from a saved state.
+    Delete a collection item from disk
+
+    @param Collection collection collection
+    @param Item item collection item
+    """
+
+    __grab_lock()
+    storage_module = __get_storage_module(collection.collection_type())
+    storage_module.serialize_delete(collection, item)
+    __release_lock(with_changes=True)
+
+
+def deserialize(collection, topological=True):
+    """
+    Load a collection from disk
+
+    @param Collection collection collection
+    @param bool topological
     """
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
-    delete_fn = getattr(storage_module, "serialize_delete", None)
-    if delete_fn is None:
-        rc = storage_module.serialize(collection)
-    else:
-        rc = delete_fn(collection, item)
-    __release_lock(with_changes=True)
-    return rc
-
-
-def deserialize(obj, topological=True):
-    """
-    Fill in an empty collection from disk or other storage
-    """
-    __grab_lock()
-    storage_module = __get_storage_module(obj.collection_type())
-    rc = storage_module.deserialize(obj, topological)
+    storage_module.deserialize(collection, topological)
     __release_lock()
-    return rc
-
-
-def deserialize_raw(collection_type):
-    """
-    Return the datastructure corresponding to the serialized
-    disk state, without going through the Cobbler object system.
-    Much faster, when you don't need the objects.
-    """
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_raw(collection_type)
-    __release_lock()
-    return rc
-
-
-def deserialize_item(collection_type, item_name):
-    """
-    Get a specific record.
-    """
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_item(collection_type, item_name)
-    __release_lock()
-    return rc
-
-
-def deserialize_item_raw(collection_type, item_name):
-    __grab_lock()
-    storage_module = __get_storage_module(collection_type)
-    rc = storage_module.deserialize_item_raw(collection_type, item_name)
-    __release_lock()
-    return rc
 
 
 def __get_storage_module(collection_type):
@@ -164,6 +132,3 @@ def __get_storage_module(collection_type):
     capi = cobbler_api.CobblerAPI()
     return capi.get_module_from_file("serializers", collection_type, "serializer_file")
 
-if __name__ == "__main__":
-    __grab_lock()
-    __release_lock()

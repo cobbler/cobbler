@@ -34,7 +34,7 @@ SEEN_STOP = 4
 STATE = 5
 
 
-class BootStatusReport:
+class CobblerStatusReport:
 
     def __init__(self, collection_mgr, mode, logger=None):
         """

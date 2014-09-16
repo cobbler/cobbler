@@ -48,7 +48,7 @@ class Collection:
         Constructor.
         """
         self.collection_mgr = collection_mgr
-        self.clear()
+        self.listing = {}
         self.api = self.collection_mgr.api
         self.lite_sync = None
         self.lock = Lock()
@@ -72,7 +72,7 @@ class Collection:
     def factory_produce(self, collection_mgr, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
-        from datastructure seed_data
+        from dict
         """
         raise exceptions.NotImplementedError
 
@@ -90,13 +90,6 @@ class Collection:
         @returns: exceptions.NotImplementedError
         """
         raise exceptions.NotImplementedError
-
-
-    def clear(self):
-        """
-        Forget about objects in the collection.
-        """
-        self.listing = {}
 
 
     def get(self, name):
@@ -166,36 +159,36 @@ class Collection:
     }
 
 
-    def __rekey(self, hash):
+    def __rekey(self, _dict):
         """
         Find calls from the command line ("cobbler system find")
         don't always match with the keys from the datastructs and this
         makes them both line up without breaking compatibility with either.
         Thankfully we don't have a LOT to remap.
         """
-        newhash = {}
-        for x in hash.keys():
+        new_dict = {}
+        for x in _dict.keys():
             if x in self.SEARCH_REKEY:
                 newkey = self.SEARCH_REKEY[x]
-                newhash[newkey] = hash[x]
+                new_dict[newkey] = _dict[x]
             else:
-                newhash[x] = hash[x]
-        return newhash
+                new_dict[x] = _dict[x]
+        return new_dict
 
 
-    def to_datastruct(self):
+    def to_list(self):
         """
         Serialize the collection
         """
-        datastruct = [x.to_datastruct() for x in self.listing.values()]
-        return datastruct
+        _list = [x.to_dict() for x in self.listing.values()]
+        return _list
 
 
-    def from_datastruct(self, datastruct):
-        if datastruct is None:
+    def from_list(self, _list):
+        if _list is None:
             return
-        for seed_data in datastruct:
-            item = self.factory_produce(self.collection_mgr, seed_data)
+        for item_dict in _list:
+            item = self.factory_produce(self.collection_mgr, item_dict)
             self.add(item)
 
 
@@ -212,7 +205,7 @@ class Collection:
                 ref.set_mac_address("", iname)
                 ref.set_ip_address("", iname)
 
-        return self.add(
+        self.add(
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
 
@@ -224,7 +217,7 @@ class Collection:
         """
         # Nothing to do when it is the same name
         if newname == ref.name:
-            return True
+            return
 
         # make a copy of the object, but give it a new name.
         oldname = ref.name
@@ -297,16 +290,13 @@ class Collection:
 
         # now delete the old version
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
-        return True
+        return
 
 
     def add(self, ref, save=False, with_copy=False, with_triggers=True, with_sync=True, quick_pxe_update=False,
             check_for_duplicate_names=False, check_for_duplicate_netinfo=False, logger=None):
         """
-        Add an object to the collection, if it's valid.  Returns True
-        if the object was added to the collection.  Returns False if the
-        object specified by ref deems itself invalid (and therefore
-        won't be added to the collection).
+        Add an object to the collection
 
         with_copy is a bit of a misnomer, but lots of internal add operations
         can run with "with_copy" as False. True means a real final commit, as if
@@ -316,13 +306,12 @@ class Collection:
         during deserialization, in which case extra semantics around the add don't really apply.
         So, in that case, don't run any triggers and don't deal with any actual files.
         """
-        if ref is None or ref.name is None:
-            return False
+        if ref is None:
+            raise CX("Unable to add a None object")
+        if ref.name is None:
+            raise CX("Unable to add an object without a name")
 
-        try:
-            ref.check_if_valid()
-        except CX:
-            return False
+        ref.check_if_valid()
 
         if ref.uid == '':
             ref.uid = self.collection_mgr.generate_uid()
@@ -334,7 +323,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+            self.lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
@@ -353,25 +342,18 @@ class Collection:
         if ref.COLLECTION_TYPE != self.collection_type():
             raise CX(_("API error: storing wrong data type in collection"))
 
-        if not save:
-            # don't need to run triggers, so add it already ...
-            self.lock.acquire()
-            try:
-                self.listing[ref.name.lower()] = ref
-            finally:
-                self.lock.release()
+        # failure of a pre trigger will prevent the object from being added
+        if save and with_triggers:
+            utils.run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+
+        self.lock.acquire()
+        try:
+            self.listing[ref.name.lower()] = ref
+        finally:
+            self.lock.release()
 
         # perform filesystem operations
         if save:
-            # failure of a pre trigger will prevent the object from being added
-            if with_triggers:
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type(), [], logger)
-            self.lock.acquire()
-            try:
-                self.listing[ref.name.lower()] = ref
-            finally:
-                self.lock.release()
-
             # save just this item if possible, if not, save
             # the whole collection
             self.collection_mgr.serialize_item(self, ref)
@@ -414,8 +396,6 @@ class Collection:
         parent = ref.get_parent()
         if parent is not None:
             parent.children[ref.name] = ref
-
-        return True
 
 
     def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):
@@ -481,7 +461,7 @@ class Collection:
                         raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
 
 
-    def printable(self):
+    def to_string(self):
         """
         Creates a printable representation of the collection suitable
         for reading by humans or parsing from scripts.  Actually scripts
@@ -492,7 +472,7 @@ class Collection:
         values.sort()                       # sort the copy (2.3 fix)
         results = []
         for i, v in enumerate(values):
-            results.append(v.printable())
+            results.append(v.to_string())
         if len(values) > 0:
             return "\n\n".join(results)
         else:

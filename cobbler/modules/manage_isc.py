@@ -115,7 +115,7 @@ class IscManager:
                     host = interface["dns_name"]
 
                 if distro is not None:
-                    interface["distro"] = distro.to_datastruct()
+                    interface["distro"] = distro.to_dict()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system

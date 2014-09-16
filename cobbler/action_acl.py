@@ -61,7 +61,6 @@ class AclConfig:
             self.modacl(False, False, removegroup)
         if not ok:
             raise CX("no arguments specified, nothing to do")
-        return True
 
     def modacl(self, isadd, isuser, who):
 

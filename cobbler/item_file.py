@@ -58,9 +58,10 @@ class File(resource.Resource):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
+
+        _dict = self.to_dict()
         cloned = File(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -96,6 +97,5 @@ class File(resource.Resource):
         If true, treat file resource as a directory. Templates are ignored.
         """
         self.is_dir = utils.input_boolean(is_dir)
-        return True
 
 # EOF

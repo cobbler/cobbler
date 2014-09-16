@@ -66,7 +66,7 @@ class InTftpdManager:
     def write_boot_files_distro(self, distro):
         # collapse the object down to a rendered datastructure
         # the second argument set to false means we don't collapse
-        # hashes/arrays into a flat string
+        # dicts/arrays into a flat string
         target = utils.blender(self.collection_mgr.api, False, distro)
 
         # Create metadata for the templar function
@@ -77,7 +77,7 @@ class InTftpdManager:
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar(self.collection_mgr)
 
-        # Loop through the hash of boot files,
+        # Loop through the dict of boot files,
         # executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
         for file in target["boot_files"].keys():

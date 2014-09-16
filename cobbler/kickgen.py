@@ -259,7 +259,7 @@ class KickGen:
         meta.update(ksmeta)     # make available at top level
         meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
         meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
-        meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+        meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
 
         # add extra variables for other distro types
         if "tree" in meta:

@@ -31,7 +31,7 @@ import clogger
 import module_loader
 
 
-class BootLiteSync:
+class CobblerLiteSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """

@@ -36,12 +36,13 @@ class Profiles(collection.Collection):
         return "profile"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a Distro forged from seed_data
+        Return a Distro forged from item_dict
         """
-        return profile.Profile(collection_mgr).from_datastruct(seed_data)
-
+        new_profile = profile.Profile(collection_mgr)
+        new_profile.from_dict(item_dict)
+        return new_profile
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -77,9 +78,9 @@ class Profiles(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_profile(name)
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

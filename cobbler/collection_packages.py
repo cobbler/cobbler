@@ -35,11 +35,13 @@ class Packages(collection.Collection):
         return "package"
 
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a Package forged from seed_data
+        Return a Package forged from item_dict
         """
-        return package.Package(collection_mgr).from_datastruct(seed_data)
+        new_package = package.Package(collection_mgr)
+        new_package.from_dict(item_dict)
+        return new_package
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
@@ -65,7 +67,7 @@ class Packages(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/package/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

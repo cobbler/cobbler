@@ -33,7 +33,6 @@ class Resource(item.Item):
         if action not in valid_actions:
             raise CX('%s is not a valid action' % action)
         self.action = action
-        return True
 
 
     def set_group(self, group):
@@ -41,7 +40,6 @@ class Resource(item.Item):
         Unix group ownership of a file or directory.
         """
         self.group = group
-        return True
 
 
     def set_mode(self, mode):
@@ -50,7 +48,6 @@ class Resource(item.Item):
         file and directory resources.
         """
         self.mode = mode
-        return True
 
 
     def set_owner(self, owner):
@@ -58,7 +55,6 @@ class Resource(item.Item):
         Unix owner of a file or directory
         """
         self.owner = owner
-        return True
 
 
     def set_path(self, path):
@@ -68,7 +64,6 @@ class Resource(item.Item):
         manage.
         """
         self.path = path
-        return True
 
 
     def set_template(self, template):
@@ -78,4 +73,3 @@ class Resource(item.Item):
         templates have access to flatten ksmeta data.
         """
         self.template = template
-        return True

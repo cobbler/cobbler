@@ -42,6 +42,14 @@ from cobbler import action_power
 from cobbler import action_log
 from cobbler import action_hardlink
 from cobbler import action_dlcontent
+from cobbler import item_distro
+from cobbler import item_file
+from cobbler import item_image
+from cobbler import item_mgmtclass
+from cobbler import item_package
+from cobbler import item_profile
+from cobbler import item_repo
+from cobbler import item_system
 from cobbler import module_loader
 from cobbler import kickgen
 from cobbler import yumgen
@@ -121,10 +129,12 @@ class CobblerAPI:
             self.deserialize()
 
             # import signatures
-            if not utils.load_signatures(self.settings().signature_path):
+            try:
+                utils.load_signatures(self.settings().signature_path)
+            except:
                 return
-            else:
-                self.log("%d breeds and %d OS versions read from the signature file" % (
+
+            self.log("%d breeds and %d OS versions read from the signature file" % (
                          len(utils.get_valid_breeds()),
                          len(utils.get_valid_os_versions())))
 
@@ -237,13 +247,6 @@ class CobblerAPI:
 
     # ==========================================================
 
-    def clear(self):
-        """
-        Forget about current list of profiles, distros, and systems
-        # FIXME: is this used anymore?
-        """
-        return self._collection_mgr.clear()
-
     def __cmp(self, a, b):
         return cmp(a.name, b.name)
 
@@ -320,37 +323,37 @@ class CobblerAPI:
         This can be called is no longer used by cobbler.
         And is here to just avoid breaking older scripts.
         """
-        return True
+        pass
 
     # ========================================================================
 
     def copy_item(self, what, ref, newname, logger=None):
         self.log("copy_item(%s)" % what, [ref.name, newname])
-        return self.get_items(what).copy(ref, newname, logger=logger)
+        self.get_items(what).copy(ref, newname, logger=logger)
 
     def copy_distro(self, ref, newname):
-        return self.copy_item("distro", ref, newname, logger=None)
+        self.copy_item("distro", ref, newname, logger=None)
 
     def copy_profile(self, ref, newname):
-        return self.copy_item("profile", ref, newname, logger=None)
+        self.copy_item("profile", ref, newname, logger=None)
 
     def copy_system(self, ref, newname):
-        return self.copy_item("system", ref, newname, logger=None)
+        self.copy_item("system", ref, newname, logger=None)
 
     def copy_repo(self, ref, newname):
-        return self.copy_item("repo", ref, newname, logger=None)
+        self.copy_item("repo", ref, newname, logger=None)
 
     def copy_image(self, ref, newname):
-        return self.copy_item("image", ref, newname, logger=None)
+        self.copy_item("image", ref, newname, logger=None)
 
     def copy_mgmtclass(self, ref, newname):
-        return self.copy_item("mgmtclass", ref, newname, logger=None)
+        self.copy_item("mgmtclass", ref, newname, logger=None)
 
     def copy_package(self, ref, newname):
-        return self.copy_item("package", ref, newname, logger=None)
+        self.copy_item("package", ref, newname, logger=None)
 
     def copy_file(self, ref, newname):
-        return self.copy_item("file", ref, newname, logger=None)
+        self.copy_item("file", ref, newname, logger=None)
 
     # ==========================================================================
 
@@ -361,61 +364,61 @@ class CobblerAPI:
                 if ref is None:
                     return      # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
-        return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
+        self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_profile(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_system(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_mgmtclass(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_package(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     def remove_file(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        return self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
     # ==========================================================================
 
     def rename_item(self, what, ref, newname, logger=None):
         self.log("rename_item(%s)" % what, [ref.name, newname])
-        return self.get_items(what).rename(ref, newname, logger=logger)
+        self.get_items(what).rename(ref, newname, logger=logger)
 
     def rename_distro(self, ref, newname, logger=None):
-        return self.rename_item("distro", ref, newname, logger=logger)
+        self.rename_item("distro", ref, newname, logger=logger)
 
     def rename_profile(self, ref, newname, logger=None):
-        return self.rename_item("profile", ref, newname, logger=logger)
+        self.rename_item("profile", ref, newname, logger=logger)
 
     def rename_system(self, ref, newname, logger=None):
-        return self.rename_item("system", ref, newname, logger=logger)
+        self.rename_item("system", ref, newname, logger=logger)
 
     def rename_repo(self, ref, newname, logger=None):
-        return self.rename_item("repo", ref, newname, logger=logger)
+        self.rename_item("repo", ref, newname, logger=logger)
 
     def rename_image(self, ref, newname, logger=None):
-        return self.rename_item("image", ref, newname, logger=logger)
+        self.rename_item("image", ref, newname, logger=logger)
 
     def rename_mgmtclass(self, ref, newname, logger=None):
-        return self.rename_item("mgmtclass", ref, newname, logger=logger)
+        self.rename_item("mgmtclass", ref, newname, logger=logger)
 
     def rename_package(self, ref, newname, logger=None):
-        return self.rename_item("package", ref, newname, logger=logger)
+        self.rename_item("package", ref, newname, logger=logger)
 
     def rename_file(self, ref, newname, logger=None):
-        return self.rename_item("file", ref, newname, logger=logger)
+        self.rename_item("file", ref, newname, logger=logger)
 
     # ==========================================================================
 
@@ -423,65 +426,65 @@ class CobblerAPI:
 
     def new_distro(self, is_subobject=False):
         self.log("new_distro", [is_subobject])
-        return self._collection_mgr.new_distro(is_subobject=is_subobject)
+        return item_distro.Distro(self._collection_mgr, is_subobject=is_subobject)
 
     def new_profile(self, is_subobject=False):
         self.log("new_profile", [is_subobject])
-        return self._collection_mgr.new_profile(is_subobject=is_subobject)
+        return item_profile.Profile(self._collection_mgr, is_subobject=is_subobject)
 
     def new_system(self, is_subobject=False):
         self.log("new_system", [is_subobject])
-        return self._collection_mgr.new_system(is_subobject=is_subobject)
+        return item_system.System(self._collection_mgr, is_subobject=is_subobject)
 
     def new_repo(self, is_subobject=False):
         self.log("new_repo", [is_subobject])
-        return self._collection_mgr.new_repo(is_subobject=is_subobject)
+        return item_repo.Repo(self._collection_mgr, is_subobject=is_subobject)
 
     def new_image(self, is_subobject=False):
         self.log("new_image", [is_subobject])
-        return self._collection_mgr.new_image(is_subobject=is_subobject)
+        return item_image.Image(self._collection_mgr, is_subobject=is_subobject)
 
     def new_mgmtclass(self, is_subobject=False):
         self.log("new_mgmtclass", [is_subobject])
-        return self._collection_mgr.new_mgmtclass(is_subobject=is_subobject)
+        return item_mgmtclass.Mgmtclass(self._collection_mgr, is_subobject=is_subobject)
 
     def new_package(self, is_subobject=False):
         self.log("new_package", [is_subobject])
-        return self._collection_mgr.new_package(is_subobject=is_subobject)
+        return item_package.Package(self._collection_mgr, is_subobject=is_subobject)
 
     def new_file(self, is_subobject=False):
         self.log("new_file", [is_subobject])
-        return self._collection_mgr.new_file(is_subobject=is_subobject)
+        return item_file.File(self._collection_mgr, is_subobject=is_subobject)
 
     # ==========================================================================
 
     def add_item(self, what, ref, check_for_duplicate_names=False, save=True, logger=None):
         self.log("add_item(%s)" % what, [ref.name])
-        return self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_profile(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True, logger=None):
-        return self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_repo(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_image(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_mgmtclass(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_package(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     def add_file(self, ref, check_for_duplicate_names=False, save=True, logger=None):
-        return self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     # ==========================================================================
 
@@ -539,13 +542,13 @@ class CobblerAPI:
                 if not collapse:
                     results2.append(x)
                 else:
-                    results2.append(x.to_datastruct())
+                    results2.append(x.to_dict())
         return results2
 
     def get_distros_since(self, mtime, collapse=False):
         """
         Returns distros modified since a certain time (in seconds since Epoch)
-        collapse=True specifies returning a hash instead of objects.
+        collapse=True specifies returning a dict instead of objects.
         """
         return self.__since(mtime, self.distros, collapse=collapse)
 
@@ -585,19 +588,19 @@ class CobblerAPI:
 
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
-            if not utils.load_signatures(tmpfile.name, cache=False):
+            try:
+                utils.load_signatures(tmpfile.name, cache=False)
+            except:
                 logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
-                return False
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
             f.write(sigjson)
             f.close()
 
-            return utils.load_signatures(self.settings().signature_path)
+            utils.load_signatures(self.settings().signature_path)
         except:
             utils.log_exc(logger)
-            return False
 
     # ==========================================================================
 
@@ -640,7 +643,6 @@ class CobblerAPI:
             self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes
-        return True
 
     # ==========================================================================
 
@@ -714,7 +716,7 @@ class CobblerAPI:
         their TFTP servers for PXE, etc.
         """
         self.log("check")
-        check = action_check.BootCheck(self._collection_mgr, logger=logger)
+        check = action_check.CobblerCheck(self._collection_mgr, logger=logger)
         return check.run()
 
     # ==========================================================================
@@ -756,7 +758,7 @@ class CobblerAPI:
         """
         self.log("sync")
         sync = self.get_sync(verbose=verbose, logger=logger)
-        return sync.run()
+        sync.run()
 
     # ==========================================================================
 
@@ -766,7 +768,7 @@ class CobblerAPI:
         """
         self.log("sync_dhcp")
         sync = self.get_sync(verbose=verbose, logger=logger)
-        return sync.sync_dhcp()
+        sync.sync_dhcp()
     # ==========================================================================
 
     def get_sync(self, verbose=False, logger=None):
@@ -786,7 +788,7 @@ class CobblerAPI:
             "in_tftpd",
         ).get_manager(self._collection_mgr, logger)
 
-        return action_sync.BootSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
+        return action_sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
 
     # ==========================================================================
 
@@ -797,12 +799,12 @@ class CobblerAPI:
         """
         self.log("reposync", [name])
         reposync = action_reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
-        return reposync.run(name)
+        reposync.run(name)
 
     # ==========================================================================
 
     def status(self, mode, logger=None):
-        statusifier = action_status.BootStatusReport(self._collection_mgr, mode, logger=logger)
+        statusifier = action_status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
         return statusifier.run()
 
     # ==========================================================================
@@ -915,7 +917,7 @@ class CobblerAPI:
         # # path tree we created above so we don't leave cruft around
         # return False
         import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._collection_mgr, logger)
-        return import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
+        import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
 
     # ==========================================================================
 
@@ -925,7 +927,7 @@ class CobblerAPI:
         Pass in only one option at a time.  Powers "cobbler aclconfig"
         """
         acl = action_acl.AclConfig(self._collection_mgr, logger)
-        return acl.run(
+        acl.run(
             adduser=adduser,
             addgroup=addgroup,
             removeuser=removeuser,
@@ -939,7 +941,7 @@ class CobblerAPI:
         Save the collections to disk.
         Cobbler internal use only.
         """
-        return self._collection_mgr.serialize()
+        self._collection_mgr.serialize()
 
     def deserialize(self):
         """
@@ -947,21 +949,6 @@ class CobblerAPI:
         Cobbler internal use only.
         """
         return self._collection_mgr.deserialize()
-
-    def deserialize_raw(self, collection_name):
-        """
-        Get the collection back just as raw data.
-        Cobbler internal use only.
-        """
-        return self._collection_mgr.deserialize_raw(collection_name)
-
-    def deserialize_item_raw(self, collection_name, obj_name):
-        """
-        Get an object back as raw data.
-        Can be very fast for shelve or catalog serializers
-        Cobbler internal use only.
-        """
-        return self._collection_mgr.deserialize_item_raw(collection_name, obj_name)
 
     # ==========================================================================
 
@@ -1022,7 +1009,7 @@ class CobblerAPI:
                   standalone=None, source=None,
                   exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._collection_mgr, logger=logger)
-        return builder.run(
+        builder.run(
             iso=iso,
             profiles=profiles, systems=systems,
             buildisodir=buildisodir, distro=distro,
@@ -1082,13 +1069,13 @@ class CobblerAPI:
         """
         Powers up a system that has power management configured.
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
 
     def power_off(self, system, user=None, password=None, logger=None):
         """
         Powers down a system that has power management configured.
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
 
     def reboot(self, system, user=None, password=None, logger=None):
         """
@@ -1096,7 +1083,7 @@ class CobblerAPI:
         """
         self.power_off(system, user, password, logger=logger)
         time.sleep(5)
-        return self.power_on(system, user, password, logger=logger)
+        self.power_on(system, user, password, logger=logger)
 
     def power_status(self, system, user=None, password=None, logger=None):
         """
@@ -1104,7 +1091,7 @@ class CobblerAPI:
 
         @return: 0  the system is powered on, False if it's not or None on error
         """
-        return action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
+        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
 
     # ==========================================================================
 
@@ -1112,7 +1099,7 @@ class CobblerAPI:
         """
         Clears console and anamon logs for system
         """
-        return action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
+        action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)

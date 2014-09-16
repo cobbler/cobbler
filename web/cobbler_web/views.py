@@ -157,8 +157,8 @@ def get_fields(what, is_subobject, seed_item=None):
             key = elem["value"].replace("SETTINGS:", "", 1)
             elem["value"] = settings[key]
 
-        # flatten hashes of all types, they can only be edited as text
-        # as we have no HTML hash widget (yet)
+        # flatten dicts of all types, they can only be edited as text
+        # as we have no HTML dict widget (yet)
         if isinstance(elem["value"], dict):
             if elem["name"] == "mgmt_parameters":
                 # Render dictionary as YAML for Management Parameters field
@@ -261,7 +261,7 @@ def __format_items(items, column_names):
     Format items retrieved from XMLRPC for rendering by the generic_edit template
     """
     dataset = []
-    for itemhash in items:
+    for item_dict in items:
         row = []
         for fieldname in column_names:
             if fieldname == "name":
@@ -272,7 +272,7 @@ def __format_items(items, column_names):
                 html_element = "checkbox"
             else:
                 html_element = "text"
-            row.append([fieldname, itemhash[fieldname], html_element])
+            row.append([fieldname, item_dict[fieldname], html_element])
         dataset.append(row)
     return dataset
 
@@ -1056,15 +1056,16 @@ def replicate(request):
 # ======================================================================
 
 
-def __names_from_dicts(loh, optional=True):
+def __names_from_dicts(lod, optional=True):
     """
     Tiny helper function.
-    Get the names out of an array of hashes that the remote interface returns.
+    Get the names out of an array of dictionaries that the remote interface
+    returns.
     """
     results = []
     if optional:
         results.append("<<None>>")
-    for x in loh:
+    for x in lod:
         results.append(x["name"])
     results.sort()
     return results

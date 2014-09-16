@@ -89,9 +89,9 @@ class Profile(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
+        _dict = self.to_dict()
         cloned = Profile(self.collection_mgr)
-        cloned.from_datastruct(ds)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -135,7 +135,7 @@ class Profile(item.Item):
         Instead of a --distro, set the parent of this object to another profile
         and use the values from the parent instead of this one where the values
         for this profile aren't filled in, and blend them together where they
-        are hashes.  Basically this enables profile inheritance.  To use this,
+        are dictionaries.  Basically this enables profile inheritance.  To use this,
         the object MUST have been constructed with is_subobject=True or the
         default values for everything will be screwed up and this will likely NOT
         work.  So, API users -- make sure you pass is_subobject=True into the
@@ -146,7 +146,7 @@ class Profile(item.Item):
             old_parent.children.pop(self.name, 'pass')
         if parent_name is None or parent_name == '':
             self.parent = ''
-            return True
+            return
         if parent_name == self.name:
             # check must be done in two places as set_parent could be called before/after
             # set_name...
@@ -159,7 +159,6 @@ class Profile(item.Item):
         parent = self.get_parent()
         if isinstance(parent, item.Item):
             parent.children[self.name] = self
-        return True
 
 
     def set_distro(self, distro_name):
@@ -175,7 +174,7 @@ class Profile(item.Item):
             self.distro = distro_name
             self.depth = d.depth + 1    # reset depth if previously a subprofile and now top-level
             d.children[self.name] = self
-            return True
+            return
         raise CX(_("distribution not found"))
 
 
@@ -187,8 +186,6 @@ class Profile(item.Item):
         @returns: True or CX
         """
         self.name_servers = validate.name_servers(data)
-        return True
-
 
     def set_name_servers_search(self, data):
         """
@@ -198,21 +195,15 @@ class Profile(item.Item):
         @returns: True or CX
         """
         self.name_servers_search = validate.name_servers_search(data)
-        return True
-
 
     def set_proxy(self, proxy):
         self.proxy = proxy
-        return True
-
 
     def set_enable_gpxe(self, enable_gpxe):
         """
         Sets whether or not the profile will use gPXE for booting.
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
-        return True
-
 
     def set_enable_menu(self, enable_menu):
         """
@@ -220,30 +211,22 @@ class Profile(item.Item):
         PXE boot menu.  This is pretty forgiving for YAML's sake.
         """
         self.enable_menu = utils.input_boolean(enable_menu)
-        return True
-
 
     def set_dhcp_tag(self, dhcp_tag):
         if dhcp_tag is None:
             dhcp_tag = ""
         self.dhcp_tag = dhcp_tag
-        return True
-
 
     def set_server(self, server):
         if server in [None, ""]:
             server = "<<inherit>>"
         self.server = server
-        return True
-
 
     def set_next_server(self, server):
         if server in [None, ""]:
             self.next_server = "<<inherit>>"
         else:
             self.next_server = validate.ipv4_address(server)
-        return True
-
 
     def set_kickstart(self, kickstart):
         """
@@ -253,42 +236,40 @@ class Profile(item.Item):
         @returns: True or CX
         """
         self.kickstart = validate.kickstart_file_path(kickstart)
-        return True
-
 
     def set_virt_auto_boot(self, num):
-        return utils.set_virt_auto_boot(self, num)
+        utils.set_virt_auto_boot(self, num)
 
 
     def set_virt_cpus(self, num):
-        return utils.set_virt_cpus(self, num)
+        utils.set_virt_cpus(self, num)
 
 
     def set_virt_file_size(self, num):
-        return utils.set_virt_file_size(self, num)
+        utils.set_virt_file_size(self, num)
 
 
     def set_virt_disk_driver(self, driver):
-        return utils.set_virt_disk_driver(self, driver)
+        utils.set_virt_disk_driver(self, driver)
 
 
     def set_virt_ram(self, num):
-        return utils.set_virt_ram(self, num)
+        utils.set_virt_ram(self, num)
 
 
     def set_virt_type(self, vtype):
-        return utils.set_virt_type(self, vtype)
+        utils.set_virt_type(self, vtype)
 
 
     def set_virt_bridge(self, vbridge):
-        return utils.set_virt_bridge(self, vbridge)
+        utils.set_virt_bridge(self, vbridge)
 
 
     def set_virt_path(self, path):
-        return utils.set_virt_path(self, path)
+        utils.set_virt_path(self, path)
 
 
     def set_repos(self, repos, bypass_check=False):
-        return utils.set_repos(self, repos, bypass_check)
+        utils.set_repos(self, repos, bypass_check)
 
 # EOF
