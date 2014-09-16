@@ -817,6 +817,9 @@ class CobblerXMLRPCInterface:
 
         @param str path  kickstart template file path
         """
+        if path == "<<inherit>>":
+            return
+
         if path.find("..") != -1 or not path.startswith("/"):
             utils.die(self.logger, "Invalid kickstart template file location %s" % path)
 
