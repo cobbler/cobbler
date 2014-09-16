@@ -196,3 +196,4 @@ def __depth_cmp(item1, item2):
     d2 = item2.get("depth", 1)
     return cmp(d1, d2)
 
+# EOF

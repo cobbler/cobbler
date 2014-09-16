@@ -82,3 +82,4 @@ class ContentDownloader:
             self.logger.info("downloading %s to %s" % (src, dst))
             urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
 
+# EOF
