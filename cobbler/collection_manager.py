@@ -25,15 +25,6 @@ import time
 import random
 import binascii
 
-import item_distro as distro
-import item_profile as profile
-import item_system as system
-import item_repo as repo
-import item_image as image
-import item_mgmtclass as mgmtclass
-import item_package as package
-import item_file as file
-
 import collection_distros as distros
 import collection_profiles as profiles
 import collection_systems as systems
