@@ -344,7 +344,7 @@ class Collection:
 
         # failure of a pre trigger will prevent the object from being added
         if save and with_triggers:
-            utils.run_triggers(self.api, ref,"/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
+            utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/pre/*" % self.collection_type())
 
         self.lock.acquire()
         try:

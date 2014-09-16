@@ -123,3 +123,4 @@ class PowerTool:
             utils.die(self.logger, error_msg)
             raise CX(error_msg)
 
+# EOF

@@ -135,8 +135,8 @@ class CobblerAPI:
                 return
 
             self.log("%d breeds and %d OS versions read from the signature file" % (
-                         len(utils.get_valid_breeds()),
-                         len(utils.get_valid_os_versions())))
+                len(utils.get_valid_breeds()), len(utils.get_valid_os_versions()))
+            )
 
             self.authn = self.get_module_from_file(
                 "authentication",
