@@ -33,13 +33,13 @@ OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "packa
 
 class Replicate:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
-        self.api = config.api
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
+        self.api = collection_mgr.api
         self.remote = None
         self.uri = None
         if logger is None:

@@ -60,7 +60,7 @@ def __grab_lock():
 
 def __release_lock(with_changes=False):
     if with_changes:
-        # this file is used to know when the last config change
+        # this file is used to know the time of last modification on collections
         # was made -- allowing the API to work more smoothly without
         # a lot of unneccessary reloads.
         fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)

@@ -42,7 +42,7 @@ class InTftpdManager:
     def what(self):
         return "in_tftpd"
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
@@ -50,11 +50,11 @@ class InTftpdManager:
         if self.logger is None:
             self.logger = clogger.Logger()
 
-        self.config = config
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.templar = templar.Templar(collection_mgr)
         self.settings_file = "/etc/xinetd.d/tftp"
-        self.tftpgen = tftpgen.TFTPGen(config, self.logger)
-        self.systems = config.systems()
+        self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
+        self.systems = collection_mgr.systems()
         self.bootloc = utils.tftpboot_location()
 
     def regen_hosts(self):
@@ -67,7 +67,7 @@ class InTftpdManager:
         # collapse the object down to a rendered datastructure
         # the second argument set to false means we don't collapse
         # hashes/arrays into a flat string
-        target = utils.blender(self.config.api, False, distro)
+        target = utils.blender(self.collection_mgr.api, False, distro)
 
         # Create metadata for the templar function
         # Right now, just using local_img_path, but adding more
@@ -75,7 +75,7 @@ class InTftpdManager:
         metadata = {}
         metadata["local_img_path"] = os.path.join(utils.tftpboot_location(), "images", distro.name)
         # Create the templar instance.  Used to template the target directory
-        templater = templar.Templar(self.config)
+        templater = templar.Templar(self.collection_mgr)
 
         # Loop through the hash of boot files,
         # executing a cp for each one
@@ -95,7 +95,7 @@ class InTftpdManager:
                         filedst = os.path.join(rnd_path, tgt_file)
                     if not os.path.isfile(filedst):
                         shutil.copyfile(f, filedst)
-                    self.config.api.log("copied file %s to %s for %s" % (f, filedst, distro.name))
+                    self.collection_mgr.api.log("copied file %s to %s for %s" % (f, filedst, distro.name))
             except:
                 self.logger.error("failed to copy file %s to %s for %s" % (f, filedst, distro.name))
 
@@ -106,7 +106,7 @@ class InTftpdManager:
         Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
         currently.
         """
-        for distro in self.config.distros():
+        for distro in self.collection_mgr.distros():
             self.write_boot_files_distro(distro)
 
         return 0
@@ -173,7 +173,7 @@ class InTftpdManager:
         # Adding in the exception handling to not blow up if files have
         # been moved (or the path references an NFS directory that's no longer
         # mounted)
-        for d in self.config.distros():
+        for d in self.collection_mgr.distros():
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
@@ -193,5 +193,5 @@ class InTftpdManager:
         self.tftpgen.make_pxe_menu()
 
 
-def get_manager(config, logger):
-    return InTftpdManager(config, logger)
+def get_manager(collection_mgr, logger):
+    return InTftpdManager(collection_mgr, logger)

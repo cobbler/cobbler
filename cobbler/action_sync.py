@@ -39,7 +39,7 @@ class BootSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, config, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
+    def __init__(self, collection_mgr, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
         """
         Constructor
         """
@@ -48,15 +48,15 @@ class BootSync:
             self.logger = clogger.Logger()
 
         self.verbose = verbose
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config, self.logger)
-        self.tftpgen = tftpgen.TFTPGen(config, self.logger)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
@@ -87,11 +87,11 @@ class BootSync:
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
-        self.distros = self.config.distros()
-        self.profiles = self.config.profiles()
-        self.systems = self.config.systems()
-        self.settings = self.config.settings()
-        self.repos = self.config.repos()
+        self.distros = self.collection_mgr.distros()
+        self.profiles = self.collection_mgr.profiles()
+        self.systems = self.collection_mgr.systems()
+        self.settings = self.collection_mgr.settings()
+        self.repos = self.collection_mgr.repos()
 
         # execute the core of the sync operation
         self.logger.info("cleaning trees")

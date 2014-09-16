@@ -1,6 +1,6 @@
 """
-Serializer code for cobbler.
-Experimental:  mongodb version
+Cobbler's Mongo database based object serializer.
+Experimental version.
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>

@@ -1,5 +1,5 @@
 """
-Config.py is a repository of the Cobbler object model
+Repository of the Cobbler object model
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -49,7 +49,7 @@ import serializer
 from cexceptions import CX
 
 
-class Config:
+class CollectionManager:
 
     has_loaded = False
     __shared_state = {}
@@ -60,13 +60,13 @@ class Config:
         Constructor.  Manages a definitive copy of all data collections with weakrefs
         pointing back into the class so they can understand each other's contents
         """
-        self.__dict__ = Config.__shared_state
-        if not Config.has_loaded:
+        self.__dict__ = CollectionManager.__shared_state
+        if not CollectionManager.has_loaded:
             self.__load(api)
 
 
     def __load(self, api):
-        Config.has_loaded = True
+        CollectionManager.has_loaded = True
 
         self.init_time = time.time()
         self.current_id = 0
@@ -198,7 +198,7 @@ class Config:
 
     def clear(self):
         """
-        Forget about all loaded configuration data
+        Forget about all loaded collections
         """
         self._distros.clear(),
         self._repos.clear(),

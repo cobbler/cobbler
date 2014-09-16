@@ -36,12 +36,12 @@ STATE = 5
 
 class BootStatusReport:
 
-    def __init__(self, config, mode, logger=None):
+    def __init__(self, collection_mgr, mode, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         self.ip_data = {}
         self.mode = mode
         if logger is None:

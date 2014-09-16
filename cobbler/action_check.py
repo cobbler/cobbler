@@ -32,12 +32,12 @@ class BootCheck:
     serving up content.  This is the code behind 'cobbler check'.
     """
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
@@ -54,7 +54,7 @@ class BootCheck:
         self.check_name(status)
         self.check_selinux(status)
         if self.settings.manage_dhcp:
-            mode = self.config.api.get_sync().dhcp.what()
+            mode = self.collection_mgr.api.get_sync().dhcp.what()
             if mode == "isc":
                 self.check_dhcpd_bin(status)
                 self.check_dhcpd_conf(status)
@@ -64,7 +64,7 @@ class BootCheck:
                 self.check_service(status, "dnsmasq")
 
         if self.settings.manage_dns:
-            mode = self.config.api.get_sync().dns.what()
+            mode = self.collection_mgr.api.get_sync().dns.what()
             if mode == "bind":
                 self.check_bind_bin(status)
                 self.check_service(status, "named")
@@ -72,7 +72,7 @@ class BootCheck:
                 self.check_dnsmasq_bin(status)
                 self.check_service(status, "dnsmasq")
 
-        mode = self.config.api.get_sync().tftpd.what()
+        mode = self.collection_mgr.api.get_sync().tftpd.what()
         if mode == "in_tftpd":
             self.check_tftpd_bin(status)
             self.check_tftpd_dir(status)
@@ -199,7 +199,7 @@ class BootCheck:
         if self.checked_family == "debian":
             return
 
-        enabled = self.config.api.is_selinux_enabled()
+        enabled = self.collection_mgr.api.is_selinux_enabled()
         if enabled:
             status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
 
@@ -213,9 +213,9 @@ class BootCheck:
         repos = []
         referenced = []
         not_found = []
-        for r in self.config.api.repos():
+        for r in self.collection_mgr.api.repos():
             repos.append(r.name)
-        for p in self.config.api.profiles():
+        for p in self.collection_mgr.api.profiles():
             my_repos = p.repos
             if my_repos != "<<inherit>>":
                 referenced.extend(my_repos)
@@ -228,7 +228,7 @@ class BootCheck:
 
     def check_for_unsynced_repos(self, status):
         need_sync = []
-        for r in self.config.repos():
+        for r in self.collection_mgr.repos():
             if r.mirror_locally == 1:
                 lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
                 if not os.path.exists(lookfor):

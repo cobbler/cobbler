@@ -1339,7 +1339,7 @@ def set_repos(self, repos, bypass_check=False):
         return True
 
     for r in self.repos:
-        if self.config.repos().find(name=r) is None:
+        if self.collection_mgr.repos().find(name=r) is None:
             raise CX(_("repo %s is not defined") % r)
 
     return True

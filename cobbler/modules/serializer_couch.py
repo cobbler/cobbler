@@ -1,6 +1,6 @@
 """
-Serializer code for cobbler.
-Experimental:  couchdb version
+Cobbler's Couch database based object serializer.
+Experimental version.
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>

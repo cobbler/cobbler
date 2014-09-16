@@ -43,13 +43,13 @@ class Collection:
     Base class for any serializable list of things.
     """
 
-    def __init__(self, config):
+    def __init__(self, collection_mgr):
         """
         Constructor.
         """
-        self.config = config
+        self.collection_mgr = collection_mgr
         self.clear()
-        self.api = self.config.api
+        self.api = self.collection_mgr.api
         self.lite_sync = None
         self.lock = Lock()
 
@@ -69,7 +69,7 @@ class Collection:
         return len(self.listing.values())
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, collection_mgr, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
         from datastructure seed_data
@@ -195,13 +195,13 @@ class Collection:
         if datastruct is None:
             return
         for seed_data in datastruct:
-            item = self.factory_produce(self.config, seed_data)
+            item = self.factory_produce(self.collection_mgr, seed_data)
             self.add(item)
 
 
     def copy(self, ref, newname, logger=None):
         ref = ref.make_clone()
-        ref.uid = self.config.generate_uid()
+        ref.uid = self.collection_mgr.generate_uid()
         ref.ctime = 0
         ref.set_name(newname)
         if ref.COLLECTION_TYPE == "system":
@@ -270,7 +270,7 @@ class Collection:
                     if d.kernel.find(path) == 0:
                         d.set_kernel(d.kernel.replace(path, newpath))
                         d.set_initrd(d.initrd.replace(path, newpath))
-                        self.config.serialize_item(self, d)
+                        self.collection_mgr.serialize_item(self, d)
 
         # now descend to any direct ancestors and point them at the new object allowing
         # the original object to be removed without orphanage.  Direct ancestors
@@ -325,7 +325,7 @@ class Collection:
             return False
 
         if ref.uid == '':
-            ref.uid = self.config.generate_uid()
+            ref.uid = self.collection_mgr.generate_uid()
 
         if save is True:
             now = time.time()
@@ -334,7 +334,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = action_litesync.BootLiteSync(self.config, logger=logger)
+            self.lite_sync = action_litesync.BootLiteSync(self.collection_mgr, logger=logger)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
@@ -374,7 +374,7 @@ class Collection:
 
             # save just this item if possible, if not, save
             # the whole collection
-            self.config.serialize_item(self, ref)
+            self.collection_mgr.serialize_item(self, ref)
 
             if with_sync:
                 if isinstance(ref, item_system.System):
@@ -485,7 +485,8 @@ class Collection:
         """
         Creates a printable representation of the collection suitable
         for reading by humans or parsing from scripts.  Actually scripts
-        would be better off reading the YAML in the config files directly.
+        would be better off reading the JSON in the collections files
+        directly.
         """
         values = self.listing.values()[:]   # copy the values
         values.sort()                       # sort the copy (2.3 fix)

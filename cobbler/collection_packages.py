@@ -35,11 +35,11 @@ class Packages(collection.Collection):
         return "package"
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, collection_mgr, seed_data):
         """
         Return a Package forged from seed_data
         """
-        return package.Package(config).from_datastruct(seed_data)
+        return package.Package(collection_mgr).from_datastruct(seed_data)
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
@@ -51,19 +51,19 @@ class Packages(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/package/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/package/*", [], logger)
 
             self.lock.acquire()
             try:
                 del self.listing[name]
             finally:
                 self.lock.release()
-            self.config.serialize_delete(self, obj)
+            self.collection_mgr.serialize_delete(self, obj)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/package/post/*", [], logger)
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/package/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
             return True
 

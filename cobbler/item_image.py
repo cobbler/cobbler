@@ -71,7 +71,7 @@ class Image(item.Item):
 
     def make_clone(self):
         ds = self.to_datastruct()
-        cloned = Image(self.config)
+        cloned = Image(self.collection_mgr)
         cloned.from_datastruct(ds)
         return cloned
 

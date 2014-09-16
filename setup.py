@@ -464,7 +464,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'config'), libpath)
+        self._copy(os.path.join(self.statepath, 'collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -496,7 +496,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'config'), self.statepath)
+        self._copy(os.path.join(libpath, 'collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -625,7 +625,7 @@ if __name__ == "__main__":
                               "build/config/cobblerd",
                               "build/config/cobblerd.service",
                               "build/config/settings"]),
-            ("%ssettings.d" % etcpath, glob("config/settings.d/*")),
+            ("%ssettings" % etcpath, glob("collections/settings/*")),
             ("%s" % etcpath, ["config/auth.conf",
                               "config/cheetah_macros",
                               "config/cobbler_bash",
@@ -680,15 +680,15 @@ if __name__ == "__main__":
             ("%striggers/sync/post" % libpath, []),
             ("%striggers/change" % libpath, []),
             # Build empty directories to hold the database
-            ("%sconfig" % libpath, []),
-            ("%sconfig/distros.d" % libpath, []),
-            ("%sconfig/images.d" % libpath, []),
-            ("%sconfig/profiles.d" % libpath, []),
-            ("%sconfig/repos.d" % libpath, []),
-            ("%sconfig/systems.d" % libpath, []),
-            ("%sconfig/mgmtclasses.d" % libpath, []),
-            ("%sconfig/packages.d" % libpath, []),
-            ("%sconfig/files.d" % libpath, []),
+            ("%scollections" % libpath, []),
+            ("%scollections/distros" % libpath, []),
+            ("%scollections/images" % libpath, []),
+            ("%scollections/profiles" % libpath, []),
+            ("%scollections/repos" % libpath, []),
+            ("%scollections/systems" % libpath, []),
+            ("%scollections/mgmtclasses" % libpath, []),
+            ("%scollections/packages" % libpath, []),
+            ("%scollections/files" % libpath, []),
             # Build empty directories to hold koan localconfig
             ("/var/lib/koan/config", []),
             # logfiles
