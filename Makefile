@@ -88,16 +88,13 @@ webtest: devinstall
 # Check if we are on Red Hat, Suse or Debian based distribution
 restartservices:
 	if [ -x /sbin/service ] ; then \
-		# Red Hat-based or Suse-based
 		/sbin/service cobblerd restart; \
-	    if [ -f /etc/init.d/httpd ] ; then \
-			# Red Hat-based
+		if [ -f /etc/init.d/httpd ] ; then \
 			/sbin/service httpd restart; \
 		else \
-			# Suse-based
 			/sbin/service apache2 restart; \
+		fi \
 	else \
-		# Debian / Ubuntu
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \
 	fi
