@@ -129,9 +129,6 @@ restorestate:
 	fi
 	rm -rf $(statepath)
 
-completion:
-	python mkbash.py
-
 webtest: devinstall
 	make clean
 	make devinstall
