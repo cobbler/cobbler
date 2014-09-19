@@ -645,12 +645,10 @@ def ksfile_list(request, page=None):
    ksfiles = remote.get_kickstart_templates(request.session['token'])
 
    ksfile_list = []
-   base_dir = "/var/lib/cobbler/kickstarts/"
    for ksfile in ksfiles:
-       if ksfile.startswith(base_dir):
-           ksfile_list.append((ksfile, ksfile.replace(base_dir, ''), 'editable'))
-       else:
-           return error_page(request, "Invalid kickstart template at %s, outside %s" % (ksfile, base_dir))
+       # filter out non-editable, but valid, values
+       if ksfile not in ["", "<<inherit>>"]:
+           ksfile_list.append((ksfile, ksfile, 'editable'))
 
    t = get_template('ksfile_list.tmpl')
    html = t.render(RequestContext(request,{
