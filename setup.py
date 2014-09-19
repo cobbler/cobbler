@@ -625,7 +625,7 @@ if __name__ == "__main__":
                               "build/config/cobblerd",
                               "build/config/cobblerd.service",
                               "build/config/settings"]),
-            ("%ssettings" % etcpath, glob("collections/settings/*")),
+            ("%ssettings.d" % etcpath, glob("config/settings.d/*")),
             ("%s" % etcpath, ["config/auth.conf",
                               "config/cheetah_macros",
                               "config/cobbler_bash",
