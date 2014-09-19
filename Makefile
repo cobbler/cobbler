@@ -55,7 +55,6 @@ devinstall:
 savestate:
 	python setup.py -v savestate --root $(DESTDIR); \
 
-
 # Check if we are on Red Hat, Suse or Debian based distribution
 restorestate:
 	python setup.py -v restorestate --root $(DESTDIR); \
@@ -86,21 +85,22 @@ webtest: devinstall
 	make restartservices
 
 # Check if we are on Red Hat, Suse or Debian based distribution
-restartservices:
+restartservces:
 	if [ -x /sbin/service ] ; then \
-		# Red Hat-based or Suse-based
-		/sbin/service cobblerd restart; \
+            # Red Hat-based or Suse-based
+	    /sbin/service cobblerd restart; \
 	    if [ -f /etc/init.d/httpd ] ; then \
-			# Red Hat-based
-			/sbin/service httpd restart; \
-		else \
-			# Suse-based
-			/sbin/service apache2 restart; \
-	else \
-		# Debian / Ubuntu
-		/usr/sbin/service cobblerd restart; \
-		/usr/sbin/service apache2 restart; \
-	fi
+		# Red Hat-based
+		/sbin/service httpd restart; \
+	    else \
+		# Suse-based
+		/sbin/service apache2 restart; \
+	    fi \
+	else 
+	    # Debian / Ubuntu
+	    /usr/sbin/service cobblerd restart; \
+	    /usr/sbin/service apache2 restart; \
+	f
 
 sdist: clean
 	python setup.py sdist
