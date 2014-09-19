@@ -817,7 +817,7 @@ class CobblerXMLRPCInterface:
 
         @param str path  kickstart template file path
         """
-        if path == "<<inherit>>":
+        if path in ["", "<<inherit>>"]:
             return
 
         if path.find("..") != -1 or not path.startswith("/"):
