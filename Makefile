@@ -165,17 +165,14 @@ rpms: release
 	-ba cobbler.spec
 
 eraseconfig:
-	-rm /var/lib/cobbler/distros*
-	-rm /var/lib/cobbler/profiles*
-	-rm /var/lib/cobbler/systems*
-	-rm /var/lib/cobbler/repos*
-	-rm /var/lib/cobbler/networks*
-	-rm /var/lib/cobbler/config/distros.d/*
-	-rm /var/lib/cobbler/config/images.d/*
-	-rm /var/lib/cobbler/config/profiles.d/*
-	-rm /var/lib/cobbler/config/systems.d/*
-	-rm /var/lib/cobbler/config/repos.d/*
-	-rm /var/lib/cobbler/config/networks.d/*
+	-rm /var/lib/cobbler/collections/distros/*
+	-rm /var/lib/cobbler/collections/images/*
+	-rm /var/lib/cobbler/collections/profiles/*
+	-rm /var/lib/cobbler/collections/systems/*
+	-rm /var/lib/cobbler/collections/repos/*
+	-rm /var/lib/cobbler/collections/mgmtclasses/*
+	-rm /var/lib/cobbler/collections/files/*
+	-rm /var/lib/cobbler/collections/packages/*
 
 .PHONY: tags
 tags: 
