@@ -588,8 +588,8 @@ if __name__ == "__main__":
         },
         configure_files=[
             "config/settings",
-            "config/cobbler.conf",
-            "config/cobbler_web.conf",
+            "config/apache/cobbler.conf",
+            "config/apache/cobbler_web.conf",
             "config/cobblerd.service",
             "config/cobblerd"
         ],
@@ -601,8 +601,8 @@ if __name__ == "__main__":
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
-            ("%s" % webconfig, ["build/config/cobbler.conf"]),
-            ("%s" % webconfig, ["build/config/cobbler_web.conf"]),
+            ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
+            ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s" % initpath, ["build/config/cobblerd"]),
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
             ("%skickstarts" % libpath, glob("kickstarts/*")),
@@ -620,8 +620,8 @@ if __name__ == "__main__":
             ("%sloaders" % libpath, []),
             ("%scobbler/aux" % webroot, glob("aux/*")),
             # Configuration
-            ("%s" % etcpath, ["build/config/cobbler.conf",
-                              "build/config/cobbler_web.conf",
+            ("%s" % etcpath, ["build/config/apache/cobbler.conf",
+                              "build/config/apache/cobbler_web.conf",
                               "build/config/cobblerd",
                               "build/config/cobblerd.service",
                               "build/config/settings"]),
