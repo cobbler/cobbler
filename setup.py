@@ -629,7 +629,7 @@ if __name__ == "__main__":
             ("%s" % etcpath, ["config/auth.conf",
                               "config/cheetah_macros",
                               "config/cobbler_bash",
-                              "config/cobblerd_rotate",
+                              "config/rotate/cobblerd_rotate",
                               "config/distro_signatures.json",
                               "config/import_rsync_whitelist",
                               "config/modules.conf",
