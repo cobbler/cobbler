@@ -22,15 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import clogger
-import time
 import re
+import time
+from types import StringType
 
-import utils
 from cexceptions import CX
 import templar
-
+import utils
 from utils import _
-from types import StringType
 
 
 def register():

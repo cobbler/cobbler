@@ -21,11 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os.path
 import glob
 
-from cobbler import utils
+from cobbler import action_litesync
 from cobbler import collection
 from cobbler import item_distro as distro
-from cobbler import action_litesync
-
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 

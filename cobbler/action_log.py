@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
+import glob
 import os
 import os.path
+
 import clogger
-import glob
 
 
 class LogTool:

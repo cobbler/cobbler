@@ -23,11 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import shutil
 import re
+import shutil
 
-import utils
 import clogger
+import utils
 
 
 class BuildIso:

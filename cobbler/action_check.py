@@ -18,12 +18,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 import re
-import utils
-import glob
-from utils import _
+
 import clogger
+import utils
+from utils import _
 
 
 class CobblerCheck:

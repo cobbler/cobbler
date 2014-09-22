@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys
-import xmlrpclib
-import traceback
-import optparse
 import exceptions
-import time
+import optparse
 import os
+import sys
+import time
+import traceback
+import xmlrpclib
 
-from cobbler import utils
+from cobbler import field_info
 from cobbler import item_distro
 from cobbler import item_profile
 from cobbler import item_system
@@ -38,7 +38,7 @@ from cobbler import item_mgmtclass
 from cobbler import item_package
 from cobbler import item_file
 from cobbler import settings
-from cobbler import field_info
+from cobbler import utils
 
 
 OBJECT_ACTIONS_MAP = {

@@ -21,17 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
 import glob
+import os
 import time
-import utils
+
 from cexceptions import CX
+import clogger
+import cobbler.module_loader as module_loader
 import templar
 import tftpgen
-import clogger
+import utils
 from utils import _
-import cobbler.module_loader as module_loader
 
 
 class CobblerSync:

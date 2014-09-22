@@ -11,15 +11,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-import pprint
-import fnmatch
 import exceptions
+import fnmatch
+import pprint
 
 from cobbler import utils
 from cobbler import validate
-
-from cobbler.utils import _
 from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 class Item(object):

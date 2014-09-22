@@ -22,24 +22,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import distutils.sysconfig
-import sys
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
 import ConfigParser
-import yaml
+import distutils.sysconfig
 
 pymongo_loaded = False
-
 try:
     from pymongo import Connection
     pymongo_loaded = True
 except:
     # FIXME: log message
     pass
+
+import sys
+import yaml
+
+plib = distutils.sysconfig.get_python_lib()
+mod_path = "%s/cobbler" % plib
+sys.path.insert(0, mod_path)
+
 from cexceptions import CX
 
 cp = ConfigParser.ConfigParser()

@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
-import xmlrpclib
-import utils
-import clogger
 import fnmatch
+import os
+import xmlrpclib
+
+import clogger
+import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 

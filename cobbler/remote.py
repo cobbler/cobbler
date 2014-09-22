@@ -18,33 +18,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import time
-import os
-import errno
-import random
-import stat
-import string
-import SimpleXMLRPCServer
-from SocketServer import ThreadingMixIn
 import base64
+import errno
 import fcntl
 import glob
+import os
+import random
+import SimpleXMLRPCServer
+from SocketServer import ThreadingMixIn
+import stat
+import string
 from threading import Thread
+import time
 
-from cobbler import validate
-from cobbler import utils
+from cobbler import clogger
+from cobbler import configgen
 from cobbler import item_distro
-from cobbler import item_profile
-from cobbler import item_system
-from cobbler import item_repo
+from cobbler import item_file
 from cobbler import item_image
 from cobbler import item_mgmtclass
 from cobbler import item_package
-from cobbler import item_file
-from cobbler import clogger
+from cobbler import item_profile
+from cobbler import item_repo
+from cobbler import item_system
 from cobbler import tftpgen
-from cobbler import configgen
-
+from cobbler import utils
+from cobbler import validate
 from cobbler.cexceptions import CX
 
 

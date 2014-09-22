@@ -1,26 +1,25 @@
-from django.template.loader import get_template
-from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.views.decorators.http import require_POST
+from django.template import RequestContext
+from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
-
-import xmlrpclib
-import time
+from django.views.decorators.http import require_POST
 import simplejson
 import string
+import time
+import xmlrpclib
 
+import cobbler.field_info as field_info
 import cobbler.item_distro as item_distro
-import cobbler.item_profile as item_profile
-import cobbler.item_system as item_system
-import cobbler.item_repo as item_repo
+import cobbler.item_file as item_file
 import cobbler.item_image as item_image
 import cobbler.item_mgmtclass as item_mgmtclass
 import cobbler.item_package as item_package
-import cobbler.item_file as item_file
+import cobbler.item_profile as item_profile
+import cobbler.item_repo as item_repo
+import cobbler.item_system as item_system
 import cobbler.settings as item_settings
-import cobbler.field_info as field_info
 import cobbler.utils as utils
 
 url_cobbler_api = None
