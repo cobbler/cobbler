@@ -20,24 +20,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import weakref
-import time
-import random
 import binascii
+import random
+import time
+import weakref
 
+from cexceptions import CX
 import collection_distros as distros
-import collection_profiles as profiles
-import collection_systems as systems
-import collection_repos as repos
+import collection_files as files
 import collection_images as images
 import collection_mgmtclasses as mgmtclasses
 import collection_packages as packages
-import collection_files as files
-
+import collection_profiles as profiles
+import collection_repos as repos
+import collection_systems as systems
 import settings
 import serializer
-
-from cexceptions import CX
 
 
 class CollectionManager:

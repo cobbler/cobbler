@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 
-from cobbler import utils
-from cobbler.utils import _
 from cobbler import item
+from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new

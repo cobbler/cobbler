@@ -16,6 +16,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import distutils.sysconfig
 import sys
+
 from cobbler import utils
 
 plib = distutils.sysconfig.get_python_lib()

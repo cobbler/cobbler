@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import distutils.sysconfig
-import sys
 import os
+import sys
 from utils import md5
 
 plib = distutils.sysconfig.get_python_lib()

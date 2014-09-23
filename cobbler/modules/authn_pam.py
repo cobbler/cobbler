@@ -36,6 +36,9 @@ a user against the Pluggable Authentication Modules (PAM) on the system.
 Implemented using ctypes, so no compilation is necessary.
 """
 
+from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
+from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int
+from ctypes.util import find_library
 import distutils.sysconfig
 import sys
 
@@ -43,9 +46,6 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
-from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int
-from ctypes.util import find_library
 
 LIBPAM = CDLL(find_library("pam"))
 LIBC = CDLL(find_library("c"))

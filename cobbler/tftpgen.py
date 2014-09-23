@@ -21,17 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 import os.path
-import shutil
-import glob
-import string
-import socket
 import re
+import shutil
+import socket
+import string
 
-import utils
 from cexceptions import CX
 import templar
+import utils
 
 
 class TFTPGen:

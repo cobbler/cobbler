@@ -24,13 +24,14 @@ mgmtclasses, resources, and templates for a given system (hostname)
 """
 
 from Cheetah.Template import Template
-from cexceptions import CX
-import cobbler.utils
-import cobbler.api as capi
 import simplejson as json
 import string
-import utils
+
+from cexceptions import CX
 import clogger
+import cobbler.api as capi
+import cobbler.utils
+import utils
 
 
 class ConfigGen:

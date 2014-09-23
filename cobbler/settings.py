@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
+import os.path
+import re
+
 import utils
 from utils import _
-
-import os.path
-import glob
-import re
 
 TESTMODE = False
 

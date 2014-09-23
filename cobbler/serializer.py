@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
 import fcntl
-import traceback
+import os
 import sys
 import time
+import traceback
 
 import api as cobbler_api
 

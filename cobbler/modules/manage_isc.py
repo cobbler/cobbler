@@ -23,10 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import time
 
-import utils
 from cexceptions import CX
 import templar
-
+import utils
 from utils import _
 
 

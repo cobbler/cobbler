@@ -20,29 +20,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys
-import os
-import re
 import copy
-import glob
-import random
-import subprocess
-import shutil
-import string
-import traceback
 import errno
-import netaddr
-import shlex
-import yaml
-import urllib2
-import simplejson
+import glob
 import hashlib
-
-from cobbler import validate
-from cobbler import clogger
-from cobbler import field_info
+import netaddr
+import os
+import random
+import re
+import shlex
+import shutil
+import simplejson
+import subprocess
+import string
+import sys
+import traceback
+import urllib2
+import yaml
 
 from cexceptions import FileNotFoundException, CX
+from cobbler import clogger
+from cobbler import field_info
+from cobbler import validate
 
 
 def md5(key):

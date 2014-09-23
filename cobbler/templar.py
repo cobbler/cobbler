@@ -22,19 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import Cheetah
+import functools
 import os
 import os.path
 import pprint
-from cexceptions import CX
-from template_api import Template
-import utils
-import clogger
-import functools
 import string
-
-import Cheetah
-major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
 jinja2_available = False
 try:
@@ -44,6 +37,13 @@ except:
     """ FIXME: log a message here """
     pass
 
+from cexceptions import CX
+import clogger
+from template_api import Template
+import utils
+
+major, minor, release = Cheetah.Version.split('.')[0:3]
+fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
 class Templar:
 

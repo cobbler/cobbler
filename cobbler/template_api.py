@@ -25,8 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import Cheetah.Template
 import os.path
 import re
-import utils
+
 from cexceptions import FileNotFoundException
+import utils
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 

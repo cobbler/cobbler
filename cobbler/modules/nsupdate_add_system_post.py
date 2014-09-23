@@ -7,14 +7,6 @@
 #
 
 import distutils.sysconfig
-import sys
-import time
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
-from cobbler.cexceptions import CX
 
 # DNS toolkit for Python
 #   - python-dnspython (Debian)
@@ -23,6 +15,15 @@ import dns.query
 import dns.tsigkeyring
 import dns.update
 import dns.resolver
+
+import sys
+import time
+
+plib = distutils.sysconfig.get_python_lib()
+mod_path = "%s/cobbler" % plib
+sys.path.insert(0, mod_path)
+
+from cobbler.cexceptions import CX
 
 logf = None
 

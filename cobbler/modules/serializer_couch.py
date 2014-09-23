@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import distutils.sysconfig
+import simplejson
 import sys
 import yaml
-import simplejson
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = "%s/cobbler" % plib

@@ -21,9 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import resource
 
 from cobbler import utils
-
-from cobbler.utils import _
 from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.

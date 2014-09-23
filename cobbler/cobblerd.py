@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import binascii
+import os
+import pwd
 import sys
 import time
-import os
-import binascii
-import utils
-import pwd
 
 import api as cobbler_api
 import remote
+import utils
 
 
 

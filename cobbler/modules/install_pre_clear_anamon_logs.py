@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import distutils.sysconfig
+import glob
 import os
 import sys
+
 from cexceptions import CX
-import glob
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = "%s/cobbler" % plib

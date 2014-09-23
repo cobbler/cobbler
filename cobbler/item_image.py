@@ -20,10 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import string
 
-from cobbler import utils
 from cobbler import item
+from cobbler import utils
 from cobbler import validate
-
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 

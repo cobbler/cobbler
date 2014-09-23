@@ -19,17 +19,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 import os.path
-import shutil
-import glob
 import re
-
-from cexceptions import CX
-import utils
-import templar
-
-import item_repo
+import shutil
 
 # Import aptsources module if available to obtain repo mirror.
 try:
@@ -38,6 +32,11 @@ try:
     apt_available = True
 except:
     apt_available = False
+
+from cexceptions import CX
+import item_repo
+import templar
+import utils
 
 
 def register():

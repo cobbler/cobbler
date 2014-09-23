@@ -17,11 +17,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import netaddr
+import os.path
 import re
 import shlex
-import os.path
-
-import netaddr
 
 from cobbler.cexceptions import CX
 

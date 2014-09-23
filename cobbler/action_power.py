@@ -26,14 +26,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-import os.path
-import time
 import re
+import time
 
-import utils
-import templar
-import clogger
 from cexceptions import CX
+import clogger
+import templar
+import utils
 
 
 class PowerTool:

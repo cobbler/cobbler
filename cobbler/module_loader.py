@@ -21,14 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import ConfigParser
 import distutils.sysconfig
+import glob
 import os
 import sys
-import glob
+
+from cexceptions import CX
 import clogger
 from utils import _, log_exc
-from cexceptions import CX
-import ConfigParser
 
 # python 2.3 compat.  If we don't need that, drop this test
 try:

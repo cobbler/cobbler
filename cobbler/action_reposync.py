@@ -30,8 +30,8 @@ try:
 except:
     HAS_YUM = False
 
-import utils
 import clogger
+import utils
 
 
 class RepoSync:

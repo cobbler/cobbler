@@ -22,15 +22,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import urlparse
+import xml.dom.minidom
 
+from cobbler import templar
 from cobbler import utils
 from cobbler import validate
-from cobbler import templar
-
 from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler.utils import _
-
-import xml.dom.minidom
 
 
 class KickGen:
