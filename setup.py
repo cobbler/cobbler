@@ -633,7 +633,7 @@ if __name__ == "__main__":
                               "config/cobbler/mongodb.conf",
                               "config/cobbler/users.conf",
                               "config/cobbler/users.digest",
-                              "config/cheetah_macros",
+                              "config/cheetah/cheetah_macros",
                               "config/rotate/cobblerd_rotate",
                               "config/rsync/import_rsync_whitelist",
                               "config/rsync/rsync.exclude",
