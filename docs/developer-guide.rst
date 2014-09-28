@@ -23,17 +23,14 @@ Once we merge in your pull request, you can remove the branch from your repo if 
 Setup
 +++++
 
-The preferred development platform is CentOS 7, you will also need EPEL.
-
-.. code-block:: none
-
-    # rpm -i http://ftp.nluug.nl/pub/os/Linux/distr/fedora-epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm
+The preferred development platform is CentOS 7, you will also need the EPEL repository.
+Get the latest epel-release RPM from ``http://download.fedoraproject.org/pub/epel/7/x86_64/repoview/epel-release.html``
 
 Install dependencies:
 
 .. code-block:: none
 
-    # yum install python-netaddr mod_wsgi python-simplejson
+    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah
 
 Initially, to run Cobbler without using packages:
 
