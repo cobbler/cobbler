@@ -30,7 +30,7 @@ Install dependencies:
 
 .. code-block:: none
 
-    # yum install git make python-netaddr mod_wsgi python-simplejson
+    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah
 
 Initially, to run Cobbler without using packages:
 
