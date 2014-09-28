@@ -609,7 +609,7 @@ if __name__ == "__main__":
             ("%skickstarts/install_profiles" % libpath, glob("kickstarts/install_profiles/*")),
             ("%ssnippets" % libpath, glob("snippets/*", recursive=True)),
             ("%sscripts" % libpath, glob("scripts/*")),
-            ("%s" % libpath, ["config/distro_signatures.json"]),
+            ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/content/*")),
             ("%s" % webimages, glob("web/content/images/*")),
