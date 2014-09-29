@@ -22,19 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import Cheetah
+import functools
 import os
 import os.path
 import pprint
-from cexceptions import CX
-from template_api import Template
-import utils
-import clogger
-import functools
 import string
-
-import Cheetah
-major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
 jinja2_available = False
 try:
@@ -44,19 +37,26 @@ except:
     """ FIXME: log a message here """
     pass
 
+from cexceptions import CX
+import clogger
+from template_api import Template
+import utils
+
+major, minor, release = Cheetah.Version.split('.')[0:3]
+fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
 class Templar:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
 
-        self.config = None
+        self.collection_mgr = None
         self.settings = None
-        if config:
-            self.config = config
-            self.settings = config.settings()
+        if collection_mgr:
+            self.collection_mgr = collection_mgr
+            self.settings = collection_mgr.settings()
 
         self.last_errors = []
 
@@ -81,7 +81,7 @@ class Templar:
         """
         Render data_input back into a file.
         data_input is either a string or a filename
-        search_table is a hash of metadata keys and values
+        search_table is a dict of metadata keys and values
         out_path if not-none writes the results to a file
         (though results are always returned)
         subject is a profile or system object, if available (for snippet eval)
@@ -149,7 +149,7 @@ class Templar:
         """
         Render data_input back into a file.
         data_input is either a string or a filename
-        search_table is a hash of metadata keys and values
+        search_table is a dict of metadata keys and values
         (though results are always returned)
         subject is a profile or system object, if available (for snippet eval)
         """
@@ -217,7 +217,7 @@ class Templar:
         """
         Render data_input back into a file.
         data_input is either a string or a filename
-        search_table is a hash of metadata keys and values
+        search_table is a dict of metadata keys and values
         out_path if not-none writes the results to a file
         (though results are always returned)
         subject is a profile or system object, if available (for snippet eval)

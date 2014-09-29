@@ -20,25 +20,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import binascii
+import os
+import pwd
 import sys
 import time
-import os
-import binascii
-import utils
-import pwd
 
 import api as cobbler_api
 import remote
+import utils
 
 
 
 def core(api):
-    bootapi = api
-    settings = bootapi.settings()
+    cobbler_api = api
+    settings = cobbler_api.settings()
     xmlrpc_port = settings.xmlrpc_port
 
     regen_ss_file()
-    do_xmlrpc_tasks(bootapi, settings, xmlrpc_port)
+    do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port)
 
 
 def regen_ss_file():
@@ -65,8 +65,8 @@ def regen_ss_file():
     return 1
 
 
-def do_xmlrpc_tasks(bootapi, settings, xmlrpc_port):
-    do_xmlrpc_rw(bootapi, settings, xmlrpc_port)
+def do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port):
+    do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
 
 
 def log(logger, msg):
@@ -76,9 +76,9 @@ def log(logger, msg):
         print >>sys.stderr, msg
 
 
-def do_xmlrpc_rw(bootapi, settings, port):
+def do_xmlrpc_rw(cobbler_api, settings, port):
 
-    xinterface = remote.ProxiedXMLRPCInterface(bootapi, remote.CobblerXMLRPCInterface)
+    xinterface = remote.ProxiedXMLRPCInterface(cobbler_api, remote.CobblerXMLRPCInterface)
     server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0      # don't print stuff
     xinterface.logger.debug("XMLRPC running on %s" % port)
@@ -94,7 +94,7 @@ def do_xmlrpc_rw(bootapi, settings, port):
 
 
 if __name__ == "__main__":
-    bootapi = cobbler_api.BootAPI()
-    settings = bootapi.settings()
+    cobbler_api = cobbler_api.CobblerAPI()
+    settings = cobbler_api.settings()
     regen_ss_file()
-    do_xmlrpc_rw(bootapi, settings, 25151)
+    do_xmlrpc_rw(cobbler_api, settings, 25151)

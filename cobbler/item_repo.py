@@ -18,10 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler import codes
-from cobbler import utils
 from cobbler import item
-
+from cobbler import utils
+from cobbler import validate
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -31,7 +30,7 @@ FIELDS = [
     ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
     ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
     ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ppc', 'ppc64', "arm", 'noarch', 'src'], "str"],
-    ["breed", "", 0, "Breed", True, "", codes.VALID_REPO_BREEDS, "str"],
+    ["breed", "", 0, "Breed", True, "", validate.REPO_BREEDS, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 2, 0, "", False, "", 0, "float"],
@@ -71,9 +70,10 @@ class Repo(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Repo(self.config)
-        cloned.from_datastruct(ds)
+
+        _dict = self.to_dict()
+        cloned = Repo(self.collection_mgr)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -123,7 +123,6 @@ class Repo(item.Item):
             elif mirror.find("x86") != -1 or mirror.find("i386") != -1:
                 self.set_arch("i386")
         self._guess_breed()
-        return True
 
 
     def set_keep_updated(self, keep_updated):
@@ -131,41 +130,30 @@ class Repo(item.Item):
         This allows the user to disable updates to a particular repo for whatever reason.
         """
         self.keep_updated = utils.input_boolean(keep_updated)
-        return True
 
 
-    def set_yumopts(self, options, inplace=False):
+    def set_yumopts(self, options):
         """
         Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a hash.
+        like 'a=b c=d e=f g h i=j' or a dictionary.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
             raise CX(_("invalid yum options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    self.yumopts[key] = value[key]
-            else:
-                self.yumopts = value
-            return True
+            self.yumopts = value
 
 
-    def set_environment(self, options, inplace=False):
+    def set_environment(self, options):
         """
         Yum can take options from the environment.  This puts them there before
         each reposync.
         """
-        (success, value) = utils.input_string_or_hash(options, allow_multiples=False)
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
             raise CX(_("invalid environment options"))
         else:
-            if inplace:
-                for key in value.keys():
-                    self.environment[key] = value[key]
-            else:
-                self.environment = value
-            return True
+            self.environment = value
 
 
     def set_priority(self, priority):
@@ -178,7 +166,6 @@ class Repo(item.Item):
         except:
             raise CX(_("invalid priority level: %s") % priority)
         self.priority = priority
-        return True
 
 
     def set_rpm_list(self, rpms):
@@ -188,7 +175,6 @@ class Repo(item.Item):
         one wants out of those repos, so only those packages + deps can be mirrored.
         """
         self.rpm_list = utils.input_string_or_list(rpms)
-        return True
 
 
     def set_createrepo_flags(self, createrepo_flags):
@@ -199,7 +185,6 @@ class Repo(item.Item):
         if createrepo_flags is None:
             createrepo_flags = ""
         self.createrepo_flags = createrepo_flags
-        return True
 
 
     def set_breed(self, breed):
@@ -221,16 +206,13 @@ class Repo(item.Item):
 
     def set_mirror_locally(self, value):
         self.mirror_locally = utils.input_boolean(value)
-        return True
 
 
     def set_apt_components(self, value):
         self.apt_components = utils.input_string_or_list(value)
-        return True
 
 
     def set_apt_dists(self, value):
         self.apt_dists = utils.input_string_or_list(value)
-        return True
 
 # EOF

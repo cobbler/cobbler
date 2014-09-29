@@ -24,24 +24,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 
-import utils
 import templar
+import utils
 
 
 class YumGen:
 
-    def __init__(self, config):
+    def __init__(self, collection_mgr):
         """
         Constructor
         """
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
 
     def get_yum_config(self, obj, is_profile):
         """

@@ -18,9 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler import utils
 from cobbler import item
-
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -56,9 +55,10 @@ class Mgmtclass(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Mgmtclass(self.config)
-        cloned.from_datastruct(ds)
+
+        _dict = self.to_dict()
+        cloned = Mgmtclass(self.collection_mgr)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -77,33 +77,22 @@ class Mgmtclass(item.Item):
 
     def set_packages(self, packages):
         self.packages = utils.input_string_or_list(packages)
-        return True
 
 
     def set_files(self, files):
         self.files = utils.input_string_or_list(files)
-        return True
 
 
-    def set_params(self, params, inplace=False):
-        (success, value) = utils.input_string_or_hash(params, allow_multiples=True)
+    def set_params(self, params):
+        (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
             raise CX(_("invalid parameters"))
         else:
-            if inplace:
-                for key in value.keys():
-                    if key.startswith("~"):
-                        del self.params[key[1:]]
-                    else:
-                        self.params[key] = value[key]
-            else:
-                self.params = value
-            return True
+            self.params = value
 
 
     def set_is_definition(self, isdef):
         self.is_definition = utils.input_boolean(isdef)
-        return True
 
 
     def set_class_name(self, name):
@@ -113,6 +102,5 @@ class Mgmtclass(item.Item):
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise CX(_("invalid characters in class name: '%s'" % name))
         self.class_name = name
-        return True
 
 # EOF

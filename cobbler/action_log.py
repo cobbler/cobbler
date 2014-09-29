@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
+import glob
 import os
 import os.path
+
 import clogger
-import glob
 
 
 class LogTool:
@@ -31,13 +32,13 @@ class LogTool:
     Helpers for dealing with System logs, consoles, anamon, etc..
     """
 
-    def __init__(self, config, system, api, logger=None):
+    def __init__(self, collection_mgr, system, api, logger=None):
         """
         Log library constructor requires a cobbler system object.
         """
         self.system = system
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         self.api = api
         if logger is None:
             logger = clogger.Logger()
@@ -62,4 +63,3 @@ class LogTool:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
             except OSError, e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
-        return 0

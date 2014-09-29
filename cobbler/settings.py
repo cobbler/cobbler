@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
+import os.path
+import re
+
 import utils
 from utils import _
-
-import os.path
-import glob
-import re
 
 TESTMODE = False
 
@@ -42,6 +42,7 @@ DEFAULTS = {
     "auth_token_expiration": [3600, "int"],
     "bind_chroot_path": ["", "str"],
     "bind_master": ["127.0.0.1", "str"],
+    "boot_loader_conf_template_dir": ["/etc/cobbler/boot_loader_conf", "str"],
     "build_reporting_enabled": [0, "bool"],
     "build_reporting_to_address": ["", "str"],
     "build_reporting_sender": ["", "str"],
@@ -102,10 +103,7 @@ DEFAULTS = {
     "puppet_server": ["puppet", "str"],
     "puppet_version": [2, "int"],
     "pxe_just_once": [0, "bool"],
-    "pxe_template_dir": ["/etc/cobbler/pxe", "str"],
     "redhat_management_permissive": [0, "bool"],
-    "redhat_management_type": ["off", "str"],
-    "redhat_management_key": ["", "str"],
     "redhat_management_server": ["xmlrpc.rhn.redhat.com", "str"],
     "register_new_installs": [0, "bool"],
     "remove_old_puppet_certs_automatically": [0, "bool"],
@@ -183,12 +181,9 @@ class Settings:
         """
         Constructor.
         """
-        self.clear()
+        self._clear()
 
-    def clear(self):
-        """
-        Reset this object to reasonable default values.
-        """
+    def _clear(self):
         self.__dict__ = {}
         for key in DEFAULTS.keys():
             self.__dict__[key] = DEFAULTS[key][0]
@@ -196,28 +191,28 @@ class Settings:
     def set(self, name, value):
         return self.__setattr__(name, value)
 
-    def printable(self):
+    def to_string(self):
         buf = ""
         buf = buf + _("defaults\n")
         buf = buf + _("kernel options  : %s\n") % self.__dict__['kernel_options']
         return buf
 
-    def to_datastruct(self):
+    def to_dict(self):
         """
         Return an easily serializable representation of the config.
         """
         return self.__dict__
 
-    def from_datastruct(self, datastruct):
+    def from_dict(self, _dict):
         """
-        Modify this object to load values in datastruct.
+        Modify this object to load values in dictionary.
         """
-        if datastruct is None:
+        if _dict is None:
             print _("warning: not loading empty structure for %s") % self.filename()
             return
 
-        self.clear()
-        self.__dict__.update(datastruct)
+        self._clear()
+        self.__dict__.update(_dict)
 
         return self
 
@@ -238,12 +233,12 @@ class Settings:
                 elif DEFAULTS[name][1] == "list":
                     value = utils.input_string_or_list(value)
                 elif DEFAULTS[name][1] == "dict":
-                    value = utils.input_string_or_hash(value)[1]
+                    value = utils.input_string_or_dict(value)[1]
             except:
                 raise AttributeError
 
             self.__dict__[name] = value
-            if not utils.update_settings_file(self.to_datastruct()):
+            if not utils.update_settings_file(self.to_dict()):
                 raise AttributeError
 
             return 0
@@ -253,8 +248,8 @@ class Settings:
     def __getattr__(self, name):
         try:
             if name == "kernel_options":
-                # backwards compatibility -- convert possible string value to hash
-                (success, result) = utils.input_string_or_hash(self.__dict__[name], allow_multiples=False)
+                # backwards compatibility -- convert possible string value to dict
+                (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
             return self.__dict__[name]

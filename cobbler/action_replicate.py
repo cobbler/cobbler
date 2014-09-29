@@ -21,25 +21,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
-import xmlrpclib
-import utils
-import clogger
 import fnmatch
+import os
+import xmlrpclib
+
+import clogger
+import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 
 
 class Replicate:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
-        self.api = config.api
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
+        self.api = collection_mgr.api
         self.remote = None
         self.uri = None
         if logger is None:
@@ -60,8 +60,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def remove_objects_not_on_master(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_to_hoh(self.remote_data[obj_type], "uid")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
         for (luid, ldata) in locals.iteritems():
             if luid not in remotes:
@@ -74,8 +74,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def add_objects_not_on_local(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_sort_by_key(self.remote_data[obj_type], "depth")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
 
         for rdata in remotes:
 
@@ -86,7 +86,7 @@ class Replicate:
             if not rdata["uid"] in locals:
                 creator = getattr(self.api, "new_%s" % obj_type)
                 newobj = creator()
-                newobj.from_datastruct(rdata)
+                newobj.from_dict(rdata)
                 try:
                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                     if not self.api.add_item(obj_type, newobj, logger=self.logger):
@@ -97,8 +97,8 @@ class Replicate:
     # -------------------------------------------------------
 
     def replace_objects_newer_on_remote(self, obj_type):
-        locals = utils.loh_to_hoh(self.local_data[obj_type], "uid")
-        remotes = utils.loh_to_hoh(self.remote_data[obj_type], "uid")
+        locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
+        remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
         for (ruid, rdata) in remotes.iteritems():
             # do not add the system if it is not on the transfer list
@@ -114,7 +114,7 @@ class Replicate:
                         self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                     creator = getattr(self.api, "new_%s" % obj_type)
                     newobj = creator()
-                    newobj.from_datastruct(rdata)
+                    newobj.from_dict(rdata)
                     try:
                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
                         if not self.api.add_item(obj_type, newobj):
@@ -218,8 +218,8 @@ class Replicate:
         }
 
         for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot], "name").keys()
-            self.remote_dict[ot] = utils.loh_to_hoh(self.remote_data[ot], "name")
+            self.remote_names[ot] = utils.lod_to_dod(self.remote_data[ot], "name").keys()
+            self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
             if self.sync_all:
                 for names in self.remote_dict[ot]:
                     self.must_include[ot][names] = 1
@@ -358,4 +358,3 @@ class Replicate:
         self.logger.info("Syncing")
         self.api.sync(logger=self.logger)
         self.logger.info("Done")
-        return True

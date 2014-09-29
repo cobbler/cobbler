@@ -23,29 +23,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import shutil
 import re
+import shutil
 
-import utils
 import clogger
+import utils
 
 
 class BuildIso:
     """
     Handles conversion of internal state to the isolinux tree layout
     """
-    def __init__(self, config, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose=False, logger=None):
         """
         Constructor
         """
         self.verbose = verbose
-        self.config = config
-        self.settings = config.settings()
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.distros = config.distros()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.distros = collection_mgr.distros()
         self.distmap = {}
         self.distctr = 0
         self.source = ""
@@ -500,8 +500,6 @@ class BuildIso:
         cfg.write("MENU END\n")
         cfg.close()
 
-        return
-
 
     def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, source=None, exclude_dns=None, mkisofs_opts=None):
 
@@ -595,4 +593,4 @@ class BuildIso:
         self.logger.info("You may wish to delete: %s" % buildisodir)
         self.logger.info("The output file is: %s" % iso)
 
-        return True
+# EOF

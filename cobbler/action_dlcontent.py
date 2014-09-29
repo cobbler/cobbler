@@ -22,17 +22,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import urlgrabber
+
 import clogger
 
 
 class ContentDownloader:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
@@ -55,7 +56,7 @@ class ContentDownloader:
             ("%s/COPYING.elilo" % content_server, "%s/COPYING.elilo" % dest),
             ("%s/COPYING.yaboot" % content_server, "%s/COPYING.yaboot" % dest),
             ("%s/COPYING.syslinux" % content_server, "%s/COPYING.syslinux" % dest),
-            ("%s/yaboot-1.3.14-12" % content_server, "%s/yaboot" % dest),
+            ("%s/yaboot-1.3.17" % content_server, "%s/yaboot" % dest),
             ("%s/pxelinux.0-3.86" % content_server, "%s/pxelinux.0" % dest),
             ("%s/menu.c32-3.86" % content_server, "%s/menu.c32" % dest),
             ("%s/grub-0.97-x86.efi" % content_server, "%s/grub-x86.efi" % dest),
@@ -82,4 +83,4 @@ class ContentDownloader:
             self.logger.info("downloading %s to %s" % (src, dst))
             urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
 
-        return True
+# EOF

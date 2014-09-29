@@ -17,12 +17,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import shlex
+import netaddr
 import os.path
-
-from cobbler import codes
+import re
+import shlex
 
 from cobbler.cexceptions import CX
+
+
+KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
+SNIPPET_TEMPLATE_BASE_DIR = "/var/lib/cobbler/snippets/"
+
+RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
+RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
+
+REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
+
+VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
+
+# blacklist invalid values to the repo statement in kickstarts
+KICKSTART_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
 
 
 def object_name(name, parent):
@@ -42,17 +56,18 @@ def object_name(name, parent):
     if name != "" and parent != "" and name == parent:
         raise CX("Self parentage is not allowed")
 
-    if not codes.RE_OBJECT_NAME.match(name):
+    if not RE_OBJECT_NAME.match(name):
         raise CX("Invalid characters in name: '%s'" % name)
 
     return name
 
 
-def snippet_file_path(snippet):
+def snippet_file_path(snippet, new_snippet=False):
     """
     Validate the snippet file path.
 
     @param: str snippet (absolute path to a local snippet file)
+    @param: bool new_snippet (when set to true new filenames are allowed)
     @returns: str snippet or CX
     """
     if not isinstance(snippet, basestring):
@@ -63,21 +78,22 @@ def snippet_file_path(snippet):
     if snippet.find("..") != -1:
         raise CX("Invalid snippet template file location %s, must be absolute path" % snippet)
 
-    if not snippet.startswith(codes.SNIPPET_TEMPLATE_BASE_DIR):
-        raise CX("Invalid snippet template file location %s, it is not inside %s" % (snippet, codes.SNIPPET_TEMPLATE_BASE_DIR))
+    if not snippet.startswith(SNIPPET_TEMPLATE_BASE_DIR):
+        raise CX("Invalid snippet template file location %s, it is not inside %s" % (snippet, SNIPPET_TEMPLATE_BASE_DIR))
 
-    if not os.path.isfile(snippet):
+    if not os.path.isfile(snippet) and not new_snippet:
         raise CX("Invalid snippet template file location %s, file not found" % snippet)
 
     return snippet
 
 
-def kickstart_file_path(kickstart, for_item=True):
+def kickstart_file_path(kickstart, for_item=True, new_kickstart=False):
     """
     Validate the kickstart file path.
 
     @param: str kickstart (absolute path to a local kickstart file)
     @param: bool for_item (enable/disable special handling for Item objects)
+    @param: bool new_kickstart (when set to true new filenames are allowed)
     @returns: str kickstart or CX
     """
     if not isinstance(kickstart, basestring):
@@ -86,6 +102,7 @@ def kickstart_file_path(kickstart, for_item=True):
         kickstart = kickstart.strip()
 
     if kickstart == "":
+        # empty kickstart is allowed (interactive installations)
         return kickstart
 
     if for_item is True:
@@ -97,10 +114,10 @@ def kickstart_file_path(kickstart, for_item=True):
     if kickstart.find("..") != -1:
         raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
 
-    if not kickstart.startswith(codes.KICKSTART_TEMPLATE_BASE_DIR):
-        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, codes.KICKSTART_TEMPLATE_BASE_DIR))
+    if not kickstart.startswith(KICKSTART_TEMPLATE_BASE_DIR):
+        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, KICKSTART_TEMPLATE_BASE_DIR))
 
-    if not os.path.isfile(kickstart):
+    if not os.path.isfile(kickstart) and not new_kickstart:
         raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
 
     return kickstart
@@ -119,18 +136,18 @@ def hostname(dnsname):
         dnsname = dnsname.strip()
 
     if dnsname == "":
+        # hostname is not required
         return dnsname
 
-    if not codes.RE_HOSTNAME.match(dnsname):
-        raise CX("Invalid hostname format")
+    if not RE_HOSTNAME.match(dnsname):
+        raise CX("Invalid hostname format (%s)" % dnsname)
 
     return dnsname
 
 
-def mac_address(mac):
+def mac_address(mac, for_item=True):
     """
-    Validate mac as an Infiniband mac address aswell
-    as an Eternet mac address.
+    Validate as an Eternet mac address.
 
     @param: str mac (mac address)
     @returns: str mac or CX
@@ -140,11 +157,13 @@ def mac_address(mac):
     else:
         mac = mac.lower().strip()
 
-    if mac == "random":
-        return mac
+    if for_item is True:
+        # this value has special meaning for items
+        if mac == "random":
+            return mac
 
-    if not (codes.RE_MAC_ADDRESS.match(mac) or codes.RE_INFINIBAND_MAC_ADDRESS.match(mac)):
-        raise CX("Invalid mac address format")
+    if not netaddr.valid_mac(mac):
+        raise CX("Invalid mac address format (%s)" % mac)
 
     return mac
 
@@ -164,15 +183,63 @@ def ipv4_address(addr):
     if addr == "":
         return addr
 
-    if not codes.RE_IPV4_ADDRESS.match(addr):
-        raise CX("Invalid IPv4 address format")
+    if not netaddr.valid_ipv4(addr):
+        raise CX("Invalid IPv4 address format (%s)" % addr)
+
+    if netaddr.IPAddress(addr).is_netmask():
+        raise CX("Invalid IPv4 host address (%s)" % addr)
+
+    return addr
+
+
+def ipv4_netmask(addr):
+    """
+    Validate an IPv4 netmask.
+
+    @param: str addr (ipv4 netmask)
+    @returns: str addr or CX
+    """
+    if not isinstance(addr, basestring):
+        raise CX("Invalid input, addr must be a string")
+    else:
+        addr = addr.strip()
+
+    if addr == "":
+        return addr
+
+    if not netaddr.valid_ipv4(addr):
+        raise CX("Invalid IPv4 address format (%s)" % addr)
+
+    if not netaddr.IPAddress(addr).is_netmask():
+        raise CX("Invalid IPv4 netmask (%s)" % addr)
+
+    return addr
+
+
+def ipv6_address(addr):
+    """
+    Validate an IPv6 address.
+
+    @param: str addr (ipv6 address)
+    @returns: str addr or CX
+    """
+    if not isinstance(addr, basestring):
+        raise CX("Invalid input, addr must be a string")
+    else:
+        addr = addr.strip()
+
+    if addr == "":
+        return addr
+
+    if not netaddr.valid_ipv6(addr):
+        raise CX("Invalid IPv6 address format (%s)" % addr)
 
     return addr
 
 
 def name_servers(nameservers, for_item=True):
     """
-    Validate nameservers IP addresses.
+    Validate nameservers IP addresses, works for IPv4 and IPv6
 
     @param: str/list nameservers (string or list of nameserver addresses)
     @param: bool for_item (enable/disable special handling for Item objects)
@@ -181,8 +248,8 @@ def name_servers(nameservers, for_item=True):
         nameservers = nameservers.strip()
         if for_item is True:
             # special handling for Items
-            if nameservers == "<<inherit>>" or nameservers == "":
-                nameservers = []
+            if nameservers in ["<<inherit>>", ""]:
+                nameservers = "<<inherit>>"
                 return nameservers
 
         # convert string to a list; do the real validation
@@ -191,7 +258,13 @@ def name_servers(nameservers, for_item=True):
 
     if isinstance(nameservers, list):
         for ns in nameservers:
-            ipv4_address(ns)
+            ip_version = netaddr.IPAddress(ns).version
+            if ip_version == 4:
+                ipv4_address(ns)
+            elif ip_version == 6:
+                ipv6_address(ns)
+            else:
+                raise CX("Invalid IP address format")
     else:
         raise CX("Invalid input type %s, expected str or list" % type(nameservers))
 
@@ -209,8 +282,8 @@ def name_servers_search(search, for_item=True):
         search = search.strip()
         if for_item is True:
             # special handling for Items
-            if search == "<<inherit>>" or search == "":
-                search = []
+            if search in ["<<inherit>>", ""]:
+                search = "<<inherit>>"
                 return search
 
         # convert string to a list; do the real validation
@@ -224,6 +297,5 @@ def name_servers_search(search, for_item=True):
         raise CX("Invalid input type %s, expected str or list" % type(search))
 
     return search
-
 
 # EOF

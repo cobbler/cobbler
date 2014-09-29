@@ -21,25 +21,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
 import glob
+import os
 import time
-import utils
+
 from cexceptions import CX
-import templar
-import pxegen
 import clogger
-from utils import _
 import cobbler.module_loader as module_loader
+import templar
+import tftpgen
+import utils
+from utils import _
 
 
-class BootSync:
+class CobblerSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, config, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
+    def __init__(self, collection_mgr, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
         """
         Constructor
         """
@@ -48,20 +48,20 @@ class BootSync:
             self.logger = clogger.Logger()
 
         self.verbose = verbose
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config, self.logger)
-        self.pxegen = pxegen.PXEGen(config, self.logger)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
         self.bootloc = utils.tftpboot_location()
-        self.pxegen.verbose = verbose
+        self.tftpgen.verbose = verbose
         self.dns.verbose = verbose
         self.dhcp.verbose = verbose
 
@@ -87,11 +87,11 @@ class BootSync:
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
 
-        self.distros = self.config.distros()
-        self.profiles = self.config.profiles()
-        self.systems = self.config.systems()
-        self.settings = self.config.settings()
-        self.repos = self.config.repos()
+        self.distros = self.collection_mgr.distros()
+        self.profiles = self.collection_mgr.profiles()
+        self.systems = self.collection_mgr.systems()
+        self.settings = self.collection_mgr.settings()
+        self.repos = self.collection_mgr.repos()
 
         # execute the core of the sync operation
         self.logger.info("cleaning trees")
@@ -107,13 +107,13 @@ class BootSync:
         for d in self.distros:
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
-                self.pxegen.copy_single_distro_files(d, self.settings.webdir, True)
-                self.pxegen.write_templates(d, write_file=True)
+                self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
+                self.tftpgen.write_templates(d, write_file=True)
             except CX, e:
                 self.logger.error(e.value)
 
         # make the default pxe menu anyway...
-        self.pxegen.make_pxe_menu()
+        self.tftpgen.make_pxe_menu()
 
         if self.settings.manage_dhcp:
             self.write_dhcp()
@@ -141,7 +141,6 @@ class BootSync:
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
-        return True
 
     def make_tftpboot(self):
         """
@@ -213,20 +212,22 @@ class BootSync:
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
                     if rc != 0:
-                        self.logger.error("dhcpd -t failed")
-                        return False
+                        error_msg = "dhcpd -t failed"
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
                     service_restart = "service %s restart" % service_name
                     rc = utils.subprocess_call(self.logger, service_restart, shell=True)
                     if rc != 0:
-                        self.logger.error("%s failed" % service_name)
-                        return False
+                        error_msg = "%s failed" % service_name
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
             elif which_dhcp_module == "manage_dnsmasq":
                 if restart_dhcp != "0":
                     rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
                     if rc != 0:
-                        self.logger.error("service dnsmasq restart failed")
-                        return False
-        return True
+                        error_msg = "service dnsmasq restart failed"
+                        self.logger.error(error_msg)
+                        raise CX(error_msg)
 
     def clean_link_cache(self):
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:

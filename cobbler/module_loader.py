@@ -21,14 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import ConfigParser
 import distutils.sysconfig
+import glob
 import os
 import sys
-import glob
+
+from cexceptions import CX
 import clogger
 from utils import _, log_exc
-from cexceptions import CX
-import ConfigParser
 
 # python 2.3 compat.  If we don't need that, drop this test
 try:
@@ -101,12 +102,12 @@ def get_module_name(category, field, fallback_module_name=None):
     """
     Get module name from configuration file
 
-    @param string category field category in configuration file
-    @param string field field in configuration file
-    @param string fallback_module_name default value used if category/field is
+    @param str category field category in configuration file
+    @param str field field in configuration file
+    @param str fallback_module_name default value used if category/field is
             not found in configuration file
     @raise CX if unable to find configuration file
-    @return string module name
+    @return str module name
     """
 
     try:
@@ -123,9 +124,9 @@ def get_module_from_file(category, field, fallback_module_name=None):
     """
     Get Python module, based on name defined in configuration file
 
-    @param string category field category in configuration file
-    @param string field field in configuration file
-    @param string fallback_module_name default value used if category/field is
+    @param str category field category in configuration file
+    @param str field field in configuration file
+    @param str fallback_module_name default value used if category/field is
             not found in configuration file
     @raise CX if unable to load Python module
     @return module Python module

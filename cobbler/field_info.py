@@ -77,10 +77,6 @@ USES_CHECKBOX = [
     "virt_pxe_boot",
     "*repos_enabled",
     "repos_enabled",
-    "*ldap_enabled",
-    "ldap_enabled",
-    "*monit_enabled",
-    "monit_enabled",
     "is_definition",
 ]
 
@@ -164,8 +160,7 @@ BLOCK_MAPPINGS = {
     "network_widget_a": "Networking",
     "network_widget_b": "Networking",
     "server": "Advanced",
-    "redhat_management_key": "Management",
-    "redhat_management_server": "Management",
+    "next_server": "Advanced",
     "createrepo_flags": "Advanced",
     "environment": "Advanced",
     "mirror_locally": "Advanced",
@@ -176,9 +171,6 @@ BLOCK_MAPPINGS = {
     "packages": "Resources",
     "files": "Resources",
     "repos_enabled": "Management",
-    "ldap_enabled": "Management",
-    "ldap_type": "Management",
-    "monit_enabled": "Management",
 }
 
 BLOCK_MAPPINGS_ORDER = {

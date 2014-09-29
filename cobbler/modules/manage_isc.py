@@ -23,10 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import time
 
-import utils
 from cexceptions import CX
 import templar
-
+import utils
 from utils import _
 
 
@@ -42,19 +41,19 @@ class IscManager:
     def what(self):
         return "isc"
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
         self.logger = logger
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
         self.settings_file = utils.dhcpconf_location(self.api)
 
     def write_dhcp_file(self):
@@ -109,12 +108,13 @@ class IscManager:
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
                     interface["ip_address"] = ip
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
+                    interface["if_gateway"] = system.interfaces[interface["interface_master"]]["if_gateway"]
                 else:
                     ip = interface["ip_address"]
                     host = interface["dns_name"]
 
                 if distro is not None:
-                    interface["distro"] = distro.to_datastruct()
+                    interface["distro"] = distro.to_dict()
 
                 if mac is None or mac == "":
                     # can't write a DHCP entry for this system
@@ -139,7 +139,7 @@ class IscManager:
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
-                interface["next_server"] = blended_system["server"]
+                interface["next_server"] = blended_system["next_server"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
@@ -183,5 +183,5 @@ class IscManager:
         pass            # ISC/BIND do not use this
 
 
-def get_manager(config, logger):
-    return IscManager(config, logger)
+def get_manager(collection_mgr, logger):
+    return IscManager(collection_mgr, logger)

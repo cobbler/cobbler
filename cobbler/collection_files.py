@@ -18,10 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from cobbler import collection
 from cobbler import item_file as file
 from cobbler import utils
-from cobbler import collection
-
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -35,11 +34,13 @@ class Files(collection.Collection):
         return "file"
 
 
-    def factory_produce(self, config, seed_data):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a File forged from seed_data
+        Return a File forged from item_dict
         """
-        return file.File(config).from_datastruct(seed_data)
+        new_file = file.File(collection_mgr)
+        new_file.from_dict(item_dict)
+        return new_file
 
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
@@ -51,21 +52,21 @@ class Files(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [], logger)
 
             self.lock.acquire()
             try:
                 del self.listing[name]
             finally:
                 self.lock.release()
-            self.config.serialize_delete(self, obj)
+            self.collection_mgr.serialize_delete(self, obj)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [], logger)
-                    utils.run_triggers(self.config.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
-            return True
+            return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)
 

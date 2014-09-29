@@ -21,20 +21,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-import utils
-import kickgen
+
 import clogger
+import kickgen
+import utils
 
 
 class Validate:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
-        self.kickgen = kickgen.KickGen(config)
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
+        self.kickgen = kickgen.KickGen(collection_mgr)
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
@@ -49,13 +50,13 @@ class Validate:
             utils.die(self.logger, "ksvalidator not installed, please install pykickstart")
 
         failed = False
-        for x in self.config.profiles():
+        for x in self.collection_mgr.profiles():
             (result, errors) = self.checkfile(x, True)
             if not result:
                 failed = True
             if len(errors) > 0:
                 self.log_errors(errors)
-        for x in self.config.systems():
+        for x in self.collection_mgr.systems():
             (result, errors) = self.checkfile(x, False)
             if not result:
                 failed = True
@@ -71,7 +72,7 @@ class Validate:
 
     def checkfile(self, obj, is_profile):
         last_errors = []
-        blended = utils.blender(self.config.api, False, obj)
+        blended = utils.blender(self.collection_mgr.api, False, obj)
 
         os_version = blended["os_version"]
 

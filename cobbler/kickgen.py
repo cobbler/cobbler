@@ -22,32 +22,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import urlparse
-
-import utils
-from cexceptions import FileNotFoundException, CX
-import templar
-
-from utils import _
-
 import xml.dom.minidom
+
+from cobbler import templar
+from cobbler import utils
+from cobbler import validate
+from cobbler.cexceptions import FileNotFoundException, CX
+from cobbler.utils import _
 
 
 class KickGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
-    def __init__(self, config):
+    def __init__(self, collection_mgr):
         """
         Constructor
         """
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
 
     def createAutoYaSTScript(self, document, script, name):
         newScript = document.createElement("script")
@@ -170,7 +169,9 @@ class KickGen:
             if repo_obj is not None:
                 yumopts = ''
                 for opt in repo_obj.yumopts:
-                    yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
+                    # filter invalid values to the repo statement in kickstarts
+                    if not opt.lower() in validate.KICKSTART_REPO_BLACKLIST:
+                        yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
                         baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
@@ -256,7 +257,7 @@ class KickGen:
         meta.update(ksmeta)     # make available at top level
         meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
         meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
-        meta["kernel_options"] = utils.hash_to_string(meta["kernel_options"])
+        meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
 
         # add extra variables for other distro types
         if "tree" in meta:

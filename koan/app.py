@@ -932,7 +932,7 @@ class Koan:
 
         # BOOKMARK
         template_files = profile_data["template_files"]
-        template_files = utils.input_string_or_hash(template_files)
+        template_files = utils.input_string_or_dict(template_files)
         template_keys = template_files.keys()
 
         print("- template map: %s" % template_files)
@@ -1030,7 +1030,7 @@ class Koan:
             print("\tTotal Resources: %d" % total_resources)
             print("\t  Total Runtime: %.02f" % total_runtime)
 
-            for status in ["repos_status", "ldap_status", "monit_status"]:
+            for status in ["repos_status"]:
                 if status in stats:
                     print('')
                     print("\t%s" % status)
@@ -1452,7 +1452,7 @@ class Koan:
         # convert the from-cobbler options back to a hash
         # so that we can override it in a way that works as intended
 
-        hashv = utils.input_string_or_hash(kextra)
+        hashv = utils.input_string_or_dict(kextra)
 
         if self.static_interface is not None and (breed == "redhat" or breed == "suse" or breed == "debian" or breed == "ubuntu"):
             interface_name = self.static_interface
@@ -1523,9 +1523,9 @@ class Koan:
             hashv["ks"] = "file:ks.cfg"
 
         if self.kopts_override is not None:
-            hash2 = utils.input_string_or_hash(self.kopts_override)
+            hash2 = utils.input_string_or_dict(self.kopts_override)
             hashv.update(hash2)
-        options = utils.hash_to_string(hashv)
+        options = utils.dict_to_string(hashv)
         options = string.replace(options, "lang ", "lang= ")
         # if using ksdevice=bootif that only works for PXE so replace
         # it with something that will work

@@ -18,10 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler import utils
 from cobbler import item
+from cobbler import utils
 from cobbler import validate
-
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -42,16 +41,17 @@ FIELDS = [
     ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
     ["kickstart", "<<inherit>>", 0, "Kickstart", True, "Path to kickstart template", 0, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["depth", 2, 0, "", False, "", 0, "int"],
     ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
     ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", ["xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], "str"],
+    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
     ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
     ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
     ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
     ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
     ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
+    ["depth", 2, 0, "", False, "", 0, "int"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
     ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", utils.get_power_types(), "str"],
@@ -71,7 +71,7 @@ FIELDS = [
     ["network_widget_c", "", 0, "", True, "", 0, "str"],                     # not a real field, a marker for the web app
     ["*mtu", "", 0, "MTU", True, "", 0, "str"],
     ["*ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave"], "str"],
+    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
     ["*interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
     ["*bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
     ["*bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
@@ -94,12 +94,7 @@ FIELDS = [
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
-    ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Satellite, or Spacewalk", 0, "str"],
-    ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Satellite or Spacewalk Server", 0, "str"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
-    ["ldap_enabled", False, 0, "LDAP Enabled", True, "(re)configure LDAP on this machine at next config update?", 0, "bool"],
-    ["ldap_type", "SETTINGS:ldap_management_default_type", 0, "LDAP Management Type", True, "Ex: authconfig", 0, "str"],
-    ["monit_enabled", False, 0, "Monit Enabled", True, "(re)configure monit on this machine at next config update?", 0, "bool"],
     ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
 ]
 
@@ -132,15 +127,15 @@ class System(item.Item):
 
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = System(self.config)
-        cloned.from_datastruct(ds)
+        _dict = self.to_dict()
+        cloned = System(self.collection_mgr)
+        cloned.from_dict(_dict)
         return cloned
 
 
-    def from_datastruct(self, seed_data):
+    def from_dict(self, seed_data):
         # FIXME: most definitely doesn't grok interfaces yet.
-        return utils.from_datastruct_from_fields(self, seed_data, FIELDS)
+        return utils.from_dict_from_fields(self, seed_data, FIELDS)
 
 
     def get_parent(self):
@@ -148,11 +143,11 @@ class System(item.Item):
         Return object next highest up the tree.
         """
         if (self.parent is None or self.parent == '') and self.profile:
-            return self.config.profiles().find(name=self.profile)
+            return self.collection_mgr.profiles().find(name=self.profile)
         elif (self.parent is None or self.parent == '') and self.image:
-            return self.config.images().find(name=self.image)
+            return self.collection_mgr.images().find(name=self.image)
         else:
-            return self.config.systems().find(name=self.parent)
+            return self.collection_mgr.systems().find(name=self.parent)
 
 
     def check_if_valid(self):
@@ -164,7 +159,7 @@ class System(item.Item):
 
 
     #
-    # specific methods for item.Distro
+    # specific methods for item.System
     #
 
     def __get_interface(self, name):
@@ -217,8 +212,6 @@ class System(item.Item):
             else:
                 raise CX(_("At least one interface needs to be defined."))
 
-        return True
-
 
     def rename_interface(self, names):
         """
@@ -233,16 +226,6 @@ class System(item.Item):
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
 
-        return True
-
-
-    def set_redhat_management_key(self, key):
-        return utils.set_redhat_management_key(self, key)
-
-
-    def set_redhat_management_server(self, server):
-        return utils.set_redhat_management_server(self, server)
-
 
     def set_server(self, server):
         """
@@ -252,14 +235,19 @@ class System(item.Item):
         if server is None or server == "":
             server = "<<inherit>>"
         self.server = server
-        return True
+
+
+    def set_next_server(self, server):
+        if server is None or server == "":
+            self.next_server = "<<inherit>>"
+        else:
+            self.next_server = validate.ipv4_address(server)
 
 
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
             proxy = "<<inherit>>"
         self.proxy = proxy
-        return True
 
 
     def get_mac_address(self, interface):
@@ -278,12 +266,9 @@ class System(item.Item):
 
     def get_ip_address(self, interface):
         """
-        Get the IP address, which may be implicit in the object name or explict with --ip-address.
-        Use the explicit location first.
+        Get the IP address for the given interface.
         """
-
         intf = self.__get_interface(interface)
-
         if intf["ip_address"] != "":
             return intf["ip_address"].strip()
         else:
@@ -312,8 +297,34 @@ class System(item.Item):
     def set_dhcp_tag(self, dhcp_tag, interface):
         intf = self.__get_interface(interface)
         intf["dhcp_tag"] = dhcp_tag
-        return True
 
+
+    def set_cnames(self, cnames, interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(cnames)
+        intf["cnames"] = data
+
+
+    def set_static_routes(self, routes, interface):
+        intf = self.__get_interface(interface)
+        data = utils.input_string_or_list(routes)
+        intf["static_routes"] = data
+
+
+    def set_status(self, status):
+        self.status = status
+
+
+    def set_static(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["static"] = utils.input_boolean(truthiness)
+
+
+    def set_management(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["management"] = utils.input_boolean(truthiness)
+
+# ---
 
     def set_dns_name(self, dns_name, interface):
         """
@@ -324,29 +335,14 @@ class System(item.Item):
         @returns: True or CX
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and utils.input_boolean(self.config._settings.allow_duplicate_hostnames) is False:
-            matched = self.config.api.find_items("system", {"dns_name": dns_name})
+        if dns_name != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_hostnames) is False:
+            matched = self.collection_mgr.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
                     raise CX("DNS name duplicated: %s" % dns_name)
 
         intf = self.__get_interface(interface)
         intf["dns_name"] = dns_name
-        return True
-
-
-    def set_cnames(self, cnames, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(cnames)
-        intf["cnames"] = data
-        return True
-
-
-    def set_static_routes(self, routes, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes)
-        intf["static_routes"] = data
-        return True
 
 
     def set_hostname(self, hostname):
@@ -357,24 +353,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.hostname = validate.hostname(hostname)
-        return True
-
-
-    def set_status(self, status):
-        self.status = status
-        return True
-
-
-    def set_static(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["static"] = utils.input_boolean(truthiness)
-        return True
-
-
-    def set_management(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["management"] = utils.input_boolean(truthiness)
-        return True
 
 
     def set_ip_address(self, address, interface):
@@ -386,20 +364,19 @@ class System(item.Item):
         @returns: True or CX
         """
         address = validate.ipv4_address(address)
-        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_ips) is False:
-            matched = self.config.api.find_items("system", {"ip_address": address})
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+            matched = self.collection_mgr.api.find_items("system", {"ip_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
 
         intf = self.__get_interface(interface)
         intf["ip_address"] = address
-        return True
 
 
     def set_mac_address(self, address, interface):
         """
-        Set mc address on interface.
+        Set mac address on interface.
 
         @param: str address (mac address)
         @param: str interface (interface name)
@@ -407,16 +384,15 @@ class System(item.Item):
         """
         address = validate.mac_address(address)
         if address == "random":
-            address = utils.get_random_mac(self.config.api)
-        if address != "" and utils.input_boolean(self.config._settings.allow_duplicate_macs) is False:
-            matched = self.config.api.find_items("system", {"mac_address": address})
+            address = utils.get_random_mac(self.collection_mgr.api)
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_macs) is False:
+            matched = self.collection_mgr.api.find_items("system", {"mac_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("MAC address duplicated: %s" % address)
 
         intf = self.__get_interface(interface)
-        intf["mac_address"] = address.strip()
-        return True
+        intf["mac_address"] = address
 
 
     def set_gateway(self, gateway):
@@ -427,7 +403,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.gateway = validate.ipv4_address(gateway)
-        return True
 
 
     def set_name_servers(self, data):
@@ -438,7 +413,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.name_servers = validate.name_servers(data)
-        return True
 
 
     def set_name_servers_search(self, data):
@@ -449,82 +423,92 @@ class System(item.Item):
         @returns: True or CX
         """
         self.name_servers_search = validate.name_servers_search(data)
-        return True
 
 
     def set_netmask(self, netmask, interface):
+        """
+        Set the netmask for given interface.
+
+        @param: str netmask (netmask)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
         intf = self.__get_interface(interface)
-        intf["netmask"] = netmask
-        return True
+        intf["netmask"] = validate.ipv4_netmask(netmask)
 
 
     def set_if_gateway(self, gateway, interface):
-        intf = self.__get_interface(interface)
-        if gateway == "" or utils.is_ip(gateway):
-            intf["if_gateway"] = gateway
-            return True
-        raise CX(_("invalid gateway: %s" % gateway))
+        """
+        Set the per-interface gateway.
 
+        @param: str gateway (ipv4 address for the gateway)
+        @param: str interface (interface name)
+        @returns: True or CX
+        """
+        intf = self.__get_interface(interface)
+        intf["if_gateway"] = validate.ipv4_address(gateway)
+
+# --
 
     def set_virt_bridge(self, bridge, interface):
         if bridge == "":
             bridge = self.settings.default_virt_bridge
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
-        return True
 
 
     def set_interface_type(self, type, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "na", ""]
+        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", ""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
         if type == "na":
             type = ""
         intf = self.__get_interface(interface)
         intf["interface_type"] = type
-        return True
 
 
     def set_interface_master(self, interface_master, interface):
         intf = self.__get_interface(interface)
         intf["interface_master"] = interface_master
-        return True
 
 
     def set_bonding_opts(self, bonding_opts, interface):
         intf = self.__get_interface(interface)
         intf["bonding_opts"] = bonding_opts
-        return True
 
 
     def set_bridge_opts(self, bridge_opts, interface):
         intf = self.__get_interface(interface)
         intf["bridge_opts"] = bridge_opts
-        return True
 
 
     def set_ipv6_autoconfiguration(self, truthiness):
         self.ipv6_autoconfiguration = utils.input_boolean(truthiness)
-        return True
 
 
     def set_ipv6_default_device(self, interface_name):
         if interface_name is None:
             interface_name = ""
         self.ipv6_default_device = interface_name
-        return True
 
 
     def set_ipv6_address(self, address, interface):
         """
-        Assign a IP or hostname in DHCP when this MAC boots.
-        Only works if manage_dhcp is set in /etc/cobbler/settings
+        Set IPv6 address on interface.
+
+        @param: str address (ip address)
+        @param: str interface (interface name)
+        @returns: True or CX
         """
+        address = validate.ipv6_address(address)
+        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+            matched = self.collection_mgr.api.find_items("system", {"ipv6_address": address})
+            for x in matched:
+                if x.name != self.name:
+                    raise CX("IP address duplicated: %s" % address)
+
         intf = self.__get_interface(interface)
-        if address == "" or utils.is_ip(address):
-            intf["ipv6_address"] = address.strip()
-            return True
-        raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+        intf["ipv6_address"] = address
 
 
     def set_ipv6_prefix(self, prefix, interface):
@@ -533,7 +517,6 @@ class System(item.Item):
         """
         intf = self.__get_interface(interface)
         intf["ipv6_prefix"] = prefix.strip()
-        return True
 
 
     def set_ipv6_secondaries(self, addresses, interface):
@@ -547,14 +530,13 @@ class System(item.Item):
                 raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
         intf["ipv6_secondaries"] = secondaries
-        return True
 
 
     def set_ipv6_default_gateway(self, address, interface):
         intf = self.__get_interface(interface)
         if address == "" or utils.is_ip(address):
             intf["ipv6_default_gateway"] = address.strip()
-            return True
+            return
         raise CX(_("invalid format for IPv6 IP address (%s)") % address)
 
 
@@ -562,19 +544,16 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         data = utils.input_string_or_list(routes)
         intf["ipv6_static_routes"] = data
-        return True
 
 
     def set_ipv6_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["ipv6_mtu"] = mtu
-        return True
 
 
     def set_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
-        return True
 
 
     def set_enable_gpxe(self, enable_gpxe):
@@ -582,7 +561,6 @@ class System(item.Item):
         Sets whether or not the system will use gPXE for booting.
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
-        return True
 
 
     def set_profile(self, profile_name):
@@ -595,11 +573,11 @@ class System(item.Item):
             self.profile = ""
             if isinstance(old_parent, item.Item):
                 old_parent.children.pop(self.name, 'pass')
-            return True
+            return
 
         self.image = ""         # mutual exclusion rule
 
-        p = self.config.profiles().find(name=profile_name)
+        p = self.collection_mgr.profiles().find(name=profile_name)
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1            # subprofiles have varying depths.
@@ -608,7 +586,7 @@ class System(item.Item):
             new_parent = self.get_parent()
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
-            return True
+            return
         raise CX(_("invalid profile name: %s") % profile_name)
 
 
@@ -622,11 +600,11 @@ class System(item.Item):
             self.image = ""
             if isinstance(old_parent, item.Item):
                 old_parent.children.pop(self.name, 'pass')
-            return True
+            return
 
         self.profile = ""       # mutual exclusion rule
 
-        img = self.config.images().find(name=image_name)
+        img = self.collection_mgr.images().find(name=image_name)
 
         if img is not None:
             self.image = image_name
@@ -636,7 +614,7 @@ class System(item.Item):
             new_parent = self.get_parent()
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
-            return True
+            return
         raise CX(_("invalid image name (%s)") % image_name)
 
 
@@ -686,7 +664,6 @@ class System(item.Item):
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
-        return True
 
 
     def set_kickstart(self, kickstart):
@@ -697,7 +674,6 @@ class System(item.Item):
         @returns: True or CX
         """
         self.kickstart = validate.kickstart_file_path(kickstart)
-        return True
 
 
     def set_power_type(self, power_type):
@@ -710,7 +686,6 @@ class System(item.Item):
         if power_type not in choices:
             raise CX("power management type must be one of: %s" % ",".join(choices))
         self.power_type = power_type
-        return True
 
 
     def set_power_user(self, power_user):
@@ -718,7 +693,6 @@ class System(item.Item):
             power_user = ""
         utils.safe_filter(power_user)
         self.power_user = power_user
-        return True
 
 
     def set_power_pass(self, power_pass):
@@ -726,7 +700,6 @@ class System(item.Item):
             power_pass = ""
         utils.safe_filter(power_pass)
         self.power_pass = power_pass
-        return True
 
 
     def set_power_address(self, power_address):
@@ -734,7 +707,6 @@ class System(item.Item):
             power_address = ""
         utils.safe_filter(power_address)
         self.power_address = power_address
-        return True
 
 
     def set_power_id(self, power_id):
@@ -742,14 +714,13 @@ class System(item.Item):
             power_id = ""
         utils.safe_filter(power_id)
         self.power_id = power_id
-        return True
 
 
-    def modify_interface(self, hash):
+    def modify_interface(self, _dict):
         """
         Used by the WUI to modify an interface more-efficiently
         """
-        for (key, value) in hash.iteritems():
+        for (key, value) in _dict.iteritems():
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 
@@ -819,36 +790,9 @@ class System(item.Item):
             if field == "cnames":
                 self.set_cnames(value, interface)
 
-        return True
-
-
-    def set_monit_enabled(self, monit_enabled):
-        """
-        If true, allows per-system to start Monit to monitor system services such as apache.
-        If monit is not running it will start the service.
-
-        If false, no management of monit will take place. If monit is not running it will not
-        be started. If monit is running it will not be stopped or restarted.
-        """
-        self.monit_enabled = utils.input_boolean(monit_enabled)
-        return True
-
-
-    def set_ldap_enabled(self, ldap_enabled):
-        self.ldap_enabled = utils.input_boolean(ldap_enabled)
-        return True
 
 
     def set_repos_enabled(self, repos_enabled):
         self.repos_enabled = utils.input_boolean(repos_enabled)
-        return True
-
-
-    def set_ldap_type(self, ldap_type):
-        if ldap_type is None:
-            ldap_type = ""
-        ldap_type = ldap_type.lower()
-        self.ldap_type = ldap_type
-        return True
 
 # EOF

@@ -21,9 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import resource
 
 from cobbler import utils
-
-from cobbler.utils import _
 from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
@@ -58,9 +57,10 @@ class File(resource.Resource):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = File(self.config)
-        cloned.from_datastruct(ds)
+
+        _dict = self.to_dict()
+        cloned = File(self.collection_mgr)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -96,6 +96,5 @@ class File(resource.Resource):
         If true, treat file resource as a directory. Templates are ignored.
         """
         self.is_dir = utils.input_boolean(is_dir)
-        return True
 
 # EOF

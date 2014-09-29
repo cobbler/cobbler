@@ -61,7 +61,9 @@ group {
         #if $iface.netmask:
         option subnet-mask $iface.netmask;
         #end if
-        #if $iface.gateway:
+        #if $iface.if_gateway:
+        option routers $iface.if_gateway;
+        #else if $iface.gateway:
         option routers $iface.gateway;
         #end if
         #if $iface.enable_gpxe:
@@ -75,10 +77,9 @@ group {
         #else
         filename "$iface.filename";
         #end if
-        ## Cobbler defaults to $next_server, but some users
-        ## may like to use $iface.system.server for proxied setups
-        next-server $next_server;
-        ## next-server $iface.next_server;
+        #if $iface.next_server:
+        next-server $iface.next_server;
+        #end if
     }
         #end for
 }

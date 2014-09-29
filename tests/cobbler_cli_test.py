@@ -11,8 +11,8 @@ def run_cmd(cmd):
     '''
     Run a command
 
-    @param string cmd command
-    @return string output
+    @param str cmd command
+    @return str output
     @raise Exception if return code is not 0
     '''
 

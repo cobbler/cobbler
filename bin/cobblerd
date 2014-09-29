@@ -73,7 +73,7 @@ def main():
     # startup time is done before the service returns
     api = None
     try:
-        api = cobbler_api.BootAPI(is_cobblerd=True)
+        api = cobbler_api.CobblerAPI(is_cobblerd=True)
     except Exception, exc:
         if sys.exc_type == SystemExit:
             return exc.code

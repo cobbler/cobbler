@@ -22,15 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import clogger
-import time
 import re
+import time
+from types import StringType
 
-import utils
 from cexceptions import CX
 import templar
-
+import utils
 from utils import _
-from types import StringType
 
 
 def register():
@@ -45,7 +44,7 @@ class BindManager:
     def what(self):
         return "bind"
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
@@ -53,14 +52,14 @@ class BindManager:
         if self.logger is None:
             self.logger = clogger.Logger()
 
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
         self.settings_file = utils.namedconf_location(self.api)
         self.zonefile_base = utils.zonefile_base(self.api)
 
@@ -582,5 +581,5 @@ zone "%(arpa)s." {
         self.__write_zone_files()
 
 
-def get_manager(config, logger):
-    return BindManager(config, logger)
+def get_manager(collection_mgr, logger):
+    return BindManager(collection_mgr, logger)

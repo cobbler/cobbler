@@ -18,26 +18,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 import re
-import utils
-import glob
-from utils import _
+
 import clogger
+import utils
+from utils import _
 
 
-class BootCheck:
+class CobblerCheck:
     """
     Validates whether the system is reasonably well configured for
     serving up content.  This is the code behind 'cobbler check'.
     """
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        self.config = config
-        self.settings = config.settings()
+        self.collection_mgr = collection_mgr
+        self.settings = collection_mgr.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
@@ -54,7 +55,7 @@ class BootCheck:
         self.check_name(status)
         self.check_selinux(status)
         if self.settings.manage_dhcp:
-            mode = self.config.api.get_sync().dhcp.what()
+            mode = self.collection_mgr.api.get_sync().dhcp.what()
             if mode == "isc":
                 self.check_dhcpd_bin(status)
                 self.check_dhcpd_conf(status)
@@ -64,7 +65,7 @@ class BootCheck:
                 self.check_service(status, "dnsmasq")
 
         if self.settings.manage_dns:
-            mode = self.config.api.get_sync().dns.what()
+            mode = self.collection_mgr.api.get_sync().dns.what()
             if mode == "bind":
                 self.check_bind_bin(status)
                 self.check_service(status, "named")
@@ -72,7 +73,7 @@ class BootCheck:
                 self.check_dnsmasq_bin(status)
                 self.check_service(status, "dnsmasq")
 
-        mode = self.config.api.get_sync().tftpd.what()
+        mode = self.collection_mgr.api.get_sync().tftpd.what()
         if mode == "in_tftpd":
             self.check_tftpd_bin(status)
             self.check_tftpd_dir(status)
@@ -107,14 +108,11 @@ class BootCheck:
         if not os.path.exists("/usr/bin/ksvalidator"):
             status.append("ksvalidator was not found, install pykickstart")
 
-        return True
-
 
     def check_for_cman(self, status):
         # not doing rpm -q here to be cross-distro friendly
         if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
             status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
-        return True
 
 
     def check_service(self, status, which, notes=""):
@@ -126,18 +124,17 @@ class BootCheck:
                 rc = utils.subprocess_call(self.logger, "/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
-                return False
+                return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
                 status.append(_("service %s is not running%s") % (which, notes))
-                return False
+                return
         else:
             status.append(_("Unknown distribution type, cannot check for running service %s" % which))
-            return False
-        return True
+            return
 
 
     def check_iptables(self, status):
@@ -199,7 +196,7 @@ class BootCheck:
         if self.checked_family == "debian":
             return
 
-        enabled = self.config.api.is_selinux_enabled()
+        enabled = self.collection_mgr.api.is_selinux_enabled()
         if enabled:
             status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
 
@@ -213,9 +210,9 @@ class BootCheck:
         repos = []
         referenced = []
         not_found = []
-        for r in self.config.api.repos():
+        for r in self.collection_mgr.api.repos():
             repos.append(r.name)
-        for p in self.config.api.profiles():
+        for p in self.collection_mgr.api.profiles():
             my_repos = p.repos
             if my_repos != "<<inherit>>":
                 referenced.extend(my_repos)
@@ -228,7 +225,7 @@ class BootCheck:
 
     def check_for_unsynced_repos(self, status):
         need_sync = []
-        for r in self.config.repos():
+        for r in self.collection_mgr.repos():
             if r.mirror_locally == 1:
                 lookfor = os.path.join(self.settings.webdir, "repo_mirror", r.name)
                 if not os.path.exists(lookfor):

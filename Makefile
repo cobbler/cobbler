@@ -23,13 +23,18 @@ clean:
 	@rm -rf dist
 	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
-	@rm -f docs/*.1.gz 
+	@rm -f docs/*.1.gz
 	@echo "cleaning: temp files"
 	@rm -f *~
 	@rm -rf buildiso
 	@rm -f *.tmp
 	@rm -f *.log
+	@echo "cleaning: documentation"
+	@cd docs; make clean > /dev/null 2>&1
 
+doc:
+	@echo "creating: documentation"
+	@cd docs; make html > /dev/null 2>&1
 qa:
 	@echo "checking: pyflakes"
 	@pyflakes \
@@ -57,11 +62,10 @@ sdist:
 	@echo "creating: sdist"
 	@python setup.py sdist > /dev/null
 
-release: clean qa authors sdist
+release: clean qa authors sdist doc
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
-	# FIXME: add code to set the release version
 	@cp cobbler.spec release/
 	@cp debian/cobbler.dsc release/
 	@cp debian/changelog release/debian.changelog
@@ -79,7 +83,7 @@ test:
 	/sbin/service cobblerd restart
 
 nosetests:
-	PYTHONPATH=./cobbler/ nosetests -v -w newtests/ 2>&1 | tee test.log
+	PYTHONPATH=./cobbler/ nosetests -v -w tests/cli/ 2>&1 | tee test.log
 
 build:
 	python setup.py build -f
@@ -125,9 +129,6 @@ restorestate:
 	fi
 	rm -rf $(statepath)
 
-completion:
-	python mkbash.py
-
 webtest: devinstall
 	make clean
 	make devinstall
@@ -164,17 +165,14 @@ rpms: release
 	-ba cobbler.spec
 
 eraseconfig:
-	-rm /var/lib/cobbler/distros*
-	-rm /var/lib/cobbler/profiles*
-	-rm /var/lib/cobbler/systems*
-	-rm /var/lib/cobbler/repos*
-	-rm /var/lib/cobbler/networks*
-	-rm /var/lib/cobbler/config/distros.d/*
-	-rm /var/lib/cobbler/config/images.d/*
-	-rm /var/lib/cobbler/config/profiles.d/*
-	-rm /var/lib/cobbler/config/systems.d/*
-	-rm /var/lib/cobbler/config/repos.d/*
-	-rm /var/lib/cobbler/config/networks.d/*
+	-rm /var/lib/cobbler/collections/distros/*
+	-rm /var/lib/cobbler/collections/images/*
+	-rm /var/lib/cobbler/collections/profiles/*
+	-rm /var/lib/cobbler/collections/systems/*
+	-rm /var/lib/cobbler/collections/repos/*
+	-rm /var/lib/cobbler/collections/mgmtclasses/*
+	-rm /var/lib/cobbler/collections/files/*
+	-rm /var/lib/cobbler/collections/packages/*
 
 .PHONY: tags
 tags: 

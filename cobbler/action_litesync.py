@@ -26,33 +26,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 
-import utils
 import clogger
 import module_loader
+import utils
 
 
-class BootLiteSync:
+class CobblerLiteSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, config, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose=False, logger=None):
         """
         Constructor
         """
         self.verbose = verbose
-        self.config = config
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.images = config.images()
-        self.settings = config.settings()
-        self.repos = config.repos()
+        self.collection_mgr = collection_mgr
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.images = collection_mgr.images()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
-        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(config, logger)
-        self.sync = config.api.get_sync(verbose, logger=self.logger)
+        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(collection_mgr, logger)
+        self.sync = collection_mgr.api.get_sync(verbose, logger=self.logger)
         self.sync.make_tftpboot()
 
     def add_single_distro(self, name):
@@ -61,7 +61,7 @@ class BootLiteSync:
         if distro is None:
             return
         # copy image files to images/$name in webdir & tftpboot:
-        self.sync.pxegen.copy_single_distro_files(distro, self.settings.webdir, True)
+        self.sync.tftpgen.copy_single_distro_files(distro, self.settings.webdir, True)
         self.tftpd.add_single_distro(distro)
 
         # create the symlink for this distro
@@ -79,21 +79,21 @@ class BootLiteSync:
                 self.logger.error("symlink failed (%s -> %s)" % (src_dir, dst_dir))
 
         # generate any templates listed in the distro
-        self.sync.pxegen.write_templates(distro, write_file=True)
+        self.sync.tftpgen.write_templates(distro, write_file=True)
         # cascade sync
         kids = distro.get_children()
         for k in kids:
             self.add_single_profile(k.name, rebuild_menu=False)
-        self.sync.pxegen.make_pxe_menu()
+        self.sync.tftpgen.make_pxe_menu()
 
 
     def add_single_image(self, name):
         image = self.images.find(name=name)
-        self.sync.pxegen.copy_single_image_files(image)
+        self.sync.tftpgen.copy_single_image_files(image)
         kids = image.get_children()
         for k in kids:
             self.add_single_system(k.name)
-        self.sync.pxegen.make_pxe_menu()
+        self.sync.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, name):
         bootloc = utils.tftpboot_location()
@@ -118,7 +118,7 @@ class BootLiteSync:
             return
         # rebuild the yum configuration files for any attached repos
         # generate any templates listed in the distro
-        self.sync.pxegen.write_templates(profile)
+        self.sync.tftpgen.write_templates(profile)
         # cascade sync
         kids = profile.get_children()
         for k in kids:
@@ -127,7 +127,7 @@ class BootLiteSync:
             else:
                 self.add_single_system(k.name)
         if rebuild_menu:
-            self.sync.pxegen.make_pxe_menu()
+            self.sync.tftpgen.make_pxe_menu()
         return True
 
     def remove_single_profile(self, name, rebuild_menu=True):
@@ -136,7 +136,7 @@ class BootLiteSync:
         # delete contents on kickstarts/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
         if rebuild_menu:
-            self.sync.pxegen.make_pxe_menu()
+            self.sync.tftpgen.make_pxe_menu()
 
     def update_system_netboot_status(self, name):
         self.tftpd.update_netboot(name)

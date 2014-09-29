@@ -134,17 +134,13 @@ Users with small sites and a limited number of admins can probably ignore this o
 
 This feature allows cobbler to be used as a configuration management system.  The argument is a space delimited string of key=value pairs. Each key is the path to a template file, each value is the path to install the file on the system.  This is described in further detail on the Cobbler Wiki and is implemented using special code in the post install.  Koan also can retrieve these files from a cobbler server on demand, effectively allowing cobbler to function as a lightweight templated configuration management system.
 
-=item redhat-management-key
-
-If you're using Red Hat Network, Red Hat Satellite Server, or Spacewalk, you can store your authentication keys here and Cobbler can add the neccessary authentication code to your kickstart where the snippet named "redhat_register" is included.  Read more about setup in /etc/cobbler/settings.
-
 =back
 
 =head2 PROFILES
 
 A profile associates a distribution to additional specialized options, such as a kickstart automation file.  Profiles are the core unit of provisioning and at least one profile must exist for every distribution to be provisioned.  A profile might represent, for instance, a web server or desktop configuration.  In this way, profiles define a role to be performed.  
 
-B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile]>
+B<cobbler profile add --name=string --distro=string [--kickstart=path] [--kopts=string] [--ksmeta=string] [--name-servers=string] [--name-servers-search=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile]>
 
 Arguments are the same as listed for distributions, save for the removal of "arch" and "breed", and with the additions listed below:
 
@@ -160,15 +156,15 @@ The name of a previously defined cobbler distribution. This value is required.
 
 =item kickstart
 
-Local filesystem path to a kickstart file.  http:// URLs (even CGI's) are also accepted, but a local file path is recommended, so that the kickstart templating engine can be taken advantage of.
+Local filesystem path to a kickstart file, the file must reside under /var/lib/cobbler/kickstarts 
 
-If this parameter is not provided, the kickstart file will default to /var/lib/cobbler/kickstarts/default.ks.  This file is initially blank, meaning default kickstarts are not automated "out of the box".  Admins can change the default.ks if they desire.
-
-When using kickstart files, they can be placed anywhere on the filesystem, but the recommended path is /var/lib/cobbler/kickstarts.   If using the webapp to create new kickstarts, this is where the web application will put them.
-
-=item nameservers
+=item name-servers
 
 If your nameservers are not provided by DHCP, you can specify a space separated list of addresses here to configure each of the installed nodes to use them (provided the kickstarts used are installed on a per-system basis).   Users with DHCP setups should not need to use this option.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
+
+=item name-servers-search
+
+You can specify a space separated list of domain names to configure each of the installed nodes to use them as domain search path.  This is available to set in profiles to avoid having to set it repeatedly for each system record.
 
 =item virt-file-size
 
@@ -283,6 +279,12 @@ If you are using static IP configurations and the interface is flagged --static=
 
 Netmask is a per-interface parameter.  Because of the way gateway is stored on the installed OS, gateway is a global parameter.  You may use --static-routes for per-interface customizations if required.
 
+=item --if-gateway
+
+If you are using static IP configurations and have multiple interfaces, use this to define different gateway for each interface.
+
+This is a per-interface setting.
+
 =item --hostname
 
 This field corresponds to the hostname set in a systems /etc/sysconfig/network file.  This has no bearing on DNS, even when manage_dns is enabled.  Use --dns-name instead for that feature.
@@ -321,14 +323,6 @@ While it is recommended that the --kickstart parameter is only used within for t
 If set false, the system will be provisionable through koan but not through
 standard PXE.  This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object.  The default value allows PXE.   Cobbler contains a PXE boot loop prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can automatically trip off this value after a system gets done installing.  This can prevent installs from appearing in an endless loop when the system is set to PXE first in the BIOS order.
 
-=item --ldap-enabled, --ldap-type
-
-Cobbler contains features that enable ldap management for easier configuration after system provisioning. If set true, koan will run the ldap command as defined by the systems ldap_type. The default value is false. 
-
-=item --monit-enabled
-
-If set true, koan will reload monit after each configuration run. The default value is false.
-
 =item --repos-enabled
 
 If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki, https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.
@@ -363,7 +357,7 @@ cobbler system edit --name=foo --interface=eth2 --delete-interface
 
 =item --interface-type, --interface-master and --bonding-opts/--bridge-opts
 
-One of the other advanced networking features supported by Cobbler is NIC bonding and bridging. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network, or to create bridged interfaces for things like tunnels and virtual machine networks. Supported values for the --interface-type parameter are "bond", "bond_slave", "bridge", "bridge_slave" and "bonded_bridge_slave". If one of the "_slave" options is specified, you also need to define the master-interface for this bond using --interface-master=INTERFACE. Bonding and bridge options for the master-interface may be specified using --bonding-opts="foo=1 bar=2" or --bridge-opts="foo=1 bar=2", respectively.
+One of the other advanced networking features supported by Cobbler is NIC bonding, bridging, and BMC. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network, to create bridged interfaces for things like tunnels and virtual machine networks, or to manage BMC interface by DHCP.  Supported values for the --interface-type parameter are "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave" and "bmc".  If one of the "_slave" options is specified, you also need to define the master-interface for this bond using --interface-master=INTERFACE. Bonding and bridge options for the master-interface may be specified using --bonding-opts="foo=1 bar=2" or --bridge-opts="foo=1 bar=2", respectively.
 
 Example:
 
@@ -849,10 +843,6 @@ If using BIND, Cobbler will use /etc/cobbler/named.template and /etc/cobbler/zon
 If using dnsmasq, the template is /etc/cobbler/dnsmasq.template.  Read this file and understand how dnsmasq works before proceeding.
 
 All managed files (whether zone files and named.conf for BIND, or dnsmasq.conf for dnsmasq) will be updated each time ``cobbler sync'' is run, and not until then, so it is important to remember to use ``cobbler sync'' when using this feature.
-
-=head2 SERVICE DISCOVERY (AVAHI)
-
-If the avahi-tools package is installed, cobblerd will broadcast it's presence on the network, allowing it to be discovered by koan with the koan --server=DISCOVER parameter.
 
 =head2 IMPORTING TREES
 

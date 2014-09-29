@@ -19,16 +19,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import glob
 import os
 import os.path
-import shutil
-import glob
 import re
-
-import utils
-import templar
-
-import item_repo
+import shutil
 
 # Import aptsources module if available to obtain repo mirror.
 try:
@@ -37,6 +32,11 @@ try:
     apt_available = True
 except:
     apt_available = False
+
+from cexceptions import CX
+import item_repo
+import templar
+import utils
 
 
 def register():
@@ -48,19 +48,19 @@ def register():
 
 class ImportSignatureManager:
 
-    def __init__(self, config, logger):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
         """
         self.logger = logger
-        self.config = config
-        self.api = config.api
-        self.distros = config.distros()
-        self.profiles = config.profiles()
-        self.systems = config.systems()
-        self.settings = config.settings()
-        self.repos = config.repos()
-        self.templar = templar.Templar(config)
+        self.collection_mgr = collection_mgr
+        self.api = collection_mgr.api
+        self.distros = collection_mgr.distros()
+        self.profiles = collection_mgr.profiles()
+        self.systems = collection_mgr.systems()
+        self.settings = collection_mgr.settings()
+        self.repos = collection_mgr.repos()
+        self.templar = templar.Templar(collection_mgr)
 
         self.signature = None
         self.found_repos = {}
@@ -133,8 +133,9 @@ class ImportSignatureManager:
 
         self.signature = self.scan_signatures()
         if not self.signature:
-            self.logger.error("No signature matched in %s" % path)
-            return False
+            error_msg = "No signature matched in %s" % path
+            self.logger.error(error_msg)
+            raise CX(error_msg)
 
         # now walk the filesystem looking for distributions that match certain patterns
         self.logger.info("Adding distros from path %s:" % self.path)
@@ -143,7 +144,7 @@ class ImportSignatureManager:
 
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
-            return False
+            return
 
         # find out if we can auto-create any repository records from the install tree
         if self.network_root is None:
@@ -151,7 +152,6 @@ class ImportSignatureManager:
             # FIXME: this automagic is not possible (yet) without mirroring
             self.repo_finder(distros_added)
 
-        return True
 
     def scan_signatures(self):
         """
@@ -308,7 +308,7 @@ class ImportSignatureManager:
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
-                distro = self.config.new_distro()
+                distro = self.collection_mgr.new_distro()
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
@@ -341,7 +341,7 @@ class ImportSignatureManager:
 
             if existing_profile is None:
                 self.logger.info("creating new profile: %s" % name)
-                profile = self.config.new_profile()
+                profile = self.collection_mgr.new_profile()
             else:
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue
@@ -642,7 +642,7 @@ class ImportSignatureManager:
         if not mirror:
             mirror = "http://archive.ubuntu.com/ubuntu"
 
-        repo = item_repo.Repo(self.config)
+        repo = item_repo.Repo(self.collection_mgr)
         repo.set_breed("apt")
         repo.set_arch(distro.arch)
         repo.set_keep_updated(True)
@@ -658,7 +658,7 @@ class ImportSignatureManager:
             repo.set_mirror("http://ftp.%s.debian.org/debian/dists/%s" % ('us', distro.os_version))
 
         self.logger.info("Added repos for %s" % distro.name)
-        repos = self.config.repos()
+        repos = self.collection_mgr.repos()
         repos.add(repo, save=True)
         # FIXME:
         # Add the found/generated repos to the profiles

@@ -9,6 +9,7 @@ http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 import distutils.sysconfig
 import re
 import sys
+
 import utils
 
 plib = distutils.sysconfig.get_python_lib()

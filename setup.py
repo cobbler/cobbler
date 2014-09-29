@@ -24,7 +24,7 @@ import subprocess
 try:
     import coverage
 except:
-    converage = None
+    coverage = None
 
 VERSION = "2.9.0"
 OUTPUT_DIR = "config"
@@ -464,7 +464,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'config'), libpath)
+        self._copy(os.path.join(self.statepath, 'collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -496,7 +496,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'config'), self.statepath)
+        self._copy(os.path.join(libpath, 'collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -587,11 +587,11 @@ if __name__ == "__main__":
             'defaultpath': os.path.normpath(defaultpath),
         },
         configure_files=[
-            "config/settings",
-            "config/cobbler.conf",
-            "config/cobbler_web.conf",
-            "config/cobblerd.service",
-            "config/cobblerd"
+            "config/cobbler/settings",
+            "config/apache/cobbler.conf",
+            "config/apache/cobbler_web.conf",
+            "config/service/cobblerd.service",
+            "config/service/cobblerd"
         ],
         man_pages=[
             'docs/man/cobbler.1.pod',
@@ -601,15 +601,15 @@ if __name__ == "__main__":
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
-            ("%s" % webconfig, ["build/config/cobbler.conf"]),
-            ("%s" % webconfig, ["build/config/cobbler_web.conf"]),
-            ("%s" % initpath, ["build/config/cobblerd"]),
+            ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
+            ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
+            ("%s" % initpath, ["build/config/service/cobblerd"]),
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
             ("%skickstarts" % libpath, glob("kickstarts/*")),
             ("%skickstarts/install_profiles" % libpath, glob("kickstarts/install_profiles/*")),
             ("%ssnippets" % libpath, glob("snippets/*", recursive=True)),
             ("%sscripts" % libpath, glob("scripts/*")),
-            ("%s" % libpath, ["config/distro_signatures.json"]),
+            ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/content/*")),
             ("%s" % webimages, glob("web/content/images/*")),
@@ -620,31 +620,29 @@ if __name__ == "__main__":
             ("%sloaders" % libpath, []),
             ("%scobbler/aux" % webroot, glob("aux/*")),
             # Configuration
-            ("%s" % etcpath, ["build/config/cobbler.conf",
-                              "build/config/cobbler_web.conf",
-                              "build/config/cobblerd",
-                              "build/config/cobblerd.service",
-                              "build/config/settings"]),
-            ("%ssettings.d" % etcpath, glob("config/settings.d/*")),
-            ("%s" % etcpath, ["config/auth.conf",
-                              "config/cheetah_macros",
-                              "config/cobbler_bash",
-                              "config/cobblerd_rotate",
-                              "config/completions",
-                              "config/distro_signatures.json",
-                              "config/import_rsync_whitelist",
-                              "config/modules.conf",
-                              "config/mongodb.conf",
-                              "config/rsync.exclude",
-                              "config/users.conf",
-                              "config/users.digest",
+            ("%s" % etcpath, ["build/config/apache/cobbler.conf",
+                              "build/config/apache/cobbler_web.conf",
+                              "build/config/service/cobblerd",
+                              "build/config/service/cobblerd.service",
+                              "build/config/cobbler/settings"]),
+            ("%ssettings.d" % etcpath, glob("config/cobbler/settings.d/*")),
+            ("%s" % etcpath, ["config/bash/cobbler_bash",
+                              "config/cobbler/auth.conf",
+                              "config/cobbler/distro_signatures.json",
+                              "config/cobbler/modules.conf",
+                              "config/cobbler/mongodb.conf",
+                              "config/cobbler/users.conf",
+                              "config/cobbler/users.digest",
+                              "config/cheetah/cheetah_macros",
+                              "config/rotate/cobblerd_rotate",
+                              "config/rsync/import_rsync_whitelist",
+                              "config/rsync/rsync.exclude",
                               "config/version"]),
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
-            ("%spxe" % etcpath, glob("templates/pxe/*")),
+            ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
-            ("%sldap" % etcpath, glob("templates/ldap/*")),
             # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),
@@ -681,15 +679,15 @@ if __name__ == "__main__":
             ("%striggers/sync/post" % libpath, []),
             ("%striggers/change" % libpath, []),
             # Build empty directories to hold the database
-            ("%sconfig" % libpath, []),
-            ("%sconfig/distros.d" % libpath, []),
-            ("%sconfig/images.d" % libpath, []),
-            ("%sconfig/profiles.d" % libpath, []),
-            ("%sconfig/repos.d" % libpath, []),
-            ("%sconfig/systems.d" % libpath, []),
-            ("%sconfig/mgmtclasses.d" % libpath, []),
-            ("%sconfig/packages.d" % libpath, []),
-            ("%sconfig/files.d" % libpath, []),
+            ("%scollections" % libpath, []),
+            ("%scollections/distros" % libpath, []),
+            ("%scollections/images" % libpath, []),
+            ("%scollections/profiles" % libpath, []),
+            ("%scollections/repos" % libpath, []),
+            ("%scollections/systems" % libpath, []),
+            ("%scollections/mgmtclasses" % libpath, []),
+            ("%scollections/packages" % libpath, []),
+            ("%scollections/files" % libpath, []),
             # Build empty directories to hold koan localconfig
             ("/var/lib/koan/config", []),
             # logfiles

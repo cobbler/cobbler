@@ -1,26 +1,25 @@
-from django.template.loader import get_template
-from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
-from django.views.decorators.http import require_POST
+from django.template import RequestContext
+from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
-
-import xmlrpclib
-import time
+from django.views.decorators.http import require_POST
 import simplejson
 import string
+import time
+import xmlrpclib
 
+import cobbler.field_info as field_info
 import cobbler.item_distro as item_distro
-import cobbler.item_profile as item_profile
-import cobbler.item_system as item_system
-import cobbler.item_repo as item_repo
+import cobbler.item_file as item_file
 import cobbler.item_image as item_image
 import cobbler.item_mgmtclass as item_mgmtclass
 import cobbler.item_package as item_package
-import cobbler.item_file as item_file
+import cobbler.item_profile as item_profile
+import cobbler.item_repo as item_repo
+import cobbler.item_system as item_system
 import cobbler.settings as item_settings
-import cobbler.field_info as field_info
 import cobbler.utils as utils
 
 url_cobbler_api = None
@@ -157,8 +156,8 @@ def get_fields(what, is_subobject, seed_item=None):
             key = elem["value"].replace("SETTINGS:", "", 1)
             elem["value"] = settings[key]
 
-        # flatten hashes of all types, they can only be edited as text
-        # as we have no HTML hash widget (yet)
+        # flatten dicts of all types, they can only be edited as text
+        # as we have no HTML dict widget (yet)
         if isinstance(elem["value"], dict):
             if elem["name"] == "mgmt_parameters":
                 # Render dictionary as YAML for Management Parameters field
@@ -261,7 +260,7 @@ def __format_items(items, column_names):
     Format items retrieved from XMLRPC for rendering by the generic_edit template
     """
     dataset = []
-    for itemhash in items:
+    for item_dict in items:
         row = []
         for fieldname in column_names:
             if fieldname == "name":
@@ -272,7 +271,7 @@ def __format_items(items, column_names):
                 html_element = "checkbox"
             else:
                 html_element = "text"
-            row.append([fieldname, itemhash[fieldname], html_element])
+            row.append([fieldname, item_dict[fieldname], html_element])
         dataset.append(row)
     return dataset
 
@@ -654,7 +653,9 @@ def ksfile_list(request, page=None):
 
     ksfile_list = []
     for ksfile in ksfiles:
-        ksfile_list.append((ksfile, ksfile.replace('/var/lib/cobbler/kickstarts/', ''), 'editable'))
+        # handle special values
+        if ksfile not in ["", "<<inherit>>"]:
+            ksfile_list.append((ksfile, ksfile, 'editable'))
 
     t = get_template('ksfile_list.tmpl')
     html = t.render(RequestContext(request, {
@@ -746,7 +747,7 @@ def snippet_list(request, page=None):
     base_dir = "/var/lib/cobbler/snippets/"
     for snippet in snippets:
         if snippet.startswith(base_dir):
-            snippet_list.append((snippet, snippet.replace(base_dir, ""), 'editable'))
+            snippet_list.append((snippet, snippet, 'editable'))
         else:
             return error_page(request, "Invalid snippet at %s, outside %s" % (snippet, base_dir))
 
@@ -811,6 +812,7 @@ def snippet_save(request):
 
     if snippet_name is None:
         return HttpResponse("NO SNIPPET NAME SPECIFIED")
+
     if editmode != 'edit':
         if snippet_name.find("/var/lib/cobbler/snippets/") != 0:
             snippet_name = "/var/lib/cobbler/snippets/" + snippet_name
@@ -1053,15 +1055,16 @@ def replicate(request):
 # ======================================================================
 
 
-def __names_from_dicts(loh, optional=True):
+def __names_from_dicts(lod, optional=True):
     """
     Tiny helper function.
-    Get the names out of an array of hashes that the remote interface returns.
+    Get the names out of an array of dictionaries that the remote interface
+    returns.
     """
     results = []
     if optional:
         results.append("<<None>>")
-    for x in loh:
+    for x in lod:
         results.append(x["name"])
     results.sort()
     return results
@@ -1105,10 +1108,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     fields = get_fields(what, child, obj)
 
     # create the kickstart pulldown list
-    # allow for an empty value in the webui
     kickstart_list = remote.get_kickstart_templates()
-    kickstart_list.append("")
-    kickstart_list.sort()
 
     # populate some select boxes
     if what == "profile":

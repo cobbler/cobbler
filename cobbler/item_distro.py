@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 
-from cobbler import utils
-from cobbler.utils import _
 from cobbler import item
+from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
@@ -48,8 +48,7 @@ from cobbler.cexceptions import CX
 # tooltip -- the caption to be shown in the web app or in "commandname --help" in the CLI
 #
 # values -- for fields that have a limited set of valid options and those options are always fixed
-#           (such as architecture type), the list of valid options goes in this field.  This should
-#           almost always be a constant from codes.py
+#           (such as architecture type), the list of valid options goes in this field.
 #
 # type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
 #
@@ -64,7 +63,7 @@ from cobbler.cexceptions import CX
 # please edit field_info.py carefully to match.
 #
 # additional:  see field_info.py for some display hints.  By default in the web app all fields
-# are text fields unless field_info.py lists the field in one of those hashes.
+# are text fields unless field_info.py lists the field in one of those dictionaries.
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #
@@ -108,9 +107,7 @@ FIELDS = [
     ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
     ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
-    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"],
-    ["redhat_management_key", "<<inherit>>", 0, "Red Hat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["redhat_management_server", "<<inherit>>", 0, "Red Hat Management Server", True, "Address of Spacewalk or Satellite Server", 0, "str"]
+    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
 ]
 
 
@@ -137,9 +134,10 @@ class Distro(item.Item):
     #
 
     def make_clone(self):
-        ds = self.to_datastruct()
-        cloned = Distro(self.config)
-        cloned.from_datastruct(ds)
+
+        _dict = self.to_dict()
+        cloned = Distro(self.collection_mgr)
+        cloned.from_dict(_dict)
         return cloned
 
 
@@ -194,7 +192,7 @@ class Distro(item.Item):
             raise CX("kernel not specified")
         if utils.find_kernel(kernel):
             self.kernel = kernel
-            return True
+            return
         raise CX("kernel not found: %s" % kernel)
 
 
@@ -204,7 +202,6 @@ class Distro(item.Item):
         If not imported, this field is not meaningful.
         """
         self.tree_build_time = float(datestamp)
-        return True
 
 
     def set_breed(self, breed):
@@ -224,16 +221,8 @@ class Distro(item.Item):
             raise CX("initrd not specified")
         if utils.find_initrd(initrd):
             self.initrd = initrd
-            return True
+            return
         raise CX(_("initrd not found"))
-
-
-    def set_redhat_management_key(self, key):
-        return utils.set_redhat_management_key(self, key)
-
-
-    def set_redhat_management_server(self, server):
-        return utils.set_redhat_management_server(self, server)
 
 
     def set_source_repos(self, repos):

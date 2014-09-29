@@ -22,18 +22,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import utils
+
 import clogger
 
 
 class HardLinker:
 
-    def __init__(self, config, logger=None):
+    def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        # self.config   = config
-        # self.api      = config.api
-        # self.settings = config.settings()
+        # self.collection_mgr   = collection_mgr
+        # self.api      = collection_mgr.api
+        # self.settings = collection_mgr.settings()
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger

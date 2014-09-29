@@ -9,6 +9,10 @@
     #set $configbymac = True
     #for $iname in $ikeys
         #set $idata = $interfaces[$iname]
+        ## Ignore BMC interface
+        #if $idata["interface_type"].lower() == "bmc"
+            #continue
+        #end if
         #if $idata["mac_address"] == "" and not $vlanpattern.match($iname) and not $idata["interface_type"].lower() in ("bond","bridge","bonded_bridge_slave")
             #set $configbymac = False
         #end if
@@ -28,6 +32,10 @@
             #set $ip       = $idata["ip_address"]
             #set $netmask  = $idata["netmask"]
             #set $type     = $idata["interface_type"]
+            ## Ignore BMC interface
+            #if $type == "bmc"
+                #continue
+            #end if
             #if $vlanpattern.match($iname) or $type in ("bond","bridge","bonded_bridge_slave")
                 ## If this is a VLAN interface, skip it, anaconda doesn't know
                 ## about VLANs.

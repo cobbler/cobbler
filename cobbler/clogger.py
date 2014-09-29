@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import time
 import os
+import time
 
 ERROR = "ERROR"
 WARNING = "WARNING"
