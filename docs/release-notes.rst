@@ -29,6 +29,7 @@ Enhancements
 Bugfixes
 ++++++++
 
+* build_reporting no longer fails with an empty string in ignorelist (#1248).
 * Kickstart repo statement, filter invalid values: ``gpgcheck``, ``gpgkey`` and ``enabled`` (#323).
 * Several improvements to Debian/Ubuntu packaging.
 * Some class/method names have been changed to make the code more intuitive for developers.
