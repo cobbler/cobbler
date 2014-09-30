@@ -9,6 +9,6 @@
 # +fqdn:ip:ttl:timestamp:lo        A record
 # @fqdn:ip:x:dist:ttl:timestamp:lo Combined MX and A record
 
-# for $host, $ip in $forward
+#for $host, $ip in $forward:
 =%host:$ip
-# end for
+#end for
