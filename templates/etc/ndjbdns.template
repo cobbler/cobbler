@@ -1,0 +1,4 @@
+
+# for $host, $ip in $forward
+=%host:$ip
+# end for

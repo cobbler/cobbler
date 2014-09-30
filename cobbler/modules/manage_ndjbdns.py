@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import clogger
+import templar
 import os
 import subprocess
 
@@ -44,7 +45,7 @@ class NDjbDnsManager:
 
         self.config = config
         self.systems = config.systems()
-        self.datadir = '/etc/ndjbdns'
+        self.templar = templar.Templar(config)
 
     def what(self):
         return "ndjbdns"
@@ -53,7 +54,15 @@ class NDjbDnsManager:
         pass
 
     def write_dns_files(self):
+        template_file = '/etc/cobbler/ndjbdns.template'
+        data_file = '/etc/ndjbdns/data'
+        data_dir = os.path.dirname(data_file)
+
         a_records = {}
+
+        with open(template_file, 'r') as f:
+            template_content = f.read()
+
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
                 host = interface['dns_name']
@@ -64,20 +73,14 @@ class NDjbDnsManager:
                         raise Exception('Duplicate DNS name: %s' % host)
                     a_records[host] = ip
 
-        self.logger.info('Writing data file.')
-        with open('%s/data.new' % self.datadir, 'w') as datafile:
-            with open('%s/data.static' % self.datadir, 'r') as staticfile:
-                datafile.write(staticfile.read())
-            datafile.write("\n")
+        template_vars = {'forward': []}
+        for host, ip in a_records.items():
+            template_vars['forward'].append((host, ip))
 
-            for host, ip in a_records.items():
-                datafile.write("=%s:%s\n" % (host, ip))
+        self.templar.render(template_content, template_vars, data_file)
 
-        os.rename('%s/data.new' % self.datadir, '%s/data' % self.datadir)
-        self.logger.info('Wrote data file.')
-
-        p = subprocess.Popen(['/usr/bin/tinydns-data'], cwd=self.datadir)
+        p = subprocess.Popen(['/usr/bin/tinydns-data'], cwd=data_dir)
         p.communicate()
 
         if p.returncode is not 0:
-            raise Exception('tinydns-data is broken!')
+            raise Exception('Could not regenerate tinydns data file.')
