@@ -118,31 +118,6 @@ Then install Cobbler:
     # yum install cobbler cobbler-web
 
 
-openSUSE
-########
-
-TBD
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/openSUSE_13.1/home:libertas-ict:cobbler30.repo
-
-
-
-
-
-Debian
-######
-
-TBD
-
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/Debian_7.0/
-
-Ubuntu
-######
-
-TBD
-
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/xUbuntu_14.04/
-
-
 Packages from source
 ====================
 
