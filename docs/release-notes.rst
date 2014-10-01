@@ -4,6 +4,7 @@ Release Notes for Cobbler 3.0.0
 Enhancements
 ++++++++++++
 
+* Enable external YUM repo mirroring through a proxy server. 
 * DHCP configuration now also supports the per interface gateway setting.
 * A new interface_type ``BMC`` was added which also can be managed with DHCP.
 * Yaboot was updated to 1.3.17.
