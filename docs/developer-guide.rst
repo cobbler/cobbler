@@ -26,7 +26,13 @@ Setup
 The preferred development platform is CentOS 7, you will also need the EPEL repository.
 Get the latest epel-release RPM from ``http://download.fedoraproject.org/pub/epel/7/x86_64/repoview/epel-release.html``
 
-Install dependencies:
+Install development dependencies:
+
+.. code-block:: none
+
+    # yum install python-devel pyflakes python-pep8 python-sphinx rpm-build
+
+Install runtime dependencies:
 
 .. code-block:: none
 
