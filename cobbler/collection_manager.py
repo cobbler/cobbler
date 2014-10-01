@@ -190,8 +190,7 @@ class CollectionManager:
             self._files,
         ):
             try:
-                if not serializer.deserialize(collection):
-                    raise ""
+                serializer.deserialize(collection)
             except:
                 raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % collection.collection_type())
 
