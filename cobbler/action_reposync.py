@@ -420,7 +420,10 @@ class RepoSync:
             utils.die(self.logger, "no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
-        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
+        if repo.proxy == '':
+            cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
+        else:
+            cmd2 = "/bin/env http_proxy=%s /usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo.proxy, repo_mirror, temp_path)
         rc = utils.subprocess_call(self.logger, cmd2)
         if rc == 0:
             # create our repodata directory now, as any extra metadata we're
@@ -580,6 +583,10 @@ class RepoSync:
                 http_server = self.settings.server
             line = line.replace("@@server@@", http_server)
             config_file.write(line)
+
+            if repo.proxy != '':
+                config_file.write("proxy=%s\n" % repo.proxy)
+
         if not optenabled:
             config_file.write("enabled=1\n")
         config_file.write("priority=%s\n" % repo.priority)

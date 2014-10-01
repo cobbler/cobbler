@@ -45,6 +45,7 @@ import utils
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
 
+
 class Templar:
 
     def __init__(self, collection_mgr, logger=None):

@@ -46,7 +46,8 @@ FIELDS = [
     ["environment", {}, 0, "Environment Variables", True, "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
     ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
     ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
-    ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"]
+    ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"],
+    ["proxy", "", 0, "Proxy information", True, "ex: http://example.com:8080", [], "str"]
 ]
 
 
@@ -214,5 +215,12 @@ class Repo(item.Item):
 
     def set_apt_dists(self, value):
         self.apt_dists = utils.input_string_or_list(value)
+        return True
+
+
+    def set_proxy(self, value):
+        self.proxy = value
+        return True
+
 
 # EOF

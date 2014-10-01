@@ -29,6 +29,7 @@ import yaml
 
 import collection_manager
 
+
 class CobblerSvc(object):
     """
     Interesting mod python functions are all keyed off the parameter
