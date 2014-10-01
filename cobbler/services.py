@@ -26,7 +26,6 @@ import time
 import urlgrabber
 import xmlrpclib
 import yaml
-
 import collection_manager
 
 
