@@ -35,6 +35,7 @@ clean:
 doc:
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
+
 qa:
 	@echo "checking: pyflakes"
 	@pyflakes \
@@ -58,7 +59,7 @@ authors:
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
-sdist:
+sdist: authors
 	@echo "creating: sdist"
 	@python setup.py sdist > /dev/null
 
