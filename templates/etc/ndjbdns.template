@@ -1,0 +1,14 @@
+# Template for an N-DJBDNS data file.
+# See http://cr.yp.to/djbdns/tinydns-data.html for a description of the data
+# format.
+
+# Quick reference (see link above for full reference):
+# .fqdn:ip:x:ttl:timestaml:lo      Combined NS, A and SOA record
+# %fqdn:ip:x:ttl:timestamp:lo      Combined NS and A record
+# =fqdn:ip:ttl:timestamp:lo        Combined A and PTR record
+# +fqdn:ip:ttl:timestamp:lo        A record
+# @fqdn:ip:x:dist:ttl:timestamp:lo Combined MX and A record
+
+#for $host, $ip in $forward:
+=%host:$ip
+#end for
