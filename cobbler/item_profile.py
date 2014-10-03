@@ -225,7 +225,11 @@ class Profile(item.Item):
         if server in [None, ""]:
             self.next_server = "<<inherit>>"
         else:
-            self.next_server = validate.ipv4_address(server)
+            server = server.strip()
+            if server != "<<inherit>>":
+                self.next_server = validate.ipv4_address(server)
+            else:
+                self.next_server = server
 
     def set_kickstart(self, kickstart):
         """
