@@ -59,18 +59,18 @@ def __parse_config():
     return alldata
 
 
-def __authorize_kickstart(api_handle, groups, user, kickstart):
-    # the authorization rules for kickstart editing are a bit
-    # of a special case.  Non-admin users can edit a kickstart
-    # only if all objects that depend on that kickstart are
+def __authorize_autoinst(api_handle, groups, user, autoinst):
+    # the authorization rules for automatic installation file editing are a bit
+    # of a special case.  Non-admin users can edit a automatic installation file
+    # only if all objects that depend on that automatic installation file are
     # editable by the user in question.
     #
     # Example:
     #   if Pinky owns ProfileA
     #   and the Brain owns ProfileB
-    #   and both profiles use the same kickstart template
+    #   and both profiles use the same automatic installation template
     #   and neither Pinky nor the Brain is an admin
-    #   neither is allowed to edit the kickstart template
+    #   neither is allowed to edit the automatic installation template
     #   because they would make unwanted changes to each other
     #
     # In the above scenario the UI will explain the problem
@@ -78,15 +78,15 @@ def __authorize_kickstart(api_handle, groups, user, kickstart):
     # NOTE: this function is only called by authorize so admin users are
     # cleared before this function is called.
 
-    lst = api_handle.find_profile(kickstart=kickstart, return_list=True)
-    lst.extend(api_handle.find_system(kickstart=kickstart, return_list=True))
+    lst = api_handle.find_profile(autoinst=autoinst, return_list=True)
+    lst.extend(api_handle.find_system(autoinst=autoinst, return_list=True))
     for obj in lst:
-        if not __is_user_allowed(obj, groups, user, "write_kickstart", kickstart, None):
+        if not __is_user_allowed(obj, groups, user, "write_autoinst", autoinst, None):
             return 0
     return 1
 
 
-def __authorize_snippet(api_handle, groups, user, kickstart):
+def __authorize_snippet(api_handle, groups, user, autoinst):
     # only allow admins to edit snippets -- since we don't have detection to see
     # where each snippet is in use
     for group in groups:
@@ -168,21 +168,22 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
     # now we have a modify_operation op, so we must check ownership
     # of the object.  remove ops pass in arg1 as a string name,
     # saves pass in actual objects, so we must treat them differently.
-    # kickstarts are even more special so we call those out to another
-    # function, rather than going through the rest of the code here.
+    # automatic installaton files are even more special so we call those
+    # out to another function, rather than going through the rest of the
+    # code here.
 
-    if resource.find("write_kickstart") != -1:
-        return __authorize_kickstart(api_handle, found_groups, user, arg1)
-    elif resource.find("read_kickstart") != -1:
+    if resource.find("write_autoinstall_template") != -1:
+        return __authorize_autoinst(api_handle, found_groups, user, arg1)
+    elif resource.find("read_autoinstall_template") != -1:
         return True
 
     # the API for editing snippets also needs to do something similar.
-    # as with kickstarts, though since they are more widely used it's more
-    # restrictive
+    # as with automatic installation files, though since they are more 
+    # widely used it's more restrictive
 
-    if resource.find("write_snippet") != -1:
+    if resource.find("write_autoinstall_snippet") != -1:
         return __authorize_snippet(api_handle, found_groups, user, arg1)
-    elif resource.find("read_snipppet") != -1:
+    elif resource.find("read_autoinstall_snipppet") != -1:
         return True
 
     obj = None

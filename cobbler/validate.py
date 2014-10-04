@@ -25,8 +25,8 @@ import shlex
 from cobbler.cexceptions import CX
 
 
-KICKSTART_TEMPLATE_BASE_DIR = "/var/lib/cobbler/kickstarts/"
-SNIPPET_TEMPLATE_BASE_DIR = "/var/lib/cobbler/snippets/"
+AUTOINSTALL_TEMPLATE_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
+AUTOINSTALL_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
 
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
@@ -35,8 +35,8 @@ REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
 
 VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
 
-# blacklist invalid values to the repo statement in kickstarts
-KICKSTART_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
+# blacklist invalid values to the repo statement in autoinsts
+AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
 
 
 def object_name(name, parent):
@@ -76,51 +76,47 @@ def snippet_file_path(snippet, new_snippet=False):
         snippet = snippet.strip()
 
     if snippet.find("..") != -1:
-        raise CX("Invalid snippet template file location %s, must be absolute path" % snippet)
+        raise CX("Invalid automated installation snippet file location %s, it must not contain .." % snippet)
 
-    if not snippet.startswith(SNIPPET_TEMPLATE_BASE_DIR):
-        raise CX("Invalid snippet template file location %s, it is not inside %s" % (snippet, SNIPPET_TEMPLATE_BASE_DIR))
-
-    if not os.path.isfile(snippet) and not new_snippet:
-        raise CX("Invalid snippet template file location %s, file not found" % snippet)
+    snippet_path = "%s%s" % (AUTOINSTALL_SNIPPET_BASE_DIR, snippet)
+    if not os.path.isfile(snippet_path) and not new_snippet:
+        raise CX("Invalid automated installation snippet file location %s, file not found" % snippet_path)
 
     return snippet
 
 
-def kickstart_file_path(kickstart, for_item=True, new_kickstart=False):
+def autoinstall_file_path(autoinstall, for_item=True, new_autoinstall=False):
     """
-    Validate the kickstart file path.
+    Validate the auto installation file's relative file path.
 
-    @param: str kickstart (absolute path to a local kickstart file)
+    @param: str autoinstall (absolute path to a local autoinstall file)
     @param: bool for_item (enable/disable special handling for Item objects)
-    @param: bool new_kickstart (when set to true new filenames are allowed)
-    @returns: str kickstart or CX
+    @param: bool new_autoinstall (when set to true new filenames are allowed)
+    @returns: str autoinstall or CX
     """
-    if not isinstance(kickstart, basestring):
-        raise CX("Invalid input, kickstart must be a string")
+    if not isinstance(autoinstall, basestring):
+        raise CX("Invalid input, autoinstall must be a string")
     else:
-        kickstart = kickstart.strip()
+        autoinstall = autoinstall.strip()
 
-    if kickstart == "":
-        # empty kickstart is allowed (interactive installations)
-        return kickstart
+    if autoinstall == "":
+        # empty autoinstall is allowed (interactive installations)
+        return autoinstall
 
     if for_item is True:
-        # this kickstart value has special meaning for Items
+        # this autoinstall value has special meaning for Items
         # other callers of this function have no use for this
-        if kickstart == "<<inherit>>":
-            return kickstart
+        if autoinstall == "<<inherit>>":
+            return autoinstall
 
-    if kickstart.find("..") != -1:
-        raise CX("Invalid kickstart template file location %s, must be absolute path" % kickstart)
+    if autoinstall.find("..") != -1:
+        raise CX("Invalid automatic installation template file location %s, it must not contain .." % autoinstall)
 
-    if not kickstart.startswith(KICKSTART_TEMPLATE_BASE_DIR):
-        raise CX("Invalid kickstart template file location %s, it is not inside %s" % (kickstart, KICKSTART_TEMPLATE_BASE_DIR))
+    autoinstall_path = "%s%s" % (AUTOINSTALL_TEMPLATE_BASE_DIR, autoinstall)
+    if not os.path.isfile(autoinstall_path) and not new_autoinstall:
+        raise CX("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
 
-    if not os.path.isfile(kickstart) and not new_kickstart:
-        raise CX("Invalid kickstart template file location %s, file not found" % kickstart)
-
-    return kickstart
+    return autoinstall
 
 
 def hostname(dnsname):

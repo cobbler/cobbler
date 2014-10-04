@@ -14,9 +14,9 @@ $SNIPPET('network_config')
 
 %pre --interpreter=busybox
 
-$SNIPPET('kickstart_start')
+$SNIPPET('autoinstall_start')
 $SNIPPET('pre_install_network_config')
 
 %post --interpreter=busybox
 
-$SNIPPET('kickstart_done')
+$SNIPPET('autoinstall_done')

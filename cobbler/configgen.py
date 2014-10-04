@@ -19,7 +19,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 
-module for generating configuration manifest using ksmeta data,
+module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
 
@@ -45,7 +45,7 @@ class ConfigGen:
         self.hostname = hostname
         self.handle = capi.CobblerAPI()
         self.system = self.handle.find_system(hostname=self.hostname)
-        self.host_vars = self.get_cobbler_resource('ks_meta')
+        self.host_vars = self.get_cobbler_resource('autoinstall_meta')
         self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
         self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
 

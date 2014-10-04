@@ -43,8 +43,8 @@ from cobbler import utils
 
 OBJECT_ACTIONS_MAP = {
     "distro": "add copy edit find list remove rename report".split(" "),
-    "profile": "add copy dumpvars edit find getks list remove rename report".split(" "),
-    "system": "add copy dumpvars edit find getks list remove rename report poweron poweroff powerstatus reboot".split(" "),
+    "profile": "add copy dumpvars edit find get-autoinstall list remove rename report".split(" "),
+    "system": "add copy dumpvars edit find get-autoinstall list remove rename report poweron poweroff powerstatus reboot".split(" "),
     "image": "add copy edit find list remove rename report".split(" "),
     "repo": "add copy edit find list remove rename report".split(" "),
     "mgmtclass": "add copy edit find list remove rename report".split(" "),
@@ -59,7 +59,7 @@ OBJECT_TYPES = OBJECT_ACTIONS_MAP.keys()
 OBJECT_ACTIONS = []
 for actions in OBJECT_ACTIONS_MAP.values():
     OBJECT_ACTIONS += actions
-DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validateks version signature get-loaders hardlink".split()
+DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validate-autoinstalls version signature get-loaders hardlink".split()
 
 ####################################################
 
@@ -238,7 +238,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
 
         if object_action not in ["find"] and object_type != "setting":
             parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
-            parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or ksmeta without clearing the other items")
+            parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or autoinstall without clearing the other items")
 
     elif object_action == "remove":
         parser.add_option("--name", help="%s name to remove" % object_type)
@@ -457,11 +457,11 @@ class CobblerCLI:
                 except RuntimeError, (err):
                     print err.args[0]
                     sys.exit(1)
-            elif object_action == "getks":
+            elif object_action == "get-autoinstall":
                 if object_type == "profile":
-                    data = self.remote.generate_kickstart(options.name, "")
+                    data = self.remote.generate_autoinstall(options.name, "")
                 elif object_type == "system":
-                    data = self.remote.generate_kickstart("", options.name)
+                    data = self.remote.generate_autoinstall("", options.name)
                 print data
             elif object_action == "dumpvars":
                 if object_type == "profile":
@@ -564,9 +564,9 @@ class CobblerCLI:
         elif action_name == "status":
             (options, args) = self.parser.parse_args()
             print self.remote.get_status("text", self.token)
-        elif action_name == "validateks":
+        elif action_name == "validate-autoinstalls":
             (options, args) = self.parser.parse_args()
-            task_id = self.start_task("validateks", options)
+            task_id = self.start_task("validate_autoinstall_files", options)
         elif action_name == "get-loaders":
             self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
             (options, args) = self.parser.parse_args()
@@ -578,7 +578,7 @@ class CobblerCLI:
             self.parser.add_option("--path", dest="path", help="local path or rsync location")
             self.parser.add_option("--name", dest="name", help="name, ex 'RHEL-5'")
             self.parser.add_option("--available-as", dest="available_as", help="tree is here, don't mirror")
-            self.parser.add_option("--kickstart", dest="kickstart_file", help="assign this kickstart file")
+            self.parser.add_option("--autoinstall", dest="autoinstall_file", help="assign this autoinstall file")
             self.parser.add_option("--rsync-flags", dest="rsync_flags", help="pass additional flags to rsync")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("import", options)
@@ -712,7 +712,7 @@ class CobblerCLI:
         """
         print "usage\n====="
         print "cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... "
-        print "        [add|edit|copy|getks*|list|remove|rename|report] [options|--help]"
+        print "        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]"
         print "cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS)
         sys.exit(2)
 

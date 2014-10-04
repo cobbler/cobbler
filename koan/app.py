@@ -55,7 +55,7 @@ DISPLAY_PARAMS = [
     "name",
     "distro",
     "profile",
-    "kickstart",
+    "autoinst",
     "ks_meta",
     "install_tree",
     "kernel",
@@ -273,9 +273,9 @@ def main():
     p.add_option(
         "",
         "--embed",
-        dest="embed_kickstart",
+        dest="embed_autoinst",
         action="store_true",
-        help="When used with  --replace-self, embed the kickstart in the initrd to overcome potential DHCP timeout issues. (seldom needed)"
+        help="When used with  --replace-self, embed the autoinst in the initrd to overcome potential DHCP timeout issues. (seldom needed)"
     )
     p.add_option(
         "",
@@ -349,7 +349,7 @@ def main():
         k.use_kexec = options.use_kexec
         k.no_copy_default = options.no_copy_default
         k.should_poll = options.should_poll
-        k.embed_kickstart = options.embed_kickstart
+        k.embed_autoinst = options.embed_autoinst
         k.virt_auto_boot = options.virt_auto_boot
         k.virt_pxe_boot = options.virt_pxe_boot
         k.qemu_disk_type = options.qemu_disk_type
@@ -427,7 +427,7 @@ class Koan:
         koan's main function...
         """
         # we can get the info we need from either the cobbler server
-        #  or a kickstart file
+        #  or a autoinst file
         if self.server is None:
             raise InfoException("no server specified")
 
@@ -622,15 +622,15 @@ class Koan:
             # shouldn't end up here, right?
             profile_data = {}
 
-        if profile_data.get("kickstart", "") != "":
+        if profile_data.get("autoinst", "") != "":
 
             # fix URLs
-            if profile_data["kickstart"][0] == "/":
+            if profile_data["autoinst"][0] == "/":
                 if not self.system:
-                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
+                    profile_data["autoinst"] = "http://%s/cblr/svc/op/ks/profile/%s" % (
                         profile_data['http_server'], profile_data['name'])
                 else:
-                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/system/%s" % (
+                    profile_data["autoinst"] = "http://%s/cblr/svc/op/ks/system/%s" % (
                         profile_data['http_server'], profile_data['name'])
 
             # If breed is ubuntu/debian we need to source the install tree differently
@@ -638,8 +638,8 @@ class Koan:
             if profile_data["breed"] in ["ubuntu", "debian", "suse"]:
                 self.get_install_tree_from_profile_data(profile_data)
             else:
-                # find_kickstart source tree in the kickstart file
-                self.get_install_tree_from_kickstart(profile_data)
+                # find_autoinst source tree in the autoinst file
+                self.get_install_tree_from_autoinst(profile_data)
 
             # if we found an install_tree, and we don't have a kernel or initrd
             # use the ones in the install_tree
@@ -779,21 +779,21 @@ class Koan:
         # perform specified action
         after_download(self, profile_data)
 
-    def get_install_tree_from_kickstart(self, profile_data):
+    def get_install_tree_from_autoinst(self, profile_data):
         """
-        Scan the kickstart configuration for either a "url" or "nfs" command
+        Scan the autoinst configuration for either a "url" or "nfs" command
            take the install_tree url from that
 
         """
         try:
-            if profile_data["kickstart"][:4] == "http":
+            if profile_data["autoinst"][:4] == "http":
                 if not self.system:
                     url_fmt = "http://%s/cblr/svc/op/ks/profile/%s"
                 else:
                     url_fmt = "http://%s/cblr/svc/op/ks/system/%s"
                 url = url_fmt % (self.server, profile_data['name'])
             else:
-                url = profile_data["kickstart"]
+                url = profile_data["autoinst"]
 
             raw = utils.urlread(url)
             lines = raw.splitlines()
@@ -829,12 +829,12 @@ class Koan:
             if self.safe_load(profile_data, "install_tree"):
                 print("install_tree:", profile_data["install_tree"])
             else:
-                print("warning: kickstart found but no install_tree found")
+                print("warning: autoinst found but no install_tree found")
 
         except:
-            # unstable to download the kickstart, however this might not
+            # unstable to download the autoinst, however this might not
             # be an error.  For instance, xen FV installations of non
-            # kickstart OS's...
+            # autoinst OS's...
             pass
 
     def get_install_tree_from_profile_data(self, profile_data):
@@ -875,7 +875,7 @@ class Koan:
             if self.safe_load(profile_data, "install_tree"):
                 print("install_tree:", profile_data["install_tree"])
             else:
-                print("warning: kickstart found but no install_tree found")
+                print("warning: autoinst found but no install_tree found")
         except:
             pass
 
@@ -1057,21 +1057,21 @@ class Koan:
 
         def after_download(self, profile_data):
             k_args = self.calc_kernel_args(profile_data)
-            kickstart = self.safe_load(profile_data, 'kickstart')
+            autoinst = self.safe_load(profile_data, 'autoinst')
             arch = self.safe_load(profile_data, 'arch')
 
             (make, version) = utils.os_release()
 
             if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
 
-                # embed the initrd in the kickstart file because of libdhcp and/or pump
+                # embed the initrd in the autoinst file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
                 # network configs.
 
-                if self.embed_kickstart:
+                if self.embed_autoinst:
                     self.build_initrd(
                         self.safe_load(profile_data, 'initrd_local'),
-                        kickstart,
+                        autoinst,
                         profile_data
                     )
 
@@ -1110,7 +1110,7 @@ class Koan:
     def replace(self):
         """
         Handle morphing an existing system through downloading new
-        kernel, new initrd, and installing a kickstart in the initrd,
+        kernel, new initrd, and installing a autoinst in the initrd,
         then manipulating grub.
         """
         try:
@@ -1141,18 +1141,18 @@ class Koan:
 
             k_args = self.calc_kernel_args(profile_data, replace_self=1)
 
-            kickstart = self.safe_load(profile_data, 'kickstart')
+            autoinst = self.safe_load(profile_data, 'autoinst')
 
             if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
 
-                # embed the initrd in the kickstart file because of libdhcp and/or pump
+                # embed the initrd in the autoinst file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
                 # network configs.
 
-                if self.embed_kickstart:
+                if self.embed_autoinst:
                     self.build_initrd(
                         self.safe_load(profile_data, 'initrd_local'),
-                        kickstart,
+                        autoinst,
                         profile_data
                     )
 
@@ -1303,7 +1303,7 @@ class Koan:
 
     def get_insert_script(self, initrd):
         """
-        Create bash script for inserting kickstart into initrd.
+        Create bash script for inserting autoinst into initrd.
         Code heavily borrowed from internal auto-ks scripts.
         """
         return r"""
@@ -1326,19 +1326,19 @@ class Koan:
         fi
         """ % (initrd, initrd)
 
-    def build_initrd(self, initrd, kickstart, data):
+    def build_initrd(self, initrd, autoinst, data):
         """
-        Crack open an initrd and install the kickstart file.
+        Crack open an initrd and install the autoinst file.
         """
 
-        # save kickstart to file
-        ksdata = utils.urlread(kickstart)
+        # save autoinst to file
+        ksdata = utils.urlread(autoinst)
         fd = open("/var/spool/koan/ks.cfg", "w+")
         if ksdata is not None:
             fd.write(ksdata)
         fd.close()
 
-        # handle insertion of kickstart based on type of initrd
+        # handle insertion of autoinst based on type of initrd
         fd = open("/var/spool/koan/insert.sh", "w+")
         fd.write(self.get_insert_script(initrd))
         fd.close()
@@ -1431,19 +1431,19 @@ class Koan:
         profile_data['initrd_local'] = initrd_save
 
     def calc_kernel_args(self, pd, replace_self=0):
-        kickstart = self.safe_load(pd, 'kickstart')
+        autoinst = self.safe_load(pd, 'autoinst')
         options = self.safe_load(pd, 'kernel_options', default='')
         breed = self.safe_load(pd, 'breed')
 
         kextra = ""
-        if kickstart is not None and kickstart != "":
+        if autoinst is not None and autoinst != "":
             if breed is not None and breed == "suse":
-                kextra = "autoyast=" + kickstart
+                kextra = "autoyast=" + autoinst
             elif breed is not None and breed == "debian" or breed == "ubuntu":
                 kextra = "auto-install/enable=true priority=critical url=" + \
-                    kickstart
+                    autoinst
             else:
-                kextra = "ks=" + kickstart
+                kextra = "ks=" + autoinst
 
         if options != "":
             kextra = kextra + " " + options
@@ -1519,7 +1519,7 @@ class Koan:
                 else:
                     hashv["dns"] = ",".join(dns)
 
-        if replace_self and self.embed_kickstart:
+        if replace_self and self.embed_autoinst:
             hashv["ks"] = "file:ks.cfg"
 
         if self.kopts_override is not None:

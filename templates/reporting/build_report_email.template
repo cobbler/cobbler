@@ -34,13 +34,13 @@ distro  : $distro
 
 kernel_options: $getVar("kernel_options","")
 
-#if $kickstart.startswith("/") or $kickstart == "":
+#if $autoinstall.startswith("/") or $autoinstall == "":
 #if $getVar("interfaces","") != ""
-kickstart=http://$server/cblr/svc/op/ks/system/$name
+autoinstall=http://$server/cblr/svc/op/ks/system/$name
 #else
-kickstart=http://$server/cblr/svc/op/ks/profile/$name
+autoinstall=http://$server/cblr/svc/op/ks/profile/$name
 #end if
 #else
-kickstart=$kickstart
+autoinstall=$autoinstall
 #end if
 

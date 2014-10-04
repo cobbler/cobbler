@@ -59,7 +59,7 @@
     </user>
   </users>
   <scripts>
-    ## we have to include the pre-scripts tag to get kickstart_start included
+    ## we have to include the pre-scripts tag to get autoinstall_start included
     <pre-scripts config:type="list">
 	## SuSE has an annoying habit on ppc64 of changing the system
 	## boot order after installation. This makes it non-trivial to
@@ -70,7 +70,7 @@
     <post-scripts config:type="list">
 
 	## This plugin wrapper provides the flexibility to call pure shell
-	## snippets which can be used directly on kickstart and with with
+	## snippets which can be used directly on autoinst file and with 
 	## wrapper on SuSE.
 	##
 	## To use it

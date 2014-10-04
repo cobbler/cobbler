@@ -12,7 +12,7 @@ autopart --firstdisk --overwritevmfs
 $SNIPPET('network_config_esxi')
 
 %pre --unsupported --interpreter=busybox
-$SNIPPET('kickstart_start')
+$SNIPPET('autoinstall_start')
 
 %post --unsupported --interpreter=busybox
-$SNIPPET('kickstart_done')
+$SNIPPET('autoinstall_done')

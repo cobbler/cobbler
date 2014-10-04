@@ -140,7 +140,6 @@ class Collection:
     SEARCH_REKEY = {
         'kopts': 'kernel_options',
         'kopts_post': 'kernel_options_post',
-        'ksmeta': 'ks_meta',
         'inherit': 'parent',
         'ip': 'ip_address',
         'mac': 'mac_address',

@@ -246,7 +246,11 @@ class System(item.Item):
                 self.next_server = validate.ipv4_address(server)
             else:
                 self.next_server = server
+<<<<<<< Updated upstream
+  
+=======
 
+>>>>>>> Stashed changes
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
             proxy = "<<inherit>>"

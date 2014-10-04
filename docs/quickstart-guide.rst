@@ -235,25 +235,25 @@ The report command shows the details of objects in cobbler:
 .. code-block:: none
 
     $ cobbler distro report --name=fedora17-x86_64
-    Name                           : fedora17-x86_64
-    Architecture                   : x86_64
-    TFTP Boot Files                : {}
-    Breed                          : redhat
-    Comment                        : 
-    Fetchable Files                : {}
-    Initrd                         : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/initrd.img
-    Kernel                         : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
-    Kernel Options                 : {}
-    Kernel Options (Post Install)  : {}
-    Kickstart Metadata             : {'tree': 'http://@@http_server@@/cblr/links/fedora17-x86_64'}
-    Management Classes             : []
-    OS Version                     : fedora17
-    Owners                         : ['admin']
-    Red Hat Management Key         : <<inherit>>
-    Red Hat Management Server      : <<inherit>>
-    Template Files                 : {}
+    Name                            : fedora17-x86_64
+    Architecture                    : x86_64
+    TFTP Boot Files                 : {}
+    Breed                           : redhat
+    Comment                         : 
+    Fetchable Files                 : {}
+    Initrd                          : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/initrd.img
+    Kernel                          : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
+    Kernel Options                  : {}
+    Kernel Options (Post Install)   : {}
+    Automatic Installation Template Metadata : {'tree': 'http://@@http_server@@/cblr/links/fedora17-x86_64'}
+    Management Classes              : []
+    OS Version                      : fedora17
+    Owners                          : ['admin']
+    Red Hat Management Key          : <<inherit>>
+    Red Hat Management Server       : <<inherit>>
+    Template Files                  : {}
 
-As you can see above, the import command filled out quite a few fields automatically, such as the breed, OS version, and initrd/kernel file locations. The "Kickstart Metadata" field (--ksmeta internally) is used for miscellaneous variables, and contains the critical "tree" variable. This is used in the kickstart templates to specify the URL where the installation files can be found.
+As you can see above, the import command filled out quite a few fields automatically, such as the breed, OS version, and initrd/kernel file locations. The "Automatic Installation Template Metadata" field (--autoinstall_meta internally) is used for miscellaneous variables, and contains the critical "tree" variable. This is used in the automated installation templates to specify the URL where the installation files can be found.
 
 Something else to note: some fields are set to <<inherit>>. This means they will use either the default setting (found in the settings file), or (in the case of profiles, sub-profiles, and systems) will use whatever is set in the parent object.
 
@@ -283,8 +283,8 @@ First, we'll create a system object based on the profile that was created during
     IPv6 Default Device            : 
     Kernel Options                 : {}
     Kernel Options (Post Install)  : {}
-    Kickstart                      : <<inherit>>
-    Kickstart Metadata             : {}
+    Automatic Installation Template: <<inherit>>
+    Automatic Installation Template Metadata: {}
     Management Classes             : []
     Management Parameters          : <<inherit>>
     Name Servers                   : []

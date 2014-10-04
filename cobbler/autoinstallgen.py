@@ -30,8 +30,10 @@ from cobbler import validate
 from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler.utils import _
 
+AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
 
-class KickGen:
+
+class AutoInstallationGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -150,10 +152,11 @@ class KickGen:
     def generate_repo_stanza(self, obj, is_profile=True):
 
         """
-        Automatically attaches yum repos to profiles/systems in kickstart files
-        that contain the magic $yum_repo_stanza variable.  This includes repo
-        objects as well as the yum repos that are part of split tree installs,
-        whose data is stored with the distro (example: RHEL5 imports)
+        Automatically attaches yum repos to profiles/systems in automatic
+        installation files (kickstart files) that contain the magic
+        $yum_repo_stanza variable.  This includes repo objects as well as the
+        yum repos that are part of split tree installs, whose data is stored
+        with the distro (example: RHEL5 imports)
         """
 
         buf = ""
@@ -169,8 +172,9 @@ class KickGen:
             if repo_obj is not None:
                 yumopts = ''
                 for opt in repo_obj.yumopts:
-                    # filter invalid values to the repo statement in kickstarts
-                    if not opt.lower() in validate.KICKSTART_REPO_BLACKLIST:
+                    # filter invalid values to the repo statement in automatic
+                    # installation files
+                    if not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
                         yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
@@ -185,9 +189,9 @@ class KickGen:
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
                 # this should be a warning at another point, probably not here
-                # so we'll just not list it so the kickstart will still work
-                # as nothing will be here to read the output noise.  Logging might
-                # be useful.
+                # so we'll just not list it so the automatic installation file
+                # will still work as nothing will be here to read the output noise.
+                # Logging might be useful.
                 pass
 
         if is_profile:
@@ -209,7 +213,8 @@ class KickGen:
 
         """
         Add in automatic to configure /etc/yum.repos.d on the remote system
-        if the kickstart file contains the magic $yum_config_stanza.
+        if the automatic installation file (kickstart file) contains the magic
+        $yum_config_stanza.
         """
 
         if not self.settings.yum_post_install_mirror:
@@ -223,7 +228,7 @@ class KickGen:
 
         return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
-    def generate_kickstart_for_system(self, sys_name):
+    def generate_autoinstall_for_system(self, sys_name):
 
         s = self.api.find_system(name=sys_name)
         if s is None:
@@ -235,26 +240,28 @@ class KickGen:
 
         distro = p.get_conceptual_parent()
         if distro is None:
-            # this is an image parented system, no kickstart available
-            return "# image based systems do not have kickstarts"
+            # this is an image parented system, no automatic installation file available
+            return "# image based systems do not have automatic installation files"
 
-        return self.generate_kickstart(profile=p, system=s)
+        return self.generate_autoinstall(profile=p, system=s)
 
-    def generate_kickstart(self, profile=None, system=None):
+    def generate_autoinstall(self, profile=None, system=None):
 
         obj = system
+        obj_type = "system"
         if system is None:
             obj = profile
+            obj_type = "profile"
 
         meta = utils.blender(self.api, False, obj)
-        kickstart_path = meta["kickstart"]
+        autoinstall_rel_path = meta["autoinstall"]
 
-        if not kickstart_path:
-            return "# kickstart is missing or invalid: %s" % meta["kickstart"]
+        if not autoinstall_rel_path:
+            return "# automatic installation file value missing or invalid at %s %s" % (obj_type, obj.name)
 
-        ksmeta = meta["ks_meta"]
-        del meta["ks_meta"]
-        meta.update(ksmeta)     # make available at top level
+        autoinstall_meta = meta["autoinstall_meta"]
+        del meta["autoinstall_meta"]
+        meta.update(autoinstall_meta)     # make available at top level
         meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
         meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
         meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
@@ -265,9 +272,8 @@ class KickGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            raw_data = utils.read_file_contents(kickstart_path, self.api.logger)
-            if raw_data is None:
-                return "# kickstart is sourced externally: %s" % meta["kickstart"]
+            autoinstall_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, autoinstall_rel_path)
+            raw_data = utils.read_file_contents(autoinstall_path, self.api.logger)
             distro = profile.get_conceptual_parent()
             if system is not None:
                 distro = system.get_conceptual_parent().get_conceptual_parent()
@@ -280,10 +286,11 @@ class KickGen:
 
             return data
         except FileNotFoundException:
-            self.api.logger.warning("kickstart not found: %s" % meta["kickstart"])
-            return "# kickstart not found: %s" % meta["kickstart"]
+            error_msg = "automatic installation file %s not found at %s" % (meta["autoinstall"], AUTOINSTALL_TEMPLATES_BASE_DIR)
+            self.api.logger.warning(error_msg)
+            return "# %s" % error_msg
 
-    def generate_kickstart_for_profile(self, g):
+    def generate_autoinstall_for_profile(self, g):
 
         g = self.api.find_profile(name=g)
         if g is None:
@@ -293,7 +300,7 @@ class KickGen:
         if distro is None:
             raise CX(_("profile %(profile)s references missing distro %(distro)s") % {"profile": g.name, "distro": g.distro})
 
-        return self.generate_kickstart(profile=g)
+        return self.generate_autoinstall(profile=g)
 
     def get_last_errors(self):
         """

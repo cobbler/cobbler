@@ -70,6 +70,6 @@ class Resource(item.Item):
         """
         Path to cheetah template on cobbler's local file system.
         Used to generate file data shipped to koan via json. All
-        templates have access to flatten ksmeta data.
+        templates have access to flatten autoinstall_meta data.
         """
         self.template = template

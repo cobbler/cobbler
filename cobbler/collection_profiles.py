@@ -28,7 +28,8 @@ from cobbler.utils import _
 
 class Profiles(collection.Collection):
     """
-    A profile represents a distro paired with a kickstart file.
+    A profile represents a distro paired with an automatic OS installation
+    template file.
     """
 
     def collection_type(self):

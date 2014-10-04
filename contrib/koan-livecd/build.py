@@ -24,8 +24,8 @@ import subprocess
 import sys
 import os
 
-# this configuration is the kickstart for the live CD, not the install system
-# tweak at your own risk
+# this configuration is the automatic installation file for the live CD, not
+# the install system. Tweak at your own risk
 
 basef = open("./base.cfg")
 base_config = basef.read()

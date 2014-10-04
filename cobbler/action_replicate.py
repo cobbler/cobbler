@@ -176,8 +176,8 @@ class Replicate:
 
             self.logger.info("Rsyncing distro repo configs")
             self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir, "distro_mirror", "config"))
-            self.logger.info("Rsyncing kickstart templates & snippets")
-            self.rsync_it("cobbler-kickstarts", "/var/lib/cobbler/kickstarts")
+            self.logger.info("Rsyncing automatic installation templates & snippets")
+            self.rsync_it("cobbler-autoinstalls", "/var/lib/cobbler/autoinstall_templates")
             self.rsync_it("cobbler-snippets", "/var/lib/cobbler/snippets")
             self.logger.info("Rsyncing triggers")
             self.rsync_it("cobbler-triggers", "/var/lib/cobbler/triggers")

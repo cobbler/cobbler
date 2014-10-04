@@ -497,7 +497,7 @@ def libvirt_enable_autostart(domain_name):
             domain_name)
 
 
-def make_floppy(kickstart):
+def make_floppy(autoinst):
 
     (fd, floppy_path) = tempfile.mkstemp(
         suffix='.floppy', prefix='tmp', dir="/tmp")
@@ -525,10 +525,10 @@ def make_floppy(kickstart):
     if not rc == 0:
         raise InfoException("mount failed")
 
-    # download the kickstart file onto the mounted floppy
-    print("- downloading %s" % kickstart)
+    # download the autoinst file onto the mounted floppy
+    print("- downloading %s" % autoinst)
     save_file = os.path.join(mount_path, "unattended.txt")
-    urlgrabber.urlgrab(kickstart, filename=save_file)
+    urlgrabber.urlgrab(autoinst, filename=save_file)
 
     # umount
     cmd = "umount %s" % mount_path

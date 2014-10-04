@@ -167,10 +167,11 @@ class CobblerSync:
         Delete any previously built pxelinux.cfg tree and virt tree info and then create
         directories.
 
-        Note: for SELinux reasons, some information goes in /tftpboot, some in /var/www/cobbler
-        and some must be duplicated in both.  This is because PXE needs tftp, and auto-kickstart
-        and Virt operations need http.   Only the kernel and initrd images are duplicated, which is
-        unfortunate, though SELinux won't let me give them two contexts, so symlinks are not
+        Note: for SELinux reasons, some information goes in /tftpboot, some in
+        /var/www/cobbler and some must be duplicated in both.  This is because
+        PXE needs tftp, and automatic installation and Virt operations need http.
+        Only the kernel and initrd images are duplicated, which is unfortunate,
+        though SELinux won't let me give them two contexts, so symlinks are not
         a solution.  *Otherwise* duplication is minimal.
         """
 
@@ -184,7 +185,7 @@ class CobblerSync:
                 if x not in ["aux", "web", "webui", "localmirror", "repo_mirror", "distro_mirror", "images", "links", "pub", "repo_profile", "repo_system", "svc", "rendered", ".link_cache"]:
                     # delete directories that shouldn't exist
                     utils.rmtree(path, logger=self.logger)
-                if x in ["kickstarts", "kickstarts_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
+                if x in ["autoinstall_templates", "autoinstall_templates_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
                     # clean out directory contents
                     utils.rmtree_contents(path, logger=self.logger)
         #

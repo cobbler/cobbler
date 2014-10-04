@@ -191,7 +191,7 @@ class TFTPGen:
             # the [:-7] removes the architecture
             if os.path.isdir(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles')):
                 shutil.rmtree(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
-            shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'kickstarts', 'install_profiles'),
+            shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'autoinstall_templates', 'install_profiles'),
                             os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
 
     def copy_single_image_files(self, img):
@@ -485,7 +485,7 @@ class TFTPGen:
         buffer = ""
 
         # ---
-        kickstart_path = None
+        autoinstall_path = None
         kernel_path = None
         initrd_path = None
         img_path = None
@@ -502,12 +502,12 @@ class TFTPGen:
                 kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
-            # Find the kickstart if we inherit from another profile
+            # Find the automatic installation file if we inherit from another profile
             if system:
                 blended = utils.blender(self.api, True, system)
             else:
                 blended = utils.blender(self.api, True, profile)
-            kickstart_path = blended.get("kickstart", "")
+            autoinstall_path = blended.get("autoinstall", "")
 
             # update metadata with all known information
             # this allows for more powerful templating
@@ -552,9 +552,9 @@ class TFTPGen:
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
                         # ESXi uses a very different pxe method, using more files than
-                        # a standard kickstart and different options - so giving it a dedicated
-                        # PXE template makes more sense than shoe-horning it into the existing
-                        # templates
+                        # a standard automatic installation file and different options - 
+                        # so giving it a dedicated PXE template makes more sense than
+                        # shoe-horning it into the existing templates
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
@@ -601,7 +601,7 @@ class TFTPGen:
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
-                                                   image, arch, kickstart_path)
+                                                   image, arch, autoinstall_path)
         metadata["kernel_options"] = kernel_options
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
@@ -653,7 +653,7 @@ class TFTPGen:
         return buffer
 
     def build_kernel_options(self, system, profile, distro, image, arch,
-                             kickstart_path):
+                             autoinstall_path):
         """
         Builds the full kernel options line.
         """
@@ -698,8 +698,8 @@ class TFTPGen:
         hkopts = utils.dict_to_string(kopts)
         append_line = "%s %s" % (append_line, hkopts)
 
-        # kickstart path rewriting (get URLs for local files)
-        if kickstart_path is not None and kickstart_path != "":
+        # automatic installation file path rewriting (get URLs for local files)
+        if autoinstall_path is not None and autoinstall_path != "":
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
@@ -707,24 +707,27 @@ class TFTPGen:
                 ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
             except socket.gaierror:
                 ipaddress = blended["http_server"]
-            if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
-            elif kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
+            URL_REGEX = "[a-zA-Z]*://.*"
+            local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
+            if local_autoinstall_file:
+                if system is not None:
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (ipaddress, system.name)
+                else:
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (ipaddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
-                append_line = "%s ks=%s" % (append_line, kickstart_path)
+                append_line = "%s ks=%s" % (append_line, autoinstall_path)
                 gpxe = blended["enable_gpxe"]
                 if gpxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
-                append_line = "%s autoyast=%s" % (append_line, kickstart_path)
+                append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, kickstart_path)
+                append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, autoinstall_path)
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
-                append_line = "%s ks=%s" % (append_line, kickstart_path)
+                append_line = "%s ks=%s" % (append_line, autoinstall_path)
 
                 # rework kernel options for debian distros
                 translations = {'ksdevice': "interface", 'lang': "locale"}
@@ -737,18 +740,18 @@ class TFTPGen:
                 if distro.os_version.find("esxi") != -1:
                     # ESXi is very picky, it's easier just to redo the
                     # entire append line here since
-                    append_line = " ks=%s %s" % (kickstart_path, hkopts)
+                    append_line = " ks=%s %s" % (autoinstall_path, hkopts)
                     # ESXi likes even fewer options, so we remove them too
                     append_line = append_line.replace("kssendmac", "")
                 else:
                     append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
-                        (append_line, kickstart_path)
+                        (append_line, autoinstall_path)
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif", "")
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
-                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- %s/install.img" % (img_path, img_path, kickstart_path, img_path)
+                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
                     return append_line
 
         if distro is not None and (distro.breed in ["debian", "ubuntu"]):
@@ -791,9 +794,9 @@ class TFTPGen:
             append_line = "%s fixrtc vram=48M omapfb.vram=0:24M" % append_line
 
         # do variable substitution on the append line
-        # promote all of the ksmeta variables
-        if "ks_meta" in blended:
-            blended.update(blended["ks_meta"])
+        # promote all of the autoinstall_meta variables
+        if "autoinstall_meta" in blended:
+            blended.update(blended["autoinstall_meta"])
         append_line = self.templar.render(append_line, utils.flatten(blended), None)
 
         # FIXME - the append_line length limit is architecture specific
@@ -832,12 +835,12 @@ class TFTPGen:
                 for modules in bootmodules:
                     blended['esx_modules'] = modules.replace('/', '')
 
-        ksmeta = blended.get("ks_meta", {})
+        autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
-            del blended["ks_meta"]
+            del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(ksmeta)          # make available at top level
+        blended.update(autoinstall_meta)          # make available at top level
 
         templates = blended.get("template_files", {})
         try:
@@ -946,12 +949,12 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        ksmeta = blended.get("ks_meta", {})
+        autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
-            del blended["ks_meta"]
+            del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(ksmeta)      # make available at top level
+        blended.update(autoinstall_meta)      # make available at top level
 
         blended['distro'] = distro.name
         blended['distro_mirror_name'] = distro_mirror_name
@@ -959,9 +962,9 @@ class TFTPGen:
         blended['initrd_name'] = os.path.basename(distro.initrd)
 
         if what == "profile":
-            blended['append_line'] = self.build_kernel_options(None, obj, distro, None, None, blended['kickstart'])
+            blended['append_line'] = self.build_kernel_options(None, obj, distro, None, None, blended['autoinstall'])
         else:
-            blended['append_line'] = self.build_kernel_options(obj, None, distro, None, None, blended['kickstart'])
+            blended['append_line'] = self.build_kernel_options(obj, None, distro, None, None, blended['autoinstall'])
 
         template = None
         if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
@@ -1020,12 +1023,12 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        ksmeta = blended.get("ks_meta", {})
+        autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
-            del blended["ks_meta"]
+            del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(ksmeta)          # make available at top level
+        blended.update(autoinstall_meta)          # make available at top level
 
         blended['distro'] = distro_mirror_name
 
@@ -1062,12 +1065,12 @@ class TFTPGen:
 
         blended = utils.blender(self.api, False, obj)
 
-        ksmeta = blended.get("ks_meta", {})
+        autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
-            del blended["ks_meta"]
+            del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(ksmeta)      # make available at top level
+        blended.update(autoinstall_meta)      # make available at top level
 
         # FIXME: img_path should probably be moved up into the
         #        blender function to ensure they're consistently

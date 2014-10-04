@@ -91,19 +91,19 @@ class ImportSignatureManager:
         return lines
 
     # required function for import modules
-    def run(self, path, name, network_root=None, kickstart_file=None, arch=None, breed=None, os_version=None):
+    def run(self, path, name, network_root=None, autoinstall_file=None, arch=None, breed=None, os_version=None):
         """
         path: the directory we are scanning for files
         name: the base name of the distro
         network_root: the remote path (nfs/http/ftp) for the distro files
-        kickstart_file: user-specified response file, which will override the default
+        autoinstall_file: user-specified response file, which will override the default
         arch: user-specified architecture
         breed: user-specified breed
         os_version: user-specified OS version
         """
         self.name = name
         self.network_root = network_root
-        self.kickstart_file = kickstart_file
+        self.autoinstall_file = autoinstall_file
         self.arch = arch
         self.breed = breed
         self.os_version = os_version
@@ -119,8 +119,8 @@ class ImportSignatureManager:
         if self.name == "":
             self.name = None
 
-        if self.kickstart_file == "":
-            self.kickstart_file = None
+        if self.autoinstall_file == "":
+            self.autoinstall_file = None
 
         if self.os_version == "":
             self.os_version = None
@@ -190,8 +190,8 @@ class ImportSignatureManager:
                                         self.breed = breed
                                     if not self.os_version:
                                         self.os_version = version
-                                    if not self.kickstart_file:
-                                        self.kickstart_file = sigdata["breeds"][breed][version]["default_kickstart"]
+                                    if not self.autoinstall_file:
+                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinst"]
                                     self.pkgdir = pkgdir
                                     return sigdata["breeds"][breed][version]
         return None
@@ -348,7 +348,7 @@ class ImportSignatureManager:
 
             profile.set_name(name)
             profile.set_distro(name)
-            profile.set_kickstart(self.kickstart_file)
+            profile.set_autoinst(self.autoinstall_file)
 
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan
@@ -453,8 +453,9 @@ class ImportSignatureManager:
     def configure_tree_location(self, distro):
         """
         Once a distribution is identified, find the part of the distribution
-        that has the URL in it that we want to use for kickstarting the
-        distribution, and create a ksmeta variable $tree that contains this.
+        that has the URL in it that we want to use for automating the Linux
+        distribution installation, and create a autoinstall_meta variable $tree
+        that contains this.
         """
 
         base = self.rootdir
@@ -474,19 +475,20 @@ class ImportSignatureManager:
             tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
             self.set_install_tree(distro, tree)
         else:
-            # where we assign the kickstart source is relative to our current directory
-            # and the input start directory in the crawl.  We find the path segments
-            # between and tack them on the network source path to find the explicit
-            # network path to the distro that Anaconda can digest.
+            # where we assign the automated installation file source is relative
+            # to our current directory and the input start directory in the crawl.
+            # We find the path segments between and tack them on the network source
+            # path to find the explicit network path to the distro that Anaconda
+            # can digest.
             tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distro, tree)
 
     def set_install_tree(self, distro, url):
         """
-        Simple helper function to set the tree ksmeta
+        Simple helper function to set the tree automated installation metavariable
         """
-        distro.ks_meta["tree"] = url
+        distro.autoinstall_meta["tree"] = url
 
 # ==========================================================================
 # Repo Functions
@@ -580,7 +582,8 @@ class ImportSignatureManager:
 
         try:
             # store the yum configs on the filesystem so we can use them later.
-            # and configure them in the kickstart post, etc
+            # and configure them in the automated installation file post section,
+            # etc
 
             counter = len(distro.source_repos)
 

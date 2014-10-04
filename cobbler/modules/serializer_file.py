@@ -66,9 +66,9 @@ def serialize_item(collection, item):
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
     if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
 
     _dict = item.to_dict()
 
@@ -99,9 +99,9 @@ def serialize_delete(collection, item):
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
     if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collection/%ses.d/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/collection/%ss.d/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
 
     filename += ".json"
     if os.path.exists(filename):

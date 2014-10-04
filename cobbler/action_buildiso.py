@@ -150,8 +150,8 @@ class BuildIso:
                 cfg.write("  kernel %s.krn\n" % distname)
 
                 data = utils.blender(self.api, False, profile)
-                if data["kickstart"].startswith("/"):
-                    data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
+                if not re.match("[a-z]+://.*", data["autoinstall"]):
+                    data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
                         data["server"], self.api.settings().http_port, profile.name
                     )
 
@@ -170,15 +170,15 @@ class BuildIso:
                         append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
                         del data["kernel_options"]["autoyast"]
                     else:
-                        append_line += " autoyast=%s" % data["kickstart"]
+                        append_line += " autoyast=%s" % data["autoinstall"]
 
                 if dist.breed == "redhat":
                     if "proxy" in data and data["proxy"] != "":
                         append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                    append_line += " ks=%s" % data["kickstart"]
+                    append_line += " ks=%s" % data["autoinstall"]
 
                 if dist.breed in ["ubuntu", "debian"]:
-                    append_line += " auto-install/enable=true url=%s" % data["kickstart"]
+                    append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
                     if "proxy" in data and data["proxy"] != "":
                         append_line += " mirror/http/proxy=%s" % data["proxy"]
                 append_line += self.add_remaining_kopts(data["kernel_options"])
@@ -202,8 +202,8 @@ class BuildIso:
                 cfg.write("  kernel %s.krn\n" % distname)
 
                 data = utils.blender(self.api, False, system)
-                if data["kickstart"].startswith("/"):
-                    data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/system/%s" % (
+                if not re.match("[a-z]+://.*", data["autoinstall"]):
+                    data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/system/%s" % (
                         data["server"], self.api.settings().http_port, system.name
                     )
 
@@ -222,15 +222,15 @@ class BuildIso:
                         append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
                         del data["kernel_options"]["autoyast"]
                     else:
-                        append_line += " autoyast=%s" % data["kickstart"]
+                        append_line += " autoyast=%s" % data["autoinstall"]
 
                 if dist.breed == "redhat":
                     if "proxy" in data and data["proxy"] != "":
                         append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                    append_line += " ks=%s" % data["kickstart"]
+                    append_line += " ks=%s" % data["autoinstall"]
 
                 if dist.breed in ["ubuntu", "debian"]:
-                    append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["kickstart"]
+                    append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["autoinstall"]
                     if "proxy" in data and data["proxy"] != "":
                         append_line += " mirror/http/proxy=%s" % data["proxy"]
                     # hostname is required as a parameter, the one in the preseed is not respected
@@ -482,18 +482,18 @@ class BuildIso:
             cfg.write(append_line)
 
             if descendant.COLLECTION_TYPE == 'profile':
-                kickstart_data = self.api.kickgen.generate_kickstart_for_profile(descendant.name)
+                autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_profile(descendant.name)
             elif descendant.COLLECTION_TYPE == 'system':
-                kickstart_data = self.api.kickgen.generate_kickstart_for_system(descendant.name)
+                autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_system(descendant.name)
 
             if distro.breed == "redhat":
                 cdregex = re.compile("url .*\n", re.IGNORECASE)
-                kickstart_data = cdregex.sub("cdrom\n", kickstart_data)
+                autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data)
 
-            ks_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
-            ks_file = open(ks_name, "w+")
-            ks_file.write(kickstart_data)
-            ks_file.close()
+            autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
+            autoinstall_file = open(autoinstall_name, "w+")
+            autoinstall_file.write(autoinstall_data)
+            autoinstall_file.close()
 
         self.logger.info("done writing config")
         cfg.write("\n")
@@ -516,9 +516,9 @@ class BuildIso:
             if source is not None and not os.path.exists(source):
                 utils.die(self.logger, "The source specified (%s) does not exist" % source)
 
-        # if iso is none, create it in . as "kickstart.iso"
+        # if iso is none, create it in . as "autoinst.iso"
         if iso is None:
-            iso = "kickstart.iso"
+            iso = "autoinst.iso"
 
         if buildisodir is None:
             buildisodir = self.settings.buildisodir

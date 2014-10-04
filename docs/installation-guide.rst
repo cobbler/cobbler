@@ -215,7 +215,7 @@ When building from source, make sure you have the correct prerequisites. Once th
 
     $ make install
 
-This command will rewrite all configuration files on your system if you have an existing installation of Cobbler (whether it was installed via packages or from an older source tree). To preserve your existing configuration files, snippets and kickstarts, run this command:
+This command will rewrite all configuration files on your system if you have an existing installation of Cobbler (whether it was installed via packages or from an older source tree). To preserve your existing configuration files, snippets and automatic installation files, run this command:
 
 .. code-block:: none
 
