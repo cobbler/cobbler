@@ -825,7 +825,7 @@ class CobblerAPI:
             self.log("import failed.  no --name specified")
             return False
 
-        path = os.path.normpath("%s/ks_mirror/%s" % (self.settings().webdir, mirror_name))
+        path = os.path.normpath("%s/distro_mirror/%s" % (self.settings().webdir, mirror_name))
         if arch is not None:
             arch = arch.lower()
             if arch == "x86":

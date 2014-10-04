@@ -2121,10 +2121,10 @@ def link_distro(settings, distro):
 
 
 def find_distro_path(settings, distro):
-    possible_dirs = glob.glob(settings.webdir + "/ks_mirror/*")
+    possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
     for dir in possible_dirs:
         if os.path.dirname(distro.kernel).find(dir) != -1:
-            return os.path.join(settings.webdir, "ks_mirror", dir)
+            return os.path.join(settings.webdir, "distro_mirror", dir)
     # non-standard directory, assume it's the same as the
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)

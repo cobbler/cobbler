@@ -426,7 +426,7 @@ class ImportSignatureManager:
         if self.network_root is not None:
             name = self.name
         else:
-            # remove the part that says /var/www/cobbler/ks_mirror/name
+            # remove the part that says /var/www/cobbler/distro_mirror/name
             name = "-".join(dirname.split("/")[5:])
 
         if kernel is not None:
@@ -439,7 +439,7 @@ class ImportSignatureManager:
         name = name.replace("--", "-")
         for x in ("-netboot", "-ubuntu-installer", "-amd64", "-i386",
                   "-images", "-pxeboot", "-install", "-isolinux", "-boot", "-suseboot",
-                  "-loader", "-os", "-tree", "var-www-cobbler-", "ks_mirror-"):
+                  "-loader", "-os", "-tree", "var-www-cobbler-", "distro_mirror-"):
             name = name.replace(x, "")
 
         # remove any architecture name related string, as real arch will be appended later
@@ -513,7 +513,7 @@ class ImportSignatureManager:
                 continue
 
             for distro in distros_added:
-                if distro.kernel.find("ks_mirror") != -1:
+                if distro.kernel.find("distro_mirror") != -1:
                     repo_adder(distro)
                     self.distros.add(distro, save=True)
                 else:
@@ -585,13 +585,13 @@ class ImportSignatureManager:
             counter = len(distro.source_repos)
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
-            seg = comps_path.rfind("ks_mirror")
+            seg = comps_path.rfind("distro_mirror")
             urlseg = comps_path[seg + 10:]
 
-            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
+            fname = os.path.join(self.settings.webdir, "distro_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
-            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
-            repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
+            repo_url = "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo" % (distro.name, counter)
+            repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % (urlseg)
 
             distro.source_repos.append([repo_url, repo_url2])
 
@@ -602,7 +602,7 @@ class ImportSignatureManager:
             config_file = open(fname, "w+")
             config_file.write("[core-%s]\n" % counter)
             config_file.write("name=core-%s\n" % counter)
-            config_file.write("baseurl=http://@@http_server@@/cobbler/ks_mirror/%s\n" % (urlseg))
+            config_file.write("baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % (urlseg))
             config_file.write("enabled=1\n")
             config_file.write("gpgcheck=0\n")
             config_file.write("priority=$yum_distro_priority\n")

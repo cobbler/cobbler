@@ -69,8 +69,8 @@ class CobblerLiteSync:
         dst_dir = os.path.join(self.settings.webdir, "links", name)
         if os.path.exists(dst_dir):
             self.logger.warning("skipping symlink, destination (%s) exists" % dst_dir)
-        elif utils.path_tail(os.path.join(self.settings.webdir, "ks_mirror"), src_dir) == "":
-            self.logger.warning("skipping symlink, the source (%s) is not in %s" % (src_dir, os.path.join(self.settings.webdir, "ks_mirror")))
+        elif utils.path_tail(os.path.join(self.settings.webdir, "distro_mirror"), src_dir) == "":
+            self.logger.warning("skipping symlink, the source (%s) is not in %s" % (src_dir, os.path.join(self.settings.webdir, "distro_mirror")))
         else:
             try:
                 self.logger.info("trying symlink %s -> %s" % (src_dir, dst_dir))

@@ -124,7 +124,7 @@ class TFTPGen:
         for i in self.distros:
             if 'nexenta' == i.breed and not pxegrub_imported:
                 # name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
-                shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'ks_mirror', i.name, 'boot'),
+                shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'distro_mirror', i.name, 'boot'),
                                 os.path.join(self.bootloc, 'boot'))
                 pxegrub_imported = True
 
@@ -935,14 +935,14 @@ class TFTPGen:
             distro = obj.get_conceptual_parent().get_conceptual_parent()
             netboot_enabled = obj.netboot_enabled
 
-        # For multi-arch distros, the distro name in ks_mirror
+        # For multi-arch distros, the distro name in distro_mirror
         # may not contain the arch string, so we need to figure out
         # the path based on where the kernel is stored. We do this
         # because some distros base future downloads on the initial
         # URL passed in, so all of the files need to be at this location
         # (which is why we can't use the images link, which just contains
         # the kernel and initrd).
-        ks_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
 
         blended = utils.blender(self.api, False, obj)
 
@@ -954,7 +954,7 @@ class TFTPGen:
         blended.update(ksmeta)      # make available at top level
 
         blended['distro'] = distro.name
-        blended['ks_mirror_name'] = ks_mirror_name
+        blended['distro_mirror_name'] = distro_mirror_name
         blended['kernel_name'] = os.path.basename(distro.kernel)
         blended['initrd_name'] = os.path.basename(distro.initrd)
 
@@ -1009,14 +1009,14 @@ class TFTPGen:
             obj = self.api.find_system(name=name)
             distro = obj.get_conceptual_parent().get_conceptual_parent()
 
-        # For multi-arch distros, the distro name in ks_mirror
+        # For multi-arch distros, the distro name in distro_mirror
         # may not contain the arch string, so we need to figure out
         # the path based on where the kernel is stored. We do this
         # because some distros base future downloads on the initial
         # URL passed in, so all of the files need to be at this location
         # (which is why we can't use the images link, which just contains
         # the kernel and initrd).
-        ks_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
 
         blended = utils.blender(self.api, False, obj)
 
@@ -1027,7 +1027,7 @@ class TFTPGen:
             pass
         blended.update(ksmeta)          # make available at top level
 
-        blended['distro'] = ks_mirror_name
+        blended['distro'] = distro_mirror_name
 
         # FIXME: img_path should probably be moved up into the
         #        blender function to ensure they're consistently

@@ -435,7 +435,7 @@ class BuildIso:
             found_source = False
             (source_head, source_tail) = os.path.split(distro.kernel)
             while source_tail != '':
-                if source_head == os.path.join(self.api.settings().webdir, "ks_mirror"):
+                if source_head == os.path.join(self.api.settings().webdir, "distro_mirror"):
                     filesource = os.path.join(source_head, source_tail)
                     found_source = True
                     self.logger.debug("found source in %s" % filesource)

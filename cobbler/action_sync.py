@@ -181,7 +181,7 @@ class CobblerSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path, logger=self.logger)
             if os.path.isdir(path):
-                if x not in ["aux", "web", "webui", "localmirror", "repo_mirror", "ks_mirror", "images", "links", "pub", "repo_profile", "repo_system", "svc", "rendered", ".link_cache"]:
+                if x not in ["aux", "web", "webui", "localmirror", "repo_mirror", "distro_mirror", "images", "links", "pub", "repo_profile", "repo_system", "svc", "rendered", ".link_cache"]:
                     # delete directories that shouldn't exist
                     utils.rmtree(path, logger=self.logger)
                 if x in ["kickstarts", "kickstarts_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:

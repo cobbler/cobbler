@@ -702,8 +702,8 @@ if __name__ == "__main__":
             # web page directories that we own
             ("%scobbler/localmirror" % webroot, []),
             ("%scobbler/repo_mirror" % webroot, []),
-            ("%scobbler/ks_mirror" % webroot, []),
-            ("%scobbler/ks_mirror/config" % webroot, []),
+            ("%scobbler/distro_mirror" % webroot, []),
+            ("%scobbler/distro_mirror/config" % webroot, []),
             ("%scobbler/links" % webroot, []),
             ("%scobbler/aux" % webroot, []),
             ("%scobbler/pub" % webroot, []),

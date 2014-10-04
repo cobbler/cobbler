@@ -90,7 +90,7 @@ class Distros(collection.Collection):
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
             settings = self.collection_mgr.settings()
-            possible_storage = glob.glob(settings.webdir + "/ks_mirror/*")
+            possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
             path = None
             for storage in possible_storage:
                 if os.path.dirname(obj.kernel).find(storage) != -1:
