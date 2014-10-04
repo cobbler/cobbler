@@ -84,7 +84,7 @@ fi
 ## Copy a file from the server to the client.
 ## Ex: Copy a template for samba configuration
 ## 
-## (once at the top of the kickstart template)
+## (once at the top of the automatic installation template)
 ## #set files = $snippetsdir + '/files/'
 ## (when you need to copy a file)
 ## $copy_over_file('etc/samba/smb.conf', '/etc/samba/smb.conf')
@@ -138,7 +138,7 @@ $copy_over_file($thisfile[1], '/' + $thisfile[1])
 ## the content with 'EOF'
 ## Ex: Instruct the admin to set an appropriate nameserver.
 ## 
-## (once at the top of the kickstart template)
+## (once at the top of the automatic installation template)
 ## #set global $todofile = '/root/kstodo'
 ## (as needed)
 ## $TODO()
@@ -224,7 +224,7 @@ find $file[4] -name '$file[5]' -type f -exec chmod -R '$file[3]' {} \;
 
 ## Cheeseball an entire directory.
 ## This will include (in sequence) all file in a given directory into a
-## kickstart template.
+## automatic installation template.
 ## Ex: include a 'misc' directory of templates
 ## 
 ## $includeall('misc')

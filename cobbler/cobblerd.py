@@ -1,5 +1,5 @@
 """
-cobbler daemon for logging remote syslog traffic during kickstart
+cobbler daemon for logging remote syslog traffic during automatic installation
 
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>

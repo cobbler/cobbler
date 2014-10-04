@@ -14,10 +14,10 @@ urlpatterns = patterns(
     (r'^setting/edit/(?P<setting_name>.+)$', views.setting_edit),
     (r'^setting/save$', views.setting_save),
 
-    (r'^ksfile/list(/(?P<page>\d+))?$', views.ksfile_list),
-    (r'^ksfile/edit$', views.ksfile_edit, {'editmode': 'new'}),
-    (r'^ksfile/edit/file:(?P<ksfile_name>.+)$', views.ksfile_edit, {'editmode': 'edit'}),
-    (r'^ksfile/save$', views.ksfile_save),
+    (r'^aifile/list(/(?P<page>\d+))?$', views.aifile_list),
+    (r'^aifile/edit$', views.aifile_edit, {'editmode': 'new'}),
+    (r'^aifile/edit/file:(?P<aifile_name>.+)$', views.aifile_edit, {'editmode': 'edit'}),
+    (r'^aifile/save$', views.aifile_save),
 
     (r'^snippet/list(/(?P<page>\d+))?$', views.snippet_list),
     (r'^snippet/edit$', views.snippet_edit, {'editmode': 'new'}),

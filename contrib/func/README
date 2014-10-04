@@ -4,7 +4,7 @@ To enable this Func integration:
 - copy func_install_if_enabled to /var/lib/cobbler/snippets/
 - copy func_register_if_enabled to /var/lib/cobbler/snippets/
 
-Enable the snippets in your kickstart, eg:
+Enable the snippets in your automated installation file, eg:
 
 %packages
 $SNIPPET('func_install_if_enabled')

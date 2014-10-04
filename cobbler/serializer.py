@@ -27,7 +27,7 @@ import sys
 import time
 import traceback
 
-import api as cobbler_api
+from cobbler import module_loader
 
 LOCK_ENABLED = True
 LOCK_HANDLE = None
@@ -129,7 +129,6 @@ def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
     """
-    capi = cobbler_api.CobblerAPI()
-    return capi.get_module_from_file("serializers", collection_type, "serializer_file")
+    return module_loader.get_module_from_file("serializers", collection_type, "serializer_file")
 
 # EOF

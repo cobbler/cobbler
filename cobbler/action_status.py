@@ -1,5 +1,5 @@
 """
-Reports on kickstart activity by examining the logs in
+Reports on automatic installation activity by examining the logs in
 /var/log/cobbler.
 
 Copyright 2007-2009, Red Hat, Inc and Others
@@ -145,7 +145,7 @@ class CobblerStatusReport:
 
     def run(self):
         """
-        Calculate and print a kickstart-status report.
+        Calculate and print a automatic installation status report.
         """
         self.scan_logfiles()
         results = self.process_results()

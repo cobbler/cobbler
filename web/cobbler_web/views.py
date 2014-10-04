@@ -5,6 +5,7 @@ from django.template import RequestContext
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
+import os
 import simplejson
 import string
 import time
@@ -642,28 +643,31 @@ def import_run(request):
 # ======================================================================
 
 
-def ksfile_list(request, page=None):
+def aifile_list(request, page=None):
     """
-    List all kickstart templates and link to their edit pages.
+    List all automatic OS installation templates and link to their edit pages.
     """
     if not test_user_authenticated(request):
-        return login(request, next="/cobbler_web/ksfile/list", expired=True)
+        return login(request, next="/cobbler_web/aifile/list", expired=True)
 
-    ksfiles = remote.get_kickstart_templates(request.session['token'])
+    aifiles = remote.get_autoinstall_templates(request.session['token'])
+    from cobbler import clogger
+    logger = clogger.Logger()
+    logger.debug("List of AI files: %s" % str(aifiles))
 
-    ksfile_list = []
-    for ksfile in ksfiles:
+    aifile_list = []
+    for aifile in aifiles:
         # handle special values
-        if ksfile not in ["", "<<inherit>>"]:
-            ksfile_list.append((ksfile, ksfile, 'editable'))
+        if aifile not in ["", "<<inherit>>"]:
+            aifile_list.append((aifile, 'editable'))
 
-    t = get_template('ksfile_list.tmpl')
+    t = get_template('aifile_list.tmpl')
     html = t.render(RequestContext(request, {
-        'what': 'ksfile',
-        'ksfiles': ksfile_list,
+        'what': 'aifile',
+        'ai_files': aifile_list,
         'version': remote.extended_version(request.session['token'])['version'],
         'username': username,
-        'item_count': len(ksfile_list[0]),
+        'item_count': len(aifile_list[0]),
     }))
     return HttpResponse(html)
 
@@ -671,28 +675,28 @@ def ksfile_list(request, page=None):
 
 
 @csrf_protect
-def ksfile_edit(request, ksfile_name=None, editmode='edit'):
+def aifile_edit(request, aifile_name=None, editmode='edit'):
     """
-    This is the page where a kickstart file is edited.
+    This is the page where an automatic OS installation file is edited.
     """
     if not test_user_authenticated(request):
-        return login(request, next="/cobbler_web/ksfile/edit/file:%s" % ksfile_name, expired=True)
+        return login(request, next="/cobbler_web/aifile/edit/file:%s" % aifile_name, expired=True)
     if editmode == 'edit':
         editable = False
     else:
         editable = True
     deleteable = False
-    ksdata = ""
-    if ksfile_name is not None:
-        editable = remote.check_access_no_fail(request.session['token'], "modify_kickstart", ksfile_name)
-        deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
-        ksdata = remote.read_kickstart_template(ksfile_name, request.session['token'])
+    aidata = ""
+    if aifile_name is not None:
+        editable = remote.check_access_no_fail(request.session['token'], "modify_autoinst", aifile_name)
+        deleteable = not remote.is_autoinstall_in_use(aifile_name, request.session['token'])
+        aidata = remote.read_autoinstall_template(aifile_name, request.session['token'])
 
-    t = get_template('ksfile_edit.tmpl')
+    t = get_template('aifile_edit.tmpl')
     html = t.render(RequestContext(request, {
-        'ksfile_name': ksfile_name,
+        'aifile_name': aifile_name,
         'deleteable': deleteable,
-        'ksdata': ksdata,
+        'aidata': aidata,
         'editable': editable,
         'editmode': editmode,
         'version': remote.extended_version(request.session['token'])['version'],
@@ -705,32 +709,32 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
 
 @require_POST
 @csrf_protect
-def ksfile_save(request):
+def aifile_save(request):
     """
-    This page processes and saves edits to a kickstart file.
+    This page processes and saves edits to an automatic OS installation file.
     """
     if not test_user_authenticated(request):
-        return login(request, next="/cobbler_web/ksfile/list", expired=True)
+        return login(request, next="/cobbler_web/aifile/list", expired=True)
     # FIXME: error checking
 
     editmode = request.POST.get('editmode', 'edit')
-    ksfile_name = request.POST.get('ksfile_name', None)
-    ksdata = request.POST.get('ksdata', "").replace('\r\n', '\n')
+    aifile_name = request.POST.get('aifile_name', None)
+    aidata = request.POST.get('aidata', "").replace('\r\n', '\n')
 
-    if ksfile_name is None:
-        return HttpResponse("NO KSFILE NAME SPECIFIED")
+    if aifile_name is None:
+        return HttpResponse("NO AUTOMATIC INSTALLATION FILE NAME SPECIFIED")
     if editmode != 'edit':
-        ksfile_name = "/var/lib/cobbler/kickstarts/" + ksfile_name
+        aifile_name = "/var/lib/cobbler/autoinsts/" + aifile_name
 
     delete1 = request.POST.get('delete1', None)
     delete2 = request.POST.get('delete2', None)
 
     if delete1 and delete2:
-        remote.remove_kickstart_template(ksfile_name, request.session['token'])
-        return HttpResponseRedirect('/cobbler_web/ksfile/list')
+        remote.remove_autoinstall_template(aifile_name, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/aifile/list')
     else:
-        remote.write_kickstart_template(ksfile_name, ksdata, request.session['token'])
-        return HttpResponseRedirect('/cobbler_web/ksfile/list')
+        remote.write_autoinstall_template(aifile_name, aidata, request.session['token'])
+        return HttpResponseRedirect('/cobbler_web/aifile/list')
 
 # ======================================================================
 
@@ -741,15 +745,11 @@ def snippet_list(request, page=None):
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/snippet/list", expired=True)
-    snippets = remote.get_snippets(request.session['token'])
-
+    
+    snippets = remote.get_autoinstall_snippets(request.session['token'])
     snippet_list = []
-    base_dir = "/var/lib/cobbler/snippets/"
     for snippet in snippets:
-        if snippet.startswith(base_dir):
-            snippet_list.append((snippet, snippet, 'editable'))
-        else:
-            return error_page(request, "Invalid snippet at %s, outside %s" % (snippet, base_dir))
+        snippet_list.append((snippet, 'editable'))
 
     t = get_template('snippet_list.tmpl')
     html = t.render(RequestContext(request, {
@@ -779,7 +779,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
     if snippet_name is not None:
         editable = remote.check_access_no_fail(request.session['token'], "modify_snippet", snippet_name)
         deleteable = True
-        snippetdata = remote.read_kickstart_snippet(snippet_name, request.session['token'])
+        snippetdata = remote.read_autoinstall_snippet(snippet_name, request.session['token'])
 
     t = get_template('snippet_edit.tmpl')
     html = t.render(RequestContext(request, {
@@ -821,10 +821,10 @@ def snippet_save(request):
     delete2 = request.POST.get('delete2', None)
 
     if delete1 and delete2:
-        remote.remove_kickstart_snippet(snippet_name, request.session['token'])
+        remote.remove_autoinstall_snippet(snippet_name, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/snippet/list')
     else:
-        remote.write_kickstart_snippet(snippet_name, snippetdata, request.session['token'])
+        remote.write_autoinstall_snippet(snippet_name, snippetdata, request.session['token'])
         return HttpResponseRedirect('/cobbler_web/snippet/list')
 
 # ======================================================================
@@ -1107,8 +1107,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
     fields = get_fields(what, child, obj)
 
-    # create the kickstart pulldown list
-    kickstart_list = remote.get_kickstart_templates()
+    # create the autoinstall pulldown list
+    autoinstall_list = remote.get_autoinstall_templates()
 
     # populate some select boxes
     if what == "profile":
@@ -1116,14 +1116,14 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
             __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_profiles()))
         else:
             __tweak_field(fields, "distro", "choices", __names_from_dicts(remote.get_distros()))
-        __tweak_field(fields, "kickstart", "choices", kickstart_list)
+        __tweak_field(fields, "autoinstall", "choices", autoinstall_list)
         __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
 
     elif what == "system":
         __tweak_field(fields, "profile", "choices", __names_from_dicts(remote.get_profiles()))
         __tweak_field(fields, "image", "choices", __names_from_dicts(remote.get_images(), optional=True))
-        __tweak_field(fields, "kickstart", "choices", kickstart_list)
+        __tweak_field(fields, "autoinstall", "choices", autoinstall_list)
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
 
     elif what == "mgmtclass":
@@ -1140,7 +1140,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "arch", "choices", remote.get_valid_archs())
         __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
         __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
-        __tweak_field(fields, "kickstart", "choices", kickstart_list)
+        __tweak_field(fields, "autoinst", "choices", autoinstall_list)
 
     # if editing save the fields in the session for comparison later
     if editmode == "edit":

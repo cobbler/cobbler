@@ -30,7 +30,7 @@ from cobbler.utils import _
 class Repos(collection.Collection):
     """
     Repositories in cobbler are way to create a local mirror of a yum repository.
-    When used in conjunction with a mirrored kickstart tree (see "cobbler import")
+    When used in conjunction with a mirrored distro tree (see "cobbler import"),
     outside bandwidth needs can be reduced and/or eliminated.
     """
 

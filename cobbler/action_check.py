@@ -178,11 +178,11 @@ class CobblerCheck:
     def check_name(self, status):
         """
         If the server name in the config file is still set to localhost
-        kickstarts run from koan will not have proper kernel line
+        automatic installations run from koan will not have proper kernel line
         parameters.
         """
         if self.settings.server == "127.0.0.1":
-            status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
+            status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or automatic installation features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
         if self.settings.next_server == "127.0.0.1":
             status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
 
@@ -231,7 +231,7 @@ class CobblerCheck:
                 if not os.path.exists(lookfor):
                     need_sync.append(r.name)
         if len(need_sync) > 0:
-            status.append(_("One or more repos need to be processed by cobbler reposync for the first time before kickstarting against them: %s") % ", ".join(need_sync))
+            status.append(_("One or more repos need to be processed by cobbler reposync for the first time before automating installations using them: %s") % ", ".join(need_sync))
 
 
     def check_httpd(self, status):

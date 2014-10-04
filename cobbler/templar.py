@@ -161,9 +161,9 @@ class Templar:
         # template syntax.
         raw_data = raw_data.replace("TEMPLATE::", "$")
 
-        # HACK:  the ksmeta field may contain nfs://server:/mount in which
-        # case this is likely WRONG for kickstart, which needs the NFS
-        # directive instead.  Do this to make the templates work.
+        # HACK:  the autoinstall_meta field may contain nfs://server:/mount in which
+        # case this is likely WRONG for automated installation files, which needs
+        # the NFS directive instead.  Do this to make the templates work.
         newdata = ""
         if "tree" in search_table and search_table["tree"].startswith("nfs://"):
             for line in raw_data.split("\n"):

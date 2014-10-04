@@ -3,7 +3,7 @@
 #set breed = $getVar('breed','')
 #set os_version = $getVar('os_version','')
 #set srv = $getVar('http_server','')
-#set kickstart = $getVar('kickstart','')
+#set autoinstall = $getVar('autoinstall','')
 #set run_install_triggers = $str($getVar('run_install_triggers',''))
 #set pxe_just_once = $str($getVar('pxe_just_once',''))
 #set nopxe = ""
@@ -25,8 +25,8 @@
             #set nopxe = "wget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null;" % (srv, system_name)
         #end if
     #end if
-    ## SAVE KICKSTART
-    #if $kickstart != ''
+    ## SAVE AUTO INSTALLATION
+    #if $autoinstall != ''
         #if $breed == 'redhat'
             #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
@@ -51,7 +51,7 @@
     #end if
 #else if $profile_name != ''
     ## SAVE KICKSTART
-    #if $kickstart != ''
+    #if $autoinstall != ''
         #if $breed == 'redhat'
             #set saveks = "\nwget \"http://%s/cblr/svc/op/ks/%s/%s\" -O /root/cobbler.ks" % (srv, "profile", profile_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'

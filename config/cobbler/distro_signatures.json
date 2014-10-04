@@ -12,7 +12,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -28,7 +28,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -44,7 +44,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -60,7 +60,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -76,7 +76,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -92,7 +92,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -108,7 +108,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -124,7 +124,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -140,7 +140,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -156,7 +156,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -174,7 +174,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -190,7 +190,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -208,7 +208,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -224,7 +224,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -240,7 +240,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -256,7 +256,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -272,7 +272,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -288,7 +288,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -304,7 +304,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -322,7 +322,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -338,7 +338,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -354,7 +354,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -370,7 +370,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -386,7 +386,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -402,7 +402,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -418,7 +418,7 @@
     "kernel_file":"(linux|vmlinuz(.*))",
     "initrd_file":"initrd(.*)",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -434,7 +434,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -450,7 +450,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -466,7 +466,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -482,7 +482,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -498,7 +498,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -514,7 +514,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -532,7 +532,7 @@
     "kernel_file":"vmlinuz",
     "initrd_file":"initrd\\.img",
     "isolinux_ok":true,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esx4.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esx4.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -548,7 +548,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"vmkboot\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi4.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esxi4.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["vmkernel.gz","sys.vgz","cim.vgz","ienviron.vgz","install.vgz"]
@@ -564,7 +564,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"imgpayld\\.tgz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "template_files":"/etc/cobbler/boot_loader_conf/bootcfg_esxi5.template=$local_img_path/cobbler-boot.cfg",
@@ -581,7 +581,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"imgpayld\\.tgz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "template_files":"/etc/cobbler/boot_loader_conf/bootcfg_esxi51.template=$local_img_path/cobbler-boot.cfg",
@@ -598,7 +598,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"imgpayld\\.tgz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "template_files":"/etc/cobbler/boot_loader_conf/bootcfg_esxi55.template=$local_img_path/cobbler-boot.cfg",
@@ -615,7 +615,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"imgpayld\\.tgz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_esxi5.ks",
+    "default_autoinst":"/var/lib/cobbler/autoinstall_templates/sample_esxi5.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "template_files":"/etc/cobbler/boot_loader_conf/bootcfg_esxi60.template=$local_img_path/cobbler-boot.cfg",
@@ -634,7 +634,7 @@
     "kernel_file":"pxeboot(.*)",
     "initrd_file":"mfsroot\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -650,7 +650,7 @@
     "kernel_file":"pxeboot(.*)",
     "initrd_file":"mfsroot\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -666,7 +666,7 @@
     "kernel_file":"pxeboot(.*)",
     "initrd_file":"mfsroot\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -682,7 +682,7 @@
     "kernel_file":"pxeboot(.*)",
     "initrd_file":"mbr",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -700,7 +700,7 @@
     "kernel_file":"vmlinuz",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"dom0_max_vcpus=1-2 dom0_mem=max:752M,752M",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -716,7 +716,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -741,7 +741,7 @@
       "kernel_options":"",
       "kernel_options_post":"",
       "boot_files":[],
-      "default_kickstart":""
+      "default_autoinst":""
     }
   },
   "generic": {
@@ -756,7 +756,7 @@
     "kernel_file":"",
     "initrd_file":"",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -772,7 +772,7 @@
     "kernel_file":"",
     "initrd_file":"",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinst":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]

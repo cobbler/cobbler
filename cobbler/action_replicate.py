@@ -153,7 +153,7 @@ class Replicate:
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s" % distro)
                     target = self.remote.get_distro(distro)
-                    target_webdir = os.path.join(self.remote_settings["webdir"], "ks_mirror")
+                    target_webdir = os.path.join(self.remote_settings["webdir"], "distro_mirror")
                     tail = utils.path_tail(target_webdir, target["kernel"])
                     if tail != "":
                         try:
@@ -161,13 +161,13 @@ class Replicate:
                             # an absolute path, but it's really the sub-path
                             # from a that is contained in b. That means we want
                             # the first element of the path
-                            dest = os.path.join(self.settings.webdir, "ks_mirror", tail.split("/")[1])
+                            dest = os.path.join(self.settings.webdir, "distro_mirror", tail.split("/")[1])
                             self.rsync_it("distro-%s" % target["name"], dest)
                         except:
                             self.logger.error("Failed to rsync distro %s" % distro)
                             continue
                     else:
-                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under ks_mirror" % distro)
+                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror" % distro)
 
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
@@ -175,9 +175,9 @@ class Replicate:
                     self.rsync_it("repo-%s" % repo, os.path.join(self.settings.webdir, "repo_mirror", repo), "repo")
 
             self.logger.info("Rsyncing distro repo configs")
-            self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir, "ks_mirror", "config"))
-            self.logger.info("Rsyncing kickstart templates & snippets")
-            self.rsync_it("cobbler-kickstarts", "/var/lib/cobbler/kickstarts")
+            self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir, "distro_mirror", "config"))
+            self.logger.info("Rsyncing automatic installation templates & snippets")
+            self.rsync_it("cobbler-autoinstalls", "/var/lib/cobbler/autoinstall_templates")
             self.rsync_it("cobbler-snippets", "/var/lib/cobbler/snippets")
             self.logger.info("Rsyncing triggers")
             self.rsync_it("cobbler-triggers", "/var/lib/cobbler/triggers")

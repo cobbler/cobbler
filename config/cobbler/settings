@@ -26,12 +26,12 @@ allow_duplicate_macs: 0
 allow_dynamic_settings: 0
 
 # by default, installs are *not* set to send installation logs to the cobbler
-# # # server.  With 'anamon_enabled', kickstart templates may use the pre_anamon
-# # # snippet to allow remote live monitoring of their installations from the
-# # # cobbler server.  Installation logs will be stored under
-# # # /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
-# # # to this directory, without authentication, so enable only if you are
-# # # ok with this limitation.
+# server.  With 'anamon_enabled', automatic installation templates may use
+# the pre_anamon snippet to allow remote live monitoring of their installations
+# from the cobbler server.  Installation logs will be stored under 
+# /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
+# to this directory, without authentication, so enable only if you are
+# ok with this limitation.
 anamon_enabled: 0
 
 # If using authn_pam in the modules.conf, this can be configured
@@ -58,7 +58,7 @@ build_reporting_smtp_server: "localhost"
 build_reporting_subject: ""
 build_reporting_ignorelist: [ "" ]
 
-# Cheetah-language kickstart templates can import Python modules.
+# Cheetah-language autoinstall templates can import Python modules.
 # while this is a useful feature, it is not safe to allow them to 
 # import anything they want. This whitelists which modules can be 
 # imported through Cheetah.  Users can expand this as needed but
@@ -78,8 +78,8 @@ cheetah_import_whitelist:
 # on EL-4)
 createrepo_flags: "-c cache -s sha"
 
-# if no kickstart is specified to profile add, use this template
-default_kickstart: /var/lib/cobbler/kickstarts/default.ks
+# if no autoinstall template is specified to profile add, use this template
+default_autoinstall: /var/lib/cobbler/autoinstall_templates/default.ks
 
 # configure all installed systems to use these nameservers by default
 # unless defined differently in the profile.  For DHCP configurations
@@ -92,8 +92,8 @@ default_name_servers: []
 default_ownership:
  - "admin"
 
-# cobbler has various sample kickstart templates stored
-# in /var/lib/cobbler/kickstarts/.  This controls
+# cobbler has various sample autoinstal templates stored
+# in /var/lib/cobbler/autoinstall_templates/.  This controls
 # what install (root) password is set up for those
 # systems that reference this variable.  The factory
 # default is "cobbler" and cobbler check will warn if
@@ -205,7 +205,7 @@ puppetca_path: "/usr/bin/puppet"
 # requires puppet_auto_setup above to be enabled
 remove_old_puppet_certs_automatically: 0
 
-# choose a --server argument when running puppetd/puppet agent during kickstart
+# choose a --server argument when running puppetd/puppet agent during autoinstall
 #puppet_server: 'puppet'
 
 # let cobbler know that you're using a newer version of puppet
@@ -315,7 +315,7 @@ restart_dns: 1
 restart_dhcp: 1
 
 # install triggers are scripts in /var/lib/cobbler/triggers/install
-# that are triggered in kickstart pre and post sections.  Any
+# that are triggered in autoinstall pre and post sections.  Any
 # executable script in those directories is run.  They can be used
 # to send email or perform other actions.  They are currently
 # run as root so if you do not need this functionality you can
@@ -371,8 +371,8 @@ webdir: @@webroot@@/cobbler
 xmlrpc_port: 25151
 
 # "cobbler repo add" commands set cobbler up with repository
-# information that can be used during kickstart and is automatically
-# set up in the cobbler kickstart templates.  By default, these
+# information that can be used during autoinstall and is automatically
+# set up in the cobbler autoinstall templates.  By default, these
 # are only available at install time.  To make these repositories
 # usable on installed systems (since cobbler makes a very convenient
 # mirror) set this to 1.  Most users can safely set this to 1.  Users
@@ -394,7 +394,7 @@ yumdownloader_flags: "--resolve"
 # sort and indent JSON output to make it more human-readable
 serializer_pretty_json: 0
 
-# replication rsync options for distros, kickstarts, snippets set to override default value of "-avzH"
+# replication rsync options for distros, autoinstalls, snippets set to override default value of "-avzH"
 replicate_rsync_options: "-avzH"
 
 # replication rsync options for repos set to override default value of "-avzH"

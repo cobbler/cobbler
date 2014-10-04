@@ -66,6 +66,7 @@ CHEETAH_ERROR_DISCLAIMER = """
 #
 """
 
+AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/" 
 
 # From http://code.activestate.com/recipes/303342/
 class Translator:
@@ -632,7 +633,7 @@ def blender(api_handle, remove_dicts, root_obj):
         results["http_server"] = results["server"]
 
     mgmt_parameters = results.get("mgmt_parameters", {})
-    mgmt_parameters.update(results.get("ks_meta", {}))
+    mgmt_parameters.update(results.get("autoinstall_meta", {}))
     results["mgmt_parameters"] = mgmt_parameters
 
     # sanitize output for koan and kernel option lines, etc
@@ -685,8 +686,8 @@ def flatten(data):
         data["kernel_options_post"] = dict_to_string(data["kernel_options_post"])
     if "yumopts" in data:
         data["yumopts"] = dict_to_string(data["yumopts"])
-    if "ks_meta" in data:
-        data["ks_meta"] = dict_to_string(data["ks_meta"])
+    if "autoinstall_meta" in data:
+        data["autoinstall_meta"] = dict_to_string(data["autoinstall_meta"])
     if "template_files" in data:
         data["template_files"] = dict_to_string(data["template_files"])
     if "boot_files" in data:
@@ -770,7 +771,7 @@ def __consolidate(node, results):
 
     dict_removals(results, "kernel_options")
     dict_removals(results, "kernel_options_post")
-    dict_removals(results, "ks_meta")
+    dict_removals(results, "autoinstall_meta")
     dict_removals(results, "template_files")
     dict_removals(results, "boot_files")
     dict_removals(results, "fetchable_files")
@@ -920,6 +921,11 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
         if rc != 0:
             raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
 
+        if logger is not None:
+            logger.debug("shell trigger %s finished successfully" % file)
+
+    if logger is not None:
+        logger.debug("shell triggers finished successfully")
 
 def get_family():
     """
@@ -1516,32 +1522,29 @@ def set_virt_cpus(self, num):
     self.virt_cpus = num
 
 
-def get_kickstart_templates(api):
+def get_autoinstall_templates(api):
     """
-    Return a list of all kickstarts in use and available
-    under /var/lib/cobbler/kickstarts/
+    Return a list of all automatic OS installation templates in use and
+    available under /var/lib/cobbler/autoinstall_templates/
     """
     files = {}
-    for x in api.profiles():
-        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.isfile(x.kickstart):
-                files[x.kickstart] = 1
-    for x in api.systems():
-        if x.kickstart is not None and x.kickstart != "" and x.kickstart != "<<inherit>>":
-            if os.path.isfile(x.kickstart):
-                files[x.kickstart] = 1
-    for x in glob.glob("/var/lib/cobbler/kickstarts/*"):
-        if os.path.isfile(x):
-            files[x] = 1
+    for root, dirnames, filenames in os.walk(AUTOINSTALL_TEMPLATES_BASE_DIR):
+        for filename in filenames:
+	    rel_root = root[len(AUTOINSTALL_TEMPLATES_BASE_DIR):]
+            if rel_root:
+                rel_path = "%s/%s" % (rel_root, filename)
+            else:
+                rel_path = filename
+            files[rel_path] = 1
 
     results = files.keys()
     results.sort()
     # empty and inherit are valid values
     # and we want them as the first options in cobbler-web
-    kslist = ["", "<<inherit>>"]
-    for ks in results:
-        kslist.append(ks)
-    return kslist
+    autoinstall_options_list = ["", "<<inherit>>"]
+    for result in results:
+        autoinstall_options_list.append(result)
+    return autoinstall_options_list
 
 
 def safe_filter(var):
@@ -2121,10 +2124,10 @@ def link_distro(settings, distro):
 
 
 def find_distro_path(settings, distro):
-    possible_dirs = glob.glob(settings.webdir + "/ks_mirror/*")
+    possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
     for dir in possible_dirs:
         if os.path.dirname(distro.kernel).find(dir) != -1:
-            return os.path.join(settings.webdir, "ks_mirror", dir)
+            return os.path.join(settings.webdir, "distro_mirror", dir)
     # non-standard directory, assume it's the same as the
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)

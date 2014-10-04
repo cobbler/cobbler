@@ -17,7 +17,7 @@ Description: Install server
  modes use a helper tool, 'koan', that
  integrates with cobbler.  Cobbler's advanced features
  include importing distributions from DVDs and rsync
- mirrors, kickstart templating, integrated yum
+ mirrors, automatic installation templating, integrated yum
  mirroring, and built-in DHCP/DNS Management.  Cobbler has
  a Python and XMLRPC API for integration with other
  applications.  There is also a web interface.

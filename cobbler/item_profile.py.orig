@@ -230,16 +230,22 @@ class Profile(item.Item):
                 self.next_server = validate.ipv4_address(server)
             else:
                 self.next_server = server
+<<<<<<< Updated upstream
 
-    def set_autoinstall(self, autoinstall):
+    def set_autoinst(self, autoinst):
+=======
+  
+
+    def set_autoinstall(self, autoinst):
+>>>>>>> Stashed changes
         """
         Set the automatic OS installation template file path,
         this must be a local file.
 
-        @param: str local automatic installation template path
+        @param: str autoinst path to a local autoinst file
         @returns: True or CX
         """
-        self.autoinstall = validate.autoinstall_file_path(autoinstall)
+        self.autoinstall = validate.autoinstall_file_path(autoinst)
 
     def set_virt_auto_boot(self, num):
         utils.set_virt_auto_boot(self, num)

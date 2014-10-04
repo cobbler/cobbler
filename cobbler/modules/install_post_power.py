@@ -45,7 +45,7 @@ def run(api, args, logger):
     else:
         return 0
 
-    if target and 'postreboot' in target.ks_meta:
+    if target and 'postreboot' in target.autoinstall_meta:
         # Run this in a thread so the system has a chance to finish and umount the filesystem
         current = reboot(api, target)
         current.start()

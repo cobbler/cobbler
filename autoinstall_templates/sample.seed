@@ -118,7 +118,7 @@ d-i debian-installer/add-kernel-opts string $kernel_options_post
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
 
-## Figure out if we're kickstarting a system or a profile
+## Figure out if we're automating OS installation for a system or a profile
 #if $getVar('system_name','') != ''
 #set $what = "system"
 #else

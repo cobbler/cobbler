@@ -67,7 +67,7 @@ def start_install(*args, **kwargs):
     ]
 
     sysname = kwargs['name']
-    kickstart = kwargs['profile_data']['kickstart']
+    autoinst = kwargs['profile_data']['autoinst']
     # we use it for --ostemplate parameter
     template = kwargs['profile_data']['breed']
     hostname = kwargs['profile_data']['hostname']
@@ -140,7 +140,7 @@ def start_install(*args, **kwargs):
         # now install the container tree
         cmd = '/usr/bin/ovz-install %s %s %s' % (
             sysname,
-            kickstart,
+            autoinst,
             full_config['VE_PRIVATE'].replace('$VEID', '%d' % CTID)
         )
         if not os.system(cmd.strip()):

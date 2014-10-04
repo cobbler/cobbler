@@ -57,7 +57,7 @@ function page_onload() {
 
         $(window).bind("beforeunload", function () {
 
-                if (!submitting && $("#ksdata")[0].defaultValue !== $("#ksdata")[0].value) {
+                if (!submitting && $("#aidata")[0].defaultValue !== $("#aidata")[0].value) {
 
                         submitting = false;
 

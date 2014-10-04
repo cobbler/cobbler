@@ -42,7 +42,7 @@ FIELDS = [
     ['os_version', '', 0, "OS Version", True, "ex: rhel4", utils.get_valid_os_versions(), "str"],
     ['owners', "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
     ['parent', '', 0, "", False, "", 0, "str"],
-    ['kickstart', '', 0, "Kickstart", True, "Path to kickstart/answer file template", 0, "str"],
+    ['autoinstall', '', 0, "Automatic installation file", True, "Path to autoinst/answer file template", 0, "str"],
     ['virt_auto_boot', "SETTINGS:virt_auto_boot", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ['virt_bridge', "SETTINGS:default_virt_bridge", 0, "Virt Bridge", True, "", 0, "str"],
     ['virt_cpus', 1, 0, "Virt CPUs", True, "", 0, "int"],
@@ -58,7 +58,7 @@ FIELDS = [
 class Image(item.Item):
     """
     A Cobbler Image.  Tracks a virtual or physical image, as opposed to a answer
-    file (kickstart) led installation.
+    file (autoinst) led installation.
     """
 
     TYPE_NAME = _("image")
@@ -99,19 +99,20 @@ class Image(item.Item):
         return utils.set_arch(self, arch)
 
 
-    def set_kickstart(self, kickstart):
+    def set_autoinstall(self, autoinstall):
         """
-        Set the kickstart path, this must be a local file.
+        Set the automatic installation file path, this must be a local file.
 
-        It may not make sense for images to have kickstarts.  It really doesn't.
-        However if the image type is 'iso' koan can create a virtual floppy
-        and shove an answer file on it, to script an installation.  This may
-        not be a kickstart per se, it might be a Windows answer file (SIF) etc.
+        It may not make sense for images to have automatic installation templates.
+        It really doesn't. However if the image type is 'iso' koan can create a virtual
+	floppy and shove an answer file on it, to script an installation.  This may
+        not be a automatic installation template per se, it might be a Windows answer
+        file (SIF) etc.
 
-        @param: str kickstart path to a local kickstart file
+        @param: str local automatic installation file path
         @returns: True or CX
         """
-        self.kickstart = validate.kickstart_file_path(kickstart)
+        self.autoinstall = validate.autoinstall_file_path(autoinstall)
 
 
     def set_file(self, filename):

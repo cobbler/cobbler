@@ -107,9 +107,9 @@ virtualized installs, and re-installing existing Linux machines.
 The last two modes use a helper tool, 'koan', that integrates with
 cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
 advanced features include importing distributions from DVDs and rsync
-mirrors, kickstart templating, integrated yum mirroring, and built-in
-DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with
-other applications.
+mirrors, automatic installation file templating, integrated yum 
+mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC
+API for integration with other applications.
 
 
 %prep
@@ -150,7 +150,7 @@ if (( $1 >= 2 )); then
     if [[ ! -d /var/lib/cobbler/backup/upgrade-${DATE} ]]; then
         mkdir -p /var/lib/cobbler/backup/upgrade-${DATE}
     fi
-    for i in "config" "snippets" "kickstarts" "triggers" "scripts"; do
+    for i in "config" "snippets" "autoinstall_templates" "triggers" "scripts"; do
         if [[ -d /var/lib/cobbler/${i} ]]; then
             cp -r /var/lib/cobbler/${i} /var/lib/cobbler/backup/upgrade-${DATE}
         fi

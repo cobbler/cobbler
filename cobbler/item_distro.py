@@ -71,7 +71,7 @@ from cobbler.utils import _
 #   uid -- also used for some external API purposes
 #   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it
 #                   for RHEL split repos, this is a list of each of them in the install tree, used to generate
-#                   repo lines in the kickstart to allow installation of x>=RHEL5.  Otherwise unimportant.
+#                   repo lines in the automatic installation file to allow installation of x>=RHEL5.  Otherwise unimportant.
 #   depth -- used for "cobbler list" to print the tree, makes it easier to load objects from disk also
 #   tree_build_time -- loaded from import, this is not useful to many folks so we just hide it.  Avail over API.
 #
@@ -96,7 +96,7 @@ FIELDS = [
     ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["ks_meta", {}, 0, "Kickstart Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
+    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
@@ -123,7 +123,7 @@ class Distro(item.Item):
         super(Distro, self).__init__(*args, **kwargs)
         self.kernel_options = {}
         self.kernel_options_post = {}
-        self.ks_meta = {}
+        self.autoinstall_meta = {}
         self.source_repos = []
         self.fetchable_files = {}
         self.boot_files = {}

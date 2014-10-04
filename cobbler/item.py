@@ -62,7 +62,7 @@ class Item(object):
         self.uid = ""                   # to be filled in by collection class
         self.kernel_options = None
         self.kernel_options_post = None
-        self.ks_meta = None
+        self.autoinstall_meta = None
         self.fetchable_files = None
         self.boot_files = None
         self.template_files = None
@@ -247,17 +247,17 @@ class Item(object):
         else:
             self.kernel_options_post = value
 
-    def set_ks_meta(self, options):
+    def set_autoinstall_meta(self, options):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system
-        to preprocess kickstart files
+        to preprocess automatic installation template files
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
             return False
         else:
-            self.ks_meta = value
+            self.autoinstall_meta = value
 
     def set_mgmt_classes(self, mgmt_classes):
         """

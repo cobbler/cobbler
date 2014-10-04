@@ -285,10 +285,10 @@ $(document).ready(function() {
           <span class="action" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
           <span class="action" onClick="javascript:$('#dialog' ).data('name', '{{ item.0.1 }}').dialog( 'open' )">Delete</span>
   {% ifequal what "system" %}
-          <span class="action" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
+          <span class="action" onClick="window.location='/cblr/svc/op/autoinstall/system/{{ item.0.1 }}'">View automatic installation template</span>
   {% endifequal %}
   {% ifequal what "profile" %}
-          <span class="action" onClick="window.location='/cblr/svc/op/ks/profile/{{ item.0.1 }}'">View kickstart</span>
+          <span class="action" onClick="window.location='/cblr/svc/op/autoinstall/profile/{{ item.0.1 }}'">View automatic installation template</span>
   {% endifequal %}
         </td>
       </tr>

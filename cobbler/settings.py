@@ -56,7 +56,7 @@ DEFAULTS = {
     "consoles": ["/var/consoles", "str"],
     "createrepo_flags": ["-c cache -s sha", "str"],
     "default_deployment_method": ["ssh", "str"],
-    "default_kickstart": ["/var/lib/cobbler/kickstarts/default.ks", "str"],
+    "default_autoinstall": ["/var/lib/cobbler/autoinstall_templates/default.ks", "str"],
     "default_name_servers": [[], "list"],
     "default_name_servers_search": [[], "list"],
     "default_password_crypted": ["\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.", "str"],

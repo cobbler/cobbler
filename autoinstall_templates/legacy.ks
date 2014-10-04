@@ -1,7 +1,3 @@
-# kickstart template for Fedora 8 and later.
-# (includes %end blocks)
-# do not use with earlier distros
-
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
 auth  --useshadow  --enablemd5
@@ -21,8 +17,6 @@ keyboard us
 lang en_US
 # Use network installation
 url --url=$tree
-# If any cobbler repo definitions were referenced in the kickstart profile, include them here.
-$yum_repo_stanza
 # Network information
 $SNIPPET('network_config')
 # Reboot after installation
@@ -45,14 +39,11 @@ autopart
 
 %pre
 $SNIPPET('log_ks_pre')
-$SNIPPET('kickstart_start')
+$SNIPPET('autoinstall_start')
 $SNIPPET('pre_install_network_config')
-# Enable installation monitoring
 $SNIPPET('pre_anamon')
-%end
 
 %packages
-%end
 
 %post --nochroot
 $SNIPPET('log_ks_post_nochroot')
@@ -60,7 +51,7 @@ $SNIPPET('log_ks_post_nochroot')
 
 %post
 $SNIPPET('log_ks_post')
-# Start yum configuration
+# Begin yum configuration
 $yum_config_stanza
 # End yum configuration
 $SNIPPET('post_install_kernel_options')
@@ -69,9 +60,7 @@ $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')
 $SNIPPET('cobbler_register')
-# Enable post-install boot notification
-$SNIPPET('post_anamon')
-# Start final steps
-$SNIPPET('kickstart_done')
+# Begin final steps
+$SNIPPET('autoinstall_done')
 # End final steps
-%end
+

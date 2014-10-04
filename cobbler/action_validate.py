@@ -1,5 +1,5 @@
 """
-Validates rendered kickstart files.
+Validates rendered automatic OS installation files.
 
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 
 import clogger
-import kickgen
+import autoinstallgen
 import utils
 
 
@@ -35,7 +35,7 @@ class Validate:
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
-        self.kickgen = kickgen.KickGen(collection_mgr)
+        self.autoinstallgen = autoinstallgen.AutoInstallationGen(collection_mgr)
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
@@ -64,9 +64,9 @@ class Validate:
                 self.log_errors(errors)
 
         if failed:
-            self.logger.warning("*** potential errors detected in kickstarts ***")
+            self.logger.warning("*** potential errors detected in automatic installation files ***")
         else:
-            self.logger.info("*** all kickstarts seem to be ok ***")
+            self.logger.info("*** all automatic installation files seem to be ok ***")
 
         return not(failed)
 
@@ -79,27 +79,27 @@ class Validate:
         self.logger.info("----------------------------")
         self.logger.debug("osversion: %s" % os_version)
 
-        ks = blended["kickstart"]
-        if ks is None or ks == "":
-            self.logger.info("%s has no kickstart, skipping" % obj.name)
+        autoinstall = blended["autoinstall"]
+        if autoinstall is None or autoinstall == "":
+            self.logger.info("%s has no automatic installation template set, skipping" % obj.name)
             return [True, last_errors]
 
         breed = blended["breed"]
         if breed != "redhat":
-            self.logger.info("%s has a breed of %s, skipping" % (obj.name, breed))
+            self.logger.info("%s has a breed of %s, validator only covers automatic installation files of Red Hat based distributions (kickstarts), skipping" % (obj.name, breed))
             return [True, last_errors]
 
         server = blended["server"]
-        if not ks.startswith("/"):
-            url = ks
+        if not autoinstall.startswith("/"):
+            url = autoinstall
         else:
             if is_profile:
-                url = "http://%s/cblr/svc/op/ks/profile/%s" % (server, obj.name)
-                self.kickgen.generate_kickstart_for_profile(obj.name)
+                url = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (server, obj.name)
+                self.autoinstallgen.generate_autoinstall_for_profile(obj.name)
             else:
-                url = "http://%s/cblr/svc/op/ks/system/%s" % (server, obj.name)
-                self.kickgen.generate_kickstart_for_system(obj.name)
-            last_errors = self.kickgen.get_last_errors()
+                url = "http://%s/cblr/svc/op/autoinstall/system/%s" % (server, obj.name)
+                self.autoinstallgen.generate_autoinstall_for_system(obj.name)
+            last_errors = self.autoinstallgen.get_last_errors()
 
         self.logger.info("checking url: %s" % url)
 

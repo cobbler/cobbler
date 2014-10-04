@@ -249,17 +249,17 @@ def build_commandline(uri,
             (tempdir, filename) = utils.nfsmount(input_path)
             cdrom = os.path.join(tempdir, filename)
 
-        kickstart = profile_data.get("kickstart", "")
-        if kickstart != "":
+        autoinst = profile_data.get("autoinst", "")
+        if autoinst != "":
             # we have a (windows?) answer file we have to provide
             # to the ISO.
-            print("I want to make a floppy for %s" % kickstart)
-            floppy = utils.make_floppy(kickstart)
+            print("I want to make a floppy for %s" % autoinst)
+            floppy = utils.make_floppy(autoinst)
     elif is_qemu or is_xen:
         # images don't need to source this
         if "install_tree" not in profile_data:
             raise InfoException(
-                "Cannot find install source in kickstart file, aborting.")
+                "Cannot find install source in autoinst file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):
             profile_data["install_tree"] = profile_data["install_tree"] + "/"

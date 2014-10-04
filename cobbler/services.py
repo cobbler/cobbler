@@ -58,12 +58,12 @@ class CobblerSvc(object):
         self.__xmlrpc_setup()
         return self.remote.get_repos_compatible_with_profile(profile)
 
-    def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
+    def autoinstall(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
         """
-        Generate kickstart files...
+        Generate automatic installation files
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_kickstart(profile, system, REMOTE_ADDR, REMOTE_MAC)
+        data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
         return u"%s" % data
 
     def gpxe(self, profile=None, system=None, **rest):
@@ -222,26 +222,26 @@ class CobblerSvc(object):
         # debug only
         return repr(rest)
 
-    def findks(self, system=None, profile=None, **rest):
+    def find_autoinst(self, system=None, profile=None, **rest):
         self.__xmlrpc_setup()
 
         serverseg = "http//%s" % self.collection_mgr._settings.server
 
         name = "?"
         if system is not None:
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
         elif profile is not None:
-            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/profile/%s" % (serverseg, name)
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
                 return "# autodetection %s" % name
-            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+            url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
 
         try:
             return urlgrabber.urlread(url)
         except:
-            return "# kickstart retrieval failed (%s)" % url
+            return "# automatic installation file retrieval failed (%s)" % url
 
     def puppet(self, hostname=None, **rest):
         self.__xmlrpc_setup()

@@ -58,6 +58,9 @@ EVENT_FAILED = "failed"
 # normal events
 EVENT_INFO = "notification"
 
+AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
+AUTOINSTALL_SNIPPETS_BASE_DIR = "/var/lib/cobbler/snippets/"
+
 
 class CobblerThread(Thread):
     """
@@ -79,7 +82,7 @@ class CobblerThread(Thread):
         time.sleep(1)
         try:
             rc = self._run(self)
-            if not rc:
+            if rc is not None and not rc:
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
@@ -185,10 +188,10 @@ class CobblerXMLRPCInterface:
             self.remote.api.hardlink(logger=self.logger)
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
-    def background_validateks(self, options, token):
+    def background_validate_autoinstall_files(self, options, token):
         def runner(self):
-            return self.remote.api.validateks(logger=self.logger)
-        return self.__start_task(runner, token, "validateks", "Kickstart Validation", options)
+            return self.remote.api.validate_autoinstall_files(logger=self.logger)
+        return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation", options)
 
     def background_replicate(self, options, token):
         def runner(self):
@@ -217,7 +220,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("path", None),
                 self.options.get("name", None),
                 self.options.get("available_as", None),
-                self.options.get("kickstart_file", None),
+                self.options.get("autoinstall_file", None),
                 self.options.get("rsync_flags", None),
                 self.options.get("arch", None),
                 self.options.get("breed", None),
@@ -988,7 +991,7 @@ class CobblerXMLRPCInterface:
                 if object_type != "system" or not self.__is_interface_field(k):
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
-                    if k in ["ks_meta", "kernel_options", "kernel_options_post", "template_files", "boot_files", "fetchable_files", "params"] and \
+                    if k in ["autoinstall_meta", "kernel_options", "kernel_options_post", "template_files", "boot_files", "fetchable_files", "params"] and \
                             "in_place" in attributes and attributes["in_place"]:
                         details = self.get_item(object_type, object_name)
                         v2 = details[k]
@@ -1067,50 +1070,54 @@ class CobblerXMLRPCInterface:
     def save_file(self, object_id, token, editmode="bypass"):
         return self.save_item("file", object_id, token, editmode=editmode)
 
-    def get_kickstart_templates(self, token=None, **rest):
+    def get_autoinstall_templates(self, token=None, **rest):
         """
-        Returns all of the kickstarts that are in use by the system.
+        Returns all of the automatic OS installation templates that are in
+        use by the system.
         """
-        self._log("get_kickstart_templates", token=token)
-        # self.check_access(token, "get_kickstart_templates")
-        return utils.get_kickstart_templates(self.api)
+        self._log("get_autoinstall_templates", token=token)
+        # self.check_access(token, "get_autoinstall_templates")
+        templates = utils.get_autoinstall_templates(self.api)
+        return utils.get_autoinstall_templates(self.api)
 
-    def get_snippets(self, token=None, **rest):
+    def get_autoinstall_snippets(self, token=None, **rest):
         """
-        Returns all the kickstart snippets.
+        Returns all the automatic OS installation templates' snippets.
         """
-        self._log("get_snippets", token=token)
+
+        self._log("get_autoinstall_snippets", token=token)
         # FIXME: settings.snippetsdir should be used here
-        return self.__get_sub_snippets("/var/lib/cobbler/snippets")
+        files = []
+        for root, dirnames, filenames in os.walk(AUTOINSTALL_SNIPPETS_BASE_DIR):
 
-    def __get_sub_snippets(self, path):
-        results = []
-        files = glob.glob(os.path.join(path, "*"))
-        for f in files:
-            if os.path.isdir(f) and not os.path.islink(f):
-                results += self.__get_sub_snippets(f)
-            elif not os.path.islink(f):
-                results.append(f)
-        results.sort()
-        return results
+            for filename in filenames:
+                rel_root = root[len(AUTOINSTALL_SNIPPETS_BASE_DIR):]
+                if rel_root:
+                    rel_path = "%s/%s" % (rel_root, filename)
+                else:
+                    rel_path = filename
+                files.append(rel_path)
 
-    def is_kickstart_in_use(self, ks, token=None, **rest):
-        self._log("is_kickstart_in_use", token=token)
+        files.sort()
+        return files
+
+    def is_autoinstall_in_use(self, ai, token=None, **rest):
+        self._log("is_autoinstall_in_use", token=token)
         for x in self.api.profiles():
-            if x.kickstart is not None and x.kickstart == ks:
+            if x.autoinstall is not None and x.autoinstall == ai:
                 return True
         for x in self.api.systems():
-            if x.kickstart is not None and x.kickstart == ks:
+            if x.autoinstall is not None and x.autoinstall == ai:
                 return True
         return False
 
-    def generate_kickstart(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
-        self._log("generate_kickstart")
+    def generate_autoinstall(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
+        self._log("generate_autoinstall")
         try:
-            return self.api.generate_kickstart(profile, system)
+            return self.api.generate_autoinstall(profile, system)
         except Exception:
             utils.log_exc(self.logger)
-            return "# This kickstart had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
+            return "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
     def generate_gpxe(self, profile=None, system=None, **rest):
         self._log("generate_gpxe")
@@ -1965,125 +1972,130 @@ class CobblerXMLRPCInterface:
         self.api.sync()
         return True
 
-    def read_kickstart_template(self, file_path, token):
+    def read_autoinstall_template(self, file_path, token):
         """
-        Read a kickstart template file
+        Read an automatic OS installation template file
 
-        @param str file_path kickstart template file path
+        @param str file_path automatic OS installation template file path
         @param ? token
         @return str file content
         """
-        what = "read_kickstart_template"
+        what = "read_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.kickstart_file_path(file_path, for_item=False)
+        file_path = validate.autoinstall_file_path(file_path, for_item=False)
 
-        fileh = open(file_path, "r")
+        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
+        fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
 
         return data
 
-    def write_kickstart_template(self, file_path, data, token):
+    def write_autoinstall_template(self, file_path, data, token):
         """
-        Write a kickstart template file
+        Write an automatic OS installation template file
 
-        @param str file_path kickstart template file path
+        @param str file_path automatic OS installation template file path
         @param str data new file content
         @param ? token
         @return bool if operation was successful
         """
 
-        what = "write_kickstart_template"
+        what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.kickstart_file_path(file_path, for_item=False, new_kickstart=True)
+        file_path = validate.autoinstall_file_path(file_path, for_item=False, new_autoinst=True)
 
+        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
         try:
-            utils.mkdir(os.path.dirname(file_path))
+            utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die(self.logger, "unable to create directory for kickstart template at %s" % file_path)
+            utils.die(self.logger, "unable to create directory for automatic OS installation template at %s" % file_path)
 
-        fileh = open(file_path, "w+")
+        fileh = open(file_full_path, "w+")
         fileh.write(data)
         fileh.close()
 
         return True
 
-    def remove_kickstart_template(self, file_path, token):
+    def remove_autoinstall_template(self, file_path, token):
         """
-        Remove a kickstart template file
+        Remove an automatic OS installation template file
 
-        @param str file_path kickstart template file path
+        @param str file_path automatic OS installation template file path
         @param ? token
         @return bool if operation was successful
         """
-        what = "write_kickstart_template"
+        what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.kickstart_file_path(file_path, for_item=False)
+        file_path = validate.autoinstall_file_path(file_path, for_item=False)
 
-        if not self.is_kickstart_in_use(file_path, token):
-            os.remove(file_path)
+        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
+        if not self.is_autoinstall_in_use(file_path, token):
+            os.remove(file_full_path)
         else:
             utils.die(self.logger, "attempt to delete in-use file")
 
         return True
 
-    def read_kickstart_snippet(self, file_path, token):
+    def read_autoinstall_snippet(self, file_path, token):
         """
-        Read a kickstart snippet file
+        Read an automatic OS installation snippet file
 
-        @param str file_path kickstart snippet file path
+        @param str file_path automatic OS installation snippet file path
         @param ? token
         @return str file content
         """
-        what = "read_kickstart_snippet"
+        what = "read_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
         file_path = validate.snippet_file_path(file_path)
 
-        fileh = open(file_path, "r")
+        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
+        fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
 
         return data
 
-    def write_kickstart_snippet(self, file_path, data, token):
+    def write_autoinstall_snippet(self, file_path, data, token):
         """
-        Write a kickstart snippet file
+        Write an automatic OS installation snippet file
 
-        @param str file_path kickstart snippet file path
+        @param str file_path automatic OS installation snippet file path
         @param str data new file content
         @param ? token
         @return bool if operation was successful
         """
-        what = "write_kickstart_snippet"
+        what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
         file_path = validate.snippet_file_path(file_path, new_snippet=True)
 
+        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
         try:
-            utils.mkdir(os.path.dirname(file_path))
+            utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die(self.logger, "unable to create directory for snippet at %s" % file_path)
+            utils.die(self.logger, "unable to create directory for automatic OS installation snippet at %s" % file_path)
 
-        fileh = open(file_path, "w+")
+        fileh = open(file_full_path, "w+")
         fileh.write(data)
         fileh.close()
 
         return True
 
-    def remove_kickstart_snippet(self, file_path, token):
+    def remove_autoinstall_snippet(self, file_path, token):
         """
-        Remove a kickstart snippet file
+        Remove an automated OS installation snippet file
 
-        @param str file_path kickstart snippet file path
+        @param str file_path automated OS installation snippet file path
         @param ? token
         @return bool if operation was successful
         """
 
-        what = "write_kickstart_snippet"
+        what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
         file_path = validate.snippet_file_path(file_path)

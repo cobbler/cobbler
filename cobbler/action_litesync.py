@@ -69,8 +69,8 @@ class CobblerLiteSync:
         dst_dir = os.path.join(self.settings.webdir, "links", name)
         if os.path.exists(dst_dir):
             self.logger.warning("skipping symlink, destination (%s) exists" % dst_dir)
-        elif utils.path_tail(os.path.join(self.settings.webdir, "ks_mirror"), src_dir) == "":
-            self.logger.warning("skipping symlink, the source (%s) is not in %s" % (src_dir, os.path.join(self.settings.webdir, "ks_mirror")))
+        elif utils.path_tail(os.path.join(self.settings.webdir, "distro_mirror"), src_dir) == "":
+            self.logger.warning("skipping symlink, the source (%s) is not in %s" % (src_dir, os.path.join(self.settings.webdir, "distro_mirror")))
         else:
             try:
                 self.logger.info("trying symlink %s -> %s" % (src_dir, dst_dir))
@@ -133,8 +133,8 @@ class CobblerLiteSync:
     def remove_single_profile(self, name, rebuild_menu=True):
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
-        # delete contents on kickstarts/$name directory in webdir
-        utils.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
+        # delete contents on autoinstalls/$name directory in webdir
+        utils.rmtree(os.path.join(self.settings.webdir, "autoinstalls", name))
         if rebuild_menu:
             self.sync.tftpgen.make_pxe_menu()
 
@@ -157,7 +157,7 @@ class CobblerLiteSync:
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
         system_record = self.systems.find(name=name)
-        # delete contents of kickstarts_sys/$name in webdir
+        # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
         for (name, interface) in system_record.interfaces.iteritems():

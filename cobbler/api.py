@@ -48,7 +48,7 @@ from cobbler import item_package
 from cobbler import item_profile
 from cobbler import item_repo
 from cobbler import item_system
-from cobbler import kickgen
+from cobbler import autoinstallgen
 from cobbler import module_loader
 from cobbler import tftpgen
 from cobbler import utils
@@ -148,11 +148,11 @@ class CobblerAPI:
             )
 
             # FIXME: pass more loggers around, and also see that those
-            # using things via tasks construct their own kickgen/yumgen/
+            # using things via tasks construct their own autoinstallgen/yumgen/
             # tftpgen versus reusing this one, which has the wrong logger
             # (most likely) for background tasks.
 
-            self.kickgen = kickgen.KickGen(self._collection_mgr)
+            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self._collection_mgr)
             self.yumgen = yumgen.YumGen(self._collection_mgr)
             self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
             self.logger.debug("API handle initialized")
@@ -668,12 +668,12 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_kickstart(self, profile, system):
-        self.log("generate_kickstart")
+    def generate_autoinstall(self, profile, system):
+        self.log("generate_autoinstall")
         if system:
-            return self.kickgen.generate_kickstart_for_system(system)
+            return self.autoinstallgen.generate_autoinstall_for_system(system)
         else:
-            return self.kickgen.generate_kickstart_for_profile(profile)
+            return self.autoinstallgen.generate_autoinstall_for_profile(profile)
 
     # ==========================================================================
 
@@ -732,16 +732,17 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def validateks(self, logger=None):
+    def validate_autoinstall_files(self, logger=None):
         """
-        Use ksvalidator (from pykickstart, if available) to determine
-        whether the cobbler kickstarts are going to be (likely) well
-        accepted by Anaconda.  Presence of an error does not indicate
-        the kickstart is bad, only that the possibility exists.  ksvalidator
-        is not available on all platforms and can not detect "future"
-        kickstart format correctness.
+        Use available tools to determine whether the cobbler automatic
+        installation files are going to be well accepted by Linux distribution
+        installer. Presence of an error does not indicate the automatic
+        installation file is bad, only that the possibility exists. Automatic
+        installation file validator is not available for all automatic installation
+        file types and on all platforms and can not detect "future" automatic
+        installation format correctness.
         """
-        self.log("validateks")
+        self.log("validate_autoinstall_files")
         validator = action_validate.Validate(self._collection_mgr, logger=logger)
         return validator.run()
 
@@ -807,7 +808,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def import_tree(self, mirror_url, mirror_name, network_root=None, kickstart_file=None, rsync_flags=None, arch=None, breed=None, os_version=None, logger=None):
+    def import_tree(self, mirror_url, mirror_name, network_root=None, autoinstall_file=None, rsync_flags=None, arch=None, breed=None, os_version=None, logger=None):
         """
         Automatically import a directory tree full of distribution files.
         mirror_url can be a string that represents a path, a user@host
@@ -815,7 +816,7 @@ class CobblerAPI:
         filesystem path and mirroring is not desired, set network_root
         to something like "nfs://path/to/mirror_url/root"
         """
-        self.log("import_tree", [mirror_url, mirror_name, network_root, kickstart_file, rsync_flags])
+        self.log("import_tree", [mirror_url, mirror_name, network_root, autoinstall_file, rsync_flags])
 
         # both --path and --name are required arguments
         if mirror_url is None:
@@ -825,7 +826,7 @@ class CobblerAPI:
             self.log("import failed.  no --name specified")
             return False
 
-        path = os.path.normpath("%s/ks_mirror/%s" % (self.settings().webdir, mirror_name))
+        path = os.path.normpath("%s/distro_mirror/%s" % (self.settings().webdir, mirror_name))
         if arch is not None:
             arch = arch.lower()
             if arch == "x86":
@@ -905,7 +906,7 @@ class CobblerAPI:
         #        (found,pkgdir) = manager.check_for_signature(path,breed)
         #        if found:
         #            self.log("running import manager: %s" % manager.what())
-        #            return manager.run(pkgdir,mirror_name,path,network_root,kickstart_file,rsync_flags,arch,breed,os_version)
+        #            return manager.run(pkgdir,mirror_name,path,network_root,autoinstall_file,rsync_flags,arch,breed,os_version)
         #    except:
         #        self.log("an exception occured while running the import manager")
         #        self.log("error was: %s" % sys.exc_info()[1])
@@ -915,7 +916,7 @@ class CobblerAPI:
         # # path tree we created above so we don't leave cruft around
         # return False
         import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._collection_mgr, logger)
-        import_module.run(path, mirror_name, network_root, kickstart_file, arch, breed, os_version)
+        import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
 
     # ==========================================================================
 
@@ -1058,8 +1059,8 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def get_kickstart_templates(self):
-        return utils.get_kickstart_templates(self)
+    def get_autoinstall_templates(self):
+        return utils.get_autoinstall_templates(self)
 
     # ==========================================================================
 

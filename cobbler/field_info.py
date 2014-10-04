@@ -48,7 +48,7 @@ USES_SELECT = [
     "profile",
     "distro",
     "image",
-    "kickstart",
+    "autoinstall",
     "image_type",
     "virt_type",
     "arch",
@@ -188,7 +188,6 @@ BLOCK_MAPPINGS_ORDER = {
 # name in the FIELDS data structure.  We should not add any more of these under any conditions.
 
 ALTERNATE_OPTIONS = {
-    "ks_meta": "--ksmeta",
     "kernel_options": "--kopts",
     "kernel_options_post": "--kopts-post",
 }

@@ -60,7 +60,7 @@ def run(api, args, logger):
         # FIXME: if we know the remote user of an XMLRPC call
         # use them as the author
         utils.subprocess_call(logger, "git add --all config", shell=True)
-        utils.subprocess_call(logger, "git add --all kickstarts", shell=True)
+        utils.subprocess_call(logger, "git add --all autoinstall_templatess", shell=True)
         utils.subprocess_call(logger, "git add --all snippets", shell=True)
         utils.subprocess_call(logger, "git commit -m 'API update' --author 'cobbler <root@localhost.localdomain>'", shell=True)
 
@@ -80,7 +80,7 @@ def run(api, args, logger):
         # FIXME: if we know the remote user of an XMLRPC call
         # use them as the user
         utils.subprocess_call(logger, "hg add config", shell=True)
-        utils.subprocess_call(logger, "hg add kickstarts", shell=True)
+        utils.subprocess_call(logger, "hg add autoinstall_templates", shell=True)
         utils.subprocess_call(logger, "hg add snippets", shell=True)
         utils.subprocess_call(logger, "hg commit -m 'API update' --user 'cobbler <root@localhost.localdomain>'", shell=True)
 

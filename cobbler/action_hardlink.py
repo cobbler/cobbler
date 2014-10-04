@@ -41,10 +41,10 @@ class HardLinker:
         self.family = utils.get_family()
         if self.family == "debian":
             self.hardlink = "/usr/bin/hardlink"
-            self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror"
+            self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         else:
             self.hardlink = "/usr/sbin/hardlink"
-            self.hardlink_args = "-c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror"
+            self.hardlink_args = "-c -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         self.hardlink_cmd = "%s %s" % (self.hardlink, self.hardlink_args)
 
 
@@ -69,6 +69,6 @@ class HardLinker:
         if os.path.exists("/srv/www"):
             webdir = "/srv/www/cobbler"
 
-        rc = utils.subprocess_call(self.logger, "/usr/sbin/hardlink -c -v " + webdir + "/ks_mirror /var/www/cobbler/repo_mirror", shell=True)
+        rc = utils.subprocess_call(self.logger, "/usr/sbin/hardlink -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror", shell=True)
 
         return rc

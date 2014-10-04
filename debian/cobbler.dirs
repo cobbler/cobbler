@@ -1,6 +1,6 @@
 usr/bin
 usr/sbin
-var/lib/cobbler/kickstarts
+var/lib/cobbler/autoinstall_templates
 var/lib/cobbler/isos
 etc/cobbler
 etc/cobbler/power

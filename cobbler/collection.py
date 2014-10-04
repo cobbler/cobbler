@@ -140,7 +140,6 @@ class Collection:
     SEARCH_REKEY = {
         'kopts': 'kernel_options',
         'kopts_post': 'kernel_options_post',
-        'ksmeta': 'ks_meta',
         'inherit': 'parent',
         'ip': 'ip_address',
         'mac': 'mac_address',
@@ -253,8 +252,8 @@ class Collection:
             # test to see if the distro path is based directly
             # on the name of the distro. If it is, things need
             # to updated accordingly
-            if os.path.exists(path) and path == "/var/www/cobbler/ks_mirror/%s" % ref.name:
-                newpath = "/var/www/cobbler/ks_mirror/%s" % newref.name
+            if os.path.exists(path) and path == "/var/www/cobbler/distro_mirror/%s" % ref.name:
+                newpath = "/var/www/cobbler/distro_mirror/%s" % newref.name
                 os.renames(path, newpath)
 
                 # update any reference to this path ...
