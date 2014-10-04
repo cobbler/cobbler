@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-import os
+
 import simplejson
 import string
 import time
@@ -745,7 +745,7 @@ def snippet_list(request, page=None):
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/snippet/list", expired=True)
-    
+
     snippets = remote.get_autoinstall_snippets(request.session['token'])
     snippet_list = []
     for snippet in snippets:

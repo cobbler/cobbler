@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import base64
 import errno
 import fcntl
-import glob
 import os
 import random
 import SimpleXMLRPCServer
@@ -1077,7 +1076,6 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_autoinstall_templates", token=token)
         # self.check_access(token, "get_autoinstall_templates")
-        templates = utils.get_autoinstall_templates(self.api)
         return utils.get_autoinstall_templates(self.api)
 
     def get_autoinstall_snippets(self, token=None, **rest):

@@ -105,7 +105,7 @@ class Image(item.Item):
 
         It may not make sense for images to have automatic installation templates.
         It really doesn't. However if the image type is 'iso' koan can create a virtual
-	floppy and shove an answer file on it, to script an installation.  This may
+        floppy and shove an answer file on it, to script an installation.  This may
         not be a automatic installation template per se, it might be a Windows answer
         file (SIF) etc.
 

@@ -552,7 +552,7 @@ class TFTPGen:
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
                         # ESXi uses a very different pxe method, using more files than
-                        # a standard automatic installation file and different options - 
+                        # a standard automatic installation file and different options -
                         # so giving it a dedicated PXE template makes more sense than
                         # shoe-horning it into the existing templates
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")

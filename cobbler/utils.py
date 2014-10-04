@@ -66,7 +66,8 @@ CHEETAH_ERROR_DISCLAIMER = """
 #
 """
 
-AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/" 
+AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
+
 
 # From http://code.activestate.com/recipes/303342/
 class Translator:
@@ -927,6 +928,7 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
     if logger is not None:
         logger.debug("shell triggers finished successfully")
 
+
 def get_family():
     """
     Get family of running operating system.
@@ -1530,7 +1532,7 @@ def get_autoinstall_templates(api):
     files = {}
     for root, dirnames, filenames in os.walk(AUTOINSTALL_TEMPLATES_BASE_DIR):
         for filename in filenames:
-	    rel_root = root[len(AUTOINSTALL_TEMPLATES_BASE_DIR):]
+            rel_root = root[len(AUTOINSTALL_TEMPLATES_BASE_DIR):]
             if rel_root:
                 rel_path = "%s/%s" % (rel_root, filename)
             else:
