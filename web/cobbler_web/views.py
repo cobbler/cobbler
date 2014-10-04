@@ -745,7 +745,7 @@ def snippet_list(request, page=None):
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/snippet/list", expired=True)
-    
+
     snippets = remote.get_autoinstall_snippets(request.session['token'])
     snippet_list = []
     for snippet in snippets:

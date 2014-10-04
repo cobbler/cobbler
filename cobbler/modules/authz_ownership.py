@@ -178,7 +178,7 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
         return True
 
     # the API for editing snippets also needs to do something similar.
-    # as with automatic installation files, though since they are more 
+    # as with automatic installation files, though since they are more
     # widely used it's more restrictive
 
     if resource.find("write_autoinstall_snippet") != -1:
