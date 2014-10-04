@@ -191,7 +191,7 @@ class ImportSignatureManager:
                                     if not self.os_version:
                                         self.os_version = version
                                     if not self.autoinstall_file:
-                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinst"]
+                                        self.autoinstall_file = sigdata["breeds"][breed][version]["default_autoinstall"]
                                     self.pkgdir = pkgdir
                                     return sigdata["breeds"][breed][version]
         return None
@@ -348,7 +348,7 @@ class ImportSignatureManager:
 
             profile.set_name(name)
             profile.set_distro(name)
-            profile.set_autoinst(self.autoinstall_file)
+            profile.set_autoinstall(self.autoinstall_file)
 
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan

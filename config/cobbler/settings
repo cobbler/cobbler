@@ -98,7 +98,7 @@ default_name_servers: []
 default_ownership:
  - "admin"
 
-# cobbler has various sample autoinstal templates stored
+# cobbler has various sample automatic installation templates stored
 # in /var/lib/cobbler/autoinstall_templates/.  This controls
 # what install (root) password is set up for those
 # systems that reference this variable.  The factory
