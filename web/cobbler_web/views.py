@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
-import os
+
 import simplejson
 import string
 import time
