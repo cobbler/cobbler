@@ -42,6 +42,12 @@ authn_pam_service: "login"
 # How long the authentication token is valid for, in seconds
 auth_token_expiration: 3600
 
+# this is a directory of files that cobbler uses to make
+# templating easier.  See the Wiki for more information.  Changing
+# this directory should not be required.
+autoinstall_snippets_dir: /var/lib/cobbler/autoinstall_snippets
+autoinstall_templates_dir: /var/lib/cobbler/autoinstall_templates
+
 # location of templates used for boot loader config generation
 boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"
 
@@ -349,11 +355,6 @@ client_use_localhost: 0
 # server) will go over HTTPS instead of plaintext. Be sure to change
 # the http_port setting to the correct value for the web server
 client_use_https: 0
-
-# this is a directory of files that cobbler uses to make
-# templating easier.  See the Wiki for more information.  Changing
-# this directory should not be required.
-snippetsdir: /var/lib/cobbler/autoinstall_snippets
 
 # should new profiles for virtual machines default to auto booting with 
 # the physical host when the physical host reboots?

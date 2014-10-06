@@ -5,8 +5,6 @@ from cobbler import clogger
 from cobbler import utils
 from cobbler.cexceptions import CX
 
-AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-AUTOINSTALL_SNIPPETS_BASE_DIR = "/var/lib/cobbler/autoinstall_snippets/"
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
 
@@ -24,6 +22,8 @@ class AutoInstallationManager:
         """
 
         self.collection_mgr = collection_mgr
+        self.snippets_base_dir = self.collection_mgr.settings().autoinstall_snippets_dir
+        self.templates_base_dir = self.collection_mgr.settings().autoinstall_templates_dir
         self.autoinstallgen = autoinstallgen.AutoInstallationGen(self.collection_mgr)
         if logger is None:
             logger = clogger.Logger()
@@ -57,7 +57,7 @@ class AutoInstallationManager:
         if autoinstall.find("..") != -1:
             raise CX("Invalid automatic installation template file location %s, it must not contain .." % autoinstall)
 
-        autoinstall_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, autoinstall)
+        autoinstall_path = "%s/%s" % (self.templates_base_dir, autoinstall)
         if not os.path.isfile(autoinstall_path) and not new_autoinstall:
             raise CX("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
 
@@ -71,9 +71,9 @@ class AutoInstallationManager:
         """
 
         files = {}
-        for root, dirnames, filenames in os.walk(AUTOINSTALL_TEMPLATES_BASE_DIR):
+        for root, dirnames, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
-                rel_root = root[len(AUTOINSTALL_TEMPLATES_BASE_DIR):]
+                rel_root = root[len(self.templates_base_dir)+1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -99,7 +99,7 @@ class AutoInstallationManager:
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
+        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
@@ -116,7 +116,7 @@ class AutoInstallationManager:
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False, new_autoinstall=True)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
+        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
@@ -137,7 +137,7 @@ class AutoInstallationManager:
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
+        file_full_path = "%s/%s" % (self.templates_base_dir, file_path)
         if not self.is_autoinstall_in_use(file_path):
             os.remove(file_full_path)
         else:
@@ -160,7 +160,7 @@ class AutoInstallationManager:
         if snippet.find("..") != -1:
             raise CX("Invalid automated installation snippet file location %s, it must not contain .." % snippet)
 
-        snippet_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, snippet)
+        snippet_path = "%s/%s" % (self.snippets_base_dir, snippet)
         if not os.path.isfile(snippet_path) and not new_snippet:
             raise CX("Invalid automated installation snippet file location %s, file not found" % snippet_path)
 
@@ -170,10 +170,10 @@ class AutoInstallationManager:
 
         # FIXME: settings.snippetsdir should be used here
         files = []
-        for root, dirnames, filenames in os.walk(AUTOINSTALL_SNIPPETS_BASE_DIR):
+        for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
-                rel_root = root[len(AUTOINSTALL_SNIPPETS_BASE_DIR):]
+                rel_root = root[len(self.snippets_base_dir)+1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -187,7 +187,7 @@ class AutoInstallationManager:
 
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
+        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
         fileh = open(file_full_path, "r")
         data = fileh.read()
         fileh.close()
@@ -198,7 +198,7 @@ class AutoInstallationManager:
 
         file_path = self.validate_autoinstall_snippet_file_path(file_path, new_snippet=True)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
+        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:

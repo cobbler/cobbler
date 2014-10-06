@@ -30,7 +30,6 @@ from cobbler import validate
 from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler.utils import _
 
-AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
 
 
 class AutoInstallationGen:
@@ -272,7 +271,7 @@ class AutoInstallationGen:
             meta["install_source_directory"] = urlparts[2]
 
         try:
-            autoinstall_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, autoinstall_rel_path)
+            autoinstall_path = "%s/%s" % (self.settings.autoinstall_templates_dir, autoinstall_rel_path)
             raw_data = utils.read_file_contents(autoinstall_path, self.api.logger)
             distro = profile.get_conceptual_parent()
             if system is not None:
@@ -286,7 +285,7 @@ class AutoInstallationGen:
 
             return data
         except FileNotFoundException:
-            error_msg = "automatic installation file %s not found at %s" % (meta["autoinstall"], AUTOINSTALL_TEMPLATES_BASE_DIR)
+            error_msg = "automatic installation file %s not found at %s" % (meta["autoinstall"], self.settings.autoinstall_templates_dir)
             self.api.logger.warning(error_msg)
             return "# %s" % error_msg
 
