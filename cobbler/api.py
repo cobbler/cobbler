@@ -27,6 +27,7 @@ import urllib2
 
 from cobbler import action_acl
 from cobbler import action_buildiso
+from cobbler import action_buildiso
 from cobbler import action_check
 from cobbler import action_dlcontent
 from cobbler import action_hardlink
@@ -37,7 +38,7 @@ from cobbler import action_report
 from cobbler import action_reposync
 from cobbler import action_status
 from cobbler import action_sync
-from cobbler import action_validate
+from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import collection_manager
 from cobbler import item_distro
@@ -48,7 +49,6 @@ from cobbler import item_package
 from cobbler import item_profile
 from cobbler import item_repo
 from cobbler import item_system
-from cobbler import autoinstallgen
 from cobbler import module_loader
 from cobbler import tftpgen
 from cobbler import utils
@@ -148,11 +148,10 @@ class CobblerAPI:
             )
 
             # FIXME: pass more loggers around, and also see that those
-            # using things via tasks construct their own autoinstallgen/yumgen/
-            # tftpgen versus reusing this one, which has the wrong logger
+            # using things via tasks construct their own yumgen/tftpgen
+            # versus reusing this one, which has the wrong logger
             # (most likely) for background tasks.
 
-            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self._collection_mgr)
             self.yumgen = yumgen.YumGen(self._collection_mgr)
             self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
             self.logger.debug("API handle initialized")
@@ -668,15 +667,6 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def generate_autoinstall(self, profile, system):
-        self.log("generate_autoinstall")
-        if system:
-            return self.autoinstallgen.generate_autoinstall_for_system(system)
-        else:
-            return self.autoinstallgen.generate_autoinstall_for_profile(profile)
-
-    # ==========================================================================
-
     def generate_gpxe(self, profile, system):
         self.log("generate_gpxe")
         if system:
@@ -733,18 +723,10 @@ class CobblerAPI:
     # ==========================================================================
 
     def validate_autoinstall_files(self, logger=None):
-        """
-        Use available tools to determine whether the cobbler automatic
-        installation files are going to be well accepted by Linux distribution
-        installer. Presence of an error does not indicate the automatic
-        installation file is bad, only that the possibility exists. Automatic
-        installation file validator is not available for all automatic installation
-        file types and on all platforms and can not detect "future" automatic
-        installation format correctness.
-        """
+
         self.log("validate_autoinstall_files")
-        validator = action_validate.AutoInstallFilesValidator(self._collection_mgr, logger=logger)
-        return validator.run()
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self._collection_mgr)
+        autoinstall_mgr.validate_autoinstall_files(logger)
 
     # ==========================================================================
 
@@ -1056,11 +1038,6 @@ class CobblerAPI:
         return reporter.run(report_what=report_what, report_name=report_name,
                             report_type=report_type, report_fields=report_fields,
                             report_noheaders=report_noheaders)
-
-    # ==========================================================================
-
-    def get_autoinstall_templates(self):
-        return utils.get_autoinstall_templates(self)
 
     # ==========================================================================
 

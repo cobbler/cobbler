@@ -30,6 +30,7 @@ import string
 from threading import Thread
 import time
 
+from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import configgen
 from cobbler import item_distro
@@ -57,8 +58,6 @@ EVENT_FAILED = "failed"
 # normal events
 EVENT_INFO = "notification"
 
-AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-AUTOINSTALL_SNIPPETS_BASE_DIR = "/var/lib/cobbler/autoinstall_snippets/"
 
 
 class CobblerThread(Thread):
@@ -117,6 +116,7 @@ class CobblerXMLRPCInterface:
         random.seed(time.time())
         self.translator = utils.Translator(keep=string.printable)
         self.tftpgen = tftpgen.TFTPGen(api._collection_mgr, self.logger)
+        self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
 
     def check(self, token):
         """
@@ -1076,7 +1076,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_autoinstall_templates", token=token)
         # self.check_access(token, "get_autoinstall_templates")
-        return utils.get_autoinstall_templates(self.api)
+        return self.autoinstall_mgr.get_autoinstall_templates()
 
     def get_autoinstall_snippets(self, token=None, **rest):
         """
@@ -1084,35 +1084,16 @@ class CobblerXMLRPCInterface:
         """
 
         self._log("get_autoinstall_snippets", token=token)
-        # FIXME: settings.snippetsdir should be used here
-        files = []
-        for root, dirnames, filenames in os.walk(AUTOINSTALL_SNIPPETS_BASE_DIR):
-
-            for filename in filenames:
-                rel_root = root[len(AUTOINSTALL_SNIPPETS_BASE_DIR):]
-                if rel_root:
-                    rel_path = "%s/%s" % (rel_root, filename)
-                else:
-                    rel_path = filename
-                files.append(rel_path)
-
-        files.sort()
-        return files
+        return self.autoinstall_mgr.get_autoinstall_snippets()
 
     def is_autoinstall_in_use(self, ai, token=None, **rest):
         self._log("is_autoinstall_in_use", token=token)
-        for x in self.api.profiles():
-            if x.autoinstall is not None and x.autoinstall == ai:
-                return True
-        for x in self.api.systems():
-            if x.autoinstall is not None and x.autoinstall == ai:
-                return True
-        return False
+        return self.autoinstall_mgr.is_autoinstall_in_use(ai)
 
     def generate_autoinstall(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
         self._log("generate_autoinstall")
         try:
-            return self.api.generate_autoinstall(profile, system)
+            return self.autoinstall_mgr.generate_autoinstall(profile, system)
         except Exception:
             utils.log_exc(self.logger)
             return "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
@@ -1981,14 +1962,8 @@ class CobblerXMLRPCInterface:
         what = "read_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_template_file_path(file_path, for_item=False)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
-        fileh = open(file_full_path, "r")
-        data = fileh.read()
-        fileh.close()
-
-        return data
+        return self.autoinstall_mgr.read_autoinstall_template(file_path)
 
     def write_autoinstall_template(self, file_path, data, token):
         """
@@ -2003,19 +1978,8 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_template_file_path(file_path, for_item=False, new_autoinst=True)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
-        try:
-            utils.mkdir(os.path.dirname(file_full_path))
-        except:
-            utils.die(self.logger, "unable to create directory for automatic OS installation template at %s" % file_path)
-
-        fileh = open(file_full_path, "w+")
-        fileh.write(data)
-        fileh.close()
-
-        return True
+        self.autoinstall_mgr.write_autoinstall_template(file_path, data)
 
     def remove_autoinstall_template(self, file_path, token):
         """
@@ -2028,15 +1992,8 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_template_file_path(file_path, for_item=False)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
-        if not self.is_autoinstall_in_use(file_path, token):
-            os.remove(file_full_path)
-        else:
-            utils.die(self.logger, "attempt to delete in-use file")
-
-        return True
+        self.autoinstall_mgr.remove_autoinstall_template(file_path)
 
     def read_autoinstall_snippet(self, file_path, token):
         """
@@ -2049,14 +2006,8 @@ class CobblerXMLRPCInterface:
         what = "read_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_snippet_file_path(file_path)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
-        fileh = open(file_full_path, "r")
-        data = fileh.read()
-        fileh.close()
-
-        return data
+        return self.autoinstall_mgr.read_autoinstall_snippet(file_path)
 
     def write_autoinstall_snippet(self, file_path, data, token):
         """
@@ -2067,22 +2018,12 @@ class CobblerXMLRPCInterface:
         @param ? token
         @return bool if operation was successful
         """
+
         what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_snippet_file_path(file_path, new_snippet=True)
 
-        file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
-        try:
-            utils.mkdir(os.path.dirname(file_full_path))
-        except:
-            utils.die(self.logger, "unable to create directory for automatic OS installation snippet at %s" % file_path)
-
-        fileh = open(file_full_path, "w+")
-        fileh.write(data)
-        fileh.close()
-
-        return True
+        self.autoinstall_mgr.write_autoinstall_snippet(file_path, data)
 
     def remove_autoinstall_snippet(self, file_path, token):
         """
@@ -2096,10 +2037,8 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_snippet_file_path(file_path)
-        os.remove(file_path)
 
-        return True
+        self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
 
     def power_system(self, object_id, power=None, token=None, user=None, password=None, logger=None):
         """

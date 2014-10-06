@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from cobbler import autoinstall_manager
 from cobbler import item
 from cobbler import utils
 from cobbler import validate
@@ -673,10 +674,11 @@ class System(item.Item):
         """
         Set the automatic installation template filepath, this must be a local file.
 
-        @param: str automatic installation template file path (local file in server)
-        @returns: True or CX
+        @param str local automatic installation template file path
         """
-        self.autoinstall = validate.autoinstall_template_file_path(autoinstall)
+
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
 
     def set_power_type(self, power_type):

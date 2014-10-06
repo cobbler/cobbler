@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from cobbler import autoinstall_manager
 from cobbler import item
 from cobbler import utils
 from cobbler import validate
@@ -236,10 +237,11 @@ class Profile(item.Item):
         Set the automatic OS installation template file path,
         this must be a local file.
 
-        @param: str local automatic installation template path
-        @returns: True or CX
+        @param str local automatic installation template path
         """
-        self.autoinstall = validate.autoinstall_template_file_path(autoinstall)
+
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     def set_virt_auto_boot(self, num):
         utils.set_virt_auto_boot(self, num)
