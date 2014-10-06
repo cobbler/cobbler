@@ -62,11 +62,11 @@ def object_name(name, parent):
     return name
 
 
-def snippet_file_path(snippet, new_snippet=False):
+def autoinstall_snippet_file_path(snippet, new_snippet=False):
     """
-    Validate the snippet file path.
+    Validate the snippet's relative file path.
 
-    @param: str snippet (absolute path to a local snippet file)
+    @param: str snippet automatic installation snippet relative file path
     @param: bool new_snippet (when set to true new filenames are allowed)
     @returns: str snippet or CX
     """
@@ -85,11 +85,11 @@ def snippet_file_path(snippet, new_snippet=False):
     return snippet
 
 
-def autoinstall_file_path(autoinstall, for_item=True, new_autoinstall=False):
+def autoinstall_template_file_path(autoinstall, for_item=True, new_autoinstall=False):
     """
-    Validate the auto installation file's relative file path.
+    Validate the automatic installation template's relative file path.
 
-    @param: str autoinstall (absolute path to a local autoinstall file)
+    @param: str autoinstall automatic installation template relative file path
     @param: bool for_item (enable/disable special handling for Item objects)
     @param: bool new_autoinstall (when set to true new filenames are allowed)
     @returns: str autoinstall or CX

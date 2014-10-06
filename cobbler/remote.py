@@ -1981,7 +1981,7 @@ class CobblerXMLRPCInterface:
         what = "read_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_file_path(file_path, for_item=False)
+        file_path = validate.autoinstall_template_file_path(file_path, for_item=False)
 
         file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
         fileh = open(file_full_path, "r")
@@ -2003,7 +2003,7 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_file_path(file_path, for_item=False, new_autoinst=True)
+        file_path = validate.autoinstall_template_file_path(file_path, for_item=False, new_autoinst=True)
 
         file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
         try:
@@ -2028,7 +2028,7 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_template"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.autoinstall_file_path(file_path, for_item=False)
+        file_path = validate.autoinstall_template_file_path(file_path, for_item=False)
 
         file_full_path = "%s%s" % (AUTOINSTALL_TEMPLATES_BASE_DIR, file_path)
         if not self.is_autoinstall_in_use(file_path, token):
@@ -2049,7 +2049,7 @@ class CobblerXMLRPCInterface:
         what = "read_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.snippet_file_path(file_path)
+        file_path = validate.autoinstall_snippet_file_path(file_path)
 
         file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
         fileh = open(file_full_path, "r")
@@ -2070,7 +2070,7 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.snippet_file_path(file_path, new_snippet=True)
+        file_path = validate.autoinstall_snippet_file_path(file_path, new_snippet=True)
 
         file_full_path = "%s%s" % (AUTOINSTALL_SNIPPETS_BASE_DIR, file_path)
         try:
@@ -2096,7 +2096,7 @@ class CobblerXMLRPCInterface:
         what = "write_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
-        file_path = validate.snippet_file_path(file_path)
+        file_path = validate.autoinstall_snippet_file_path(file_path)
         os.remove(file_path)
 
         return True

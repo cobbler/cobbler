@@ -112,7 +112,7 @@ class Image(item.Item):
         @param: str local automatic installation file path
         @returns: True or CX
         """
-        self.autoinstall = validate.autoinstall_file_path(autoinstall)
+        self.autoinstall = validate.autoinstall_template_file_path(autoinstall)
 
 
     def set_file(self, filename):

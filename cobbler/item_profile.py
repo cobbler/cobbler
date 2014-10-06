@@ -239,7 +239,7 @@ class Profile(item.Item):
         @param: str local automatic installation template path
         @returns: True or CX
         """
-        self.autoinstall = validate.autoinstall_file_path(autoinstall)
+        self.autoinstall = validate.autoinstall_template_file_path(autoinstall)
 
     def set_virt_auto_boot(self, num):
         utils.set_virt_auto_boot(self, num)

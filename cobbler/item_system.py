@@ -669,14 +669,14 @@ class System(item.Item):
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
 
 
-    def set_autoinstall(self, autoinst):
+    def set_autoinstall(self, autoinstall):
         """
         Set the automatic installation template filepath, this must be a local file.
 
         @param: str automatic installation template file path (local file in server)
         @returns: True or CX
         """
-        self.autoinstall = validate.autoinstall_file_path(autoinst)
+        self.autoinstall = validate.autoinstall_template_file_path(autoinstall)
 
 
     def set_power_type(self, power_type):
