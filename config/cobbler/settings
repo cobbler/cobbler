@@ -353,7 +353,7 @@ client_use_https: 0
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
-snippetsdir: /var/lib/cobbler/snippets
+snippetsdir: /var/lib/cobbler/autoinstall_snippets
 
 # should new profiles for virtual machines default to auto booting with 
 # the physical host when the physical host reboots?

@@ -58,7 +58,7 @@ EVENT_FAILED = "failed"
 EVENT_INFO = "notification"
 
 AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-AUTOINSTALL_SNIPPETS_BASE_DIR = "/var/lib/cobbler/snippets/"
+AUTOINSTALL_SNIPPETS_BASE_DIR = "/var/lib/cobbler/autoinstall_snippets/"
 
 
 class CobblerThread(Thread):

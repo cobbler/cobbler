@@ -607,7 +607,7 @@ if __name__ == "__main__":
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
             ("%sautoinstall_templates" % libpath, glob("autoinstall_templates/*")),
             ("%sautoinstall_templates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
-            ("%ssnippets" % libpath, glob("snippets/*", recursive=True)),
+            ("%sautoinstall_snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
             ("%sscripts" % libpath, glob("scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),

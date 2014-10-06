@@ -121,7 +121,7 @@ DEFAULTS = {
     "sign_puppet_certs_automatically": [0, "bool"],
     "signature_path": ["/var/lib/cobbler/distro_signatures.json", "str"],
     "signature_url": ["http://www.cobblerd.org/signatures/latest.json", "str"],
-    "snippetsdir": ["/var/lib/cobbler/snippets", "str"],
+    "snippetsdir": ["/var/lib/cobbler/autoinstall_snippets", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
     "xmlrpc_port": [25151, "int"],

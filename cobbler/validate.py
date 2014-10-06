@@ -26,7 +26,7 @@ from cobbler.cexceptions import CX
 
 
 AUTOINSTALL_TEMPLATE_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-AUTOINSTALL_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
+AUTOINSTALL_SNIPPET_BASE_DIR = "/var/lib/cobbler/autoinstall_snippets/"
 
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
