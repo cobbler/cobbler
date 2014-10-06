@@ -743,7 +743,7 @@ class CobblerAPI:
         installation format correctness.
         """
         self.log("validate_autoinstall_files")
-        validator = action_validate.Validate(self._collection_mgr, logger=logger)
+        validator = action_validate.AutoInstallFilesValidator(self._collection_mgr, logger=logger)
         return validator.run()
 
     # ==========================================================================
