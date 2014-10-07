@@ -53,8 +53,8 @@ def load_modules(module_path=mod_path, blacklist=None):
     logger = clogger.Logger()
 
     filenames = glob.glob("%s/*.py" % module_path)
-    filenames = filenames + glob.glob("%s/*.pyc" % module_path)
-    filenames = filenames + glob.glob("%s/*.pyo" % module_path)
+    filenames += glob.glob("%s/*.pyc" % module_path)
+    filenames += glob.glob("%s/*.pyo" % module_path)
 
     mods = set()
 

@@ -101,7 +101,7 @@ class DnsmasqManager:
                     # can't write a DHCP entry for this system
                     continue
 
-                counter = counter + 1
+                counter += 1
 
                 # In many reallife situations there is a need to control the IP address
                 # and hostname for a specific client when only the MAC address is available.
@@ -114,12 +114,12 @@ class DnsmasqManager:
                 systxt = "dhcp-host=net:" + distro.arch.lower() + "," + mac
 
                 if host is not None and host != "":
-                    systxt = systxt + "," + host
+                    systxt += "," + host
 
                 if ip is not None and ip != "":
-                    systxt = systxt + "," + ip
+                    systxt += "," + ip
 
-                systxt = systxt + "\n"
+                systxt += "\n"
 
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":

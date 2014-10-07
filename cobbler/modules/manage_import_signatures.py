@@ -431,9 +431,9 @@ class ImportSignatureManager:
 
         if kernel is not None:
             if kernel.find("PAE") != -1 and name.find("PAE") == -1:
-                name = name + "-PAE"
+                name += "-PAE"
             if kernel.find("xen") != -1 and name.find("xen") == -1:
-                name = name + "-xen"
+                name += "-xen"
 
         # Clear out some cruft from the proposed name
         name = name.replace("--", "-")

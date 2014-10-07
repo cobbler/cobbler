@@ -173,20 +173,21 @@ class AutoInstallationGen:
                 for opt in repo_obj.yumopts:
                     # filter invalid values to the repo statement in automatic
                     # installation files
+
                     if opt in ['exclude', 'include']:
                         value = repo_obj.yumopts[opt].replace(' ', ',')
                         yumopts = yumopts + " --%spkgs=%s" % (opt, value)
                     elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
-                        yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
+                        yumopts += " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
                         baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
                         if baseurl not in included:
-                            buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                            buf += "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf = buf + "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
+                            buf += "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
@@ -204,9 +205,9 @@ class AutoInstallationGen:
         source_repos = distro.source_repos
         count = 0
         for x in source_repos:
-            count = count + 1
+            count += 1
             if not x[1] in included:
-                buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
+                buf += "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
                 included[x[1]] = 1
 
         return buf

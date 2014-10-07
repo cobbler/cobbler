@@ -157,7 +157,7 @@ class BindManager:
                     ips.append(ipv6)
 
                 if ipv6_sec_addrs:
-                    ips = ips + ipv6_sec_addrs
+                    ips += ipv6_sec_addrs
 
                 if ips:
                     try:

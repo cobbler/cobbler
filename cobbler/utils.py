@@ -138,10 +138,10 @@ def get_exc(exc, full=True):
         buf = str(exc)[1:-1] + "\n"
     except:
         if not full:
-            buf = buf + str(t)
+            buf += str(t)
         buf = "%s\n%s" % (buf, v)
         if full:
-            buf = buf + "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+            buf += "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
     return buf
 
 
@@ -149,7 +149,7 @@ def cheetah_exc(exc, full=False):
     lines = get_exc(exc).split("\n")
     buf = ""
     for l in lines:
-        buf = buf + "# %s\n" % l
+        buf += "# %s\n" % l
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
@@ -801,14 +801,14 @@ def dict_to_string(_dict):
     for key in _dict:
         value = _dict[key]
         if not value:
-            buffer = buffer + str(key) + " "
+            buffer += str(key) + " "
         elif isinstance(value, list):
             # this value is an array, so we print out every
             # key=value
             for item in value:
-                buffer = buffer + str(key) + "=" + str(item) + " "
+                buffer += str(key) + "=" + str(item) + " "
         else:
-            buffer = buffer + str(key) + "=" + str(value) + " "
+            buffer += str(key) + "=" + str(value) + " "
     return buffer
 
 
@@ -1772,7 +1772,7 @@ def to_string_from_fields(item_dict, fields):
     for elem in fields:
         keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("Name", item_dict["name"])
+    buf += "%-30s : %s\n" % ("Name", item_dict["name"])
     for (k, nicename, editable) in keys:
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
@@ -1782,18 +1782,18 @@ def to_string_from_fields(item_dict, fields):
 
         if k != "name":
             # FIXME: move examples one field over, use description here.
-            buf = buf + "%-30s : %s\n" % (nicename, item_dict[k])
+            buf += "%-30s : %s\n" % (nicename, item_dict[k])
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
     if "interfaces" in item_dict:
         for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
-            buf = buf + "%-30s : %s\n" % ("Interface ===== ", iname)
+            buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
                 nkey = k.replace("*", "")
                 if k.startswith("*") and editable:
-                    buf = buf + "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
+                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
 
     return buf
 

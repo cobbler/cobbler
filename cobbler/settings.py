@@ -194,8 +194,8 @@ class Settings:
 
     def to_string(self):
         buf = ""
-        buf = buf + _("defaults\n")
-        buf = buf + _("kernel options  : %s\n") % self.__dict__['kernel_options']
+        buf += _("defaults\n")
+        buf += _("kernel options  : %s\n") % self.__dict__['kernel_options']
         return buf
 
     def to_dict(self):

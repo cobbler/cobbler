@@ -844,13 +844,13 @@ class CobblerAPI:
                 spacer = ' -e "ssh" '
             rsync_cmd = RSYNC_CMD
             if rsync_flags:
-                rsync_cmd = rsync_cmd + " " + rsync_flags
+                rsync_cmd += " " + rsync_flags
 
             # if --available-as was specified, limit the files we
             # pull down via rsync to just those that are critical
             # to detecting what the distro is
             if network_root is not None:
-                rsync_cmd = rsync_cmd + " --include-from=/etc/cobbler/import_rsync_whitelist"
+                rsync_cmd += " --include-from=/etc/cobbler/import_rsync_whitelist"
 
             # kick off the rsync now
             utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
@@ -866,7 +866,7 @@ class CobblerAPI:
             # URL needs to be calculated relative to this.
 
             if not network_root.endswith("/"):
-                network_root = network_root + "/"
+                network_root += "/"
             valid_roots = ["nfs://", "ftp://", "http://"]
             for valid_root in valid_roots:
                 if network_root.startswith(valid_root):

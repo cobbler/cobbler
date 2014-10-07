@@ -83,7 +83,7 @@ class BuildIso:
         if distname in self.distmap:
             return self.distmap[distname]
         else:
-            self.distctr = self.distctr + 1
+            self.distctr += 1
             self.distmap[distname] = str(self.distctr)
             return str(self.distctr)
 

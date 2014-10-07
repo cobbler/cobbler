@@ -86,9 +86,9 @@ class Report:
                 else:
                     outputbody += '-' + sep
 
-                item_count = item_count + 1
+                item_count += 1
 
-            info_count = info_count + 1
+            info_count += 1
             outputbody += '\n'
 
         outputheaders += '\n'

@@ -202,7 +202,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             niceopt = "--%s" % k.replace("_", "-")
             desc = nicename
             if tooltip != "":
-                desc = nicename + " (%s)" % tooltip
+                desc += " (%s)" % tooltip
 
             aliasopt = []
             for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
@@ -212,7 +212,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             if isinstance(choices, list) and len(choices) != 0:
                 if default not in choices:
                     choices.append(default)
-                desc = desc + " (valid options: %s)" % ",".join(choices)
+                desc += " (valid options: %s)" % ",".join(choices)
                 parser.add_option(niceopt, dest=k, help=desc, choices=choices)
                 for alias in aliasopt:
                     parser.add_option(alias, dest=k, help=desc, choices=choices)
@@ -593,7 +593,7 @@ class CobblerCLI:
             if len(results) > 0:
                 print "The following are potential configuration items that you may want to fix:\n"
                 for r in results:
-                    ct = ct + 1
+                    ct += 1
                     print "%s: %s" % (ct, r)
                 print "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
             else:

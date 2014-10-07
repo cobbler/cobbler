@@ -83,13 +83,13 @@ class YumGen:
                 # file does not exist and the user needs to run reposync
                 # before we will use this, cobbler check will mention
                 # this problem
-                totalbuf = totalbuf + "\n# error: could not read repo source: %s\n\n" % infile
+                totalbuf += "\n# error: could not read repo source: %s\n\n" % infile
                 continue
 
             infile_data = infile_h.read()
             infile_h.close()
             outfile = None  # disk output only
-            totalbuf = totalbuf + self.templar.render(infile_data, blended, outfile, None)
-            totalbuf = totalbuf + "\n\n"
+            totalbuf += self.templar.render(infile_data, blended, outfile, None)
+            totalbuf += "\n\n"
 
         return totalbuf

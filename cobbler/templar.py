@@ -176,8 +176,8 @@ class Templar:
                     line = "nfs --server %s --dir %s" % (server, dir)
                     # but put the URL part back in so koan can still see
                     # what the original value was
-                    line = line + "\n" + "#url --url=%s" % search_table["tree"]
-                newdata = newdata + line + "\n"
+                    line += "\n" + "#url --url=%s" % search_table["tree"]
+                newdata += line + "\n"
             raw_data = newdata
 
         # tell Cheetah not to blow up if it can't find a symbol for something
