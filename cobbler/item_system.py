@@ -161,35 +161,20 @@ class System(item.Item):
     # specific methods for item.System
     #
 
+    def __create_interface(self, interface):
+
+        self.interfaces[interface] = {}
+        for field in FIELDS:
+            if field[0].startswith("*"):
+                self.interfaces[interface][field[0][1:]] = field[1]
+
+
     def __get_interface(self, name):
 
         if not name:
             raise CX(_("No network interface name provided"))
-        if name not in self.interfaces:
-            self.interfaces[name] = {
-                "mac_address": "",
-                "mtu": "",
-                "ip_address": "",
-                "dhcp_tag": "",
-                "netmask": "",
-                "if_gateway": "",
-                "virt_bridge": "",
-                "static": False,
-                "interface_type": "",
-                "interface_master": "",
-                "bonding_opts": "",
-                "bridge_opts": "",
-                "management": False,
-                "dns_name": "",
-                "static_routes": [],
-                "ipv6_address": "",
-                "ipv6_prefix": "",
-                "ipv6_secondaries": [],
-                "ipv6_mtu": "",
-                "ipv6_static_routes": [],
-                "ipv6_default_gateway": "",
-                "cnames": [],
-            }
+        if not name in self.interfaces:
+            self.__create_interface(name)
 
         return self.interfaces[name]
 
@@ -708,11 +693,11 @@ class System(item.Item):
         utils.safe_filter(power_id)
         self.power_id = power_id
 
-
     def modify_interface(self, _dict):
         """
         Used by the WUI to modify an interface more-efficiently
         """
+
         for (key, value) in _dict.iteritems():
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
