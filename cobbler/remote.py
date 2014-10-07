@@ -940,7 +940,7 @@ class CobblerXMLRPCInterface:
 
         self.check_access(token, "xedit_%s" % object_type, token)
 
-        if edit_type == "add" and "clobber" not in attributes:
+        if edit_type == "add":
             handle = 0
             try:
                 handle = self.get_item_handle(object_type, object_name)

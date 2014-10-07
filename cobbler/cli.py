@@ -232,7 +232,6 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             parser.add_option("--newname", help="new object name")
 
         if object_action not in ["find"] and object_type != "setting":
-            parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
             parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or autoinstall without clearing the other items")
 
     elif object_action == "remove":
