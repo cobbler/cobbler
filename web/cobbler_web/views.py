@@ -139,7 +139,7 @@ def get_fields(what, is_subobject, seed_item=None):
                 # system interfaces are loaded by javascript, not this
                 elem["value"] = ""
                 elem["name"] = row[0].replace("*", "")
-            elif row[0].find("widget") == -1:
+            else:
                 elem["value"] = seed_item[row[0]]
         elif is_subobject:
             elem["value"] = row[2]
@@ -184,9 +184,7 @@ def get_fields(what, is_subobject, seed_item=None):
                 elem["value"] = " ".join(tokens)
 
         name = row[0]
-        if name.find("_widget") != -1:
-            elem["html_element"] = "widget"
-        elif name in field_info.USES_SELECT:
+        if name in field_info.USES_SELECT:
             elem["html_element"] = "select"
         elif name in field_info.USES_MULTI_SELECT:
             elem["html_element"] = "multiselect"

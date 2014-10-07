@@ -193,8 +193,6 @@ def add_options_from_fields(object_type, parser, fields, object_action):
     if object_action in ["add", "edit", "find", "copy", "rename"]:
         for elem in fields:
             k = elem[0]
-            if k.find("widget") != -1:
-                continue
             # scrub interface tags so all fields get added correctly.
             k = k.replace("*", "")
             default = elem[1]

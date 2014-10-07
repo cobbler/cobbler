@@ -1693,7 +1693,7 @@ def clear_from_fields(item, fields, is_subobject=False):
     """
     for elems in fields:
         # if elems startswith * it's an interface field and we do not operate on it.
-        if elems[0].startswith("*") or elems[0].find("widget") != -1:
+        if elems[0].startswith("*"):
             continue
         if is_subobject:
             val = elems[2]
@@ -1713,7 +1713,7 @@ def from_dict_from_fields(item, item_dict, fields):
     int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
-        if elems[0].startswith("*") or elems[0].find("widget") != -1:
+        if elems[0].startswith("*"):
             if elems[0].startswith("*"):
                 int_fields.append(elems)
             continue
@@ -1747,7 +1747,7 @@ def to_dict_from_fields(item, fields):
     _dict = {}
     for elem in fields:
         k = elem[0]
-        if k.startswith("*") or k.find("widget") != -1:
+        if k.startswith("*"):
             continue
         data = getattr(item, k)
         _dict[k] = data
@@ -1777,7 +1777,7 @@ def to_string_from_fields(item_dict, fields):
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
         # FIXME: print ctime, mtime nicely
-        if k.startswith("*") or not editable or k.find("widget") != -1:
+        if k.startswith("*") or not editable:
             continue
 
         if k != "name":
@@ -1805,8 +1805,7 @@ def get_setter_methods_from_fields(item, fields):
     setters = {}
     for elem in fields:
         name = elem[0].replace("*", "")
-        if name.find("widget") == -1:
-            setters[name] = getattr(item, "set_%s" % name)
+        setters[name] = getattr(item, "set_%s" % name)
     if item.COLLECTION_TYPE == "system":
         setters["modify_interface"] = getattr(item, "modify_interface")
         setters["delete_interface"] = getattr(item, "delete_interface")

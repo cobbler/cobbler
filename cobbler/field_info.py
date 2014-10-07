@@ -121,7 +121,6 @@ BLOCK_MAPPINGS = {
     "broadcast": "Networking",       # ..
     "reserved": "Networking",        # ..
     "*mac_address": "Networking",
-    "network_widget_c": "Networking",
     "*mtu": "Networking",
     "*ip_address": "Networking",
     "*dhcp_tag": "Networking",
@@ -157,8 +156,6 @@ BLOCK_MAPPINGS = {
     "template_files": "Management",
     "boot_files": "Management",
     "fetchable_files": "Management",
-    "network_widget_a": "Networking",
-    "network_widget_b": "Networking",
     "server": "Advanced",
     "next_server": "Advanced",
     "createrepo_flags": "Advanced",
