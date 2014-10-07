@@ -702,32 +702,23 @@ class System(item.Item):
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 
-            if field == "macaddress":
-                self.set_mac_address(value, interface)
+            if field == "bondingopts":
+                self.set_bonding_opts(value, interface)
 
-            if field == "mtu":
-                self.set_mtu(value, interface)
+            if field == "bridgeopts":
+                self.set_bridge_opts(value, interface)
 
-            if field == "ipaddress":
-                self.set_ip_address(value, interface)
-
-            if field == "dnsname":
-                self.set_dns_name(value, interface)
-
-            if field == "static":
-                self.set_static(value, interface)
+            if field == "cnames":
+                self.set_cnames(value, interface)
 
             if field == "dhcptag":
                 self.set_dhcp_tag(value, interface)
 
-            if field == "netmask":
-                self.set_netmask(value, interface)
+            if field == "dnsname":
+                self.set_dns_name(value, interface)
 
             if field == "ifgateway":
                 self.set_if_gateway(value, interface)
-
-            if field == "virtbridge":
-                self.set_virt_bridge(value, interface)
 
             if field == "interfacetype":
                 self.set_interface_type(value, interface)
@@ -735,20 +726,17 @@ class System(item.Item):
             if field == "interfacemaster":
                 self.set_interface_master(value, interface)
 
-            if field == "bondingopts":
-                self.set_bonding_opts(value, interface)
-
-            if field == "bridgeopts":
-                self.set_bridge_opts(value, interface)
-
-            if field == "management":
-                self.set_management(value, interface)
-
-            if field == "staticroutes":
-                self.set_static_routes(value, interface)
+            if field == "ipaddress":
+                self.set_ip_address(value, interface)
 
             if field == "ipv6address":
                 self.set_ipv6_address(value, interface)
+
+            if field == "ipv6defaultgateway":
+                self.set_ipv6_default_gateway(value, interface)
+
+            if field == "ipv6mtu":
+                self.set_ipv6_mtu(value, interface)
 
             if field == "ipv6prefix":
                 self.set_ipv6_prefix(value, interface)
@@ -756,17 +744,29 @@ class System(item.Item):
             if field == "ipv6secondaries":
                 self.set_ipv6_secondaries(value, interface)
 
-            if field == "ipv6mtu":
-                self.set_ipv6_mtu(value, interface)
-
             if field == "ipv6staticroutes":
                 self.set_ipv6_static_routes(value, interface)
 
-            if field == "ipv6defaultgateway":
-                self.set_ipv6_default_gateway(value, interface)
+            if field == "macaddress":
+                self.set_mac_address(value, interface)
 
-            if field == "cnames":
-                self.set_cnames(value, interface)
+            if field == "management":
+                self.set_management(value, interface)
+
+            if field == "mtu":
+                self.set_mtu(value, interface)
+
+            if field == "netmask":
+                self.set_netmask(value, interface)
+
+            if field == "static":
+                self.set_static(value, interface)
+
+            if field == "staticroutes":
+                self.set_static_routes(value, interface)
+
+            if field == "virtbridge":
+                self.set_virt_bridge(value, interface)
 
 
 
