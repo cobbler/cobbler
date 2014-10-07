@@ -27,7 +27,7 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
     ['name', '', 0, "Name", True, "", 0, "str"],
     ['arch', 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],

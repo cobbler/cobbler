@@ -24,7 +24,7 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
     ["uid", "", 0, "", False, "", 0, "str"],
     ["depth", 2, 0, "", False, "", 0, "float"],

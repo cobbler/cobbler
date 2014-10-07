@@ -25,7 +25,7 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
     ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
     ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
