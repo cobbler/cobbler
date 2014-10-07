@@ -94,84 +94,83 @@ def get_fields(what, is_subobject, seed_item=None):
     """
 
     if what == "distro":
-        field_data = item_distro.FIELDS
+        fields = item_distro.FIELDS
     if what == "profile":
-        field_data = item_profile.FIELDS
+        fields = item_profile.FIELDS
     if what == "system":
-        field_data = item_system.FIELDS
+        fields = item_system.FIELDS
     if what == "repo":
-        field_data = item_repo.FIELDS
+        fields = item_repo.FIELDS
     if what == "image":
-        field_data = item_image.FIELDS
+        fields = item_image.FIELDS
     if what == "mgmtclass":
-        field_data = item_mgmtclass.FIELDS
+        fields = item_mgmtclass.FIELDS
     if what == "package":
-        field_data = item_package.FIELDS
+        fields = item_package.FIELDS
     if what == "file":
-        field_data = item_file.FIELDS
+        fields = item_file.FIELDS
     if what == "setting":
-        field_data = item_settings.FIELDS
+        fields = item_settings.FIELDS
 
     settings = remote.get_settings()
 
-    fields = []
-    for row in field_data:
+    ui_fields = []
+    for field in fields:
 
-        elem = {
-            "name": row[0],
-            "dname": row[0].replace("*", ""),
+        ui_field = {
+            "name": field[0],
+            "dname": field[0].replace("*", ""),
             "value": "?",
-            "caption": row[3],
-            "editable": row[4],
-            "tooltip": row[5],
-            "choices": row[6],
+            "caption": field[3],
+            "editable": field[4],
+            "tooltip": field[5],
+            "choices": field[6],
             "css_class": "generic",
-            "html_element": "generic",
+            "html_ui_fieldent": "generic",
         }
 
-        if not elem["editable"]:
+        if not ui_field["editable"]:
             continue
 
+        name = field[0]
         if seed_item is not None:
-            if what == "setting":
-                elem["value"] = seed_item[row[0]]
-            elif row[0].startswith("*"):
+            if field[0].startswith("*"):
                 # system interfaces are loaded by javascript, not this
-                elem["value"] = ""
-                elem["name"] = row[0].replace("*", "")
+                ui_field["value"] = ""
+                ui_field["name"] = name.replace("*", "")
             else:
-                elem["value"] = seed_item[row[0]]
+                ui_field["value"] = seed_item[name]
         elif is_subobject:
-            elem["value"] = row[2]
+            ui_field["value"] = field[2]
         else:
-            elem["value"] = row[1]
+            ui_field["value"] = field[1]
 
-        if elem["value"] is None:
-            elem["value"] = ""
+        if ui_field["value"] is None:
+            ui_field["value"] = ""
 
         # we'll process this for display but still need to present the original to some
         # template logic
-        elem["value_raw"] = elem["value"]
+        ui_field["value_raw"] = ui_field["value"]
 
-        if isinstance(elem["value"], basestring) and elem["value"].startswith("SETTINGS:"):
-            key = elem["value"].replace("SETTINGS:", "", 1)
-            elem["value"] = settings[key]
+        if isinstance(ui_field["value"], basestring) and ui_field["value"].startswith("SETTINGS:"):
+            key = ui_field["value"].replace("SETTINGS:", "", 1)
+            ui_field["value"] = settings[key]
 
         # flatten dicts of all types, they can only be edited as text
         # as we have no HTML dict widget (yet)
-        if isinstance(elem["value"], dict):
-            if elem["name"] == "mgmt_parameters":
+        if isinstance(ui_field["value"], dict):
+            if ui_field["name"] == "mgmt_parameters":
                 # Render dictionary as YAML for Management Parameters field
                 tokens = []
-                for (x, y) in elem["value"].items():
+                for (x, y) in ui_field["value"].items():
                     if y is not None:
                         tokens.append("%s: %s" % (x, y))
                     else:
                         tokens.append("%s: " % x)
-                elem["value"] = "{ %s }" % ", ".join(tokens)
+                ui_field["value"] = "{ %s }" % ", ".join(tokens)
             else:
                 tokens = []
-                for (x, y) in elem["value"].items():
+                for (x, y) in ui_field["value"].items():
                     if isinstance(y, basestring) and y.strip() != "~":
                         y = y.replace(" ", "\\ ")
                         tokens.append("%s=%s" % (x, y))
@@ -181,34 +180,34 @@ def get_fields(what, is_subobject, seed_item=None):
                             tokens.append("%s=%s" % (x, l))
                     elif y is not None:
                         tokens.append("%s" % x)
-                elem["value"] = " ".join(tokens)
+                ui_field["value"] = " ".join(tokens)
 
-        name = row[0]
+        name = field[0]
         if name in field_info.USES_SELECT:
-            elem["html_element"] = "select"
+            ui_field["html_element"] = "select"
         elif name in field_info.USES_MULTI_SELECT:
-            elem["html_element"] = "multiselect"
+            ui_field["html_element"] = "multiselect"
         elif name in field_info.USES_RADIO:
-            elem["html_element"] = "radio"
+            ui_field["html_element"] = "radio"
         elif name in field_info.USES_CHECKBOX:
-            elem["html_element"] = "checkbox"
+            ui_field["html_element"] = "checkbox"
         elif name in field_info.USES_TEXTAREA:
-            elem["html_element"] = "textarea"
+            ui_field["html_element"] = "textarea"
         else:
-            elem["html_element"] = "text"
+            ui_field["html_element"] = "text"
 
-        elem["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+        ui_field["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
 
         # flatten lists for those that aren't using select boxes
-        if isinstance(elem["value"], list):
-            if elem["html_element"] != "select":
-                elem["value"] = string.join(elem["value"], sep=" ")
+        if isinstance(ui_field["value"], list):
+            if ui_field["html_element"] != "select":
+                ui_field["value"] = string.join(ui_field["value"], sep=" ")
 
         # FIXME: need to handle interfaces special, they are prefixed with "*"
 
-        fields.append(elem)
+        ui_fields.append(ui_field)
 
-    return fields
+    return ui_fields
 
 # ==================================================================================
 
