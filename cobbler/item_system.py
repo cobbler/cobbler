@@ -163,13 +163,9 @@ class System(item.Item):
 
     def __get_interface(self, name):
 
-        if name == "" and len(self.interfaces.keys()) == 0:
-            raise CX(_("No interfaces defined. Please use --interface <interface_name>"))
-        elif name == "" and len(self.interfaces.keys()) == 1:
-            name = self.interfaces.keys()[0]
-        elif name == "" and len(self.interfaces.keys()) > 1:
-            raise CX(_("Multiple interfaces defined. Please use --interface <interface_name>"))
-        elif name not in self.interfaces:
+        if not name:
+            raise CX(_("No network interface name provided"))
+        if name not in self.interfaces:
             self.interfaces[name] = {
                 "mac_address": "",
                 "mtu": "",
