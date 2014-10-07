@@ -191,35 +191,34 @@ def opt(options, k, defval=""):
 
 def add_options_from_fields(object_type, parser, fields, object_action):
     if object_action in ["add", "edit", "find", "copy", "rename"]:
-        for elem in fields:
-            k = elem[0]
+        for field in fields:
+            name = field[0]
             # scrub interface tags so all fields get added correctly.
-            k = k.replace("*", "")
-            default = elem[1]
-            nicename = elem[3]
-            tooltip = elem[5]
-            choices = elem[6]
-            niceopt = "--%s" % k.replace("_", "-")
-            desc = nicename
+            name = name.replace("*", "")
+            default = field[1]
+            description = field[3]
+            tooltip = field[5]
+            choices = field[6]
+            nice_name = "--%s" % name.replace("_", "-")
             if tooltip != "":
-                desc += " (%s)" % tooltip
+                description += " (%s)" % tooltip
 
             aliasopt = []
             for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
-                if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
+                if field_info.DEPRECATED_FIELDS[deprecated_field] == name:
                     aliasopt.append("--%s" % deprecated_field)
 
             if isinstance(choices, list) and len(choices) != 0:
                 if default not in choices:
                     choices.append(default)
-                desc += " (valid options: %s)" % ",".join(choices)
-                parser.add_option(niceopt, dest=k, help=desc, choices=choices)
+                description += " (valid options: %s)" % ",".join(choices)
+                parser.add_option(nice_name, dest=name, help=description, choices=choices)
                 for alias in aliasopt:
-                    parser.add_option(alias, dest=k, help=desc, choices=choices)
+                    parser.add_option(alias, dest=name, help=description, choices=choices)
             else:
-                parser.add_option(niceopt, dest=k, help=desc)
+                parser.add_option(nice_name, dest=name, help=description)
                 for alias in aliasopt:
-                    parser.add_option(alias, dest=k, help=desc)
+                    parser.add_option(alias, dest=name, help=description)
 
         if object_type == "system":
             # system object
