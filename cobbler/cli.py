@@ -199,10 +199,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             nicename = elem[3]
             tooltip = elem[5]
             choices = elem[6]
-            if k in field_info.ALTERNATE_OPTIONS:
-                niceopt = field_info.ALTERNATE_OPTIONS[k]
-            else:
-                niceopt = "--%s" % k.replace("_", "-")
+            niceopt = "--%s" % k.replace("_", "-")
             desc = nicename
             if tooltip != "":
                 desc = nicename + " (%s)" % tooltip

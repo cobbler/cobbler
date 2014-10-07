@@ -181,14 +181,6 @@ BLOCK_MAPPINGS_ORDER = {
     "Resources": 7,
 }
 
-# Certain legacy fields need to have different CLI options than the direct translation of their
-# name in the FIELDS data structure.  We should not add any more of these under any conditions.
-
-ALTERNATE_OPTIONS = {
-    "kernel_options": "--kopts",
-    "kernel_options_post": "--kopts-post",
-}
-
 
 # Deprecated fields that have been renamed, but we need to account for them appearing in older
 # datastructs that may not have been saved since the code change
