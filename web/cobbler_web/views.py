@@ -880,7 +880,6 @@ def setting_edit(request, setting_name=None):
     t = get_template('generic_edit.tmpl')
     html = t.render(RequestContext(request, {
         'what': 'setting',
-        # 'fields': fields,
         'sections': sections,
         'subobject': False,
         'editmode': 'edit',
@@ -1158,7 +1157,6 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     inames.sort()
     html = t.render(RequestContext(request, {
         'what': what,
-        # 'fields': fields,
         'sections': sections,
         'subobject': child,
         'editmode': editmode,
