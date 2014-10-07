@@ -251,11 +251,12 @@ class CobblerXMLRPCInterface:
         def runner(self):
             for x in self.options.get("systems", []):
                 try:
-                    object_id = self.remote.get_system_handle(x, token)
-                    self.remote.power_system(object_id, self.options.get("power", ""), token, logger=self.logger)
-                except:
-                    self.logger.warning("failed to execute power task on %s" % str(x))
-        self.check_access(token, "power")
+                    system_id = self.remote.get_system_handle(x, token)
+                    system = self.remote.__get_object(system_id)
+                    self.remote.api.power_system(system, self.options.get("power", ""), logger=self.logger)
+                except Exception as e:
+                    self.logger.warning("failed to execute power task on %s, exception: %s" % (str(x), str(e)))
+        self.check_access(token, "power_system")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power", ""), options)
 
     def background_signature_update(self, options, token):
@@ -2038,30 +2039,6 @@ class CobblerXMLRPCInterface:
         self.check_access(token, what, file_path, True)
 
         self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
-
-    def power_system(self, object_id, power=None, token=None, user=None, password=None, logger=None):
-        """
-        Internal implementation used by background_power, do not call
-        directly if possible.
-        Allows poweron/poweroff/powerstatus/reboot of a system specified by object_id.
-        """
-        obj = self.__get_object(object_id)
-        self.check_access(token, "power_system", obj)
-        try:
-            if power == "on":
-                self.api.power_on(obj, user=user, password=password, logger=logger)
-            elif power == "off":
-                self.api.power_off(obj, user=user, password=password, logger=logger)
-            elif power == "status":
-                self.api.power_status(obj, user=user, password=password, logger=logger)
-            elif power == "reboot":
-                self.api.reboot(obj, user=user, password=password, logger=logger)
-            else:
-                utils.die(self.logger, "invalid power mode '%s', expected on/off/status/reboot" % power)
-        except:
-            return False
-
-        return True
 
     def get_config_data(self, hostname):
         """

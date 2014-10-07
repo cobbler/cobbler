@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from cobbler import autoinstall_manager
 from cobbler import item
+from cobbler import power_manager
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
@@ -55,7 +56,7 @@ FIELDS = [
     ["depth", 2, 0, "", False, "", 0, "int"],
     ["ctime", 0, 0, "", False, "", 0, "float"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", utils.get_power_types(), "str"],
+    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", power_manager.get_power_types(), "str"],
     ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
     ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
     ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
@@ -682,16 +683,10 @@ class System(item.Item):
 
 
     def set_power_type(self, power_type):
-        # FIXME: modularize this better
         if power_type is None:
             power_type = ""
-        choices = utils.get_power_types()
-        if not choices:
-            raise CX("you need to have fence-agents installed")
-        if power_type not in choices:
-            raise CX("power management type must be one of: %s" % ",".join(choices))
+        power_manager.validate_power_type(power_type)
         self.power_type = power_type
-
 
     def set_power_user(self, power_user):
         if power_user is None:

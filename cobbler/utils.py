@@ -1814,48 +1814,6 @@ def get_setter_methods_from_fields(item, fields):
     return setters
 
 
-def get_power_types():
-    """
-    Return all possible power types
-    """
-    power_types = []
-    power_template = re.compile(r'fence_(.*)')
-    fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
-    for x in fence_files:
-        power_types.append(power_template.search(x).group(1))
-    power_types.sort()
-    return power_types
-
-
-def get_power(powertype=None):
-    """
-    Return power command for type
-    """
-    if powertype:
-        # try /sbin, then /usr/sbin
-        powerpath1 = "/sbin/fence_%s" % powertype
-        powerpath2 = "/usr/sbin/fence_%s" % powertype
-        for powerpath in (powerpath1, powerpath2):
-            if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
-                return powerpath
-    return None
-
-
-def get_power_template(powertype=None):
-    """
-    Return power template for type
-    """
-    if powertype:
-        powertemplate = "/etc/cobbler/power/fence_%s.template" % powertype
-        if os.path.isfile(powertemplate):
-            f = open(powertemplate)
-            template = f.read()
-            f.close()
-            return template
-    # return a generic template if a specific one wasn't found
-    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
-
-
 def load_signatures(filename, cache=True):
     """
     Loads the import signatures for distros

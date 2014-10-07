@@ -550,7 +550,6 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             remote.save_system(obj_id, request.session['token'], "edit")
 
     elif what == "system" and multi_mode == "power":
-        # FIXME: power should not loop, but send the list of all systems in one set.
         power = multi_arg
         if power is None:
             return error_page(request, "Cannot modify systems without specifying power option")
