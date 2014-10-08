@@ -262,24 +262,34 @@ class AutoInstallationGen:
         if not autoinstall_rel_path:
             return "# automatic installation file value missing or invalid at %s %s" % (obj_type, obj.name)
 
+        # get parent distro
+        distro = profile.get_conceptual_parent()
+        if system is not None:
+           distro = system.get_conceptual_parent().get_conceptual_parent()
+
+        # make autoinstall_meta metavariable available at top level
         autoinstall_meta = meta["autoinstall_meta"]
         del meta["autoinstall_meta"]
-        meta.update(autoinstall_meta)     # make available at top level
-        meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
-        meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
+        meta.update(autoinstall_meta)
+
+        # add package repositories metadata to autoinstall metavariables
+        if distro.breed == "redhat":
+            meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
+            meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
+        # FIXME: implement something similar to zypper (SUSE based distros) and apt
+        #        (Debian based distros)
+
         meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
 
-        # add extra variables for other distro types
-        if "tree" in meta:
+        # add install_source_directory metavariable to autoinstall metavariables
+        # if distro is based on Debian
+        if distro.breed in ["debian", "ubuntu"] and "tree" in meta:
             urlparts = urlparse.urlsplit(meta["tree"])
             meta["install_source_directory"] = urlparts[2]
 
         try:
             autoinstall_path = "%s/%s" % (self.settings.autoinstall_templates_dir, autoinstall_rel_path)
             raw_data = utils.read_file_contents(autoinstall_path, self.api.logger)
-            distro = profile.get_conceptual_parent()
-            if system is not None:
-                distro = system.get_conceptual_parent().get_conceptual_parent()
 
             data = self.templar.render(raw_data, meta, None, obj)
 
