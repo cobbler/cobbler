@@ -50,12 +50,13 @@ from cobbler.utils import _
 # the order in which the fields are listed (for all non-hidden fields) are the order they will
 # appear in the web application (top to bottom).   The command line sorts fields alphabetically.
 #
-# field_info.py also contains a set of "Groups" that describe what other fields are associated with
-# what other fields.  This affects color coding and other display hints.  If you add a field
-# please edit field_info.py carefully to match.
+# field_ui_info.py also contains a set of "Groups" that describe what other fields
+# are associated with what other fields.  This affects color coding and other
+# display hints.  If you add a field, please edit field_ui_info.py carefully to match.
 #
-# additional:  see field_info.py for some display hints.  By default in the web app all fields
-# are text fields unless field_info.py lists the field in one of those dictionaries.
+# additional:  see field_ui_info.py for some display hints.  By default, in the
+# web app, all fields are text fields unless field_ui_info.py lists the field in
+# one of those dictionaries.
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #

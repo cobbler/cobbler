@@ -11,7 +11,6 @@ import string
 import time
 import xmlrpclib
 
-import cobbler.field_info as field_info
 import cobbler.item_distro as item_distro
 import cobbler.item_file as item_file
 import cobbler.item_image as item_image
@@ -22,6 +21,7 @@ import cobbler.item_repo as item_repo
 import cobbler.item_system as item_system
 import cobbler.settings as item_settings
 import cobbler.utils as utils
+import field_ui_info
 
 url_cobbler_api = None
 remote = None
@@ -85,15 +85,15 @@ def error_page(request, message):
 
 def _get_field_html_element(field_name):
 
-    if field_name in field_info.USES_SELECT:
+    if field_name in field_ui_info.USES_SELECT:
         return "select"
-    elif field_name in field_info.USES_MULTI_SELECT:
+    elif field_name in field_ui_info.USES_MULTI_SELECT:
         return "multiselect"
-    elif field_name in field_info.USES_RADIO:
+    elif field_name in field_ui_info.USES_RADIO:
         return "radio"
-    elif field_name in field_info.USES_CHECKBOX:
+    elif field_name in field_ui_info.USES_CHECKBOX:
         return "checkbox"
-    elif field_name in field_info.USES_TEXTAREA:
+    elif field_name in field_ui_info.USES_TEXTAREA:
         return "textarea"
     else:
         return "text"
@@ -193,7 +193,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
         name = field[0]
         ui_field["html_element"] = _get_field_html_element(name)
-        ui_field["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+        ui_field["block_section"] = field_ui_info.BLOCK_MAPPINGS.get(name, "General")
 
         # flatten lists for those that aren't using select boxes
         if isinstance(ui_field["value"], list):
@@ -242,7 +242,7 @@ def get_network_interface_fields():
 
         name = field[0]
         field_ui["html_element"] = _get_field_html_element(name)
-        field_ui["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+        field_ui["block_section"] = field_ui_info.BLOCK_MAPPINGS.get(name, "General")
 
         fields_ui.append(field_ui)
 
@@ -304,7 +304,7 @@ def __format_items(items, column_names):
                 html_element = "name"
             elif fieldname in ["system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file"]:
                 html_element = "editlink"
-            elif fieldname in field_info.USES_CHECKBOX:
+            elif fieldname in field_ui_info.USES_CHECKBOX:
                 html_element = "checkbox"
             else:
                 html_element = "text"
@@ -907,7 +907,7 @@ def setting_edit(request, setting_name=None):
     fields = get_fields('setting', False, seed_item=cur_setting)
     sections = {}
     for field in fields:
-        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
+        bmo = field_ui_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
         if fkey not in sections:
             sections[fkey] = {}
@@ -1184,7 +1184,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 
     sections = {}
     for field in fields:
-        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
+        bmo = field_ui_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
         fkey = "%d_%s" % (bmo, field['block_section'])
         if fkey not in sections:
             sections[fkey] = {}
