@@ -577,10 +577,6 @@ def blender(api_handle, remove_dicts, root_obj):
     for node in tree:
         __consolidate(node, results)
 
-    # convert post kernel options to string
-    if "kernel_options_post" in results:
-        results["kernel_options_post"] = dict_to_string(results["kernel_options_post"])
-
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
 
