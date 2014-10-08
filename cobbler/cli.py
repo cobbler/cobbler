@@ -188,40 +188,50 @@ def opt(options, k, defval=""):
         return defval
     return n2s(data)
 
+def _add_parser_option_from_field(parser, field):
 
-def add_options_from_fields(object_type, parser, fields, object_action):
+    # extract data from field dictionary
+    name = field[0]
+    default = field[1]
+    description = field[3]
+    tooltip = field[5]
+    choices = field[6]
+    if choices and default not in choices:
+        raise Exception("field %s default value (%s) is not listed in choices (%s)" % (name, default, str(choices)))
+    if tooltip != "":
+        description += " (%s)" % tooltip
+
+    # generate option string
+    option_string = "--%s" % name.replace("_", "-")
+
+    # generate option aliases
+    aliases = []
+    for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+        if field_info.DEPRECATED_FIELDS[deprecated_field] == name:
+            aliases.append("--%s" % deprecated_field)
+
+    # add option to parser
+    if isinstance(choices, list) and len(choices) != 0:
+        description += " (valid options: %s)" % ",".join(choices)
+        parser.add_option(option_string, dest=name, help=description, choices=choices)
+        for alias in aliases:
+            parser.add_option(alias, dest=name, help=description, choices=choices)
+    else:
+        parser.add_option(option_string, dest=name, help=description)
+        for alias in aliases:
+            parser.add_option(alias, dest=name, help=description)
+
+def add_options_from_fields(object_type, parser, fields, network_interface_fields, object_action):
+
     if object_action in ["add", "edit", "find", "copy", "rename"]:
         for field in fields:
-            name = field[0]
-            # scrub interface tags so all fields get added correctly.
-            name = name.replace("*", "")
-            default = field[1]
-            description = field[3]
-            tooltip = field[5]
-            choices = field[6]
-            nice_name = "--%s" % name.replace("_", "-")
-            if tooltip != "":
-                description += " (%s)" % tooltip
+            _add_parser_option_from_field(parser, field)
 
-            aliasopt = []
-            for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
-                if field_info.DEPRECATED_FIELDS[deprecated_field] == name:
-                    aliasopt.append("--%s" % deprecated_field)
-
-            if isinstance(choices, list) and len(choices) != 0:
-                if default not in choices:
-                    choices.append(default)
-                description += " (valid options: %s)" % ",".join(choices)
-                parser.add_option(nice_name, dest=name, help=description, choices=choices)
-                for alias in aliasopt:
-                    parser.add_option(alias, dest=name, help=description, choices=choices)
-            else:
-                parser.add_option(nice_name, dest=name, help=description)
-                for alias in aliasopt:
-                    parser.add_option(alias, dest=name, help=description)
-
+        # system object
         if object_type == "system":
-            # system object
+            for field in network_interface_fields:
+                _add_parser_option_from_field(parser, field)
+
             parser.add_option("--interface", dest="interface", help="the interface to operate on (can only be specified once per command line)")
             if object_action in ["add", "edit"]:
                 parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
@@ -403,8 +413,12 @@ class CobblerCLI:
         task_id = -1        # if assigned, we must tail the logfile
 
         fields = self.get_fields(object_type)
+        network_interface_fields = None
+        if object_type == "system":
+            network_interface_fields = item_system.NETWORK_INTERFACE_FIELDS
         if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
-            add_options_from_fields(object_type, self.parser, fields, object_action)
+            add_options_from_fields(object_type, self.parser, fields,
+                                    network_interface_fields, object_action)
         elif object_action in ["list"]:
             pass
         elif object_action not in ("reload", "update"):

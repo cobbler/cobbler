@@ -67,36 +67,42 @@ FIELDS = [
     ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
     ["ipv6_default_device", "", 0, "IPv6 Default Device", True, "", 0, "str"],
     ["ipv6_autoconfiguration", False, 0, "IPv6 Autoconfiguration", True, "", 0, "bool"],
-    ["*mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
-    ["*mtu", "", 0, "MTU", True, "", 0, "str"],
-    ["*ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
-    ["*interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["*bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
-    ["*bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
-    ["*management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
-    ["*static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
-    ["*netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
-    ["*if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
-    ["*dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
-    ["*dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
-    ["*static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["*virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
-    ["*ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["*ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
     ["mgmt_classes", "<<inherit>>", 0, "Management Classes", True, "For external config management", 0, "list"],
     ["mgmt_parameters", "<<inherit>>", 0, "Management Parameters", True, "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
     ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
-    ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
 ]
 
+# network interface fields are in a separate list because a system may contain
+# several network interfaces and thus several values for each one of those fields
+# (1-N cardinality), while it may contain only one value for other fields
+# (1-1 cardinality). This difference requires special handling.
+NETWORK_INTERFACE_FIELDS = [
+    ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
+    ["mtu", "", 0, "MTU", True, "", 0, "str"],
+    ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
+    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
+    ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
+    ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
+    ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
+    ["management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
+    ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
+    ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
+    ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
+    ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
+    ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
+    ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
+    ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
+    ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
+    ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
+    ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+]
 
 class System(item.Item):
     """
@@ -164,9 +170,8 @@ class System(item.Item):
     def __create_interface(self, interface):
 
         self.interfaces[interface] = {}
-        for field in FIELDS:
-            if field[0].startswith("*"):
-                self.interfaces[interface][field[0][1:]] = field[1]
+        for field in NETWORK_INTERFACE_FIELDS:
+            self.interfaces[interface][field[0]] = field[1]
 
 
     def __get_interface(self, name):

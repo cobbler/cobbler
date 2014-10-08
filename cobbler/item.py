@@ -46,8 +46,6 @@ from cobbler.utils import _
 #
 # type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
 #
-# you will also notice some names start with "*" ... this denotes that the fields belong to
-# interfaces, and only item_system.py should have these.   Each system may have multiple interfaces.
 #
 # the order in which the fields are listed (for all non-hidden fields) are the order they will
 # appear in the web application (top to bottom).   The command line sorts fields alphabetically.

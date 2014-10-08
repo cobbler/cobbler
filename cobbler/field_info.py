@@ -45,7 +45,6 @@ USES_MULTI_SELECT = [
 # fields that use a select in the web app
 
 USES_SELECT = [
-    "*interface_type",
     "arch",
     "autoinstall",
     "breed",
@@ -58,15 +57,14 @@ USES_SELECT = [
     "profile",
     "status",
     "virt_type",
+
+    # network interface specific
+    "interface_type",
 ]
 
 # fields that should use the checkbox in the web app
 
 USES_CHECKBOX = [
-    "*management",
-    "*netboot_enabled",
-    "*repos_enabled",
-    "*static",
     "enable_gpxe",
     "enable_menu",
     "ipv6_autoconfiguration",
@@ -78,6 +76,12 @@ USES_CHECKBOX = [
     "repos_enabled",
     "virt_auto_boot",
     "virt_pxe_boot",
+
+    # network interface specific
+    "management",
+    "netboot_enabled",
+    "repos_enabled",
+    "static",
 ]
 
 # select killed the radio button
@@ -90,35 +94,6 @@ USES_RADIO = [
 # it may also be used to expand/collapse certain web elements as a set.
 
 BLOCK_MAPPINGS = {
-    "*bonding_opts": "Networking",
-    "*bridge_opts": "Networking",
-    "*cnames": "Networking",
-    "*dhcp_tag": "Networking",
-    "*dns_name": "Networking",
-    "*if_gateway": "Networking",
-    "*interface_master": "Networking",
-    "*interface_type": "Networking",
-    "*ip_address": "Networking",
-    "*ipv6_address": "Networking",
-    "*ipv6_default_gateway": "Networking",
-    "*ipv6_mtu": "Networking",
-    "*ipv6_prefix": "Networking",
-    "*ipv6_secondaries": "Networking",
-    "*ipv6_static_routes": "Networking",
-    "*mac_address": "Networking",
-    "*management": "Networking",
-    "*mtu": "Networking",
-    "*netmask": "Networking",
-    "*static": "Networking",
-    "*static_routes": "Networking",
-    "*virt_bridge": "Networking",
-    "*virt_cpus": "Virtualization",
-    "*virt_disk": "Virtualization",
-    "*virt_disk_driver": "Virtualization",
-    "*virt_file_size": "Virtualization",
-    "*virt_path": "Virtualization",
-    "*virt_ram": "Virtualization",
-    "*virt_type": "Virtualization",
     "address": "Networking",         # from network
     "apt_components": "Advanced",
     "apt_dists": "Advanced",
@@ -155,7 +130,6 @@ BLOCK_MAPPINGS = {
     "server": "Advanced",
     "template_files": "Management",
     "virt_auto_boot": "Virtualization",
-    "virt_bridge": "Virtualization",
     "virt_cpus": "Virtualization",
     "virt_disk": "Virtualization",
     "virt_disk_driver": "Virtualization",
@@ -168,6 +142,31 @@ BLOCK_MAPPINGS = {
     "virt_ram": "Virtualization",
     "virt_type": "Virtualization",
     "yumopts": "Advanced",
+
+    # network interface specific
+    "bonding_opts": "Networking",
+    "bridge_opts": "Networking",
+    "cnames": "Networking",
+    "dhcp_tag": "Networking",
+    "dns_name": "Networking",
+    "if_gateway": "Networking",
+    "interface_master": "Networking",
+    "interface_type": "Networking",
+    "ip_address": "Networking",
+    "ipv6_address": "Networking",
+    "ipv6_default_gateway": "Networking",
+    "ipv6_mtu": "Networking",
+    "ipv6_prefix": "Networking",
+    "ipv6_secondaries": "Networking",
+    "ipv6_static_routes": "Networking",
+    "mac_address": "Networking",
+    "management": "Networking",
+    "mtu": "Networking",
+    "netmask": "Networking",
+    "static": "Networking",
+    "static_routes": "Networking",
+    "virt_bridge": "Networking",
+
 }
 
 BLOCK_MAPPINGS_ORDER = {

@@ -83,6 +83,20 @@ def error_page(request, message):
 
 # ==================================================================================
 
+def _get_field_html_element(field_name):
+
+    if field_name in field_info.USES_SELECT:
+        return "select"
+    elif field_name in field_info.USES_MULTI_SELECT:
+        return "multiselect"
+    elif field_name in field_info.USES_RADIO:
+        return "radio"
+    elif field_name in field_info.USES_CHECKBOX:
+        return "checkbox"
+    elif field_name in field_info.USES_TEXTAREA:
+        return "textarea"
+    else:
+        return "text"
 
 def get_fields(what, is_subobject, seed_item=None):
 
@@ -119,7 +133,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
         ui_field = {
             "name": field[0],
-            "dname": field[0].replace("*", ""),
+            "dname": field[0],
             "value": "?",
             "caption": field[3],
             "editable": field[4],
@@ -134,12 +148,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
         name = field[0]
         if seed_item is not None:
-            if field[0].startswith("*"):
-                # system interfaces are loaded by javascript, not this
-                ui_field["value"] = ""
-                ui_field["name"] = name.replace("*", "")
-            else:
-                ui_field["value"] = seed_item[name]
+            ui_field["value"] = seed_item[name]
         elif is_subobject:
             ui_field["value"] = field[2]
         else:
@@ -183,19 +192,7 @@ def get_fields(what, is_subobject, seed_item=None):
                 ui_field["value"] = " ".join(tokens)
 
         name = field[0]
-        if name in field_info.USES_SELECT:
-            ui_field["html_element"] = "select"
-        elif name in field_info.USES_MULTI_SELECT:
-            ui_field["html_element"] = "multiselect"
-        elif name in field_info.USES_RADIO:
-            ui_field["html_element"] = "radio"
-        elif name in field_info.USES_CHECKBOX:
-            ui_field["html_element"] = "checkbox"
-        elif name in field_info.USES_TEXTAREA:
-            ui_field["html_element"] = "textarea"
-        else:
-            ui_field["html_element"] = "text"
-
+        ui_field["html_element"] = _get_field_html_element(name)
         ui_field["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
 
         # flatten lists for those that aren't using select boxes
@@ -203,11 +200,53 @@ def get_fields(what, is_subobject, seed_item=None):
             if ui_field["html_element"] != "select":
                 ui_field["value"] = string.join(ui_field["value"], sep=" ")
 
-        # FIXME: need to handle interfaces special, they are prefixed with "*"
-
         ui_fields.append(ui_field)
 
     return ui_fields
+
+def get_network_interface_fields():
+    """
+    Create network interface fields UI metadata based on network interface
+    fields metadata
+
+    @return list network interface fields UI metadata
+    """
+
+    fields = item_system.NETWORK_INTERFACE_FIELDS
+
+    fields_ui = []
+    for field in fields:
+
+        field_ui = {
+            "name": field[0],
+            "dname": field[0],
+            "value": "?",
+            "caption": field[3],
+            "editable": field[4],
+            "tooltip": field[5],
+            "choices": field[6],
+            "css_class": "generic",
+            "html_element": "generic",
+        }
+
+        if not field_ui["editable"]:
+            continue
+
+        # system's network interfaces are loaded later by javascript,
+        # initial value on web UI is always empty string
+        field_ui["value"] = ""
+
+        # we'll process this for display but still need to present the original
+        # to some template logic
+        field_ui["value_raw"] = field_ui["value"]
+
+        name = field[0]
+        field_ui["html_element"] = _get_field_html_element(name)
+        field_ui["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+
+        fields_ui.append(field_ui)
+
+    return fields_ui
 
 # ==================================================================================
 
@@ -1101,6 +1140,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
             interfaces = {}
 
     fields = get_fields(what, child, obj)
+    if what == "system":
+        fields += get_network_interface_fields()
 
     # create the autoinstall pulldown list
     autoinstall_list = remote.get_autoinstall_templates()
@@ -1227,9 +1268,6 @@ def generic_save(request, what):
         if field['name'] == 'name' and editmode == 'edit':
             # do not attempt renames here
             continue
-        elif field['name'].startswith("*"):
-            # interface fields will be handled below
-            continue
         else:
             # check and see if the value exists in the fields stored in the session
             prev_value = None
@@ -1270,18 +1308,14 @@ def generic_save(request, what):
     # special handling for system interface fields
     # which are the only objects in cobbler that will ever work this way
     if what == "system":
-        interface_field_list = []
-        for field in fields:
-            if field['name'].startswith("*"):
-                field = field['name'].replace("*", "")
-                interface_field_list.append(field)
+        network_interface_fields = get_network_interface_fields()
         interfaces = request.POST.get('interface_list', "").split(",")
         for interface in interfaces:
             if interface == "":
                 continue
             ifdata = {}
-            for item in interface_field_list:
-                ifdata["%s-%s" % (item, interface)] = request.POST.get("%s-%s" % (item, interface), "")
+            for item in network_interface_fields:
+                ifdata["%s-%s" % (item["name"], interface)] = request.POST.get("%s-%s" % (item["name"], interface), "")
             ifdata = utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
             present = request.POST.get("present-%s" % interface, "")
