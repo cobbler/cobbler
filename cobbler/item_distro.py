@@ -28,26 +28,29 @@ from cobbler.utils import _
 
 # this data structure is described in item.py
 FIELDS = [
-    ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
+    # non-editable in UI (internal)
     ["ctime", 0, 0, "", False, "", 0, "float"],
+    ["depth", 0, 0, "Depth", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
+    ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
+    ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
+
+    # editable in UI
+    ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
+    ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
     ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
+    ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
-    ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
-    ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
-    ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
-    ["depth", 0, 0, "Depth", False, "", 0, "int"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
-    ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
+    ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
+    ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
+    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
 ]
 
