@@ -82,12 +82,7 @@ class AutoInstallationManager:
 
         results = files.keys()
         results.sort()
-        # empty and inherit are valid values
-        # and we want them as the first options in cobbler-web
-        autoinstall_options_list = ["", "<<inherit>>"]
-        for result in results:
-            autoinstall_options_list.append(result)
-        return autoinstall_options_list
+        return results
 
     def read_autoinstall_template(self, file_path):
         """

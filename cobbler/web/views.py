@@ -712,9 +712,7 @@ def aifile_list(request, page=None):
 
     aifile_list = []
     for aifile in aifiles:
-        # handle special values
-        if aifile not in ["", "<<inherit>>"]:
-            aifile_list.append((aifile, 'editable'))
+        aifile_list.append((aifile, 'editable'))
 
     t = get_template('aifile_list.tmpl')
     html = t.render(RequestContext(request, {
@@ -1159,7 +1157,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         fields += get_network_interface_fields()
 
     # create the autoinstall pulldown list
-    autoinstall_list = remote.get_autoinstall_templates()
+    autoinstalls = remote.get_autoinstall_templates()
+    autoinstall_list = ["", "<<inherit>>"]
+    for autoinstall in autoinstalls:
+        autoinstall_list.append(autoinstall)
 
     # populate some select boxes
     if what == "profile":
