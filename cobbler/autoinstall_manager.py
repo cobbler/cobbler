@@ -70,7 +70,7 @@ class AutoInstallationManager:
         @return list automatic installation templates
         """
 
-        files = {}
+        files = []
         for root, dirnames, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
                 rel_root = root[len(self.templates_base_dir)+1:]
@@ -78,11 +78,10 @@ class AutoInstallationManager:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
                     rel_path = filename
-                files[rel_path] = 1
+                files.append(rel_path)
 
-        results = files.keys()
-        results.sort()
-        return results
+        files.sort()
+        return files
 
     def read_autoinstall_template(self, file_path):
         """
