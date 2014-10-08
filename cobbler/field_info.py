@@ -94,12 +94,9 @@ USES_RADIO = [
 # it may also be used to expand/collapse certain web elements as a set.
 
 BLOCK_MAPPINGS = {
-    "address": "Networking",         # from network
     "apt_components": "Advanced",
     "apt_dists": "Advanced",
     "boot_files": "Management",
-    "broadcast": "Networking",       # ..
-    "cidr": "Networking",            # ditto
     "createrepo_flags": "Advanced",
     "dhcp_tag": "Advanced",
     "enable_gpxe": "Advanced",
@@ -126,17 +123,12 @@ BLOCK_MAPPINGS = {
     "proxy": "General",
     "repos": "General",
     "repos_enabled": "Management",
-    "reserved": "Networking",        # ..
     "server": "Advanced",
     "template_files": "Management",
     "virt_auto_boot": "Virtualization",
     "virt_cpus": "Virtualization",
-    "virt_disk": "Virtualization",
     "virt_disk_driver": "Virtualization",
     "virt_file_size": "Virtualization",
-    "virt_group": "Virtualization",
-    "virt_guests": "Virtualization",
-    "virt_host": "Virtualization",
     "virt_path": "Virtualization",
     "virt_pxe_boot": "Virtualization",
     "virt_ram": "Virtualization",
