@@ -95,21 +95,21 @@ DISTRO_UI_FIELDS_MAPPING = [
 ]
 
 FILE_UI_FIELDS_MAPPING = [
-    {"General": ["comment", "name", "owners", "is_dir", "action", "group", "mode", "owner", "path", "template"]}
+    {"General": ["name", "owners", "is_dir", "action", "group", "mode", "owner", "path", "template", "comment"]}
 ]
 
 IMAGE_UI_FIELDS_MAPPING = [
-    {"General": ["name", "arch", "breed", "comment", "file", "image_type", "network_count", "os_version", "owners", "autoinstall"]},
+    {"General": ["name", "owners", "arch", "breed", "file", "image_type", "network_count", "os_version", "autoinstall", "comment"]},
     {"Virtualization": ["virt_auto_boot", "virt_bridge", "virt_cpus", "virt_file_size", "virt_disk_driver", "virt_path", "virt_ram", "virt_type"]}
 ]
 
 MGMTCLASS_UI_FIELDS_MAPPING = [
-    {"General": ["name", "owners", "comment", "class_name", "is_definition", "params"]},
+    {"General": ["name", "owners", "class_name", "is_definition", "params", "comment"]},
     {"Resources": ["packages", "files"]}
 ]
 
 PACKAGE_UI_FIELDS_MAPPING = [
-    {"General": ["comment", "owners", "name", "action", "installer", "version"]}
+    {"General": ["name", "owners", "action", "installer", "version", "comment"]}
 ]
 
 PROFILE_UI_FIELDS_MAPPING = [
@@ -121,7 +121,7 @@ PROFILE_UI_FIELDS_MAPPING = [
 ]
 
 REPO_UI_FIELDS_MAPPING = [
-    {"General": ["arch", "breed", "comment", "keep_updated", "mirror", "name", "owners", "rpm_list"]},
+    {"General": ["name", "owners", "arch", "breed", "keep_updated", "mirror", "rpm_list", "comment"]},
     {"Advanced": ["apt_components", "apt_dists", "createrepo_flags", "environment", "mirror_locally", "priority", "yumopts"]}
 ]
 
