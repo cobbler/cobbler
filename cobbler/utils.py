@@ -604,13 +604,6 @@ def blender(api_handle, remove_dicts, root_obj):
         for (name, interface) in root_obj.interfaces.iteritems():
             for key in interface.keys():
                 results["%s_%s" % (key, name)] = interface[key]
-                # just to keep templates backwards compatibile
-                if name == "intf0":
-                    # prevent stomping on profile variables, which really only happens
-                    # with the way we check for virt_bridge, which is a profile setting
-                    # and an interface setting
-                    if key not in results:
-                        results[key] = interface[key]
 
     # if the root object is a profile or system, add in all
     # repo data for repos that belong to the object chain
