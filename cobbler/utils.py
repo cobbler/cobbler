@@ -612,12 +612,6 @@ def blender(api_handle, remove_dicts, root_obj):
     if remove_dicts:
         results = flatten(results)
 
-    # the password field is inputed as escaped strings but Cheetah
-    # does weird things when expanding it due to multiple dollar signs
-    # so this is the workaround
-    if "default_password_crypted" in results:
-        results["default_password_crypted"] = results["default_password_crypted"].replace("\$", "$")
-
     # add in some variables for easier templating
     # as these variables change based on object type
     if "interfaces" in results:
