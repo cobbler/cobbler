@@ -95,7 +95,7 @@ DISTRO_UI_FIELDS_MAPPING = [
 ]
 
 FILE_UI_FIELDS_MAPPING = [
-    {"General": ["comment", "name", "is_dir", "action", "group", "mode", "owner", "path", "template"]}
+    {"General": ["comment", "name", "owners", "is_dir", "action", "group", "mode", "owner", "path", "template"]}
 ]
 
 IMAGE_UI_FIELDS_MAPPING = [
