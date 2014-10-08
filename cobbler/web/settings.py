@@ -69,7 +69,7 @@ else:
         'django.contrib.auth.middleware.AuthenticationMiddleware',
     )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'cobbler.web.urls'
 
 TEMPLATE_DIRS = (
     '/usr/share/cobbler/web/templates',
@@ -79,7 +79,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'cobbler_web',
+    'cobbler.web',
 )
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS

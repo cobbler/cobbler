@@ -221,7 +221,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/tftpd.py
 
 # python
-%{python2_sitelib}/cobbler
+%{python2_sitelib}/cobbler/*.py
+%{python2_sitelib}/cobbler/modules/*.py
 %{python2_sitelib}/cobbler*.egg-info
 %exclude %{python2_sitelib}/cobbler/modules/nsupdate*
 
@@ -333,6 +334,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %files -n cobbler-web
 %doc AUTHORS COPYING README
 
+%{python2_sitelib}/cobbler/modules/web/
 %dir %{apache_etc}
 %dir %{apache_etc}/conf.d
 %config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf

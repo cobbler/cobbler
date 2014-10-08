@@ -371,6 +371,7 @@ function configure_cobbler ()
 
     local server_ip=$1
     local subnets=$2
+    local python_version=$3
 
     # update specific server configuration, eg IP address
 
@@ -383,7 +384,7 @@ function configure_cobbler ()
     sed -i "s/^anamon_enabled.*$/anamon_enabled: 1/" $settings
 
     # web UI settings
-    sed -i "s/SECRET_KEY.*$/SECRET_KEY = 'ItDoesNotMatterWhatIsPutInHere'/" /usr/share/cobbler/web/settings.py
+    sed -i "s/SECRET_KEY.*$/SECRET_KEY = 'ItDoesNotMatterWhatIsPutInHere'/" /usr/lib/python$python_version/site-packages/cobbler/web/settings.py
 
     # modules
     local modules="/etc/cobbler/modules.conf"
@@ -471,8 +472,10 @@ function print_help()
 linux_version=`uname -r`
 if [[ $linux_version =~ 'el6' ]]; then
     redhat_version="6"
+    python_version="2.6"
 elif [[ $linux_version =~ 'el7' ]]; then
     redhat_version="7"
+    python_version="2.7"
 else
     echo "Unsupported Linux operating system version"
     exit 1
@@ -592,7 +595,7 @@ configure_cobbler_dependencies
 # install cobbler
 echo "Install Cobbler server"
 install_cobbler
-configure_cobbler "${server_ip}" "${networks}"
+configure_cobbler "${server_ip}" "${networks}" "${python_version}"
 start_services
 
 exit 0

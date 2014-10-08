@@ -572,11 +572,10 @@ if __name__ == "__main__":
         packages=[
             "cobbler",
             "cobbler/modules",
+            "cobbler/web",
+            "cobbler/web/templatetags",
             "koan",
         ],
-        package_dir={
-            "cobbler_web": "web/cobbler_web",
-        },
         scripts=[
             "bin/cobbler",
             "bin/cobblerd",
@@ -616,9 +615,7 @@ if __name__ == "__main__":
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/static/*")),
             ("%s" % webimages, glob("web/static/images/*")),
-            ("share/cobbler/web/cobbler_web", glob("web/cobbler_web/*.*")),
-            ("share/cobbler/web/cobbler_web/templatetags", glob("web/cobbler_web/templatetags/*")),
-            ("share/cobbler/web/cobbler_web/templates", glob("web/cobbler_web/templates/*")),
+            ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%swebui_sessions" % libpath, []),
             ("%sloaders" % libpath, []),
             ("%scobbler/aux" % webroot, glob("aux/*")),
