@@ -577,22 +577,6 @@ def blender(api_handle, remove_dicts, root_obj):
     for node in tree:
         __consolidate(node, results)
 
-    # Get topmost object to determine which breed we're dealing with
-    parent = root_obj.get_parent()
-    if parent is None:
-        parent = root_obj
-
-    while parent.COLLECTION_TYPE is "profile" or parent.COLLECTION_TYPE is "system":
-        parent = parent.get_parent()
-
-    breed = parent.breed
-
-    if breed == "redhat":
-        # determine if we have room to add kssendmac to the kernel options line
-        kernel_txt = dict_to_string(results["kernel_options"])
-        if len(kernel_txt) < 244:
-            results["kernel_options"]["kssendmac"] = None
-
     # convert post kernel options to string
     if "kernel_options_post" in results:
         results["kernel_options_post"] = dict_to_string(results["kernel_options_post"])

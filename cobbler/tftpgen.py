@@ -716,6 +716,8 @@ class TFTPGen:
                     autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (ipaddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
+
+                append_line += " kssendmac"
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
                 gpxe = blended["enable_gpxe"]
                 if gpxe:
