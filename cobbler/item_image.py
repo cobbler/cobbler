@@ -129,30 +129,21 @@ class Image(item.Item):
         * /path/to/the/filename.ext
         """
         uri = ""
-        scheme = auth = hostname = path = ""
-        # we'll discard the protocol if it's supplied, for legacy support
+        auth = hostname = path = ""
+        # validate file location format
         if filename.find("://") != -1:
-            scheme, uri = filename.split("://")
-            filename = uri
-        else:
-            uri = filename
+            raise CX("Invalid image file path location, it should not contain a protocol")
+        uri = filename
 
         if filename.find("@") != -1:
             auth, filename = filename.split("@")
         # extract the hostname
         # 1. if we have a colon, then everything before it is a hostname
-        # 2. if we don't have a colon, then check if we had a scheme; if
-        #    we did, then grab all before the first forward slash as the
-        #    hostname; otherwise, we've got a bad file
+        # 2. if we don't have a colon, there is no hostname
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != '/':
-            if len(scheme) > 0:
-                index = filename.find("/")
-                hostname = filename[:index]
-                filename = filename[index:]
-            else:
-                raise CX(_("invalid file: %s" % filename))
+            raise CX(_("invalid file: %s" % filename))
         # raise an exception if we don't have a valid path
         if len(filename) > 0 and filename[0] != '/':
             raise CX(_("file contains an invalid path: %s" % filename))
