@@ -151,7 +151,7 @@ if (( $1 >= 2 )); then
     if [[ ! -d /var/lib/cobbler/backup/upgrade-${DATE} ]]; then
         mkdir -p /var/lib/cobbler/backup/upgrade-${DATE}
     fi
-    for i in "config" "autoinstall_snippets" "autoinstall_templates" "triggers" "scripts"; do
+    for i in "config" "autoinstall_snippets" "autoinstall_templates" "triggers" "autoinstall_scripts"; do
         if [[ -d /var/lib/cobbler/${i} ]]; then
             cp -r /var/lib/cobbler/${i} /var/lib/cobbler/backup/upgrade-${DATE}
         fi
