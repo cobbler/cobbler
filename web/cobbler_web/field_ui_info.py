@@ -88,86 +88,54 @@ USES_CHECKBOX = [
 USES_RADIO = [
 ]
 
-# this is the map of what color to color code each field type.
-# it may also be used to expand/collapse certain web elements as a set.
+# UI fields grouped by section
+DISTRO_UI_FIELDS_MAPPING = [
+    {"General": ["name", "owners", "kernel", "initrd", "kernel_options", "kernel_options_post", "autoinstall_meta", "arch", "breed", "os_version", "comment"]},
+    {"Management": ["mgmt_classes", "boot_files", "fetchable_files", "template_files"]},
+]
 
-BLOCK_MAPPINGS = {
-    "apt_components": "Advanced",
-    "apt_dists": "Advanced",
-    "boot_files": "Management",
-    "createrepo_flags": "Advanced",
-    "dhcp_tag": "Advanced",
-    "enable_gpxe": "Advanced",
-    "environment": "Advanced",
-    "fetchable_files": "Management",
-    "files": "Resources",
-    "gateway": "Networking (Global)",
-    "hostname": "Networking (Global)",
-    "ipv6_autoconfiguration": "Networking (Global)",
-    "ipv6_default_device": "Networking (Global)",
-    "mgmt_classes": "Management",
-    "mgmt_parameters": "Management",
-    "mirror_locally": "Advanced",
-    "name_servers": "Networking (Global)",
-    "name_servers_search": "Networking (Global)",
-    "next_server": "Advanced",
-    "packages": "Resources",
-    "power_address": "Power Management",
-    "power_id": "Power Management",
-    "power_pass": "Power Management",
-    "power_type": "Power Management",
-    "power_user": "Power Management",
-    "priority": "Advanced",
-    "proxy": "General",
-    "repos": "General",
-    "repos_enabled": "Management",
-    "server": "Advanced",
-    "template_files": "Management",
-    "virt_auto_boot": "Virtualization",
-    "virt_bridge": "Virtualization",
-    "virt_cpus": "Virtualization",
-    "virt_disk_driver": "Virtualization",
-    "virt_file_size": "Virtualization",
-    "virt_path": "Virtualization",
-    "virt_pxe_boot": "Virtualization",
-    "virt_ram": "Virtualization",
-    "virt_type": "Virtualization",
-    "yumopts": "Advanced",
+FILE_UI_FIELDS_MAPPING = [
+    {"General": ["comment", "name", "is_dir", "action", "group", "mode", "owner", "path", "template"]}
+]
 
-    # network interface specific
-    "bonding_opts": "Networking",
-    "bridge_opts": "Networking",
-    "cnames": "Networking",
-    "dhcp_tag": "Networking",
-    "dns_name": "Networking",
-    "if_gateway": "Networking",
-    "interface_master": "Networking",
-    "interface_type": "Networking",
-    "ip_address": "Networking",
-    "ipv6_address": "Networking",
-    "ipv6_default_gateway": "Networking",
-    "ipv6_mtu": "Networking",
-    "ipv6_prefix": "Networking",
-    "ipv6_secondaries": "Networking",
-    "ipv6_static_routes": "Networking",
-    "mac_address": "Networking",
-    "management": "Networking",
-    "mtu": "Networking",
-    "netmask": "Networking",
-    "static": "Networking",
-    "static_routes": "Networking",
-    "virt_bridge": "Networking",
+IMAGE_UI_FIELDS_MAPPING = [
+    {"General": ["name", "arch", "breed", "comment", "file", "image_type", "network_count", "os_version", "owners", "autoinstall"]},
+    {"Virtualization": ["virt_auto_boot", "virt_bridge", "virt_cpus", "virt_file_size", "virt_disk_driver", "virt_path", "virt_ram", "virt_type"]}
+]
 
-}
+MGMTCLASS_UI_FIELDS_MAPPING = [
+    {"General": ["name", "owners", "comment", "class_name", "is_definition", "params"]},
+    {"Resources": ["packages", "files"]}
+]
 
-BLOCK_MAPPINGS_ORDER = {
-    "General": 0,
-    "Advanced": 1,
-    "Networking (Global)": 2,
-    "Networking": 3,
-    "Management": 4,
-    "Virtualization": 5,
-    "Power Management": 6,
-    "Resources": 7,
-}
+PACKAGE_UI_FIELDS_MAPPING = [
+    {"General": ["comment", "owners", "name", "action", "installer", "version"]}
+]
+
+PROFILE_UI_FIELDS_MAPPING = [
+    {"General": ["name", "owners", "distro", "parent", "enable_menu", "autoinstall", "kernel_options", "kernel_options_post", "autoinstall_meta", "proxy", "repos", "comment"]},
+    {"Advanced": ["enable_gpxe", "dhcp_tag", "server", "next_server"]},
+    {"Networking Global": ["name_servers", "name_servers_search"]},
+    {"Management": ["mgmt_classes", "mgmt_parameters", "boot_files", "fetchable_files", "template_files"]},
+    {"Virtualization": ["virt_auto_boot", "virt_cpus", "virt_file_size", "virt_disk_driver", "virt_ram", "virt_type", "virt_path", "virt_bridge"]}
+]
+
+REPO_UI_FIELDS_MAPPING = [
+    {"General": ["arch", "breed", "comment", "keep_updated", "mirror", "name", "owners", "rpm_list"]},
+    {"Advanced": ["apt_components", "apt_dists", "createrepo_flags", "environment", "mirror_locally", "priority", "yumopts"]}
+]
+
+SYSTEM_UI_FIELDS_MAPPING = [
+    {"General": ["name", "owners", "profile", "image", "status", "kernel_options", "kernel_options_post", "autoinstall_meta", "proxy", "netboot_enabled", "autoinstall", "comment"]},
+    {"Advanced": ["enable_gpxe", "server", "next_server"]},
+    {"Networking (Global)": ["hostname", "gateway", "name_servers", "name_servers_search", "ipv6_default_device", "ipv6_autoconfiguration"]},
+    {"Networking": ["mac_address", "mtu", "ip_address", "interface_type", "interface_master", "bonding_opts", "bridge_opts", "management", "static", "netmask", "if_gateway", "dhcp_tag", "dns_name", "static_routes", "virt_bridge", "ipv6_address", "ipv6_prefix", "ipv6_secondaries", "ipv6_mtu", "ipv6_static_routes", "ipv6_default_gateway", "cnames"]},
+    {"Management": ["mgmt_classes", "mgmt_parameters", "boot_files", "fetchable_files", "template_files", "repos_enabled"]},
+    {"Virtualization": ["virt_path", "virt_type", "virt_cpus", "virt_file_size", "virt_disk_driver", "virt_ram", "virt_auto_boot", "virt_pxe_boot"]},
+    {"Power management": ["power_type", "power_address", "power_user", "power_pass", "power_id"]}
+]
+
+SETTING_UI_FIELDS_MAPPING = [
+    {"General": ["name", "value"]}
+]
 

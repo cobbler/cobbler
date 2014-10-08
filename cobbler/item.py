@@ -47,8 +47,8 @@ from cobbler.utils import _
 # type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
 #
 #
-# the order in which the fields are listed (for all non-hidden fields) are the order they will
-# appear in the web application (top to bottom).   The command line sorts fields alphabetically.
+# the order in which the fields appear in the web application (for all non-hidden
+# fields) is defined in field_ui_info.py. The CLI sorts fields alphabetically.
 #
 # field_ui_info.py also contains a set of "Groups" that describe what other fields
 # are associated with what other fields.  This affects color coding and other
@@ -72,7 +72,10 @@ from cobbler.utils import _
 #   (A) understand the above
 #   (B) add a field below
 #   (C) add a set_fieldname method
-#   (D) you do not need to modify the CLI or webapp
+#   (D) if field must be viewable/editable via web UI, add a entry in
+#       corresponding *_UI_FIELDS_MAPPING dictionary in field_ui_info.py.
+#       If field must not be displayed in a text field in web UI, also add
+#       an entry in corresponding USES_* list in field_ui_info.py.
 #
 # in general the set_field_name method should raise exceptions on invalid fields, always.   There are adtl
 # validation fields in is_valid to check to see that two seperate fields do not conflict, but in general

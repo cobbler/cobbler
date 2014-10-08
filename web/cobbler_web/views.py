@@ -193,7 +193,6 @@ def get_fields(what, is_subobject, seed_item=None):
 
         name = field[0]
         ui_field["html_element"] = _get_field_html_element(name)
-        ui_field["block_section"] = field_ui_info.BLOCK_MAPPINGS.get(name, "General")
 
         # flatten lists for those that aren't using select boxes
         if isinstance(ui_field["value"], list):
@@ -242,11 +241,35 @@ def get_network_interface_fields():
 
         name = field[0]
         field_ui["html_element"] = _get_field_html_element(name)
-        field_ui["block_section"] = field_ui_info.BLOCK_MAPPINGS.get(name, "General")
 
         fields_ui.append(field_ui)
 
     return fields_ui
+
+def _create_sections_metadata(what, sections_data, fields):
+
+    sections = {}
+    section_index = 0
+    for section_data in sections_data:
+        for section_name, section_fields in section_data.items():
+            fkey = "%d_%s" % (section_index, section_name)
+            sections[fkey] = {}
+            sections[fkey]['name'] = section_name
+            sections[fkey]['fields'] = []
+
+            for section_field in section_fields:
+                found = False
+                for field in fields:
+                    if field["name"] == section_field:
+                        sections[fkey]['fields'].append(field)
+                        found = True
+                        break
+                if not found:
+                    raise Exception("%s field %s referenced in UI section definition does not exist in UI fields definition" % (what, section_field))
+
+            section_index += 1
+
+    return sections
 
 # ==================================================================================
 
@@ -905,15 +928,10 @@ def setting_edit(request, setting_name=None):
     }
 
     fields = get_fields('setting', False, seed_item=cur_setting)
-    sections = {}
-    for field in fields:
-        bmo = field_ui_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo, field['block_section'])
-        if fkey not in sections:
-            sections[fkey] = {}
-            sections[fkey]['name'] = field['block_section']
-            sections[fkey]['fields'] = []
-        sections[fkey]['fields'].append(field)
+
+    # build UI tabs metadata
+    sections_data = field_ui_info.SETTING_UI_FIELDS_MAPPING
+    sections = _create_sections_metadata('setting', sections_data, fields)
 
     t = get_template('generic_edit.tmpl')
     html = t.render(RequestContext(request, {
@@ -1182,15 +1200,24 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     if editmode == "edit":
         request.session['%s_%s' % (what, obj_name)] = fields
 
-    sections = {}
-    for field in fields:
-        bmo = field_ui_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo, field['block_section'])
-        if fkey not in sections:
-            sections[fkey] = {}
-            sections[fkey]['name'] = field['block_section']
-            sections[fkey]['fields'] = []
-        sections[fkey]['fields'].append(field)
+    # build UI tabs metadata
+    if what == "distro":
+        sections_data = field_ui_info.DISTRO_UI_FIELDS_MAPPING
+    elif what == "file":
+        sections_data = field_ui_info.FILE_UI_FIELDS_MAPPING
+    elif what == "image":
+        sections_data = field_ui_info.IMAGE_UI_FIELDS_MAPPING
+    elif what == "mgmtclass":
+        sections_data = field_ui_info.MGMTCLASS_UI_FIELDS_MAPPING
+    elif what == "package":
+        sections_data = field_ui_info.PACKAGE_UI_FIELDS_MAPPING
+    elif what == "profile":
+        sections_data = field_ui_info.PROFILE_UI_FIELDS_MAPPING
+    elif what == "repo":
+        sections_data = field_ui_info.REPO_UI_FIELDS_MAPPING
+    elif what == "system":
+        sections_data = field_ui_info.SYSTEM_UI_FIELDS_MAPPING
+    sections = _create_sections_metadata(what, sections_data, fields)
 
     t = get_template('generic_edit.tmpl')
     inames = interfaces.keys()
