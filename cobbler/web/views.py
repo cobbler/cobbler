@@ -709,9 +709,6 @@ def aifile_list(request, page=None):
         return login(request, next="/cobbler_web/aifile/list", expired=True)
 
     aifiles = remote.get_autoinstall_templates(request.session['token'])
-    from cobbler import clogger
-    logger = clogger.Logger()
-    logger.debug("List of AI files: %s" % str(aifiles))
 
     aifile_list = []
     for aifile in aifiles:
