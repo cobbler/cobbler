@@ -1561,16 +1561,12 @@ class CobblerXMLRPCInterface:
 
     def get_distro_as_rendered(self, name, token=None, **rest):
         """
-        Return the distribution as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_distro_for_koan(self, name)
+        Get distribution after passing through Cobbler's inheritance engine.
 
-    def get_distro_for_koan(self, name, token=None, **rest):
+        @param str name distro name
+        @param str token authentication token
         """
-        Same as get_distro_as_rendered.
-        """
+
         self._log("get_distro_as_rendered", name=name, token=token)
         obj = self.api.find_distro(name=name)
         if obj is not None:
@@ -1579,16 +1575,12 @@ class CobblerXMLRPCInterface:
 
     def get_profile_as_rendered(self, name, token=None, **rest):
         """
-        Return the profile as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_profile_for_koan(name, token)
+        Get profile after passing through Cobbler's inheritance engine.
 
-    def get_profile_for_koan(self, name, token=None, **rest):
+        @param str name profile name
+        @param str token authentication token
         """
-        Same as get_profile_as_rendered
-        """
+
         self._log("get_profile_as_rendered", name=name, token=token)
         obj = self.api.find_profile(name=name)
         if obj is not None:
@@ -1597,16 +1589,12 @@ class CobblerXMLRPCInterface:
 
     def get_system_as_rendered(self, name, token=None, **rest):
         """
-        Return the system as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_system_for_koan(name)
+        Get profile after passing through Cobbler's inheritance engine.
 
-    def get_system_for_koan(self, name, token=None, **rest):
+        @param str name system name
+        @param str token authentication token
         """
-        Same as get_system_as_rendered.
-        """
+
         self._log("get_system_as_rendered", name=name, token=token)
         obj = self.api.find_system(name=name)
         if obj is not None:
@@ -1646,16 +1634,12 @@ class CobblerXMLRPCInterface:
 
     def get_repo_as_rendered(self, name, token=None, **rest):
         """
-        Return the repo as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_repo_for_koan(self, name)
+        Get repository after passing through Cobbler's inheritance engine.
 
-    def get_repo_for_koan(self, name, token=None, **rest):
+        @param str name repository name
+        @param str token authentication token
         """
-        Same as get_repo_as_rendered.
-        """
+
         self._log("get_repo_as_rendered", name=name, token=token)
         obj = self.api.find_repo(name=name)
         if obj is not None:
@@ -1664,16 +1648,12 @@ class CobblerXMLRPCInterface:
 
     def get_image_as_rendered(self, name, token=None, **rest):
         """
-        Return the image as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_image_for_koan(self, name)
+        Get repository after passing through Cobbler's inheritance engine.
 
-    def get_image_for_koan(self, name, token=None, **rest):
+        @param str name image name
+        @param str token authentication token
         """
-        Same as get_image_as_rendered.
-        """
+
         self._log("get_image_as_rendered", name=name, token=token)
         obj = self.api.find_image(name=name)
         if obj is not None:
@@ -1682,16 +1662,12 @@ class CobblerXMLRPCInterface:
 
     def get_mgmtclass_as_rendered(self, name, token=None, **rest):
         """
-        Return the mgmtclass as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_mgmtclass_for_koan(self, name)
+        Get management class after passing through Cobbler's inheritance engine
 
-    def get_mgmtclass_for_koan(self, name, token=None, **rest):
+        @param str name management class name
+        @param str token authentication token
         """
-        Same as get_mgmtclass_as_rendered.
-        """
+
         self._log("get_mgmtclass_as_rendered", name=name, token=token)
         obj = self.api.find_mgmtclass(name=name)
         if obj is not None:
@@ -1700,16 +1676,12 @@ class CobblerXMLRPCInterface:
 
     def get_package_as_rendered(self, name, token=None, **rest):
         """
-        Return the package as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_package_for_koan(self, name)
+        Get package after passing through Cobbler's inheritance engine
 
-    def get_package_for_koan(self, name, token=None, **rest):
+        @param str name package name
+        @param str token authentication token
         """
-        Same as get_package_as_rendered.
-        """
+
         self._log("get_package_as_rendered", name=name, token=token)
         obj = self.api.find_package(name=name)
         if obj is not None:
@@ -1718,16 +1690,12 @@ class CobblerXMLRPCInterface:
 
     def get_file_as_rendered(self, name, token=None, **rest):
         """
-        Return the file as passed through cobbler's
-        inheritance/graph engine.  Shows what would be installed, not
-        the input data.
-        """
-        return self.get_file_for_koan(self, name)
+        Get file after passing through Cobbler's inheritance engine
 
-    def get_file_for_koan(self, name, token=None, **rest):
+        @param str name file name
+        @param str token authentication token
         """
-        Same as get_file_as_rendered.
-        """
+
         self._log("get_file_as_rendered", name=name, token=token)
         obj = self.api.find_file(name=name)
         if obj is not None:

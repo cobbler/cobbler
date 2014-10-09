@@ -366,7 +366,7 @@ class XMLRPCSystem:
         if name is not None:
             logging.debug("Materializing system %s" % name)
             try:
-                self.system = COBBLER_HANDLE.get_system_for_koan(name)
+                self.system = COBBLER_HANDLE.get_system_as_rendered(name)
                 self.attrs = self.system
                 self.name = self.attrs["name"]
             except:
@@ -485,7 +485,7 @@ class Request:
         m = pattern.match(filename)
         if m:
             logging.debug("client requesting distro?")
-            p = COBBLER_HANDLE.get_distro_for_koan(m.group(1))
+            p = COBBLER_HANDLE.get_distro_as_rendered(m.group(1))
             if p:
                 logging.debug("%s matched distro %s" % (filename, p["name"]))
                 if m.group(2) == os.path.basename(p["kernel"]):
