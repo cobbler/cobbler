@@ -66,8 +66,6 @@ CHEETAH_ERROR_DISCLAIMER = """
 #
 """
 
-AUTOINSTALL_TEMPLATES_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-
 
 # From http://code.activestate.com/recipes/303342/
 class Translator:
@@ -1522,31 +1520,6 @@ def set_virt_cpus(self, num):
         raise CX(_("invalid number of virtual CPUs (%s)" % num))
 
     self.virt_cpus = num
-
-
-def get_autoinstall_templates(api):
-    """
-    Return a list of all automatic OS installation templates in use and
-    available under /var/lib/cobbler/autoinstall_templates/
-    """
-    files = {}
-    for root, dirnames, filenames in os.walk(AUTOINSTALL_TEMPLATES_BASE_DIR):
-        for filename in filenames:
-            rel_root = root[len(AUTOINSTALL_TEMPLATES_BASE_DIR):]
-            if rel_root:
-                rel_path = "%s/%s" % (rel_root, filename)
-            else:
-                rel_path = filename
-            files[rel_path] = 1
-
-    results = files.keys()
-    results.sort()
-    # empty and inherit are valid values
-    # and we want them as the first options in cobbler-web
-    autoinstall_options_list = ["", "<<inherit>>"]
-    for result in results:
-        autoinstall_options_list.append(result)
-    return autoinstall_options_list
 
 
 def safe_filter(var):

@@ -178,7 +178,7 @@ class Replicate:
             self.rsync_it("cobbler-distros/config/", os.path.join(self.settings.webdir, "distro_mirror", "config"))
             self.logger.info("Rsyncing automatic installation templates & snippets")
             self.rsync_it("cobbler-autoinstalls", "/var/lib/cobbler/autoinstall_templates")
-            self.rsync_it("cobbler-snippets", "/var/lib/cobbler/snippets")
+            self.rsync_it("cobbler-snippets", "/var/lib/cobbler/autoinstall_snippets")
             self.logger.info("Rsyncing triggers")
             self.rsync_it("cobbler-triggers", "/var/lib/cobbler/triggers")
             self.logger.info("Rsyncing scripts")

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import string
 
+from cobbler import autoinstall_manager
 from cobbler import item
 from cobbler import utils
 from cobbler import validate
@@ -109,10 +110,11 @@ class Image(item.Item):
         not be a automatic installation template per se, it might be a Windows answer
         file (SIF) etc.
 
-        @param: str local automatic installation file path
-        @returns: True or CX
+        @param str local automatic installation template file path
         """
-        self.autoinstall = validate.autoinstall_file_path(autoinstall)
+
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
 
     def set_file(self, filename):

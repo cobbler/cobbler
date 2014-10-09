@@ -25,9 +25,6 @@ import shlex
 from cobbler.cexceptions import CX
 
 
-AUTOINSTALL_TEMPLATE_BASE_DIR = "/var/lib/cobbler/autoinstall_templates/"
-AUTOINSTALL_SNIPPET_BASE_DIR = "/var/lib/cobbler/snippets/"
-
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
@@ -60,64 +57,6 @@ def object_name(name, parent):
         raise CX("Invalid characters in name: '%s'" % name)
 
     return name
-
-
-def snippet_file_path(snippet, new_snippet=False):
-    """
-    Validate the snippet file path.
-
-    @param: str snippet (absolute path to a local snippet file)
-    @param: bool new_snippet (when set to true new filenames are allowed)
-    @returns: str snippet or CX
-    """
-    if not isinstance(snippet, basestring):
-        raise CX("Invalid input, snippet must be a string")
-    else:
-        snippet = snippet.strip()
-
-    if snippet.find("..") != -1:
-        raise CX("Invalid automated installation snippet file location %s, it must not contain .." % snippet)
-
-    snippet_path = "%s%s" % (AUTOINSTALL_SNIPPET_BASE_DIR, snippet)
-    if not os.path.isfile(snippet_path) and not new_snippet:
-        raise CX("Invalid automated installation snippet file location %s, file not found" % snippet_path)
-
-    return snippet
-
-
-def autoinstall_file_path(autoinstall, for_item=True, new_autoinstall=False):
-    """
-    Validate the auto installation file's relative file path.
-
-    @param: str autoinstall (absolute path to a local autoinstall file)
-    @param: bool for_item (enable/disable special handling for Item objects)
-    @param: bool new_autoinstall (when set to true new filenames are allowed)
-    @returns: str autoinstall or CX
-    """
-    if not isinstance(autoinstall, basestring):
-        raise CX("Invalid input, autoinstall must be a string")
-    else:
-        autoinstall = autoinstall.strip()
-
-    if autoinstall == "":
-        # empty autoinstall is allowed (interactive installations)
-        return autoinstall
-
-    if for_item is True:
-        # this autoinstall value has special meaning for Items
-        # other callers of this function have no use for this
-        if autoinstall == "<<inherit>>":
-            return autoinstall
-
-    if autoinstall.find("..") != -1:
-        raise CX("Invalid automatic installation template file location %s, it must not contain .." % autoinstall)
-
-    autoinstall_path = "%s%s" % (AUTOINSTALL_TEMPLATE_BASE_DIR, autoinstall)
-    if not os.path.isfile(autoinstall_path) and not new_autoinstall:
-        raise CX("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
-
-    return autoinstall
-
 
 def hostname(dnsname):
     """
