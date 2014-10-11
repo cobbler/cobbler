@@ -27,7 +27,6 @@ import urllib2
 
 from cobbler import action_acl
 from cobbler import action_buildiso
-from cobbler import action_buildiso
 from cobbler import action_check
 from cobbler import action_dlcontent
 from cobbler import action_hardlink

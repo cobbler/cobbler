@@ -43,7 +43,6 @@ from cobbler import item_repo
 from cobbler import item_system
 from cobbler import tftpgen
 from cobbler import utils
-from cobbler import validate
 from cobbler.cexceptions import CX
 
 
