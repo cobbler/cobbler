@@ -267,7 +267,6 @@ class AutoInstallationManager:
             return [True, None, None]
 
         # generate automatic installation file
-        server = blended["server"]
         os_version = blended["os_version"]
         self.logger.info("----------------------------")
         self.logger.debug("osversion: %s" % os_version)
@@ -292,7 +291,6 @@ class AutoInstallationManager:
         @return bool if all automatic installation files are valid
         """
 
-        failed = False
         for x in self.collection_mgr.profiles():
             (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
             if not success:

@@ -23,7 +23,6 @@ import string
 from cobbler import autoinstall_manager
 from cobbler import item
 from cobbler import utils
-from cobbler import validate
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
