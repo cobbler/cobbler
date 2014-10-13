@@ -550,8 +550,10 @@ class Koan:
             if profile_data["breed"] in [ "ubuntu", "debian", "suse" ]:
                 self.get_install_tree_from_profile_data(profile_data)
             else:
-                # find_kickstart source tree in the kickstart file
-                self.get_install_tree_from_kickstart(profile_data)
+                # find install source tree from kernel options
+                if not self.get_install_tree_from_kernel_options(profile_data)
+                    # Otherwise find kickstart source tree in the kickstart file
+                    self.get_install_tree_from_kickstart(profile_data)
 
             # if we found an install_tree, and we don't have a kernel or initrd
             # use the ones in the install_tree
@@ -761,6 +763,47 @@ class Koan:
                 print "install_tree:", profile_data["install_tree"]
             else:
                 print "warning: kickstart found but no install_tree found"
+        except:
+            pass
+
+    def get_install_tree_from_kernel_options(self, profile_data):
+        """
+        Split kernel options to obtain the inst.stage2 path. Generate the install_tree
+           using the http_server and the tree obtained from the inst.stage2 path
+
+        """
+
+        try:
+            tree = profile_data["kernel_options"].split()
+            # Ensure we only take the tree in case ks_meta args are passed
+            # First check for tree= in ks_meta arguments
+            meta_re = re.compile('inst.stage2=')
+            tree_found = ''
+            for entry in tree:
+                if meta_re.match(entry):
+                    tree_found = entry.split("=")[-1]
+                    break
+
+            if tree_found == '':
+                return False
+            else:
+                tree = tree_found
+            tree_re = re.compile('(http|ftp|nfs):')
+            # Next check for installation tree on remote server
+            if tree_re.match(tree):
+                tree = tree.replace(
+                    "@@http_server@@",
+                    profile_data["http_server"])
+                profile_data["install_tree"] = tree
+            else:
+                # Now take the first parameter as the local path
+                profile_data["install_tree"] = "http://" + \
+                    profile_data["http_server"] + tree
+
+            if self.safe_load(profile_data, "install_tree"):
+                print("install_tree:", profile_data["install_tree"])
+            else:
+                print("warning: kickstart found but no install_tree found")
         except:
             pass
 
