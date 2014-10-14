@@ -1369,6 +1369,7 @@ class Koan:
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options',default='')
         breed     = self.safe_load(pd,'breed')
+        os_version= self.safe_load(pd,'os_version')
 
         kextra    = ""
         if kickstart is not None and kickstart != "":
@@ -1401,6 +1402,7 @@ class Koan:
             netmask = self.safe_load(interface_data, "netmask")
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
+            hostname = self.safe_load(interface_data, "dns_name")
 
             if breed == "debian" or breed == "ubuntu":
                 hostname = self.safe_load(pd, "hostname")
@@ -1430,20 +1432,33 @@ class Koan:
                     hashv["hostip"] = ip
                 elif breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_ipaddress"] = ip
+                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                    def get_cidr(netmask):
+                        binary_str = ''
+                        for octet in netmask.split('.'):
+                            binary_str += bin(int(octet))[2:].zfill(8)
+                        return str(len(binary_str.rstrip('0')))
+                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip,gateway,get_cidr(netmask),hostname,interface_name)
                 else:
                     hashv["ip"] = ip
             if netmask is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_netmask"] = netmask
+                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                    pass
                 else:
                     hashv["netmask"] = netmask
             if gateway is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_gateway"] = gateway
+                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                    pass
                 else:
                     hashv["gateway"] = gateway
             if dns is not None:
-                if breed == "suse":
+                if breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                    hashv["ip"] += ":" + ":".join(dns[0:2])
+                elif breed == "suse":
                     hashv["nameserver"] = dns[0]
                 elif breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_nameservers"] = " ".join(dns)
