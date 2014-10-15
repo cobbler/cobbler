@@ -365,6 +365,23 @@ virt_auto_boot: 1
 # is not large enough.
 webdir: @@webroot@@/cobbler
 
+# directories that will not get wiped and recreated on a 'cobbler sync'
+webdir_whitelist:
+  - aux
+  - web
+  - webui
+  - localmirror
+  - repo_mirror
+  - distro_mirror
+  - images
+  - links
+  - pub
+  - repo_profile
+  - repo_system
+  - svc
+  - rendered
+  - .link_cache
+
 # cobbler's public XMLRPC listens on this port.  Change this only
 # if absolutely needed, as you'll have to start supplying a new
 # port option to koan if it is not the default.
