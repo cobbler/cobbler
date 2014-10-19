@@ -532,9 +532,12 @@ if __name__ == "__main__":
         http_user   = "wwwrun"
         defaultpath = "/etc/sysconfig/"
     elif os.path.exists("/etc/debian_version"):
-        webconfig  = "/etc/apache2/conf.d"
-        webroot     = "/srv/www/"
-        http_user   = "www-data"
+        if os.path.exists("/etc/apache2/conf-available"):
+            webconfig = "/etc/apache2/conf-available"
+        else:
+            webconfig = "/etc/apache2/conf.d"
+        webroot = "/srv/www/"
+        http_user = "www-data"
         defaultpath = "/etc/default/"
     else:
         webconfig  = "/etc/httpd/conf.d"
