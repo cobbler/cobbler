@@ -5,7 +5,8 @@
 # - Fedora: 18, 19, 20
 # - RHEL: 7
 # - CentOS: 7
-# - OpenSuSE: 12.3, 13.1, Factory, Tumbleweed
+# - Scientific Linux: 7
+# - OpenSuSE: 12.3, 13.1, 13.2, Factory, Tumbleweed
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
