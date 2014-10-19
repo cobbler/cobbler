@@ -26,7 +26,7 @@ try:
 except:
     converage = None
 
-VERSION = "2.6.5"
+VERSION = "2.6.6"
 OUTPUT_DIR = "config"
 
 

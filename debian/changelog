@@ -1,3 +1,9 @@
+cobbler (2.6.6-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Sun, 19 Oct 2014 00:19:50 +0200
+
 cobbler (2.6.5-1) unstable; urgency=low
 
   * Maintenance release in the Cobbler 2.6 series
