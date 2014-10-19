@@ -5,7 +5,8 @@
 # - Fedora: 18, 19, 20
 # - RHEL: 6, 7
 # - CentOS: 6, 7
-# - OpenSuSE: 12.3, 13.1, Factory
+# - Scientific Linux: 6, 7
+# - OpenSuSE: 12.3, 13.1, 13.2, Factory
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
