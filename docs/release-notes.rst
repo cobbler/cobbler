@@ -4,6 +4,9 @@ Release Notes for Cobbler 3.0.0
 Enhancements
 ++++++++++++
 
+* Use new dracut ip option for configuring static interfaces (koan).
+* Add a whitelist of directories in order to persist a ``cobbler sync``.
+* Add proxy support for get-loaders, signature update and reposync.
 * Add initial support for DJBDNS.
 * Enable external YUM repo mirroring through a proxy server. 
 * DHCP configuration now also supports the per interface gateway setting.
@@ -31,6 +34,7 @@ Enhancements
 Bugfixes
 ++++++++
 
+* Changed Apache configuration directory in Ubuntu 14.04 (#1208).
 * build_reporting no longer fails with an empty string in ignorelist (#1248).
 * Kickstart repo statement, filter invalid values: ``gpgcheck``, ``gpgkey`` and ``enabled`` (#323).
 * Several improvements to Debian/Ubuntu packaging.
