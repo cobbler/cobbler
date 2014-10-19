@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
+import time
+import sys
+import urlgrabber
 
 HAS_YUM = True
 try:
@@ -416,37 +419,38 @@ class RepoSync:
 
         repodata_path = os.path.join(dest_path, "repodata")
 
-        if not os.path.exists("/usr/bin/wget"):
-            utils.die(self.logger, "no /usr/bin/wget found, please install wget")
-
         # grab repomd.xml and use it to download any metadata we can use
-        if repo.proxy == '':
-            cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
-        else:
-            cmd2 = "/bin/env http_proxy=%s /usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo.proxy, repo_mirror, temp_path)
-        rc = utils.subprocess_call(self.logger, cmd2)
-        if rc == 0:
-            # create our repodata directory now, as any extra metadata we're
-            # about to download probably lives there
-            if not os.path.isdir(repodata_path):
-                os.makedirs(repodata_path)
-            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
-            for mdtype in rmd.repoData.keys():
-                # don't download metadata files that are created by default
-                if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
-                    mdfile = rmd.getData(mdtype).location[1]
-                    cmd3 = "/usr/bin/wget -q %s/%s -O %s/%s" % (repo_mirror, mdfile, dest_path, mdfile)
-                    utils.subprocess_call(self.logger, cmd3)
-                    if rc != 0:
-                        utils.die(self.logger, "wget failed")
+        proxies = {}
+        proxies['http'] = self.settings.proxy_url_ext
+
+        src = repo_mirror + "/repodata/repomd.xml"
+        dst = temp_path + "/repomd.xml"
+        try:
+            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+        except:
+            utils.die("failed to fetch %s" % src)
+
+        # create our repodata directory now, as any extra metadata we're
+        # about to download probably lives there
+        if not os.path.isdir(repodata_path):
+            os.makedirs(repodata_path)
+        rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
+        for mdtype in rmd.repoData.keys():
+            # don't download metadata files that are created by default
+            if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
+                mdfile = rmd.getData(mdtype).location[1]
+                src = repo_mirror + "/" + mdfile
+                dst = dest_path + "/" + mdfile
+                try:
+                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+                except:
+                    utils.die("failed to fetch %s" % src)
 
         # now run createrepo to rebuild the index
-
         if repo.mirror_locally:
             os.path.walk(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
-
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================

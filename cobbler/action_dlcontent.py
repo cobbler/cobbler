@@ -64,17 +64,7 @@ class ContentDownloader:
         )
 
         proxies = {}
-        if "HTTP_PROXY" in os.environ:
-            proxies['http'] = os.environ["HTTP_PROXY"]
-
-        if "HTTPS_PROXY" in os.environ:
-            proxies['https'] = os.environ["HTTPS_PROXY"]
-
-        if "FTP_PROXY" in os.environ:
-            proxies['ftp'] = os.environ["FTP_PROXY"]
-
-        if len(proxies) == 0:
-            proxies = None
+        proxies['http'] = self.settings.proxy_url_ext
 
         for src, dst in files:
             if os.path.exists(dst) and not force:
