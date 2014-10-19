@@ -23,7 +23,7 @@ import os
 import random
 import tempfile
 import time
-import urllib2
+import urlgrabber
 
 from cobbler import action_acl
 from cobbler import action_buildiso
@@ -577,7 +577,9 @@ class CobblerAPI:
     def signature_update(self, logger):
         try:
             tmpfile = tempfile.NamedTemporaryFile()
-            response = urllib2.urlopen(self.settings().signature_url)
+            proxies = {}
+            proxies['http'] = self.settings().proxy_url_ext
+            response = urlgrabber.grabber.urlopen(self.settings().signature_url, proxies=proxies)
             sigjson = response.read()
             tmpfile.write(sigjson)
             tmpfile.flush()
