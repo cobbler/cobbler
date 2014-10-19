@@ -173,7 +173,10 @@ class AutoInstallationGen:
                 for opt in repo_obj.yumopts:
                     # filter invalid values to the repo statement in automatic
                     # installation files
-                    if not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
+                    if opt in ['exclude', 'include']:
+                        value = repo_obj.yumopts[opt].replace(' ', ',')
+                        yumopts = yumopts + " --%spkgs=%s" % (opt, value)
+                    elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
                         yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
