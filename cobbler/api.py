@@ -57,7 +57,7 @@ import traceback
 import exceptions
 import clogger
 import tempfile
-import urllib2
+import urlgrabber
 
 import item_distro
 import item_profile
@@ -596,7 +596,9 @@ class BootAPI:
     def signature_update(self, logger):
         try:
             tmpfile = tempfile.NamedTemporaryFile()
-            response = urllib2.urlopen(self.settings().signature_url)
+            proxies = {}
+            proxies['http'] = self.settings().proxy_url_ext
+            response = urlgrabber.grabber.urlopen(self.settings().signature_url, proxies=proxies)
             sigjson = response.read()
             tmpfile.write(sigjson)
             tmpfile.flush()
