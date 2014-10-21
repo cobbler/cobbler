@@ -222,7 +222,7 @@ class CobblerSvc(object):
         # debug only
         return repr(rest)
 
-    def find_autoinst(self, system=None, profile=None, **rest):
+    def find_autoinstall(self, system=None, profile=None, **rest):
         self.__xmlrpc_setup()
 
         serverseg = "http//%s" % self.collection_mgr._settings.server
