@@ -184,7 +184,6 @@ def name_servers(nameservers, for_item=True):
         if for_item is True:
             # special handling for Items
             if nameservers in ["<<inherit>>", ""]:
-                nameservers = "<<inherit>>"
                 return nameservers
 
         # convert string to a list; do the real validation
@@ -218,7 +217,6 @@ def name_servers_search(search, for_item=True):
         if for_item is True:
             # special handling for Items
             if search in ["<<inherit>>", ""]:
-                search = "<<inherit>>"
                 return search
 
         # convert string to a list; do the real validation
