@@ -252,16 +252,16 @@ def _create_sections_metadata(what, sections_data, fields):
     section_index = 0
     for section_data in sections_data:
         for section_name, section_fields in section_data.items():
-            fkey = "%d_%s" % (section_index, section_name)
-            sections[fkey] = {}
-            sections[fkey]['name'] = section_name
-            sections[fkey]['fields'] = []
+            skey = "%d_%s" % (section_index, section_name)
+            sections[skey] = {}
+            sections[skey]['name'] = section_name
+            sections[skey]['fields'] = []
 
             for section_field in section_fields:
                 found = False
                 for field in fields:
                     if field["name"] == section_field:
-                        sections[fkey]['fields'].append(field)
+                        sections[skey]['fields'].append(field)
                         found = True
                         break
                 if not found:
@@ -1339,8 +1339,8 @@ def generic_save(request, what):
             if interface == "":
                 continue
             ifdata = {}
-            for item in network_interface_fields:
-                ifdata["%s-%s" % (item["name"], interface)] = request.POST.get("%s-%s" % (item["name"], interface), "")
+            for field in network_interface_fields:
+                ifdata["%s-%s" % (field["name"], interface)] = request.POST.get("%s-%s" % (field["name"], interface), "")
             ifdata = utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
             present = request.POST.get("present-%s" % interface, "")
