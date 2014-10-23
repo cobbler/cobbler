@@ -236,7 +236,7 @@ function install_fence_agents()
 
     # Linux packages dependencies, installed via YUM package manager
     # build dependencies
-    local dependencies="autoconf automake gcc git libtool nss nss-devel python-devel python-setuptools python-suds"
+    local dependencies="autoconf automake gcc git libtool libxslt nss nss-devel python-devel python-setuptools python-suds"
     # runtime dependencies
     dependencies="$dependencies ipmitool telnet"
     if [ $arch == "x86_64" ]; then
@@ -244,10 +244,11 @@ function install_fence_agents()
     fi
     if [ $redhat_version != "6" ]; then
         dependencies="$dependencies python-requests"
-        if [ $arch == "x86_64" ]; then
-            dependencies="$dependencies pexpect"
-        fi
     fi
+    if [ $redhat_version != "6" ] || [ $arch == "x86_64" ]; then
+        dependencies="$dependencies pexpect"
+    fi
+
     yum install -y $dependencies
 
     # perl-Net-Telnet rpm package is not available for ppc64, download it
