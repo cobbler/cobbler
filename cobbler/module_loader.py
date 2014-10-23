@@ -31,11 +31,6 @@ from cexceptions import CX
 import clogger
 from utils import _, log_exc
 
-# python 2.3 compat.  If we don't need that, drop this test
-try:
-    set()
-except:
-    from sets import Set as set
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
