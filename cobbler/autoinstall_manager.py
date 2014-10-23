@@ -162,7 +162,6 @@ class AutoInstallationManager:
 
     def get_autoinstall_snippets(self):
 
-        # FIXME: settings.snippetsdir should be used here
         files = []
         for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 

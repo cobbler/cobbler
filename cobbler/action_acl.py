@@ -64,7 +64,7 @@ class AclConfig:
 
     def modacl(self, isadd, isuser, who):
 
-        snipdir = self.settings.snippetsdir
+        snipdir = self.settings.autoinstall_snippets_dir
         tftpboot = utils.tftpboot_location()
 
         PROCESS_DIRS = {
