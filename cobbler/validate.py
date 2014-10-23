@@ -58,6 +58,7 @@ def object_name(name, parent):
 
     return name
 
+
 def hostname(dnsname):
     """
     Validate the dns name.

@@ -82,6 +82,7 @@ from cobbler.utils import _
 # design issues that require this should be avoided forever more, and there are few exceptions.  Cobbler
 # must operate as normal with the default value for all fields and not choke on the default values.
 
+
 class Item(object):
     """
     An Item is a serializable thing that can appear in a Collection

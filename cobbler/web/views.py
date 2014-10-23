@@ -83,6 +83,7 @@ def error_page(request, message):
 
 # ==================================================================================
 
+
 def _get_field_html_element(field_name):
 
     if field_name in field_ui_info.USES_SELECT:
@@ -97,6 +98,7 @@ def _get_field_html_element(field_name):
         return "textarea"
     else:
         return "text"
+
 
 def get_fields(what, is_subobject, seed_item=None):
 
@@ -203,6 +205,7 @@ def get_fields(what, is_subobject, seed_item=None):
 
     return ui_fields
 
+
 def get_network_interface_fields():
     """
     Create network interface fields UI metadata based on network interface
@@ -245,6 +248,7 @@ def get_network_interface_fields():
         fields_ui.append(field_ui)
 
     return fields_ui
+
 
 def _create_sections_metadata(what, sections_data, fields):
 

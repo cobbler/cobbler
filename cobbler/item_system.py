@@ -107,6 +107,7 @@ NETWORK_INTERFACE_FIELDS = [
     ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
 ]
 
+
 class System(item.Item):
     """
     A Cobbler system object.

@@ -8,6 +8,7 @@ from cobbler.cexceptions import CX
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
 
+
 class AutoInstallationManager:
     """
     Manage automatic installation templates, snippets and final files
@@ -73,7 +74,7 @@ class AutoInstallationManager:
         files = []
         for root, dirnames, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
-                rel_root = root[len(self.templates_base_dir)+1:]
+                rel_root = root[len(self.templates_base_dir) + 1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -166,7 +167,7 @@ class AutoInstallationManager:
         for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
-                rel_root = root[len(self.snippets_base_dir)+1:]
+                rel_root = root[len(self.snippets_base_dir) + 1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -303,4 +304,3 @@ class AutoInstallationManager:
             self.logger.info("*** all automatic installation files seem to be ok ***")
 
         return overall_success
-

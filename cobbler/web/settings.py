@@ -1,5 +1,4 @@
 # Django settings for cobbler-web project.
-import django
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

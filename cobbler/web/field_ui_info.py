@@ -138,4 +138,3 @@ SYSTEM_UI_FIELDS_MAPPING = [
 SETTING_UI_FIELDS_MAPPING = [
     {"General": ["name", "value"]}
 ]
-

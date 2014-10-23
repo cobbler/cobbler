@@ -49,6 +49,7 @@ def get_power_types():
     power_types.sort()
     return power_types
 
+
 def validate_power_type(power_type):
     """
     Check if a power management type is valid
@@ -62,6 +63,7 @@ def validate_power_type(power_type):
         raise CX("you need to have fence-agents installed")
     if power_type not in power_types:
         raise CX("power management type must be one of: %s" % ",".join(power_types))
+
 
 def get_power_command(power_type):
     """
@@ -79,6 +81,7 @@ def get_power_command(power_type):
             if os.path.isfile(power_path) and os.access(power_path, os.X_OK):
                 return power_path
     return None
+
 
 def get_power_template(power_type):
     """
@@ -251,4 +254,3 @@ class PowerManager:
         """
 
         return self._power(system, "status", user, password, logger)
-

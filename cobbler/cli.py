@@ -188,6 +188,7 @@ def opt(options, k, defval=""):
         return defval
     return n2s(data)
 
+
 def _add_parser_option_from_field(parser, field, settings):
 
     # extract data from field dictionary
@@ -223,6 +224,7 @@ def _add_parser_option_from_field(parser, field, settings):
         parser.add_option(option_string, dest=name, help=description)
         for alias in aliases:
             parser.add_option(alias, dest=name, help=description)
+
 
 def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):
 
