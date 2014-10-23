@@ -91,6 +91,7 @@ default_autoinstall: /var/lib/cobbler/autoinstall_templates/default.ks
 # unless defined differently in the profile.  For DHCP configurations
 # you probably do /not/ want to supply this.
 default_name_servers: []
+default_name_servers_search: []
 
 # if using the authz_ownership module (see the Wiki), objects
 # created without specifying an owner are assigned to this
@@ -275,9 +276,6 @@ power_template_dir: "/etc/cobbler/power"
 # boot order, otherwise leave this disabled.   See the manpage
 # for --netboot-enabled.
 pxe_just_once: 0
-
-# Path to where system consoles are 
-consoles: "/var/consoles"
 
 # This setting is only used by the code that supports using Spacewalk/Satellite
 # authentication within Cobbler Web and Cobbler XMLRPC.

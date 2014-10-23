@@ -57,7 +57,6 @@ DEFAULTS = {
     "client_use_https": [0, "bool"],
     "client_use_localhost": [0, "bool"],
     "cobbler_master": ["", "str"],
-    "consoles": ["/var/consoles", "str"],
     "createrepo_flags": ["-c cache -s sha", "str"],
     "default_autoinstall": ["/var/lib/cobbler/autoinstall_templates/default.ks", "str"],
     "default_name_servers": [[], "list"],
