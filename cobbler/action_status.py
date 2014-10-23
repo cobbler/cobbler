@@ -132,10 +132,14 @@ class CobblerStatusReport:
         buf = format % line
         for ip in ips:
             elem = ip_data[ip]
+            if elem[MOST_RECENT_START] > -1:
+                start = time.ctime(elem[MOST_RECENT_START])
+            else:
+                start = "Unknown"
             line = (
                 ip,
                 elem[MOST_RECENT_TARGET],
-                time.ctime(elem[MOST_RECENT_START]),
+                start,
                 elem[STATE]
             )
             buf += "\n" + format % line
