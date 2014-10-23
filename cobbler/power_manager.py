@@ -171,6 +171,8 @@ class PowerManager:
         template = get_power_template(system.power_type)
         tmp = templar.Templar(self.collection_mgr)
         template_data = tmp.render(template, meta, None, system)
+        logger.info("power command: %s" % power_command)
+        logger.info("power command input: %s" % template_data)
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
