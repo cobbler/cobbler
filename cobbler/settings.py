@@ -105,7 +105,7 @@ DEFAULTS = {
     "puppet_server": ["puppet", "str"],
     "puppet_version": [2, "int"],
     "puppetca_path": ["/usr/bin/puppet", "str"],
-    "pxe_just_once": [0, "bool"],
+    "pxe_just_once": [1, "bool"],
     "redhat_management_permissive": [0, "bool"],
     "redhat_management_server": ["xmlrpc.rhn.redhat.com", "str"],
     "register_new_installs": [0, "bool"],
