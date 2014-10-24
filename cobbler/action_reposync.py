@@ -364,7 +364,13 @@ class RepoSync:
         Handle copying of http:// and ftp:// yum repos.
         """
 
+        # create the config file the hosts will use to access the repository.
         repo_mirror = repo.mirror
+        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
+        self.create_local_file(dest_path, repo)
+
+        if not repo.mirror_locally:
+            return
 
         # warn about not having yum-utils.  We don't want to require it in the package because
         # RHEL4 and RHEL5U0 don't have it.
@@ -381,19 +387,15 @@ class RepoSync:
             has_rpm_list = True
 
         # create yum config file for use by reposync
-        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
-        if not os.path.isdir(temp_path) and repo.mirror_locally:
+        if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
          
-        # create the config file that yum will use for the copying
+        temp_file = self.create_local_file(temp_path, repo, output=False)
 
-        if repo.mirror_locally:
-            temp_file = self.create_local_file(temp_path, repo, output=False)
-
-        if not has_rpm_list and repo.mirror_locally:
+        if not has_rpm_list:
             # if we have not requested only certain RPMs, use reposync
             cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, self.settings.webdir+"/repo_mirror")
             if repo.arch != "":
@@ -405,7 +407,7 @@ class RepoSync:
                 else:
                    cmd = "%s -a %s" % (cmd, repo.arch)
 
-        elif repo.mirror_locally:
+        else:
 
             # create the output directory if it doesn't exist
             if not os.path.exists(dest_path):
@@ -424,10 +426,9 @@ class RepoSync:
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
         # commands here.  Any failure at any point stops the operation.
 
-        if repo.mirror_locally:
-            rc = utils.subprocess_call(self.logger, cmd)
-            if rc !=0:
-                utils.die(self.logger,"cobbler reposync failed")
+        rc = utils.subprocess_call(self.logger, cmd)
+        if rc !=0:
+            utils.die(self.logger,"cobbler reposync failed")
 
         repodata_path = os.path.join(dest_path, "repodata")
 
@@ -459,11 +460,7 @@ class RepoSync:
                     utils.die("failed to fetch %s" % src)
 
         # now run createrepo to rebuild the index
-        if repo.mirror_locally:
-            os.path.walk(dest_path, self.createrepo_walker, repo)
-
-        # create the config file the hosts will use to access the repository.
-        self.create_local_file(dest_path, repo)
+        os.path.walk(dest_path, self.createrepo_walker, repo)
 
     # ====================================================================================
  
