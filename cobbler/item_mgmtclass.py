@@ -24,20 +24,23 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
-    ["uid", "", 0, "", False, "", 0, "str"],
+    # non-editable in UI (internal)
+    ["ctime", 0, 0, "", False, "", 0, "int"],
     ["depth", 2, 0, "", False, "", 0, "float"],
+    ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
+    ["mtime", 0, 0, "", False, "", 0, "int"],
+    ["uid", "", 0, "", False, "", 0, "str"],
+
+    # editable in UI
+    ["class_name", "", 0, "Class Name", True, "Actual Class Name (leave blank to use the name field)", 0, "str"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["files", [], 0, "Files", True, "File resources", 0, "list"],
     ["name", "", 0, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
     ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["ctime", 0, 0, "", False, "", 0, "int"],
-    ["mtime", 0, 0, "", False, "", 0, "int"],
-    ["class_name", "", 0, "Class Name", True, "Actual Class Name (leave blank to use the name field)", 0, "str"],
-    ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
-    ["params", {}, 0, "Parameters/Variables", True, "List of parameters/variables", 0, "dict"],
     ["packages", [], 0, "Packages", True, "Package resources", 0, "list"],
-    ["files", [], 0, "Files", True, "File resources", 0, "list"],
+    ["params", {}, 0, "Parameters/Variables", True, "List of parameters/variables", 0, "dict"],
 ]
 
 

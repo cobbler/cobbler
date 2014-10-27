@@ -20,83 +20,91 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from cobbler import autoinstall_manager
 from cobbler import item
+from cobbler import power_manager
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
-    ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
+    # non-editable in UI (internal)
+    ["ctime", 0, 0, "", False, "", 0, "float"],
+    ["depth", 2, 0, "", False, "", 0, "int"],
+    ["ipv6_autoconfiguration", False, 0, "IPv6 Autoconfiguration", True, "", 0, "bool"],
+    ["mtime", 0, 0, "", False, "", 0, "float"],
+    ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
     ["uid", "", 0, "", False, "", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
+
+    # editable in UI
+    ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
+    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
+    ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
+    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
+    ["gateway", "", 0, "Gateway", True, "", 0, "str"],
+    ["hostname", "", 0, "Hostname", True, "", 0, "str"],
     ["image", None, 0, "Image", True, "Parent image (if not a profile)", 0, "str"],
-    ["status", "production", 0, "Status", True, "System status", ["", "development", "testing", "acceptance", "production"], "str"],
+    ["ipv6_default_device", "", 0, "IPv6 Default Device", True, "", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
-    ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
-    ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
-    ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
-    ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
-    ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
-    ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
-    ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
-    ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
-    ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
-    ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
-    ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
-    ["depth", 2, 0, "", False, "", 0, "int"],
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", utils.get_power_types(), "str"],
-    ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
-    ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
-    ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
-    ["power_id", "", 0, "Power Management ID", True, "Usually a plug number or blade name, if power type requires it", 0, "str"],
-    ["hostname", "", 0, "Hostname", True, "", 0, "str"],
-    ["gateway", "", 0, "Gateway", True, "", 0, "str"],
-    ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
-    ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
-    ["ipv6_default_device", "", 0, "IPv6 Default Device", True, "", 0, "str"],
-    ["ipv6_autoconfiguration", False, 0, "IPv6 Autoconfiguration", True, "", 0, "bool"],
-    ["network_widget_a", "", 0, "Add Interface", True, "", 0, "str"],        # not a real field, a marker for the web app
-    ["network_widget_b", "", 0, "Edit Interface", True, "", 0, "str"],       # not a real field, a marker for the web app
-    ["*mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
-    ["network_widget_c", "", 0, "", True, "", 0, "str"],                     # not a real field, a marker for the web app
-    ["*mtu", "", 0, "MTU", True, "", 0, "str"],
-    ["*ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["*interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
-    ["*interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["*bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
-    ["*bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
-    ["*management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
-    ["*static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
-    ["*netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
-    ["*if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
-    ["*dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
-    ["*dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
-    ["*static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["*virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
-    ["*ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
-    ["*ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["*ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
     ["mgmt_classes", "<<inherit>>", 0, "Management Classes", True, "For external config management", 0, "list"],
     ["mgmt_parameters", "<<inherit>>", 0, "Management Parameters", True, "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
-    ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
+    ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
+    ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
+    ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
+    ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
+    ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
+    ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
+    ["power_id", "", 0, "Power Management ID", True, "Usually a plug number or blade name, if power type requires it", 0, "str"],
+    ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
+    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", power_manager.get_power_types(), "str"],
+    ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
+    ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
+    ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
+    ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["status", "production", 0, "Status", True, "System status", ["", "development", "testing", "acceptance", "production"], "str"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
-    ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
-    ["*cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+    ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
+    ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
+    ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
+    ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
+    ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
+    ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
+    ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
+    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
+]
+
+# network interface fields are in a separate list because a system may contain
+# several network interfaces and thus several values for each one of those fields
+# (1-N cardinality), while it may contain only one value for other fields
+# (1-1 cardinality). This difference requires special handling.
+NETWORK_INTERFACE_FIELDS = [
+    ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
+    ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
+    ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+    ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
+    ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
+    ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
+    ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
+    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
+    ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
+    ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
+    ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
+    ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
+    ["management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
+    ["mtu", "", 0, "MTU", True, "", 0, "str"],
+    ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
+    ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
+    ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
+    ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
 ]
 
 
@@ -163,39 +171,19 @@ class System(item.Item):
     # specific methods for item.System
     #
 
+    def __create_interface(self, interface):
+
+        self.interfaces[interface] = {}
+        for field in NETWORK_INTERFACE_FIELDS:
+            self.interfaces[interface][field[0]] = field[1]
+
+
     def __get_interface(self, name):
 
-        if name == "" and len(self.interfaces.keys()) == 0:
-            raise CX(_("No interfaces defined. Please use --interface <interface_name>"))
-        elif name == "" and len(self.interfaces.keys()) == 1:
-            name = self.interfaces.keys()[0]
-        elif name == "" and len(self.interfaces.keys()) > 1:
-            raise CX(_("Multiple interfaces defined. Please use --interface <interface_name>"))
-        elif name not in self.interfaces:
-            self.interfaces[name] = {
-                "mac_address": "",
-                "mtu": "",
-                "ip_address": "",
-                "dhcp_tag": "",
-                "netmask": "",
-                "if_gateway": "",
-                "virt_bridge": "",
-                "static": False,
-                "interface_type": "",
-                "interface_master": "",
-                "bonding_opts": "",
-                "bridge_opts": "",
-                "management": False,
-                "dns_name": "",
-                "static_routes": [],
-                "ipv6_address": "",
-                "ipv6_prefix": "",
-                "ipv6_secondaries": [],
-                "ipv6_mtu": "",
-                "ipv6_static_routes": [],
-                "ipv6_default_gateway": "",
-                "cnames": [],
-            }
+        if not name:
+            raise CX(_("No network interface name provided"))
+        if not name in self.interfaces:
+            self.__create_interface(name)
 
         return self.interfaces[name]
 
@@ -682,16 +670,10 @@ class System(item.Item):
 
 
     def set_power_type(self, power_type):
-        # FIXME: modularize this better
         if power_type is None:
             power_type = ""
-        choices = utils.get_power_types()
-        if not choices:
-            raise CX("you need to have fence-agents installed")
-        if power_type not in choices:
-            raise CX("power management type must be one of: %s" % ",".join(choices))
+        power_manager.validate_power_type(power_type)
         self.power_type = power_type
-
 
     def set_power_user(self, power_user):
         if power_user is None:
@@ -720,47 +702,14 @@ class System(item.Item):
         utils.safe_filter(power_id)
         self.power_id = power_id
 
-
     def modify_interface(self, _dict):
         """
         Used by the WUI to modify an interface more-efficiently
         """
+
         for (key, value) in _dict.iteritems():
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
-
-            if field == "macaddress":
-                self.set_mac_address(value, interface)
-
-            if field == "mtu":
-                self.set_mtu(value, interface)
-
-            if field == "ipaddress":
-                self.set_ip_address(value, interface)
-
-            if field == "dnsname":
-                self.set_dns_name(value, interface)
-
-            if field == "static":
-                self.set_static(value, interface)
-
-            if field == "dhcptag":
-                self.set_dhcp_tag(value, interface)
-
-            if field == "netmask":
-                self.set_netmask(value, interface)
-
-            if field == "ifgateway":
-                self.set_if_gateway(value, interface)
-
-            if field == "virtbridge":
-                self.set_virt_bridge(value, interface)
-
-            if field == "interfacetype":
-                self.set_interface_type(value, interface)
-
-            if field == "interfacemaster":
-                self.set_interface_master(value, interface)
 
             if field == "bondingopts":
                 self.set_bonding_opts(value, interface)
@@ -768,14 +717,35 @@ class System(item.Item):
             if field == "bridgeopts":
                 self.set_bridge_opts(value, interface)
 
-            if field == "management":
-                self.set_management(value, interface)
+            if field == "cnames":
+                self.set_cnames(value, interface)
 
-            if field == "staticroutes":
-                self.set_static_routes(value, interface)
+            if field == "dhcptag":
+                self.set_dhcp_tag(value, interface)
+
+            if field == "dnsname":
+                self.set_dns_name(value, interface)
+
+            if field == "ifgateway":
+                self.set_if_gateway(value, interface)
+
+            if field == "interfacetype":
+                self.set_interface_type(value, interface)
+
+            if field == "interfacemaster":
+                self.set_interface_master(value, interface)
+
+            if field == "ipaddress":
+                self.set_ip_address(value, interface)
 
             if field == "ipv6address":
                 self.set_ipv6_address(value, interface)
+
+            if field == "ipv6defaultgateway":
+                self.set_ipv6_default_gateway(value, interface)
+
+            if field == "ipv6mtu":
+                self.set_ipv6_mtu(value, interface)
 
             if field == "ipv6prefix":
                 self.set_ipv6_prefix(value, interface)
@@ -783,17 +753,29 @@ class System(item.Item):
             if field == "ipv6secondaries":
                 self.set_ipv6_secondaries(value, interface)
 
-            if field == "ipv6mtu":
-                self.set_ipv6_mtu(value, interface)
-
             if field == "ipv6staticroutes":
                 self.set_ipv6_static_routes(value, interface)
 
-            if field == "ipv6defaultgateway":
-                self.set_ipv6_default_gateway(value, interface)
+            if field == "macaddress":
+                self.set_mac_address(value, interface)
 
-            if field == "cnames":
-                self.set_cnames(value, interface)
+            if field == "management":
+                self.set_management(value, interface)
+
+            if field == "mtu":
+                self.set_mtu(value, interface)
+
+            if field == "netmask":
+                self.set_netmask(value, interface)
+
+            if field == "static":
+                self.set_static(value, interface)
+
+            if field == "staticroutes":
+                self.set_static_routes(value, interface)
+
+            if field == "virtbridge":
+                self.set_virt_bridge(value, interface)
 
 
 

@@ -151,7 +151,7 @@ if (( $1 >= 2 )); then
     if [[ ! -d /var/lib/cobbler/backup/upgrade-${DATE} ]]; then
         mkdir -p /var/lib/cobbler/backup/upgrade-${DATE}
     fi
-    for i in "config" "autoinstall_snippets" "autoinstall_templates" "triggers" "scripts"; do
+    for i in "config" "autoinstall_snippets" "autoinstall_templates" "triggers" "autoinstall_scripts"; do
         if [[ -d /var/lib/cobbler/${i} ]]; then
             cp -r /var/lib/cobbler/${i} /var/lib/cobbler/backup/upgrade-${DATE}
         fi
@@ -221,7 +221,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/tftpd.py
 
 # python
-%{python2_sitelib}/cobbler
+%{python2_sitelib}/cobbler/*.py
+%{python2_sitelib}/cobbler/modules/*.py
 %{python2_sitelib}/cobbler*.egg-info
 %exclude %{python2_sitelib}/cobbler/modules/nsupdate*
 
@@ -314,7 +315,7 @@ Requires: mod_wsgi
 %if 0%{?suse_version} >= 1230
 Requires: apache2
 Requires: apache2-mod_wsgi
-Requires: python-django
+Requires: python-django >= 1.4
 %endif
 
 
@@ -333,6 +334,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %files -n cobbler-web
 %doc AUTHORS COPYING README
 
+%{python2_sitelib}/cobbler/modules/web/
 %dir %{apache_etc}
 %dir %{apache_etc}/conf.d
 %config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf

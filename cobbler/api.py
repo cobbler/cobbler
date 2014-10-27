@@ -22,7 +22,6 @@ from ConfigParser import ConfigParser
 import os
 import random
 import tempfile
-import time
 import urlgrabber
 
 from cobbler import action_acl
@@ -31,7 +30,6 @@ from cobbler import action_check
 from cobbler import action_dlcontent
 from cobbler import action_hardlink
 from cobbler import action_log
-from cobbler import action_power
 from cobbler import action_replicate
 from cobbler import action_report
 from cobbler import action_reposync
@@ -49,6 +47,7 @@ from cobbler import item_profile
 from cobbler import item_repo
 from cobbler import item_system
 from cobbler import module_loader
+from cobbler import power_manager
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
@@ -153,6 +152,7 @@ class CobblerAPI:
 
             self.yumgen = yumgen.YumGen(self._collection_mgr)
             self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
+            self.power_mgr = power_manager.PowerManager(self, self._collection_mgr)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
 
@@ -844,13 +844,13 @@ class CobblerAPI:
                 spacer = ' -e "ssh" '
             rsync_cmd = RSYNC_CMD
             if rsync_flags:
-                rsync_cmd = rsync_cmd + " " + rsync_flags
+                rsync_cmd += " " + rsync_flags
 
             # if --available-as was specified, limit the files we
             # pull down via rsync to just those that are critical
             # to detecting what the distro is
             if network_root is not None:
-                rsync_cmd = rsync_cmd + " --include-from=/etc/cobbler/import_rsync_whitelist"
+                rsync_cmd += " --include-from=/etc/cobbler/import_rsync_whitelist"
 
             # kick off the rsync now
             utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
@@ -866,7 +866,7 @@ class CobblerAPI:
             # URL needs to be calculated relative to this.
 
             if not network_root.endswith("/"):
-                network_root = network_root + "/"
+                network_root += "/"
             valid_roots = ["nfs://", "ftp://", "http://"]
             for valid_root in valid_roots:
                 if network_root.startswith(valid_root):
@@ -1042,33 +1042,29 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def power_on(self, system, user=None, password=None, logger=None):
+    def power_system(self, system, power_operation, user=None, password=None, logger=None):
         """
-        Powers up a system that has power management configured.
-        """
-        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("on")
+        Power on / power off / get power status /reboot a system.
 
-    def power_off(self, system, user=None, password=None, logger=None):
+        @param str system Cobbler system
+        @param str power_operation power operation. Valid values: on, off, reboot, status
+        @param str token Cobbler authentication token
+        @param str user power management user
+        @param str password power management password
+        @param Logger logger logger
+        @return bool if operation was successful
         """
-        Powers down a system that has power management configured.
-        """
-        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("off")
 
-    def reboot(self, system, user=None, password=None, logger=None):
-        """
-        Cycles power on a system that has power management configured.
-        """
-        self.power_off(system, user, password, logger=logger)
-        time.sleep(5)
-        self.power_on(system, user, password, logger=logger)
-
-    def power_status(self, system, user=None, password=None, logger=None):
-        """
-        Returns the power status for a system that has power management configured.
-
-        @return: 0  the system is powered on, False if it's not or None on error
-        """
-        action_power.PowerTool(self._collection_mgr, system, self, user, password, logger=logger).power("status")
+        if power_operation == "on":
+            self.power_mgr.power_on(system, user=user, password=password, logger=logger)
+        elif power_operation == "off":
+            self.power_mgr.power_off(system, user=user, password=password, logger=logger)
+        elif power_operation == "status":
+            self.power_mgr.get_power_status(system, user=user, password=password, logger=logger)
+        elif power_operation == "reboot":
+            self.power_mgr.reboot(system, user=user, password=password, logger=logger)
+        else:
+            utils.die(self.logger, "invalid power operation '%s', expected on/off/status/reboot" % power_operation)
 
     # ==========================================================================
 

@@ -138,10 +138,10 @@ def get_exc(exc, full=True):
         buf = str(exc)[1:-1] + "\n"
     except:
         if not full:
-            buf = buf + str(t)
+            buf += str(t)
         buf = "%s\n%s" % (buf, v)
         if full:
-            buf = buf + "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
+            buf += "\n" + "\n".join(traceback.format_list(traceback.extract_tb(tb)))
     return buf
 
 
@@ -149,7 +149,7 @@ def cheetah_exc(exc, full=False):
     lines = get_exc(exc).split("\n")
     buf = ""
     for l in lines:
-        buf = buf + "# %s\n" % l
+        buf += "# %s\n" % l
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
@@ -577,26 +577,6 @@ def blender(api_handle, remove_dicts, root_obj):
     for node in tree:
         __consolidate(node, results)
 
-    # Get topmost object to determine which breed we're dealing with
-    parent = root_obj.get_parent()
-    if parent is None:
-        parent = root_obj
-
-    while parent.COLLECTION_TYPE is "profile" or parent.COLLECTION_TYPE is "system":
-        parent = parent.get_parent()
-
-    breed = parent.breed
-
-    if breed == "redhat":
-        # determine if we have room to add kssendmac to the kernel options line
-        kernel_txt = dict_to_string(results["kernel_options"])
-        if len(kernel_txt) < 244:
-            results["kernel_options"]["kssendmac"] = None
-
-    # convert post kernel options to string
-    if "kernel_options_post" in results:
-        results["kernel_options_post"] = dict_to_string(results["kernel_options_post"])
-
     # make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
 
@@ -604,13 +584,6 @@ def blender(api_handle, remove_dicts, root_obj):
         for (name, interface) in root_obj.interfaces.iteritems():
             for key in interface.keys():
                 results["%s_%s" % (key, name)] = interface[key]
-                # just to keep templates backwards compatibile
-                if name == "intf0":
-                    # prevent stomping on profile variables, which really only happens
-                    # with the way we check for virt_bridge, which is a profile setting
-                    # and an interface setting
-                    if key not in results:
-                        results[key] = interface[key]
 
     # if the root object is a profile or system, add in all
     # repo data for repos that belong to the object chain
@@ -638,12 +611,6 @@ def blender(api_handle, remove_dicts, root_obj):
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
         results = flatten(results)
-
-    # the password field is inputed as escaped strings but Cheetah
-    # does weird things when expanding it due to multiple dollar signs
-    # so this is the workaround
-    if "default_password_crypted" in results:
-        results["default_password_crypted"] = results["default_password_crypted"].replace("\$", "$")
 
     # add in some variables for easier templating
     # as these variables change based on object type
@@ -801,14 +768,14 @@ def dict_to_string(_dict):
     for key in _dict:
         value = _dict[key]
         if not value:
-            buffer = buffer + str(key) + " "
+            buffer += str(key) + " "
         elif isinstance(value, list):
             # this value is an array, so we print out every
             # key=value
             for item in value:
-                buffer = buffer + str(key) + "=" + str(item) + " "
+                buffer += str(key) + "=" + str(item) + " "
         else:
-            buffer = buffer + str(key) + "=" + str(value) + " "
+            buffer += str(key) + "=" + str(value) + " "
     return buffer
 
 
@@ -1693,7 +1660,7 @@ def clear_from_fields(item, fields, is_subobject=False):
     """
     for elems in fields:
         # if elems startswith * it's an interface field and we do not operate on it.
-        if elems[0].startswith("*") or elems[0].find("widget") != -1:
+        if elems[0].startswith("*"):
             continue
         if is_subobject:
             val = elems[2]
@@ -1713,7 +1680,7 @@ def from_dict_from_fields(item, item_dict, fields):
     int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
-        if elems[0].startswith("*") or elems[0].find("widget") != -1:
+        if elems[0].startswith("*"):
             if elems[0].startswith("*"):
                 int_fields.append(elems)
             continue
@@ -1747,7 +1714,7 @@ def to_dict_from_fields(item, fields):
     _dict = {}
     for elem in fields:
         k = elem[0]
-        if k.startswith("*") or k.find("widget") != -1:
+        if k.startswith("*"):
             continue
         data = getattr(item, k)
         _dict[k] = data
@@ -1772,28 +1739,28 @@ def to_string_from_fields(item_dict, fields):
     for elem in fields:
         keys.append((elem[0], elem[3], elem[4]))
     keys.sort()
-    buf = buf + "%-30s : %s\n" % ("Name", item_dict["name"])
+    buf += "%-30s : %s\n" % ("Name", item_dict["name"])
     for (k, nicename, editable) in keys:
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
         # FIXME: print ctime, mtime nicely
-        if k.startswith("*") or not editable or k.find("widget") != -1:
+        if k.startswith("*") or not editable:
             continue
 
         if k != "name":
             # FIXME: move examples one field over, use description here.
-            buf = buf + "%-30s : %s\n" % (nicename, item_dict[k])
+            buf += "%-30s : %s\n" % (nicename, item_dict[k])
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
     if "interfaces" in item_dict:
         for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
-            buf = buf + "%-30s : %s\n" % ("Interface ===== ", iname)
+            buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
                 nkey = k.replace("*", "")
                 if k.startswith("*") and editable:
-                    buf = buf + "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
+                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
 
     return buf
 
@@ -1805,55 +1772,12 @@ def get_setter_methods_from_fields(item, fields):
     setters = {}
     for elem in fields:
         name = elem[0].replace("*", "")
-        if name.find("widget") == -1:
-            setters[name] = getattr(item, "set_%s" % name)
+        setters[name] = getattr(item, "set_%s" % name)
     if item.COLLECTION_TYPE == "system":
         setters["modify_interface"] = getattr(item, "modify_interface")
         setters["delete_interface"] = getattr(item, "delete_interface")
         setters["rename_interface"] = getattr(item, "rename_interface")
     return setters
-
-
-def get_power_types():
-    """
-    Return all possible power types
-    """
-    power_types = []
-    power_template = re.compile(r'fence_(.*)')
-    fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
-    for x in fence_files:
-        power_types.append(power_template.search(x).group(1))
-    power_types.sort()
-    return power_types
-
-
-def get_power(powertype=None):
-    """
-    Return power command for type
-    """
-    if powertype:
-        # try /sbin, then /usr/sbin
-        powerpath1 = "/sbin/fence_%s" % powertype
-        powerpath2 = "/usr/sbin/fence_%s" % powertype
-        for powerpath in (powerpath1, powerpath2):
-            if os.path.isfile(powerpath) and os.access(powerpath, os.X_OK):
-                return powerpath
-    return None
-
-
-def get_power_template(powertype=None):
-    """
-    Return power template for type
-    """
-    if powertype:
-        powertemplate = "/etc/cobbler/power/fence_%s.template" % powertype
-        if os.path.isfile(powertemplate):
-            f = open(powertemplate)
-            template = f.read()
-            f.close()
-            return template
-    # return a generic template if a specific one wasn't found
-    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
 
 
 def load_signatures(filename, cache=True):

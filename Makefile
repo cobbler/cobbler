@@ -13,9 +13,8 @@ clean:
 	@rm -f *.pyc
 	@rm -f cobbler/*.pyc
 	@rm -f cobbler/modules/*.pyc
-	@rm -f web/*.pyc
-	@rm -f web/cobbler_web/*.pyc
-	@rm -f web/cobbler_web/templatetags/*.pyc
+	@rm -f cobbler/web/*.pyc
+	@rm -f cobbler/web/templatetags/*.pyc
 	@rm -f koan/*.pyc
 	@rm -f koan/live/*.pyc
 	@echo "cleaning: build artifacts"
@@ -42,16 +41,16 @@ qa:
 		*.py \
 		cobbler/*.py \
 		cobbler/modules/*.py \
-		bin/cobbler* bin/*.py bin/koan \
-		web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
+		cobbler/web/*.py cobbler/web/templatetags/*.py \
+		bin/cobbler* bin/*.py bin/koan web/cobbler.wsgi \
 		koan/*.py
 	@echo "checking: pep8"
 	@pep8 -r --ignore E303,E501 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
-        bin/cobbler* bin/*.py bin/koan web/*.py \
-        web/*.py web/cobbler_web/*.py web/cobbler_web/templatetags/*.py \
+        cobbler/web/*.py cobbler/web/templatetags/*.py \
+        bin/cobbler* bin/*.py bin/koan web/cobbler.wsgi \
         koan/*.py
 
 authors:
@@ -114,16 +113,16 @@ restorestate:
 	if [ -n "`getent passwd apache`" ] ; then \
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
 	elif [ -n "`getent passwd wwwrun`" ] ; then \
-		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
+		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web; \
 	elif [-n "`getent passwd www-data`"] ; then \
-		chown -R www-data $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
+		chown -R www-data $(DESTDIR)/usr/share/cobbler/web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
 		chmod -R +x $(DESTDIR)/var/www/cobbler/web; \
 		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
 	fi
 	if [ -d $(DESTDIR)/usr/share/cobbler/web ] ; then \
-		chmod -R +x $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
+		chmod -R +x $(DESTDIR)/usr/share/cobbler/web; \
 	fi
 	if [ -d $(DESTDIR)/srv/www/cobbler/svc ]; then \
 		chmod -R +x $(DESTDIR)/srv/www/cobbler/svc; \

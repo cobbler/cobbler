@@ -27,31 +27,34 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# this datastructure is described in great detail in item_distro.py -- read the comments there.
+# this data structure is described in item.py
 FIELDS = [
-    ['name', '', 0, "Name", True, "", 0, "str"],
+    # non-editable in UI (internal)
+    ['ctime', 0, 0, "", False, "", 0, "float"],
+    ['depth', 0, 0, "", False, "", 0, "int"],
+    ['mtime', 0, 0, "", False, "", 0, "float"],
+    ['parent', '', 0, "", False, "", 0, "str"],
+    ['uid', "", 0, "", False, "", 0, "str"],
+
+    # editable in UI
     ['arch', 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    ['autoinstall', '', 0, "Automatic installation file", True, "Path to autoinst/answer file template", 0, "str"],
     ['breed', 'redhat', 0, "Breed", True, "", utils.get_valid_breeds(), "str"],
     ['comment', '', 0, "Comment", True, "Free form text description", 0, "str"],
-    ['ctime', 0, 0, "", False, "", 0, "float"],
-    ['mtime', 0, 0, "", False, "", 0, "float"],
     ['file', '', 0, "File", True, "Path to local file or nfs://user@host:path", 0, "str"],
-    ['depth', 0, 0, "", False, "", 0, "int"],
     ['image_type', "iso", 0, "Image Type", True, "", ["iso", "direct", "memdisk", "virt-image"], "str"],
+    ['name', '', 0, "Name", True, "", 0, "str"],
     ['network_count', 1, 0, "Virt NICs", True, "", 0, "int"],
     ['os_version', '', 0, "OS Version", True, "ex: rhel4", utils.get_valid_os_versions(), "str"],
     ['owners', "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
-    ['parent', '', 0, "", False, "", 0, "str"],
-    ['autoinstall', '', 0, "Automatic installation file", True, "Path to autoinst/answer file template", 0, "str"],
     ['virt_auto_boot', "SETTINGS:virt_auto_boot", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ['virt_bridge', "SETTINGS:default_virt_bridge", 0, "Virt Bridge", True, "", 0, "str"],
     ['virt_cpus', 1, 0, "Virt CPUs", True, "", 0, "int"],
-    ['virt_file_size', "SETTINGS:default_virt_file_size", 0, "Virt File Size (GB)", True, "", 0, "float"],
     ["virt_disk_driver", "SETTINGS:default_virt_disk_driver", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", "raw", "str"],
+    ['virt_file_size', "SETTINGS:default_virt_file_size", 0, "Virt File Size (GB)", True, "", 0, "float"],
     ['virt_path', '', 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
     ['virt_ram', "SETTINGS:default_virt_ram", 0, "Virt RAM (MB)", True, "", 0, "int"],
     ['virt_type', "SETTINGS:default_virt_type", 0, "Virt Type", True, "", ["xenpv", "xenfv", "qemu", "kvm", "vmware"], "str"],
-    ['uid', "", 0, "", False, "", 0, "str"]
 ]
 
 
@@ -126,30 +129,21 @@ class Image(item.Item):
         * /path/to/the/filename.ext
         """
         uri = ""
-        scheme = auth = hostname = path = ""
-        # we'll discard the protocol if it's supplied, for legacy support
+        auth = hostname = path = ""
+        # validate file location format
         if filename.find("://") != -1:
-            scheme, uri = filename.split("://")
-            filename = uri
-        else:
-            uri = filename
+            raise CX("Invalid image file path location, it should not contain a protocol")
+        uri = filename
 
         if filename.find("@") != -1:
             auth, filename = filename.split("@")
         # extract the hostname
         # 1. if we have a colon, then everything before it is a hostname
-        # 2. if we don't have a colon, then check if we had a scheme; if
-        #    we did, then grab all before the first forward slash as the
-        #    hostname; otherwise, we've got a bad file
+        # 2. if we don't have a colon, there is no hostname
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != '/':
-            if len(scheme) > 0:
-                index = filename.find("/")
-                hostname = filename[:index]
-                filename = filename[index:]
-            else:
-                raise CX(_("invalid file: %s" % filename))
+            raise CX(_("invalid file: %s" % filename))
         # raise an exception if we don't have a valid path
         if len(filename) > 0 and filename[0] != '/':
             raise CX(_("file contains an invalid path: %s" % filename))

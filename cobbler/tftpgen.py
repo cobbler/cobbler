@@ -313,14 +313,14 @@ class TFTPGen:
                 system=None, profile=profile, distro=distro, arch=distro.arch,
                 include_header=False)
             if contents is not None:
-                pxe_menu_items = pxe_menu_items + contents + "\n"
+                pxe_menu_items += contents + "\n"
 
             grub_contents = self.write_pxe_file(
                 filename=None,
                 system=None, profile=profile, distro=distro, arch=distro.arch,
                 include_header=False, format="grub")
             if grub_contents is not None:
-                grub_menu_items = grub_menu_items + grub_contents + "\n"
+                grub_menu_items += grub_contents + "\n"
 
 
         # image names towards the bottom
@@ -331,17 +331,17 @@ class TFTPGen:
                     system=None, profile=None, distro=None, arch=image.arch,
                     image=image)
                 if contents is not None:
-                    pxe_menu_items = pxe_menu_items + contents + "\n"
+                    pxe_menu_items += contents + "\n"
 
         # if we have any memtest files in images, make entries for them
         # after we list the profiles
         memtests = glob.glob(self.bootloc + "/images/memtest*")
         if len(memtests) > 0:
-            pxe_menu_items = pxe_menu_items + "\n\n"
+            pxe_menu_items += "\n\n"
             for memtest in glob.glob(self.bootloc + '/images/memtest*'):
                 base = os.path.basename(memtest)
                 contents = self.write_memtest_pxe("/%s" % base)
-                pxe_menu_items = pxe_menu_items + contents + "\n"
+                pxe_menu_items += contents + "\n"
 
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
 
@@ -375,14 +375,14 @@ class TFTPGen:
                     system=None, profile=profile, distro=distro, arch=distro.arch,
                     include_header=False)
                 if contents is not None:
-                    pxe_menu_items = pxe_menu_items + contents + "\n"
+                    pxe_menu_items += contents + "\n"
 
                 grub_contents = self.write_pxe_file(
                     filename=None,
                     system=None, profile=profile, distro=distro, arch=distro.arch,
                     include_header=False, format="nexenta")
                 if grub_contents is not None:
-                    grub_menu_items = grub_menu_items + grub_contents + "\n"
+                    grub_menu_items += grub_contents + "\n"
 
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
 
@@ -716,6 +716,8 @@ class TFTPGen:
                     autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (ipaddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
+
+                append_line += " kssendmac"
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
                 gpxe = blended["enable_gpxe"]
                 if gpxe:

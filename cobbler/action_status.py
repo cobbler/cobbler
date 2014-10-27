@@ -84,13 +84,13 @@ class CobblerStatusReport:
             if mrstart < ts:
                 mrstart = ts
                 mrtarg = "%s:%s" % (profile_or_system, name)
-                elem[SEEN_START] = elem[SEEN_START] + 1
+                elem[SEEN_START] += 1
 
         if start_or_stop == "stop":
             if mrstop < ts:
                 mrstop = ts
                 mrtarg = "%s:%s" % (profile_or_system, name)
-                elem[SEEN_STOP] = elem[SEEN_STOP] + 1
+                elem[SEEN_STOP] += 1
 
         elem[MOST_RECENT_START] = mrstart
         elem[MOST_RECENT_STOP] = mrstop
@@ -132,13 +132,17 @@ class CobblerStatusReport:
         buf = format % line
         for ip in ips:
             elem = ip_data[ip]
+            if elem[MOST_RECENT_START] > -1:
+                start = time.ctime(elem[MOST_RECENT_START])
+            else:
+                start = "Unknown"
             line = (
                 ip,
                 elem[MOST_RECENT_TARGET],
-                time.ctime(elem[MOST_RECENT_START]),
+                start,
                 elem[STATE]
             )
-            buf = buf + "\n" + format % line
+            buf += "\n" + format % line
         return buf
 
     # -------------------------------------------------------

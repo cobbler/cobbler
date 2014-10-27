@@ -24,6 +24,7 @@ import shlex
 from cobbler.cexceptions import CX
 
 
+
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
@@ -56,6 +57,7 @@ def object_name(name, parent):
         raise CX("Invalid characters in name: '%s'" % name)
 
     return name
+
 
 def hostname(dnsname):
     """
@@ -183,7 +185,6 @@ def name_servers(nameservers, for_item=True):
         if for_item is True:
             # special handling for Items
             if nameservers in ["<<inherit>>", ""]:
-                nameservers = "<<inherit>>"
                 return nameservers
 
         # convert string to a list; do the real validation
@@ -217,7 +218,6 @@ def name_servers_search(search, for_item=True):
         if for_item is True:
             # special handling for Items
             if search in ["<<inherit>>", ""]:
-                search = "<<inherit>>"
                 return search
 
         # convert string to a list; do the real validation

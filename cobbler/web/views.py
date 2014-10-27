@@ -11,7 +11,6 @@ import string
 import time
 import xmlrpclib
 
-import cobbler.field_info as field_info
 import cobbler.item_distro as item_distro
 import cobbler.item_file as item_file
 import cobbler.item_image as item_image
@@ -22,6 +21,7 @@ import cobbler.item_repo as item_repo
 import cobbler.item_system as item_system
 import cobbler.settings as item_settings
 import cobbler.utils as utils
+import field_ui_info
 
 url_cobbler_api = None
 remote = None
@@ -84,6 +84,22 @@ def error_page(request, message):
 # ==================================================================================
 
 
+def _get_field_html_element(field_name):
+
+    if field_name in field_ui_info.USES_SELECT:
+        return "select"
+    elif field_name in field_ui_info.USES_MULTI_SELECT:
+        return "multiselect"
+    elif field_name in field_ui_info.USES_RADIO:
+        return "radio"
+    elif field_name in field_ui_info.USES_CHECKBOX:
+        return "checkbox"
+    elif field_name in field_ui_info.USES_TEXTAREA:
+        return "textarea"
+    else:
+        return "text"
+
+
 def get_fields(what, is_subobject, seed_item=None):
 
     """
@@ -94,84 +110,78 @@ def get_fields(what, is_subobject, seed_item=None):
     """
 
     if what == "distro":
-        field_data = item_distro.FIELDS
+        fields = item_distro.FIELDS
     if what == "profile":
-        field_data = item_profile.FIELDS
+        fields = item_profile.FIELDS
     if what == "system":
-        field_data = item_system.FIELDS
+        fields = item_system.FIELDS
     if what == "repo":
-        field_data = item_repo.FIELDS
+        fields = item_repo.FIELDS
     if what == "image":
-        field_data = item_image.FIELDS
+        fields = item_image.FIELDS
     if what == "mgmtclass":
-        field_data = item_mgmtclass.FIELDS
+        fields = item_mgmtclass.FIELDS
     if what == "package":
-        field_data = item_package.FIELDS
+        fields = item_package.FIELDS
     if what == "file":
-        field_data = item_file.FIELDS
+        fields = item_file.FIELDS
     if what == "setting":
-        field_data = item_settings.FIELDS
+        fields = item_settings.FIELDS
 
     settings = remote.get_settings()
 
-    fields = []
-    for row in field_data:
+    ui_fields = []
+    for field in fields:
 
-        elem = {
-            "name": row[0],
-            "dname": row[0].replace("*", ""),
+        ui_field = {
+            "name": field[0],
+            "dname": field[0],
             "value": "?",
-            "caption": row[3],
-            "editable": row[4],
-            "tooltip": row[5],
-            "choices": row[6],
+            "caption": field[3],
+            "editable": field[4],
+            "tooltip": field[5],
+            "choices": field[6],
             "css_class": "generic",
-            "html_element": "generic",
+            "html_ui_fieldent": "generic",
         }
 
-        if not elem["editable"]:
+        if not ui_field["editable"]:
             continue
 
+        name = field[0]
         if seed_item is not None:
-            if what == "setting":
-                elem["value"] = seed_item[row[0]]
-            elif row[0].startswith("*"):
-                # system interfaces are loaded by javascript, not this
-                elem["value"] = ""
-                elem["name"] = row[0].replace("*", "")
-            elif row[0].find("widget") == -1:
-                elem["value"] = seed_item[row[0]]
+            ui_field["value"] = seed_item[name]
         elif is_subobject:
-            elem["value"] = row[2]
+            ui_field["value"] = field[2]
         else:
-            elem["value"] = row[1]
+            ui_field["value"] = field[1]
 
-        if elem["value"] is None:
-            elem["value"] = ""
+        if ui_field["value"] is None:
+            ui_field["value"] = ""
 
         # we'll process this for display but still need to present the original to some
         # template logic
-        elem["value_raw"] = elem["value"]
+        ui_field["value_raw"] = ui_field["value"]
 
-        if isinstance(elem["value"], basestring) and elem["value"].startswith("SETTINGS:"):
-            key = elem["value"].replace("SETTINGS:", "", 1)
-            elem["value"] = settings[key]
+        if isinstance(ui_field["value"], basestring) and ui_field["value"].startswith("SETTINGS:"):
+            key = ui_field["value"].replace("SETTINGS:", "", 1)
+            ui_field["value"] = settings[key]
 
         # flatten dicts of all types, they can only be edited as text
         # as we have no HTML dict widget (yet)
-        if isinstance(elem["value"], dict):
-            if elem["name"] == "mgmt_parameters":
+        if isinstance(ui_field["value"], dict):
+            if ui_field["name"] == "mgmt_parameters":
                 # Render dictionary as YAML for Management Parameters field
                 tokens = []
-                for (x, y) in elem["value"].items():
+                for (x, y) in ui_field["value"].items():
                     if y is not None:
                         tokens.append("%s: %s" % (x, y))
                     else:
                         tokens.append("%s: " % x)
-                elem["value"] = "{ %s }" % ", ".join(tokens)
+                ui_field["value"] = "{ %s }" % ", ".join(tokens)
             else:
                 tokens = []
-                for (x, y) in elem["value"].items():
+                for (x, y) in ui_field["value"].items():
                     if isinstance(y, basestring) and y.strip() != "~":
                         y = y.replace(" ", "\\ ")
                         tokens.append("%s=%s" % (x, y))
@@ -181,36 +191,89 @@ def get_fields(what, is_subobject, seed_item=None):
                             tokens.append("%s=%s" % (x, l))
                     elif y is not None:
                         tokens.append("%s" % x)
-                elem["value"] = " ".join(tokens)
+                ui_field["value"] = " ".join(tokens)
 
-        name = row[0]
-        if name.find("_widget") != -1:
-            elem["html_element"] = "widget"
-        elif name in field_info.USES_SELECT:
-            elem["html_element"] = "select"
-        elif name in field_info.USES_MULTI_SELECT:
-            elem["html_element"] = "multiselect"
-        elif name in field_info.USES_RADIO:
-            elem["html_element"] = "radio"
-        elif name in field_info.USES_CHECKBOX:
-            elem["html_element"] = "checkbox"
-        elif name in field_info.USES_TEXTAREA:
-            elem["html_element"] = "textarea"
-        else:
-            elem["html_element"] = "text"
-
-        elem["block_section"] = field_info.BLOCK_MAPPINGS.get(name, "General")
+        name = field[0]
+        ui_field["html_element"] = _get_field_html_element(name)
 
         # flatten lists for those that aren't using select boxes
-        if isinstance(elem["value"], list):
-            if elem["html_element"] != "select":
-                elem["value"] = string.join(elem["value"], sep=" ")
+        if isinstance(ui_field["value"], list):
+            if ui_field["html_element"] != "select":
+                ui_field["value"] = string.join(ui_field["value"], sep=" ")
 
-        # FIXME: need to handle interfaces special, they are prefixed with "*"
+        ui_fields.append(ui_field)
 
-        fields.append(elem)
+    return ui_fields
 
-    return fields
+
+def get_network_interface_fields():
+    """
+    Create network interface fields UI metadata based on network interface
+    fields metadata
+
+    @return list network interface fields UI metadata
+    """
+
+    fields = item_system.NETWORK_INTERFACE_FIELDS
+
+    fields_ui = []
+    for field in fields:
+
+        field_ui = {
+            "name": field[0],
+            "dname": field[0],
+            "value": "?",
+            "caption": field[3],
+            "editable": field[4],
+            "tooltip": field[5],
+            "choices": field[6],
+            "css_class": "generic",
+            "html_element": "generic",
+        }
+
+        if not field_ui["editable"]:
+            continue
+
+        # system's network interfaces are loaded later by javascript,
+        # initial value on web UI is always empty string
+        field_ui["value"] = ""
+
+        # we'll process this for display but still need to present the original
+        # to some template logic
+        field_ui["value_raw"] = field_ui["value"]
+
+        name = field[0]
+        field_ui["html_element"] = _get_field_html_element(name)
+
+        fields_ui.append(field_ui)
+
+    return fields_ui
+
+
+def _create_sections_metadata(what, sections_data, fields):
+
+    sections = {}
+    section_index = 0
+    for section_data in sections_data:
+        for section_name, section_fields in section_data.items():
+            skey = "%d_%s" % (section_index, section_name)
+            sections[skey] = {}
+            sections[skey]['name'] = section_name
+            sections[skey]['fields'] = []
+
+            for section_field in section_fields:
+                found = False
+                for field in fields:
+                    if field["name"] == section_field:
+                        sections[skey]['fields'].append(field)
+                        found = True
+                        break
+                if not found:
+                    raise Exception("%s field %s referenced in UI section definition does not exist in UI fields definition" % (what, section_field))
+
+            section_index += 1
+
+    return sections
 
 # ==================================================================================
 
@@ -268,7 +331,7 @@ def __format_items(items, column_names):
                 html_element = "name"
             elif fieldname in ["system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file"]:
                 html_element = "editlink"
-            elif fieldname in field_info.USES_CHECKBOX:
+            elif fieldname in field_ui_info.USES_CHECKBOX:
                 html_element = "checkbox"
             else:
                 html_element = "text"
@@ -550,7 +613,6 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
             remote.save_system(obj_id, request.session['token'], "edit")
 
     elif what == "system" and multi_mode == "power":
-        # FIXME: power should not loop, but send the list of all systems in one set.
         power = multi_arg
         if power is None:
             return error_page(request, "Cannot modify systems without specifying power option")
@@ -651,15 +713,10 @@ def aifile_list(request, page=None):
         return login(request, next="/cobbler_web/aifile/list", expired=True)
 
     aifiles = remote.get_autoinstall_templates(request.session['token'])
-    from cobbler import clogger
-    logger = clogger.Logger()
-    logger.debug("List of AI files: %s" % str(aifiles))
 
     aifile_list = []
     for aifile in aifiles:
-        # handle special values
-        if aifile not in ["", "<<inherit>>"]:
-            aifile_list.append((aifile, 'editable'))
+        aifile_list.append((aifile, 'editable'))
 
     t = get_template('aifile_list.tmpl')
     html = t.render(RequestContext(request, {
@@ -870,20 +927,14 @@ def setting_edit(request, setting_name=None):
     }
 
     fields = get_fields('setting', False, seed_item=cur_setting)
-    sections = {}
-    for field in fields:
-        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo, field['block_section'])
-        if fkey not in sections:
-            sections[fkey] = {}
-            sections[fkey]['name'] = field['block_section']
-            sections[fkey]['fields'] = []
-        sections[fkey]['fields'].append(field)
+
+    # build UI tabs metadata
+    sections_data = field_ui_info.SETTING_UI_FIELDS_MAPPING
+    sections = _create_sections_metadata('setting', sections_data, fields)
 
     t = get_template('generic_edit.tmpl')
     html = t.render(RequestContext(request, {
         'what': 'setting',
-        # 'fields': fields,
         'sections': sections,
         'subobject': False,
         'editmode': 'edit',
@@ -1106,9 +1157,14 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
             interfaces = {}
 
     fields = get_fields(what, child, obj)
+    if what == "system":
+        fields += get_network_interface_fields()
 
     # create the autoinstall pulldown list
-    autoinstall_list = remote.get_autoinstall_templates()
+    autoinstalls = remote.get_autoinstall_templates()
+    autoinstall_list = ["", "<<inherit>>"]
+    for autoinstall in autoinstalls:
+        autoinstall_list.append(autoinstall)
 
     # populate some select boxes
     if what == "profile":
@@ -1146,22 +1202,30 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     if editmode == "edit":
         request.session['%s_%s' % (what, obj_name)] = fields
 
-    sections = {}
-    for field in fields:
-        bmo = field_info.BLOCK_MAPPINGS_ORDER[field['block_section']]
-        fkey = "%d_%s" % (bmo, field['block_section'])
-        if fkey not in sections:
-            sections[fkey] = {}
-            sections[fkey]['name'] = field['block_section']
-            sections[fkey]['fields'] = []
-        sections[fkey]['fields'].append(field)
+    # build UI tabs metadata
+    if what == "distro":
+        sections_data = field_ui_info.DISTRO_UI_FIELDS_MAPPING
+    elif what == "file":
+        sections_data = field_ui_info.FILE_UI_FIELDS_MAPPING
+    elif what == "image":
+        sections_data = field_ui_info.IMAGE_UI_FIELDS_MAPPING
+    elif what == "mgmtclass":
+        sections_data = field_ui_info.MGMTCLASS_UI_FIELDS_MAPPING
+    elif what == "package":
+        sections_data = field_ui_info.PACKAGE_UI_FIELDS_MAPPING
+    elif what == "profile":
+        sections_data = field_ui_info.PROFILE_UI_FIELDS_MAPPING
+    elif what == "repo":
+        sections_data = field_ui_info.REPO_UI_FIELDS_MAPPING
+    elif what == "system":
+        sections_data = field_ui_info.SYSTEM_UI_FIELDS_MAPPING
+    sections = _create_sections_metadata(what, sections_data, fields)
 
     t = get_template('generic_edit.tmpl')
     inames = interfaces.keys()
     inames.sort()
     html = t.render(RequestContext(request, {
         'what': what,
-        # 'fields': fields,
         'sections': sections,
         'subobject': child,
         'editmode': editmode,
@@ -1233,9 +1297,6 @@ def generic_save(request, what):
         if field['name'] == 'name' and editmode == 'edit':
             # do not attempt renames here
             continue
-        elif field['name'].startswith("*"):
-            # interface fields will be handled below
-            continue
         else:
             # check and see if the value exists in the fields stored in the session
             prev_value = None
@@ -1276,18 +1337,14 @@ def generic_save(request, what):
     # special handling for system interface fields
     # which are the only objects in cobbler that will ever work this way
     if what == "system":
-        interface_field_list = []
-        for field in fields:
-            if field['name'].startswith("*"):
-                field = field['name'].replace("*", "")
-                interface_field_list.append(field)
+        network_interface_fields = get_network_interface_fields()
         interfaces = request.POST.get('interface_list', "").split(",")
         for interface in interfaces:
             if interface == "":
                 continue
             ifdata = {}
-            for item in interface_field_list:
-                ifdata["%s-%s" % (item, interface)] = request.POST.get("%s-%s" % (item, interface), "")
+            for field in network_interface_fields:
+                ifdata["%s-%s" % (field["name"], interface)] = request.POST.get("%s-%s" % (field["name"], interface), "")
             ifdata = utils.strip_none(ifdata)
             # FIXME: I think this button is missing.
             present = request.POST.get("present-%s" % interface, "")

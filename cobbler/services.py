@@ -178,7 +178,7 @@ class CobblerSvc(object):
         else:
             return "?"
         for x in listing:
-            buf = buf + "%s\n" % x["name"]
+            buf += "%s\n" % x["name"]
         return buf
 
     def autodetect(self, **rest):

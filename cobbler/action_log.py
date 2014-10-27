@@ -29,7 +29,7 @@ import clogger
 
 class LogTool:
     """
-    Helpers for dealing with System logs, consoles, anamon, etc..
+    Helpers for dealing with System logs, anamon, etc..
     """
 
     def __init__(self, collection_mgr, system, api, logger=None):
@@ -49,11 +49,9 @@ class LogTool:
         """
         Clears the system logs
         """
-        consoles = self.settings.consoles
-        logs = filter(os.path.isfile, glob.glob('%s/%s' % (consoles, self.system.name)))
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
-            logs.extend(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
+            logs = filter(os.path.isfile, glob.glob('%s/*' % anamon_dir))
         for log in logs:
             try:
                 f = open(log, 'w')

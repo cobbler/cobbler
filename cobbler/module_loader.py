@@ -31,11 +31,6 @@ from cexceptions import CX
 import clogger
 from utils import _, log_exc
 
-# python 2.3 compat.  If we don't need that, drop this test
-try:
-    set()
-except:
-    from sets import Set as set
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
@@ -53,8 +48,8 @@ def load_modules(module_path=mod_path, blacklist=None):
     logger = clogger.Logger()
 
     filenames = glob.glob("%s/*.py" % module_path)
-    filenames = filenames + glob.glob("%s/*.pyc" % module_path)
-    filenames = filenames + glob.glob("%s/*.pyo" % module_path)
+    filenames += glob.glob("%s/*.pyc" % module_path)
+    filenames += glob.glob("%s/*.pyo" % module_path)
 
     mods = set()
 

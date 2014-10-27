@@ -1357,7 +1357,7 @@ class Koan:
             else:
                 data = getattr(
                     self.xmlrpc_server,
-                    "get_%s_for_koan" %
+                    "get_%s_as_rendered" %
                     what)(name)
         except:
             traceback.print_exc()

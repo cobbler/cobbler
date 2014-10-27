@@ -189,45 +189,54 @@ def opt(options, k, defval=""):
     return n2s(data)
 
 
-def add_options_from_fields(object_type, parser, fields, object_action):
+def _add_parser_option_from_field(parser, field, settings):
+
+    # extract data from field dictionary
+    name = field[0]
+    default = field[1]
+    if isinstance(default, basestring) and default.startswith("SETTINGS:"):
+        setting_name = default.replace("SETTINGS:", "", 1)
+        default = settings[setting_name]
+    description = field[3]
+    tooltip = field[5]
+    choices = field[6]
+    if choices and default not in choices:
+        raise Exception("field %s default value (%s) is not listed in choices (%s)" % (name, default, str(choices)))
+    if tooltip != "":
+        description += " (%s)" % tooltip
+
+    # generate option string
+    option_string = "--%s" % name.replace("_", "-")
+
+    # generate option aliases
+    aliases = []
+    for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
+        if field_info.DEPRECATED_FIELDS[deprecated_field] == name:
+            aliases.append("--%s" % deprecated_field)
+
+    # add option to parser
+    if isinstance(choices, list) and len(choices) != 0:
+        description += " (valid options: %s)" % ",".join(choices)
+        parser.add_option(option_string, dest=name, help=description, choices=choices)
+        for alias in aliases:
+            parser.add_option(alias, dest=name, help=description, choices=choices)
+    else:
+        parser.add_option(option_string, dest=name, help=description)
+        for alias in aliases:
+            parser.add_option(alias, dest=name, help=description)
+
+
+def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):
+
     if object_action in ["add", "edit", "find", "copy", "rename"]:
-        for elem in fields:
-            k = elem[0]
-            if k.find("widget") != -1:
-                continue
-            # scrub interface tags so all fields get added correctly.
-            k = k.replace("*", "")
-            default = elem[1]
-            nicename = elem[3]
-            tooltip = elem[5]
-            choices = elem[6]
-            if k in field_info.ALTERNATE_OPTIONS:
-                niceopt = field_info.ALTERNATE_OPTIONS[k]
-            else:
-                niceopt = "--%s" % k.replace("_", "-")
-            desc = nicename
-            if tooltip != "":
-                desc = nicename + " (%s)" % tooltip
+        for field in fields:
+            _add_parser_option_from_field(parser, field, settings)
 
-            aliasopt = []
-            for deprecated_field in field_info.DEPRECATED_FIELDS.keys():
-                if field_info.DEPRECATED_FIELDS[deprecated_field] == k:
-                    aliasopt.append("--%s" % deprecated_field)
-
-            if isinstance(choices, list) and len(choices) != 0:
-                if default not in choices:
-                    choices.append(default)
-                desc = desc + " (valid options: %s)" % ",".join(choices)
-                parser.add_option(niceopt, dest=k, help=desc, choices=choices)
-                for alias in aliasopt:
-                    parser.add_option(alias, dest=k, help=desc, choices=choices)
-            else:
-                parser.add_option(niceopt, dest=k, help=desc)
-                for alias in aliasopt:
-                    parser.add_option(alias, dest=k, help=desc)
-
+        # system object
         if object_type == "system":
-            # system object
+            for field in network_interface_fields:
+                _add_parser_option_from_field(parser, field, settings)
+
             parser.add_option("--interface", dest="interface", help="the interface to operate on (can only be specified once per command line)")
             if object_action in ["add", "edit"]:
                 parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
@@ -237,7 +246,6 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             parser.add_option("--newname", help="new object name")
 
         if object_action not in ["find"] and object_type != "setting":
-            parser.add_option("--clobber", dest="clobber", help="allow add to overwrite existing objects", action="store_true")
             parser.add_option("--in-place", action="store_true", default=False, dest="in_place", help="edit items in kopts or autoinstall without clearing the other items")
 
     elif object_action == "remove":
@@ -408,10 +416,15 @@ class CobblerCLI:
         Process object-based commands such as "distro add" or "profile rename"
         """
         task_id = -1        # if assigned, we must tail the logfile
+        settings = self.remote.get_settings()
 
         fields = self.get_fields(object_type)
+        network_interface_fields = None
+        if object_type == "system":
+            network_interface_fields = item_system.NETWORK_INTERFACE_FIELDS
         if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
-            add_options_from_fields(object_type, self.parser, fields, object_action)
+            add_options_from_fields(object_type, self.parser, fields,
+                                    network_interface_fields, settings, object_action)
         elif object_action in ["list"]:
             pass
         elif object_action not in ("reload", "update"):
@@ -598,7 +611,7 @@ class CobblerCLI:
             if len(results) > 0:
                 print "The following are potential configuration items that you may want to fix:\n"
                 for r in results:
-                    ct = ct + 1
+                    ct += 1
                     print "%s: %s" % (ct, r)
                 print "\nRestart cobblerd and then run 'cobbler sync' to apply changes."
             else:

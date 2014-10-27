@@ -8,6 +8,7 @@ from cobbler.cexceptions import CX
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
 
+
 class AutoInstallationManager:
     """
     Manage automatic installation templates, snippets and final files
@@ -70,24 +71,18 @@ class AutoInstallationManager:
         @return list automatic installation templates
         """
 
-        files = {}
+        files = []
         for root, dirnames, filenames in os.walk(self.templates_base_dir):
             for filename in filenames:
-                rel_root = root[len(self.templates_base_dir)+1:]
+                rel_root = root[len(self.templates_base_dir) + 1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
                     rel_path = filename
-                files[rel_path] = 1
+                files.append(rel_path)
 
-        results = files.keys()
-        results.sort()
-        # empty and inherit are valid values
-        # and we want them as the first options in cobbler-web
-        autoinstall_options_list = ["", "<<inherit>>"]
-        for result in results:
-            autoinstall_options_list.append(result)
-        return autoinstall_options_list
+        files.sort()
+        return files
 
     def read_autoinstall_template(self, file_path):
         """
@@ -168,12 +163,11 @@ class AutoInstallationManager:
 
     def get_autoinstall_snippets(self):
 
-        # FIXME: settings.snippetsdir should be used here
         files = []
         for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 
             for filename in filenames:
-                rel_root = root[len(self.snippets_base_dir)+1:]
+                rel_root = root[len(self.snippets_base_dir) + 1:]
                 if rel_root:
                     rel_path = "%s/%s" % (rel_root, filename)
                 else:
@@ -310,4 +304,3 @@ class AutoInstallationManager:
             self.logger.info("*** all automatic installation files seem to be ok ***")
 
         return overall_success
-

@@ -143,7 +143,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         """
         for snipclass in ('system', 'profile', 'distro'):
             if self.varExists('%s_name' % snipclass):
-                fullpath = '%s/per_%s/%s/%s' % (self.getVar('snippetsdir'),
+                fullpath = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'),
                                                 snipclass, file,
                                                 self.getVar('%s_name' % snipclass))
                 try:
@@ -153,7 +153,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
                     pass
 
         try:
-            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('snippetsdir'), file), fetch_if_remote=True)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('autoinstall_snippets_dir'), file), fetch_if_remote=True)
         except FileNotFoundException:
             return None
 

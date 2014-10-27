@@ -173,20 +173,21 @@ class AutoInstallationGen:
                 for opt in repo_obj.yumopts:
                     # filter invalid values to the repo statement in automatic
                     # installation files
+
                     if opt in ['exclude', 'include']:
                         value = repo_obj.yumopts[opt].replace(' ', ',')
                         yumopts = yumopts + " --%spkgs=%s" % (opt, value)
                     elif not opt.lower() in validate.AUTOINSTALL_REPO_BLACKLIST:
-                        yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
+                        yumopts += " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
                         baseurl = "http://%s/cobbler/repo_mirror/%s" % (blended["http_server"], repo_obj.name)
                         if baseurl not in included:
-                            buf = buf + "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
+                            buf += "repo --name=%s --baseurl=%s\n" % (repo_obj.name, baseurl)
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf = buf + "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
+                            buf += "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
@@ -204,9 +205,9 @@ class AutoInstallationGen:
         source_repos = distro.source_repos
         count = 0
         for x in source_repos:
-            count = count + 1
+            count += 1
             if not x[1] in included:
-                buf = buf + "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
+                buf += "repo --name=source-%s --baseurl=%s\n" % (count, x[1])
                 included[x[1]] = 1
 
         return buf
@@ -261,24 +262,36 @@ class AutoInstallationGen:
         if not autoinstall_rel_path:
             return "# automatic installation file value missing or invalid at %s %s" % (obj_type, obj.name)
 
+        # get parent distro
+        distro = profile.get_conceptual_parent()
+        if system is not None:
+            distro = system.get_conceptual_parent().get_conceptual_parent()
+
+        # make autoinstall_meta metavariable available at top level
         autoinstall_meta = meta["autoinstall_meta"]
         del meta["autoinstall_meta"]
-        meta.update(autoinstall_meta)     # make available at top level
-        meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
-        meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
-        meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
+        meta.update(autoinstall_meta)
 
-        # add extra variables for other distro types
-        if "tree" in meta:
+        # add package repositories metadata to autoinstall metavariables
+        if distro.breed == "redhat":
+            meta["yum_repo_stanza"] = self.generate_repo_stanza(obj, (system is None))
+            meta["yum_config_stanza"] = self.generate_config_stanza(obj, (system is None))
+        # FIXME: implement something similar to zypper (SUSE based distros) and apt
+        #        (Debian based distros)
+
+        meta["kernel_options"] = utils.dict_to_string(meta["kernel_options"])
+        if "kernel_options_post" in meta:
+            meta["kernel_options_post"] = utils.dict_to_string(meta["kernel_options_post"])
+
+        # add install_source_directory metavariable to autoinstall metavariables
+        # if distro is based on Debian
+        if distro.breed in ["debian", "ubuntu"] and "tree" in meta:
             urlparts = urlparse.urlsplit(meta["tree"])
             meta["install_source_directory"] = urlparts[2]
 
         try:
             autoinstall_path = "%s/%s" % (self.settings.autoinstall_templates_dir, autoinstall_rel_path)
             raw_data = utils.read_file_contents(autoinstall_path, self.api.logger)
-            distro = profile.get_conceptual_parent()
-            if system is not None:
-                distro = system.get_conceptual_parent().get_conceptual_parent()
 
             data = self.templar.render(raw_data, meta, None, obj)
 

@@ -54,11 +54,6 @@ class YumGen:
 
         input_files = []
 
-        # chance old versions from upgrade do not have a source_repos
-        # workaround for user bug
-        if "source_repos" not in blended:
-            blended["source_repos"] = []
-
         # tack on all the install source repos IF there is more than one.
         # this is basically to support things like RHEL5 split trees
         # if there is only one, then there is no need to do this.
@@ -83,13 +78,13 @@ class YumGen:
                 # file does not exist and the user needs to run reposync
                 # before we will use this, cobbler check will mention
                 # this problem
-                totalbuf = totalbuf + "\n# error: could not read repo source: %s\n\n" % infile
+                totalbuf += "\n# error: could not read repo source: %s\n\n" % infile
                 continue
 
             infile_data = infile_h.read()
             infile_h.close()
             outfile = None  # disk output only
-            totalbuf = totalbuf + self.templar.render(infile_data, blended, outfile, None)
-            totalbuf = totalbuf + "\n\n"
+            totalbuf += self.templar.render(infile_data, blended, outfile, None)
+            totalbuf += "\n\n"
 
         return totalbuf

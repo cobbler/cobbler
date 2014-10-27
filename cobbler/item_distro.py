@@ -26,87 +26,31 @@ from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-# the fields has controls what data elements are part of each object.  To add a new field, just add a new
-# entry to the list following some conventions to be described later.  You must also add a method called
-# set_$fieldname.  Do not write a method called get_$fieldname, that will not be called.
-#
-# name | default | subobject default | display name | editable? | tooltip | values ? | type
-#
-# name -- what the filed should be called.   For the command line, underscores will be replaced with
-#         a hyphen programatically, so use underscores to seperate things that are seperate words
-#
-# default value -- when a new object is created, what is the default value for this field?
-#
-# subobject default -- this applies ONLY to subprofiles, and is most always set to <<inherit>>.  If this
-#                      is not item_profile.py it does not matter.
-#
-# display name -- how the field shows up in the web application and the "cobbler report" command
-#
-# editable -- should the field be editable in the CLI and web app?  Almost always yes unless
-#                it is an internalism.  Fields that are not editable are "hidden"
-#
-# tooltip -- the caption to be shown in the web app or in "commandname --help" in the CLI
-#
-# values -- for fields that have a limited set of valid options and those options are always fixed
-#           (such as architecture type), the list of valid options goes in this field.
-#
-# type -- the type of the field.  Used to determine which HTML form widget is used in the web interface
-#
-# you will also notice some names start with "*" ... this denotes that the fields belong to
-# interfaces, and only item_system.py should have these.   Each system may have multiple interfaces.
-#
-# the order in which the fields are listed (for all non-hidden fields) are the order they will
-# appear in the web application (top to bottom).   The command line sorts fields alphabetically.
-#
-# field_info.py also contains a set of "Groups" that describe what other fields are associated with
-# what other fields.  This affects color coding and other display hints.  If you add a field
-# please edit field_info.py carefully to match.
-#
-# additional:  see field_info.py for some display hints.  By default in the web app all fields
-# are text fields unless field_info.py lists the field in one of those dictionaries.
-#
-# hidden fields should not be added without just cause, explanations about these are:
-#
-#   ctime, mtime -- times the object was modified, used internally by cobbler for API purposes
-#   uid -- also used for some external API purposes
-#   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it
-#                   for RHEL split repos, this is a list of each of them in the install tree, used to generate
-#                   repo lines in the automatic installation file to allow installation of x>=RHEL5.  Otherwise unimportant.
-#   depth -- used for "cobbler list" to print the tree, makes it easier to load objects from disk also
-#   tree_build_time -- loaded from import, this is not useful to many folks so we just hide it.  Avail over API.
-#
-# so to add new fields
-#   (A) understand the above
-#   (B) add a field below
-#   (C) add a set_fieldname method
-#   (D) you do not need to modify the CLI or webapp
-#
-# in general the set_field_name method should raise exceptions on invalid fields, always.   There are adtl
-# validation fields in is_valid to check to see that two seperate fields do not conflict, but in general
-# design issues that require this should be avoided forever more, and there are few exceptions.  Cobbler
-# must operate as normal with the default value for all fields and not choke on the default values.
-
+# this data structure is described in item.py
 FIELDS = [
-    ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
+    # non-editable in UI (internal)
     ["ctime", 0, 0, "", False, "", 0, "float"],
+    ["depth", 0, 0, "Depth", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "float"],
+    ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
+    ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["uid", "", 0, "", False, "", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
+
+    # editable in UI
+    ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
+    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
+    ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
+    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
+    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
     ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
+    ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
-    ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
-    ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
-    ["source_repos", [], 0, "Source Repos", False, "", 0, "list"],
-    ["depth", 0, 0, "Depth", False, "", 0, "int"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["tree_build_time", 0, 0, "Tree Build Time", False, "", 0, "str"],
     ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
-    ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
+    ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
+    ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
+    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
 ]
 
