@@ -234,7 +234,7 @@ class System(item.Item):
 
 
     def set_next_server(self, server):
-        if server is None or server == "":
+        if server is None or server == "" or server == "<<inherit>>":
             self.next_server = "<<inherit>>"
         else:
             server = server.strip()
