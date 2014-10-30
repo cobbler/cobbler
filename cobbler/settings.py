@@ -101,6 +101,8 @@ DEFAULTS = {
     "next_server"                         : ["127.0.0.1","str"],
     "power_management_default_type"       : ["ipmitool","str"],
     "power_template_dir"                  : ["/etc/cobbler/power","str"],
+    "proxy_url_ext"                       : ["", "str"],
+    "proxy_url_int"                       : ["", "str"],
     "puppet_auto_setup"                   : [0,"bool"],
     "puppet_parameterized_classes"        : [1,"bool"],
     "puppet_server"                       : ["puppet","str"],
