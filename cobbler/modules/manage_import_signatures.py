@@ -202,7 +202,7 @@ class ImportSignatureManager:
     # required function for import modules
     def get_valid_arches(self):
         if self.signature:
-            return self.signature["supported_arches"]
+            return sorted(self.signature["supported_arches"], key = lambda s : -1 * len (s))
         return []
 
     def get_valid_repo_breeds(self):
@@ -419,9 +419,11 @@ class ImportSignatureManager:
                     for arch in self.get_valid_arches():
                         if x.find(arch) != -1:
                             foo[arch] = 1
+                            break
                     for arch in ["i686", "amd64"]:
                         if x.find(arch) != -1:
                             foo[arch] = 1
+                            break
 
     def get_proposed_name(self, dirname, kernel=None):
         """
