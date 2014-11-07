@@ -362,6 +362,8 @@ def genlist(request, what, page=None):
     # we also setup the batch actions here since they're dependent
     # on what we're looking at
 
+    profiles = []
+
     # everythng gets batch delete
     batchactions = [
         ["Delete", "delete", "delete"],
@@ -380,6 +382,7 @@ def genlist(request, what, page=None):
     if what == "system":
         # FIXME: also list network, once working
         columns = ["name", "profile", "status", "netboot_enabled"]
+        profiles = sorted(remote.get_profiles())
         batchactions += [
             ["Power on", "power", "on"],
             ["Power off", "power", "off"],
@@ -417,6 +420,7 @@ def genlist(request, what, page=None):
         'username': username,
         'limit': limit,
         'batchactions': batchactions,
+        'profiles' : profiles,
     }))
     return HttpResponse(html)
 
