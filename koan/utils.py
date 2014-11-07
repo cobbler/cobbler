@@ -25,6 +25,7 @@ from __future__ import print_function
 
 import os
 import random
+import re
 import traceback
 import tempfile
 import urllib2
