@@ -349,7 +349,9 @@ def os_release():
         tokens = rest.split(" ")
         for t in tokens:
             try:
-                return (make, float(t))
+                match = re.match('^\d+(?:\.\d+)?', t)
+                if match:
+                    return (make, float(match.group(0)))
             except ValueError:
                 pass
         raise KX("failed to detect local OS version from /etc/redhat-release")
