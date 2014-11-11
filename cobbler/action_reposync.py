@@ -427,7 +427,7 @@ class RepoSync:
         try:
             urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
         except:
-            utils.die("failed to fetch %s" % src)
+            utils.die(self.logger, "failed to fetch %s" % src)
 
         # create our repodata directory now, as any extra metadata we're
         # about to download probably lives there
@@ -443,7 +443,7 @@ class RepoSync:
                 try:
                     urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
                 except:
-                    utils.die("failed to fetch %s" % src)
+                    utils.die(self.logger, "failed to fetch %s" % src)
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
