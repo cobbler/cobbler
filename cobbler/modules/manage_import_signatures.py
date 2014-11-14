@@ -33,6 +33,9 @@ try:
 except:
     apt_available = False
 
+from cobbler import item_distro
+from cobbler import item_profile
+
 from cexceptions import CX
 import item_repo
 import templar
@@ -308,7 +311,7 @@ class ImportSignatureManager:
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
-                distro = self.collection_mgr.new_distro()
+                distro = item_distro.Distro(self.collection_mgr)
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
@@ -344,7 +347,7 @@ class ImportSignatureManager:
 
             if existing_profile is None:
                 self.logger.info("creating new profile: %s" % name)
-                profile = self.collection_mgr.new_profile()
+                profile = item_profile.Profile(self.collection_mgr)
             else:
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue
