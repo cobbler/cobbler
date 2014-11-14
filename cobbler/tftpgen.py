@@ -501,7 +501,7 @@ class TFTPGen:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
                     if arch.startswith("ppc"):
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
+                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
