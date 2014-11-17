@@ -89,11 +89,6 @@ class TFTPGen:
                 '/usr/lib/syslinux/menu.c32',
                 dst, api=self.api, cache=False, logger=self.logger)
 
-        # copy memtest only if we find it
-        utils.copyfile_pattern(
-            '/boot/memtest*', image_dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
             '/var/lib/cobbler/loaders/yaboot', dst,
@@ -333,16 +328,6 @@ class TFTPGen:
                 if contents is not None:
                     pxe_menu_items += contents + "\n"
 
-        # if we have any memtest files in images, make entries for them
-        # after we list the profiles
-        memtests = glob.glob(self.bootloc + "/images/memtest*")
-        if len(memtests) > 0:
-            pxe_menu_items += "\n\n"
-            for memtest in glob.glob(self.bootloc + '/images/memtest*'):
-                base = os.path.basename(memtest)
-                contents = self.write_memtest_pxe("/%s" % base)
-                pxe_menu_items += contents + "\n"
-
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
 
     def get_menu_items_nexenta(self):
@@ -424,37 +409,6 @@ class TFTPGen:
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
-
-    def write_memtest_pxe(self, filename):
-        """
-        Write a configuration file for memtest
-        """
-
-        # FIXME: this should be handled via "cobbler image add" now that it is available,
-        # though it would be nice if there was a less-manual way to add those as images.
-
-        # just some random variables
-        template = None
-        metadata = {}
-        buffer = ""
-
-        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
-
-        # store variables for templating
-        metadata["menu_label"] = "MENU LABEL %s" % os.path.basename(filename)
-        metadata["profile_name"] = os.path.basename(filename)
-        metadata["kernel_path"] = "/images/%s" % os.path.basename(filename)
-        metadata["initrd_path"] = ""
-        metadata["append_line"] = ""
-
-        # get the template
-        template_fh = open(template)
-        template_data = template_fh.read()
-        template_fh.close()
-
-        # return results
-        buffer = self.templar.render(template_data, metadata, None)
-        return buffer
 
 
     def write_pxe_file(self, filename, system, profile, distro, arch,
