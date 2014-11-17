@@ -765,6 +765,25 @@
       "default_autoinstall":""
     }
   },
+  "powerkvm": {
+   "2.1": {
+    "signatures":["packages"],
+    "version_file":"ibm-powerkvm-layer-(.*).pkvm.*rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_autoinstall":"powerkvm.ks",
+    "kernel_options":"ip=dhcp root=live:$tree/LiveOS/squashfs.img repo=$tree/packages",
+    "kernel_options_post":"",
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["pxelinux"]}
+   }
+  },
   "generic": {
    "generic26": {
     "signatures":[],
