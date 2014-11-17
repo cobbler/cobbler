@@ -597,7 +597,7 @@ class ImportSignatureManager:
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
             seg = comps_path.rfind("distro_mirror")
-            urlseg = comps_path[seg + 10:]
+            urlseg = comps_path[(seg + len("distro_mirror") + 1):]
 
             fname = os.path.join(self.settings.webdir, "distro_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
