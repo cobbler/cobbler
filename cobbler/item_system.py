@@ -41,6 +41,7 @@ FIELDS = [
     ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Linux installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
@@ -214,6 +215,12 @@ class System(item.Item):
         else:
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
+
+
+    def set_boot_loader(self, name):
+        if not name in utils.get_supported_system_boot_loaders():
+            raise CX(_("Invalid boot loader name: %s" % name))
+        self.boot_loader = name
 
 
     def set_server(self, server):

@@ -127,7 +127,7 @@ REPO_UI_FIELDS_MAPPING = [
 ]
 
 SYSTEM_UI_FIELDS_MAPPING = [
-    {"General": ["name", "owners", "profile", "image", "status", "kernel_options", "kernel_options_post", "autoinstall_meta", "proxy", "netboot_enabled", "autoinstall", "comment"]},
+    {"General": ["name", "owners", "profile", "image", "status", "kernel_options", "kernel_options_post", "autoinstall_meta", "boot_loader", "proxy", "netboot_enabled", "autoinstall", "comment"]},
     {"Advanced": ["enable_gpxe", "server", "next_server"]},
     {"Networking (Global)": ["hostname", "gateway", "name_servers", "name_servers_search", "ipv6_default_device", "ipv6_autoconfiguration"]},
     {"Networking": ["mac_address", "mtu", "ip_address", "interface_type", "interface_master", "bonding_opts", "bridge_opts", "management", "static", "netmask", "if_gateway", "dhcp_tag", "dns_name", "static_routes", "virt_bridge", "ipv6_address", "ipv6_prefix", "ipv6_secondaries", "ipv6_mtu", "ipv6_static_routes", "ipv6_default_gateway", "cnames"]},

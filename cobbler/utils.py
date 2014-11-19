@@ -1655,7 +1655,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
 
 
 def get_supported_system_boot_loaders():
-    return ["default", "elilo", "grub", "pxelinux", "yaboot"]
+    return ["<<inherit>>", "elilo", "grub", "pxelinux", "yaboot"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):

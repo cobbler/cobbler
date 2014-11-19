@@ -40,7 +40,7 @@ FIELDS = [
     ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loader", "default", 0, "Boot loader", True, "Network installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
+    ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Network installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
