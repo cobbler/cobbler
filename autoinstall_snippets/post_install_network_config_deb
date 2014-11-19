@@ -86,9 +86,6 @@ echo "" >> /etc/network/interfaces
         #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
-        #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
-        #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
-        #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             #set $is_vlan = "true"
