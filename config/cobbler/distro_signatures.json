@@ -64,7 +64,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub2"], "ppc64le":["grub2"]}
    },
    "fedora16": {
     "signatures":["Packages"],
@@ -301,15 +301,16 @@
     "version_file_regex":"Codename: trusty|Ubuntu 14.04",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
-    "supported_arches":["i386","amd64"],
+    "supported_arches":["i386","amd64","ppc64el"],
     "supported_repo_breeds":["apt"],
-    "kernel_file":"linux(.*)",
+    "kernel_file":"(vm)?linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
     "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64el":["grub2"]}
    }
   },
   "suse": {
@@ -511,7 +512,7 @@
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*)\\.rpm",
     "kernel_arch_regex":null,
-    "supported_arches":["i386","i586","x86_64","ppc64"],
+    "supported_arches":["i386","i586","x86_64","ppc64le"],
     "supported_repo_breeds":["yum"],
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
@@ -519,7 +520,8 @@
     "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64le":["grub2"]}
    }
   },
   "vmware": {
