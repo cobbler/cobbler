@@ -1654,6 +1654,29 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     return data
 
 
+def get_supported_system_boot_loaders():
+    return ["default", "elilo", "grub", "pxelinux", "yaboot"]
+
+
+def get_supported_distro_boot_loaders(distro, api_handle=None):
+    try:
+        # Try to read from the signature
+        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+    except:
+        try:
+            # Try to read directly from the cache
+            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+        except:
+            try:
+                # Else use some well-known defaults
+                return {"ppc64": ["yaboot"],
+                        "i386": ["grub", "pxelinux"],
+                        "x86_64": ["grub", "pxelinux"]}[distro.arch]
+            except:
+                # Else return the globally known list
+                return get_supported_system_boot_loaders()
+
+
 def clear_from_fields(item, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.

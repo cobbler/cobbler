@@ -45,6 +45,7 @@ USES_MULTI_SELECT = [
 USES_SELECT = [
     "arch",
     "autoinstall",
+    "boot_loader",
     "breed",
     "distro",
     "image",
@@ -90,7 +91,7 @@ USES_RADIO = [
 
 # UI fields grouped by section
 DISTRO_UI_FIELDS_MAPPING = [
-    {"General": ["name", "owners", "kernel", "initrd", "kernel_options", "kernel_options_post", "autoinstall_meta", "arch", "breed", "os_version", "comment"]},
+    {"General": ["name", "owners", "kernel", "initrd", "kernel_options", "kernel_options_post", "autoinstall_meta", "arch", "breed", "os_version", "boot_loader", "comment"]},
     {"Management": ["mgmt_classes", "boot_files", "fetchable_files", "template_files"]},
 ]
 

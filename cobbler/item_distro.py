@@ -40,6 +40,7 @@ FIELDS = [
     ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["boot_loader", "default", 0, "Boot loader", True, "Network installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
@@ -193,6 +194,31 @@ class Distro(item.Item):
 
         """
         return utils.set_arch(self, arch)
+
+
+    def set_supported_boot_loaders(self, supported_boot_loaders):
+        """
+        Some distributions, particularly on powerpc, can only be netbooted using
+        specific bootloaders.
+        """
+        if len(supported_boot_loaders) < 1:
+            raise CX(_("No valid supported boot loaders specified for distro '%s'" % self.name))
+        self.supported_boot_loaders = supported_boot_loaders
+        self.boot_loader = supported_boot_loaders[0]
+
+
+    def set_boot_loader(self, name):
+        try:
+            # If we have already loaded the supported boot loaders from
+            # the signature, use that data
+            supported_distro_boot_loaders = self.supported_boot_loaders
+        except:
+            # otherwise, refresh from the signatures / defaults
+            self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            supported_distro_boot_loaders = self.supported_boot_loaders
+        if not name in supported_distro_boot_loaders:
+            raise CX(_("Invalid boot loader name: %s. Supported boot loaders are: %s" % (name, ' '.join(supported_distro_boot_loaders))))
+        self.boot_loader = name
 
 
 # EOF

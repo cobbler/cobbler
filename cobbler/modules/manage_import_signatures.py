@@ -323,6 +323,9 @@ class ImportSignatureManager:
             distro.set_kernel_options(self.signature.get("kernel_options", ""))
             distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
             distro.set_template_files(self.signature.get("template_files", ""))
+            supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(distro, self.api)
+            distro.set_supported_boot_loaders(supported_distro_boot_loaders)
+            distro.set_boot_loader(supported_distro_boot_loaders[0])
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
