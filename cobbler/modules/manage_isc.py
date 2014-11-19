@@ -154,7 +154,10 @@ class IscManager:
                 # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch.startswith("ppc"):
-                        interface["filename"] = yaboot
+                        if distro.boot_loader == "grub2":
+                            interface["filename"] = "boot/grub/powerpc-ieee1275/core.elf"
+                        else:
+                            interface["filename"] = yaboot
 
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":

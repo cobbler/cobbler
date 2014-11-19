@@ -63,6 +63,7 @@ class TFTPGen:
         dst = self.bootloc
         grub_dst = os.path.join(dst, "grub")
         image_dst = os.path.join(dst, "images")
+        boot_dst = os.path.join(dst, "boot/grub")
 
         # copy syslinux from one of two locations
         try:
@@ -92,6 +93,10 @@ class TFTPGen:
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
             '/var/lib/cobbler/loaders/yaboot', dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
+
+        utils.copyfile_pattern(
+            '/var/lib/cobbler/loaders/boot/grub/*', boot_dst,
             require_match=False, api=self.api, cache=False, logger=self.logger)
 
         try:
@@ -244,15 +249,18 @@ class TFTPGen:
                 grub_path = os.path.join(self.bootloc, "grub", f1.upper())
 
             elif working_arch.startswith("ppc"):
-                # Determine filename for system-specific yaboot.conf
+                # Determine filename for system-specific bootloader config
                 filename = "%s" % utils.get_config_filename(system, interface=name).lower()
-                f2 = os.path.join(self.bootloc, "etc", filename)
+                if distro.boot_loader == "grub2":
+                    f2 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
+                else:
+                    f2 = os.path.join(self.bootloc, "etc", filename)
 
-                # Link to the yaboot binary
-                f3 = os.path.join(self.bootloc, "ppc", filename)
-                if os.path.lexists(f3):
-                    utils.rmfile(f3)
-                os.symlink("../yaboot", f3)
+                    # Link to the yaboot binary
+                    f3 = os.path.join(self.bootloc, "ppc", filename)
+                    if os.path.lexists(f3):
+                        utils.rmfile(f3)
+                    os.symlink("../yaboot", f3)
             else:
                 continue
 
@@ -501,7 +509,10 @@ class TFTPGen:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
                     if arch.startswith("ppc"):
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
+                        if distro.boot_loader == "grub2":
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2_ppc.template")
+                        else:
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
@@ -524,6 +535,9 @@ class TFTPGen:
                                 utils.rmfile(f3)
 
                             # Remove the interface-specific config file
+                            f3 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
+                            if os.path.lexists(f3):
+                                 utils.rmfile(f3)
                             f3 = os.path.join(self.bootloc, "etc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)

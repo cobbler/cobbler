@@ -63,7 +63,8 @@
     "default_autoinstall":"sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["grub2"]}
    },
    "fedora16": {
     "signatures":["Packages"],
@@ -143,7 +144,8 @@
     "default_autoinstall":"sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["grub2"]}
    },
    "cloudlinux6": {
     "signatures":["Packages"],
