@@ -154,7 +154,9 @@ class IscManager:
                 # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch.startswith("ppc"):
-                        if distro.boot_loader == "grub2":
+                        if blended_system["boot_loader"] == "pxelinux":
+                            del interface["filename"]
+                        elif distro.boot_loader == "grub2":
                             interface["filename"] = "boot/grub/powerpc-ieee1275/core.elf"
                         else:
                             interface["filename"] = yaboot

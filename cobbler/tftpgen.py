@@ -251,7 +251,12 @@ class TFTPGen:
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific bootloader config
                 filename = "%s" % utils.get_config_filename(system, interface=name).lower()
-                if distro.boot_loader == "grub2":
+                # to inherit the distro and system's boot_loader values correctly
+                blended_system = utils.blender(self.api, False, system)
+                if blended_system["boot_loader"] == "pxelinux":
+                    # pxelinux wants a file named $name under pxelinux.cfg
+                    f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
+                elif distro.boot_loader == "grub2":
                     f2 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
                 else:
                     f2 = os.path.join(self.bootloc, "etc", filename)
@@ -509,7 +514,11 @@ class TFTPGen:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
                     if arch.startswith("ppc"):
-                        if distro.boot_loader == "grub2":
+                        # to inherit the distro and system's boot_loader values correctly
+                        blended_system = utils.blender(self.api, False, system)
+                        if blended_system["boot_loader"] == "pxelinux":
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
+                        elif distro.boot_loader == "grub2":
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2_ppc.template")
                         else:
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
@@ -657,6 +666,7 @@ class TFTPGen:
                 mac_address = system.interfaces[intf]['mac_address']
                 ip_address = system.interfaces[intf]['ip_address']
                 if mac_address and ip_address:
+                    kopts['BOOTIF'] = '01-' + mac_address
                     kopts['ksdevice'] = mac_address
                     break
 

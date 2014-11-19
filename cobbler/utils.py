@@ -1672,7 +1672,7 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub2", "yaboot"],
+                return {"ppc64": ["grub2", "pxelinux", "yaboot"],
                         "ppc64le": ["grub2"],
                         "ppc64el": ["grub2"],
                         "i386": ["grub", "pxelinux"],
