@@ -1137,7 +1137,10 @@ def copyfile(src, dst, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst))
-        shutil.copyfile(src, dst)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
             raise CX(_("Cannot read: %s") % src)
