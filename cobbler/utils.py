@@ -1144,7 +1144,7 @@ def copyfile(src, dst, api=None, logger=None):
     except:
         if not os.access(src, os.R_OK):
             raise CX(_("Cannot read: %s") % src)
-        if not os.path.samefile(src, dst):
+        if os.path.samefile(src, dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
