@@ -68,7 +68,14 @@ echo "" >> /etc/network/interfaces
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
-        #set $if_gateway           = $idata.get("if_gateway", "")
+        ## configure the gateway if set up, preferring per-interface over global
+        #if $idata.get("if_gateway") != ""
+            #set $if_gateway = $idata.get("if_gateway")
+        #elif $gateway != ""
+            #set $if_gateway = $gateway
+        #else
+            #set $if_gateway = ""
+        #end if
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
@@ -79,9 +86,6 @@ echo "" >> /etc/network/interfaces
         #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
-        #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
-        #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
-        #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             #set $is_vlan = "true"

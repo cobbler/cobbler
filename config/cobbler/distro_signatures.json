@@ -63,7 +63,8 @@
     "default_autoinstall":"sample_end.ks",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["grub2"], "ppc64le":["grub2"]}
    },
    "fedora16": {
     "signatures":["Packages"],
@@ -143,7 +144,8 @@
     "default_autoinstall":"sample_end.ks",
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["grub2"]}
    },
    "cloudlinux6": {
     "signatures":["Packages"],
@@ -299,15 +301,33 @@
     "version_file_regex":"Codename: trusty|Ubuntu 14.04",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
-    "supported_arches":["i386","amd64"],
+    "supported_arches":["i386","amd64","ppc64el"],
     "supported_repo_breeds":["apt"],
-    "kernel_file":"linux(.*)",
+    "kernel_file":"(vm)?linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
     "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64el":["grub2"]}
+   },
+   "utopic": {
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: utopic|Ubuntu 14.10",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64","ppc64el"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"(vm)?linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_autoinstall":"sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[],
+    "boot_loaders":{"ppc64el":["grub2"]}
    }
   },
   "suse": {
@@ -509,7 +529,7 @@
     "version_file_regex":null,
     "kernel_arch":"kernel-(.*)\\.rpm",
     "kernel_arch_regex":null,
-    "supported_arches":["i386","i586","x86_64","ppc64"],
+    "supported_arches":["i386","i586","x86_64","ppc64le"],
     "supported_repo_breeds":["yum"],
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
@@ -517,7 +537,8 @@
     "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
-    "boot_files":[]
+    "boot_files":[],
+    "boot_loaders":{"ppc64le":["grub2"]}
    }
   },
   "vmware": {
@@ -743,6 +764,25 @@
       "boot_files":[],
       "default_autoinstall":""
     }
+  },
+  "powerkvm": {
+   "2.1": {
+    "signatures":["packages"],
+    "version_file":"ibm-powerkvm-layer-(.*).pkvm.*rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["ppc64"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_autoinstall":"powerkvm.ks",
+    "kernel_options":"ip=dhcp root=live:$tree/LiveOS/squashfs.img repo=$tree/packages",
+    "kernel_options_post":"",
+    "boot_files":[],
+    "boot_loaders":{"ppc64":["pxelinux"]}
+   }
   },
   "generic": {
    "generic26": {

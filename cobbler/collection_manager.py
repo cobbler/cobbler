@@ -191,8 +191,8 @@ class CollectionManager:
         ):
             try:
                 serializer.deserialize(collection)
-            except:
-                raise CX("serializer: error loading collection %s. Check /etc/cobbler/modules.conf" % collection.collection_type())
+            except Exception as e:
+                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf" % (collection.collection_type(), e))
 
     def get_items(self, collection_type):
         if collection_type == "distro":

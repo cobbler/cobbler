@@ -1137,11 +1137,14 @@ def copyfile(src, dst, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst))
-        shutil.copyfile(src, dst)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
             raise CX(_("Cannot read: %s") % src)
-        if not os.path.samefile(src, dst):
+        if os.path.samefile(src, dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
@@ -1237,9 +1240,9 @@ def set_arch(self, arch, repo=False):
         arch = "i386"
 
     if repo:
-        valids = ["i386", "x86_64", "ppc", "ppc64", "noarch", "src", "arm"]
+        valids = ["i386", "x86_64", "ppc", "ppc64", "ppc64le", "ppc64el", "noarch", "src", "arm"]
     else:
-        valids = ["i386", "x86_64", "ppc", "ppc64", "arm"]
+        valids = ["i386", "x86_64", "ppc", "ppc64", "ppc64le", "ppc64el", "arm"]
 
     if arch in valids:
         self.arch = arch
@@ -1652,6 +1655,31 @@ def subprocess_call(logger, cmd, shell=True, input=None):
 def subprocess_get(logger, cmd, shell=True, input=None):
     data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return data
+
+
+def get_supported_system_boot_loaders():
+    return ["<<inherit>>", "elilo", "grub", "grub2", "pxelinux", "yaboot"]
+
+
+def get_supported_distro_boot_loaders(distro, api_handle=None):
+    try:
+        # Try to read from the signature
+        return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+    except:
+        try:
+            # Try to read directly from the cache
+            return SIGNATURE_CACHE["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
+        except:
+            try:
+                # Else use some well-known defaults
+                return {"ppc64": ["grub2", "pxelinux", "yaboot"],
+                        "ppc64le": ["grub2"],
+                        "ppc64el": ["grub2"],
+                        "i386": ["grub", "pxelinux"],
+                        "x86_64": ["grub", "pxelinux"]}[distro.arch]
+            except:
+                # Else return the globally known list
+                return get_supported_system_boot_loaders()
 
 
 def clear_from_fields(item, fields, is_subobject=False):

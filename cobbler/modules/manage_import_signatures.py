@@ -33,6 +33,9 @@ try:
 except:
     apt_available = False
 
+from cobbler import item_distro
+from cobbler import item_profile
+
 from cexceptions import CX
 import item_repo
 import templar
@@ -199,7 +202,7 @@ class ImportSignatureManager:
     # required function for import modules
     def get_valid_arches(self):
         if self.signature:
-            return self.signature["supported_arches"]
+            return sorted(self.signature["supported_arches"], key = lambda s : -1 * len (s))
         return []
 
     def get_valid_repo_breeds(self):
@@ -308,7 +311,7 @@ class ImportSignatureManager:
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
-                distro = self.collection_mgr.new_distro()
+                distro = item_distro.Distro(self.collection_mgr)
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
@@ -323,6 +326,9 @@ class ImportSignatureManager:
             distro.set_kernel_options(self.signature.get("kernel_options", ""))
             distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
             distro.set_template_files(self.signature.get("template_files", ""))
+            supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(distro, self.api)
+            distro.set_supported_boot_loaders(supported_distro_boot_loaders)
+            distro.set_boot_loader(supported_distro_boot_loaders[0])
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
@@ -341,7 +347,7 @@ class ImportSignatureManager:
 
             if existing_profile is None:
                 self.logger.info("creating new profile: %s" % name)
-                profile = self.collection_mgr.new_profile()
+                profile = item_profile.Profile(self.collection_mgr)
             else:
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue
@@ -413,9 +419,11 @@ class ImportSignatureManager:
                     for arch in self.get_valid_arches():
                         if x.find(arch) != -1:
                             foo[arch] = 1
+                            break
                     for arch in ["i686", "amd64"]:
                         if x.find(arch) != -1:
                             foo[arch] = 1
+                            break
 
     def get_proposed_name(self, dirname, kernel=None):
         """
@@ -445,7 +453,7 @@ class ImportSignatureManager:
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
         for separator in ['-', '_', '.']:
-            for arch in ["i386", "x86_64", "ppc64", "ppc32", "ppc", "x86", "386", "amd"]:
+            for arch in ["i386", "x86_64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "386", "amd"]:
                 name = name.replace("%s%s" % (separator, arch), "")
 
         return name
@@ -589,7 +597,7 @@ class ImportSignatureManager:
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
             seg = comps_path.rfind("distro_mirror")
-            urlseg = comps_path[seg + 10:]
+            urlseg = comps_path[(seg + len("distro_mirror") + 1):]
 
             fname = os.path.join(self.settings.webdir, "distro_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 

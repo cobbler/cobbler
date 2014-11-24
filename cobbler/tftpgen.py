@@ -63,6 +63,7 @@ class TFTPGen:
         dst = self.bootloc
         grub_dst = os.path.join(dst, "grub")
         image_dst = os.path.join(dst, "images")
+        boot_dst = os.path.join(dst, "boot/grub")
 
         # copy syslinux from one of two locations
         try:
@@ -94,6 +95,10 @@ class TFTPGen:
             '/var/lib/cobbler/loaders/yaboot', dst,
             require_match=False, api=self.api, cache=False, logger=self.logger)
 
+        utils.copyfile_pattern(
+            '/var/lib/cobbler/loaders/boot/grub/*', boot_dst,
+            require_match=False, api=self.api, cache=False, logger=self.logger)
+
         try:
             utils.copyfile_pattern(
                 '/usr/lib/syslinux/memdisk',
@@ -114,11 +119,11 @@ class TFTPGen:
             require_match=False, api=self.api, cache=False, logger=self.logger)
 
         pxegrub_imported = False
-        if os.path.isdir(os.path.join(self.bootloc, 'boot')):
-            shutil.rmtree(os.path.join(self.bootloc, 'boot'))
         for i in self.distros:
             if 'nexenta' == i.breed and not pxegrub_imported:
                 # name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
+                if os.path.isdir(os.path.join(self.bootloc, 'boot')):
+                    shutil.rmtree(os.path.join(self.bootloc, 'boot'))
                 shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'distro_mirror', i.name, 'boot'),
                                 os.path.join(self.bootloc, 'boot'))
                 pxegrub_imported = True
@@ -244,15 +249,23 @@ class TFTPGen:
                 grub_path = os.path.join(self.bootloc, "grub", f1.upper())
 
             elif working_arch.startswith("ppc"):
-                # Determine filename for system-specific yaboot.conf
+                # Determine filename for system-specific bootloader config
                 filename = "%s" % utils.get_config_filename(system, interface=name).lower()
-                f2 = os.path.join(self.bootloc, "etc", filename)
+                # to inherit the distro and system's boot_loader values correctly
+                blended_system = utils.blender(self.api, False, system)
+                if blended_system["boot_loader"] == "pxelinux":
+                    # pxelinux wants a file named $name under pxelinux.cfg
+                    f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
+                elif distro.boot_loader == "grub2":
+                    f2 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
+                else:
+                    f2 = os.path.join(self.bootloc, "etc", filename)
 
-                # Link to the yaboot binary
-                f3 = os.path.join(self.bootloc, "ppc", filename)
-                if os.path.lexists(f3):
-                    utils.rmfile(f3)
-                os.symlink("../yaboot", f3)
+                    # Link to the yaboot binary
+                    f3 = os.path.join(self.bootloc, "ppc", filename)
+                    if os.path.lexists(f3):
+                        utils.rmfile(f3)
+                    os.symlink("../yaboot", f3)
             else:
                 continue
 
@@ -501,7 +514,14 @@ class TFTPGen:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
                     if arch.startswith("ppc"):
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
+                        # to inherit the distro and system's boot_loader values correctly
+                        blended_system = utils.blender(self.api, False, system)
+                        if blended_system["boot_loader"] == "pxelinux":
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
+                        elif distro.boot_loader == "grub2":
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2_ppc.template")
+                        else:
+                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
@@ -524,6 +544,9 @@ class TFTPGen:
                                 utils.rmfile(f3)
 
                             # Remove the interface-specific config file
+                            f3 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
+                            if os.path.lexists(f3):
+                                 utils.rmfile(f3)
                             f3 = os.path.join(self.bootloc, "etc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)
@@ -643,6 +666,7 @@ class TFTPGen:
                 mac_address = system.interfaces[intf]['mac_address']
                 ip_address = system.interfaces[intf]['ip_address']
                 if mac_address and ip_address:
+                    kopts['BOOTIF'] = '01-' + mac_address
                     kopts['ksdevice'] = mac_address
                     break
 
@@ -679,7 +703,7 @@ class TFTPGen:
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical url=%s" % (append_line, autoinstall_path)
+                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
@@ -709,6 +733,9 @@ class TFTPGen:
                     img_path = os.path.join("/images", distro.name)
                     append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
                     return append_line
+            elif distro.breed == "powerkvm":
+                append_line += " kssendmac"
+                append_line = "%s kvmp.inst.auto=%s" % (append_line, autoinstall_path)
 
         if distro is not None and (distro.breed in ["debian", "ubuntu"]):
             # Hostname is required as a parameter, the one in the preseed is
@@ -1036,7 +1063,7 @@ class TFTPGen:
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.normpath(os.path.join("/var/lib/cobbler/scripts", script_name))
+        template = os.path.normpath(os.path.join("/var/lib/cobbler/autoinstall_scripts", script_name))
         if not os.path.exists(template):
             return "# script template %s not found" % script_name
 

@@ -144,6 +144,7 @@ class IscManager:
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
+                interface["name_servers"] = blended_system["name_servers"]
 
                 if not self.settings.always_write_dhcp_entries:
                     if not interface["netboot_enabled"] and interface['static']:
@@ -153,7 +154,12 @@ class IscManager:
                 # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch.startswith("ppc"):
-                        interface["filename"] = yaboot
+                        if blended_system["boot_loader"] == "pxelinux":
+                            del interface["filename"]
+                        elif distro.boot_loader == "grub2":
+                            interface["filename"] = "boot/grub/powerpc-ieee1275/core.elf"
+                        else:
+                            interface["filename"] = yaboot
 
                 dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":

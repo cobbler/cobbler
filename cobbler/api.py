@@ -127,7 +127,8 @@ class CobblerAPI:
             # import signatures
             try:
                 utils.load_signatures(self.settings().signature_path)
-            except:
+            except Exception as e:
+                self.log("Failed to load signatures from %s: %s" % (self.settings().signature_path, e))
                 return
 
             self.log("%d breeds and %d OS versions read from the signature file" % (
