@@ -11,6 +11,6 @@ boot_order_orig="\$(cat /root/boot-device.bak)"
 boot_order_cur="\$(nvram --print-config=boot-device)"
 if [[ ( -n "\$boot_order_orig" ) &&  ( "\$boot_order_orig" != "\$boot_order_cur" ) ]]
 then
-    nvsetenv boot-device "\$boot_order_orig"
+    nvram --update-config boot-device="\$boot_order_orig"
 fi
 #end if
