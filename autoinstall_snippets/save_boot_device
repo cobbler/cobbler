@@ -3,7 +3,7 @@
 # as first boot device in Power machines. Therefore, save the original boot
 # order, so it can be restored after installation is completed.
 #if ( $breed == "suse" )
-	nvram --print-config=boot-device > /root/boot-device.bak
+nvram --print-config=boot-device > /root/boot-device.bak
 #else
 # Once root's homedir is there, copy over the log.
 while : ; do
