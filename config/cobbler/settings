@@ -75,6 +75,7 @@ cheetah_import_whitelist:
  - "random"
  - "re"
  - "time"
+ - "netaddr"
 
 # Default createrepo_flags to use for new repositories. If you have
 # createrepo >= 0.4.10, consider "-c cache --update -C", which can
