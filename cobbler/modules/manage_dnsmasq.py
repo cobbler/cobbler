@@ -97,10 +97,6 @@ class DnsmasqManager:
                 ip = interface["ip_address"]
                 host = interface["dns_name"]
 
-                if mac is None or mac == "":
-                    # can't write a DHCP entry for this system
-                    continue
-
                 counter += 1
 
                 # In many reallife situations there is a need to control the IP address

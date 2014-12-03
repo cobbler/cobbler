@@ -116,10 +116,6 @@ class IscManager:
                 if distro is not None:
                     interface["distro"] = distro.to_dict()
 
-                if mac is None or mac == "":
-                    # can't write a DHCP entry for this system
-                    continue
-
                 counter = counter + 1
 
                 # the label the entry after the hostname if possible
