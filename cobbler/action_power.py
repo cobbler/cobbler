@@ -116,9 +116,9 @@ class PowerTool:
                 if desired_state == 'status':
                     match = re.match('(^Status:\s)(ON|OFF)', output)
                     if not match:
-                        match = re.match('(.*Chassis power = )(On|Off)', output)
+                        match = re.match('(.*Chassis power\s*(=|is)\s*)(On|Off).*', output, re.IGNORECASE)
                     if match:
-                        power_status = match.groups()[1]
+                        power_status = match.groups()[2]
                         if power_status.upper() == 'ON':
                             return True
                         else:
