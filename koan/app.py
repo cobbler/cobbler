@@ -735,7 +735,7 @@ class Koan:
                 # is libvirt new enough?
                 rc, version_str = utils.subprocess_get_response(
                     shlex.split('/usr/bin/virt-install --version'), True)
-                if rc != 0 or re.match('^0\.[01].*', version_str):
+                if rc != 0 or re.match('^0\.[01]\..*', version_str):
                     raise InfoException(
                         "need python-virtinst >= 0.2 or virt-install package to do installs for qemu/kvm (depending on your OS)")
 
