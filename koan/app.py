@@ -1062,7 +1062,7 @@ class Koan:
 
             (make, version) = utils.os_release()
 
-            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
+            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10) or (make == "suse"):
 
                 # embed the initrd in the autoinst file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
@@ -1143,7 +1143,7 @@ class Koan:
 
             autoinst = self.safe_load(profile_data, 'autoinst')
 
-            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10):
+            if (make == "centos" and version < 7) or (make == "redhat" and version < 7) or (make == "fedora" and version < 10) or (make == "suse"):
 
                 # embed the initrd in the autoinst file because of libdhcp and/or pump
                 # needing the help due to some DHCP timeout potential in some certain
