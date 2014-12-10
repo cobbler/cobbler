@@ -400,7 +400,10 @@ class BuildIso:
 
                 if exclude_dns is None or my_dns is not None:
                     if dist.breed == "suse":
-                        append_line += " nameserver=%s" % my_dns[0]
+                        if type(my_dns) == list:
+                            append_line += " nameserver=%s" % ",".join(my_dns)
+                        else:
+                            append_line += " nameserver=%s" % my_dns
                     if dist.breed == "redhat":
                         if type(my_dns) == list:
                             append_line += " dns=%s" % ",".join(my_dns)
