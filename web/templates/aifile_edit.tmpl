@@ -16,20 +16,20 @@
 {% else %}
 <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Automatic Installation Template</h1>
 <hr />
-<form id="aiform" method="post" action="/cobbler_web/autoinstall_file/save">
+<form id="aiform" method="post" action="/cobbler_web/aifile/save">
   {% csrf_token %}
   <ol>
     <li>
-      <label for="aidata">{% if aifile_name %}Editing: {{ autoinstall_file_name }}{% else %}Filename:{% endif %}</label>
+<label for="aidata">{% if aifile_name %}Editing: {{ aifile_name }}{% else %}Filename:{% endif %}</label>
   {% ifnotequal editmode 'edit' %}
-      <input type="text" name="autoinstall_file_name" id="autoinstall_file_name" />
-      <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/autoinsts/)</span>
+      <input type="text" name="aifile_name" id="aifile_name" />
+      <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/autoinstall_templates/)</span>
   {% else %}
-      <input type="hidden" name="autoinstall_file_name" value="{{ autoinstall_file_name }}" />
+      <input type="hidden" name="aifile_name" value="{{ aifile_name }}" />
   {% endifnotequal %}
     </li>
     <li>
-      <pre><textarea name="autoinstall_data" id="autoinstall_data">{{ aidata }}</textarea></pre>
+      <pre><textarea name="aidata" id="aidata">{{ aidata }}</textarea></pre>
     </li>
   {% if deleteable %}
     <li>
