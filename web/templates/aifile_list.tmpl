@@ -23,8 +23,7 @@ to generic_list, then it can be hacked around -->
       <td>{{ autoinstall_file }}</td>
   {% if option %}
       <td>
-    {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/aifile/edit/file:{{ autoinstall_file }}'">Edit</a> {% endifequal %}
-    {% ifequal option "viewable" %}<span class="action" onClick="window.location='{{ autoinstall_file }}'>View</a>{% endifequal %}
+    {% ifequal option "editable" %}<span class="action" onClick="window.location='/cobbler_web/aifile/edit/file:{{ autoinstall_file }}'">Edit</span> {% endifequal %}
       </td>
   {% endif %}
     </tr>

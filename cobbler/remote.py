@@ -1949,6 +1949,8 @@ class CobblerXMLRPCInterface:
 
         self.autoinstall_mgr.write_autoinstall_template(file_path, data)
 
+        return True
+
     def remove_autoinstall_template(self, file_path, token):
         """
         Remove an automatic OS installation template file
@@ -1962,6 +1964,8 @@ class CobblerXMLRPCInterface:
         self.check_access(token, what, file_path, True)
 
         self.autoinstall_mgr.remove_autoinstall_template(file_path)
+
+        return True
 
     def read_autoinstall_snippet(self, file_path, token):
         """
@@ -1993,6 +1997,8 @@ class CobblerXMLRPCInterface:
 
         self.autoinstall_mgr.write_autoinstall_snippet(file_path, data)
 
+        return True
+
     def remove_autoinstall_snippet(self, file_path, token):
         """
         Remove an automated OS installation snippet file
@@ -2007,6 +2013,8 @@ class CobblerXMLRPCInterface:
         self.check_access(token, what, file_path, True)
 
         self.autoinstall_mgr.remove_autoinstall_snippet(file_path)
+
+        return True
 
     def get_config_data(self, hostname):
         """
