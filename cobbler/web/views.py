@@ -784,8 +784,6 @@ def aifile_save(request):
 
     if aifile_name is None:
         return HttpResponse("NO AUTOMATIC INSTALLATION FILE NAME SPECIFIED")
-    if editmode != 'edit':
-        aifile_name = "/var/lib/cobbler/autoinsts/" + aifile_name
 
     delete1 = request.POST.get('delete1', None)
     delete2 = request.POST.get('delete2', None)
