@@ -66,11 +66,19 @@ class CobblerSvc(object):
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
         return u"%s" % data
 
-    def gpxe(self, profile=None, system=None, **rest):
+    def gpxe(self, profile=None, system=None, mac=None, **rest):
         """
         Generate a gPXE config
         """
         self.__xmlrpc_setup()
+        if not system and mac:
+            query = {"mac_address": mac}
+            if profile:
+                query["profile"] = profile
+            found = self.remote.find_system(query)
+            if found:
+                system = found[0]
+
         data = self.remote.generate_gpxe(profile, system)
         return u"%s" % data
 
