@@ -400,14 +400,20 @@ class BuildIso:
 
                 if exclude_dns is None or my_dns is not None:
                     if dist.breed == "suse":
-                        append_line += " nameserver=%s" % my_dns[0]
+                        if type(my_dns) == list:
+                            append_line += " nameserver=%s" % ",".join(my_dns)
+                        else:
+                            append_line += " nameserver=%s" % my_dns
                     if dist.breed == "redhat":
                         if type(my_dns) == list:
                             append_line += " dns=%s" % ",".join(my_dns)
                         else:
                             append_line += " dns=%s" % my_dns
                     if dist.breed in ["ubuntu", "debian"]:
-                        append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
+                        if type(my_dns) == list:
+                            append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
+                        else:
+                            append_line += " netcfg/get_nameservers=%s" % my_dns
 
                 # add remaining kernel_options to append_line
                 append_line += self.add_remaining_kopts(data["kernel_options"])
