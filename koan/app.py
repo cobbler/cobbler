@@ -846,7 +846,7 @@ class Koan:
 
     def update_files(self):
         """
-        Contact the cobbler server and wget any config-management
+        Contact the cobbler server and get any config-management
         files in cobbler that we are providing to nodes.  Basically
         this turns cobbler into a lighweight configuration management
         system for folks who are not needing a more complex CMS.
@@ -891,7 +891,7 @@ class Koan:
                 url = pattern % (profile_data["http_server"],"profile",profile_data["name"],dest)
             if not os.path.exists(os.path.dirname(save_as)):
                 os.makedirs(os.path.dirname(save_as))
-            cmd = [ "/usr/bin/wget", url, "--output-document", save_as ]
+            cmd = ["/usr/bin/curl", url, "--output ", save_as]
             utils.subprocess_call(cmd)
        
         return True 
