@@ -13,7 +13,7 @@
     ## PXE JUST ONCE
     #if $pxe_just_once in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
-            #set nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null" % (srv, system_name)
+            #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" -o /dev/null" % (srv, system_name)
         #else if $breed == 'vmware'
@@ -28,7 +28,7 @@
     ## SAVE AUTO INSTALLATION
     #if $autoinstall != ''
         #if $breed == 'redhat'
-            #set save_autoinstall = "\nwget \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -O /root/cobbler.ks" % (srv, "system", system_name)
+            #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, "system", system_name)
         #else if $breed == 'vmware'
@@ -40,7 +40,7 @@
     ## RUN POST TRIGGER
     #if $run_install_triggers in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
-            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "system", system_name)
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "system", system_name)
         #else if $breed == 'vmware'
@@ -53,7 +53,7 @@
     ## SAVE KICKSTART
     #if $autoinstall != ''
         #if $breed == 'redhat'
-            #set save_autoinstall = "\nwget \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -O /root/cobbler.ks" % (srv, "profile", profile_name)
+            #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, "profile", profile_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set save_autoinstall = "\ncurl \"http://%s/cblr/svc/op/autoinstall/%s/%s\" -o /root/cobbler.ks" % (srv, "profile", profile_name)
         #else if $breed == 'vmware'
@@ -65,7 +65,7 @@
     ## RUN POST TRIGGER
     #if $run_install_triggers in [ "1", "true", "yes", "y" ]
         #if $breed == 'redhat'
-            #set runpost = "\nwget \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -O /dev/null" % (srv, "profile", profile_name)
+            #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
         #else if $breed == 'vmware' and $os_version == 'esx4'
             #set runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" -o /dev/null" % (srv, "profile", profile_name)
         #else if $breed == 'vmware'

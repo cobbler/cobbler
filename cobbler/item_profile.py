@@ -43,7 +43,7 @@ FIELDS = [
     ["distro", None, '<<inherit>>', "Distribution", True, "Parent distribution", [], "str"],
     ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["enable_menu", "SETTINGS:enable_menu", '<<inherit>>', "Enable PXE Menu?", True, "Show this profile in the PXE menu?", 0, "bool"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
+    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["kernel_options", {}, '<<inherit>>', "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, '<<inherit>>', "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
     ["mgmt_classes", [], '<<inherit>>', "Management Classes", True, "For external configuration management", 0, "list"],

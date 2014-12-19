@@ -69,7 +69,7 @@ First, get the Cobbler repo file:
 .. code-block:: none
 
     # cd /etc/yum.repos.d
-    # wget http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/Fedora_20/home:libertas-ict:cobbler30.repo
+    # curl -o cobbler30.repo http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/Fedora_20/home:libertas-ict:cobbler30.repo
     # yum update
 
 
@@ -107,7 +107,7 @@ Then, get the Cobbler repo file:
 .. code-block:: none
 
     # cd /etc/yum.repos.d
-    # wget http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/CentOS_CentOS-7/home:libertas-ict:cobbler30.repo
+    # curl -o cobbler30.repo http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/CentOS_CentOS-7/home:libertas-ict:cobbler30.repo
     # yum update
 
 
