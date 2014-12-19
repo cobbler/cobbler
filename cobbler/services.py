@@ -1,6 +1,6 @@
 """
 Mod Python service functions for Cobbler's public interface
-(aka cool stuff that works with wget)
+(aka cool stuff that works with wget/curl)
 
 based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
 additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>

@@ -112,7 +112,7 @@ FIELDS = [
    [ "tree_build_time",0,0,"Tree Build Time",False,"",0,"str"],
    [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0,"list"],
    [ "boot_files",{},0,"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
-   [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget",0,"list"],
+   [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget/curl",0,"list"],
    [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0,"list"],
    [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
    [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"]
