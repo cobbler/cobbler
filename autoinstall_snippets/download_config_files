@@ -12,7 +12,7 @@
     #set $turl = "http://"+$http_server+"/cblr/svc/op/template/"+$ttype+"/"+$tname+"/path/"+$tpath
 #if $orig.startswith("/")
 mkdir -p `dirname $orig`
-wget "$turl" --output-document="$orig"
+curl "$turl" --output "$orig"
 #end if
 #end for
 # End download cobbler managed config files (if applicable)

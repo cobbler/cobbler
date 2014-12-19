@@ -43,7 +43,7 @@ FIELDS = [
     ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Network installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget", 0, "list"],
+    ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "list"],
     ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],

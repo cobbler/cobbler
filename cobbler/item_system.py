@@ -44,7 +44,7 @@ FIELDS = [
     ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Linux installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget", 0, "dict"],
+    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["gateway", "", 0, "Gateway", True, "", 0, "str"],
     ["hostname", "", 0, "Hostname", True, "", 0, "str"],
     ["image", None, 0, "Image", True, "Parent image (if not a profile)", 0, "str"],
