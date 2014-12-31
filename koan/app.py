@@ -551,7 +551,7 @@ class Koan:
                 self.get_install_tree_from_profile_data(profile_data)
             else:
                 # find install source tree from kernel options
-                if not self.get_install_tree_from_kernel_options(profile_data)
+                if not self.get_install_tree_from_kernel_options(profile_data):
                     # Otherwise find kickstart source tree in the kickstart file
                     self.get_install_tree_from_kickstart(profile_data)
 
