@@ -1507,7 +1507,7 @@ class Koan:
                         for octet in netmask.split('.'):
                             binary_str += bin(int(octet))[2:].zfill(8)
                         return str(len(binary_str.rstrip('0')))
-                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip,gateway,get_cidr(netmask),hostname,interface_name)
+                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip, gateway, get_cidr(netmask), hostname, interface_name)
                 else:
                     hashv["ip"] = ip
             if netmask is not None:
