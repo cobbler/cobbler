@@ -544,7 +544,7 @@ class TFTPGen:
                             # Remove the interface-specific config file
                             f3 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
                             if os.path.lexists(f3):
-                                 utils.rmfile(f3)
+                                utils.rmfile(f3)
                             f3 = os.path.join(self.bootloc, "etc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)
