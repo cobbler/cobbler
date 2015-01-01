@@ -6,8 +6,7 @@ recursive-include bin *
 recursive-include config *
 recursive-include docs *
 recursive-include autoinstall_templates *
-recursive-include snippets *
-recursive-include scripts *
-recursive-include templates *
+recursive-include autoinstall_snippets *
+recursive-include autoinstall_templates *
 recursive-include web *
 
