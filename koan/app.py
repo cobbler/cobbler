@@ -1434,7 +1434,7 @@ class Koan:
         autoinst = self.safe_load(pd, 'autoinst')
         options = self.safe_load(pd, 'kernel_options', default='')
         breed = self.safe_load(pd, 'breed')
-        os_version = self.safe_load(pd,'os_version')
+        os_version = self.safe_load(pd, 'os_version')
 
         kextra = ""
         if autoinst is not None and autoinst != "":
