@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import glob
 import os
 import os.path
 import re
@@ -62,7 +61,6 @@ class TFTPGen:
         """
         dst = self.bootloc
         grub_dst = os.path.join(dst, "grub")
-        image_dst = os.path.join(dst, "images")
         boot_dst = os.path.join(dst, "boot/grub")
 
         # copy syslinux from one of two locations
@@ -546,7 +544,7 @@ class TFTPGen:
                             # Remove the interface-specific config file
                             f3 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
                             if os.path.lexists(f3):
-                                 utils.rmfile(f3)
+                                utils.rmfile(f3)
                             f3 = os.path.join(self.bootloc, "etc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)

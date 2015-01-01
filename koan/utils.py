@@ -445,8 +445,8 @@ def connect_to_server(server=None, port=None):
         ]
     else:
         try_urls = [
-            "https://%s:%s/cobbler_api" % (server,port),
-            "http://%s:%s/cobbler_api" % (server,port),
+            "https://%s:%s/cobbler_api" % (server, port),
+            "http://%s:%s/cobbler_api" % (server, port),
         ]
 
     for url in try_urls:

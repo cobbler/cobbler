@@ -1434,7 +1434,7 @@ class Koan:
         autoinst = self.safe_load(pd, 'autoinst')
         options = self.safe_load(pd, 'kernel_options', default='')
         breed = self.safe_load(pd, 'breed')
-        os_version= self.safe_load(pd,'os_version')
+        os_version = self.safe_load(pd, 'os_version')
 
         kextra = ""
         if autoinst is not None and autoinst != "":
@@ -1507,7 +1507,7 @@ class Koan:
                         for octet in netmask.split('.'):
                             binary_str += bin(int(octet))[2:].zfill(8)
                         return str(len(binary_str.rstrip('0')))
-                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip,gateway,get_cidr(netmask),hostname,interface_name)
+                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip, gateway, get_cidr(netmask), hostname, interface_name)
                 else:
                     hashv["ip"] = ip
             if netmask is not None:

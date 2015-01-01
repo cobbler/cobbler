@@ -352,7 +352,7 @@ class RepoSync:
 
         # create the config file the hosts will use to access the repository.
         repo_mirror = repo.mirror
-        dest_path = os.path.join(self.settings.webdir+"/repo_mirror", repo.name)
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
         self.create_local_file(dest_path, repo)
 
         if not repo.mirror_locally:

@@ -420,7 +420,7 @@ def genlist(request, what, page=None):
         'username': username,
         'limit': limit,
         'batchactions': batchactions,
-        'profiles' : profiles,
+        'profiles': profiles,
     }))
     return HttpResponse(html)
 
@@ -778,7 +778,6 @@ def aifile_save(request):
         return login(request, next="/cobbler_web/aifile/list", expired=True)
     # FIXME: error checking
 
-    editmode = request.POST.get('editmode', 'edit')
     aifile_name = request.POST.get('aifile_name', None)
     aidata = request.POST.get('aidata', "").replace('\r\n', '\n')
 
