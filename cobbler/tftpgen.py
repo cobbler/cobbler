@@ -61,7 +61,6 @@ class TFTPGen:
         """
         dst = self.bootloc
         grub_dst = os.path.join(dst, "grub")
-        image_dst = os.path.join(dst, "images")
         boot_dst = os.path.join(dst, "boot/grub")
 
         # copy syslinux from one of two locations
