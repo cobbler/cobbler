@@ -202,7 +202,7 @@ class ImportSignatureManager:
     # required function for import modules
     def get_valid_arches(self):
         if self.signature:
-            return sorted(self.signature["supported_arches"], key=lambda s: -1 * len (s))
+            return sorted(self.signature["supported_arches"], key=lambda s: -1 * len(s))
         return []
 
     def get_valid_repo_breeds(self):
