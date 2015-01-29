@@ -254,7 +254,7 @@ class TFTPGen:
                 if blended_system["boot_loader"] == "pxelinux":
                     # pxelinux wants a file named $name under pxelinux.cfg
                     f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
-                elif distro.boot_loader == "grub2":
+                elif distro.boot_loader == "grub2" or blended_system["boot_loader"] == "grub2":
                     f2 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
                 else:
                     f2 = os.path.join(self.bootloc, "etc", filename)
@@ -516,7 +516,7 @@ class TFTPGen:
                         blended_system = utils.blender(self.api, False, system)
                         if blended_system["boot_loader"] == "pxelinux":
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
-                        elif distro.boot_loader == "grub2":
+                        elif distro.boot_loader == "grub2" or blended_system["boot_loader"] == "grub2":
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2_ppc.template")
                         else:
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
