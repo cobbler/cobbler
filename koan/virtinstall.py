@@ -74,7 +74,16 @@ except:
         for variant in variants:
             supported_variants.add(variant.split()[0])
     except:
-        pass  # No problem, we'll just use generic
+        try:
+            # maybe on newer os using osinfo-query?
+            rc, response = utils.subprocess_get_response(
+                    shlex.split('osinfo-query os'))
+            variants = response.split('\n')
+            for variant in variants:
+                supported_variants.add(variant.split()[0])
+        except:
+            # okay, probably on old os and we'll just use generic26
+            pass
 
 
 def _sanitize_disks(disks):
@@ -370,7 +379,15 @@ def build_commandline(uri,
             # make sure virt-install knows about our os_version,
             # otherwise default it to virtio26 or generic26
             # found = False
-            if os_version not in supported_variants:
+            if os_version in supported_variants:
+                pass # os_version is correct
+            elif os_version + ".0" in supported_variants:
+                # osinfo based virt-install only knows about major.minor
+                # variants, not just major variants like it used to. Default
+                # to major.0 variant in that case. Lack of backwards
+                # compatibility in virt-install grumble grumble.
+                os_version = os_version + ".0"
+            else:
                 if "virtio26" in supported_variants:
                     os_version = "virtio26"
                 else:
