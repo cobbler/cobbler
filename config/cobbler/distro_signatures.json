@@ -536,7 +536,7 @@
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
     "default_autoinstall":"sample_autoyast.xml",
-    "kernel_options":"",
+    "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
    },
