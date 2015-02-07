@@ -540,7 +540,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "sles11sp3": {
+   "sles11sp4": {
     "signatures":["suse"],
     "version_file":"sles-release-11.4-(.*).rpm",
     "version_file_regex":null,
