@@ -613,7 +613,6 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
             ("%s" % initpath,               ["build/config/cobblerd"]),
             ("%s" % docpath,                glob("build/docs/man/*.1.gz")),
-            ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
             ("%skickstarts/install_profiles" % libpath,      glob("kickstarts/install_profiles/*")),
             ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),

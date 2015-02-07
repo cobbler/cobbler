@@ -290,7 +290,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # share
 %{_usr}/share/cobbler
-%{_usr}/share/cobbler/installer_templates
 %exclude %{_usr}/share/cobbler/spool
 %exclude %{_usr}/share/cobbler/web
 
