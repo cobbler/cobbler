@@ -123,6 +123,7 @@ class BootCheck:
            "red hat enterprise linux server",
            "fedora",
            "centos",
+           "centos linux",
            "scientific linux",
            "suse",
            "opensuse"
@@ -171,6 +172,7 @@ class BootCheck:
                "red hat enterprise linux server",
                "fedora",
                "centos",
+               "centos linux",
                "scientific linux",
                "suse",
                "opensuse"
@@ -259,6 +261,7 @@ class BootCheck:
            "red hat enterprise linux server",
            "fedora",
            "centos",
+           "centos linux",
            "scientific linux"
        ):
            rc = utils.subprocess_get(self.logger,"httpd -v")
