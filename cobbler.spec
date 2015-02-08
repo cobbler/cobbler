@@ -282,7 +282,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # data
 %{tftp_dir}
-%{tftp_dir}/images
 %{apache_dir}/cobbler
 %config(noreplace) %{_var}/lib/cobbler
 %exclude %{apache_dir}/cobbler_webui_content
