@@ -85,26 +85,6 @@ def get_power_command(power_type):
     return None
 
 
-def get_power_template(power_type):
-    """
-    Get power management template
-
-    @param str power_type power management type
-    @return str power management input template
-    """
-
-    if power_type:
-        power_template = "/etc/cobbler/power/fence_%s.template" % power_type
-        if os.path.isfile(power_template):
-            f = open(power_template)
-            template = f.read()
-            f.close()
-            return template
-
-    # return a generic template if a specific one wasn't found
-    return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
-
-
 class PowerManager:
     """
     Handles power management in systems
@@ -173,7 +153,7 @@ class PowerManager:
         if meta.get("power_pass", "") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS", "")
 
-        template = get_power_template(system.power_type)
+        template = self.get_power_template(system.power_type)
         tmp = templar.Templar(self.collection_mgr)
         template_data = tmp.render(template, meta, None, system)
         logger.info("power command: %s" % power_command)
@@ -256,3 +236,23 @@ class PowerManager:
         """
 
         return self._power(system, "status", user, password, logger)
+
+
+    def get_power_template(self, power_type):
+        """
+        Get power management template
+
+        @param str power_type power management type
+        @return str power management input template
+        """
+
+        if power_type:
+            power_template = "%s/fence_%s.template" % (self.settings.power_template_dir, power_type)
+            if os.path.isfile(power_template):
+                f = open(power_template)
+                template = f.read()
+                f.close()
+                return template
+
+        # return a generic template if a specific one wasn't found
+        return "action=$power_mode\nlogin=$power_user\npasswd=$power_pass\nipaddr=$power_address\nport=$power_id"
