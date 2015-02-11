@@ -238,10 +238,8 @@ class System(item.Item):
             self.next_server = "<<inherit>>"
         else:
             server = server.strip()
-            if server != "<<inherit>>":
-                self.next_server = validate.ipv4_address(server)
-            else:
-                self.next_server = server
+            self.next_server = validate.ipv4_address(server)
+
 
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
