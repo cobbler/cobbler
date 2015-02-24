@@ -463,6 +463,9 @@ class TFTPGen:
             if 'nexenta' == distro.breed:
                 kernel_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'kernel', 'amd64', os.path.basename(distro.kernel))
                 initrd_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'amd64', os.path.basename(distro.initrd))
+            elif 'http' in distro.kernel and 'http' in distro.initrd:
+                kernel_path = distro.kernel
+                initrd_path = distro.initrd
             else:
                 kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
