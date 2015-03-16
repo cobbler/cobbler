@@ -335,6 +335,7 @@ run_install_triggers: 1
 # but git is the recommend SCM for use with this feature.
 scm_track_enabled: 0
 scm_track_mode: "git"
+smc_track_author: "cobbler <cobbler@localhost>"
 
 # this is the address of the cobbler server -- as it is used
 # by systems during the install process, it must be the address
