@@ -43,8 +43,6 @@ def run(api, args, logger):
     scm_track_enabled = str(settings.scm_track_enabled).lower()
     mode = str(settings.scm_track_mode).lower()
     author = str(settings.scm_track_author)
-    if not author:
-        author = 'cobbler <root@localhost>'
 
     if scm_track_enabled not in ["y", "yes", "1", "true"]:
         # feature disabled
