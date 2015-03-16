@@ -14,8 +14,7 @@ clean:
 	@rm -f cobbler/*.pyc
 	@rm -f cobbler/modules/*.pyc
 	@echo "cleaning: build artifacts"
-	@rm -rf build rpm-build release
-	@rm -rf dist
+	@rm -rf build rpm-build release dist
 	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
 	@rm -f docs/*.1.gz
@@ -33,17 +32,9 @@ doc:
 
 qa:
 	@echo "checking: pyflakes"
-	@pyflakes \
-		*.py \
-		cobbler/*.py \
-		cobbler/modules/*.py \
-		bin/cobbler* bin/*.py 
+	@pyflakes *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 	@echo "checking: pep8"
-	@pep8 -r --ignore E303,E501 \
-        *.py \
-        cobbler/*.py \
-        cobbler/modules/*.py \
-        bin/cobbler* bin/*.py
+	@pep8 -r --ignore E303,E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 
 authors:
 	@echo "creating: AUTHORS"
@@ -110,7 +101,6 @@ restorestate:
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
-		chmod -R +x $(DESTDIR)/var/www/cobbler/web; \
 		chmod -R +x $(DESTDIR)/var/www/cobbler/svc; \
 	fi
 	if [ -d $(DESTDIR)/usr/share/cobbler/web ] ; then \
