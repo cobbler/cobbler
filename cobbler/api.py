@@ -89,11 +89,6 @@ class CobblerAPI:
         self.perms_ok = False
         if not CobblerAPI.__has_loaded:
 
-            if os.path.exists("/etc/cobbler/use.couch"):
-                self.use_couch = True
-            else:
-                self.use_couch = False
-
             # NOTE: we do not log all API actions, because
             # a simple CLI invocation may call adds and such
             # to load the config, which would just fill up
