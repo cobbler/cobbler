@@ -6,9 +6,9 @@
  #set $comps = " ".join($repo.apt_components)
 d-i apt-setup/local${cur}/repository string \
  #if $repo.mirror_locally
-      http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
+      deb http://$http_server/cblr/repo_mirror/${repo.name} $dist $comps
  #else
-      ${repo.mirror} $dist $comps
+      deb ${repo.mirror} $dist $comps
  #end if
  #if $repo.comment != ""
 d-i apt-setup/local${cur}/comment string ${repo.comment}
