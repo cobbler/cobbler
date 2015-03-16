@@ -103,14 +103,12 @@ Requires(preun): systemd
 
 
 %description
-Cobbler is a network install server.  Cobbler supports PXE, ISO
-virtualized installs, and re-installing existing Linux machines. 
-The last two modes use a helper tool, 'koan', that integrates with
-cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
-advanced features include importing distributions from DVDs and rsync
-mirrors, automatic installation file templating, integrated yum 
-mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC
-API for integration with other applications.
+Cobbler is a PXE and ISO based network install server.
+Cobbler's advanced features include importing distributions from DVDs
+and rsync mirrors, automatic installation file templating, integrated
+package mirroring, and built-in DHCP/DNS Management.
+
+Cobbler has a XMLRPC API for integration with other applications.
 
 
 %prep
@@ -140,8 +138,6 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unit
 # cobbler-web
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
-# koan
-mkdir -p $RPM_BUILD_ROOT/var/spool/koan
 
 
 %pre
@@ -254,45 +250,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_var}/log/cobbler
 
 # documentation
-%doc AUTHORS README COPYING docs/README.openvz docs/README.suse
+%doc AUTHORS README COPYING docs/README.suse
 %{_mandir}/man1/cobbler.1.gz
-
-
-# 
-# package: koan
-#
-
-%package -n koan
-
-Summary: Helper tool that performs cobbler orders on remote machines
-Group: Applications/System
-Requires: python >= 2.6
-Requires: python-ethtool
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-Requires: python(abi) >= %{pyver}
-Requires: python-simplejson
-Requires: virt-install
-%endif
-
-
-%description -n koan
-Koan stands for kickstart-over-a-network and allows for both
-network installation of new virtualized guests and reinstallation
-of an existing system.  For use with a boot-server configured with Cobbler
-
-
-%files -n koan
-/var/spool/koan
-/var/lib/koan
-%{_bindir}/koan
-%{_bindir}/ovz-install
-%{_bindir}/cobbler-register
-%{python2_sitelib}/koan
-
-%{_mandir}/man1/koan.1.gz
-%{_mandir}/man1/cobbler-register.1.gz
-/var/log/koan
-%doc AUTHORS COPYING README
 
 
 #

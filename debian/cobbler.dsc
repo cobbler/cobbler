@@ -1,6 +1,6 @@
 Format: 1.0
 Source: cobbler
-Binary: cobbler, python-cobbler, cobbler-common, cobbler-web, koan, python-koan
+Binary: cobbler, python-cobbler, cobbler-common, cobbler-web
 Architecture: all
 Version: 2.9.0-1
 Maintainer: Cobbler Developers <cobbler-devel@fedorahosted.org>

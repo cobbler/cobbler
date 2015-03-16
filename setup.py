@@ -389,7 +389,7 @@ class test_command(Command):
 
     def run(self):
         testfiles = []
-        testdirs = ["koan"]
+        testdirs = []
 
         for d in testdirs:
             testdir = os.path.join(os.getcwd(), "tests", d)
@@ -574,15 +574,11 @@ if __name__ == "__main__":
             "cobbler/modules",
             "cobbler/web",
             "cobbler/web/templatetags",
-            "koan",
         ],
         scripts=[
             "bin/cobbler",
             "bin/cobblerd",
             "bin/cobbler-ext-nodes",
-            "bin/koan",
-            "bin/ovz-install",
-            "bin/cobbler-register",
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),
@@ -597,8 +593,6 @@ if __name__ == "__main__":
         ],
         man_pages=[
             'docs/man/cobbler.1.pod',
-            'docs/man/cobbler-register.1.pod',
-            'docs/man/koan.1.pod'
         ],
         data_files=[
             # tftpd, hide in /usr/sbin
@@ -688,17 +682,12 @@ if __name__ == "__main__":
             ("%scollections/mgmtclasses" % libpath, []),
             ("%scollections/packages" % libpath, []),
             ("%scollections/files" % libpath, []),
-            # Build empty directories to hold koan localconfig
-            ("/var/lib/koan/config", []),
             # logfiles
             ("%scobbler/kicklog" % logpath, []),
             ("%scobbler/syslog" % logpath, []),
             ("%shttpd/cobbler" % logpath, []),
             ("%scobbler/anamon" % logpath, []),
-            ("%skoan" % logpath, []),
             ("%scobbler/tasks" % logpath, []),
-            # spoolpaths
-            ("share/cobbler/spool/koan", []),
             # web page directories that we own
             ("%scobbler/localmirror" % webroot, []),
             ("%scobbler/repo_mirror" % webroot, []),

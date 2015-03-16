@@ -15,8 +15,6 @@ clean:
 	@rm -f cobbler/modules/*.pyc
 	@rm -f cobbler/web/*.pyc
 	@rm -f cobbler/web/templatetags/*.pyc
-	@rm -f koan/*.pyc
-	@rm -f koan/live/*.pyc
 	@echo "cleaning: build artifacts"
 	@rm -rf build rpm-build release
 	@rm -rf dist
@@ -42,16 +40,14 @@ qa:
 		cobbler/*.py \
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
-		bin/cobbler* bin/*.py bin/koan web/cobbler.wsgi \
-		koan/*.py
+		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pep8"
 	@pep8 -r --ignore E303,E501 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
         cobbler/web/*.py cobbler/web/templatetags/*.py \
-        bin/cobbler* bin/*.py bin/koan web/cobbler.wsgi \
-        koan/*.py
+        bin/cobbler* bin/*.py web/cobbler.wsgi
 
 authors:
 	@echo "creating: AUTHORS"

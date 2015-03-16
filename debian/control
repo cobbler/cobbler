@@ -11,25 +11,12 @@ Architecture: all
 Depends: ${python:Depends}, python, apache2, libapache2-mod-python, libapache2-mod-wsgi, python-support, python-yaml, python-netaddr, python-cheetah, python-urlgrabber, python-django, debmirror, syslinux | syslinux-common
 Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo
 Description: Install server
- Cobbler is a network install server.  Cobbler
- supports PXE, virtualized installs, and
- reinstalling existing Linux machines.  The last two
- modes use a helper tool, 'koan', that
- integrates with cobbler.  Cobbler's advanced features
- include importing distributions from DVDs and rsync
- mirrors, automatic installation templating, integrated yum
- mirroring, and built-in DHCP/DNS Management.  Cobbler has
- a Python and XMLRPC API for integration with other
- applications.  There is also a web interface.
-
-Package: koan
-Architecture: all
-Depends: ${python:Depends}, python, python-support, python-yaml, python-netaddr, lvm2, libvirt-bin, virtinst, syslinux | syslinux-common
-Suggests: rsync, tftpd-hpa, mkisofs, tftpd-hpa, dhcp3-server, createrepo, selinux-utils
-Description: kickstart-over-a-network (koan)
- Koan stands for kickstart-over-a-network.
- It's a Cobbler helper tool that supports virtualized guests installs
- and reinstalling existing Linux machines.
+ Cobbler is a PXE based network install server.
+ Cobbler's advanced features include importing distributions
+ from DVDs and rsync mirrors, automatic installation templating,
+ integrated yum mirroring, and built-in DHCP/DNS Management.
+ Cobbler has a Python and XMLRPC API for integration with other
+ applications. There is also a web interface available.
 
 Package: cobbler-nsupdate
 Architecture: all
