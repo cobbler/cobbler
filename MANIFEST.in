@@ -5,9 +5,6 @@ recursive-include aux *
 recursive-include bin *
 recursive-include config *
 recursive-include docs *
+recursive-include snippets *
 recursive-include templates *
-recursive-include autoinstall_snippets *
-recursive-include autoinstall_templates *
-recursive-include autoinstall_scripts *
-recursive-include web *
-
+recursive-include scripts *
