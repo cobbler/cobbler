@@ -376,12 +376,6 @@ class CobblerXMLRPCInterface:
         """
         return self.api.last_modified_time()
 
-    def update(self, token=None):
-        """
-        Deprecated method.  Now does nothing.
-        """
-        return True
-
     def ping(self):
         """
         Deprecated method.  Now does nothing.

@@ -310,15 +310,6 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def update(self):
-        """
-        This can be called is no longer used by cobbler.
-        And is here to just avoid breaking older scripts.
-        """
-        pass
-
-    # ========================================================================
-
     def copy_item(self, what, ref, newname, logger=None):
         self.log("copy_item(%s)" % what, [ref.name, newname])
         self.get_items(what).copy(ref, newname, logger=logger)
