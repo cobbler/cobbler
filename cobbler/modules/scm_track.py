@@ -46,13 +46,13 @@ def run(api,args,logger):
     settings = api.settings()
     scm_track_enabled  = str(settings.scm_track_enabled).lower()
     mode = str(settings.scm_track_mode).lower()
+    author = str(settings.scm_track_author)
 
     if scm_track_enabled not in [ "y", "yes", "1", "true" ]:
        # feature disabled
        return 0
    
     if mode == "git":
-
        old_dir = os.getcwd()
        os.chdir("/var/lib/cobbler")
        if os.getcwd() != "/var/lib/cobbler":
@@ -66,7 +66,7 @@ def run(api,args,logger):
        rc = utils.subprocess_call(logger,"git add --all config",shell=True)
        rc = utils.subprocess_call(logger,"git add --all kickstarts",shell=True)
        rc = utils.subprocess_call(logger,"git add --all snippets",shell=True)
-       rc = utils.subprocess_call(logger,"git commit -m 'API update' --author 'cobbler <root@localhost.localdomain>'",shell=True)
+       rc = utils.subprocess_call(logger,"git commit -m 'API update' --author '{0}'".format(author),shell=True)
 
        os.chdir(old_dir)
        return 0
@@ -86,7 +86,7 @@ def run(api,args,logger):
         rc = utils.subprocess_call(logger,"hg add config",shell=True)
         rc = utils.subprocess_call(logger,"hg add kickstarts",shell=True)
         rc = utils.subprocess_call(logger,"hg add snippets",shell=True)
-        rc = utils.subprocess_call(logger,"hg commit -m 'API update' --user 'cobbler <root@localhost.localdomain>'",shell=True)
+        rc = utils.subprocess_call(logger,"hg commit -m 'API update' --user '{0}'".format(author),shell=True)
 
         os.chdir(old_dir)
         return 0

@@ -124,6 +124,7 @@ DEFAULTS = {
     "run_install_triggers"                : [1,"bool"],
     "scm_track_enabled"                   : [0,"bool"],
     "scm_track_mode"                      : ["git","str"],
+    "scm_track_author"                    : ["cobbler <root@localhost>","str"],
     "serializer_pretty_json"              : [0,"bool"],
     "server"                              : ["127.0.0.1","str"],
     "sign_puppet_certs_automatically"     : [0,"bool"],
