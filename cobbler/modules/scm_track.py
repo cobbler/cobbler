@@ -43,6 +43,7 @@ def run(api, args, logger):
     scm_track_enabled = str(settings.scm_track_enabled).lower()
     mode = str(settings.scm_track_mode).lower()
     author = str(settings.scm_track_author)
+    push_script = str(settings.scm_push_script)
 
     if scm_track_enabled not in ["y", "yes", "1", "true"]:
         # feature disabled
@@ -64,6 +65,9 @@ def run(api, args, logger):
         utils.subprocess_call(logger, "git add --all snippets", shell=True)
         utils.subprocess_call(logger, "git commit -m 'API update' --author '{0}'".format(author), shell=True)
 
+        if push_script:
+            utils.subprocess_call(logger, push_script, shell=True)
+
         os.chdir(old_dir)
         return 0
 
@@ -83,6 +87,9 @@ def run(api, args, logger):
         utils.subprocess_call(logger, "hg add autoinstall_templates", shell=True)
         utils.subprocess_call(logger, "hg add snippets", shell=True)
         utils.subprocess_call(logger, "hg commit -m 'API update' --user '{0}'".format(author), shell=True)
+
+        if push_script:
+            utils.subprocess_call(logger, push_script, shell=True)
 
         os.chdir(old_dir)
         return 0
