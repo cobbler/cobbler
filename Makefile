@@ -87,17 +87,21 @@ webtest: devinstall
 
 # Check if we are on Red Hat, Suse or Debian based distribution
 restartservices:
-	if [ -x /sbin/service ] ; then \
-		/sbin/service cobblerd restart; \
-	    if [ -f /etc/init.d/httpd ] ; then \
-			/sbin/service httpd restart; \
-		else \
-			/sbin/service apache2 restart; \
-        fi \
-	else \
-		/usr/sbin/service cobblerd restart; \
-		/usr/sbin/service apache2 restart; \
-	fi
+    if [ -x /sbin/service ] ; then \
+        /sbin/service cobblerd restart; \
+        if [ -f /etc/init.d/httpd ] ; then \
+            /sbin/service httpd restart; \
+        elif [ -f /usr/lib/systemd/system/httpd.service ]; then \
+            /bin/systemctl restart httpd.service; \
+        else \
+            /sbin/service apache2 restart; \
+        fi; \
+    elif [ -x /bin/systemctl ]; then \
+        /bin/systemctl restart httpd.service; \
+    else \
+        /usr/sbin/service cobblerd restart; \
+        /usr/sbin/service apache2 restart; \
+    fi
 
 sdist: clean
 	python setup.py sdist
