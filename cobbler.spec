@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.7
+Version: 2.7.0
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
