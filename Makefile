@@ -73,11 +73,7 @@ build:
 
 # Debian/Ubuntu requires an additional parameter in setup.py
 install: build
-	if [ -e /etc/debian_version ]; then \
-		python setup.py install --root $(DESTDIR) -f --install-layout=deb; \
-	else \
-		python setup.py install --root $(DESTDIR) -f; \
-	fi
+	python setup.py install --root $(DESTDIR) -f; \
 
 devinstall:
 	-rm -rf $(DESTDIR)/usr/share/cobbler
@@ -97,7 +93,7 @@ restorestate:
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
 	elif [ -n "`getent passwd wwwrun`" ] ; then \
 		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web; \
-	elif [-n "`getent passwd www-data`"] ; then \
+	elif [ -n "`getent passwd www-data`"] ; then \
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
