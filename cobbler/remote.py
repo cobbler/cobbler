@@ -361,13 +361,6 @@ class CobblerXMLRPCInterface:
         else:
             raise CX("no event with that id")
 
-    def __sorter(self, a, b):
-        """
-        Helper function to sort two dict representations of
-        cobbler objects by name.
-        """
-        return cmp(a["name"], b["name"])
-
     def last_modified_time(self, token=None):
         """
         Return the time of the last modification to any object.
