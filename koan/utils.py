@@ -582,3 +582,15 @@ def create_qemu_image_file(path, size, driver_type):
         traceback.print_exc()
         raise InfoException, "Image file create failed: %s" % string.join(cmd, " ")
 
+def check_version_greater_or_equal(version1, version2):
+    ass = version1.split(".")
+    bss = version2.split(".")
+    if len(ass) != len(bss):
+        raise Exception("expected version format differs")
+    for i, a in enumerate(ass):
+        a = int(a)
+        b = int(bss[i])
+        if a < b:
+            return False
+    return True
+
