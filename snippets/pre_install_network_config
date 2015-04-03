@@ -60,6 +60,8 @@ get_ifname() {
         #set $static        = $idata["static"]
         #set $ip            = $idata["ip_address"]
         #set $netmask       = $idata["netmask"]
+        #set $gateway       = $idata["gateway"]
+        #set $if_gateway    = $idata["if_gateway"]
         #set $iface_type    = $idata["interface_type"]
         #set $iface_master  = $idata["interface_master"]
         #set $static_routes = $idata["static_routes"]
@@ -109,8 +111,14 @@ get_ifname() {
                     #set $netmask = "255.255.255.0"
                 #end if
                 #set $netinfo = "--bootproto=static --ip=%s --netmask=%s" % ($ip, $netmask)
-                #if $gateway != ""
-	            #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
+                #if $if_gateway != ""
+	                #if $if_gateway == $gateway
+	                   #set $netinfo = "%s --gateway=%s" % ($netinfo, $if_gateway)
+	                #else
+	                   #set $netinfo = "%s --gateway=%s --nodefroute" % ($netinfo, $if_gateway)
+	                #end if
+                #else if $gateway != ""
+	                #set $netinfo = "%s --gateway=%s" % ($netinfo, $gateway)
     	        #end if
     	        #if $len($name_servers) > 0
     	            #set $netinfo = "%s --nameserver=%s" % ($netinfo, $name_servers[0])
