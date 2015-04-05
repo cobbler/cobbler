@@ -50,7 +50,7 @@ FIELDS = [
   ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","kvm","vmware","openvz"],"str"],
   ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,"",0,"int"],
   ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0,"float"],
-  ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
+  ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk",["<<inherit>>","raw"],"str"],
   ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0,"int"],
   ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
   ["virt_pxe_boot",0,0,"Virt PXE Boot",True,"Use PXE to build this VM?",0,"bool"],
