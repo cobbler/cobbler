@@ -1361,13 +1361,10 @@ def set_virt_disk_driver(self, driver):
     For Virt only.
     Specifies the on-disk format for the virtualized disk
     """
-    # FIXME: we should probably check the driver type
-    #        here against the libvirt/virtinst list of
-    #        drivers, but this makes things more flexible
-    #        meaning we don't have to manage this list
-    #        and it's up to the user not to enter an
-    #        unsupported disk format
-    self.virt_disk_driver = driver
+    if driver in validate.VIRT_DISK_DRIVERS:
+        self.virt_disk_driver = driver
+    else:
+        raise CX(_("invalid virt disk driver type (%s)" % driver))
 
 
 def set_virt_auto_boot(self, num):
