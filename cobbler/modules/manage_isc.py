@@ -188,6 +188,22 @@ class IscManager:
     def regen_ethers(self):
         pass            # ISC/BIND do not use this
 
+    def sync_dhcp(self):
+        restart_dhcp = str(self.settings.restart_dhcp).lower()
+        service_name = utils.dhcp_service_name(self.api)
+        if restart_dhcp != "0":
+            rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
+            if rc != 0:
+                error_msg = "dhcpd -t failed"
+                self.logger.error(error_msg)
+                raise CX(error_msg)
+            service_restart = "service %s restart" % service_name
+            rc = utils.subprocess_call(self.logger, service_restart, shell=True)
+            if rc != 0:
+                error_msg = "%s failed" % service_name
+                self.logger.error(error_msg)
+                raise CX(error_msg)
+
 
 def get_manager(collection_mgr, logger):
     return IscManager(collection_mgr, logger)
