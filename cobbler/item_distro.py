@@ -216,7 +216,7 @@ class Distro(item.Item):
             # otherwise, refresh from the signatures / defaults
             self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             supported_distro_boot_loaders = self.supported_boot_loaders
-        if not name in supported_distro_boot_loaders:
+        if name not in supported_distro_boot_loaders:
             raise CX(_("Invalid boot loader name: %s. Supported boot loaders are: %s" % (name, ' '.join(supported_distro_boot_loaders))))
         self.boot_loader = name
 

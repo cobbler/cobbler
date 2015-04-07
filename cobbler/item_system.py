@@ -183,7 +183,7 @@ class System(item.Item):
 
         if not name:
             raise CX(_("No network interface name provided"))
-        if not name in self.interfaces:
+        if name not in self.interfaces:
             self.__create_interface(name)
 
         return self.interfaces[name]
@@ -218,7 +218,7 @@ class System(item.Item):
 
 
     def set_boot_loader(self, name):
-        if not name in utils.get_supported_system_boot_loaders():
+        if name not in utils.get_supported_system_boot_loaders():
             raise CX(_("Invalid boot loader name: %s" % name))
         self.boot_loader = name
 
