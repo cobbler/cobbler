@@ -26,12 +26,13 @@
 # Using "old" style networking config. Make sure all MAC-addresses are in cobbler to use the new-style config
         #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
         #for $iname in $ikeys
-            #set $idata    = $interfaces[$iname]
-            #set $mac      = $idata["mac_address"]
-            #set $static   = $idata["static"]
-            #set $ip       = $idata["ip_address"]
-            #set $netmask  = $idata["netmask"]
-            #set $type     = $idata["interface_type"]
+            #set $idata      = $interfaces[$iname]
+            #set $mac        = $idata["mac_address"]
+            #set $static     = $idata["static"]
+            #set $ip         = $idata["ip_address"]
+            #set $netmask    = $idata["netmask"]
+            #set $type       = $idata["interface_type"]
+            #set $if_gateway = $idata["if_gateway"]
             ## Ignore BMC interface
             #if $type == "bmc"
                 #continue
@@ -53,7 +54,9 @@
                         #if $netmask != "":
                             #set $network_str = $network_str + " --netmask=" + $netmask 
                         #end if
-                        #if $gateway != "":
+                        #if $if_gateway != "":
+                            #set $network_str = $network_str + " --gateway=" + $if_gateway
+                        #elif $gateway != "":
                             #set $network_str = $network_str + " --gateway=" + $gateway
                         #end if
                         #if $name_servers and $name_servers[0] != "":
