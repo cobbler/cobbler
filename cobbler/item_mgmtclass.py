@@ -64,15 +64,12 @@ class Mgmtclass(item.Item):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         return FIELDS
-
 
     def check_if_valid(self):
         if self.name is None or self.name == "":
             raise CX("name is required")
-
 
     #
     # specific methods for item.Mgmtclass
@@ -81,10 +78,8 @@ class Mgmtclass(item.Item):
     def set_packages(self, packages):
         self.packages = utils.input_string_or_list(packages)
 
-
     def set_files(self, files):
         self.files = utils.input_string_or_list(files)
-
 
     def set_params(self, params):
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
@@ -93,10 +88,8 @@ class Mgmtclass(item.Item):
         else:
             self.params = value
 
-
     def set_is_definition(self, isdef):
         self.is_definition = utils.input_boolean(isdef)
-
 
     def set_class_name(self, name):
         if not isinstance(name, basestring):

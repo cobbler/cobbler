@@ -44,7 +44,6 @@ class LogTool:
             logger = clogger.Logger()
         self.logger = logger
 
-
     def clear(self):
         """
         Clears the system logs

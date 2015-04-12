@@ -34,7 +34,7 @@ qa:
 	@echo "checking: pyflakes"
 	@pyflakes *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 	@echo "checking: pep8"
-	@pep8 -r --ignore E303,E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
+	@pep8 -r --ignore E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 
 authors:
 	@echo "creating: AUTHORS"

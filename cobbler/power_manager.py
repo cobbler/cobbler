@@ -237,7 +237,6 @@ class PowerManager:
 
         return self._power(system, "status", user, password, logger)
 
-
     def get_power_template(self, power_type):
         """
         Get power management template

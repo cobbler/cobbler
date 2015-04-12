@@ -487,7 +487,6 @@ class CobblerAPI:
             res = items.find(return_list=True, no_errors=False, **criteria)
         return res
 
-
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         return self._collection_mgr.distros().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 

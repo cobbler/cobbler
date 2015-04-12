@@ -113,7 +113,6 @@ def authenticate(api_handle, username, password):
                 # this feature must be explicitly enabled.
                 return False
 
-
             session = ""
             try:
                 session = client.auth.login(username, password)
@@ -138,7 +137,6 @@ def authenticate(api_handle, username, password):
         if user_enabled == 0:
             # this feature must be explicitly enabled.
             return False
-
 
         session = ""
         try:

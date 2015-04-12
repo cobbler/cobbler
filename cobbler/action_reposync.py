@@ -64,7 +64,6 @@ class RepoSync:
 
         self.logger.info("hello, reposync")
 
-
     # ===================================================================
 
     def run(self, name=None, verbose=True):
@@ -147,7 +146,6 @@ class RepoSync:
 
         if report_failure:
             utils.die(self.logger, "overall reposync failed, at least one repo failed to synchronize")
-
 
     # ==================================================================================
 
@@ -300,7 +298,6 @@ class RepoSync:
 
         # how we invoke yum-utils depends on whether this is RHN content or not.
 
-
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
@@ -451,7 +448,6 @@ class RepoSync:
 
     # ====================================================================================
 
-
     def apt_sync(self, repo):
 
         """
@@ -522,7 +518,6 @@ class RepoSync:
             rc = utils.subprocess_call(self.logger, cmd)
             if rc != 0:
                 utils.die(self.logger, "cobbler reposync failed")
-
 
     def create_local_file(self, dest_path, repo, output=True):
         """

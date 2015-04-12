@@ -49,7 +49,6 @@ class CobblerStatusReport:
             logger = clogger.Logger()
         self.logger = logger
 
-
     # -------------------------------------------------------
 
     def scan_logfiles(self):

@@ -57,15 +57,12 @@ class Package(resource.Resource):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         return FIELDS
-
 
     def check_if_valid(self):
         if self.name is None or self.name == "":
             raise CX("name is required")
-
 
     #
     # specific methods for item.Package

@@ -239,7 +239,6 @@ class BindManager:
 
         return zones
 
-
     def __write_named_conf(self):
         """
         Write out the named.conf main config file from the template.
@@ -410,7 +409,6 @@ zone "%(arpa)s." {
         else:
             names.sort()
 
-
         max_name = max([len(i) for i in names])
 
         s = ""
@@ -458,7 +456,6 @@ zone "%(arpa)s." {
                     pass
 
         return s
-
 
     def __write_zone_files(self):
         """
@@ -537,7 +534,6 @@ zone "%(arpa)s." {
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
 
-
             zonefilename = zonefileprefix + zone
             if self.logger is not None:
                 self.logger.info("generating (forward) %s" % zonefilename)
@@ -563,12 +559,10 @@ zone "%(arpa)s." {
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
 
-
             zonefilename = zonefileprefix + zone
             if self.logger is not None:
                 self.logger.info("generating (reverse) %s" % zonefilename)
             self.templar.render(template_data, metadata, zonefilename, None)
-
 
     def write_dns_files(self):
         """

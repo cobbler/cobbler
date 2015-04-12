@@ -43,7 +43,6 @@ class CollectionManager:
     has_loaded = False
     __shared_state = {}
 
-
     def __init__(self, api):
         """
         Constructor.  Manages a definitive copy of all data collections with weakrefs
@@ -52,7 +51,6 @@ class CollectionManager:
         self.__dict__ = CollectionManager.__shared_state
         if not CollectionManager.has_loaded:
             self.__load(api)
-
 
     def __load(self, api):
         CollectionManager.has_loaded = True

@@ -132,7 +132,6 @@ class Item(object):
         self.last_cached_mtime = 0
         self.cached_dict = ""
 
-
     def __find_compare(self, from_search, from_obj):
 
         if isinstance(from_obj, basestring):
@@ -170,7 +169,6 @@ class Item(object):
 
             raise CX(_("find cannot compare type: %s") % type(from_obj))
 
-
     def get_fields(self):
         """
         Get serializable fields
@@ -178,13 +176,11 @@ class Item(object):
         """
         raise exceptions.NotImplementedError()
 
-
     def clear(self, is_subobject=False):
         """
         Reset this object.
         """
         utils.clear_from_fields(self, self.get_fields(), is_subobject=is_subobject)
-
 
     def make_clone(self):
         """
@@ -192,29 +188,23 @@ class Item(object):
         """
         raise exceptions.NotImplementedError
 
-
     def from_dict(self, _dict):
         """
         Modify this object to take on values in seed_data
         """
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
-
     def to_dict(self):
         return utils.to_dict_from_fields(self, self.get_fields())
-
 
     def to_string(self):
         return utils.to_string_from_fields(self, self.get_fields())
 
-
     def get_setter_methods(self):
         return utils.get_setter_methods_from_fields(self, self.get_fields())
 
-
     def set_uid(self, uid):
         self.uid = uid
-
 
     def get_children(self, sorted=True):
         """
@@ -227,7 +217,6 @@ class Item(object):
         for k in keys:
             results.append(self.children[k])
         return results
-
 
     def get_descendants(self):
         """
@@ -242,13 +231,11 @@ class Item(object):
             results.extend(grandkids)
         return results
 
-
     def get_parent(self):
         """
         For objects with a tree relationship, what's the parent object?
         """
         return None
-
 
     def get_conceptual_parent(self):
         """
@@ -264,7 +251,6 @@ class Item(object):
                 return parent
             parent = parent.get_parent()
         return None
-
 
     def set_name(self, name):
         """
@@ -380,7 +366,6 @@ class Item(object):
         data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
-
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
         data = self.to_dict()
@@ -394,7 +379,6 @@ class Item(object):
                 return False
 
         return True
-
 
     def find_match_single_key(self, data, key, value, no_errors=False):
         # special case for systems
@@ -424,7 +408,6 @@ class Item(object):
         else:
             return self.__find_compare(value, data[key])
 
-
     def dump_vars(self, data, format=True):
         raw = utils.blender(self.collection_mgr.api, False, self)
         if format:
@@ -432,22 +415,17 @@ class Item(object):
         else:
             return raw
 
-
     def set_depth(self, depth):
         self.depth = depth
-
 
     def set_ctime(self, ctime):
         self.ctime = ctime
 
-
     def set_mtime(self, mtime):
         self.mtime = mtime
 
-
     def set_parent(self, parent):
         self.parent = parent
-
 
     def check_if_valid(self):
         """

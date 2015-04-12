@@ -58,7 +58,6 @@ EVENT_FAILED = "failed"
 EVENT_INFO = "notification"
 
 
-
 class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.

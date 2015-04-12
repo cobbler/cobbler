@@ -85,20 +85,17 @@ class Distro(item.Item):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         """
         Return the list of fields and their properties
         """
         return FIELDS
 
-
     def get_parent(self):
         """
         Distros don't have parent objects.
         """
         return None
-
 
     def check_if_valid(self):
         if self.name is None:
@@ -120,7 +117,6 @@ class Distro(item.Item):
         elif not os.path.exists(self.initrd):
             raise CX("Error with distro %s - initrd path '%s' not found" % (self.name, self.initrd))
 
-
     #
     # specific methods for item.Distro
     #
@@ -140,7 +136,6 @@ class Distro(item.Item):
             return
         raise CX("kernel not found: %s" % kernel)
 
-
     def set_tree_build_time(self, datestamp):
         """
         Sets the import time of the distro.
@@ -148,14 +143,11 @@ class Distro(item.Item):
         """
         self.tree_build_time = float(datestamp)
 
-
     def set_breed(self, breed):
         return utils.set_breed(self, breed)
 
-
     def set_os_version(self, os_version):
         return utils.set_os_version(self, os_version)
-
 
     def set_initrd(self, initrd):
         """
@@ -169,7 +161,6 @@ class Distro(item.Item):
             return
         raise CX(_("initrd not found"))
 
-
     def set_source_repos(self, repos):
         """
         A list of http:// URLs on the cobbler server that point to
@@ -177,7 +168,6 @@ class Distro(item.Item):
         install core packages.  Use by cobbler import only.
         """
         self.source_repos = repos
-
 
     def set_arch(self, arch):
         """
@@ -195,7 +185,6 @@ class Distro(item.Item):
         """
         return utils.set_arch(self, arch)
 
-
     def set_supported_boot_loaders(self, supported_boot_loaders):
         """
         Some distributions, particularly on powerpc, can only be netbooted using
@@ -205,7 +194,6 @@ class Distro(item.Item):
             raise CX(_("No valid supported boot loaders specified for distro '%s'" % self.name))
         self.supported_boot_loaders = supported_boot_loaders
         self.boot_loader = supported_boot_loaders[0]
-
 
     def set_boot_loader(self, name):
         try:

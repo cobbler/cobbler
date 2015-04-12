@@ -68,7 +68,6 @@ class ImportSignatureManager:
         self.signature = None
         self.found_repos = {}
 
-
     # required function for import modules
     def what(self):
         return "import/signatures"
@@ -154,7 +153,6 @@ class ImportSignatureManager:
             self.logger.info("associating repos")
             # FIXME: this automagic is not possible (yet) without mirroring
             self.repo_finder(distros_added)
-
 
     def scan_signatures(self):
         """
@@ -275,7 +273,6 @@ class ImportSignatureManager:
             adtls.append(self.add_entry(self.path, kernel, initrd))
             for adtl in adtls:
                 distros_added.extend(adtl)
-
 
     def add_entry(self, dirname, kernel, initrd):
         """
