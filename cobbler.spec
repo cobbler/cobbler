@@ -239,7 +239,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_var}/log/cobbler
 
 # documentation
-%doc AUTHORS COPYING docs/README.suse
+%doc AUTHORS COPYING README docs/README.suse
 %{_mandir}/man1/cobbler.1.gz
 
 
@@ -261,7 +261,7 @@ Cobbler module providing secure dynamic dns updates
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
 %{python2_sitelib}/cobbler/modules/nsupdate*
 
-%doc AUTHORS COPYING
+%doc AUTHORS COPYING README
 
 
 %changelog
