@@ -1,6 +1,6 @@
-Build: [![Build Status](https://travis-ci.org/cobbler/cobbler.svg)](https://travis-ci.org/cobbler/cobbler)
-Documentation: [![Documentation Status](https://readthedocs.org/projects/cobbler/badge/?version=latest)](https://readthedocs.org/projects/cobbler/?badge=latest)
-Packaging: TBD
+Build: [![Build Status](https://travis-ci.org/cobbler/cobbler.svg)](https://travis-ci.org/cobbler/cobbler)  
+Documentation: [![Documentation Status](https://readthedocs.org/projects/cobbler/badge/?version=latest)](https://readthedocs.org/projects/cobbler/?badge=latest)  
+Packaging: TBD  
 
 Cobbler
 =======
