@@ -3,7 +3,7 @@ python:
  - "2.7"
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -y python-all python-cheetah python-yaml git-core python-setuptools python-netaddr python-nose python-simplejson
-#install:
-# - "pip install ."
+ - sudo apt-get install -y python-all python-cheetah python-yaml git-core python-setuptools python-netaddr python-nose python-simplejson pyflakes pep8
+install:
+ - "pip install ."
 script: make qa
