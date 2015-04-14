@@ -117,6 +117,9 @@ class Templar:
         # tell Cheetah not to blow up if it can't find a symbol for something
         raw_data = "#errorCatcher ListErrors\n" + raw_data
 
+        # specify unicode encoding for Cheetah Compiler
+        raw_data = "#unicode UTF-8\n" + raw_data
+
         table_copy = search_table.copy()
 
         # for various reasons we may want to call a module inside a template and pass
