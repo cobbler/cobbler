@@ -86,7 +86,6 @@ class CobblerLiteSync:
             self.add_single_profile(k.name, rebuild_menu=False)
         self.sync.tftpgen.make_pxe_menu()
 
-
     def add_single_image(self, name):
         image = self.images.find(name=name)
         self.sync.tftpgen.copy_single_image_files(image)

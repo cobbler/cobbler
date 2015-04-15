@@ -66,10 +66,8 @@ class File(resource.Resource):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         return FIELDS
-
 
     def check_if_valid(self):
         """
@@ -88,7 +86,6 @@ class File(resource.Resource):
             raise CX("mode is required")
         if not self.is_dir and self.template == "":
             raise CX("Template is required when not a directory")
-
 
     #
     # specific methods for item.File

@@ -61,7 +61,6 @@ class DnsmasqManager:
     def remove_dhcp_lease(self, port, host):
         pass
 
-
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in

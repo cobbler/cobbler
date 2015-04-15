@@ -31,7 +31,6 @@ import remote
 import utils
 
 
-
 def core(api):
     cobbler_api = api
     settings = cobbler_api.settings()

@@ -213,7 +213,6 @@ class Templar:
 
         return data_out
 
-
     def render_jinja2(self, raw_data, search_table, subject=None):
         """
         Render data_input back into a file.

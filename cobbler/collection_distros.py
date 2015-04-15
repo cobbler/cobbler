@@ -37,7 +37,6 @@ class Distros(collection.Collection):
     def collection_type(self):
         return "distro"
 
-
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a Distro forged from item_dict
@@ -85,7 +84,6 @@ class Distros(collection.Collection):
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
-
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd

@@ -80,10 +80,8 @@ class Repo(item.Item):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         return FIELDS
-
 
     def get_parent(self):
         """
@@ -92,13 +90,11 @@ class Repo(item.Item):
         """
         return None
 
-
     def check_if_valid(self):
         if self.name is None:
             raise CX("name is required")
         if self.mirror is None:
             raise CX("Error with repo %s - mirror is required" % (self.name))
-
 
     #
     # specific methods for item.File
@@ -114,7 +110,6 @@ class Repo(item.Item):
             else:
                 self.set_breed("rsync")
 
-
     def set_mirror(self, mirror):
         """
         A repo is (initially, as in right now) is something that can be rsynced.
@@ -128,13 +123,11 @@ class Repo(item.Item):
                 self.set_arch("i386")
         self._guess_breed()
 
-
     def set_keep_updated(self, keep_updated):
         """
         This allows the user to disable updates to a particular repo for whatever reason.
         """
         self.keep_updated = utils.input_boolean(keep_updated)
-
 
     def set_yumopts(self, options):
         """
@@ -147,7 +140,6 @@ class Repo(item.Item):
         else:
             self.yumopts = value
 
-
     def set_environment(self, options):
         """
         Yum can take options from the environment.  This puts them there before
@@ -158,7 +150,6 @@ class Repo(item.Item):
             raise CX(_("invalid environment options"))
         else:
             self.environment = value
-
 
     def set_priority(self, priority):
         """
@@ -171,7 +162,6 @@ class Repo(item.Item):
             raise CX(_("invalid priority level: %s") % priority)
         self.priority = priority
 
-
     def set_rpm_list(self, rpms):
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance,
@@ -179,7 +169,6 @@ class Repo(item.Item):
         one wants out of those repos, so only those packages + deps can be mirrored.
         """
         self.rpm_list = utils.input_string_or_list(rpms)
-
 
     def set_createrepo_flags(self, createrepo_flags):
         """
@@ -190,16 +179,13 @@ class Repo(item.Item):
             createrepo_flags = ""
         self.createrepo_flags = createrepo_flags
 
-
     def set_breed(self, breed):
         if breed:
             return utils.set_repo_breed(self, breed)
 
-
     def set_os_version(self, os_version):
         if os_version:
             return utils.set_repo_os_version(self, os_version)
-
 
     def set_arch(self, arch):
         """
@@ -207,19 +193,15 @@ class Repo(item.Item):
         """
         return utils.set_arch(self, arch, repo=True)
 
-
     def set_mirror_locally(self, value):
         self.mirror_locally = utils.input_boolean(value)
-
 
     def set_apt_components(self, value):
         self.apt_components = utils.input_string_or_list(value)
 
-
     def set_apt_dists(self, value):
         self.apt_dists = utils.input_string_or_list(value)
         return True
-
 
     def set_proxy(self, value):
         self.proxy = value

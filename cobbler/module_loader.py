@@ -53,7 +53,6 @@ def load_modules(module_path=mod_path, blacklist=None):
 
     mods = set()
 
-
     for fn in filenames:
         basename = os.path.basename(fn)
         if basename == "__init__.py":

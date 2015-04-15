@@ -53,7 +53,6 @@ class Collection:
         self.lite_sync = None
         self.lock = Lock()
 
-
     def __iter__(self):
         """
         Iterator for the collection.  Allows list comprehensions, etc.
@@ -61,13 +60,11 @@ class Collection:
         for a in self.listing.values():
             yield a
 
-
     def __len__(self):
         """
         Returns size of the collection.
         """
         return len(self.listing.values())
-
 
     def factory_produce(self, collection_mgr, seed_data):
         """
@@ -75,7 +72,6 @@ class Collection:
         from dict
         """
         raise exceptions.NotImplementedError
-
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -91,13 +87,11 @@ class Collection:
         """
         raise exceptions.NotImplementedError
 
-
     def get(self, name):
         """
         Return object with name in the collection
         """
         return self.listing.get(name.lower(), None)
-
 
     def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
@@ -157,7 +151,6 @@ class Collection:
         'netboot-enabled': 'netboot_enabled',
     }
 
-
     def __rekey(self, _dict):
         """
         Find calls from the command line ("cobbler system find")
@@ -174,7 +167,6 @@ class Collection:
                 new_dict[x] = _dict[x]
         return new_dict
 
-
     def to_list(self):
         """
         Serialize the collection
@@ -182,14 +174,12 @@ class Collection:
         _list = [x.to_dict() for x in self.listing.values()]
         return _list
 
-
     def from_list(self, _list):
         if _list is None:
             return
         for item_dict in _list:
             item = self.factory_produce(self.collection_mgr, item_dict)
             self.add(item)
-
 
     def copy(self, ref, newname, logger=None):
         ref = ref.make_clone()
@@ -207,7 +197,6 @@ class Collection:
         self.add(
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
-
 
     def rename(self, ref, newname, with_sync=True, with_triggers=True, logger=None):
         """
@@ -290,7 +279,6 @@ class Collection:
         # now delete the old version
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
         return
-
 
     def add(self, ref, save=False, with_copy=False, with_triggers=True, with_sync=True, quick_pxe_update=False,
             check_for_duplicate_names=False, check_for_duplicate_netinfo=False, logger=None):
@@ -396,7 +384,6 @@ class Collection:
         if parent is not None:
             parent.children[ref.name] = ref
 
-
     def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):
         """
         Prevents adding objects with the same name.
@@ -459,7 +446,6 @@ class Collection:
                     if x.name != ref.name:
                         raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
 
-
     def to_string(self):
         """
         Creates a printable representation of the collection suitable
@@ -476,7 +462,6 @@ class Collection:
             return "\n\n".join(results)
         else:
             return _("No objects found")
-
 
     def collection_type(self):
         """

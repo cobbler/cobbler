@@ -86,7 +86,6 @@ class Profile(item.Item):
         self.boot_files = {}
         self.template_files = {}
 
-
     #
     # override some base class methods first (item.Item)
     #
@@ -97,13 +96,11 @@ class Profile(item.Item):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         """
         Return the list of fields and their properties
         """
         return FIELDS
-
 
     def get_parent(self):
         """
@@ -117,7 +114,6 @@ class Profile(item.Item):
             result = self.collection_mgr.profiles().find(name=self.parent)
         return result
 
-
     def check_if_valid(self):
         # name validation
         if self.name is None or self.name == "":
@@ -127,7 +123,6 @@ class Profile(item.Item):
         distro = self.get_conceptual_parent()
         if distro is None:
             raise CX("Error with profile %s - distro is required" % (self.name))
-
 
     #
     # specific methods for item.Profile
@@ -163,7 +158,6 @@ class Profile(item.Item):
         if isinstance(parent, item.Item):
             parent.children[self.name] = self
 
-
     def set_distro(self, distro_name):
         """
         Sets the distro.  This must be the name of an existing
@@ -179,7 +173,6 @@ class Profile(item.Item):
             d.children[self.name] = self
             return
         raise CX(_("distribution not found"))
-
 
     def set_name_servers(self, data):
         """
@@ -249,34 +242,26 @@ class Profile(item.Item):
     def set_virt_auto_boot(self, num):
         utils.set_virt_auto_boot(self, num)
 
-
     def set_virt_cpus(self, num):
         utils.set_virt_cpus(self, num)
-
 
     def set_virt_file_size(self, num):
         utils.set_virt_file_size(self, num)
 
-
     def set_virt_disk_driver(self, driver):
         utils.set_virt_disk_driver(self, driver)
-
 
     def set_virt_ram(self, num):
         utils.set_virt_ram(self, num)
 
-
     def set_virt_type(self, vtype):
         utils.set_virt_type(self, vtype)
-
 
     def set_virt_bridge(self, vbridge):
         utils.set_virt_bridge(self, vbridge)
 
-
     def set_virt_path(self, path):
         utils.set_virt_path(self, path)
-
 
     def set_repos(self, repos, bypass_check=False):
         utils.set_repos(self, repos, bypass_check)

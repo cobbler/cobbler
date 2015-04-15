@@ -33,7 +33,6 @@ class Mgmtclasses(collection.Collection):
     def collection_type(self):
         return "mgmtclass"
 
-
     def factory_produce(self, config, item_dict):
         """
         Return a mgmtclass forged from item_dict

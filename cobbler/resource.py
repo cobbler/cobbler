@@ -34,13 +34,11 @@ class Resource(item.Item):
             raise CX('%s is not a valid action' % action)
         self.action = action
 
-
     def set_group(self, group):
         """
         Unix group ownership of a file or directory.
         """
         self.group = group
-
 
     def set_mode(self, mode):
         """
@@ -49,13 +47,11 @@ class Resource(item.Item):
         """
         self.mode = mode
 
-
     def set_owner(self, owner):
         """
         Unix owner of a file or directory
         """
         self.owner = owner
-
 
     def set_path(self, path):
         """
@@ -64,7 +60,6 @@ class Resource(item.Item):
         manage.
         """
         self.path = path
-
 
     def set_template(self, template):
         """

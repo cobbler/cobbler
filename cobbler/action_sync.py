@@ -72,8 +72,6 @@ class CobblerSync:
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
 
-
-
     def run(self):
         """
         Syncs the current configuration file with the config tree.
@@ -140,7 +138,6 @@ class CobblerSync:
         self.logger.info("running post-sync triggers")
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
-
 
     def make_tftpboot(self):
         """

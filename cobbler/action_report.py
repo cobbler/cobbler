@@ -112,7 +112,6 @@ class Report:
             item_count = 0
             for key in order:
 
-
                 if info_count == 0:
                     outputheaders += sep + str(key)
 
@@ -141,7 +140,6 @@ class Report:
         outputbody = ''
         sep1 = '^'
         sep2 = '|'
-
 
         info_count = 0
         for item in info:
@@ -180,7 +178,6 @@ class Report:
         sep1 = '||'
         sep2 = '|'
         sep3 = '|-'
-
 
         info_count = 0
         for item in info:
@@ -297,7 +294,6 @@ class Report:
 
         self.print_formatted_data(data=data, order=out_order, report_type=report_type, noheaders=report_noheaders)
 
-
     def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders):
         """
         Prints specific fields in a collection as a table given the report type
@@ -324,7 +320,6 @@ class Report:
             data.append(item)
 
         self.print_formatted_data(data=data, order=fields_list, report_type=report_type, noheaders=report_noheaders)
-
 
     # -------------------------------------------------------
 

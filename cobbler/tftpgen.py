@@ -328,7 +328,6 @@ class TFTPGen:
             if grub_contents is not None:
                 grub_menu_items += grub_contents + "\n"
 
-
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
@@ -420,7 +419,6 @@ class TFTPGen:
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
-
 
     def write_pxe_file(self, filename, system, profile, distro, arch,
                        image=None, include_header=True, metadata=None, format="pxe"):
@@ -571,7 +569,6 @@ class TFTPGen:
             else:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
 
-
         if kernel_path is not None:
             metadata["kernel_path"] = kernel_path
         if initrd_path is not None:
@@ -610,7 +607,6 @@ class TFTPGen:
 
         if system:
             metadata["system_name"] = system.name
-
 
         # get the template
         if kernel_path is not None:

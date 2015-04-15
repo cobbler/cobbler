@@ -432,7 +432,6 @@ class Request:
         OPTIONS["active"] += 1
         self.system = XMLRPCSystem(self.remote_addr[0])
 
-
     def _remap_strip_ip(self, filename):
         # remove per-host IP or Mac prefixes, so that earlier pxelinux requests
         # can be templated.  We are already doing per-host stuff, so we don't
@@ -479,7 +478,6 @@ class Request:
                     return trimmed
         return filename
 
-
     def _remap_via_profiles(self, filename):
         pattern = re.compile("images/([^/]*)/(.*)")
         m = pattern.match(filename)
@@ -496,7 +494,6 @@ class Request:
             else:
                 logging.debug("Couldn't load profile %s" % m.group(1))
         return filename, "chroot"
-
 
     def _remap_name_via_fetchable(self, filename):
         fetchable_files = self.system.attrs["fetchable_files"].strip()
@@ -544,7 +541,6 @@ class Request:
 
         return filename, None
 
-
     def _remap_name_via_boot_files(self, filename):
 
         boot_files = self.system.attrs["boot_files"].strip()
@@ -581,7 +577,6 @@ class Request:
                     logging.warn('Unable to expand name: %s(%s): %s' % (filename, v, e))
 
         return filename, None
-
 
     def _remap_name(self, filename):
         filename = filename.lstrip('/')  # assumed
@@ -627,7 +622,6 @@ class Request:
         except IOError, e:
             logging.warn('Unable to expand template: %s: %s' % (self.filename, e))
             return None
-
 
     def _setup_xfer(self):
         """Open the file to be loaded, or materalize the template.

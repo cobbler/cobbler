@@ -33,7 +33,6 @@ class Files(collection.Collection):
     def collection_type(self):
         return "file"
 
-
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a File forged from item_dict
@@ -41,7 +40,6 @@ class Files(collection.Collection):
         new_file = file.File(collection_mgr)
         new_file.from_dict(item_dict)
         return new_file
-
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
