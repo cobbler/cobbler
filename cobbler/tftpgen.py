@@ -966,7 +966,6 @@ class TFTPGen:
         elif distro.breed == 'windows':
             template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_windows.template" % what.lower())
 
-
         if what == "system":
             if not netboot_enabled:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_local.template" % what.lower())
