@@ -53,7 +53,6 @@ class ContentDownloader:
 
         files = (
             ("%s/README" % content_server, "%s/README" % dest),
-            ("%s/COPYING.elilo" % content_server, "%s/COPYING.elilo" % dest),
             ("%s/COPYING.yaboot" % content_server, "%s/COPYING.yaboot" % dest),
             ("%s/COPYING.syslinux" % content_server, "%s/COPYING.syslinux" % dest),
             ("%s/yaboot-1.3.17" % content_server, "%s/yaboot" % dest),
