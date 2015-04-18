@@ -1,5 +1,5 @@
 """
-Copyright 2014. Jorgen Maas <jorgen.maas@gmail.com>
+Copyright 2014-2015. Jorgen Maas <jorgen.maas@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@ import shlex
 from cobbler.cexceptions import CX
 
 
-
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
 REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
 
 VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
+VIRT_DISK_DRIVERS = ["<<inherit>>", "raw", "qcow2", "qed", "vdi", "vmdk"]
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']

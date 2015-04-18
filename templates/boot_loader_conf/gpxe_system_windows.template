@@ -1,0 +1,19 @@
+#!gpxe
+#
+# This is a generic Windows gpxe script that uses wimboot to boot
+# a WinPE image.  You may need to modify this for your environment.
+#
+# This expects a autoinstall_meta value to be set for initrd multiple times
+# e.g. autoinstall_meta = initrd=bcd initrd=boot.sdi initrd=boot.wim
+#
+# You will need to either place the files manually or use multiple 
+# 'cobbler distro edit' commands to have cobbler automatically link the
+# files appropriately
+#
+# See http://ipxe.org/wimboot for more details
+#
+kernel http://$server:$http_port/cobbler/images/$distro/wimboot
+#for $init in $initrd
+initrd http://$server:$http_port/cobbler/images/$distro/$init	$init
+#end for
+boot 

@@ -15,7 +15,7 @@ clean:
 	@rm -f cobbler/modules/*.pyc
 	@echo "cleaning: build artifacts"
 	@rm -rf build rpm-build release dist
-	@rm -f MANIFEST AUTHORS
+	@rm -f MANIFEST AUTHORS README
 	@rm -f config/version
 	@rm -f docs/*.1.gz
 	@echo "cleaning: temp files"
@@ -26,6 +26,10 @@ clean:
 	@echo "cleaning: documentation"
 	@cd docs; make clean > /dev/null 2>&1
 
+readme:
+	@echo "creating: README"
+	@cat README.md | sed -e 's/^\[!.*//g' | tail -n "+3" > README
+
 doc:
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
@@ -34,18 +38,18 @@ qa:
 	@echo "checking: pyflakes"
 	@pyflakes *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 	@echo "checking: pep8"
-	@pep8 -r --ignore E303,E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
+	@pep8 -r --ignore E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
 
 authors:
 	@echo "creating: AUTHORS"
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
-sdist: authors
+sdist: readme authors
 	@echo "creating: sdist"
 	@python setup.py sdist > /dev/null
 
-release: clean qa authors sdist doc
+release: clean qa readme authors sdist doc
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/

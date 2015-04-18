@@ -45,8 +45,8 @@ auth_token_expiration: 3600
 # this is a directory of files that cobbler uses to make
 # templating easier.  See the Wiki for more information.  Changing
 # this directory should not be required.
-autoinstall_snippets_dir: /var/lib/cobbler/autoinstall_snippets
-autoinstall_templates_dir: /var/lib/cobbler/autoinstall_templates
+autoinstall_snippets_dir: /var/lib/cobbler/snippets
+autoinstall_templates_dir: /var/lib/cobbler/templates
 
 # location of templates used for boot loader config generation
 boot_loader_conf_template_dir: "/etc/cobbler/boot_loader_conf"

@@ -31,7 +31,6 @@ from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler.utils import _
 
 
-
 class AutoInstallationGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -145,8 +144,6 @@ class AutoInstallationGen:
             self.addAutoYaSTScript(document, "init-scripts", runpost % (srv, what, name))
 
         return document.toxml()
-
-
 
     def generate_repo_stanza(self, obj, is_profile=True):
 

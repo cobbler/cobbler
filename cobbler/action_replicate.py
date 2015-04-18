@@ -194,13 +194,11 @@ class Replicate:
         for what in OBJ_TYPES:
             self.replace_objects_newer_on_remote(what)
 
-
     def link_distros(self):
 
         for distro in self.api.distros():
             self.logger.debug("Linking Distro %s" % distro.name)
             utils.link_distro(self.settings, distro)
-
 
     def generate_include_map(self):
 

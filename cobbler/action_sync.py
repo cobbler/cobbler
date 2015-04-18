@@ -27,7 +27,6 @@ import time
 
 from cexceptions import CX
 import clogger
-import cobbler.module_loader as module_loader
 import templar
 import tftpgen
 import utils
@@ -72,8 +71,6 @@ class CobblerSync:
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
-
-
 
     def run(self):
         """
@@ -142,7 +139,6 @@ class CobblerSync:
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
-
     def make_tftpboot(self):
         """
         Make directories for tftpboot images
@@ -207,32 +203,9 @@ class CobblerSync:
         self.dhcp.regen_ethers()
 
     def sync_dhcp(self):
-        restart_dhcp = str(self.settings.restart_dhcp).lower()
-        which_dhcp_module = module_loader.get_module_name("dhcp", "module").strip()
-
         if self.settings.manage_dhcp:
             self.write_dhcp()
-            if which_dhcp_module == "manage_isc":
-                service_name = utils.dhcp_service_name(self.api)
-                if restart_dhcp != "0":
-                    rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
-                    if rc != 0:
-                        error_msg = "dhcpd -t failed"
-                        self.logger.error(error_msg)
-                        raise CX(error_msg)
-                    service_restart = "service %s restart" % service_name
-                    rc = utils.subprocess_call(self.logger, service_restart, shell=True)
-                    if rc != 0:
-                        error_msg = "%s failed" % service_name
-                        self.logger.error(error_msg)
-                        raise CX(error_msg)
-            elif which_dhcp_module == "manage_dnsmasq":
-                if restart_dhcp != "0":
-                    rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
-                    if rc != 0:
-                        error_msg = "service dnsmasq restart failed"
-                        self.logger.error(error_msg)
-                        raise CX(error_msg)
+            self.dhcp.sync_dhcp()
 
     def clean_link_cache(self):
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:

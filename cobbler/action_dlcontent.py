@@ -38,7 +38,6 @@ class ContentDownloader:
             logger = clogger.Logger()
         self.logger = logger
 
-
     def run(self, force=False):
         """
         Download bootloader content for all of the latest bootloaders, since the user

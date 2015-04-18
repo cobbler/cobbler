@@ -201,7 +201,6 @@ class build_cfg(Command):
         }
         self.configure_values.update(self.distribution.configure_values)
 
-
     def run(self):
         # On dry-run ignore missing source files.
         if self.dry_run:
@@ -355,8 +354,6 @@ class install(_install):
     def run(self):
         # Run the usual stuff.
         _install.run(self)
-
-
 
 #####################################################################
 # # Test Command #####################################################

@@ -87,7 +87,6 @@ class Template(BuiltinTemplate, MacrosTemplate):
     # points to this class. Now any methods entered here (or in the base class
     # above) will be accessible to all cheetah templates compiled by cobbler.
 
-
     def compile(klass, *args, **kwargs):
         """
         Compile a cheetah template with cobbler modifications. Modifications
@@ -112,7 +111,6 @@ class Template(BuiltinTemplate, MacrosTemplate):
                     source = file.read()
                 file = None     # Stop Cheetah from throwing a fit.
 
-
             rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
             results = rx.sub(replacer, source)
             return (results, file)
@@ -128,7 +126,6 @@ class Template(BuiltinTemplate, MacrosTemplate):
         # Now let Cheetah do the actual compilation
         return Cheetah.Template.Template.compile(*args, **kwargs)
     compile = classmethod(compile)
-
 
     def read_snippet(self, file):
         """

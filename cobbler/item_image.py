@@ -78,17 +78,14 @@ class Image(item.Item):
         cloned.from_dict(_dict)
         return cloned
 
-
     def get_fields(self):
         return FIELDS
-
 
     def get_parent(self):
         """
         Images have no parent object.
         """
         return None
-
 
     #
     # specific methods for item.Image
@@ -100,7 +97,6 @@ class Image(item.Item):
         see comments for set_arch in item_distro.py, this works the same.
         """
         return utils.set_arch(self, arch)
-
 
     def set_autoinstall(self, autoinstall):
         """
@@ -117,7 +113,6 @@ class Image(item.Item):
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
         self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
-
 
     def set_file(self, filename):
         """
@@ -157,14 +152,11 @@ class Image(item.Item):
 
         self.file = uri
 
-
     def set_os_version(self, os_version):
         return utils.set_os_version(self, os_version)
 
-
     def set_breed(self, breed):
         return utils.set_breed(self, breed)
-
 
     def set_image_type(self, image_type):
         """
@@ -178,10 +170,8 @@ class Image(item.Item):
             raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(), ", "))
         self.image_type = image_type
 
-
     def set_virt_cpus(self, num):
         return utils.set_virt_cpus(self, num)
-
 
     def set_network_count(self, num):
         if num is None or num == "":
@@ -191,34 +181,26 @@ class Image(item.Item):
         except:
             raise CX("invalid network count (%s)" % num)
 
-
     def set_virt_auto_boot(self, num):
         return utils.set_virt_auto_boot(self, num)
-
 
     def set_virt_file_size(self, num):
         return utils.set_virt_file_size(self, num)
 
-
     def set_virt_disk_driver(self, driver):
         return utils.set_virt_disk_driver(self, driver)
-
 
     def set_virt_ram(self, num):
         return utils.set_virt_ram(self, num)
 
-
     def set_virt_type(self, vtype):
         return utils.set_virt_type(self, vtype)
-
 
     def set_virt_bridge(self, vbridge):
         return utils.set_virt_bridge(self, vbridge)
 
-
     def set_virt_path(self, path):
         return utils.set_virt_path(self, path)
-
 
     def get_valid_image_types(self):
         return ["direct", "iso", "memdisk", "virt-clone"]

@@ -47,7 +47,6 @@ class HardLinker:
             self.hardlink_args = "-c -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         self.hardlink_cmd = "%s %s" % (self.hardlink, self.hardlink_args)
 
-
     def run(self):
         """
         Simply hardlinks directories that are cobbler managed.

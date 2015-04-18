@@ -25,6 +25,7 @@ from cexceptions import CX
 import time
 
 import templar
+import utils
 from utils import _
 
 
@@ -59,7 +60,6 @@ class DnsmasqManager:
 
     def remove_dhcp_lease(self, port, host):
         pass
-
 
     def write_dhcp_file(self):
         """
@@ -190,6 +190,15 @@ class DnsmasqManager:
     def write_dns_files(self):
         # already taken care of by the regen_hosts()
         pass
+
+    def sync_dhcp(self):
+        restart_dhcp = str(self.settings.restart_dhcp).lower()
+        if restart_dhcp != "0":
+            rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
+            if rc != 0:
+                error_msg = "service dnsmasq restart failed"
+                self.logger.error(error_msg)
+                raise CX(error_msg)
 
 
 def get_manager(collection_mgr, logger):

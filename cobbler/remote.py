@@ -58,7 +58,6 @@ EVENT_FAILED = "failed"
 EVENT_INFO = "notification"
 
 
-
 class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.
@@ -360,13 +359,6 @@ class CobblerXMLRPCInterface:
             return self.events[event_id]
         else:
             raise CX("no event with that id")
-
-    def __sorter(self, a, b):
-        """
-        Helper function to sort two dict representations of
-        cobbler objects by name.
-        """
-        return cmp(a["name"], b["name"])
 
     def last_modified_time(self, token=None):
         """

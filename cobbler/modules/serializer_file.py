@@ -37,7 +37,6 @@ sys.path.insert(0, mod_path)
 import cobbler.api as capi
 
 
-
 def register():
     """
     The mandatory cobbler module registration hook.
