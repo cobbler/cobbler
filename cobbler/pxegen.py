@@ -1063,6 +1063,8 @@ class PXEGen:
                template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_esxi6.template" % what.lower())
        elif distro.breed == 'freebsd':
            template = os.path.join(self.settings.pxe_template_dir,"gpxe_%s_freebsd.template" % what.lower())
+       elif distro.breed == 'windows':
+           template = os.path.join(self.settings.pxe_template_dir, "gpxe_%s_windows.template" % what.lower())
 
        if what == "system":
            if not netboot_enabled:
