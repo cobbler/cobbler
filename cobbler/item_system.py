@@ -73,7 +73,7 @@ FIELDS = [
   ["network_widget_c","",0,"",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"Should be used with --interface",0,"str"],
-  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","master","slave","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
+  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
   ["*interface_master","",0,"Master Interface",True,"Should be used with --interface",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"Should be used with --interface",0,"str"],
   ["*bridge_opts","",0,"Bridge Opts",True,"Should be used with --interface",0,"str"],
@@ -164,15 +164,12 @@ class System(item.Item):
                 "mtu"                  : "",
                 "ip_address"           : "",
                 "dhcp_tag"             : "",
-                "subnet"               : "", # deprecated
                 "netmask"              : "",
                 "if_gateway"           : "",
                 "virt_bridge"          : "",
                 "static"               : False,
                 "interface_type"       : "",
                 "interface_master"     : "",
-                "bonding"              : "", # deprecated
-                "bonding_master"       : "", # deprecated
                 "bonding_opts"         : "",
                 "bridge_opts"          : "",
                 "management"           : False,
@@ -431,17 +428,11 @@ class System(item.Item):
         return True
 
     def set_interface_type(self,type,interface):
-        # master and slave are deprecated, and will
-        # be assumed to mean bonding slave/master
-        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","master","slave","na",""]
+        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","na",""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
         if type == "na":
             type = ""
-        elif type == "master":
-            type = "bond"
-        elif type == "slave":
-            type = "bond_slave"
         intf = self.__get_interface(interface)
         intf["interface_type"] = type
         return True
@@ -711,8 +702,6 @@ class System(item.Item):
             if field == "virtbridge"          : self.set_virt_bridge(value, interface)
             if field == "interfacetype"       : self.set_interface_type(value, interface)
             if field == "interfacemaster"     : self.set_interface_master(value, interface)
-            if field == "bonding"             : self.set_interface_type(value, interface)   # deprecated
-            if field == "bondingmaster"       : self.set_interface_master(value, interface) # deprecated
             if field == "bondingopts"         : self.set_bonding_opts(value, interface)
             if field == "bridgeopts"          : self.set_bridge_opts(value, interface)
             if field == "management"          : self.set_management(value, interface)

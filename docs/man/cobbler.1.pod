@@ -368,9 +368,6 @@ cobbler system edit --name=foo --interface=eth2 --delete-interface
 
 One of the other advanced networking features supported by Cobbler is NIC bonding and bridging. You can use this to bond multiple physical network interfaces to one single logical interface to reduce single points of failure in your network, or to create bridged interfaces for things like tunnels and virtual machine networks. Supported values for the --interface-type parameter are "bond", "bond_slave", "bridge", "bridge_slave" and "bonded_bridge_slave". If one of the "_slave" options is specified, you also need to define the master-interface for this bond using --interface-master=INTERFACE. Bonding and bridge options for the master-interface may be specified using --bonding-opts="foo=1 bar=2" or --bridge-opts="foo=1 bar=2", respectively.
 
-Note:
-The options "master" and "slave" are deprecated, and are assumed to me "bond" and "bond_slave" when encountered. When a system object is saved, the deprecated values will be overwritten with the new, correct values.
-
 Example:
 
 cobbler system edit --name=foo --interface=eth0 --mac=AA:BB:CC:DD:EE:00 --interface-type=bond_slave --interface-master=bond0

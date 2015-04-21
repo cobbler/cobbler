@@ -21,13 +21,13 @@
         #set $idata = $interfaces[$iname]
         ## do not configure by mac address if we don't have one AND it's not for bonding/vlans
         ## as opposed to a "real" physical interface
-        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("master","bond","bridge"):
+        #if $idata.get("mac_address", "") == "" and not $vlanpattern.match($iname) and not $idata.get("interface_type", "").lower() in ("bond","bridge"):
                 ## we have to globally turn off the config by mac feature as we can't
                 ## use it now
                 #set $configbymac = False
         #end if
         ## count the number of bonding devices we have.
-        #if $idata.get("interface_type", "").lower() in ("master","bond","bonded_bridge_slave")
+        #if $idata.get("interface_type", "").lower() in ("bond","bonded_bridge_slave")
             #set $numbondingdevs += 1
         #end if
         ## build a mapping of bridge slaves, since deb/ubuntu bridge slaves do not
@@ -55,6 +55,8 @@ echo "" >> /etc/network/interfaces
     ## =============================================================================
     ## now create the config file for each interface
     #for $iname in $ikeys
+
+
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
@@ -62,7 +64,14 @@ echo "" >> /etc/network/interfaces
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
-        #set $if_gateway           = $idata.get("if_gateway", "")
+        ## configure the gateway if set up, preferring per-interface over global
+        #if $idata.get("if_gateway") != ""
+            #set $if_gateway = $idata.get("if_gateway")
+        #elif $gateway != ""
+            #set $if_gateway = $gateway
+        #else
+            #set $if_gateway = ""
+        #end if
         #set $static_routes        = $idata.get("static_routes", "")
         #set $iface_type           = $idata.get("interface_type", "").lower()
         #set $iface_master         = $idata.get("interface_master", "")
@@ -73,9 +82,6 @@ echo "" >> /etc/network/interfaces
         #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
-        #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
-        #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
-        #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             #set $is_vlan = "true"
@@ -83,7 +89,7 @@ echo "" >> /etc/network/interfaces
             #set $is_vlan = "false"
         #end if
         ## slave interfaces are assumed to be static
-        #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+        #if $iface_type in ("bond_slave","bridge_slave","bonded_bridge_slave")
             #set $static = 1
         #end if 
         ## ===================================================================
@@ -93,9 +99,9 @@ echo "auto $iname" >> /etc/network/interfaces
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
-        #if $iface_type in ("master","bond","bonded_bridge_slave")
+        #if $iface_type in ("bond","bonded_bridge_slave")
           #pass
-        #elif $iface_type in ("slave","bond_slave") and $iface_master != ""
+        #elif $iface_type == "bond_slave" and $iface_master != ""
           #pass
         #elif $iface_type == "bridge"
           #set $slave_ports = " ".join($bridge_slaves.get($iname,[]))
@@ -112,14 +118,49 @@ echo "  $bridge_opt" >> /etc/network/interfaces
         ## Actions based on static configuration
         ## ===================================================================
         #if $static
-            #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
+            #if $ip != "" and $iface_type not in ("bond_slave","bridge_slave","bonded_bridge_slave") and $is_vlan == "true"
 echo "iface $iname inet static" >> /etc/network/interfaces 
-echo "   hwaddress $mac" >> /etc/network/interfaces
 echo "   address $ip" >> /etc/network/interfaces 
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 
                 #end if
-                #if $iface_type in ("master","bond")
+        	#if $mtu != ""
+echo "   mtu $mtu" >> /etc/network/interfaces
+	        #end if
+	    #end if
+            #if $ip == "" and $iface_type == "bond" and $is_vlan == "false"
+echo "iface $iname inet manual" >> /etc/network/interfaces 
+                  #set $bondslaves = ""
+                  #for $bondiname in $ikeys
+                      #set $bondidata                = $interfaces[$bondiname]
+                      #set $bondiface_type           = $bondidata.get("interface_type", "").lower()
+                      #set $bondiface_master         = $bondidata.get("interface_master", "")
+                      #if $bondiface_master == $iname
+                         #set $bondslaves += $bondiname + " "
+                      #end if
+                  #end for
+echo "   bond-slaves $bondslaves" >> /etc/network/interfaces
+		  #for $bondopts in $bonding_opts.split(" ")
+		      #set [$bondkey, $bondvalue] = $bondopts.split("=")
+echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
+                  #end for
+        	  #if $mtu != ""
+echo "   mtu $mtu" >> /etc/network/interfaces
+	          #end if
+
+            #else if  $ip != "" and $iface_type not in ("bond_slave","bridge_slave","bonded_bridge_slave") and $is_vlan == "false"
+echo "iface $iname inet static" >> /etc/network/interfaces 
+                #if $mac != ""
+echo "   hwaddress $mac" >> /etc/network/interfaces
+		#end if
+echo "   address $ip" >> /etc/network/interfaces 
+        	#if $mtu != ""
+echo "   mtu $mtu" >> /etc/network/interfaces
+	        #end if
+                #if $netmask != ""
+echo "   netmask $netmask" >> /etc/network/interfaces 
+                #end if
+                #if $iface_type == "bond"
                   #set $bondslaves = ""
                   #for $bondiname in $ikeys
                       #set $bondidata                = $interfaces[$bondiname]
@@ -135,10 +176,12 @@ echo "   bond-slaves $bondslaves" >> /etc/network/interfaces
 echo "   bond-$bondkey $bondvalue" >> /etc/network/interfaces
                   #end for
                 #end if
-            #else
+            #else 
+		    #if $is_vlan == "false"
 echo "iface $iname inet manual" >> /etc/network/interfaces 
+	           #end if
             #end if
-            #if $iface_type in ("slave","bond_slave") and $iface_master != ""
+            #if $iface_type == "bond_slave" and $iface_master != ""
 echo "bond-master $iface_master" >> /etc/network/interfaces
             #end if
             #if $enableipv6 == True and $ipv6_autoconfiguration == False
@@ -169,9 +212,6 @@ echo "iface $iname inet dhcp" >> /etc/network/interfaces
         ## ===================================================================
         #if $if_gateway != ""
 echo "   gateway $if_gateway" >> /etc/network/interfaces
-        #end if
-        #if $mtu != ""
-echo "   mtu $mtu" >> /etc/network/interfaces
         #end if
         ## ===================================================================
         ## Interface route configuration
