@@ -16,12 +16,16 @@ function intf_update_visibility()
 {
     is_slave  = false
     is_master = false
+    is_infiniband = false
     value = document.getElementById("interface_type").value
     if (value == "slave" || value == "bond_slave" || value == "bridge_slave" || value == "bonded_bridge_slave") {
         is_slave = true;
     }    
     if (value == "master" || value == "bond" || value == "bridge" || value == "bonded_bridge_slave") {
         is_master = true;
+    }
+    if (value == "infiniband") {
+        is_infiniband = true;
     }
 
     is_static = document.getElementById("static").checked
@@ -39,6 +43,7 @@ function intf_update_visibility()
     intf_enable_field("bonding_opts",is_master)
     intf_enable_field("bridge_opts",is_master)
     intf_enable_field("interface_master",is_slave)
+    intf_enable_field("connected_mode",is_infiniband)
     intf_enable_field("mtu",!is_slave)
     intf_enable_field("ipv6_address",!is_slave)
     intf_enable_field("ipv6_prefix",!is_slave)
@@ -123,6 +128,7 @@ function on_interface_add()
     interface_table[iname]["management"] = false
     interface_table[iname]["present"] = "1"
     interface_table[iname]["original"] = "0"
+    interface_table[iname]["connected_mode"] = false
     interface_table[iname]["mtu"] = ""
     interface_table[iname]["ipv6_address"] = ""
     interface_table[iname]["ipv6_prefix"] = ""
@@ -205,11 +211,15 @@ function save_intf(which)
     var type = document.getElementById("interface_type").value
     var is_slave  = false;
     var is_master = false;
+    var is_infiniband = false;
     if (type == "master" || type == "bond" || type == "bridge" || type == "bonded_bridge_slave") {
         is_master  = true;
     }
     if (type == "slave" || type == "bond_slave" || type == "bridge_slave" || type == "bonded_bridge_slave") {
         is_slave   = true;
+    }
+    if (type == "infiniband") {
+        is_infiniband   = true;
     }
     is_static=document.getElementById("static").checked
     is_management=document.getElementById("management").checked
@@ -231,6 +241,7 @@ function save_intf(which)
     itable["virt_bridge"]      = get_enabled_field("virt_bridge",!is_master)
     itable["present"]          = document.getElementById("present").value
     itable["original"]         = document.getElementById("original").value
+    itable["connected_mode"]       = get_enabled_field("connected_mode",is_infiniband)
     itable["mtu"]                  = get_enabled_field("mtu",!is_slave)
     itable["ipv6_address"]         = get_enabled_field("ipv6_address",!is_slave)
     itable["ipv6_prefix"]          = get_enabled_field("ipv6_prefix",!is_slave)
@@ -263,6 +274,7 @@ function load_intf()
     document.getElementById("virt_bridge").value      = interface_table[intf]["virt_bridge"]
     document.getElementById("present").value          = interface_table[intf]["present"]
     document.getElementById("original").value         = interface_table[intf]["original"]
+    document.getElementById("connected_mode").checked = interface_table[intf]["connected_mode"]
     document.getElementById("mtu").value                  = interface_table[intf]["mtu"]
     document.getElementById("ipv6_address").value         = interface_table[intf]["ipv6_address"]
     document.getElementById("ipv6_prefix").value          = interface_table[intf]["ipv6_prefix"]
@@ -295,6 +307,7 @@ function clear_intf()
     document.getElementById("virt_bridge").value          = ""
     document.getElementById("present").value              = "1"
     document.getElementById("original").value             = "0"
+    document.getElementById("connected_mode").checked     = false
     document.getElementById("mtu").value                  = ""
     document.getElementById("ipv6_address").value         = ""
     document.getElementById("ipv6_prefix").value          = ""
@@ -333,6 +346,7 @@ function build_interface_table()
     interface_table['{{ key }}']["virt_bridge"]          = "{{ value.virt_bridge }}"
     interface_table['{{ key }}']["present"]              = "1"
     interface_table['{{ key }}']["original"]             = "1"
+    interface_table['{{ key }}']["connected_mode"]       = {{ value.connected_mode|lower }}
     interface_table['{{ key }}']["mtu"]                  = "{{ value.mtu }}"
     interface_table['{{ key }}']["ipv6_address"]         = "{{ value.ipv6_address }}"
     interface_table['{{ key }}']["ipv6_prefix"]          = "{{ value.ipv6_prefix }}"

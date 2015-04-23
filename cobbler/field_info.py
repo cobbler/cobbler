@@ -67,6 +67,7 @@ USES_CHECKBOX = [
    "enable_menu",
    "*netboot_enabled",
    "netboot_enabled",
+   "*connected_mode",
    "*static",
    "*management",
    "management",
@@ -126,6 +127,7 @@ BLOCK_MAPPINGS = {
    "reserved"        : "Networking", # ..
    "*mac_address"    : "Networking",
    "network_widget_c": "Networking",
+   "*connected_mode" : "Networking",
    "*mtu"            : "Networking",
    "*ip_address"     : "Networking",
    "*dhcp_tag"       : "Networking",
