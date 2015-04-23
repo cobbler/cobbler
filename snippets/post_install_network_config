@@ -188,16 +188,18 @@ echo "HOTPLUG=no" >> $devfile
         #end if
         #if $iface_type == "bridge"
 echo "TYPE=Bridge" >> $devfile
-        #for $bridge_opt in $bridge_opts
-            #if $bridge_opt.strip() != ""
+            #for $bridge_opt in $bridge_opts
+                #if $bridge_opt.strip() != ""
 echo "$bridge_opt" >> $devfile
-            #end if
-        #end for
+                #end if
+            #end for
         #elif ($iface_type == "bridge_slave" or $iface_type == "bonded_bridge_slave") and $iface_master != ""
+echo "TYPE=Bridge" >> $devfile
 echo "BRIDGE=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
-        #end if
-        #if $iface_type != "bridge"
+        #elif $iface_type == "infiniband"
+echo "TYPE=InfiniBand" >> $devfile
+        #else
 echo "TYPE=Ethernet" >> $devfile
         #end if
         ## ===================================================================

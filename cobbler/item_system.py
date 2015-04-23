@@ -91,7 +91,7 @@ NETWORK_INTERFACE_FIELDS = [
     ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
     ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
     ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
+    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
     ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
     ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
     ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
@@ -424,7 +424,7 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
 
     def set_interface_type(self, type, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", ""]
+        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", "infiniband", ""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
         if type == "na":
