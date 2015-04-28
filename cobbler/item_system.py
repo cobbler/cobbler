@@ -87,6 +87,7 @@ NETWORK_INTERFACE_FIELDS = [
     ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
     ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
     ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+    ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
     ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
     ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
     ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
@@ -509,6 +510,10 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
 
+    def set_connected_mode(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["connected_mode"] = utils.input_boolean(truthiness)
+
     def set_enable_gpxe(self, enable_gpxe):
         """
         Sets whether or not the system will use gPXE for booting.
@@ -662,6 +667,9 @@ class System(item.Item):
 
             if field == "bridgeopts":
                 self.set_bridge_opts(value, interface)
+
+            if field == "connected_mode":
+                self.set_connected_mode(value, interface)
 
             if field == "cnames":
                 self.set_cnames(value, interface)

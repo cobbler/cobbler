@@ -111,6 +111,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
+        #set $connected_mode       = $idata.get("connected_mode", "")
         #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
@@ -260,6 +261,13 @@ echo "ONPARENT=yes" >> $devfile
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
+        #if $iface_type == "infiniband"
+            #if $connected_mode != ""
+echo "CONNECTED_MODE=yes" >> $devfile
+            #else
+echo "CONNECTED_MODE=no" >> $devfile
+            #end if
+        #end if
         #if $mtu != ""
 echo "MTU=$mtu" >> $devfile
         #end if
