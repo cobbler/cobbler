@@ -87,11 +87,12 @@ NETWORK_INTERFACE_FIELDS = [
     ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
     ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
     ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+    ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
     ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
     ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
     ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
     ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc"], "str"],
+    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
     ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
     ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
     ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
@@ -424,7 +425,7 @@ class System(item.Item):
         intf["virt_bridge"] = bridge
 
     def set_interface_type(self, type, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", ""]
+        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", "infiniband", ""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
         if type == "na":
@@ -508,6 +509,10 @@ class System(item.Item):
     def set_mtu(self, mtu, interface):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
+
+    def set_connected_mode(self, truthiness, interface):
+        intf = self.__get_interface(interface)
+        intf["connected_mode"] = utils.input_boolean(truthiness)
 
     def set_enable_gpxe(self, enable_gpxe):
         """
@@ -662,6 +667,9 @@ class System(item.Item):
 
             if field == "bridgeopts":
                 self.set_bridge_opts(value, interface)
+
+            if field == "connected_mode":
+                self.set_connected_mode(value, interface)
 
             if field == "cnames":
                 self.set_cnames(value, interface)
