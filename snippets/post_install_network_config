@@ -111,6 +111,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
+        #set $connected_mode       = $idata.get("connected_mode", "")
         #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
@@ -188,16 +189,18 @@ echo "HOTPLUG=no" >> $devfile
         #end if
         #if $iface_type == "bridge"
 echo "TYPE=Bridge" >> $devfile
-        #for $bridge_opt in $bridge_opts
-            #if $bridge_opt.strip() != ""
+            #for $bridge_opt in $bridge_opts
+                #if $bridge_opt.strip() != ""
 echo "$bridge_opt" >> $devfile
-            #end if
-        #end for
+                #end if
+            #end for
         #elif ($iface_type == "bridge_slave" or $iface_type == "bonded_bridge_slave") and $iface_master != ""
+echo "TYPE=Bridge" >> $devfile
 echo "BRIDGE=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
-        #end if
-        #if $iface_type != "bridge"
+        #elif $iface_type == "infiniband"
+echo "TYPE=InfiniBand" >> $devfile
+        #else
 echo "TYPE=Ethernet" >> $devfile
         #end if
         ## ===================================================================
@@ -258,6 +261,13 @@ echo "ONPARENT=yes" >> $devfile
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
+        #if $iface_type == "infiniband"
+            #if $connected_mode != ""
+echo "CONNECTED_MODE=yes" >> $devfile
+            #else
+echo "CONNECTED_MODE=no" >> $devfile
+            #end if
+        #end if
         #if $mtu != ""
 echo "MTU=$mtu" >> $devfile
         #end if
