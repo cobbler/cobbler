@@ -192,7 +192,7 @@ class RepoSync:
                     if utils.get_family() in ("redhat", "suse"):
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
                         createrepo_ver = utils.subprocess_get(self.logger, cmd)
-                        if createrepo_ver >= "0.9.7":
+                        if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
                             self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
