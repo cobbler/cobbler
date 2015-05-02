@@ -2304,6 +2304,11 @@ def find_distro_path(settings, distro):
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
 
+def compare_versions_gt(ver1, ver2):
+    def versiontuple(v):
+        return tuple(map(int, (v.split("."))))
+    return versiontuple(ver1) > versiontuple(ver2)
+
 if __name__ == "__main__":
     print os_release() # returns 2, not 3
 
