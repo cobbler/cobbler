@@ -412,7 +412,9 @@ class BootCLI:
             elif object_action == "update":
                 task_id = self.remote.background_signature_update(utils.strip_none(vars(options),omit_none=True), self.token)
             elif object_action == "reload":
-                filename = opt(options,"filename","/var/lib/cobbler/distro_signatures.json")
+                filename = opt(options,"filename")
+                if filename in ["", None]:
+                    filename = "/var/lib/cobbler/distro_signatures.json" 
                 if not utils.load_signatures(filename,cache=True):
                     print "There was an error loading the signature data in %s." % filename
                     print "Please check the JSON file or run 'cobbler signature update'."
