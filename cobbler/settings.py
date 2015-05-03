@@ -125,7 +125,7 @@ DEFAULTS = {
     "server": ["127.0.0.1", "str"],
     "sign_puppet_certs_automatically": [0, "bool"],
     "signature_path": ["/var/lib/cobbler/distro_signatures.json", "str"],
-    "signature_url": ["http://www.cobblerd.org/signatures/latest.json", "str"],
+    "signature_url": ["http://www.cobblerd.org/signatures/3.0.x/latest.json", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
     "webdir_whitelist": [".link_cache", "aux", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
