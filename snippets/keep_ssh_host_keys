@@ -1,5 +1,6 @@
 #raw
 # Nifty trick to restore keys without using a nochroot %post
+# This is deprecated by the generic 'keep_files' script.
 
 echo "Saving keys..." > /dev/ttyS0
 
