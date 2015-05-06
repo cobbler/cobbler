@@ -773,6 +773,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "10.0": {
+    "signatures":["release"],
+    "version_file":"10\\.0\\-RELEASE",
+    "version_file_regex":null,
+    "kernel_arch":"device\\.hints",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"base.txz",
+    "initrd_file":"base.txz",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "xen": {
