@@ -414,3 +414,4 @@ safe_templating_whitelist:
    - silent
    - slurp
    - raw
+   - while
