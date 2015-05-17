@@ -71,9 +71,10 @@ FIELDS = [
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["network_widget_c","",0,"",True,"",0,"str"], # not a real field, a marker for the web app
+  ["*connected_mode",False,0,"InfiniBand Connected Mode",True,"Should be used with --interface",0,"bool"],
   ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"Should be used with --interface",0,"str"],
-  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
+  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave","infiniband"],"str"],
   ["*interface_master","",0,"Master Interface",True,"Should be used with --interface",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"Should be used with --interface",0,"str"],
   ["*bridge_opts","",0,"Bridge Opts",True,"Should be used with --interface",0,"str"],
@@ -182,6 +183,7 @@ class System(item.Item):
                 "ipv6_static_routes"   : [],
                 "ipv6_default_gateway" : "",
                 "cnames"               : [],
+                "connected_mode"       : False,
             }
 
         return self.interfaces[name]
@@ -428,7 +430,7 @@ class System(item.Item):
         return True
 
     def set_interface_type(self,type,interface):
-        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","na",""]
+        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","infiniband","na",""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
         if type == "na":
@@ -516,6 +518,10 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
         return True
+
+    def set_connected_mode(self,truthiness,interface):
+        intf = self.__get_interface(interface)
+        intf["connected_mode"] = utils.input_boolean(truthiness)
 
     def set_enable_gpxe(self,enable_gpxe):
         """
@@ -713,6 +719,7 @@ class System(item.Item):
             if field == "ipv6staticroutes"    : self.set_ipv6_static_routes(value, interface)
             if field == "ipv6defaultgateway"  : self.set_ipv6_default_gateway(value, interface)
             if field == "cnames"              : self.set_cnames(value, interface)
+            if field == "connected_mode"      : self.set_connected_mode(value, interface)
 
         return True
 
