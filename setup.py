@@ -543,7 +543,6 @@ if __name__ == "__main__":
     webcontent = webroot + "cobbler_webui_content/"
     webimages = webcontent + "/images"
 
-
     setup(
         distclass=Distribution,
         cmdclass={

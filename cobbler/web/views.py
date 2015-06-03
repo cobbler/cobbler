@@ -439,7 +439,6 @@ def modify_list(request, what, pref, value=None):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/modifylist/%s/%s" % (what, pref, str(value)), expired=True)
 
-
     # what preference are we tweaking?
 
     if pref == "sort":
