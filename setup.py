@@ -355,6 +355,23 @@ class install(_install):
         # Run the usual stuff.
         _install.run(self)
 
+        # Hand over some directories to the webserver user
+        path = os.path.join(self.install_data, 'share/cobbler/web')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            # building RPMs in a mock chroot, user 'apache' won't exist
+            log.warn("Error in 'chown apache %s': %s" % (path, e))
+        if not os.path.abspath(libpath):
+            # The next line only works for absolute libpath
+            raise Exception("libpath is not absolute.")
+        path = os.path.join(self.root + libpath, 'webui_sessions')
+        try:
+            self.change_owner(path, http_user)
+        except KeyError, e:
+            log.warn("Error in 'chown apache %s': %s" % (path, e))
+
+
 #####################################################################
 # # Test Command #####################################################
 #####################################################################
@@ -447,6 +464,7 @@ class restorestate(statebase):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
         self._copy(os.path.join(self.statepath, 'collections'), libpath)
+        self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
         self._copy(os.path.join(self.statepath, 'settings'), etcpath)
@@ -478,6 +496,7 @@ class savestate(statebase):
         if not self.dry_run:
             os.makedirs(self.statepath)
         self._copy(os.path.join(libpath, 'collections'), self.statepath)
+        self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'settings'), self.statepath)
@@ -521,6 +540,9 @@ if __name__ == "__main__":
         http_user = "apache"
         defaultpath = "/etc/sysconfig/"
 
+    webcontent = webroot + "cobbler_webui_content/"
+    webimages = webcontent + "/images"
+
     setup(
         distclass=Distribution,
         cmdclass={
@@ -548,6 +570,8 @@ if __name__ == "__main__":
         packages=[
             "cobbler",
             "cobbler/modules",
+            "cobbler/web",
+            "cobbler/web/templatetags",
         ],
         scripts=[
             "bin/cobbler",
@@ -561,6 +585,7 @@ if __name__ == "__main__":
         configure_files=[
             "config/cobbler/settings",
             "config/apache/cobbler.conf",
+            "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
             "config/service/cobblerd"
         ],
@@ -571,17 +596,24 @@ if __name__ == "__main__":
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
+            ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s" % initpath, ["build/config/service/cobblerd"]),
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
-            ("%stemplates" % libpath, glob("templates/*")),
-            ("%stemplates/install_profiles" % libpath, glob("templates/install_profiles/*")),
-            ("%ssnippets" % libpath, glob("snippets/*", recursive=True)),
-            ("%sscripts" % libpath, glob("scripts/*")),
+            ("%sautoinstall_templates" % libpath, glob("autoinstall_templates/*")),
+            ("%sautoinstall_templates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
+            ("%sautoinstall_snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
+            ("%sautoinstall_scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
+            ("share/cobbler/web", glob("web/*.*")),
+            ("%s" % webcontent, glob("web/static/*")),
+            ("%s" % webimages, glob("web/static/images/*")),
+            ("share/cobbler/web/templates", glob("web/templates/*")),
+            ("%swebui_sessions" % libpath, []),
             ("%sloaders" % libpath, []),
             ("%scobbler/aux" % webroot, glob("aux/*")),
             # Configuration
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
+                              "build/config/apache/cobbler_web.conf",
                               "build/config/service/cobblerd",
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings"]),
@@ -598,11 +630,11 @@ if __name__ == "__main__":
                               "config/rsync/import_rsync_whitelist",
                               "config/rsync/rsync.exclude",
                               "config/version"]),
-            ("%s" % etcpath, glob("config/templates/etc/*")),
-            ("%siso" % etcpath, glob("config/templates/iso/*")),
-            ("%sboot_loader_conf" % etcpath, glob("config/templates/boot_loader_conf/*")),
-            ("%sreporting" % etcpath, glob("config/templates/reporting/*")),
-            ("%spower" % etcpath, glob("config/templates/power/*")),
+            ("%s" % etcpath, glob("templates/etc/*")),
+            ("%siso" % etcpath, glob("templates/iso/*")),
+            ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
+            ("%sreporting" % etcpath, glob("templates/reporting/*")),
+            ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),
