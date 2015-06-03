@@ -13,6 +13,8 @@ clean:
 	@rm -f *.pyc
 	@rm -f cobbler/*.pyc
 	@rm -f cobbler/modules/*.pyc
+	@rm -f cobbler/web/*.pyc
+	@rm -f cobbler/web/templatetags/*.pyc
 	@echo "cleaning: build artifacts"
 	@rm -rf build rpm-build release dist
 	@rm -f MANIFEST AUTHORS README
@@ -36,9 +38,19 @@ doc:
 
 qa:
 	@echo "checking: pyflakes"
-	@pyflakes *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
+	@pyflakes \
+		*.py \
+		cobbler/*.py \
+		cobbler/modules/*.py \
+		cobbler/web/*.py cobbler/web/templatetags/*.py \
+		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pep8"
-	@pep8 -r --ignore E501 *.py cobbler/*.py cobbler/modules/*.py bin/cobbler* bin/*.py
+	@pep8 -r --ignore E501 \
+        *.py \
+        cobbler/*.py \
+        cobbler/modules/*.py \
+        cobbler/web/*.py cobbler/web/templatetags/*.py \
+        bin/cobbler* bin/*.py web/cobbler.wsgi
 
 authors:
 	@echo "creating: AUTHORS"

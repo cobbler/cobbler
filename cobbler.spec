@@ -135,6 +135,9 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 
+# cobbler-web
+rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
+
 
 
 %pre
@@ -218,6 +221,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python2_sitelib}/cobbler/modules/*.py*
 %{python2_sitelib}/cobbler*.egg-info
 %exclude %{python2_sitelib}/cobbler/modules/nsupdate*
+%exclude %{python2_sitelib}/cobbler/web
 
 
 # configuration
@@ -234,6 +238,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{tftp_dir}
 %{apache_dir}/cobbler
 %config(noreplace) %{_var}/lib/cobbler
+%exclude %{apache_dir}/cobbler_webui_content
+%exclude %{_var}/lib/cobbler/webui_sessions
+
+# share
+%{_usr}/share/cobbler
+%exclude %{_usr}/share/cobbler/spool
+%exclude %{_usr}/share/cobbler/web
 
 # log
 %{_var}/log/cobbler
@@ -242,6 +253,64 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING README docs/README.suse
 %{_mandir}/man1/cobbler.1.gz
 
+
+#
+# package: cobbler-web
+#
+
+%package -n cobbler-web
+
+Summary: Web interface for Cobbler
+Group: Applications/System
+Requires: python(abi) >= %{pyver}
+Requires: cobbler
+Requires(post): openssl
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+Requires: httpd
+Requires: Django >= 1.4
+Requires: mod_wsgi
+%endif
+
+%if 0%{?suse_version} >= 1230
+Requires: apache2
+Requires: apache2-mod_wsgi
+Requires: python-django >= 1.4
+%endif
+
+
+%description -n cobbler-web
+Web interface for Cobbler that allows visiting
+http://server/cobbler_web to configure the install server.
+
+
+%post -n cobbler-web
+# Change the SECRET_KEY option in the Django settings.py file
+# required for security reasons, should be unique on all systems
+RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
+sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/web/settings.py
+
+
+%files -n cobbler-web
+%doc AUTHORS COPYING README
+
+%{python2_sitelib}/cobbler/web/
+%dir %{apache_etc}
+%dir %{apache_etc}/conf.d
+%config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf
+%{apache_dir}/cobbler_webui_content/
+
+%if 0%{?fedora} >=18 || 0%{?rhel} >= 7
+%defattr(-,apache,apache,-)
+/usr/share/cobbler/web
+%dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
+%endif
+
+%if 0%{?suse_version} >= 1230
+%defattr(-,%{apache_user},%{apache_group},-)
+/usr/share/cobbler/web
+%dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
+%endif
 
 # 
 # package: cobbler-nsupdate
