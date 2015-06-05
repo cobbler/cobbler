@@ -904,9 +904,8 @@ class CobblerXMLRPCInterface:
         if f in ("delete_interface", "rename_interface"):
             return True
 
-        k = "*%s" % f
-        for x in item_system.FIELDS:
-            if k == x[0]:
+        for x in item_system.NETWORK_INTERFACE_FIELDS:
+            if f == x[0]:
                 return True
         return False
 
