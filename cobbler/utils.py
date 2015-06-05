@@ -1556,8 +1556,6 @@ def get_mtab(mtab="/etc/mtab", vfstype=None):
 
 
 def __cache_mtab__(mtab="/etc/mtab"):
-    global mtab_mtime
-
     f = open(mtab)
     mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
     f.close()

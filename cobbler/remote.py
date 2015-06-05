@@ -602,28 +602,28 @@ class CobblerXMLRPCInterface:
             items = [x.to_dict() for x in items]
         return self.xmlrpc_hacks(items)
 
-    def find_distro(self, criteria={}, expand=False, token=None, **rest):
+    def find_distro(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("distro", criteria, expand=expand)
 
-    def find_profile(self, criteria={}, expand=False, token=None, **rest):
+    def find_profile(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("profile", criteria, expand=expand)
 
-    def find_system(self, criteria={}, expand=False, token=None, **rest):
+    def find_system(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("system", criteria, expand=expand)
 
-    def find_repo(self, criteria={}, expand=False, token=None, **rest):
+    def find_repo(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("repo", criteria, expand=expand)
 
-    def find_image(self, criteria={}, expand=False, token=None, **rest):
+    def find_image(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("image", criteria, expand=expand)
 
-    def find_mgmtclass(self, criteria={}, expand=False, token=None, **rest):
+    def find_mgmtclass(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("mgmtclass", criteria, expand=expand)
 
-    def find_package(self, criteria={}, expand=False, token=None, **rest):
+    def find_package(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("package", criteria, expand=expand)
 
-    def find_file(self, criteria={}, expand=False, token=None, **rest):
+    def find_file(self, criteria=None, expand=False, token=None, **rest):
         return self.find_items("file", criteria, expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):

@@ -29,7 +29,6 @@ logf = None
 
 
 def nslog(msg):
-    global logf
     if logf is not None:
         logf.write(msg)
 
