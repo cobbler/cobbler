@@ -144,7 +144,8 @@ def report_item(remote, otype, item=None, name=None):
     elif otype == "profile":
         data = utils.to_string_from_fields(item, item_profile.FIELDS)
     elif otype == "system":
-        data = utils.to_string_from_fields(item, item_system.FIELDS)
+        data = utils.to_string_from_fields(item, item_system.FIELDS,
+                                           item_system.NETWORK_INTERFACE_FIELDS)
     elif otype == "repo":
         data = utils.to_string_from_fields(item, item_repo.FIELDS)
     elif otype == "image":

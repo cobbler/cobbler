@@ -1753,7 +1753,7 @@ def to_dict_from_fields(item, fields):
     return _dict
 
 
-def to_string_from_fields(item_dict, fields):
+def to_string_from_fields(item_dict, fields, interface_fields=None):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
     """
@@ -1767,7 +1767,7 @@ def to_string_from_fields(item_dict, fields):
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
         # FIXME: print ctime, mtime nicely
-        if k.startswith("*") or not editable:
+        if not editable:
             continue
 
         if k != "name":
@@ -1776,14 +1776,17 @@ def to_string_from_fields(item_dict, fields):
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
-    if "interfaces" in item_dict:
+    if "interfaces" in item_dict and interface_fields is not None:
+        keys = []
+        for elem in interface_fields:
+            keys.append((elem[0], elem[3], elem[4]))
+        keys.sort()
         for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
             buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
-                nkey = k.replace("*", "")
-                if k.startswith("*") and editable:
-                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
+                if editable:
+                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(k, ""))
 
     return buf
 
