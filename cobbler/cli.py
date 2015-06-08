@@ -468,9 +468,9 @@ class CobblerCLI:
                     sys.exit(1)
             elif object_action == "get-autoinstall":
                 if object_type == "profile":
-                    data = self.remote.generate_autoinstall(profile=options.name)
+                    data = self.remote.generate_profile_autoinstall(options.name)
                 elif object_type == "system":
-                    data = self.remote.generate_autoinstall(system=options.name)
+                    data = self.remote.generate_system_autoinstall(options.name)
                 print data
             elif object_action == "dumpvars":
                 if object_type == "profile":
