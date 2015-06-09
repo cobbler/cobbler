@@ -77,7 +77,7 @@ def authenticate(api_handle,username,password):
     if server == "xmlrpc.rhn.redhat.com":
         return False # emergency fail, don't bother RHN!
 
-    spacewalk_url = "https://%s/rpc/api" % server
+    spacewalk_url = "http://%s/rpc/api" % server
 
     client = xmlrpclib.Server(spacewalk_url, verbose=0)
 
