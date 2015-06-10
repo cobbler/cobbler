@@ -522,7 +522,7 @@ class ImportSignatureManager:
             for distro in distros_added:
                 if distro.kernel.find("distro_mirror") != -1:
                     repo_adder(distro)
-                    self.distros.add(distro, save=True)
+                    self.distros.add(distro, save=True, with_triggers=False)
                 else:
                     self.logger.info("skipping distro %s since it isn't mirrored locally" % distro.name)
 
