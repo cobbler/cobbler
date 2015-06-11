@@ -262,8 +262,8 @@ class BuildIso:
                    if data.has_key("ip_address_" + primary_interface) and data["ip_address_" + primary_interface] != "":
                        append_line = append_line + " ip=%s" % data["ip_address_" + primary_interface]
 
-                   if data.has_key("subnet_" + primary_interface) and data["subnet_" + primary_interface] != "":
-                       append_line = append_line + " netmask=%s" % data["subnet_" + primary_interface]
+                   if data.has_key("netmask_" + primary_interface) and data["netmask_" + primary_interface] != "":
+                       append_line = append_line + " netmask=%s" % data["netmask_" + primary_interface]
 
                    if data.has_key("gateway") and data["gateway"] != "":
                        append_line = append_line + " gateway=%s" % data["gateway"]
