@@ -1,4 +1,6 @@
 Cobbler CHANGELOG
+- Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com> 2.4.9
+  Minor update to resolv DNS issues (#1500)
 - Aug 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.8
   Minor update to resolve #1156
 - Aug 08 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.7

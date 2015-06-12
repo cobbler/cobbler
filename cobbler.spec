@@ -7,13 +7,13 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.4.8
+Version: 2.4.9
 Release: 1%{?dist}
-Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.8.tar.gz
+Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.9.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://www.cobblerd.org/
+Url: http://cobbler.github.com
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git
@@ -322,6 +322,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %attr(-,apache,apache) /var/www/cobbler_webui_content/
 
 %changelog
+* Fri Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com> 2.4.9
+- Minor update to resolve DNS issues (#1500)
 * Fri Aug 15 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.8
 - Minor update to resolve #1156
 * Fri Aug 08 2014 Jörgen Maas <jorgen.maas@gmail.com> 2.4.7
