@@ -13,7 +13,7 @@ Source0: https://github.com/cobbler/cobbler/releases/cobbler-2.4.8.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://www.cobblerd.org/
+Url: http://cobbler.github.com
 
 BuildRequires: redhat-rpm-config
 BuildRequires: git
