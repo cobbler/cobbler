@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Jorgen Maas <jorgen.maas@gmail.com>
 Build-Depends: debhelper (>= 7), python-cheetah, python-yaml, git-core, python
 Standards-Version: 3.8.0
-Homepage: http://www.cobblerd.org
+Homepage: http://cobbler.github.com
 
 Package: cobbler
 Architecture: all
