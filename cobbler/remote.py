@@ -82,7 +82,7 @@ class CobblerThread(Thread):
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
-            self.on_done()
+                self.on_done()
             return rc
         except:
             utils.log_exc(self.logger)
