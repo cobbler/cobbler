@@ -50,11 +50,11 @@ License: GPLv2+
 AutoReq: no
 Version: 2.9.0
 Release: 1%{?dist}
-Source0: http://shenson.fedorapeople.org/cobbler/cobbler-%{version}.tar.gz
+Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://www.cobblerd.org/
+Url: https://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl

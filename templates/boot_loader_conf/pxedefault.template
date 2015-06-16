@@ -1,6 +1,6 @@
 DEFAULT menu
 PROMPT 0
-MENU TITLE Cobbler | http://www.cobblerd.org/
+MENU TITLE Cobbler | https://cobbler.github.io
 TIMEOUT 200
 TOTALTIMEOUT 6000
 ONTIMEOUT $pxe_timeout_profile

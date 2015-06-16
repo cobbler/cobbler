@@ -561,7 +561,7 @@ if __name__ == "__main__":
         long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, automatic OS installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
         author="Team Cobbler",
         author_email="cobbler@lists.fedorahosted.org",
-        url="http://www.cobblerd.org/",
+        url="https://cobbler.github.io",
         license="GPLv2+",
         requires=[
             "mod_python",

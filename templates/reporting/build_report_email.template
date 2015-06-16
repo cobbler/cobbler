@@ -8,7 +8,7 @@ Subject: $subject (profile: $name, ip: $boot_ip)
 
 Cobbler build report.
 =======================================================
-http://www.cobblerd.org/
+https://cobbler.github.io
 
 #if $getVar("interfaces","") != "":
 

@@ -88,7 +88,7 @@ You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.n
 Contributing to the website
 +++++++++++++++++++++++++++
 
-The github-based git repository for the http://www.cobblerd.org website itself is at https://github.com/cobbler/cobbler.github.com.
+The github-based git repository for the http://cobbler.github.io website itself is at https://github.com/cobbler/cobbler.github.io.
 
 If you want to contribute changes to the website, you will need jekyll (http://jekyllrb.com).
 
