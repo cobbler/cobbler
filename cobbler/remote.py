@@ -1083,6 +1083,12 @@ class CobblerXMLRPCInterface:
             utils.log_exc(self.logger)
             return "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
+    def generate_profile_autoinstall(self, profile):
+        return self.generate_autoinstall(profile=profile)
+
+    def generate_system_autoinstall(self, system):
+        return self.generate_autoinstall(system=system)
+
     def generate_gpxe(self, profile=None, system=None, **rest):
         self._log("generate_gpxe")
         return self.api.generate_gpxe(profile, system)
