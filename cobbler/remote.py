@@ -62,7 +62,7 @@ class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.
     """
-    def __init__(self, event_id, remote, logatron, options):
+    def __init__(self, event_id, remote, logatron, options, task_name, api):
         Thread.__init__(self)
         self.event_id = event_id
         self.remote = remote
@@ -70,6 +70,8 @@ class CobblerThread(Thread):
         if options is None:
             options = {}
         self.options = options
+        self.task_name = task_name
+        self.api = api
 
     def on_done(self):
         pass
@@ -77,12 +79,16 @@ class CobblerThread(Thread):
     def run(self):
         time.sleep(1)
         try:
+            if utils.run_triggers(self.api, None,"/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name, self.options, self.logger):
+                self.remote._set_task_state(self,self.event_id,EVENT_FAILED)
+                return False
             rc = self._run(self)
             if rc is not None and not rc:
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
-            self.on_done()
+                self.on_done()
+                utils.run_triggers(self.api, None,"/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name, self.options, self.logger)
             return rc
         except:
             utils.log_exc(self.logger)
@@ -333,7 +339,7 @@ class CobblerXMLRPCInterface:
         self._log("start_task(%s); event_id(%s)" % (name, event_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
-        thr_obj = CobblerThread(event_id, self, logatron, args)
+        thr_obj = CobblerThread(event_id, self, logatron, args, role_name, self.api)
         on_done_type = type(thr_obj.on_done)
 
         thr_obj._run = thr_obj_fn
