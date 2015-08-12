@@ -5,7 +5,7 @@
    weekly
    postrotate
       if [ -f /var/lock/subsys/cobblerd ]; then
-         /etc/init.d/cobblerd condrestart > /dev/null
+         /usr/sbin/service cobblerd condrestart > /dev/null
       fi
    endscript
 }
