@@ -749,10 +749,10 @@ class BootAPI:
 
     # ==========================================================================
 
-    def build_iso(self,iso=None,profiles=None,systems=None,buildisodir=None,distro=None,standalone=None,source=None, exclude_dns=None, logger=None, force_server=None):
+    def build_iso(self,iso=None,profiles=None,systems=None,buildisodir=None,distro=None,standalone=None,source=None, exclude_dns=None, logger=None, force_server=None, no_local_hdd=None):
         builder = action_buildiso.BuildIso(self._config, logger=logger)
         return builder.run(
-           iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns, force_server=force_server
+           iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns, force_server=force_server, no_local_hdd=no_local_hdd
         )
 
     # ==========================================================================

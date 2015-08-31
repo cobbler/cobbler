@@ -153,7 +153,8 @@ class CobblerXMLRPCInterface:
                 self.options.get("source",None),
                 self.options.get("exclude_dns",False),
                 self.logger,
-                self.options.get("force_server",None)
+                self.options.get("force_server",None),
+                self.options.get("no_local_hdd",False)
             )
         def on_done(self):
             if self.options.get("iso","") == "/var/www/cobbler/pub/generated.iso":

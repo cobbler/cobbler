@@ -45,6 +45,9 @@ TIMEOUT 200
 TOTALTIMEOUT 6000
 ONTIMEOUT local
 
+"""
+
+LOCAL_HDD_HEADER = HEADER + """
 LABEL local
         MENU LABEL (local)
         MENU DEFAULT
@@ -375,9 +378,13 @@ class BuildIso:
         return
 
 
-    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None,force_server=None):
+    def run(self,iso=None,buildisodir=None,profiles=None,systems=None,distro=None,standalone=None,source=None,exclude_dns=None,force_server=None,no_local_hdd=None):
 
         self.settings = self.config.settings()
+
+        if not no_local_hdd:
+            global HEADER
+            HEADER = LOCAL_HDD_HEADER
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
