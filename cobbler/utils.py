@@ -614,9 +614,16 @@ def blender(api_handle,remove_hashes, root_obj):
     # hack -- s390 nodes get additional default kernel options
     arch = results.get("arch","?")
     if arch.startswith("s390"):
+        blacklist_options = []
+        version = results.get("os_version")
+        if ((version.startswith("rhel") and version >= "rhel7") or
+            (version.startswith("fedora") and version >= "fedora17")):
+            # these options were removed from default kernel options
+            blacklist_options.append("ip")
+            blacklist_options.append("root")
         keyz = settings.kernel_options_s390x.keys()
         for k in keyz:
-           if not results.has_key(k):
+           if not results.has_key(k) and k not in blacklist_options:
                results["kernel_options"][k] = settings.kernel_options_s390x[k]
 
     # Get topmost object to determine which breed we're dealing with
