@@ -46,9 +46,11 @@ $SNIPPET('autoinstall_start')
 $SNIPPET('pre_install_network_config')
 # Enable installation monitoring
 $SNIPPET('pre_anamon')
+%end
 
 %packages
 $SNIPPET('puppet_install_if_enabled')
+%end
 
 %post --nochroot
 $SNIPPET('log_ks_post_nochroot')
@@ -71,3 +73,4 @@ $SNIPPET('post_anamon')
 # Start final steps
 $SNIPPET('autoinstall_done')
 # End final steps
+%end
