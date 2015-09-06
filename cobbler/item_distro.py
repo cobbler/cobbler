@@ -50,7 +50,7 @@ FIELDS = [
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
     ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
     ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
-    ["os_version", "generic26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
+    ["os_version", "virtio26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
 ]
