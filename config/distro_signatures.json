@@ -161,6 +161,38 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
+   "fedora22": {
+    "signatures":["Packages"],
+    "version_file":"(fedora)-release-22-(.*)\\.noarch\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64","ppc","ppc64","ppc64le"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"repo=$tree",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
+   "fedora23": {
+    "signatures":["Packages"],
+    "version_file":"(fedora)-release-23-(.*)\\.noarch\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64","ppc","ppc64","ppc64le"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"repo=$tree",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
    "cloudlinux6": {
     "signatures":["Packages"],
     "version_file":"(cloudlinux)-release-(.*)\\.rpm",
