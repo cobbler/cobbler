@@ -527,6 +527,22 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
+   "opensuse13.2": {
+    "signatures":["suse"],
+    "version_file":"openSUSE-release-13.2-(.*).rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","i586","x86_64"],
+    "supported_repo_breeds":["yum"],
+    "kernel_file":"(linux|vmlinuz(.*))",
+    "initrd_file":"initrd(.*)",
+    "isolinux_ok":false,
+    "default_autoinstall":"sample_autoyast.xml",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
    "sles10": {
     "signatures":["suse"],
     "version_file":"sles-release-10-(.*).rpm",
