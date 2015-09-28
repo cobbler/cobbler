@@ -620,7 +620,6 @@ if __name__ == "__main__":
             ("%ssettings.d" % etcpath, glob("config/cobbler/settings.d/*")),
             ("%s" % etcpath, ["config/bash/cobbler_bash",
                               "config/cobbler/auth.conf",
-                              "config/cobbler/distro_signatures.json",
                               "config/cobbler/modules.conf",
                               "config/cobbler/mongodb.conf",
                               "config/cobbler/users.conf",
