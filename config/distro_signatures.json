@@ -880,6 +880,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
+   },
+   "xenserver650": {
+    "signatures":["packages.xenserver"],
+    "version_file":"^XS-REPOSITORY$",
+    "version_file_regex":"^.*product=\"XenServer\" version=\"6\\.5\\.([0-9]+)\".*$",
+    "kernel_arch":"xen\\.gz",
+    "kernel_arch_regex":"^.*(x86_64).*$",
+    "supported_arches":["x86_64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"mboot\\.c32",
+    "initrd_file":"xen\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":["install.img"]
    }
   },
   "unix": {
