@@ -263,6 +263,22 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "stretch": {
+    "signatures":["dists"],
+    "version_file":"Release",
+    "version_file_regex":"Codename: stretch",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_kickstart":"sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "ubuntu": {
