@@ -6,7 +6,7 @@
 # - RHEL: 6, 7
 # - CentOS: 6, 7
 # - Scientific Linux: 6, 7
-# - OpenSuSE: 12.3, 13.1, 13.2, Factory
+# - OpenSuSE: 12.3, 13.1, 13.2, Tumbleweed, Factory
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.9
+Version: 2.6.10
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -401,6 +401,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Wed Sep 30 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.10 release
 * Fri Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.9 release
 * Wed May 6 2015 Jörgen Maas <jorgen.maas@gmail.com>
