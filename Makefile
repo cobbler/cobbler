@@ -35,6 +35,15 @@ test:
 nosetests:
 	PYTHONPATH=./cobbler/ nosetests -v -w newtests/ 2>&1 | tee test.log
 
+qa:
+	@echo "checking: pyflakes"
+	@pyflakes \
+		*.py \
+		cobbler/*.py \
+		cobbler/modules/*.py \
+		web/*.py web/cobbler_web web/cobbler_web/templatetags/*.py \
+		bin/cobbler* bin/*.py web/cobbler.wsgi
+
 build:
 	python setup.py build -f
 
