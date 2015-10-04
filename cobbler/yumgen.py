@@ -23,23 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import shutil
-import time
-import sys
-import glob
-import traceback
-import errno
-
 import utils
-from cexceptions import *
 import templar 
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
-
-from utils import _
 
 
 class YumGen:
@@ -91,10 +76,6 @@ class YumGen:
             included[path] = 1
 
         for infile in input_files:
-            if infile.find("ks_mirror") == -1:
-                dispname = infile.split("/")[-2]
-            else:
-                dispname = infile.split("/")[-1].replace(".repo","")
             try:
                 infile_h = open(infile)
             except:
