@@ -17,10 +17,8 @@ from mod_python import Session
 from mod_python import util
 
 import xmlrpclib
-import cgi
 import os
 from cobbler.webui import CobblerWeb
-import cobbler.utils as utils
 import yaml # PyYAML
 
 XMLRPC_SERVER = "http://127.0.0.1:25151" # FIXME: pull port from settings
@@ -71,7 +69,6 @@ def handler(req):
     """
 
     my_user = __get_user(req)
-    my_uri = req.uri
     sess  = __get_session(req)
 
     if not sess.has_key('cobbler_token'):
@@ -135,7 +132,6 @@ def handler(req):
     if content.startswith("# REDIRECT "):
         util.redirect(req, location=content[11:], permanent=False)
     else:
-        # apache.log_error("%s:%s ... %s" % (my_user, my_uri, str(form)))
         req.content_type = "text/html;charset=utf-8"
         req.write(unicode(content).encode('utf-8'))
     
@@ -165,7 +161,7 @@ def authenhandler(req):
         return apache.HTTP_UNAUTHORIZED
 
     try:
-        ok = xmlrpc_server.check_access(token,my_uri)
+        xmlrpc_server.check_access(token,my_uri)
     except Exception, e:
         apache.log_error(str(e))
         return apache.HTTP_FORBIDDEN
