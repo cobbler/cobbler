@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import re
-import action_sync
 import utils
 import glob
 from utils import _
