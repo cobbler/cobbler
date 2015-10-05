@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import utils
 import item
-from cexceptions import *
+from cexceptions import CX
 from utils import _
-import time
 import codes
 
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
