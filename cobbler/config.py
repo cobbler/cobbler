@@ -20,11 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
 import weakref
 import time
 import random
-import string
 import binascii
 
 import item_distro as distro
@@ -47,10 +45,8 @@ import collection_files as files
 
 import settings
 import serializer
-import traceback
 
-from utils import _
-from cexceptions import *
+from cexceptions import CX
 
 class Config:
 
