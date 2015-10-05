@@ -89,7 +89,7 @@ class BuildIso:
             return str(self.distctr)
 
   
-    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None,force_server=None):
+    def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None,force_server=None,no_local_hdd=None):
         self.logger.info("copying kernels and initrds for profiles")
         # copy all images in included profiles to images dir
         for profile in self.api.profiles():
@@ -134,7 +134,11 @@ class BuildIso:
         self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
-        cfg.write(HEADER) # fixme, use template
+        header_written = True
+        if not no_local_hdd:
+            cfg.write(LOCAL_HDD_HEADER) # fixme, use template
+        else:
+            header_written = False
 
         self.logger.info("generating profile list")
        #sort the profiles
@@ -158,6 +162,10 @@ class BuildIso:
                 if force_server:
                     data["server"] = force_server
                 distname = self.make_shorter(dist.name)
+
+                if not header_written:
+                    cfg.write(HEADER.replace('local', profile.name))
+                    header_written = True
 
                 cfg.write("\n")
                 cfg.write("LABEL %s\n" % profile.name)
@@ -382,10 +390,6 @@ class BuildIso:
 
         self.settings = self.config.settings()
 
-        if not no_local_hdd:
-            global HEADER
-            HEADER = LOCAL_HDD_HEADER
-
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
             utils.die(self.logger,"The --distro option should only be used when creating a standalone ISO")
@@ -454,7 +458,7 @@ class BuildIso:
         if standalone:
             self.generate_standalone_iso(imagesdir,isolinuxdir,distro,source)
         else:
-            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns,force_server)
+            self.generate_netboot_iso(imagesdir,isolinuxdir,profiles,systems,exclude_dns,force_server, no_local_hdd)
 
         # removed --quiet
         cmd = "mkisofs -o %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % iso
