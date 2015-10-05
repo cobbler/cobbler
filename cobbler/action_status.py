@@ -21,13 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
-import os.path
 import glob
 import time
-import api as cobbler_api
 import clogger
-import utils
 
 #from utils import _
 
@@ -89,9 +85,6 @@ class BootStatusReport:
         mrstart = elem[MOST_RECENT_START]
         mrstop  = elem[MOST_RECENT_STOP]
         mrtarg  = elem[MOST_RECENT_TARGET]
-        snstart = elem[SEEN_START]
-        snstop  = elem[SEEN_STOP]
-
 
         if start_or_stop == "start":
            if mrstart < ts:
