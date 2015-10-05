@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import item_profile as profile
 import utils
 import collection
-from cexceptions import *
+from cexceptions import CX
 import action_litesync
 from utils import _
 
