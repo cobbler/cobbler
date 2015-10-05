@@ -32,13 +32,8 @@ import shutil
 import string
 import traceback
 import errno
-import logging
-import shutil
-import tempfile
-import signal
-from cexceptions import *
+from cexceptions import CX, FileNotFoundException
 import codes
-import time
 import netaddr
 import shlex
 import field_info
@@ -1619,10 +1614,6 @@ def is_selinux_enabled():
         return True
     else:
         return False
-
-import os
-import sys
-import random
 
 # We cache the contents of /etc/mtab ... the following variables are used 
 # to keep our cache in sync
