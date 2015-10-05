@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys
-import yaml
 import config
 import utils
 import action_sync
@@ -39,34 +37,20 @@ import action_power
 import action_log
 import action_hardlink
 import action_dlcontent
-from cexceptions import *
-import module_loader
+from cexceptions import CX
 import kickgen
 import yumgen
 import pxegen
 from utils import _
 from ConfigParser import ConfigParser
 
-import logging
 import time
 import random
-import simplejson
 import os
-import xmlrpclib
-import traceback
-import exceptions
 import clogger
 import tempfile
 import urlgrabber
-
-import item_distro
-import item_profile
-import item_system
-import item_repo
-import item_image
-import item_mgmtclass
-import item_package
-import item_file
+import module_loader
 
 ERROR = 100
 INFO  = 10
