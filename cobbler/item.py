@@ -15,7 +15,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import exceptions
 import utils
-from cexceptions import *
+from cexceptions import CX
 from utils import _
 import pprint
 import fnmatch
