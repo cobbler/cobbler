@@ -28,12 +28,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
-import traceback
 import time
 import re
 
 import utils
-from cexceptions import *
 import templar
 import clogger
 
