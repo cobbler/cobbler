@@ -21,11 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import exceptions
-from cexceptions import *
+from cexceptions import CX
 import utils
-import glob
 import time
-import random
 import os
 from threading import Lock
 
@@ -284,7 +282,7 @@ class Collection:
 
         try:
             ref.check_if_valid()
-        except CX, error:
+        except CX:
             return False
 
         if ref.uid == '':
