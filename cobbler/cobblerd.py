@@ -21,15 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import sys
-import socket
 import time
 import os
-import SimpleXMLRPCServer
-import glob
-from utils import _
-import xmlrpclib
 import binascii
-import utils
 import pwd
 
 import api as cobbler_api
