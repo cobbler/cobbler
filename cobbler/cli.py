@@ -29,7 +29,6 @@ import time
 import os
 
 import utils
-import module_loader
 import item_distro
 import item_profile
 import item_system
