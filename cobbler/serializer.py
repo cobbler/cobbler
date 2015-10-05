@@ -21,16 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import errno
 import os
-from utils import _
 import fcntl
 import traceback
 import sys
-import signal
 import time
 
-from cexceptions import *
 import api as cobbler_api
 
 LOCK_ENABLED = True
