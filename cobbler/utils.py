@@ -52,15 +52,6 @@ except ImportError:
     def md5(key):
         return fiver.md5(key)
 
-# python-netaddr 0.7 broke backward compatability, try to use the old IP
-# classes, and fallback on the newer if there's an import error.
-NETADDR_PRE_0_7 = True
-try:
-    # Try importing the old (pre-0.7) netaddr IP class:
-    from netaddr import IP
-except ImportError:
-    NETADDR_PRE_0_7 = False
-
 CHEETAH_ERROR_DISCLAIMER="""
 # *** ERROR ***
 #
@@ -180,12 +171,8 @@ def get_host_ip(ip, shorten=True):
     """
     cidr = None
 
-    if NETADDR_PRE_0_7:
-        ip = netaddr.IP(ip)
-        cidr = ip.cidr()
-    else:
-        ip = netaddr.ip.IPAddress(ip)
-        cidr = netaddr.ip.IPNetwork(ip)
+    ip = netaddr.ip.IPAddress(ip)
+    cidr = netaddr.ip.IPNetwork(ip)
 
     if len(cidr) == 1: # Just an IP, e.g. a /32
         return pretty_hex(ip)
@@ -204,11 +191,7 @@ def _IP(ip):
    If ip is already an netaddr.IP instance just return it.
    Else return a new instance
    """
-   ip_class = None
-   if NETADDR_PRE_0_7:
-       ip_class = netaddr.IP
-   else:
-        ip_class = netaddr.ip.IPAddress
+   ip_class = netaddr.ip.IPAddress
    if isinstance(ip, ip_class) or ip == "":
       return ip
    else:

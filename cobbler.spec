@@ -62,7 +62,7 @@ BuildRequires: python-devel
 Requires: python >= 2.6
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
-Requires: python-netaddr
+Requires: python-netaddr >= 0.7
 Requires: python-simplejson
 Requires: python-urlgrabber
 Requires: rsync
