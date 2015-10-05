@@ -20,20 +20,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import sys, socket, time, os, errno, re, random, stat, string
+import time, os, errno, random, stat, string
 import base64
 import SimpleXMLRPCServer
 from SocketServer import ThreadingMixIn
 import xmlrpclib
-import base64
 import fcntl
-import traceback
 import glob
 from threading import Thread
 
 import api as cobbler_api
 import utils
-from cexceptions import *
+from cexceptions import CX
 import item_distro
 import item_profile
 import item_system
@@ -44,9 +42,6 @@ import item_package
 import item_file
 import clogger
 import pxegen
-import utils
-#from utils import * # BAD!
-from utils import _
 import configgen
 
 EVENT_TIMEOUT = 7*24*60*60 # 1 week
@@ -312,7 +307,6 @@ class CobblerXMLRPCInterface:
            return "?"
 
     def __generate_event_id(self,optype):
-        t = time.time()
         (year, month, day, hour, minute, second, weekday, julian, dst) = time.localtime()
         return "%04d-%02d-%02d_%02d%02d%02d_%s" % (year,month,day,hour,minute,second,optype)
 
@@ -1053,7 +1047,7 @@ class CobblerXMLRPCInterface:
         self._log("generate_kickstart")
         try:
             return self.api.generate_kickstart(profile,system)
-        except Exception, e:
+        except:
             utils.log_exc(self.logger)
             return "# This kickstart had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
@@ -1840,7 +1834,7 @@ class CobblerXMLRPCInterface:
            return False 
 
     def check_access(self,token,resource,arg1=None,arg2=None):
-        validated = self.__validate_token(token)
+        self.__validate_token(token)
         user = self.get_user_from_token(token)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
@@ -1852,7 +1846,7 @@ class CobblerXMLRPCInterface:
         return rc
 
     def get_authn_module_name(self, token):
-        validated = self.__validate_token(token)
+        self.__validate_token(token)
         user = self.get_user_from_token(token)
         if user != "<DIRECT>":
           raise CX("authorization failure for user %s attempting to access authn module name" %user)
@@ -2187,9 +2181,9 @@ def test_xmlrpc_ro():
 
    before_distros  = len(api.distros())
    before_profiles = len(api.profiles())
-   before_systems  = len(api.systems())
-   before_repos    = len(api.repos())
-   before_images   = len(api.images())
+   # before_systems  = len(api.systems())
+   # before_repos    = len(api.repos())
+   # before_images   = len(api.images())
 
    fake = open("/tmp/cobbler.fake","w+")
    fake.write("")
@@ -2210,7 +2204,7 @@ def test_xmlrpc_ro():
    files = glob.glob("rpm-build/*.rpm")
    if len(files) == 0:
       raise Exception("Tests must be run from the cobbler checkout directory.")
-   rc = utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
+   utils.subprocess_call(None,"cp rpm-build/*.rpm /tmp/empty",shell=True)
    api.add_repo(repo)
 
    profile = api.new_profile()
@@ -2654,7 +2648,6 @@ def test_xmlrpc_rw():
    assert len(server.get_repos_since(2)) > 0
    assert len(server.get_distros_since(2)) > 0
 
-   now = time.time()
    the_future = time.time() + 99999
    assert len(server.get_distros_since(the_future)) == 0
  
