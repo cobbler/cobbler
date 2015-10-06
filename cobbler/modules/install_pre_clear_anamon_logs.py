@@ -23,17 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import distutils.sysconfig
 import sys
 import os
-from utils import _
-import traceback
-import cexceptions
+import glob
+
+from cexceptions import CX
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
-
-import os
-import glob
-import sys
 
 
 def register():
@@ -47,9 +43,9 @@ def run(api, args, logger):
     if len(args) < 3:
         raise CX("invalid invocation")
 
-    objtype = args[0] # "system" or "profile"
+    # objtype = args[0] # "system" or "profile"
     name    = args[1] # name of system or profile
-    ip      = args[2] # ip or "?"
+    # ip      = args[2] # ip or "?"
 
     settings = api.settings()
     anamon_enabled = str(settings.anamon_enabled)
@@ -60,7 +56,7 @@ def run(api, args, logger):
             if os.path.isfile(f):
                 try:
                     os.unlink(f)
-                except OSError, e:
+                except:
                     pass
 
     if str(anamon_enabled) in [ "true", "1", "y", "yes"]:
