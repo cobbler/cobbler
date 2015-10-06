@@ -24,27 +24,20 @@ import os.path
 import shutil
 import glob
 import re
-import simplejson
-import traceback
 
 import utils
-from cexceptions import *
 import templar
 
-import item_distro
-import item_profile
 import item_repo
-import item_system
 
 # Import aptsources module if available to obtain repo mirror.
 try:
-    from aptsources import distro
+    import aptsources
     from aptsources import sourceslist
     apt_available = True
 except:
     apt_available = False
 
-from utils import _
 
 def register():
    """
@@ -592,7 +585,7 @@ class ImportSignatureManager:
             else:
                 dotrepo = "%s-%s.repo" % (distro.name, counter)
 
-            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s-%s.repo" % (distro.name, counter))
+            fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s" % (dotrepo))
 
             repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
             repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
@@ -677,7 +670,7 @@ class ImportSignatureManager:
         """
         try:
             sources = sourceslist.SourcesList()
-            release = distro.get_distro()
+            release = aptsources.distro.get_distro()
             release.get_sources(sources)
             mirrors = release.get_server_list()
             for mirror in mirrors:
