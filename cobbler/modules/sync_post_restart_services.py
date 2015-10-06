@@ -1,11 +1,5 @@
 import distutils.sysconfig
 import sys
-import os
-import traceback
-import cexceptions
-import os
-import sys
-import xmlrpclib
 import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
@@ -24,7 +18,6 @@ def run(api,args,logger):
 
     manage_dhcp        = str(settings.manage_dhcp).lower()
     manage_dns         = str(settings.manage_dns).lower()
-    manage_tftpd       = str(settings.manage_tftpd).lower()
     restart_dhcp       = str(settings.restart_dhcp).lower()
     restart_dns        = str(settings.restart_dns).lower()
 
