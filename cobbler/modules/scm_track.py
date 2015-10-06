@@ -21,13 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import distutils.sysconfig
 import sys
+from cobbler.cexceptions import CX
 import os
-import traceback
-from cobbler.cexceptions import *
-import os
-import sys
-#import xmlrpclib
-import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
 plib = distutils.sysconfig.get_python_lib()
@@ -59,14 +54,14 @@ def run(api,args,logger):
            raise "danger will robinson"
 
        if not os.path.exists("/var/lib/cobbler/.git"):
-           rc = utils.subprocess_call(logger,"git init",shell=True)
+           utils.subprocess_call(logger,"git init",shell=True)
 
        # FIXME: if we know the remote user of an XMLRPC call
        # use them as the author
-       rc = utils.subprocess_call(logger,"git add --all config",shell=True)
-       rc = utils.subprocess_call(logger,"git add --all kickstarts",shell=True)
-       rc = utils.subprocess_call(logger,"git add --all snippets",shell=True)
-       rc = utils.subprocess_call(logger,"git commit -m 'API update' --author 'cobbler <root@localhost.localdomain>'",shell=True)
+       utils.subprocess_call(logger,"git add --all config",shell=True)
+       utils.subprocess_call(logger,"git add --all kickstarts",shell=True)
+       utils.subprocess_call(logger,"git add --all snippets",shell=True)
+       utils.subprocess_call(logger,"git commit -m 'API update' --author 'cobbler <root@localhost.localdomain>'",shell=True)
 
        os.chdir(old_dir)
        return 0
@@ -79,14 +74,14 @@ def run(api,args,logger):
             raise "danger will robinson"
         
         if not os.path.exists("/var/lib/cobbler/.hg"):
-            rc = utils.subprocess_call(logger,"hg init",shell=True)
+            utils.subprocess_call(logger,"hg init",shell=True)
             
         # FIXME: if we know the remote user of an XMLRPC call
         # use them as the user
-        rc = utils.subprocess_call(logger,"hg add config",shell=True)
-        rc = utils.subprocess_call(logger,"hg add kickstarts",shell=True)
-        rc = utils.subprocess_call(logger,"hg add snippets",shell=True)
-        rc = utils.subprocess_call(logger,"hg commit -m 'API update' --user 'cobbler <root@localhost.localdomain>'",shell=True)
+        utils.subprocess_call(logger,"hg add config",shell=True)
+        utils.subprocess_call(logger,"hg add kickstarts",shell=True)
+        utils.subprocess_call(logger,"hg add snippets",shell=True)
+        utils.subprocess_call(logger,"hg commit -m 'API update' --user 'cobbler <root@localhost.localdomain>'",shell=True)
 
         os.chdir(old_dir)
         return 0
