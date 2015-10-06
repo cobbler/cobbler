@@ -23,7 +23,7 @@ def register():
 def run(api, args, logger):
     objtype = args[0] # "system" or "profile"
     name    = args[1] # name of system or profile
-    ip      = args[2] # ip or "?"
+    # ip      = args[2] # ip or "?"
 
     if objtype != "system":
         return 0
