@@ -1,5 +1,4 @@
 from django.template.loader import get_template
-from django.template import Context
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -26,11 +25,8 @@ except:
             return _dec(f)
 
 import xmlrpclib
-import time
 import simplejson
 import string
-import distutils
-import exceptions
 import time
 
 import cobbler.item_distro    as item_distro
