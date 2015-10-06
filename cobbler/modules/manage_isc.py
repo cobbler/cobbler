@@ -22,19 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import time
-import glob
-import traceback
-import errno
 
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
-
 from utils import _
 
 
