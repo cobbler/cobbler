@@ -33,8 +33,7 @@ plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-import cexceptions
-import utils
+from cexceptions import CX
 
 
 def register():
