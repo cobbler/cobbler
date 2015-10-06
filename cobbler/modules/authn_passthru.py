@@ -16,17 +16,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import distutils.sysconfig
 import sys
-import os
 from cobbler import utils
-from utils import _
-import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 
-import cexceptions
-import utils
 
 def register():
     """
