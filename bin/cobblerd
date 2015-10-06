@@ -18,8 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import sys
 import os
 import cobbler.cobblerd as app
-import logging
-import cobbler.utils as utils
 import traceback
 import optparse
 import cobbler.api as cobbler_api
