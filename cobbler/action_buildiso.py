@@ -24,14 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import os.path
 import shutil
-import sys
-import traceback
-import shutil
 import re
 
 import utils
-from cexceptions import *
-from utils import _
 import clogger
 
 
