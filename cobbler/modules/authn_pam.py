@@ -37,18 +37,11 @@ Implemented using ctypes, so no compilation is necessary.
 """
 
 import distutils.sysconfig
-import ConfigParser
 import sys
-import os
-from utils import _
-import traceback
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
-
-import cexceptions
-import utils
 
 from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
 from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int
