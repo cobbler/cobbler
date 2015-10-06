@@ -23,25 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import clogger
 import time
-import sys
-import glob
-import traceback
-import errno
 import re
 
-
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar 
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
-
 from utils import _
 
-from types import *
+from types import StringType
+
 
 def register():
    """
@@ -257,8 +247,6 @@ class BindManager:
         """
         settings_file = self.settings.bind_chroot_path + self.settings_file
         template_file = "/etc/cobbler/named.template"
-        forward_zones = self.settings.manage_forward_zones
-        reverse_zones = self.settings.manage_reverse_zones
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
@@ -315,8 +303,6 @@ zone "%(arpa)s." {
         """
         settings_file = self.settings.bind_chroot_path + '/etc/secondary.conf'
         template_file = "/etc/cobbler/secondary.template"
-        forward_zones = self.settings.manage_forward_zones
-        reverse_zones = self.settings.manage_reverse_zones
 
         metadata = {'forward_zones': self.__forward_zones().keys(),
                     'reverse_zones': [],
