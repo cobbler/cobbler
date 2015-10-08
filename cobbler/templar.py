@@ -45,8 +45,9 @@ except:
     
 try:
     import functools
+    functools_available = True
 except:
-    functools = None
+    functools_available = False
 
 class Templar:
 
@@ -199,7 +200,7 @@ class Templar:
         # now do full templating scan, where we will also templatify the snippet insertions
         t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame':False})
 
-        if fix_cheetah_class and functools is not None:
+        if fix_cheetah_class and functools_available is True:
             t.SNIPPET = functools.partial(t.SNIPPET, t)
             t.read_snippet = functools.partial(t.read_snippet, t)
 
