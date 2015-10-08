@@ -4,25 +4,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.views.decorators.http import require_POST
-
-try:
-    from django.views.decorators.csrf import csrf_protect
-except:
-    # Old Django, fudge the @csrf_protect decorator to be a pass-through
-    # that does nothing. Django decorator shell based on this page:
-    # http://passingcuriosity.com/2009/writing-view-decorators-for-django/
-    def csrf_protect(f):
-        def _dec(view_func):
-            def _view(request,*args,**kwargs):
-                return view_func(request,*args,**kwargs)
-            _view.__name__ = view_func.__name__
-            _view.__dict__ = view_func.__dict__
-            _view.__doc__  = view_func.__doc__
-            return _view
-        if f is None:
-            return _dec
-        else:
-            return _dec(f)
+from django.views.decorators.csrf import csrf_protect
 
 import xmlrpclib
 import simplejson
