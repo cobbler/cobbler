@@ -52,8 +52,8 @@ import tornado.ioloop as ioloop
 import cobbler.templar
 import Cheetah # need exception types
 
-from struct import *;
-from subprocess import *;
+from struct import unpack, pack
+from subprocess import Popen, PIPE, STDOUT
 #import functools
 
 # Data/Defines
@@ -244,9 +244,9 @@ class ERRORPacket(Packet):
         logging.debug("ERROR %d: %s from %s"%
                 (self.error_code,self.error_str,remote_addr))
 
-    def __init__(self, error_code, error_str):
-        self.error_code = error_code
-        self.error_str  = error_str
+#    def __init__(self, error_code, error_str):
+#        self.error_code = error_code
+#        self.error_str  = error_str
 
     def is_error(self):
         return True
@@ -862,7 +862,6 @@ def read_packet(data,local_sock,remote_addr):
        
        Returns None on failure
     """
-    packet = None
     opcode, = unpack("!H",data[0:2])
     if opcode < 1 or opcode > 6:
         logging.warn("Unknown request id %d from %s" % (opcode,remote_addr))
@@ -987,7 +986,7 @@ def new_req(sock, templar, fd, events):
         # this is the new_request handler.  (packet had better be an RRQ
         # request)
         if packet is None or packet.opcode != TFTP_OPCODE_RRQ:
-            local_sock.sendto(
+            sock.sendto(
                 ERRORPacket(2,"Unsupported initial request").marshall(),address)
             break
 
