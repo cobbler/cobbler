@@ -54,7 +54,7 @@ Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://www.cobblerd.org/
+Url: http://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl

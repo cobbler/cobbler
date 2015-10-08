@@ -127,7 +127,7 @@ DEFAULTS = {
     "server"                              : ["127.0.0.1","str"],
     "sign_puppet_certs_automatically"     : [0,"bool"],
     "signature_path"                      : ["/var/lib/cobbler/distro_signatures.json","str"],
-    "signature_url"                       : ["http://www.cobblerd.org/signatures/2.8.x/latest.json","str"],
+    "signature_url"                       : ["http://cobbler.github.io/signatures/2.8.x/latest.json","str"],
     "snippetsdir"                         : ["/var/lib/cobbler/snippets","str"],
     "template_remote_kickstarts"          : [0,"bool"],
     "virt_auto_boot"                      : [0,"bool"],
