@@ -33,8 +33,7 @@ import time
 from cexceptions import *
 import api as cobbler_api
 
-LOCK_ENABLED = True
-LOCK_HANDLE = None
+lock = None
 
 def handler(num,frame): 
    print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
@@ -45,15 +44,14 @@ def __grab_lock():
     Dual purpose locking:
     (A) flock to avoid multiple process access
     (B) block signal handler to avoid ctrl+c while writing YAML
+
+    Note: multiple grab is OK, multiple release is not.
     """
     try:
-        if LOCK_ENABLED:
-            if not os.path.exists("/var/lib/cobbler/lock"):
-                fd = open("/var/lib/cobbler/lock","w+")
-                fd.close()
-            LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-            fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX)
-        return True
+        global lock
+        if lock is None:
+            lock = open("/var/lib/cobbler/lock", "w")
+        fcntl.flock(lock, fcntl.LOCK_EX)
     except:
         # this is pretty much FATAL, avoid corruption and quit now.
         traceback.print_exc()
@@ -67,11 +65,11 @@ def __release_lock(with_changes=False):
         fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT|os.O_RDWR, 0200)
         os.write(fd, "%f" % time.time())
         os.close(fd)
-    if LOCK_ENABLED:
-        LOCK_HANDLE = open("/var/lib/cobbler/lock","r")
-        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
-        LOCK_HANDLE.close()
-    return True
+    # release with no lock acquired will raise TypeError
+    global lock
+    fcntl.flock(lock, fcntl.LOCK_UN)
+    lock.close()
+    lock = None
 
 def serialize(obj):
     """
