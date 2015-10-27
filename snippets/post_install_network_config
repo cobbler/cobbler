@@ -14,6 +14,13 @@
     #set $configbymac = True
     #set $numbondingdevs = 0
     #set $enableipv6 = False
+	## determine if we should be setting values in modprobe.conf or specific
+	## files within /etc/modprobe.d
+	#if $osversion == "rhel7" || $osversion == "rhel6"
+	#  set $mp-bonding = "/etc/modprobe.d/bonding.conf"
+	#else
+	#  set $mp-bonding = "/etc/modprobe.conf"
+	#end if
     ## =============================================================================
     #for $iname in $ikeys
         ## look at the interface hash data for the specific interface
@@ -39,10 +46,11 @@
     #set $i = 0
     ## setup bonding if we have to
     #if $numbondingdevs > 0
-
 # we have bonded interfaces, so set max_bonds
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
+if [ -f "$mp-bonding" ]; then
+    echo "options bonding max_bonds=$numbondingdevs" >> $mp-bonding
+else
+    echo "options bonding max_bonds=$numbondingdevs" > $mp-bonding
 fi
     #end if
     ## =============================================================================
@@ -160,13 +168,13 @@ fi
         #if $iface_type in ("master","bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> /etc/modprobe.conf.cobbler
+if [ -f "$mp-bonding" ]; then
+    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> $mp-bonding.cobbler
 fi
             #else
             ## Add required entry to modprobe.conf
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
+if [ -f "$mp-bonding" ]; then
+    echo "alias $iname bonding" >> $mp-bonding.cobbler
 fi
             #end if
             #if $bonding_opts != ""
@@ -339,9 +347,9 @@ rm -f /etc/sysconfig/network-scripts/ifcfg-$iname
     #end for
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
-if [ -f "/etc/modprobe.conf" ]; then
-cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
-rm -f /etc/modprobe.conf.cobbler
+if [ -f "$mp-bonding" ]; then
+cat $mp-bonding.cobbler >> $mp-bonding
+rm -f $mp-bonding.cobbler
 fi
 #end if
 # End post_install_network_config generated code
