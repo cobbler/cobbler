@@ -520,7 +520,7 @@ class CobblerCLI:
         if action_name == "buildiso":
 
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
-            self.parser.add_option("--iso", dest="iso", default=defaultiso, help="(OPTIONAL) output ISO to this path")
+            self.parser.add_option("--iso", dest="iso", default=defaultiso, help="(OPTIONAL) output ISO to this file")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems", dest="systems", help="(OPTIONAL) use these systems only")
             self.parser.add_option("--tempdir", dest="buildisodir", help="(OPTIONAL) working directory")
