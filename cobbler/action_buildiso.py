@@ -487,8 +487,8 @@ class BuildIso:
                 autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_system(descendant.name)
 
             if distro.breed == "redhat":
-                cdregex = re.compile("url .*\n", re.IGNORECASE)
-                autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data)
+                cdregex = re.compile("^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
+                autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data, count=1)
 
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
             autoinstall_file = open(autoinstall_name, "w+")
