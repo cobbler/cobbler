@@ -197,7 +197,8 @@ class BuildIso:
         if systems is not None:
            self.logger.info("generating system list")
 
-           cfg.write("\nMENU SEPARATOR\n")
+           if header_written:
+               cfg.write("\nMENU SEPARATOR\n")
 
           #sort the systems
            system_list = [system for system in self.systems]
@@ -221,6 +222,10 @@ class BuildIso:
                    if force_server:
                        data["server"] = force_server
                    distname = self.make_shorter(dist.name)
+
+                   if not header_written:
+                       cfg.write(HEADER.replace('local', system.name))
+                       header_written = True
 
                    cfg.write("\n")
                    cfg.write("LABEL %s\n" % system.name)
@@ -294,6 +299,9 @@ class BuildIso:
                       self.logger.warning("append line length is greater than 254 chars: (%s chars)" % length)
 
                    cfg.write(append_line)
+
+        if not header_written:
+            cfg.write(HEADER)
 
         self.logger.info("done writing config")
         cfg.write("\n")
