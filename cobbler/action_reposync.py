@@ -431,7 +431,10 @@ class RepoSync:
 
         # grab repomd.xml and use it to download any metadata we can use
         proxies = {}
-        proxies['http'] = self.settings.proxy_url_ext
+        if repo.proxy is not None and repo.proxy:
+            proxies['http'] = repo.proxy
+        else:
+            proxies['http'] = self.settings.proxy_url_ext
 
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
