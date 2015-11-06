@@ -3,9 +3,11 @@
 
 <h1>{{ eventid }} : {{ eventname }} :: {{ eventstate }}</h1>
 <hr />
-<textarea rows="40" cols="120" name="eventlog" id="eventlog">
+<pre>
+<textarea readonly rows="40" cols="120" name="eventlog" id="eventlog">
 {{ eventlog }}
 </textarea>
+</pre>
 <br />
 <a href="javascript:location.reload(true)">Refresh log</a>
 
