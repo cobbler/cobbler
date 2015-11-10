@@ -418,7 +418,7 @@ class BuildIso:
         cfg.write("MENU END\n")
         cfg.close()
 
-    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource):
+    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped):
         """
         Create bootable CD image to be used for handsoff CD installtions
         """
@@ -448,16 +448,13 @@ class BuildIso:
         self.logger.info("copying kernels and initrds for standalone distro")
         self.copy_boot_files(distro, isolinuxdir, None)
 
-        cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
-        self.logger.info("- copying distro %s files (%s)" % (distname, cmd))
-        rc = utils.subprocess_call(self.logger, cmd, shell=True)
-        if rc:
-            utils.die(self.logger, "rsync of files failed")
-
         self.logger.info("generating a isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(self.iso_template)
+
+        if airgapped:
+            repo_names_to_copy = {}
 
         for descendant in descendants:
             data = utils.blender(self.api, False, descendant)
@@ -490,6 +487,32 @@ class BuildIso:
                 cdregex = re.compile("^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
                 autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data, count=1)
 
+            if airgapped:
+                descendant_repos = data['repos']
+                for repo_name in descendant_repos:
+                    repo_obj = self.api.find_repo(repo_name)
+                    error_fmt = (descendant.COLLECTION_TYPE + " " + descendant.name + " refers to repo "
+                                 + repo_name + ", which %%s; cannot build airgapped ISO")
+
+                    if repo_obj is None:
+                        utils.die(self.logger, error_fmt % "does not exist")
+                    if not repo_obj.mirror_locally:
+                        utils.die(self.logger, error_fmt % "is not configured for local mirroring")
+                    # FIXME: don't hardcode
+                    mirrordir = os.path.join(self.settings.webdir, "repo_mirror", repo_obj.name)
+                    if not os.path.exists(mirrordir):
+                        utils.die(self.logger, error_fmt % "has a missing local mirror directory")
+
+                    repo_names_to_copy[repo_obj.name] = mirrordir
+
+                    # update the baseurl in autoinstall_data to use the cdrom copy of this repo
+                    reporegex = re.compile("^(\s*repo --name=" + repo_obj.name + " --baseurl=).*", re.MULTILINE)
+                    autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name, autoinstall_data)
+
+                # rewrite any split-tree repos, such as in redhat, to use cdrom
+                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/ks_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
+                autoinstall_data = srcreporegex.sub(r"\1" + "file:///mnt/source" + r"\2", autoinstall_data)
+
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
             autoinstall_file = open(autoinstall_name, "w+")
             autoinstall_file.write(autoinstall_data)
@@ -500,11 +523,39 @@ class BuildIso:
         cfg.write("MENU END\n")
         cfg.close()
 
-    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, source=None, exclude_dns=None, mkisofs_opts=None):
+        if airgapped:
+            # copy any repos found in profiles or systems to the iso build
+            repodir = os.path.abspath(isolinuxdir, "..", "repo_mirror")
+            if not os.path.exists(repodir):
+                os.makedirs(repodir)
+
+            for repo_name in repo_names_to_copy:
+                src = repo_names_to_copy[repo_name]
+                dst = os.path.join(repodir, repo_name)
+                self.logger.info (" - copying repo '" + repo_name + "' for airgapped ISO")
+
+                ok = utils.rsync_files(src, dst, "--exclude=TRANS.TBL --exclude=cache/ --no-g",
+                                       logger=self.logger, quiet=True)
+                if not ok:
+                    utils.die(self.logger, "rsync of repo '" + repo_name + "' failed")
+
+        # copy distro files last, since they take the most time
+        cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
+        self.logger.info("- copying distro %s files (%s)" % (distname, cmd))
+        rc = utils.subprocess_call(self.logger, cmd, shell=True)
+        if rc:
+            utils.die(self.logger, "rsync of distro files failed")
+
+
+    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, mkisofs_opts=None):
+
+        # the airgapped option implies standalone
+        if airgapped is not None and not standalone:
+            standalone = True
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
-            utils.die(self.logger, "The --distro option should only be used when creating a standalone ISO")
+            utils.die(self.logger, "The --distro option should only be used when creating a standalone or airgapped ISO")
         # if building standalone, we only want --distro,
         # profiles/systems are disallowed
         if standalone:
@@ -569,8 +620,8 @@ class BuildIso:
             else:
                 utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
 
-        if standalone:
-            self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source)
+        if standalone or airgapped:
+            self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped)
         else:
             self.generate_netboot_iso(imagesdir, isolinuxdir, profiles, systems, exclude_dns)
 
