@@ -1306,6 +1306,11 @@ class CobblerXMLRPCInterface:
         if not self.api.settings().pxe_just_once:
             # feature disabled!
             return False
+        if str(self.api.settings().nopxe_with_triggers).upper() in ["1", "Y", "YES", "TRUE"]:
+            # triggers should be enabled when calling nopxe
+            triggers_enabled = True
+        else:
+            triggers_enabled = False
         systems = self.api.systems()
         obj = systems.find(name=name)
         if obj is None:
@@ -1313,7 +1318,7 @@ class CobblerXMLRPCInterface:
             return False
         obj.set_netboot_enabled(0)
         # disabling triggers and sync to make this extremely fast.
-        systems.add(obj, save=True, with_triggers=False, with_sync=False, quick_pxe_update=True)
+        systems.add(obj, save=True, with_triggers=triggers_enabled, with_sync=False, quick_pxe_update=True)
         # re-generate dhcp configuration
         self.api.sync_dhcp()
         return True
