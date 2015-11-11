@@ -532,7 +532,7 @@ class BuildIso:
             for repo_name in repo_names_to_copy:
                 src = repo_names_to_copy[repo_name]
                 dst = os.path.join(repodir, repo_name)
-                self.logger.info (" - copying repo '" + repo_name + "' for airgapped ISO")
+                self.logger.info(" - copying repo '" + repo_name + "' for airgapped ISO")
 
                 ok = utils.rsync_files(src, dst, "--exclude=TRANS.TBL --exclude=cache/ --no-g",
                                        logger=self.logger, quiet=True)
@@ -545,7 +545,6 @@ class BuildIso:
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc:
             utils.die(self.logger, "rsync of distro files failed")
-
 
     def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, mkisofs_opts=None):
 
