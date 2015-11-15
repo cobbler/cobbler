@@ -431,10 +431,11 @@ class RepoSync:
 
         # grab repomd.xml and use it to download any metadata we can use
         proxies = {}
-        if repo.proxy is not None and repo.proxy:
-            proxies['http'] = repo.proxy
-        else:
+        if repo.proxy == '<<inherit>>':
             proxies['http'] = self.settings.proxy_url_ext
+        elif repo.proxy != '<<None>>' and repo.proxy != '':
+            proxies['http'] = repo.proxy
+            proxies['https'] = repo.proxy
 
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
@@ -595,8 +596,14 @@ class RepoSync:
             line = line.replace("@@server@@", http_server)
             config_file.write(line)
 
-            if repo.proxy != '':
-                config_file.write("proxy=%s\n" % repo.proxy)
+            config_proxy = None
+            if repo.proxy == '<<inherit>>':
+                config_proxy = self.settings.proxy_url_ext
+            elif repo.proxy != '' and repo.proxy != '<<None>>':
+                config_proxy = repo.proxy
+
+            if config_proxy is not None:
+                config_file.write("proxy=%s\n" % config_proxy)
 
         if not optenabled:
             config_file.write("enabled=1\n")
