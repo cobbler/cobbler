@@ -150,6 +150,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("buildisodir", None),
                 self.options.get("distro", None),
                 self.options.get("standalone", False),
+                self.options.get("airgapped", False),
                 self.options.get("source", None),
                 self.options.get("exclude_dns", False),
                 self.options.get("mkisofs_opts", None),
