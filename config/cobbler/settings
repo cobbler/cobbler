@@ -278,6 +278,10 @@ power_template_dir: "/etc/cobbler/power"
 # for --netboot-enabled.
 pxe_just_once: 1
 
+# if this setting is set to one, triggers will be executed when systems
+# will request to toggle the --netboot-enabled record at the end of their installation.
+nopxe_with_triggers: 1
+
 # This setting is only used by the code that supports using Spacewalk/Satellite
 # authentication within Cobbler Web and Cobbler XMLRPC.
 redhat_management_server: "xmlrpc.rhn.redhat.com"
