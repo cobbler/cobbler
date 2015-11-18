@@ -111,9 +111,9 @@ class BuildIso:
         Return a list of valid profile or system objects selected from all profiles
         or systems by name, or everything if selected_items is empty
         """
-        if list_type is 'profile':
+        if list_type == 'profile':
             all_objs = [profile for profile in self.api.profiles()]
-        elif list_type is 'system':
+        elif list_type == 'system':
             all_objs = [system for system in self.api.systems()]
         else:
             utils.die("Invalid list_type argument: " + list_type)
@@ -437,10 +437,11 @@ class BuildIso:
         """
         # Get the distro object for the requested distro
         # and then get all of its descendants (profiles/sub-profiles/systems)
+        # with sort=True for profile/system heirarchy to allow menu indenting
         distro = self.api.find_distro(distname)
         if distro is None:
             utils.die(self.logger, "distro %s was not found, aborting" % distname)
-        descendants = distro.get_descendants()
+        descendants = distro.get_descendants(sort=True)
 
         if filesource is None:
             # Try to determine the source from the distro kernel path
@@ -461,7 +462,7 @@ class BuildIso:
         self.logger.info("copying kernels and initrds for standalone distro")
         self.copy_boot_files(distro, isolinuxdir, None)
 
-        self.logger.info("generating a isolinux.cfg")
+        self.logger.info("generating an isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(self.iso_template)
@@ -472,8 +473,15 @@ class BuildIso:
         for descendant in descendants:
             data = utils.blender(self.api, False, descendant)
 
+            # indent system menu items by four spaces
+            menu_indent = 0
+            if descendant.COLLECTION_TYPE == 'system':
+                menu_indent = 4
+
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
+            if menu_indent:
+                cfg.write("  MENU INDENT %d\n" % menu_indent)
             cfg.write("  MENU LABEL %s\n" % descendant.name)
             cfg.write("  kernel %s\n" % os.path.basename(distro.kernel))
 
