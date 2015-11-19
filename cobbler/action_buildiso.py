@@ -442,6 +442,7 @@ class BuildIso:
         if distro is None:
             utils.die(self.logger, "distro %s was not found, aborting" % distname)
         descendants = distro.get_descendants(sort=True)
+        profiles = utils.input_string_or_list(profiles)
 
         if filesource is None:
             # Try to determine the source from the distro kernel path
@@ -471,12 +472,17 @@ class BuildIso:
             repo_names_to_copy = {}
 
         for descendant in descendants:
-            data = utils.blender(self.api, False, descendant)
+            # if a list of profiles was given, skip any others and their systems
+            if (profiles is not None
+              and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
+              or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
+                continue
 
-            # indent system menu items by four spaces
             menu_indent = 0
             if descendant.COLLECTION_TYPE == 'system':
                 menu_indent = 4
+
+            data = utils.blender(self.api, False, descendant)
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
