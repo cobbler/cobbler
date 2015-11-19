@@ -116,7 +116,7 @@ class BuildIso:
         elif list_type == 'system':
             all_objs = [system for system in self.api.systems()]
         else:
-            utils.die("Invalid list_type argument: " + list_type)
+            utils.die(self.logger, "Invalid list_type argument: " + list_type)
 
         all_objs.sort(self.sort_name)
 
