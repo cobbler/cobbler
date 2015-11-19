@@ -222,7 +222,7 @@ class Item(object):
         """
         Get objects that depend on this object, i.e. those that
         would be affected by a cascading delete, etc.
-        With sorted=True the list will be a walk of the tree,
+        With sort=True the list will be a walk of the tree,
         e.g., distro -> [profile, sys, sys, profile, sys, sys]
         """
         results = []
