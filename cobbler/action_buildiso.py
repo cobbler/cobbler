@@ -474,8 +474,8 @@ class BuildIso:
         for descendant in descendants:
             # if a list of profiles was given, skip any others and their systems
             if (profiles is not None
-              and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
-              or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
+                and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
+                     or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
                 continue
 
             menu_indent = 0
