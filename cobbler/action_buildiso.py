@@ -473,7 +473,7 @@ class BuildIso:
 
         for descendant in descendants:
             # if a list of profiles was given, skip any others and their systems
-            if (profiles is not None
+            if (profiles
                 and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
                      or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
                 continue
@@ -552,7 +552,7 @@ class BuildIso:
 
         if airgapped:
             # copy any repos found in profiles or systems to the iso build
-            repodir = os.path.abspath(isolinuxdir, "..", "repo_mirror")
+            repodir = os.path.abspath(os.path.join(isolinuxdir, "..", "repo_mirror"))
             if not os.path.exists(repodir):
                 os.makedirs(repodir)
 
@@ -593,7 +593,7 @@ class BuildIso:
                 utils.die(self.logger, "The source specified (%s) does not exist" % source)
 
             # insure all profiles specified are children of the distro
-            if profiles is not None:
+            if profiles:
                 which_profiles = self.filter_systems_or_profiles(profiles, 'profile')
                 for profile in which_profiles:
                     if profile.distro != distro:
