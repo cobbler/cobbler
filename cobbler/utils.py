@@ -455,9 +455,9 @@ def file_is_remote(file_location):
     Returns true if the file is remote and referenced via a protocol
     we support.
     """
-    # TODO: nfs and ftp ok too?
     file_loc_lc = file_location.lower()
-    for prefix in ["http://"]:
+    # Check for urllib2 supported protocols
+    for prefix in ["http://", "https://", "ftp://"]:
         if file_loc_lc.startswith(prefix):
             return True
     return False
