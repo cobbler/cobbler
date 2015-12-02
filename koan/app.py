@@ -1427,12 +1427,17 @@ class Koan:
                 hashv["netdevice"] = self.static_interface
             else:
                 hashv["ksdevice"] = self.static_interface
+            newdracut = False
+            if (breed == "redhat" and
+                ((os_version[0:4] == "rhel" and int(os_version[4:]) >= 7) or
+                 (os_version[0:6] == "fedora" and int(os_version[6:]) >= 17))):
+                newdracut = True
             if ip is not None:
                 if breed == "suse":
                     hashv["hostip"] = ip
                 elif breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_ipaddress"] = ip
-                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                elif newdracut:
                     def get_cidr(netmask):
                         binary_str = ''
                         for octet in netmask.split('.'):
@@ -1444,19 +1449,19 @@ class Koan:
             if netmask is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_netmask"] = netmask
-                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                elif newdracut:
                     pass
                 else:
                     hashv["netmask"] = netmask
             if gateway is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_gateway"] = gateway
-                elif breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                elif newdracut:
                     pass
                 else:
                     hashv["gateway"] = gateway
             if dns is not None:
-                if breed == "redhat" and (os_version >= "rhel7" or os_version >= "fedora17"):
+                if newdracut:
                     hashv["ip"] += ":" + ":".join(dns[0:2])
                 elif breed == "suse":
                     hashv["nameserver"] = dns[0]
