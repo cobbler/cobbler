@@ -144,7 +144,7 @@ class CobblerCheck:
 
         if not os.path.exists("/usr/bin/createrepo"):
             status.append(_("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?"))
-        if not os.path.exists("/usr/bin/dnf") or not os.path.exists("/usr/bin/reposync"):
+        if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
             status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
         if not os.path.exists("/usr/bin/yumdownloader"):
             status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
