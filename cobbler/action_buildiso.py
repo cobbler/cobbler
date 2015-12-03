@@ -106,25 +106,41 @@ class BuildIso:
         """
         return cmp(a.name, b.name)
 
+    def filter_systems_or_profiles(self, selected_items, list_type):
+        """
+        Return a list of valid profile or system objects selected from all profiles
+        or systems by name, or everything if selected_items is empty
+        """
+        if list_type == 'profile':
+            all_objs = [profile for profile in self.api.profiles()]
+        elif list_type == 'system':
+            all_objs = [system for system in self.api.systems()]
+        else:
+            utils.die(self.logger, "Invalid list_type argument: " + list_type)
+
+        all_objs.sort(self.sort_name)
+
+        # no profiles/systems selection is made, let's process everything
+        if not selected_items:
+            return all_objs
+
+        which_objs = []
+        selected_list = utils.input_string_or_list(selected_items)
+        for obj in all_objs:
+            if obj.name in selected_list:
+                which_objs.append(obj)
+
+        if not which_objs:
+            utils.die(self.logger, "No valid systems or profiles were specified.")
+
+        return which_objs
+
     def generate_netboot_iso(self, imagesdir, isolinuxdir, profiles=None, systems=None, exclude_dns=None):
         """
         Create bootable CD image to be used for network installations
         """
-        # setup all profiles/systems lists
-        all_profiles = [profile for profile in self.api.profiles()]
-        all_profiles.sort(self.sort_name)
-        all_systems = [system for system in self.api.systems()]
-        all_systems.sort(self.sort_name)
-        # convert input to lists
-        which_profiles = utils.input_string_or_list(profiles)
-        which_systems = utils.input_string_or_list(systems)
-
-        # no profiles/systems selection is made, let's process everything
-        do_all_systems = False
-        do_all_profiles = False
-        if len(which_profiles) == 0 and len(which_systems) == 0:
-            do_all_systems = True
-            do_all_profiles = True
+        which_profiles = self.filter_systems_or_profiles(profiles, 'profile')
+        which_systems = self.filter_systems_or_profiles(systems, 'system')
 
         # setup isolinux.cfg
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
@@ -132,302 +148,301 @@ class BuildIso:
         cfg.write(self.iso_template)
 
         # iterate through selected profiles
-        for profile in all_profiles:
-            if profile.name in which_profiles or do_all_profiles is True:
-                self.logger.info("processing profile: %s" % profile.name)
-                dist = profile.get_conceptual_parent()
-                distname = self.make_shorter(dist.name)
-                self.copy_boot_files(dist, isolinuxdir, distname)
+        for profile in which_profiles:
+            self.logger.info("processing profile: %s" % profile.name)
+            dist = profile.get_conceptual_parent()
+            distname = self.make_shorter(dist.name)
+            self.copy_boot_files(dist, isolinuxdir, distname)
 
-                cfg.write("\n")
-                cfg.write("LABEL %s\n" % profile.name)
-                cfg.write("  MENU LABEL %s\n" % profile.name)
-                cfg.write("  kernel %s.krn\n" % distname)
+            cfg.write("\n")
+            cfg.write("LABEL %s\n" % profile.name)
+            cfg.write("  MENU LABEL %s\n" % profile.name)
+            cfg.write("  kernel %s.krn\n" % distname)
 
-                data = utils.blender(self.api, False, profile)
-                if not re.match("[a-z]+://.*", data["autoinstall"]):
-                    data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
-                        data["server"], self.api.settings().http_port, profile.name
+            data = utils.blender(self.api, False, profile)
+            if not re.match("[a-z]+://.*", data["autoinstall"]):
+                data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
+                    data["server"], self.api.settings().http_port, profile.name
+                )
+
+            append_line = " append initrd=%s.img" % distname
+            if dist.breed == "suse":
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " proxy=%s" % data["proxy"]
+                if "install" in data["kernel_options"] and data["kernel_options"]["install"] != "":
+                    append_line += " install=%s" % data["kernel_options"]["install"]
+                    del data["kernel_options"]["install"]
+                else:
+                    append_line += " install=http://%s:%s/cblr/links/%s" % (
+                        data["server"], self.api.settings().http_port, dist.name
                     )
+                if "autoyast" in data["kernel_options"] and data["kernel_options"]["autoyast"] != "":
+                    append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
+                    del data["kernel_options"]["autoyast"]
+                else:
+                    append_line += " autoyast=%s" % data["autoinstall"]
 
-                append_line = " append initrd=%s.img" % distname
-                if dist.breed == "suse":
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " proxy=%s" % data["proxy"]
-                    if "install" in data["kernel_options"] and data["kernel_options"]["install"] != "":
-                        append_line += " install=%s" % data["kernel_options"]["install"]
-                        del data["kernel_options"]["install"]
-                    else:
-                        append_line += " install=http://%s:%s/cblr/links/%s" % (
-                            data["server"], self.api.settings().http_port, dist.name
-                        )
-                    if "autoyast" in data["kernel_options"] and data["kernel_options"]["autoyast"] != "":
-                        append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
-                        del data["kernel_options"]["autoyast"]
-                    else:
-                        append_line += " autoyast=%s" % data["autoinstall"]
+            if dist.breed == "redhat":
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
+                append_line += " ks=%s" % data["autoinstall"]
 
-                if dist.breed == "redhat":
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                    append_line += " ks=%s" % data["autoinstall"]
-
-                if dist.breed in ["ubuntu", "debian"]:
-                    append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " mirror/http/proxy=%s" % data["proxy"]
-                append_line += self.add_remaining_kopts(data["kernel_options"])
-                cfg.write(append_line)
+            if dist.breed in ["ubuntu", "debian"]:
+                append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " mirror/http/proxy=%s" % data["proxy"]
+            append_line += self.add_remaining_kopts(data["kernel_options"])
+            cfg.write(append_line)
 
         cfg.write("\nMENU SEPARATOR\n")
 
         # iterate through all selected systems
-        for system in all_systems:
-            # XXX
-            if system.name in which_systems or do_all_systems is True:
-                self.logger.info("processing system: %s" % system.name)
-                profile = system.get_conceptual_parent()
-                dist = profile.get_conceptual_parent()
-                distname = self.make_shorter(dist.name)
-                self.copy_boot_files(dist, isolinuxdir, distname)
+        for system in which_systems:
+            self.logger.info("processing system: %s" % system.name)
+            profile = system.get_conceptual_parent()
+            dist = profile.get_conceptual_parent()
+            distname = self.make_shorter(dist.name)
+            self.copy_boot_files(dist, isolinuxdir, distname)
 
-                cfg.write("\n")
-                cfg.write("LABEL %s\n" % system.name)
-                cfg.write("  MENU LABEL %s\n" % system.name)
-                cfg.write("  kernel %s.krn\n" % distname)
+            cfg.write("\n")
+            cfg.write("LABEL %s\n" % system.name)
+            cfg.write("  MENU LABEL %s\n" % system.name)
+            cfg.write("  kernel %s.krn\n" % distname)
 
-                data = utils.blender(self.api, False, system)
-                if not re.match("[a-z]+://.*", data["autoinstall"]):
-                    data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/system/%s" % (
-                        data["server"], self.api.settings().http_port, system.name
+            data = utils.blender(self.api, False, system)
+            if not re.match("[a-z]+://.*", data["autoinstall"]):
+                data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/system/%s" % (
+                    data["server"], self.api.settings().http_port, system.name
+                )
+
+            append_line = " append initrd=%s.img" % distname
+            if dist.breed == "suse":
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " proxy=%s" % data["proxy"]
+                if "install" in data["kernel_options"] and data["kernel_options"]["install"] != "":
+                    append_line += " install=%s" % data["kernel_options"]["install"]
+                    del data["kernel_options"]["install"]
+                else:
+                    append_line += " install=http://%s:%s/cblr/links/%s" % (
+                        data["server"], self.api.settings().http_port, dist.name
                     )
+                if "autoyast" in data["kernel_options"] and data["kernel_options"]["autoyast"] != "":
+                    append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
+                    del data["kernel_options"]["autoyast"]
+                else:
+                    append_line += " autoyast=%s" % data["autoinstall"]
 
-                append_line = " append initrd=%s.img" % distname
+            if dist.breed == "redhat":
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
+                append_line += " ks=%s" % data["autoinstall"]
+
+            if dist.breed in ["ubuntu", "debian"]:
+                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["autoinstall"]
+                if "proxy" in data and data["proxy"] != "":
+                    append_line += " mirror/http/proxy=%s" % data["proxy"]
+                # hostname is required as a parameter, the one in the preseed is not respected
+                my_domain = "local.lan"
+                if system.hostname != "":
+                    # if this is a FQDN, grab the first bit
+                    my_hostname = system.hostname.split(".")[0]
+                    _domain = system.hostname.split(".")[1:]
+                    if _domain:
+                        my_domain = ".".join(_domain)
+                else:
+                    my_hostname = system.name.split(".")[0]
+                    _domain = system.name.split(".")[1:]
+                    if _domain:
+                        my_domain = ".".join(_domain)
+                # at least for debian deployments configured for DHCP networking
+                # this values are not used, but specifying here avoids questions
+                append_line += " hostname=%s domain=%s" % (my_hostname, my_domain)
+                # a similar issue exists with suite name, as installer requires
+                # the existence of "stable" in the dists directory
+                append_line += " suite=%s" % dist.os_version
+
+            # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
+            # check for overrides first and clear them from kernel_options
+            my_int = None
+            my_ip = None
+            my_mask = None
+            my_gw = None
+            my_dns = None
+            if dist.breed in ["suse", "redhat"]:
+                if "netmask" in data["kernel_options"] and data["kernel_options"]["netmask"] != "":
+                    my_mask = data["kernel_options"]["netmask"]
+                    del data["kernel_options"]["netmask"]
+                if "gateway" in data["kernel_options"] and data["kernel_options"]["gateway"] != "":
+                    my_gw = data["kernel_options"]["gateway"]
+                    del data["kernel_options"]["gateway"]
+
+            if dist.breed == "redhat":
+                if "ksdevice" in data["kernel_options"] and data["kernel_options"]["ksdevice"] != "":
+                    my_int = data["kernel_options"]["ksdevice"]
+                    if my_int == "bootif":
+                        my_int = None
+                    del data["kernel_options"]["ksdevice"]
+                if "ip" in data["kernel_options"] and data["kernel_options"]["ip"] != "":
+                    my_ip = data["kernel_options"]["ip"]
+                    del data["kernel_options"]["ip"]
+                if "dns" in data["kernel_options"] and data["kernel_options"]["dns"] != "":
+                    my_dns = data["kernel_options"]["dns"]
+                    del data["kernel_options"]["dns"]
+
+            if dist.breed == "suse":
+                if "netdevice" in data["kernel_options"] and data["kernel_options"]["netdevice"] != "":
+                    my_int = data["kernel_options"]["netdevice"]
+                    del data["kernel_options"]["netdevice"]
+                if "hostip" in data["kernel_options"] and data["kernel_options"]["hostip"] != "":
+                    my_ip = data["kernel_options"]["hostip"]
+                    del data["kernel_options"]["hostip"]
+                if "nameserver" in data["kernel_options"] and data["kernel_options"]["nameserver"] != "":
+                    my_dns = data["kernel_options"]["nameserver"]
+                    del data["kernel_options"]["nameserver"]
+
+            if dist.breed in ["ubuntu", "debian"]:
+                if "netcfg/choose_interface" in data["kernel_options"] and data["kernel_options"]["netcfg/choose_interface"] != "":
+                    my_int = data["kernel_options"]["netcfg/choose_interface"]
+                    del data["kernel_options"]["netcfg/choose_interface"]
+                if "netcfg/get_ipaddress" in data["kernel_options"] and data["kernel_options"]["netcfg/get_ipaddress"] != "":
+                    my_ip = data["kernel_options"]["netcfg/get_ipaddress"]
+                    del data["kernel_options"]["netcfg/get_ipaddress"]
+                if "netcfg/get_netmask" in data["kernel_options"] and data["kernel_options"]["netcfg/get_netmask"] != "":
+                    my_mask = data["kernel_options"]["netcfg/get_netmask"]
+                    del data["kernel_options"]["netcfg/get_netmask"]
+                if "netcfg/get_gateway" in data["kernel_options"] and data["kernel_options"]["netcfg/get_gateway"] != "":
+                    my_gw = data["kernel_options"]["netcfg/get_gateway"]
+                    del data["kernel_options"]["netcfg/get_gateway"]
+                if "netcfg/get_nameservers" in data["kernel_options"] and data["kernel_options"]["netcfg/get_nameservers"] != "":
+                    my_dns = data["kernel_options"]["netcfg/get_nameservers"]
+                    del data["kernel_options"]["netcfg/get_nameservers"]
+
+            # if no kernel_options overrides are present find the management interface
+            # do nothing when zero or multiple management interfaces are found
+            if my_int is None:
+                mgmt_ints = []
+                mgmt_ints_multi = []
+                slave_ints = []
+                if len(data["interfaces"].keys()) >= 1:
+                    for (iname, idata) in data["interfaces"].iteritems():
+                        if idata["management"] and idata["interface_type"] in ["bond", "bridge"]:
+                            # bonded/bridged management interface
+                            mgmt_ints_multi.append(iname)
+                        if idata["management"] and idata["interface_type"] not in ["bond", "bridge", "bond_slave", "bridge_slave", "bonded_bridge_slave"]:
+                            # single management interface
+                            mgmt_ints.append(iname)
+
+                if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
+                    # bonded/bridged management interface, find a slave interface
+                    # if eth0 is a slave use that (it's what people expect)
+                    for (iname, idata) in data["interfaces"].iteritems():
+                        if idata["interface_type"] in ["bond_slave", "bridge_slave", "bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
+                            slave_ints.append(iname)
+
+                    if "eth0" in slave_ints:
+                        my_int = "eth0"
+                    else:
+                        my_int = slave_ints[0]
+                    # set my_ip from the bonded/bridged interface here
+                    my_ip = data["ip_address_" + data["interface_master_" + my_int]]
+                    my_mask = data["netmask_" + data["interface_master_" + my_int]]
+
+                if len(mgmt_ints) == 1 and len(mgmt_ints_multi) == 0:
+                    # single management interface
+                    my_int = mgmt_ints[0]
+
+            # lookup tcp/ip configuration data
+            if my_ip is None and my_int is not None:
+                intip = "ip_address_" + my_int
+                if intip in data and data[intip] != "":
+                    my_ip = data["ip_address_" + my_int]
+
+            if my_mask is None and my_int is not None:
+                intmask = "netmask_" + my_int
+                if intmask in data and data[intmask] != "":
+                    my_mask = data["netmask_" + my_int]
+
+            if my_gw is None:
+                if "gateway" in data and data["gateway"] != "":
+                    my_gw = data["gateway"]
+
+            if my_dns is None:
+                if "name_servers" in data and data["name_servers"] != "":
+                    my_dns = data["name_servers"]
+
+            # add information to the append_line
+            if my_int is not None:
+                intmac = "mac_address_" + my_int
                 if dist.breed == "suse":
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " proxy=%s" % data["proxy"]
-                    if "install" in data["kernel_options"] and data["kernel_options"]["install"] != "":
-                        append_line += " install=%s" % data["kernel_options"]["install"]
-                        del data["kernel_options"]["install"]
+                    if intmac in data and data[intmac] != "":
+                        append_line += " netdevice=%s" % data["mac_address_" + my_int].lower()
                     else:
-                        append_line += " install=http://%s:%s/cblr/links/%s" % (
-                            data["server"], self.api.settings().http_port, dist.name
-                        )
-                    if "autoyast" in data["kernel_options"] and data["kernel_options"]["autoyast"] != "":
-                        append_line += " autoyast=%s" % data["kernel_options"]["autoyast"]
-                        del data["kernel_options"]["autoyast"]
-                    else:
-                        append_line += " autoyast=%s" % data["autoinstall"]
-
+                        append_line += " netdevice=%s" % my_int
                 if dist.breed == "redhat":
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                    append_line += " ks=%s" % data["autoinstall"]
-
-                if dist.breed in ["ubuntu", "debian"]:
-                    append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["autoinstall"]
-                    if "proxy" in data and data["proxy"] != "":
-                        append_line += " mirror/http/proxy=%s" % data["proxy"]
-                    # hostname is required as a parameter, the one in the preseed is not respected
-                    my_domain = "local.lan"
-                    if system.hostname != "":
-                        # if this is a FQDN, grab the first bit
-                        my_hostname = system.hostname.split(".")[0]
-                        _domain = system.hostname.split(".")[1:]
-                        if _domain:
-                            my_domain = ".".join(_domain)
+                    if intmac in data and data[intmac] != "":
+                        append_line += " ksdevice=%s" % data["mac_address_" + my_int]
                     else:
-                        my_hostname = system.name.split(".")[0]
-                        _domain = system.name.split(".")[1:]
-                        if _domain:
-                            my_domain = ".".join(_domain)
-                    # at least for debian deployments configured for DHCP networking
-                    # this values are not used, but specifying here avoids questions
-                    append_line += " hostname=%s domain=%s" % (my_hostname, my_domain)
-                    # a similar issue exists with suite name, as installer requires
-                    # the existence of "stable" in the dists directory
-                    append_line += " suite=%s" % dist.os_version
+                        append_line += " ksdevice=%s" % my_int
+                if dist.breed in ["ubuntu", "debian"]:
+                    append_line += " netcfg/choose_interface=%s" % my_int
 
-                # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
-                # check for overrides first and clear them from kernel_options
-                my_int = None
-                my_ip = None
-                my_mask = None
-                my_gw = None
-                my_dns = None
+            if my_ip is not None:
+                if dist.breed == "suse":
+                    append_line += " hostip=%s" % my_ip
+                if dist.breed == "redhat":
+                    append_line += " ip=%s" % my_ip
+                if dist.breed in ["ubuntu", "debian"]:
+                    append_line += " netcfg/get_ipaddress=%s" % my_ip
+
+            if my_mask is not None:
                 if dist.breed in ["suse", "redhat"]:
-                    if "netmask" in data["kernel_options"] and data["kernel_options"]["netmask"] != "":
-                        my_mask = data["kernel_options"]["netmask"]
-                        del data["kernel_options"]["netmask"]
-                    if "gateway" in data["kernel_options"] and data["kernel_options"]["gateway"] != "":
-                        my_gw = data["kernel_options"]["gateway"]
-                        del data["kernel_options"]["gateway"]
-
-                if dist.breed == "redhat":
-                    if "ksdevice" in data["kernel_options"] and data["kernel_options"]["ksdevice"] != "":
-                        my_int = data["kernel_options"]["ksdevice"]
-                        if my_int == "bootif":
-                            my_int = None
-                        del data["kernel_options"]["ksdevice"]
-                    if "ip" in data["kernel_options"] and data["kernel_options"]["ip"] != "":
-                        my_ip = data["kernel_options"]["ip"]
-                        del data["kernel_options"]["ip"]
-                    if "dns" in data["kernel_options"] and data["kernel_options"]["dns"] != "":
-                        my_dns = data["kernel_options"]["dns"]
-                        del data["kernel_options"]["dns"]
-
-                if dist.breed == "suse":
-                    if "netdevice" in data["kernel_options"] and data["kernel_options"]["netdevice"] != "":
-                        my_int = data["kernel_options"]["netdevice"]
-                        del data["kernel_options"]["netdevice"]
-                    if "hostip" in data["kernel_options"] and data["kernel_options"]["hostip"] != "":
-                        my_ip = data["kernel_options"]["hostip"]
-                        del data["kernel_options"]["hostip"]
-                    if "nameserver" in data["kernel_options"] and data["kernel_options"]["nameserver"] != "":
-                        my_dns = data["kernel_options"]["nameserver"]
-                        del data["kernel_options"]["nameserver"]
-
+                    append_line += " netmask=%s" % my_mask
                 if dist.breed in ["ubuntu", "debian"]:
-                    if "netcfg/choose_interface" in data["kernel_options"] and data["kernel_options"]["netcfg/choose_interface"] != "":
-                        my_int = data["kernel_options"]["netcfg/choose_interface"]
-                        del data["kernel_options"]["netcfg/choose_interface"]
-                    if "netcfg/get_ipaddress" in data["kernel_options"] and data["kernel_options"]["netcfg/get_ipaddress"] != "":
-                        my_ip = data["kernel_options"]["netcfg/get_ipaddress"]
-                        del data["kernel_options"]["netcfg/get_ipaddress"]
-                    if "netcfg/get_netmask" in data["kernel_options"] and data["kernel_options"]["netcfg/get_netmask"] != "":
-                        my_mask = data["kernel_options"]["netcfg/get_netmask"]
-                        del data["kernel_options"]["netcfg/get_netmask"]
-                    if "netcfg/get_gateway" in data["kernel_options"] and data["kernel_options"]["netcfg/get_gateway"] != "":
-                        my_gw = data["kernel_options"]["netcfg/get_gateway"]
-                        del data["kernel_options"]["netcfg/get_gateway"]
-                    if "netcfg/get_nameservers" in data["kernel_options"] and data["kernel_options"]["netcfg/get_nameservers"] != "":
-                        my_dns = data["kernel_options"]["netcfg/get_nameservers"]
-                        del data["kernel_options"]["netcfg/get_nameservers"]
+                    append_line += " netcfg/get_netmask=%s" % my_mask
 
-                # if no kernel_options overrides are present find the management interface
-                # do nothing when zero or multiple management interfaces are found
-                if my_int is None:
-                    mgmt_ints = []
-                    mgmt_ints_multi = []
-                    slave_ints = []
-                    if len(data["interfaces"].keys()) >= 1:
-                        for (iname, idata) in data["interfaces"].iteritems():
-                            if idata["management"] and idata["interface_type"] in ["bond", "bridge"]:
-                                # bonded/bridged management interface
-                                mgmt_ints_multi.append(iname)
-                            if idata["management"] and idata["interface_type"] not in ["bond", "bridge", "bond_slave", "bridge_slave", "bonded_bridge_slave"]:
-                                # single management interface
-                                mgmt_ints.append(iname)
+            if my_gw is not None:
+                if dist.breed in ["suse", "redhat"]:
+                    append_line += " gateway=%s" % my_gw
+                if dist.breed in ["ubuntu", "debian"]:
+                    append_line += " netcfg/get_gateway=%s" % my_gw
 
-                    if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
-                        # bonded/bridged management interface, find a slave interface
-                        # if eth0 is a slave use that (it's what people expect)
-                        for (iname, idata) in data["interfaces"].iteritems():
-                            if idata["interface_type"] in ["bond_slave", "bridge_slave", "bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
-                                slave_ints.append(iname)
+            if exclude_dns is None or my_dns is not None:
+                if dist.breed == "suse":
+                    if type(my_dns) == list:
+                        append_line += " nameserver=%s" % ",".join(my_dns)
+                    else:
+                        append_line += " nameserver=%s" % my_dns
+                if dist.breed == "redhat":
+                    if type(my_dns) == list:
+                        append_line += " dns=%s" % ",".join(my_dns)
+                    else:
+                        append_line += " dns=%s" % my_dns
+                if dist.breed in ["ubuntu", "debian"]:
+                    if type(my_dns) == list:
+                        append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
+                    else:
+                        append_line += " netcfg/get_nameservers=%s" % my_dns
 
-                        if "eth0" in slave_ints:
-                            my_int = "eth0"
-                        else:
-                            my_int = slave_ints[0]
-                        # set my_ip from the bonded/bridged interface here
-                        my_ip = data["ip_address_" + data["interface_master_" + my_int]]
-                        my_mask = data["netmask_" + data["interface_master_" + my_int]]
-
-                    if len(mgmt_ints) == 1 and len(mgmt_ints_multi) == 0:
-                        # single management interface
-                        my_int = mgmt_ints[0]
-
-                # lookup tcp/ip configuration data
-                if my_ip is None and my_int is not None:
-                    intip = "ip_address_" + my_int
-                    if intip in data and data[intip] != "":
-                        my_ip = data["ip_address_" + my_int]
-
-                if my_mask is None and my_int is not None:
-                    intmask = "netmask_" + my_int
-                    if intmask in data and data[intmask] != "":
-                        my_mask = data["netmask_" + my_int]
-
-                if my_gw is None:
-                    if "gateway" in data and data["gateway"] != "":
-                        my_gw = data["gateway"]
-
-                if my_dns is None:
-                    if "name_servers" in data and data["name_servers"] != "":
-                        my_dns = data["name_servers"]
-
-                # add information to the append_line
-                if my_int is not None:
-                    intmac = "mac_address_" + my_int
-                    if dist.breed == "suse":
-                        if intmac in data and data[intmac] != "":
-                            append_line += " netdevice=%s" % data["mac_address_" + my_int].lower()
-                        else:
-                            append_line += " netdevice=%s" % my_int
-                    if dist.breed == "redhat":
-                        if intmac in data and data[intmac] != "":
-                            append_line += " ksdevice=%s" % data["mac_address_" + my_int]
-                        else:
-                            append_line += " ksdevice=%s" % my_int
-                    if dist.breed in ["ubuntu", "debian"]:
-                        append_line += " netcfg/choose_interface=%s" % my_int
-
-                if my_ip is not None:
-                    if dist.breed == "suse":
-                        append_line += " hostip=%s" % my_ip
-                    if dist.breed == "redhat":
-                        append_line += " ip=%s" % my_ip
-                    if dist.breed in ["ubuntu", "debian"]:
-                        append_line += " netcfg/get_ipaddress=%s" % my_ip
-
-                if my_mask is not None:
-                    if dist.breed in ["suse", "redhat"]:
-                        append_line += " netmask=%s" % my_mask
-                    if dist.breed in ["ubuntu", "debian"]:
-                        append_line += " netcfg/get_netmask=%s" % my_mask
-
-                if my_gw is not None:
-                    if dist.breed in ["suse", "redhat"]:
-                        append_line += " gateway=%s" % my_gw
-                    if dist.breed in ["ubuntu", "debian"]:
-                        append_line += " netcfg/get_gateway=%s" % my_gw
-
-                if exclude_dns is None or my_dns is not None:
-                    if dist.breed == "suse":
-                        if type(my_dns) == list:
-                            append_line += " nameserver=%s" % ",".join(my_dns)
-                        else:
-                            append_line += " nameserver=%s" % my_dns
-                    if dist.breed == "redhat":
-                        if type(my_dns) == list:
-                            append_line += " dns=%s" % ",".join(my_dns)
-                        else:
-                            append_line += " dns=%s" % my_dns
-                    if dist.breed in ["ubuntu", "debian"]:
-                        if type(my_dns) == list:
-                            append_line += " netcfg/get_nameservers=%s" % ",".join(my_dns)
-                        else:
-                            append_line += " netcfg/get_nameservers=%s" % my_dns
-
-                # add remaining kernel_options to append_line
-                append_line += self.add_remaining_kopts(data["kernel_options"])
-                cfg.write(append_line)
+            # add remaining kernel_options to append_line
+            append_line += self.add_remaining_kopts(data["kernel_options"])
+            cfg.write(append_line)
 
         cfg.write("\n")
         cfg.write("MENU END\n")
         cfg.close()
 
-    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped):
+    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped, profiles):
         """
         Create bootable CD image to be used for handsoff CD installtions
         """
         # Get the distro object for the requested distro
         # and then get all of its descendants (profiles/sub-profiles/systems)
+        # with sort=True for profile/system heirarchy to allow menu indenting
         distro = self.api.find_distro(distname)
         if distro is None:
             utils.die(self.logger, "distro %s was not found, aborting" % distname)
-        descendants = distro.get_descendants()
+        descendants = distro.get_descendants(sort=True)
+        profiles = utils.input_string_or_list(profiles)
 
         if filesource is None:
             # Try to determine the source from the distro kernel path
@@ -448,7 +463,7 @@ class BuildIso:
         self.logger.info("copying kernels and initrds for standalone distro")
         self.copy_boot_files(distro, isolinuxdir, None)
 
-        self.logger.info("generating a isolinux.cfg")
+        self.logger.info("generating an isolinux.cfg")
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
         cfg = open(isolinuxcfg, "w+")
         cfg.write(self.iso_template)
@@ -457,10 +472,22 @@ class BuildIso:
             repo_names_to_copy = {}
 
         for descendant in descendants:
+            # if a list of profiles was given, skip any others and their systems
+            if (profiles
+                and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
+                     or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
+                continue
+
+            menu_indent = 0
+            if descendant.COLLECTION_TYPE == 'system':
+                menu_indent = 4
+
             data = utils.blender(self.api, False, descendant)
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
+            if menu_indent:
+                cfg.write("  MENU INDENT %d\n" % menu_indent)
             cfg.write("  MENU LABEL %s\n" % descendant.name)
             cfg.write("  kernel %s\n" % os.path.basename(distro.kernel))
 
@@ -525,7 +552,7 @@ class BuildIso:
 
         if airgapped:
             # copy any repos found in profiles or systems to the iso build
-            repodir = os.path.abspath(isolinuxdir, "..", "repo_mirror")
+            repodir = os.path.abspath(os.path.join(isolinuxdir, "..", "repo_mirror"))
             if not os.path.exists(repodir):
                 os.makedirs(repodir)
 
@@ -555,15 +582,22 @@ class BuildIso:
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
             utils.die(self.logger, "The --distro option should only be used when creating a standalone or airgapped ISO")
-        # if building standalone, we only want --distro,
-        # profiles/systems are disallowed
+        # if building standalone, we only want --distro and --profiles (optional),
+        # systems are disallowed
         if standalone:
-            if profiles is not None or systems is not None:
-                utils.die(self.logger, "When building a standalone ISO, use --distro only instead of --profiles/--systems")
+            if systems is not None:
+                utils.die(self.logger, "When building a standalone ISO, use --distro and --profiles only, not --systems")
             elif distro is None:
                 utils.die(self.logger, "When building a standalone ISO, you must specify a --distro")
             if source is not None and not os.path.exists(source):
                 utils.die(self.logger, "The source specified (%s) does not exist" % source)
+
+            # insure all profiles specified are children of the distro
+            if profiles:
+                which_profiles = self.filter_systems_or_profiles(profiles, 'profile')
+                for profile in which_profiles:
+                    if profile.distro != distro:
+                        utils.die(self.logger, "When building a standalone ISO, all --profiles must be under --distro")
 
         # if iso is none, create it in . as "autoinst.iso"
         if iso is None:
@@ -620,7 +654,7 @@ class BuildIso:
                 utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
 
         if standalone or airgapped:
-            self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped)
+            self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped, profiles)
         else:
             self.generate_netboot_iso(imagesdir, isolinuxdir, profiles, systems, exclude_dns)
 
