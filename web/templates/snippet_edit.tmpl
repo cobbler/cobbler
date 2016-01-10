@@ -4,7 +4,7 @@
 {% if not editable %}
 <blockquote>
 NOTE: You do not have permission to make changes to this
-snippet and can only read it.
+snippet and can only read it.  
 
 Contact your Cobbler server administrator
 if you need to resolve this.
@@ -24,7 +24,7 @@ if you need to resolve this.
 {% else %}
       <input type="hidden" name="snippet_name" value="{{ snippet_name }}" />
 {% endifnotequal %}
-    </li>
+    </li> 
     <li>
       <pre><textarea name="snippetdata" id="snippetdata">{{ snippetdata }}</textarea></pre>
     </li>
@@ -40,7 +40,7 @@ if you need to resolve this.
 {% else %}
   {% ifequal editmode "edit" %}
     <li>
-      <span class="warn">NOTE: This automatic OS installation template is currently in-use.</span>
+      <span class="warn">NOTE: This kickstart template is currently in-use.</span>
     </li>
   {% endifequal %}
 {% endif %}

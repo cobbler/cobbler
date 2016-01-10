@@ -11,24 +11,34 @@ function change_page(value) {
 }
 </script>
 
-<li class="paginate"><label for="limit">Items/page:</label>
-  <select name="limit" id="limit" onchange="javascript:change_limit(this.value)">
-  {% for p in pageinfo.items_per_page_list %}
-    <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected="selected"{% endifequal %}>{{ p }}</option>
-  {% endfor %}
-  </select>
-  {% ifnotequal pageinfo.prev_page "~" %}
-  <a href="javascript:change_page('{{ pageinfo.prev_page }}')"><span class="lpointers">&lArr;</span></a>
-  {% else %}
-  <span class="lpointers">&lArr;</span>
-  {% endifnotequal %}
-  <select name="page" id="page" onchange="javascript:change_page(this.value)">
-    {% for p in pageinfo.pages %}<option value="{{ p }}"{% ifequal pageinfo.page p %} selected="selected"{% endifequal %}>Page {{ p }}</option>{% endfor %}
-  </select>
-  {% ifnotequal pageinfo.next_page "~" %}
-  <a href="javascript:change_page('{{ pageinfo.next_page }}')"><span class="rpointers">&rArr;</span></a>
-  {% else %}
-  <span class="rpointers">&rArr;</span>
-  {% endifnotequal %}
-</li>
-{% endif %}
+<ul class="nav nav-tabs pull-right">
+  <li>
+    <div class="input-group input-group-sm">
+      <span class="input-group-btn">
+        <label class="btn btn-primary disabled" for="limit">Items/page:</label>
+      </span>
+      <select class="form-control" name="limit" id="limit" onchange="javascript:change_limit(this.value)">
+      {% for p in pageinfo.items_per_page_list %}
+        <option value="{{ p }}"{% ifequal pageinfo.items_per_page p %} selected="selected"{% endifequal %}>{{ p }}</option>
+      {% endfor %}
+      </select>
+      <span class="input-group-btn">
+        {% ifnotequal pageinfo.prev_page "~" %}
+        <a class="btn btn-primary" href="javascript:change_page('{{ pageinfo.prev_page }}')"><span class="lpointers">&lArr;</span></a>
+        {% else %}
+        <span class="btn btn-primary disabled">&lArr;</span>
+        {% endifnotequal %}
+      </span>
+      <select class="form-control" name="page" id="page" onchange="javascript:change_page(this.value)">
+        {% for p in pageinfo.pages %}<option value="{{ p }}"{% ifequal pageinfo.page p %} selected="selected"{% endifequal %}>Page {{ p }}</option>{% endfor %}
+      </select>
+      <span class="input-group-btn">
+        {% ifnotequal pageinfo.next_page "~" %}
+        <a class="btn btn-primary" href="javascript:change_page('{{ pageinfo.next_page }}')"><span class="rpointers">&rArr;</span></a>
+        {% else %}
+        <span class="btn btn-primary disabled" class="rpointers">&rArr;</span>
+        {% endifnotequal %}
+      </span>
+  </li>
+  {% endif %}
+</ul>
