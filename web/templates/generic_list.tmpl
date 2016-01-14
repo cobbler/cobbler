@@ -128,7 +128,7 @@ function action_multi(otype) {
             <a class="btn btn-primary navbar-btn" href="/cobbler_web/sub{{what}}/edit">Create new sub-{{ what }}</a>
           {% endifequal %}
         </span>
-        <select class="form-control">
+        <select class="form-control" style="margin-top: 8px;">
           <option value="" selected="selected">Batch Actions</option>
           {% for title,action,value in batchactions %}<option value="{{ action }}|{{ value }}">{{ title }}</option>{% endfor %}
         </select>
@@ -191,16 +191,18 @@ function action_multi(otype) {
             </td>
           {% endfor %}
           <td>
-            <a class="btn btn-xs btn-primary" href="/cobbler_web/{{ what }}/edit/{{ item.0.1 }}">Edit</a>
-            <span class="btn btn-xs btn-primary" onClick="javascript:obj_copy('{{ item.0.1 }}')">Copy</span> 
-            <span class="btn btn-xs btn-primary" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
-            <span class="btn btn-xs btn-primary" onClick="javascript:obj_delete('{{ item.0.1 }}')">Delete</span> 
-            {% ifequal what "system" %}
-              <span class="btn btn-xs btn-primary" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
-            {% endifequal %}
-            {% ifequal what "profile" %}
-              <span class="btn btn-xs btn-primary" onClick="window.location='/cblr/svc/op/ks/profile/{{ item.0.1 }}'">View kickstart</span>
-            {% endifequal %}
+            <div class="btn-group" role="group" aria-label="...">
+              <a class="btn btn-xs btn-primary" href="/cobbler_web/{{ what }}/edit/{{ item.0.1 }}">Edit</a>
+              <span class="btn btn-xs btn-primary" onClick="javascript:obj_copy('{{ item.0.1 }}')">Copy</span> 
+              <span class="btn btn-xs btn-primary" onClick="javascript:obj_rename('{{ item.0.1 }}')">Rename</span> 
+              <span class="btn btn-xs btn-primary" onClick="javascript:obj_delete('{{ item.0.1 }}')">Delete</span> 
+              {% ifequal what "system" %}
+                <span class="btn btn-xs btn-primary" onClick="window.location='/cblr/svc/op/ks/system/{{ item.0.1 }}'">View kickstart</span>
+              {% endifequal %}
+              {% ifequal what "profile" %}
+                <span class="btn btn-xs btn-primary" onClick="window.location='/cblr/svc/op/ks/profile/{{ item.0.1 }}'">View kickstart</span>
+              {% endifequal %}
+            </div>
           </td>
         </tr>
       {% endfor %}
