@@ -103,7 +103,7 @@ class Repo(item.Item):
     def _guess_breed(self):
         # backwards compatibility
         if (self.breed == "" or self.breed is None):
-            if self.mirror.startswith("http://") or self.mirror.startswith("ftp://") or self.mirror.startswith("https://"):
+            if self.mirror.startswith("http://") or self.mirror.startswith("https://") or self.mirror.startswith("ftp://"):
                 self.set_breed("yum")
             elif self.mirror.startswith("rhn://"):
                 self.set_breed("rhn")
