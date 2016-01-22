@@ -847,6 +847,38 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
+   "9.1": {
+    "signatures":["boot"],
+    "version_file":"device\\.hints",
+    "version_file_regex":"^.*FreeBSD: release/9.1(.*)/sys/(.*)/conf/GENERIC.hints.*$",
+    "kernel_arch":"device\\.hints",
+    "kernel_arch_regex":"^.*FreeBSD: release/9.1(.*)/sys/(.*)/conf/GENERIC.hints.*$",
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"pxeboot(.*)",
+    "initrd_file":"mbr",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
+   "9.2": {
+    "signatures":["boot"],
+    "version_file":"device\\.hints",
+    "version_file_regex":"^.*FreeBSD: release/9.2(.*)/sys/(.*)/conf/GENERIC.hints.*$",
+    "kernel_arch":"device\\.hints",
+    "kernel_arch_regex":"^.*FreeBSD: release/9.2(.*)/sys/(.*)/conf/GENERIC.hints.*$",
+    "supported_arches":["i386","amd64"],
+    "supported_repo_breeds":[],
+    "kernel_file":"pxeboot(.*)",
+    "initrd_file":"mbr",
+    "isolinux_ok":false,
+    "default_kickstart":"",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
    "9.3": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
