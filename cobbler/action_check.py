@@ -148,11 +148,6 @@ class CobblerCheck:
             status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
         if not os.path.exists("/usr/bin/yumdownloader"):
             status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
-        if self.settings.reposync_flags.find("-l"):
-            if self.checked_family in ("redhat", "suse"):
-                yum_utils_ver = utils.subprocess_get(self.logger, "/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
-                if yum_utils_ver < "1.1.17":
-                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver)
 
     def check_debmirror(self, status):
         if not os.path.exists("/usr/bin/debmirror"):
