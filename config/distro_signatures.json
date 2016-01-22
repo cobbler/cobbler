@@ -662,6 +662,22 @@
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
+   },
+   "sles12sp1": {
+    "signatures":["suse"],
+    "version_file":"(sles|SLES-for-VMware)-release-12.1-(.*).rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","i586","x86_64","ppc64"],
+    "supported_repo_breeds":["yum"],
+    "kernel_file":"linux[64.gz]?",
+    "initrd_file":"initrd[64]?",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "kernel_options":"install=$tree",
+    "kernel_options_post":"",
+    "boot_files":[]
    }
   },
   "vmware": {
