@@ -16,6 +16,7 @@ clean:
 	-rm -rf dist
 	-rm -rf buildiso
 	-rm -f MANIFEST
+	-rm -f README
 	-rm -f koan/*.pyc
 	-rm -f config/version
 	-rm -f docs/*.1.gz 
@@ -35,6 +36,10 @@ test:
 nosetests:
 	PYTHONPATH=./cobbler/ nosetests -v -w newtests/ 2>&1 | tee test.log
 
+readme:
+	@echo "creating: README"
+	@cat README.md | sed -e 's/^\[!.*//g' | tail -n "+3" > README
+
 qa:
 	@echo "checking: pyflakes"
 	@pyflakes \
@@ -48,7 +53,7 @@ build:
 	python setup.py build -f
 
 # Debian/Ubuntu requires an additional parameter in setup.py
-install: build
+install: clean build
 	python setup.py install --root $(DESTDIR) -f
 
 devinstall:
@@ -111,7 +116,7 @@ restartservices:
 sdist: clean
 	python setup.py sdist
 
-rpms: clean sdist
+rpms: clean qa readme sdist
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
@@ -137,5 +142,5 @@ eraseconfig:
 	-rm /var/lib/cobbler/config/networks.d/*
 
 .PHONY: tags
-tags: 
+tags:
 	find . \( -name build -o -name .git \) -prune -o -type f -name '*.py' -print | xargs etags -o TAGS --
