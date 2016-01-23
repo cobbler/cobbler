@@ -144,15 +144,18 @@ class CobblerCheck:
 
         if not os.path.exists("/usr/bin/createrepo"):
             status.append(_("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?"))
+
         if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
-            status.append(_("reposync is not installed, need for cobbler reposync, install/upgrade yum-utils?"))
-        if not os.path.exists("/usr/bin/yumdownloader"):
-            status.append(_("yumdownloader is not installed, needed for cobbler repo add with --rpm-list parameter, install/upgrade yum-utils?"))
-        if self.settings.reposync_flags.find("-l"):
-            if self.checked_family in ("redhat", "suse"):
-                yum_utils_ver = utils.subprocess_get(self.logger, "/usr/bin/rpmquery --queryformat=%{VERSION} yum-utils", shell=True)
-                if yum_utils_ver < "1.1.17":
-                    status.append(_("yum-utils need to be at least version 1.1.17 for reposync -l, current version is %s") % yum_utils_ver)
+            status.append(_("reposync not installed, install yum-utils"))
+
+        if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
+            status.append(_("reposync is not installed, install yum-utils or dnf-plugins-core"))
+
+        if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
+            status.append(_("yumdownloader is not installed, install yum-utils"))
+
+        if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
+            status.append(_("yumdownloader is not installed, install yum-utils or dnf-plugins-core"))
 
     def check_debmirror(self, status):
         if not os.path.exists("/usr/bin/debmirror"):
@@ -400,8 +403,13 @@ class CobblerCheck:
             for line in f.readlines():
                 if re_disable.search(line) and not line.strip().startswith("#"):
                     status.append(_("change 'disable' to 'no' in %(file)s") % {"file": "/etc/xinetd.d/rsync"})
-        else:
-            status.append(_("file %(file)s does not exist") % {"file": "/etc/xinetd.d/rsync"})
+
+        if os.path.exists("/usr/lib/systemd/system/rsyncd.service"):
+            if not os.path.exists("/etc/systemd/system/multi-user.target.wants/rsyncd.service"):
+                status.append(_("enable and start rsyncd.service with systemctl"))
+
+        if not os.path.exists("/usr/lib/systemd") and os.path.exists("/etc/xinetd.d"):
+            status.append(_("file /etc/xinetd.d/rsync does not exist"))
 
     def check_dhcpd_conf(self, status):
         """
