@@ -2,7 +2,7 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 20, 21, 22
+# - Fedora: 22, 23
 # - RHEL: 6, 7
 # - CentOS: 6, 7
 # - Scientific Linux: 6, 7
@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.10
+Version: 2.6.11
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -408,6 +408,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Sat Jan 23 2016 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.11 release
 * Wed Sep 30 2015 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.10 release
 * Fri Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com>
