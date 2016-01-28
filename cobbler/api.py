@@ -136,7 +136,7 @@ class BootAPI:
 
             # import signatures
             if not utils.load_signatures(self.settings().signature_path):
-                return
+                utils.die(self.logger, 'failed to load signature file')
             else:
                 self.log("%d breeds and %d OS versions read from the signature file" % ( \
                          len(utils.get_valid_breeds()), \
