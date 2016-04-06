@@ -63,14 +63,14 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        obj_pattern = getattr(self,"%s_patterns" % obj_type)
+        obj_pattern = getattr(self, "%s_patterns" % obj_type)
         if obj_pattern and self.prune:
             self.logger.info("Found pattern for %s. Pruning non-matching items" % obj_type)
             keep_obj = {}
-            remote_names = utils.loh_to_hoh(self.remote_data[obj_type],"name")
+            remote_names = utils.loh_to_hoh(self.remote_data[obj_type], "name")
             for name in remote_names.keys():
-                if name in self.must_include[obj_type] and remotes.has_key(remote_names[name]["uid"]):
-                    self.logger.info("Adding %s:%s to keep list" % (name,remote_names[name]["uid"]))
+                if name in self.must_include[obj_type] and remote_names[name]["uid"] in remotes:
+                    self.logger.info("Adding %s:%s to keep list" % (name, remote_names[name]["uid"]))
                     keep_obj[remote_names[name]["uid"]] = remotes[remote_names[name]["uid"]]
             remotes = keep_obj
 
