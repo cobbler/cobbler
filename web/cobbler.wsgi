@@ -24,5 +24,8 @@ def application(environ, start_response):
         # Now all modules are available even under a virtualenv
 
     import django.core.handlers.wsgi
+    import django
+    if hasattr(django, 'setup'):
+        django.setup()
     _application = django.core.handlers.wsgi.WSGIHandler()
     return _application(environ, start_response)
