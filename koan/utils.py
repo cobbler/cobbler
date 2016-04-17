@@ -173,7 +173,7 @@ def subprocess_call(cmd,ignore_rc=0):
         raise InfoException, "command failed (%s)" % rc
     return rc
 
-def subprocess_get_response(cmd, ignore_rc=False):
+def subprocess_get_response(cmd, ignore_rc=False, get_stderr=False):
     """
     Wrapper around subprocess.check_output(...)
     """
@@ -181,8 +181,12 @@ def subprocess_get_response(cmd, ignore_rc=False):
     rc = 0
     result = ""
     if not ANCIENT_PYTHON:
-        p = sub_process.Popen(cmd, stdout=sub_process.PIPE)
-        result = p.communicate()[0]
+        if get_stderr:
+            p = sub_process.Popen(cmd, stdout=sub_process.PIPE,
+                    stderr=sub_process.PIPE)
+        else:
+            p = sub_process.Popen(cmd, stdout=sub_process.PIPE)
+        result, stderr_result = p.communicate()
         rc = p.wait()
     else:
         cmd = string.join(cmd, " ")
@@ -190,6 +194,8 @@ def subprocess_get_response(cmd, ignore_rc=False):
         rc = os.system(cmd)
     if not ignore_rc and rc != 0:
         raise InfoException, "command failed (%s)" % rc
+    if get_stderr:
+        return rc, result, stderr_result
     return rc, result
 
 def input_string_or_hash(options,delim=None,allow_multiples=True):
