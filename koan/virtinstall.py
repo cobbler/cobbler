@@ -38,10 +38,14 @@ import utils
 # command line tool. This should work on both old and new variants,
 # as the virt-install command line tool has always been provided by
 # python-virtinst (and now the new virt-install rpm).
-rc, response = utils.subprocess_get_response(
-        shlex.split('virt-install --version'), True)
+# virt-install 1.0.1 responds to --version on stderr. WTF? Check both.
+rc, response, stderr_response = utils.subprocess_get_response(
+    shlex.split('virt-install --version'), True, True)
 if rc == 0:
-    virtinst_version = response
+    if response:
+        virtinst_version = response
+    else:
+        virtinst_version = stderr_response
 else:
     virtinst_version = None
 
