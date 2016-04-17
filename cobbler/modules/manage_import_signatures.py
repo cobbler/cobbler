@@ -603,6 +603,10 @@ class ImportSignatureManager:
 
             distro.source_repos.append([repo_url, repo_url2])
 
+            config_dir = os.path.dirname(fname)
+            if not os.path.exists(config_dir):
+                os.makedirs(config_dir)
+
             # NOTE: the following file is now a Cheetah template, so it can be remapped
             # during sync, that's why we have the @@http_server@@ left as templating magic.
             # repo_url2 is actually no longer used. (?)
