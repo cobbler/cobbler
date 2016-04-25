@@ -140,7 +140,11 @@ restartservices:
 			/sbin/service apache2 restart; \
 		fi; \
 	elif [ -x /bin/systemctl ]; then \
-		/bin/systemctl restart httpd.service; \
+		if [ -d /lib/systemd/system/apache2.service.d ]; then \
+			/bin/systemctl restart apache2.service; \
+		else \
+			/bin/systemctl restart httpd.service; \
+		fi \
 	else \
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \
