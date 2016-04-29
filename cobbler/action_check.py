@@ -425,7 +425,7 @@ class BootCheck:
           if not os.path.exists("/etc/systemd/system/multi-user.target.wants/rsyncd.service"):
              status.append(_("enable and start rsyncd.service with systemctl"))
 
-       if not os.path.exists("/usr/lib/systemd") and os.path.exists("/etc/xinetd.d"):
+       if not os.path.exists("/usr/lib/systemd") and not os.path.exists("/etc/xinetd.d/rsync"):
           status.append(_("file /etc/xinetd.d/rsync does not exist"))
 
    def check_dhcpd_conf(self,status):
