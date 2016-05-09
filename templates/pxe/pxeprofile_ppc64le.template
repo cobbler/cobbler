@@ -1,0 +1,6 @@
+LABEL $profile_name
+        kernel http://$server/cobbler$kernel_path
+        initrd http://$server/cobbler$initrd_path
+        ipappend 2
+        append $append_line
+

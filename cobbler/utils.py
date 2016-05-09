@@ -478,9 +478,9 @@ def file_is_remote(file_location):
     Returns true if the file is remote and referenced via a protocol
     we support.
     """
-    # TODO: nfs and ftp ok too?
     file_loc_lc = file_location.lower()
-    for prefix in ["http://"]:
+    # Check for urllib2 supported protocols
+    for prefix in ["http://", "https://", "ftp://"]:
         if file_loc_lc.startswith(prefix):
             return True
     return False
@@ -1295,9 +1295,9 @@ def set_arch(self,arch,repo=False):
        arch = "i386"
 
    if repo:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src", "arm" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "s390", "s390x", "noarch", "src", "arm" ]
    else:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "arm" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "s390", "s390x", "arm" ]
 
    if arch in valids:
        self.arch = arch

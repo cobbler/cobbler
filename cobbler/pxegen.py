@@ -269,7 +269,7 @@ class PXEGen:
 
             # for tftp only ...
             grub_path = None
-            if working_arch in [ "i386", "x86", "x86_64", "arm", "standard"]:
+            if working_arch in [ "i386", "x86", "x86_64", "arm", "ppc64le", "standard"]:
                 # pxelinux wants a file named $name under pxelinux.cfg
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
 
@@ -285,7 +285,7 @@ class PXEGen:
                 filename = "%s.conf" % utils.get_config_filename(system,interface=name)
                 f2 = os.path.join(self.bootloc, filename)
 
-            elif working_arch.startswith("ppc"):
+            elif working_arch in [ "ppc", "ppc64" ]:
                 # Determine filename for system-specific yaboot.conf
                 filename = "%s" % utils.get_config_filename(system, interface=name).lower()
                 f2 = os.path.join(self.bootloc, "etc", filename)
@@ -625,8 +625,10 @@ class PXEGen:
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_s390x.template")
                     elif arch == "ia64":
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ia64.template")
-                    elif arch.startswith("ppc"):
+                    elif arch in ["ppc", "ppc64"]:
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc.template")
+                    elif arch == "ppc64le":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxesystem_ppc64le.template")
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
@@ -637,7 +639,7 @@ class PXEGen:
                         template = os.path.join(self.settings.pxe_template_dir,"pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                    if arch is not None and arch.startswith("ppc"):
+                    if arch is not None and arch in ["ppc", "ppc64"]:
                         # Disable yaboot network booting for all interfaces on the system
                         for (name,interface) in system.interfaces.iteritems():
 
@@ -660,6 +662,8 @@ class PXEGen:
                         template = os.path.join(self.settings.pxe_template_dir,"pxelocal_s390x.template")
                     elif arch is not None and arch.startswith("ia64"):
                         template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ia64.template")
+                    elif arch is not None and arch == "ppc64le":
+                        template = os.path.join(self.settings.pxe_template_dir,"pxelocal_ppc64le.template")
                     else:
                         template = os.path.join(self.settings.pxe_template_dir,"pxelocal.template")
         else:
@@ -668,6 +672,8 @@ class PXEGen:
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_s390x.template")
             if arch.startswith("arm"):
                 template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_arm.template")
+            if arch == "ppc64le":
+                template = os.path.join(self.settings.pxe_template_dir,"pxeprofile_ppc64le.template")
             elif format == "grub":
                 template = os.path.join(self.settings.pxe_template_dir,"grubprofile.template")
             elif distro and distro.os_version.startswith("esxi"):
@@ -691,7 +697,7 @@ class PXEGen:
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64", "arm"]):
+        elif metadata.has_key("initrd_path") and (not arch or arch not in ["ia64", "ppc", "ppc64", "ppc64le", "arm"]):
             append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "

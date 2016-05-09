@@ -31,7 +31,7 @@ import codes
 FIELDS = [
   ["apt_components","",0,"Apt Components (apt only)",True,"ex: main restricted universe",[],"list"],
   ["apt_dists","",0,"Apt Dist Names (apt only)",True,"ex: precise precise-updates",[],"list"],
-  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','ppc64','s390', "arm", 'noarch', 'src'],"str"],
+  ["arch","",0,"Arch",True,"ex: i386, x86_64",['i386','x86_64','ia64','ppc','ppc64','ppc64le','s390', "arm", 'noarch', 'src'],"str"],
   ["breed","",0,"Breed",True,"",codes.VALID_REPO_BREEDS,"str"],
   ["comment","",0,"Comment",True,"Free form text description",0,"str"],
   ["ctime",0,0,"",False,"",0,"float"],
@@ -69,7 +69,7 @@ class Repo(item.Item):
     def _guess_breed(self):
         # backwards compatibility
         if (self.breed == "" or self.breed is None):
-           if self.mirror.startswith("http://") or self.mirror.startswith("ftp://"):
+           if self.mirror.startswith("http://") or self.mirror.startswith("ftp://") or self.mirror.startswith("https://"):
               self.set_breed("yum")
            elif self.mirror.startswith("rhn://"):
               self.set_breed("rhn")

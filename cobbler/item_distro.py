@@ -101,7 +101,7 @@ FIELDS = [
    [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
    [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
    [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0,"dict"],
-   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','ppc64','s390', 'arm'],"str"],
+   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','ppc64','ppc64le','s390', 'arm'],"str"],
    [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",utils.get_valid_breeds(),"str"],
    [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",utils.get_valid_os_versions(),"str"],
    [ "source_repos",[],0,"Source Repos", False,"",0,"list"],
