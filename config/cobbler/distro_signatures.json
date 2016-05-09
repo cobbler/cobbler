@@ -445,6 +445,23 @@
     "kernel_options_post":"",
     "boot_files":[],
     "boot_loaders":{"ppc64el":["grub2"]}
+   },
+   "xenial": {
+    "signatures":["dists", ".disk"],
+    "version_file":"Release|mini-info",
+    "version_file_regex":"Codename: xenial|Ubuntu 16.04",
+    "kernel_arch":"linux-headers-(.*)\\.deb",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","amd64","ppc64el"],
+    "supported_repo_breeds":["apt"],
+    "kernel_file":"(vm)?linux(.*)",
+    "initrd_file":"initrd(.*)\\.gz",
+    "isolinux_ok":false,
+    "default_autoinstall":"sample.seed",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[],
+    "boot_loaders":{"ppc64el":["grub2"]}
    }
   },
   "suse": {
