@@ -157,8 +157,6 @@ class IscManager:
                     if not interface["netboot_enabled"] and interface['static']:
                         continue
 
-                interface["filename"] = "/pxelinux.0"
-                # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch == "ia64":
                         interface["filename"] = elilo
