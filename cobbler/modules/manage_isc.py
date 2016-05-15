@@ -108,9 +108,7 @@ class IscManager:
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
                     if ip is None or ip == "":
                         for (nam2, int2) in system.interfaces.iteritems():
-                            if (nam2.startswith(interface["interface_master"] + ".")
-                                and int2["ip_address"] is not None
-                                and int2["ip_address"] != ""):
+                            if (nam2.startswith(interface["interface_master"] + ".") and int2["ip_address"] is not None and int2["ip_address"] != ""):
                                     ip = int2["ip_address"]
                                     break
 
