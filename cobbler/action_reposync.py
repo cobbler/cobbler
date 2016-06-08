@@ -605,7 +605,6 @@ class RepoSync:
                 self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
                 config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 
-
         if not optenabled:
             config_file.write("enabled=1\n")
         config_file.write("priority=%s\n" % repo.priority)
