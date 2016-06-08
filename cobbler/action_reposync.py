@@ -602,6 +602,10 @@ class RepoSync:
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
+            if 'exclude' in repo.yumopts.keys():
+                self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+                config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
+
 
         if not optenabled:
             config_file.write("enabled=1\n")
