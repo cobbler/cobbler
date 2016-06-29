@@ -560,8 +560,7 @@ class RepoSync:
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
-        if 'exclude' in repo.yumopts.keys():
-            self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+
         optenabled = False
         optgpgcheck = False
         if output:
@@ -602,6 +601,9 @@ class RepoSync:
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
+            if 'exclude' in repo.yumopts.keys():
+                self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+                config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 
         if not optenabled:
             config_file.write("enabled=1\n")
