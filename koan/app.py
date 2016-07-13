@@ -631,7 +631,7 @@ class Koan:
                 if not os.path.exists("/usr/bin/qemu-img"):
                     raise InfoException("qemu package needs to be installed")
                 # is libvirt new enough?
-                rc, response, stderr_response = utils.sub_process_get_response(shlex.split('/usr/bin/virt-install --version'), True, True)
+                rc, response, stderr_response = utils.subprocess_get_response(shlex.split('/usr/bin/virt-install --version'), True, True)
                 if response:
                     version_str = response.strip()
                 else:
