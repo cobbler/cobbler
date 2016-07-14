@@ -59,7 +59,7 @@ class IscManager:
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
-        /var/lib/cobbler/settings.
+        /etc/cobbler/settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -107,6 +107,7 @@ class IscManager:
                         # exist
                         continue
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
+                    dtag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
                     if ip is None or ip == "":
                         for (nam2, int2) in system.interfaces.iteritems():
                             if (nam2.startswith(interface["interface_master"] + ".")
@@ -118,7 +119,8 @@ class IscManager:
                     interface["ip_address"] = ip
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
                 else:
-                    ip   = interface["ip_address"]
+                    ip = interface["ip_address"]
+                    dtag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
                 if distro is not None:
@@ -163,7 +165,7 @@ class IscManager:
                     elif distro.arch.startswith("ppc"):
                         interface["filename"] = yaboot
 
-                dhcp_tag = interface["dhcp_tag"]
+                dhcp_tag = dtag
                 if dhcp_tag == "":
                    dhcp_tag = "default"
 
