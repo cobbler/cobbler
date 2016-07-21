@@ -76,10 +76,12 @@ except:
         try:
             # maybe on newer os using osinfo-query?
             rc, response = utils.subprocess_get_response(
-                    shlex.split('osinfo-query os'))
+                    shlex.split('osinfo-query -f short-id os'))
             variants = response.split('\n')
             for variant in variants:
-                supported_variants.add(variant.split()[0])
+                supported_variants.add(variant.strip())
+            # osinfo-query does not list virtio26, add it here for fallback
+            supported_variants.add('virtio26')
         except:
             # okay, probably on old os and we'll just use generic26
             pass
