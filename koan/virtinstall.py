@@ -67,8 +67,10 @@ try:
             supported_variants.add(variant)
 except:
     try:
-        rc, response = utils.subprocess_get_response(
-                shlex.split('virt-install --os-variant list'))
+        # This will fail on EL7+, gobble stderr to avoid confusing error
+        # messages from being output
+        rc, response, stderr_respose = utils.subprocess_get_response(
+                shlex.split('virt-install --os-variant list'), False, True)
         variants = response.split('\n')
         for variant in variants:
             supported_variants.add(variant.split()[0])
