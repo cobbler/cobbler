@@ -1947,6 +1947,28 @@ def strip_none(data, omit_none=False):
     return data
 
 # -------------------------------------------------------
+def revert_strip_none(data):
+    """
+    Does the opposite to strip_none
+    """
+    if isinstance(data, str) and data.strip() == '~':
+        return None
+
+    if isinstance(data, list):
+        data2 = []
+        for x in data:
+            data2.append(revert_strip_none(x))
+        return data2
+
+    if isinstance(data, dict):
+        data2 = {}
+        for key in data.keys():
+            data2[key] = revert_strip_none(data[key])
+        return data2
+
+    return data
+
+# -------------------------------------------------------
 
 
 def lod_to_dod(_list, indexkey):
