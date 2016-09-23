@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import clogger
 import re
 import time
-from types import StringType
 
 from cexceptions import CX
 import templar
@@ -417,7 +416,7 @@ zone "%(arpa)s." {
             my_name = "%s%s" % (name, spacing)
             my_host_record = hosts[name]
             my_host_list = []
-            if type(my_host_record) is StringType:
+            if isinstance(my_host_record, basestring):
                 my_host_list = [my_host_record]
             else:
                 my_host_list = my_host_record
