@@ -517,6 +517,8 @@ class CobblerCLI:
         """
         task_id = -1        # if assigned, we must tail the logfile
 
+        self.parser.set_usage('Usage: %%prog %s [options]' % (action_name))
+
         if action_name == "buildiso":
 
             defaultiso = os.path.join(os.getcwd(), "generated.iso")
