@@ -282,7 +282,7 @@ Requires: mod_wsgi
 %if 0%{?suse_version} >= 1230
 Requires: apache2
 Requires: apache2-mod_wsgi
-Requires: python-django >= 1.4
+Requires: python-django >= 1.7
 %endif
 
 
