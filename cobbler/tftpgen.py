@@ -651,6 +651,7 @@ class TFTPGen:
 
         append_line = ""
         kopts = blended.get("kernel_options", dict())
+        kopts = utils.revert_strip_none(kopts)
 
         # since network needs to be configured again (it was already in netboot) when kernel boots
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
