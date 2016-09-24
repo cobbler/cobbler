@@ -413,7 +413,7 @@ class BootCLI:
             elif object_action == "reload":
                 filename = opt(options,"filename")
                 if filename in ["", None]:
-                    filename = "/var/lib/cobbler/distro_signatures.json" 
+                    filename = "/var/lib/cobbler/distro_signatures.json"
                 if not utils.load_signatures(filename,cache=True):
                     print "There was an error loading the signature data in %s." % filename
                     print "Please check the JSON file or run 'cobbler signature update'."
@@ -423,13 +423,13 @@ class BootCLI:
             else:
                 raise exceptions.NotImplementedError()
         else:
-            raise exceptions.NotImplementedError() 
-            
+            raise exceptions.NotImplementedError()
+
         # FIXME: add tail/polling code here
         if task_id != -1:
             self.print_task(task_id)
             self.follow_task(task_id)
-                                                
+
         return True
 
     # BOOKMARK
@@ -438,6 +438,8 @@ class BootCLI:
         Process non-object based commands like "sync" and "hardlink"
         """
         task_id = -1 # if assigned, we must tail the logfile
+
+        self.parser.set_usage('Usage: %%prog %s [options]' % (action_name))
 
         if action_name == "buildiso":
 
