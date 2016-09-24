@@ -1947,6 +1947,8 @@ def strip_none(data, omit_none=False):
     return data
 
 # -------------------------------------------------------
+
+
 def revert_strip_none(data):
     """
     Does the opposite to strip_none
