@@ -32,7 +32,7 @@ import re
 
 import utils
 from cexceptions import CX
-import templar 
+import templar
 
 
 class PXEGen:
@@ -768,6 +768,7 @@ class PXEGen:
 
         append_line = ""
         kopts = blended.get("kernel_options", dict())
+        kopts = utils.revert_strip_none(kopts)
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line = ",%s" % kopts.pop("initrd")
