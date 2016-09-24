@@ -1,5 +1,5 @@
 from django import template
-from django.utils.datastructures import SortedDict
+from collections import OrderedDict
 
 register = template.Library()
 
@@ -372,7 +372,7 @@ ifinlist = register.tag(smart_if)
 @register.filter(name='sort')
 def listsort(value):
     if isinstance(value, dict):
-        new_dict = SortedDict()
+        new_dict = OrderedDict()
         key_list = value.keys()
         key_list.sort()
         for key in key_list:
