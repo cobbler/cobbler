@@ -27,10 +27,8 @@ import re
 
 import utils
 from cexceptions import CX
-import templar 
+import templar
 from utils import _
-
-from types import StringType
 
 
 def register():
@@ -415,7 +413,7 @@ zone "%(arpa)s." {
            my_name = "%s%s" % (name, spacing)
            my_host_record = hosts[name]
            my_host_list = []
-           if type( my_host_record ) is StringType:
+           if isinstance(my_host_record, basestring):
               my_host_list = [ my_host_record ]
            else:
               my_host_list = my_host_record
