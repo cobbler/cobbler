@@ -979,13 +979,15 @@ def check_dist():
 
 def os_release():
 
-   if re.match("red ?hat|fedora|centos|scientific linux", check_dist()):
+   if re.match("red ?hat|fedora|centos|scientific|virtuozzo linux", check_dist()):
       fh = open("/etc/redhat-release")
       data = fh.read().lower()
       if data.find("fedora") != -1:
          make = "fedora"
       elif data.find("centos") != -1:
          make = "centos"
+      elif data.find("virtuozzo") != -1:
+         make = "virtuozzo"
       else:
          make = "redhat"
       release_index = data.find("release") 
@@ -1025,8 +1027,8 @@ def tftpboot_location():
     Guesses the location of the tftpboot directory,
     based on the distro on which cobblerd is running
     """
-    (make,version) = os_release()
-    if make in ("fedora","redhat","centos"):
+    (make, version) = os_release()
+    if make in ("fedora", "redhat", "centos", "virtuozzo"):
         return "/var/lib/tftpboot"
     elif make == "suse":
         return "/srv/tftpboot"
