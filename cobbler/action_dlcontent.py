@@ -46,7 +46,7 @@ class ContentDownloader:
         they can still source their cross-arch bootloader content manually.
         """
 
-        content_server = "http://cobbler.github.io/loaders"
+        content_server = "https://cobbler.github.io/loaders"
         dest = "/var/lib/cobbler/loaders"
 
         files = (
