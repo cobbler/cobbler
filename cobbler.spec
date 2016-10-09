@@ -59,7 +59,7 @@ Url: http://cobbler.github.io
 BuildRequires: git
 BuildRequires: openssl
 BuildRequires: python-devel
-Requires: python >= 2.6
+Requires: python >= 2.7
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
 Requires: python-netaddr >= 0.7
