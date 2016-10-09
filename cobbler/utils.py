@@ -901,7 +901,7 @@ def get_family():
     Family is the base Linux distribution of a Linux distribution, with a set of common
     """
 
-    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos")
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
 
     dist = check_dist()
     for item in redhat_list:
@@ -935,6 +935,8 @@ def os_release():
             make = "fedora"
         elif data.find("centos") != -1:
             make = "centos"
+        elif data.find("virtuozzo") != -1:
+            make = "virtuozzo"
         else:
             make = "redhat"
         release_index = data.find("release")
@@ -981,7 +983,7 @@ def tftpboot_location():
     (make, version) = os_release()
     str_version = str(version)
 
-    if make in ("fedora", "redhat", "centos"):
+    if make in ("fedora", "redhat", "centos", "virtuozzo"):
         return "/var/lib/tftpboot"
     elif make == "suse":
         return "/srv/tftpboot"
