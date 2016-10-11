@@ -72,7 +72,7 @@ else:
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
-    '/usr/share/cobbler/web/templates',
+    '/usr/share/cobbler/web/cobbler_web/templates',
 )
 INSTALLED_APPS = (
     'django.contrib.auth',
