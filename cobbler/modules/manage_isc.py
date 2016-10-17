@@ -12,18 +12,10 @@ You should have received a copy of the GNU General Public License along with thi
 """
 
 import time
-import glob
-import traceback
-import errno
 
 import utils
-from cexceptions import *
+from cexceptions import CX
 import templar
-
-import item_distro
-import item_profile
-import item_repo
-import item_system
 
 from utils import _
 
