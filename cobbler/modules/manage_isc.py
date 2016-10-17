@@ -1,31 +1,30 @@
 """
 This is some of the code behind 'cobbler sync'.
 
-Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
-John Eckersberg <jeckersb@redhat.com>
+Copyright 2006-2009, Red Hat, Inc and Others Michael DeHaan <michael.dehaan AT gmail> John Eckersberg <jeckersb@redhat.com>
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
 import time
+import glob
+import traceback
+import errno
 
 import utils
-from cexceptions import CX
+from cexceptions import *
 import templar
+
+import item_distro
+import item_profile
+import item_repo
+import item_system
+
 from utils import _
 
 
@@ -59,7 +58,7 @@ class IscManager:
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
-        /etc/cobbler/settings.
+        /var/lib/cobbler/settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -83,6 +82,10 @@ class IscManager:
         elilo = "/elilo-ia64.efi"
         yaboot = "/yaboot"
 
+        # FIXME: ding should evolve into the new dhcp_tags dict
+        ding = {}
+        ignore_macs = []
+
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
@@ -90,37 +93,41 @@ class IscManager:
             profile = system.get_conceptual_parent()
             distro  = profile.get_conceptual_parent()
 
-            # if distro is None then the profile is really an image
-            # record!
-
+            # if distro is None then the profile is really an image record
             for (name, interface) in system.interfaces.iteritems():
 
                 # this is really not a per-interface setting
                 # but we do this to make the templates work
                 # without upgrade
                 interface["gateway"] = system.gateway
-
                 mac  = interface["mac_address"]
-                if interface["interface_type"] in ("bond_slave","bridge_slave","bonded_bridge_slave"):
+
+                if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
+
+                    # Can't write DHCP entry; master interface does not exists
                     if interface["interface_master"] not in system.interfaces:
-                        # Can't write DHCP entry; master interface does not
-                        # exist
                         continue
+
+                    if not ding.has_key(system.name):
+                        ding[system.name] = { interface["interface_master"]: [] }
+
+
+                    if len(ding[system.name][interface["interface_master"]]) == 0:
+                        ding[system.name][interface["interface_master"]].append(mac)
+                    else:
+                        ignore_macs.append(mac)
+
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    dtag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
-                    if ip is None or ip == "":
-                        for (nam2, int2) in system.interfaces.iteritems():
-                            if (nam2.startswith(interface["interface_master"] + ".")
-                                and int2["ip_address"] is not None
-                                and int2["ip_address"] != ""):
-                                    ip = int2["ip_address"]
-                                    break
+                    netmask = system.interfaces[interface["interface_master"]]["netmask"]
+                    dhcp_tag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
+                    host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     interface["ip_address"] = ip
-                    host = system.interfaces[interface["interface_master"]]["dns_name"]
+                    interface["netmask"] = netmask
                 else:
                     ip = interface["ip_address"]
-                    dtag = interface["dhcp_tag"]
+                    netmask = interface["netmask"]
+                    dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
                 if distro is not None:
@@ -159,15 +166,18 @@ class IscManager:
                     if not interface["netboot_enabled"] and interface['static']:
                         continue
 
+                interface["filename"] = "/pxelinux.0"
+                # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch == "ia64":
                         interface["filename"] = elilo
                     elif distro.arch.startswith("ppc"):
                         interface["filename"] = yaboot
 
-                dhcp_tag = dtag
                 if dhcp_tag == "":
-                   dhcp_tag = "default"
+                    dhcp_tag = blended_system["dhcp_tag"]
+                    if dhcp_tag == "":
+                        dhcp_tag = "default"
 
 
                 if not dhcp_tags.has_key(dhcp_tag):
@@ -177,6 +187,13 @@ class IscManager:
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
 
+        # remove macs from redundant slave interfaces from dhcp_tags
+        # otherwise you get duplicate ip's in the installer
+        for dt in dhcp_tags.keys():
+            for m in dhcp_tags[dt].keys():
+                if m in ignore_macs:
+                    del dhcp_tags[dt][m]
+
         # we are now done with the looping through each interface of each system
         metadata = {
            "date"           : time.asctime(time.gmtime()),
@@ -184,7 +201,7 @@ class IscManager:
            "next_server"    : self.settings.next_server,
            "elilo"          : elilo,
            "yaboot"         : yaboot,
-           "dhcp_tags"      : dhcp_tags
+           "dhcp_tags"      : dhcp_tags,
         }
 
         if self.logger is not None:
