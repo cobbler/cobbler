@@ -1,7 +1,7 @@
 default=0
 timeout=0
 
-title $profile_name
+title $system_name
     root (nd)
     kernel $kernel_path $kernel_options
     initrd $initrd_path
