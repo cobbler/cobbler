@@ -2,11 +2,11 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 18, 19, 20, 21, 22, 23
+# - Fedora: 23, 24, 25
 # - RHEL: 6, 7
 # - CentOS: 6, 7
 # - Scientific Linux: 6, 7
-# - OpenSuSE: 12.3, 13.1, 13.2, Factory
+# - OpenSuSE: 12.3, 13.1, 13.2, Tumbleweed, Factory
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.7.0
+Version: 2.8.0
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -59,10 +59,10 @@ Url: http://cobbler.github.io
 BuildRequires: git
 BuildRequires: openssl
 BuildRequires: python-devel
-Requires: python >= 2.7
+Requires: python >= 2.6
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
-Requires: python-netaddr >= 0.7
+Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
 Requires: rsync
@@ -408,6 +408,16 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Wed Nov 16 2016 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.8.0 release
+* Sat Jan 23 2016 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.11 release
+* Wed Sep 30 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.10 release
+* Fri Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.9 release
+* Wed May 6 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.8 release
 * Wed Dec 31 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.7 release
 * Sun Oct 19 2014 Jörgen Maas <jorgen.maas@gmail.com>
