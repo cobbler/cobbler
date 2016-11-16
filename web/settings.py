@@ -1,6 +1,10 @@
 # Django settings for cobbler-web project.
 import django
 
+# which hosts are allowed to connect to cobbler-web
+# added for CVE-2016-9014
+ALLOWED_HOSTS = ['*']
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
