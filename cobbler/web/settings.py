@@ -1,5 +1,9 @@
 # Django settings for cobbler-web project.
 
+
+# Which hosts are allowed to connect to cobbler-web
+ALLOWED_HOSTS = ['*']
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
