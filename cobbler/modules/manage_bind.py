@@ -312,7 +312,7 @@ zone "%(zone)s." {
     type slave;
     masters {
         %(master)s;
-    }; 
+    };
     file "data/%(zone)s";
 };
 """ % {'zone': zone, 'master': self.settings.bind_master}
@@ -339,7 +339,7 @@ zone "%(arpa)s." {
     type slave;
     masters {
         %(master)s;
-    }; 
+    };
     file "data/%(zone)s";
 };
 """ % {'arpa': arpa, 'zone': zone, 'master': self.settings.bind_master}
@@ -387,18 +387,18 @@ zone "%(arpa)s." {
         """
         Format host records by order and with consistent indentation
         """
-        
+
         # Warns on hosts without dns_name, need to iterate over system to name the
         # particular system
-                 
+
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
                 if interface["dns_name"] == "":
-                    self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)                       
-                
+                    self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
+
         names = [k for k,v in hosts.iteritems()]
         if not names: return '' # zones with no hosts
-        
+
         if rectype == 'PTR':
            names = self.__ip_sort(names)
         else:
@@ -426,33 +426,33 @@ zone "%(arpa)s." {
                     my_rectype = 'A   '
               s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
         return s
-    
+
     def __pretty_print_cname_records(self, hosts, rectype='CNAME'):
         """
         Format CNAMEs and with consistent indentation
         """
         s = ""
-        
+
         # This loop warns and skips the host without dns_name instead of outright exiting
         # Which results in empty records without any warning to the users
-        
+
         for system in self.systems:
             for (name, interface) in system.interfaces.iteritems():
                 cnames = interface.get("cnames", [])
-        
+
                 try:
                     if interface.get("dns_name", "") != "":
                         dnsname = interface["dns_name"].split('.')[0] 
                         for cname in cnames:
-                            s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)                    
+                            s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
                     else:
                         self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing cname records") % system.name)
                         continue
                 except:
                     pass
-                                                                                                         
+
         return s
-    
+
 
     def __write_zone_files(self):
         """
@@ -498,10 +498,10 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'forward',
                 'cname_record': '',
                 'host_record': ''
-                
             }
 
 
@@ -532,8 +532,8 @@ zone "%(arpa)s." {
 
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
-            
-            
+
+
             zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (forward) %s" % zonefilename)
@@ -543,6 +543,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'reverse',
                 'cname_record': '',
                 'host_record': ''
@@ -558,8 +559,8 @@ zone "%(arpa)s." {
 
             metadata['cname_record'] = self.__pretty_print_cname_records(hosts)
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
-            
-            
+
+
             zonefilename=zonefileprefix + zone
             if self.logger is not None:
                self.logger.info("generating (reverse) %s" % zonefilename)
