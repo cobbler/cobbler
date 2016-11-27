@@ -500,6 +500,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'forward',
                 'cname_record': '',
                 'host_record': ''
@@ -542,6 +543,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'reverse',
                 'cname_record': '',
                 'host_record': ''
