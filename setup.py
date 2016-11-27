@@ -610,7 +610,7 @@ if __name__ == "__main__":
             ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%swebui_sessions" % libpath, []),
             ("%sloaders" % libpath, []),
-            ("%scobbler/aux" % webroot, glob("aux/*")),
+            ("%scobbler/misc" % webroot, glob("misc/*")),
             # Configuration
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
                               "build/config/apache/cobbler_web.conf",
@@ -691,7 +691,7 @@ if __name__ == "__main__":
             ("%scobbler/distro_mirror" % webroot, []),
             ("%scobbler/distro_mirror/config" % webroot, []),
             ("%scobbler/links" % webroot, []),
-            ("%scobbler/aux" % webroot, []),
+            ("%scobbler/misc" % webroot, []),
             ("%scobbler/pub" % webroot, []),
             ("%scobbler/rendered" % webroot, []),
             ("%scobbler/images" % webroot, []),

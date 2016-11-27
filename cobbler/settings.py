@@ -129,7 +129,7 @@ DEFAULTS = {
     "signature_url": ["https://cobbler.github.io/signatures/3.0.x/latest.json", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
-    "webdir_whitelist": [".link_cache", "aux", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
+    "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
     "xmlrpc_port": [25151, "int"],
     "yum_distro_priority": [1, "int"],
     "yum_post_install_mirror": [1, "bool"],

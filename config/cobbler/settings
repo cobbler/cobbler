@@ -361,7 +361,7 @@ client_use_localhost: 0
 # the http_port setting to the correct value for the web server
 client_use_https: 0
 
-# should new profiles for virtual machines default to auto booting with 
+# should new profiles for virtual machines default to auto booting with
 # the physical host when the physical host reboots?
 # this can be overridden on each profile or system object.
 virt_auto_boot: 1
@@ -373,7 +373,7 @@ webdir: @@webroot@@/cobbler
 
 # directories that will not get wiped and recreated on a 'cobbler sync'
 webdir_whitelist:
-  - aux
+  - misc
   - web
   - webui
   - localmirror
