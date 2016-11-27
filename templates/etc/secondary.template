@@ -19,7 +19,7 @@ logging {
 zone "${zone}." {
     type slave;
     masters {
-        1.1.1.1;
+        $bind_master;
     };
     file "$zone";
 };
@@ -29,7 +29,7 @@ zone "${zone}." {
 zone "${arpa}." {
     type slave;
     masters {
-        1.1.1.1;
+        $bind_master;
     };
     file "$zone";
 };
