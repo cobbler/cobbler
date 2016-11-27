@@ -27,7 +27,7 @@ import glob
 import time
 import utils
 from cexceptions import CX
-import templar 
+import templar
 import pxegen
 import clogger
 from utils import _
@@ -187,7 +187,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path,logger=self.logger)
             if os.path.isdir(path):
-                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","pub","repo_profile","repo_system","svc","rendered",".link_cache"] :
+                if not x in ["misc", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","pub","repo_profile","repo_system","svc","rendered",".link_cache"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path,logger=self.logger)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:

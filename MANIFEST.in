@@ -1,7 +1,7 @@
 include COPYING AUTHORS README
 include cobbler.spec config/cobblerd.service
 
-recursive-include aux *
+recursive-include misc *
 recursive-include bin *
 recursive-include config *
 recursive-include docs *

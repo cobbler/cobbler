@@ -1,9 +1,9 @@
 #if $str($getVar('anamon_enabled','')) == "1"
 
 ## install anamon script
-curl -o /usr/local/sbin/anamon "http://$server:$http_port/cobbler/aux/anamon"
+curl -o /usr/local/sbin/anamon "http://$server:$http_port/cobbler/misc/anamon"
 ## install anamon system service
-curl -o /etc/rc.d/init.d/anamon "http://$server:$http_port/cobbler/aux/anamon.init"
+curl -o /etc/rc.d/init.d/anamon "http://$server:$http_port/cobbler/misc/anamon.init"
 
 ## adjust permissions
 chmod 755 /etc/rc.d/init.d/anamon /usr/local/sbin/anamon

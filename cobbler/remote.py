@@ -1271,7 +1271,7 @@ class CobblerXMLRPCInterface:
 
         """
         This is a logger function used by the "anamon" logging system to
-        upload all sorts of auxilliary data from Anaconda.
+        upload all sorts of misc data from Anaconda.
         As it's a bit of a potential log-flooder, it's off by default
         and needs to be enabled in /etc/cobbler/settings.
         """
