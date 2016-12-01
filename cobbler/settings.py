@@ -49,7 +49,6 @@ DEFAULTS = {
     "build_reporting_enabled": [0, "bool"],
     "build_reporting_ignorelist": ["", "str"],
     "build_reporting_sender": ["", "str"],
-    "build_reporting_sender": ["", "str"],
     "build_reporting_smtp_server": ["localhost", "str"],
     "build_reporting_subject": ["", "str"],
     "buildisodir": ["/var/cache/cobbler/buildiso", "str"],
