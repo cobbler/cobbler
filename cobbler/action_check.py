@@ -263,7 +263,7 @@ class BootCheck:
        else:
            rc = utils.subprocess_get(self.logger,"apache2 -v")
        if rc.find("Server") == -1:
-           status.append("Apache (httpd) is not installed and/or in path")
+           status.append("The Apache webserver (apache2/httpd) is not installed and/or in path")
 
 
    def check_dhcpd_bin(self,status):
@@ -271,7 +271,7 @@ class BootCheck:
        Check if dhcpd is installed
        """
        if not os.path.exists("/usr/sbin/dhcpd"):
-           status.append("dhcpd is not installed")
+           status.append("ISC DHCP server (dhcp/dhcpd) is not installed")
 
    def check_dnsmasq_bin(self,status):
        """
@@ -288,7 +288,7 @@ class BootCheck:
        rc = utils.subprocess_get(self.logger,"named -v")
        # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
        if rc.find("BIND") == -1:
-           status.append("named is not installed and/or in path")
+           status.append("ISC BIND (bind/named) is not installed and/or in path")
 
    def check_for_wget_curl(self,status):
        """
@@ -335,7 +335,7 @@ class BootCheck:
              not_found.append(loader_name)
 
        if len(not_found) > 0:
-          status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
+          status.append("Some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
 
    def check_tftpd_bin(self,status):
        """
@@ -345,7 +345,7 @@ class BootCheck:
           return
 
        if not os.path.exists("/etc/xinetd.d/tftp"):
-          status.append("missing /etc/xinetd.d/tftp, install tftp-server?")
+          status.append("Missing /etc/xinetd.d/tftp, install a tftp-server?")
 
    def check_tftpd_dir(self,status):
        """
@@ -353,7 +353,7 @@ class BootCheck:
        """
        bootloc = utils.tftpboot_location()
        if not os.path.exists(bootloc):
-          status.append(_("please create directory: %(dirname)s") % { "dirname" : bootloc })
+          status.append(_("Please create directory: %(dirname)s") % { "dirname" : bootloc })
 
 
    def check_tftpd_conf(self,status):
