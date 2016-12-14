@@ -22,6 +22,6 @@ def application(environ, start_response):
         site.addsitedir(distutils.sysconfig.get_python_lib(prefix=environ['VIRTUALENV']))
         # Now all modules are available even under a virtualenv
 
-    import django.core.handlers.wsgi
-    _application = django.core.handlers.wsgi.WSGIHandler()
+    from django.core.wsgi import get_wsgi_application
+    _application = get_wsgi_application()
     return _application(environ, start_response)
