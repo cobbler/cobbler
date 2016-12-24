@@ -77,9 +77,6 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
 # Also set the hostname now, some applications require it
 # (e.g.: if we're connecting to Puppet before a reboot).
 /bin/hostname $hostname
-        #if $osversion == "rhel7"
-echo $hostname > /etc/hostname
-        #end if
     #end if
     #if $enableipv6 == True
 grep -v NETWORKING_IPV6 /etc/sysconfig/network > /etc/sysconfig/network.cobbler
