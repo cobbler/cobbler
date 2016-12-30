@@ -216,7 +216,7 @@ class RepoSync:
         Handle mirroring of directories using wget
         """
 
-        repo_mirror = repo.mirror
+        repo_mirror = repo.mirror.strip()
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
@@ -253,7 +253,7 @@ class RepoSync:
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = "-e ssh"
-        if not repo.mirror.endswith("/"):
+        if not repo.mirror.strip().endswith("/"):
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
@@ -363,8 +363,8 @@ class RepoSync:
         """
 
         # create the config file the hosts will use to access the repository.
-        repo_mirror = repo.mirror
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+        repo_mirror = repo.mirror.strip()
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name.strip())
         self.create_local_file(dest_path, repo)
 
         if not repo.mirror_locally:
