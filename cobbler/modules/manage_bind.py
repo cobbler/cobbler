@@ -347,6 +347,7 @@ zone "%(arpa)s." {
 };
 """ % {'arpa': arpa, 'zone': zone, 'master': self.settings.bind_master}
             metadata['zone_include'] = metadata['zone_include'] + txt
+            metadata['bind_master'] = self.settings.bind_master
 
         try:
             f2 = open(template_file, "r")
