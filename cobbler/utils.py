@@ -236,7 +236,17 @@ def is_mac(strdata):
         return False
     return bool(_re_is_mac.match(strdata) or _re_is_ibmac.match(strdata))
 
-def get_random_mac(api_handle,virt_type="xenpv"):
+
+def is_systemd():
+    """
+    Return whether or not this system uses systemd
+    """
+    if os.path.exists("/usr/lib/systemd/systemd"):
+        return True
+    return False
+
+
+def get_random_mac(api_handle, virt_type="xenpv"):
     """
     Generate a random MAC address.
     from xend/server/netif.py
@@ -2251,11 +2261,15 @@ def dhcp_service_name(api):
     else:
         return "dhcpd"
 
-def named_service_name(api):
+def named_service_name(api, logger=None):
     (dist, ver) = api.os_version
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
     else:
+        if is_systemd():
+            rc = subprocess_call(logger, ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False)
+            if rc == 0:
+                return "named-chroot"
         return "named"
 
 def link_distro(settings, distro):
