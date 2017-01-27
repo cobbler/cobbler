@@ -107,7 +107,7 @@ class IscManager:
                         # Can't write DHCP entry; master interface does not exist
                         continue
 
-                    if not system.name in ding:
+                    if system.name not in ding:
                         ding[system.name] = {interface["interface_master"]: []}
 
                     if len(ding[system.name][interface["interface_master"]]) == 0:
