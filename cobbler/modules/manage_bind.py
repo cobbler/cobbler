@@ -317,6 +317,8 @@ zone "%(zone)s." {
 };
 """ % {'zone': zone, 'master': self.settings.bind_master}
                 metadata['zone_include'] = metadata['zone_include'] + txt
+                metadata['bind_master'] = self.settings.bind_master
+
 
         for zone in self.__reverse_zones().keys():
                 # IPv6 zones are : delimited
