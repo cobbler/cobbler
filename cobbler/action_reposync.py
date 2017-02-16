@@ -218,7 +218,7 @@ class RepoSync:
         Handle mirroring of directories using wget
         """
 
-        repo_mirror = repo.mirror
+        repo_mirror = repo.mirror.strip()
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
