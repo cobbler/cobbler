@@ -233,7 +233,7 @@ class CobblerSvc(object):
     def find_autoinstall(self, system=None, profile=None, **rest):
         self.__xmlrpc_setup()
 
-        serverseg = "http//%s" % self.collection_mgr._settings.server
+        serverseg = "http://%s" % self.collection_mgr._settings.server
 
         name = "?"
         if system is not None:
