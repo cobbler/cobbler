@@ -99,9 +99,10 @@ class IscManager:
                     if interface["interface_master"] not in system.interfaces:
                         continue
 
-                    if not ding.has_key(system.name):
-                        ding[system.name] = { interface["interface_master"]: [] }
-
+                    if not system.name in ding:
+                        ding[system.name] = {interface["interface_master"]: []}
+                    else:
+                        ding[system.name][interface["interface_master"]] = []
 
                     if len(ding[system.name][interface["interface_master"]]) == 0:
                         ding[system.name][interface["interface_master"]].append(mac)
