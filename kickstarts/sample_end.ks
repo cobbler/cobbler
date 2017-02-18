@@ -1,6 +1,5 @@
-# kickstart template for Fedora 8 and later.
-# (includes %end blocks)
-# do not use with earlier distros
+# This kickstart file should only be used with EL > 5 and/or Fedora > 7.
+# For older versions please use the sample.ks kickstart file.
 
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information

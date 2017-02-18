@@ -1,3 +1,6 @@
+# This kickstart file should only be used with RHEL 4, 5 and Fedora < 8.
+# For newer distributions please use the sample_end.ks
+
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
 auth  --useshadow  --enablemd5
