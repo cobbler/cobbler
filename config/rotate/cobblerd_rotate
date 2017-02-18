@@ -4,9 +4,7 @@
    rotate 4
    weekly
    postrotate
-      if [ -f /var/lock/subsys/cobblerd ]; then
-         /usr/sbin/service cobblerd condrestart > /dev/null
-      fi
+      /sbin/service cobblerd condrestart > /dev/null
    endscript
 }
 
