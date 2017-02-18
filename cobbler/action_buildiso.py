@@ -473,9 +473,10 @@ class BuildIso:
 
         for descendant in descendants:
             # if a list of profiles was given, skip any others and their systems
-            if (profiles
-                and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
-                     or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
+            if (profiles and ((descendant.COLLECTION_TYPE == 'profile' and
+                               descendant.name not in profiles) or
+                              (descendant.COLLECTION_TYPE == 'system' and
+                               descendant.profile not in profiles))):
                 continue
 
             menu_indent = 0
@@ -518,8 +519,9 @@ class BuildIso:
                 descendant_repos = data['repos']
                 for repo_name in descendant_repos:
                     repo_obj = self.api.find_repo(repo_name)
-                    error_fmt = (descendant.COLLECTION_TYPE + " " + descendant.name + " refers to repo "
-                                 + repo_name + ", which %%s; cannot build airgapped ISO")
+                    error_fmt = (descendant.COLLECTION_TYPE + " " + descendant.name +
+                                 " refers to repo " + repo_name +
+                                 ", which %%s; cannot build airgapped ISO")
 
                     if repo_obj is None:
                         utils.die(self.logger, error_fmt % "does not exist")

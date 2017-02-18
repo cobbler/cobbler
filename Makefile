@@ -45,7 +45,7 @@ qa:
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pep8"
-	@pep8 -r --ignore E501 \
+	@pep8 -r --ignore E501,E402 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
