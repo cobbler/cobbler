@@ -239,7 +239,7 @@ class CobblerSvc(object):
     def findks(self,system=None,profile=None,**rest):
         self.__xmlrpc_setup()
 
-        serverseg = "http//%s" % self.config._settings.server
+        serverseg = "http://%s" % self.config._settings.server
 
         name = "?"
         if system is not None:
