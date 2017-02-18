@@ -1,3 +1,5 @@
+# Sample kickstart file for current EL, Fedora based distributions.
+
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
 auth  --useshadow  --enablemd5
@@ -39,7 +41,6 @@ zerombr
 # Allow anaconda to partition the system as needed
 autopart
 
-
 %pre
 $SNIPPET('log_ks_pre')
 $SNIPPET('autoinstall_start')
@@ -49,7 +50,6 @@ $SNIPPET('pre_anamon')
 %end
 
 %packages
-$SNIPPET('puppet_install_if_enabled')
 %end
 
 %post --nochroot
@@ -58,12 +58,11 @@ $SNIPPET('log_ks_post_nochroot')
 
 %post
 $SNIPPET('log_ks_post')
-# Start yum configuration 
+# Start yum configuration
 $yum_config_stanza
 # End yum configuration
 $SNIPPET('post_install_kernel_options')
 $SNIPPET('post_install_network_config')
-$SNIPPET('puppet_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')
