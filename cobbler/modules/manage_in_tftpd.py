@@ -23,7 +23,7 @@ import glob
 
 import cobbler.clogger as clogger
 import cobbler.pxegen as pxegen
-import cobler.utils as utils
+import cobbler.utils as utils
 import cobbler.templar as templar
 
 from cobbler.cexceptions import CX
