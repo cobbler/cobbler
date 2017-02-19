@@ -977,7 +977,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master=None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
+    def replicate(self, cobbler_master=None, port="80", distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
                   mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
@@ -985,6 +985,7 @@ class CobblerAPI:
         replicator = action_replicate.Replicate(self._collection_mgr, logger=logger)
         return replicator.run(
             cobbler_master=cobbler_master,
+            port=port,
             distro_patterns=distro_patterns,
             profile_patterns=profile_patterns,
             system_patterns=system_patterns,
