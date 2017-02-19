@@ -6,10 +6,10 @@
 # Post install trigger for cobbler to
 # power cycle the guest if needed
 
-import distutils.sysconfig
-import sys
+
 from threading import Thread
 import time
+
 
 class reboot(Thread):
    def __init__ (self,api, target):
@@ -20,9 +20,6 @@ class reboot(Thread):
       time.sleep(30)
       self.api.reboot(self.target)
 
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
 
 def register():
    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.

@@ -18,16 +18,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os.path
-import clogger
-import pxegen
 import shutil
 import glob
 
-import utils
-from cexceptions import CX
-import templar
+import cobbler.clogger as clogger
+import cobbler.pxegen as pxegen
+import cobler.utils as utils
+import cobbler.templar as templar
 
-from utils import _
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 def register():

@@ -13,11 +13,11 @@ You should have received a copy of the GNU General Public License along with thi
 
 import time
 
-import utils
-from cexceptions import CX
-import templar
+import cobbler.utils as utils
+import cobbler.templar as templar
 
-from utils import _
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 def register():

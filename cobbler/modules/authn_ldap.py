@@ -19,19 +19,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import distutils.sysconfig
-import sys
+
 import traceback
 
 # we'll import this just a bit later
 # to keep it from being a requirement
 # import ldap
 
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
+import cobbler.api as cobbler_api
 
-import api as cobbler_api
 
 def register():
     """

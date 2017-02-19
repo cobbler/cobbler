@@ -8,17 +8,14 @@
 # send out a pretty email report that
 # contains target information.
 
-import sys
-import distutils.sysconfig
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
 
 import smtplib
+
 import cobbler.templar as templar
+import cobbler.utils as utils
+
 from cobbler.cexceptions import CX
-import utils
+
 
 def register():
    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.

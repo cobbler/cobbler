@@ -25,10 +25,10 @@ import shutil
 import glob
 import re
 
-import utils
-import templar
+import cobbler.utils as utils
+import cobbler.templar as templar
+import cobbler.item_repo as item_repo
 
-import item_repo
 
 # Import aptsources module if available to obtain repo mirror.
 try:

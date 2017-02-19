@@ -25,20 +25,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import distutils.sysconfig
 import os
 import sys
 import glob
 import yaml # PyYAML
 import simplejson
 import exceptions
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
-
 import cobbler.api as capi
+
 
 def can_use_json():
     version = sys.version[:3]

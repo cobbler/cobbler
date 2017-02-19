@@ -21,15 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import distutils.sysconfig
-import sys
 import yaml # PyYAML
 import simplejson
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
 import couch
 
 typez = [ "distro", "profile", "system", "image", "repo" ]

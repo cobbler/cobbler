@@ -21,20 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import distutils.sysconfig
 import os
-import sys
 import glob
 import clogger
 from utils import _, log_exc
 from cexceptions import CX
 import ConfigParser
+from sets import Set as set
 
-# python 2.3 compat.  If we don't need that, drop this test
-try:
-    set()
-except:
-    from sets import Set as set
+# add cobbler/modules to python path
+import cobbler
+mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'modules')
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
@@ -42,10 +39,6 @@ MODULES_BY_CATEGORY = {}
 cp = ConfigParser.ConfigParser()
 cp.read("/etc/cobbler/modules.conf")
 
-plib = distutils.sysconfig.get_python_lib()
-mod_path="%s/cobbler/modules" % plib
-sys.path.insert(0, mod_path)
-sys.path.insert(1, "%s/cobbler" % plib)
 
 def load_modules(module_path=mod_path, blacklist=None):
     logger = clogger.Logger()
