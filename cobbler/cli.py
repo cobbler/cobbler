@@ -459,6 +459,7 @@ class BootCLI:
 
         elif action_name == "replicate":
             self.parser.add_option("--master",      dest="master",             help="Cobbler server to replicate from.")
+            self.parser.add_option("--port",        dest="port",               help="Remote port.")
             self.parser.add_option("--distros",     dest="distro_patterns",    help="patterns of distros to replicate")
             self.parser.add_option("--profiles",    dest="profile_patterns",   help="patterns of profiles to replicate")
             self.parser.add_option("--systems",     dest="system_patterns",    help="patterns of systems to replicate")

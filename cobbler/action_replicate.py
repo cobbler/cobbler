@@ -299,12 +299,13 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, 
+    def run(self, cobbler_master=None, port="80", distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, 
             mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False):
         """
         Get remote profiles and distros and sync them locally
         """
 
+        self.port                = str(port)
         self.distro_patterns     = distro_patterns.split()
         self.profile_patterns    = profile_patterns.split()
         self.system_patterns     = system_patterns.split()
@@ -330,7 +331,7 @@ class Replicate:
         else:
             utils.die('No cobbler master specified, try --master.')
 
-        self.uri = '%s://%s/cobbler_api' % (protocol,self.master)
+        self.uri = '%s://%s:%s/cobbler_api' % (protocol,self.master,self.port)
 
         self.logger.info("cobbler_master      = %s" % cobbler_master)
         self.logger.info("distro_patterns     = %s" % self.distro_patterns)
@@ -350,7 +351,7 @@ class Replicate:
         self.remote = xmlrpclib.Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
-        self.local = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        self.local = xmlrpclib.Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
         self.local.ping()
 
         self.replicate_data()

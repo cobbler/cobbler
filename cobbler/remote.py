@@ -196,6 +196,7 @@ class CobblerXMLRPCInterface:
             # FIXME: defaults from settings here should come from views, fix in views.py
             return self.remote.api.replicate(
                 self.options.get("master", None),
+                self.options.get("port", ""),
                 self.options.get("distro_patterns", ""),
                 self.options.get("profile_patterns", ""),
                 self.options.get("system_patterns", ""),
