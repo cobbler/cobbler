@@ -22,26 +22,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import ConfigParser
-import distutils.sysconfig
 import glob
 import os
-import sys
 
 from cexceptions import CX
 import clogger
 from utils import _, log_exc
 
+# add cobbler/modules to python path
+import cobbler
+mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'modules')
 
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
 
 cp = ConfigParser.ConfigParser()
 cp.read("/etc/cobbler/modules.conf")
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler/modules" % plib
-sys.path.insert(0, mod_path)
-sys.path.insert(1, "%s/cobbler" % plib)
 
 
 def load_modules(module_path=mod_path, blacklist=None):
