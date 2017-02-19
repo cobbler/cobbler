@@ -7,7 +7,7 @@ Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
 import re
-import utils
+import cobbler.utils as utils
 
 
 def register():

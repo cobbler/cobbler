@@ -35,11 +35,11 @@ except:
 
 from cobbler import item_distro
 from cobbler import item_profile
+from cobbler.cexceptions import CX
 
-from cexceptions import CX
-import item_repo
-import templar
-import utils
+import cobbler.item_repo as item_repo
+import cobbler.templar as templar
+import cobbler.utils as utils
 
 
 def register():

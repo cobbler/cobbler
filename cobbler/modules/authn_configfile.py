@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-from utils import md5
+
+from cobbler.utils import md5
 
 
 def register():

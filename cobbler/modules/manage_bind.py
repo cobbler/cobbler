@@ -21,14 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import clogger
 import re
 import time
 
-from cexceptions import CX
-import templar
-import utils
-from utils import _
+import cobbler.clogger as clogger
+import cobbler.templar as templar
+import cobbler.utils as utils
+
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 
 def register():

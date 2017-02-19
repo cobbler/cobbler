@@ -22,10 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import clogger
-import templar
+
 import os
 import subprocess
+
+import cobbler.clogger as clogger
+import cobbler.templar as templar
 
 
 def register():

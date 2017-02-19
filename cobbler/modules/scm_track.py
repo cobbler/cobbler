@@ -21,8 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 
-from cobbler.cexceptions import CX
 import cobbler.utils as utils
+
+from cobbler.cexceptions import CX
 
 
 def register():

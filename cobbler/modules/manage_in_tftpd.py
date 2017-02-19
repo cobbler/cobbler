@@ -22,11 +22,12 @@ import os.path
 import shutil
 import tftpgen
 
-from cexceptions import CX
-import clogger
-import templar
-import utils
-from utils import _
+import cobbler.clogger as clogger
+import cobbler.templar as templar
+import cobbler.utils as utils
+
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 
 def register():

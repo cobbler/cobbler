@@ -25,7 +25,7 @@ import traceback
 # to keep it from being a requirement
 # import ldap
 
-import api as cobbler_api
+import cobbler.api as cobbler_api
 
 
 def register():

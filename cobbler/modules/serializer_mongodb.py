@@ -34,7 +34,7 @@ except:
 
 import yaml
 
-from cexceptions import CX
+from cobbler.cexceptions import CX
 
 cp = ConfigParser.ConfigParser()
 cp.read("/etc/cobbler/mongodb.conf")

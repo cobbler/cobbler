@@ -11,7 +11,7 @@
 import smtplib
 from cobbler.cexceptions import CX
 import cobbler.templar as templar
-import utils
+import cobbler.utils as utils
 
 
 def register():

@@ -9,11 +9,13 @@
 # DNS toolkit for Python
 #   - python-dnspython (Debian)
 #   - python-dns (RH/CentOS)
+
 import dns.query
 import dns.tsigkeyring
 import dns.update
 import dns.resolver
 import time
+
 from cobbler.cexceptions import CX
 
 logf = None
