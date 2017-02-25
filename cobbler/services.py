@@ -197,12 +197,7 @@ class CobblerSvc(object):
         # if a system can be found matching the MAC address.  This
         # is more specific than an IP match.
 
-        macinput = rest["REMOTE_MAC"]
-        if macinput is not None:
-            # FIXME: will not key off other NICs, problem?
-            mac = macinput.split()[1].strip()
-        else:
-            mac = "None"
+        macinput = [mac.split(' ').lower() for mac in rest["REMOTE_MACS"]]
 
         ip = rest["REMOTE_ADDR"]
 
@@ -210,7 +205,7 @@ class CobblerSvc(object):
 
         for x in systems:
             for y in x["interfaces"]:
-                if x["interfaces"][y]["mac_address"].lower() == mac.lower():
+                if x["interfaces"][y]["mac_address"].lower() in macinput:
                     candidates.append(x)
 
         if len(candidates) == 0:
