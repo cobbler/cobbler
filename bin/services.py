@@ -70,7 +70,7 @@ def application(environ, start_response):
         remote_macs.append(environ[mac_header])
         mac_counter = mac_counter + 1
         mac_header = "HTTP_X_RHN_PROVISIONING_MAC_%d" % mac_counter
-    
+
     form["REMOTE_MACS"] = remote_macs
 
     # REMOTE_ADDR isn't a required wsgi attribute so it may be naive to assume
