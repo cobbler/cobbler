@@ -370,7 +370,7 @@ class install(_install):
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
-        path = os.path.join(self.root, libpath, 'webui_sessions')
+        path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except KeyError, e:
