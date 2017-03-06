@@ -356,7 +356,7 @@ class RepoSync:
 
     # ====================================================================================
 
-    # This function translates yum repository options into the appropriate 
+    # This function translates yum repository options into the appropriate
     # options for urlgrabber
     def gen_urlgrab_ssl_opts(self, yumopts):
         # use SSL options if specified in yum opts
@@ -364,14 +364,14 @@ class RepoSync:
         if 'sslclientkey' in yumopts:
             urlgrab_ssl_opts["ssl_key"] = yumopts['sslclientkey']
         if 'sslclientcert' in yumopts:
-            urlgrab_ssl_opts["ssl_cert"] =  yumopts['sslclientcert']
+            urlgrab_ssl_opts["ssl_cert"] = yumopts['sslclientcert']
         if 'sslcacert' in yumopts:
             urlgrab_ssl_opts["ssl_ca_cert"] = yumopts['sslcacert']
         # note that the default of urlgrabber is to verify the peer and host
-        # but the default here is NOT to verify them unless sslverify is 
+        # but the default here is NOT to verify them unless sslverify is
         # explicitly set to 1 in yumopts
         if 'sslverify' in yumopts:
-            if yumopts['sslverify'] == 1: 
+            if yumopts['sslverify'] == 1:
                 urlgrab_ssl_opts["ssl_verify_peer"] = True
                 urlgrab_ssl_opts["ssl_verify_host"] = True
             else:
