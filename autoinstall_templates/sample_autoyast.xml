@@ -60,7 +60,7 @@
     <post-scripts config:type="list">
 	##
 	## This plugin wrapper provides the flexibility to call pure shell
-	## snippets which can be used directly on kickstart and with with
+	## snippets which can be used directly on autoinst file and with
 	## wrapper on SuSE.
 	##
 	## To use it
