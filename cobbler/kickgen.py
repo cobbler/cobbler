@@ -279,10 +279,6 @@ class KickGen:
 
             data = self.templar.render(raw_data, meta, None, obj)
 
-            if distro.breed == "suse":
-                # AutoYaST profile
-                data = self.generate_autoyast(profile,system,data)
-
             return data
         except FileNotFoundException:
             self.api.logger.warning("kickstart not found: %s" % meta["kickstart"])
