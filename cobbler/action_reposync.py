@@ -356,6 +356,32 @@ class RepoSync:
 
     # ====================================================================================
 
+    # This function translates yum repository options into the appropriate
+    # options for urlgrabber
+    def gen_urlgrab_ssl_opts(self, yumopts):
+        # use SSL options if specified in yum opts
+        urlgrab_ssl_opts = {}
+        if 'sslclientkey' in yumopts:
+            urlgrab_ssl_opts["ssl_key"] = yumopts['sslclientkey']
+        if 'sslclientcert' in yumopts:
+            urlgrab_ssl_opts["ssl_cert"] = yumopts['sslclientcert']
+        if 'sslcacert' in yumopts:
+            urlgrab_ssl_opts["ssl_ca_cert"] = yumopts['sslcacert']
+        # note that the default of urlgrabber is to verify the peer and host
+        # but the default here is NOT to verify them unless sslverify is
+        # explicitly set to 1 in yumopts
+        if 'sslverify' in yumopts:
+            if yumopts['sslverify'] == 1:
+                urlgrab_ssl_opts["ssl_verify_peer"] = True
+                urlgrab_ssl_opts["ssl_verify_host"] = True
+            else:
+                urlgrab_ssl_opts["ssl_verify_peer"] = False
+                urlgrab_ssl_opts["ssl_verify_host"] = False
+
+        return urlgrab_ssl_opts
+
+    # ====================================================================================
+
     def yum_sync(self, repo):
 
         """
@@ -437,8 +463,9 @@ class RepoSync:
             proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
+        urlgrab_ssl_opts = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -454,7 +481,7 @@ class RepoSync:
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -611,6 +638,14 @@ class RepoSync:
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
+            # user may have options specific to certain yum plugins
+            # add them to the file
+            for x in repo.yumopts:
+                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
+                if x == "enabled":
+                    optenabled = True
+                if x == "gpgcheck":
+                    optgpgcheck = True
         config_file.close()
         return fname
 
