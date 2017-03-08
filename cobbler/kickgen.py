@@ -273,9 +273,6 @@ class KickGen:
                     self.settings.template_remote_kickstarts)
             if raw_data is None:
                 return "# kickstart is sourced externally: %s" % meta["kickstart"]
-            distro = profile.get_conceptual_parent()
-            if system is not None:
-                distro = system.get_conceptual_parent().get_conceptual_parent()
 
             data = self.templar.render(raw_data, meta, None, obj)
 
