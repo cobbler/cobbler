@@ -73,8 +73,12 @@ Requires: logrotate
 Requires: yum-utils
 %endif
 
-%if 0%{?fedora} >= 23
+%if 0%{?fedora} == 23 || 0%{?fedora} == 24
 Requires: dnf-core-plugins
+%endif
+
+%if 0%{?fedora} >= 25
+Requires: dnf-plugins-core
 %endif
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
