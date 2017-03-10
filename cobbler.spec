@@ -73,8 +73,12 @@ Requires: logrotate
 Requires: yum-utils
 %endif
 
-%if 0%{?fedora} >= 23
+%if 0%{?fedora} == 23 || 0%{?fedora} == 24
 Requires: dnf-core-plugins
+%endif
+
+%if 0%{?fedora} >= 25
+Requires: dnf-plugins-core
 %endif
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
@@ -428,7 +432,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 - Cobbler 2.6.4 release
 * Fri Jul 18 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.3 release (CVE-2014-3225)
-* Thu Jul 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
+* Tue Jul 15 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.2 release
 * Thu May 22 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.1 release
