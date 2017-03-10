@@ -1,0 +1,33 @@
+##
+## This snippet enables you to install additional and customized packages
+## by adding further software repositories.
+##
+<add-on>
+    <add_on_products config:type="list">
+##
+#for rkey in range(0 , len($repos))
+  #set rdata         = $repo_data[$rkey]
+  #set $repo_name    = $rdata.get("name", "")
+  #set $repo_arch    = $rdata.get("arch", "")
+  #set $repo_breed   = $rdata.get("breed", "")
+  #set $repo_mirror  = $rdata.get("mirror", "")
+  #set $repo_comment = $rdata.get("comment", "")
+  #if $repo_comment == ""
+    #set $repo_comment = $repo_name
+  #end if
+  #set $repo_proxy   = $rdata.get("proxy", "")
+  #set $repo_prio    = $rdata.get("priority", "")
+##
+      <listentry>
+        <media_url>$repo_mirror</media_url>
+        <product>$repo_comment</product>
+        <product_dir>/</product_dir>
+        <ask_on_error config:type="boolean">false</ask_on_error>
+        <!-- available since openSUSE 11.0/SLES 11 -->
+        <name>$repo_name</name>
+      </listentry>
+##
+#end for
+##
+    </add_on_products>
+  </add-on>
