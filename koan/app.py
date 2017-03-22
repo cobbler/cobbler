@@ -1465,7 +1465,10 @@ class Koan:
                     hashv["gateway"] = gateway
             if dns is not None:
                 if newdracut:
-                    hashv["ip"] += ":" + ":".join(dns[0:2])
+                    if os_version[0:4] == "rhel" and int(os_version[4]) == 7:
+                        hashv["nameserver"] = dns[0]
+                    else:
+                        hashv["ip"] += ":" + ":".join(dns[0:2])
                 elif breed == "suse":
                     hashv["nameserver"] = dns[0]
                 elif breed == "debian" or breed == "ubuntu":
