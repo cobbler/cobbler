@@ -117,6 +117,10 @@ d-i pkgsel/include string ntp ssh wget
 # Note: options passed to the installer will be added automatically.
 d-i debian-installer/add-kernel-opts string $kernel_options_post
 
+# Grub settings
+d-i grub-installer/grub2_instead_of_grub_legacy boolean true
+d-i grub-installer/bootdev string /dev/[sv]da
+
 # Avoid that last message about the install being complete.
 d-i finish-install/reboot_in_progress note
 
