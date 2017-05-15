@@ -500,7 +500,7 @@
    "yakkety": {
     "signatures":["dists", ".disk"],
     "version_file":"Release|mini-info",
-    "version_file_regex":"Codename: xenial|Ubuntu 16.10",
+    "version_file_regex":"Codename: yakkety|Ubuntu 16.10",
     "kernel_arch":"linux-headers-(.*)\\.deb",
     "kernel_arch_regex":null,
     "supported_arches":["i386","amd64","ppc64el"],
