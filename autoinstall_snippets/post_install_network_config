@@ -114,7 +114,6 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
         #set $connected_mode       = $idata.get("connected_mode", "")
-        #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
@@ -126,9 +125,16 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         #set $bridge_opts          = $idata.get("bridge_opts", "").split(" ")
         #set $ipv6_address         = $idata.get("ipv6_address", "")
         #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
-        #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+        ## Inherit slave mtu from master
+        #if $iface_type.lower() in ("bond_slave","bridge_slave","bonded_bridge_slave")
+            #set $mtu              = $interfaces[$iface_master].get("mtu", "")
+            #set $ipv6_mtu         = $interfaces[$iface_master].get("ipv6_mtu", "")
+        #else
+            #set $mtu              = $idata.get("mtu", "")
+            #set $ipv6_mtu         = $idata.get("ipv6_mtu", "")
+        #end if
         #set $devfile              = "/etc/sysconfig/network-scripts/cobbler/ifcfg-" + $iname
         #set $routesfile           = "/etc/sysconfig/network-scripts/cobbler/route-" + $iname
         #set $ipv6_routesfile      = "/etc/sysconfig/network-scripts/cobbler/route6-" + $iname

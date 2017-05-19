@@ -64,7 +64,6 @@ echo "" >> /etc/network/interfaces
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
-        #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
         #set $netmask              = $idata.get("netmask", "")
@@ -83,7 +82,6 @@ echo "" >> /etc/network/interfaces
         #set $bridge_opts          = $idata.get("bridge_opts", "").split(" ")
         #set $ipv6_address         = $idata.get("ipv6_address", "")
         #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
-        #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
         #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
         #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
         ## determine if this interface is for a VLAN
@@ -92,10 +90,16 @@ echo "" >> /etc/network/interfaces
         #else
             #set $is_vlan = "false"
         #end if
-        ## slave interfaces are assumed to be static
-        #if $iface_type in ("bond_slave","bridge_slave","bonded_bridge_slave")
+        #if $iface_type.lower() in ("bond_slave","bridge_slave","bonded_bridge_slave")
+            ## Inherit slave mtu from master
+            #set $mtu              = $interfaces[$iface_master].get("mtu", "")
+            #set $ipv6_mtu         = $interfaces[$iface_master].get("ipv6_mtu", "")
+            ## slave interfaces are assumed to be static
             #set $static = 1
-        #end if 
+        #else
+            #set $mtu              = $idata.get("mtu", "")
+            #set $ipv6_mtu         = $idata.get("ipv6_mtu", "")
+        #end if
         ## ===================================================================
         ## Things every interface get, no matter what
         ## ===================================================================
