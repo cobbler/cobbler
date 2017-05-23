@@ -85,6 +85,7 @@ class IscManager:
 
         # FIXME: ding should evolve into the new dhcp_tags dict
         ding = {}
+        ignore_macs = []
 
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
@@ -115,6 +116,8 @@ class IscManager:
 
                     if len(ding[system.name][interface["interface_master"]]) == 0:
                         ding[system.name][interface["interface_master"]].append(mac)
+                    else:
+                        ignore_macs.append(mac)
 
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
                     netmask = system.interfaces[interface["interface_master"]]["netmask"]
@@ -192,6 +195,13 @@ class IscManager:
                     }
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
+
+        # remove macs from redundant slave interfaces from dhcp_tags
+        # otherwise you get duplicate ip's in the installer
+        for dt in dhcp_tags.keys():
+            for m in dhcp_tags[dt].keys():
+                if m in ignore_macs:
+                    del dhcp_tags[dt][m]
 
         # we are now done with the looping through each interface of each system
         metadata = {
