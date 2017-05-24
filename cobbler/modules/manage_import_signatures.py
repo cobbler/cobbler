@@ -35,11 +35,11 @@ except:
 
 from cobbler import item_distro
 from cobbler import item_profile
+from cobbler.cexceptions import CX
 
-from cexceptions import CX
-import item_repo
-import templar
-import utils
+import cobbler.item_repo as item_repo
+import cobbler.templar as templar
+import cobbler.utils as utils
 
 
 def register():
@@ -522,7 +522,7 @@ class ImportSignatureManager:
             for distro in distros_added:
                 if distro.kernel.find("distro_mirror") != -1:
                     repo_adder(distro)
-                    self.distros.add(distro, save=True)
+                    self.distros.add(distro, save=True, with_triggers=False)
                 else:
                     self.logger.info("skipping distro %s since it isn't mirrored locally" % distro.name)
 
@@ -602,6 +602,10 @@ class ImportSignatureManager:
             repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % (urlseg)
 
             distro.source_repos.append([repo_url, repo_url2])
+
+            config_dir = os.path.dirname(fname)
+            if not os.path.exists(config_dir):
+                os.makedirs(config_dir)
 
             # NOTE: the following file is now a Cheetah template, so it can be remapped
             # during sync, that's why we have the @@http_server@@ left as templating magic.

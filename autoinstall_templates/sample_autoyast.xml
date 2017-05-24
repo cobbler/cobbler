@@ -1,17 +1,4 @@
 <?xml version="1.0"?>
-<!--
-
- Copyright (c) 2011 Novell
- Uwe Gansert ug@suse.de
-
- This software is licensed to you under the GNU General Public License,
- version 2 (GPLv2). There is NO WARRANTY for this software, express or
- implied, including the implied warranties of MERCHANTABILITY or FITNESS
- FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
- along with this software; if not, see
- http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
-
--->
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <deploy_image>
@@ -24,6 +11,7 @@
       <final_reboot config:type="boolean">true</final_reboot>	
     </mode>
   </general>
+  $SNIPPET('addons.xml')
   $SNIPPET('hosts.xml')
   $SNIPPET('kdump.xml')
   <keyboard>
@@ -61,6 +49,8 @@
   <scripts>
     ## we have to include the pre-scripts tag to get autoinstall_start included
     <pre-scripts config:type="list">
+      #set global $wrappedscript = 'autoinstall_start'
+      $SNIPPET('suse_scriptwrapper.xml')
 	## SuSE has an annoying habit on ppc64 of changing the system
 	## boot order after installation. This makes it non-trivial to
 	## automatically re-install future OS.
@@ -68,9 +58,9 @@
 	$SNIPPET('suse_scriptwrapper.xml')
     </pre-scripts>
     <post-scripts config:type="list">
-
+	##
 	## This plugin wrapper provides the flexibility to call pure shell
-	## snippets which can be used directly on autoinst file and with 
+	## snippets which can be used directly on autoinst file and with
 	## wrapper on SuSE.
 	##
 	## To use it
@@ -79,12 +69,17 @@
 	##
 	#set global $wrappedscript = 'name_of_pure_shell_snippet'
 	## $SNIPPET('suse_scriptwrapper.xml')
+
 	## SuSE has an annoying habit on ppc64 of changing the system
 	## boot order after installation. This makes it non-trivial to
 	## automatically re-install future OS.
 	#set global $wrappedscript = 'restore_boot_device'
 	$SNIPPET('suse_scriptwrapper.xml')
-
     </post-scripts>
+    ## we have to include the init-scripts tag to get autoinstall_done included
+    <init-scripts config:type="list">
+      #set global $wrappedscript = 'autoinstall_done'
+      $SNIPPET('suse_scriptwrapper.xml')
+    </init-scripts>
   </scripts>
 </profile>

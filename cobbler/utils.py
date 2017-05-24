@@ -243,6 +243,15 @@ def is_mac(strdata):
     return bool(_re_is_mac.match(strdata) or _re_is_ibmac.match(strdata))
 
 
+def is_systemd():
+    """
+    Return whether or not this system uses systemd
+    """
+    if os.path.exists("/usr/lib/systemd/systemd"):
+        return True
+    return False
+
+
 def get_random_mac(api_handle, virt_type="xenpv"):
     """
     Generate a random MAC address.
@@ -455,9 +464,9 @@ def file_is_remote(file_location):
     Returns true if the file is remote and referenced via a protocol
     we support.
     """
-    # TODO: nfs and ftp ok too?
     file_loc_lc = file_location.lower()
-    for prefix in ["http://"]:
+    # Check for urllib2 supported protocols
+    for prefix in ["http://", "https://", "ftp://"]:
         if file_loc_lc.startswith(prefix):
             return True
     return False
@@ -901,7 +910,7 @@ def get_family():
     Family is the base Linux distribution of a Linux distribution, with a set of common
     """
 
-    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos")
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
 
     dist = check_dist()
     for item in redhat_list:
@@ -935,6 +944,8 @@ def os_release():
             make = "fedora"
         elif data.find("centos") != -1:
             make = "centos"
+        elif data.find("virtuozzo") != -1:
+            make = "virtuozzo"
         else:
             make = "redhat"
         release_index = data.find("release")
@@ -981,7 +992,7 @@ def tftpboot_location():
     (make, version) = os_release()
     str_version = str(version)
 
-    if make in ("fedora", "redhat", "centos"):
+    if make in ("fedora", "redhat", "centos", "virtuozzo"):
         return "/var/lib/tftpboot"
     elif make == "suse":
         return "/srv/tftpboot"
@@ -1753,7 +1764,7 @@ def to_dict_from_fields(item, fields):
     return _dict
 
 
-def to_string_from_fields(item_dict, fields):
+def to_string_from_fields(item_dict, fields, interface_fields=None):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
     """
@@ -1767,7 +1778,7 @@ def to_string_from_fields(item_dict, fields):
         # FIXME: supress fields users don't need to see?
         # FIXME: interfaces should be sorted
         # FIXME: print ctime, mtime nicely
-        if k.startswith("*") or not editable:
+        if not editable:
             continue
 
         if k != "name":
@@ -1776,14 +1787,17 @@ def to_string_from_fields(item_dict, fields):
 
     # somewhat brain-melting special handling to print the dicts
     # inside of the interfaces more neatly.
-    if "interfaces" in item_dict:
+    if "interfaces" in item_dict and interface_fields is not None:
+        keys = []
+        for elem in interface_fields:
+            keys.append((elem[0], elem[3], elem[4]))
+        keys.sort()
         for iname in item_dict["interfaces"].keys():
             # FIXME: inames possibly not sorted
             buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
-                nkey = k.replace("*", "")
-                if k.startswith("*") and editable:
-                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(nkey, ""))
+                if editable:
+                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(k, ""))
 
     return buf
 
@@ -1946,6 +1960,30 @@ def strip_none(data, omit_none=False):
 # -------------------------------------------------------
 
 
+def revert_strip_none(data):
+    """
+    Does the opposite to strip_none
+    """
+    if isinstance(data, str) and data.strip() == '~':
+        return None
+
+    if isinstance(data, list):
+        data2 = []
+        for x in data:
+            data2.append(revert_strip_none(x))
+        return data2
+
+    if isinstance(data, dict):
+        data2 = {}
+        for key in data.keys():
+            data2[key] = revert_strip_none(data[key])
+        return data2
+
+    return data
+
+# -------------------------------------------------------
+
+
 def lod_to_dod(_list, indexkey):
     """
     things like get_distros() returns a list of a dictionaries
@@ -2018,11 +2056,15 @@ def dhcp_service_name(api):
         return "dhcpd"
 
 
-def named_service_name(api):
+def named_service_name(api, logger=None):
     (dist, ver) = api.os_version
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
     else:
+        if is_systemd():
+            rc = subprocess_call(logger, ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False)
+            if rc == 0:
+                return "named-chroot"
         return "named"
 
 

@@ -8,17 +8,10 @@
 # send out a pretty email report that
 # contains target information.
 
-import distutils.sysconfig
 import smtplib
-import sys
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
-
 from cobbler.cexceptions import CX
 import cobbler.templar as templar
-import utils
+import cobbler.utils as utils
 
 
 def register():

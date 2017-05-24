@@ -197,10 +197,12 @@ def anamon_loop():
     if watchfiles:
         # Create WatchedFile objects for each requested file
         for watchfile in watchfiles:
+            watchfilebase = os.path.basename(watchfile)
+            watchlog = WatchedFile(watchfile, watchfilebase)
             if os.path.exists(watchfile):
-                watchfilebase = os.path.basename(watchfile)
-                watchlog = WatchedFile(watchfile, watchfilebase)
                 watchlist.append(watchlog)
+            else:
+                waitlist.append(watchlog)
 
     # Use the default watchlist and waitlist
     else:

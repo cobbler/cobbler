@@ -292,10 +292,6 @@ class AutoInstallationGen:
 
             data = self.templar.render(raw_data, meta, None, obj)
 
-            if distro.breed == "suse":
-                # AutoYaST profile
-                data = self.generate_autoyast(profile, system, data)
-
             return data
         except FileNotFoundException:
             error_msg = "automatic installation file %s not found at %s" % (meta["autoinstall"], self.settings.autoinstall_templates_dir)

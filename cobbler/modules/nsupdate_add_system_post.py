@@ -6,22 +6,15 @@
 # Replace (or remove) records in DNS zone for systems created (or removed) by cobbler
 #
 
-import distutils.sysconfig
-
 # DNS toolkit for Python
 #   - python-dnspython (Debian)
 #   - python-dns (RH/CentOS)
+
 import dns.query
 import dns.tsigkeyring
 import dns.update
 import dns.resolver
-
-import sys
 import time
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
 
 from cobbler.cexceptions import CX
 

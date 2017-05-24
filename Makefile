@@ -45,7 +45,7 @@ qa:
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pep8"
-	@pep8 -r --ignore E501 \
+	@pep8 -r --ignore E501,E402 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
@@ -140,7 +140,11 @@ restartservices:
 			/sbin/service apache2 restart; \
 		fi; \
 	elif [ -x /bin/systemctl ]; then \
-		/bin/systemctl restart httpd.service; \
+		if [ -d /lib/systemd/system/apache2.service.d ]; then \
+			/bin/systemctl restart apache2.service; \
+		else \
+			/bin/systemctl restart httpd.service; \
+		fi \
 	else \
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \

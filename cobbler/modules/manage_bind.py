@@ -21,15 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import clogger
 import re
 import time
-from types import StringType
 
-from cexceptions import CX
-import templar
-import utils
-from utils import _
+import cobbler.clogger as clogger
+import cobbler.templar as templar
+import cobbler.utils as utils
+
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 
 def register():
@@ -348,6 +348,7 @@ zone "%(arpa)s." {
 };
 """ % {'arpa': arpa, 'zone': zone, 'master': self.settings.bind_master}
             metadata['zone_include'] = metadata['zone_include'] + txt
+            metadata['bind_master'] = self.settings.bind_master
 
         try:
             f2 = open(template_file, "r")
@@ -417,7 +418,7 @@ zone "%(arpa)s." {
             my_name = "%s%s" % (name, spacing)
             my_host_record = hosts[name]
             my_host_list = []
-            if type(my_host_record) is StringType:
+            if isinstance(my_host_record, basestring):
                 my_host_list = [my_host_record]
             else:
                 my_host_list = my_host_record
@@ -501,6 +502,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'forward',
                 'cname_record': '',
                 'host_record': ''
@@ -543,6 +545,7 @@ zone "%(arpa)s." {
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
+                'zonename': zone,
                 'zonetype': 'reverse',
                 'cname_record': '',
                 'host_record': ''

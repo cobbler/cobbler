@@ -62,7 +62,7 @@ class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.
     """
-    def __init__(self, event_id, remote, logatron, options):
+    def __init__(self, event_id, remote, logatron, options, task_name, api):
         Thread.__init__(self)
         self.event_id = event_id
         self.remote = remote
@@ -70,6 +70,8 @@ class CobblerThread(Thread):
         if options is None:
             options = {}
         self.options = options
+        self.task_name = task_name
+        self.api = api
 
     def on_done(self):
         pass
@@ -77,12 +79,16 @@ class CobblerThread(Thread):
     def run(self):
         time.sleep(1)
         try:
+            if utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name, self.options, self.logger):
+                self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
+                return False
             rc = self._run(self)
             if rc is not None and not rc:
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
-            self.on_done()
+                self.on_done()
+                utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name, self.options, self.logger)
             return rc
         except:
             utils.log_exc(self.logger)
@@ -144,6 +150,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("buildisodir", None),
                 self.options.get("distro", None),
                 self.options.get("standalone", False),
+                self.options.get("airgapped", False),
                 self.options.get("source", None),
                 self.options.get("exclude_dns", False),
                 self.options.get("mkisofs_opts", None),
@@ -195,6 +202,7 @@ class CobblerXMLRPCInterface:
             # FIXME: defaults from settings here should come from views, fix in views.py
             self.remote.api.replicate(
                 self.options.get("master", None),
+                self.options.get("port", ""),
                 self.options.get("distro_patterns", ""),
                 self.options.get("profile_patterns", ""),
                 self.options.get("system_patterns", ""),
@@ -333,7 +341,7 @@ class CobblerXMLRPCInterface:
         self._log("start_task(%s); event_id(%s)" % (name, event_id))
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
-        thr_obj = CobblerThread(event_id, self, logatron, args)
+        thr_obj = CobblerThread(event_id, self, logatron, args, role_name, self.api)
         on_done_type = type(thr_obj.on_done)
 
         thr_obj._run = thr_obj_fn
@@ -1083,6 +1091,12 @@ class CobblerXMLRPCInterface:
             utils.log_exc(self.logger)
             return "# This automatic OS installation file had errors that prevented it from being rendered correctly.\n# The cobbler.log should have information relating to this failure."
 
+    def generate_profile_autoinstall(self, profile):
+        return self.generate_autoinstall(profile=profile)
+
+    def generate_system_autoinstall(self, system):
+        return self.generate_autoinstall(system=system)
+
     def generate_gpxe(self, profile=None, system=None, **rest):
         self._log("generate_gpxe")
         return self.api.generate_gpxe(profile, system)
@@ -1294,6 +1308,11 @@ class CobblerXMLRPCInterface:
         if not self.api.settings().pxe_just_once:
             # feature disabled!
             return False
+        if str(self.api.settings().nopxe_with_triggers).upper() in ["1", "Y", "YES", "TRUE"]:
+            # triggers should be enabled when calling nopxe
+            triggers_enabled = True
+        else:
+            triggers_enabled = False
         systems = self.api.systems()
         obj = systems.find(name=name)
         if obj is None:
@@ -1301,7 +1320,7 @@ class CobblerXMLRPCInterface:
             return False
         obj.set_netboot_enabled(0)
         # disabling triggers and sync to make this extremely fast.
-        systems.add(obj, save=True, with_triggers=False, with_sync=False, quick_pxe_update=True)
+        systems.add(obj, save=True, with_triggers=triggers_enabled, with_sync=False, quick_pxe_update=True)
         # re-generate dhcp configuration
         self.api.sync_dhcp()
         return True
@@ -1309,7 +1328,7 @@ class CobblerXMLRPCInterface:
     def upload_log_data(self, sys_name, file, size, offset, data, token=None, **rest):
         """
         This is a logger function used by the "anamon" logging system to
-        upload all sorts of auxilliary data from Anaconda.
+        upload all sorts of misc data from Anaconda.
         As it's a bit of a potential log-flooder, it's off by default
         and needs to be enabled in /etc/cobbler/settings.
         """
@@ -1533,16 +1552,13 @@ class CobblerXMLRPCInterface:
 
     # this is used by the puppet external nodes feature
     def find_system_by_dns_name(self, dns_name):
-        # FIXME: implement using api.py's find API
-        # and expose generic finds for other methods
+        # FIXME: expose generic finds for other methods
         # WARNING: this function is /not/ expected to stay in cobbler long term
-        systems = self.get_systems()
-        for x in systems:
-            for y in x["interfaces"]:
-                if x["interfaces"][y]["dns_name"] == dns_name:
-                    name = x["name"]
-                    return self.get_system_for_koan(name)
-        return {}
+        system = self.api.find_system(dns_name=dns_name)
+        if system is None:
+            return {}
+        else:
+            return self.get_system_for_koan(system.name)
 
     def get_distro_as_rendered(self, name, token=None, **rest):
         """

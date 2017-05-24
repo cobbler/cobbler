@@ -1,11 +1,6 @@
-import distutils.sysconfig
-import sys
+
 import cobbler.module_loader as module_loader
 import cobbler.utils as utils
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
 
 
 def register():

@@ -48,7 +48,7 @@ FIELDS = [
     ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
     ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
-    ["proxy", "SETTINGS:proxy_url_ext", "<<inherit>>", "Proxy information", True, "ex: http://example.com:8080", [], "str"],
+    ["proxy", "<<inherit>>", 0, "Proxy information", True, "http://example.com:8080, or <<inherit>> to use proxy_url_ext from settings, blank or <<None>> for no proxy", [], "str"],
     ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
     ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"],
 ]
@@ -103,7 +103,7 @@ class Repo(item.Item):
     def _guess_breed(self):
         # backwards compatibility
         if (self.breed == "" or self.breed is None):
-            if self.mirror.startswith("http://") or self.mirror.startswith("ftp://"):
+            if self.mirror.startswith("http://") or self.mirror.startswith("https://") or self.mirror.startswith("ftp://"):
                 self.set_breed("yum")
             elif self.mirror.startswith("rhn://"):
                 self.set_breed("rhn")

@@ -67,8 +67,19 @@ Requires: python-simplejson
 Requires: python-urlgrabber
 Requires: rsync
 Requires: syslinux
-Requires: yum-utils
 Requires: logrotate
+
+%if 0%{?fedora} < 23 || 0%{?rhel} >= 7
+Requires: yum-utils
+%endif
+
+%if 0%{?fedora} == 23 || 0%{?fedora} == 24
+Requires: dnf-core-plugins
+%endif
+
+%if 0%{?fedora} >= 25
+Requires: dnf-plugins-core
+%endif
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 BuildRequires: redhat-rpm-config
@@ -275,7 +286,7 @@ Requires: mod_wsgi
 %if 0%{?suse_version} >= 1230
 Requires: apache2
 Requires: apache2-mod_wsgi
-Requires: python-django >= 1.4
+Requires: python-django >= 1.7
 %endif
 
 

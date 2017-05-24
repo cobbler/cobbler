@@ -1,5 +1,9 @@
 # Django settings for cobbler-web project.
 
+# This is the list of http server request names the site is allowed to serve for
+# Added for CVE-2016-9014
+ALLOWED_HOSTS = ['*']
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -51,7 +55,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'cobbler.web.urls'
 
 TEMPLATE_DIRS = (
-    '/usr/share/cobbler/web/templates',
+    '/usr/share/cobbler/web/cobbler_web/templates',
 )
 INSTALLED_APPS = (
     'django.contrib.auth',

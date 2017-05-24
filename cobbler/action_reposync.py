@@ -216,7 +216,7 @@ class RepoSync:
         Handle mirroring of directories using wget
         """
 
-        repo_mirror = repo.mirror
+        repo_mirror = repo.mirror.strip()
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for wget'd repositories")
@@ -253,7 +253,7 @@ class RepoSync:
         spacer = ""
         if not repo.mirror.startswith("rsync://") and not repo.mirror.startswith("/"):
             spacer = "-e ssh"
-        if not repo.mirror.endswith("/"):
+        if not repo.mirror.strip().endswith("/"):
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
@@ -267,20 +267,35 @@ class RepoSync:
 
     # ====================================================================================
 
+    def reposync_cmd(self):
+
+        """
+        Determine reposync command
+        """
+
+        cmd = None                # reposync command
+        if os.path.exists("/usr/bin/dnf"):
+            cmd = "/usr/bin/dnf reposync"
+        elif os.path.exists("/usr/bin/reposync"):
+            cmd = "/usr/bin/reposync"
+        else:
+            # warn about not having yum-utils.  We don't want to require it in the package because
+            # Fedora 22+ has moved to dnf.
+
+            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
+        return cmd
+
+    # ====================================================================================
+
     def rhn_sync(self, repo):
 
         """
         Handle mirroring of RHN repos.
         """
 
-        # FIXME? warn about not having yum-utils.  We don't want to require it in the package because
-        # RHEL4 and RHEL5U0 don't have it.
+        cmd = self.reposync_cmd()  # reposync command
 
-        if not os.path.exists("/usr/bin/reposync"):
-            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
-
-        cmd = ""                  # command to run
-        has_rpm_list = False      # flag indicating not to pull the whole repo
+        has_rpm_list = False       # flag indicating not to pull the whole repo
 
         # detect cases that require special handling
 
@@ -296,7 +311,7 @@ class RepoSync:
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
 
-        # how we invoke yum-utils depends on whether this is RHN content or not.
+        # how we invoke reposync depends on whether this is RHN content or not.
 
         # this is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
@@ -306,7 +321,7 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]      # everything after rhn://
-        cmd = "/usr/bin/reposync %s -r %s --download_path=%s" % (self.rflags, rest, self.settings.webdir + "/repo_mirror")
+        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, rest, self.settings.webdir + "/repo_mirror")
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -341,6 +356,32 @@ class RepoSync:
 
     # ====================================================================================
 
+    # This function translates yum repository options into the appropriate
+    # options for urlgrabber
+    def gen_urlgrab_ssl_opts(self, yumopts):
+        # use SSL options if specified in yum opts
+        urlgrab_ssl_opts = {}
+        if 'sslclientkey' in yumopts:
+            urlgrab_ssl_opts["ssl_key"] = yumopts['sslclientkey']
+        if 'sslclientcert' in yumopts:
+            urlgrab_ssl_opts["ssl_cert"] = yumopts['sslclientcert']
+        if 'sslcacert' in yumopts:
+            urlgrab_ssl_opts["ssl_ca_cert"] = yumopts['sslcacert']
+        # note that the default of urlgrabber is to verify the peer and host
+        # but the default here is NOT to verify them unless sslverify is
+        # explicitly set to 1 in yumopts
+        if 'sslverify' in yumopts:
+            if yumopts['sslverify'] == 1:
+                urlgrab_ssl_opts["ssl_verify_peer"] = True
+                urlgrab_ssl_opts["ssl_verify_host"] = True
+            else:
+                urlgrab_ssl_opts["ssl_verify_peer"] = False
+                urlgrab_ssl_opts["ssl_verify_host"] = False
+
+        return urlgrab_ssl_opts
+
+    # ====================================================================================
+
     def yum_sync(self, repo):
 
         """
@@ -348,21 +389,15 @@ class RepoSync:
         """
 
         # create the config file the hosts will use to access the repository.
-        repo_mirror = repo.mirror
-        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
+        repo_mirror = repo.mirror.strip()
+        dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name.strip())
         self.create_local_file(dest_path, repo)
 
         if not repo.mirror_locally:
             return
 
-        # warn about not having yum-utils.  We don't want to require it in the package because
-        # RHEL4 and RHEL5U0 don't have it.
-
-        if not os.path.exists("/usr/bin/reposync"):
-            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
-
-        cmd = ""                  # command to run
-        has_rpm_list = False      # flag indicating not to pull the whole repo
+        cmd = self.reposync_cmd()  # command to run
+        has_rpm_list = False       # flag indicating not to pull the whole repo
 
         # detect cases that require special handling
 
@@ -380,7 +415,7 @@ class RepoSync:
 
         if not has_rpm_list:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "/usr/bin/reposync %s --config=%s --repoid=%s --download_path=%s" % (self.rflags, temp_file, repo.name, self.settings.webdir + "/repo_mirror")
+            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" % (cmd, self.rflags, temp_file, repo.name, self.settings.webdir + "/repo_mirror")
             if repo.arch != "":
                 if repo.arch == "x86":
                     repo.arch = "i386"      # FIX potential arch errors
@@ -403,7 +438,12 @@ class RepoSync:
             # older yumdownloader sometimes explodes on --resolvedeps
             # if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
-            cmd = "/usr/bin/yumdownloader %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
+            cmd = ""
+            if os.path.exists("/usr/bin/dnf"):
+                cmd = "/usr/bin/dnf download"
+            else:
+                cmd = "/usr/bin/yumdownloader"
+            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (cmd, extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
 
         # now regardless of whether we're doing yumdownloader or reposync
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
@@ -416,15 +456,18 @@ class RepoSync:
         repodata_path = os.path.join(dest_path, "repodata")
 
         # grab repomd.xml and use it to download any metadata we can use
-        proxies = {}
-        proxies['http'] = self.settings.proxy_url_ext
-
+        proxies = None
+        if repo.proxy == '<<inherit>>':
+            proxies = {'http': self.settings.proxy_url_ext}
+        elif repo.proxy != '<<None>>' and repo.proxy != '':
+            proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
+        urlgrab_ssl_opts = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
-        except:
-            utils.die(self.logger, "failed to fetch %s" % src)
+            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+        except Exception as e:
+            utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
         # create our repodata directory now, as any extra metadata we're
         # about to download probably lives there
@@ -438,9 +481,9 @@ class RepoSync:
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
-                except:
-                    utils.die(self.logger, "failed to fetch %s" % src)
+                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+                except Exception as e:
+                    utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
@@ -544,8 +587,7 @@ class RepoSync:
         config_file = open(fname, "w+")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
-        if 'exclude' in repo.yumopts.keys():
-            self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+
         optenabled = False
         optgpgcheck = False
         if output:
@@ -578,8 +620,17 @@ class RepoSync:
             line = line.replace("@@server@@", http_server)
             config_file.write(line)
 
-            if repo.proxy != '':
-                config_file.write("proxy=%s\n" % repo.proxy)
+            config_proxy = None
+            if repo.proxy == '<<inherit>>':
+                config_proxy = self.settings.proxy_url_ext
+            elif repo.proxy != '' and repo.proxy != '<<None>>':
+                config_proxy = repo.proxy
+
+            if config_proxy is not None:
+                config_file.write("proxy=%s\n" % config_proxy)
+            if 'exclude' in repo.yumopts.keys():
+                self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
+                config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 
         if not optenabled:
             config_file.write("enabled=1\n")
@@ -587,6 +638,14 @@ class RepoSync:
         # FIXME: potentially might want a way to turn this on/off on a per-repo basis
         if not optgpgcheck:
             config_file.write("gpgcheck=0\n")
+            # user may have options specific to certain yum plugins
+            # add them to the file
+            for x in repo.yumopts:
+                config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
+                if x == "enabled":
+                    optenabled = True
+                if x == "gpgcheck":
+                    optgpgcheck = True
         config_file.close()
         return fname
 

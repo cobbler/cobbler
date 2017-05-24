@@ -23,10 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import time
 
-from cexceptions import CX
-import templar
-import utils
-from utils import _
+import cobbler.templar as templar
+import cobbler.utils as utils
+
+from cobbler.cexceptions import CX
+from cobbler.utils import _
 
 
 def register():
@@ -59,7 +60,7 @@ class IscManager:
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
-        /var/lib/cobbler/settings.
+        /etc/cobbler/settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -82,6 +83,10 @@ class IscManager:
         dhcp_tags = {"default": {}}
         yaboot = "/yaboot"
 
+        # FIXME: ding should evolve into the new dhcp_tags dict
+        ding = {}
+        ignore_macs = []
+
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
@@ -89,28 +94,46 @@ class IscManager:
             profile = system.get_conceptual_parent()
             distro = profile.get_conceptual_parent()
 
-            # if distro is None then the profile is really an image
-            # record!
-
+            # if distro is None then the profile is really an image record
             for (name, interface) in system.interfaces.iteritems():
 
                 # this is really not a per-interface setting
                 # but we do this to make the templates work
                 # without upgrade
                 interface["gateway"] = system.gateway
-
                 mac = interface["mac_address"]
+
                 if interface["interface_type"] in ("bond_slave", "bridge_slave", "bonded_bridge_slave"):
+
                     if interface["interface_master"] not in system.interfaces:
-                        # Can't write DHCP entry; master interface does not
-                        # exist
+                        # Can't write DHCP entry; master interface does not exist
                         continue
+
+                    if system.name not in ding:
+                        ding[system.name] = {interface["interface_master"]: []}
+
+                    if len(ding[system.name][interface["interface_master"]]) == 0:
+                        ding[system.name][interface["interface_master"]].append(mac)
+                    else:
+                        ignore_macs.append(mac)
+
                     ip = system.interfaces[interface["interface_master"]]["ip_address"]
-                    interface["ip_address"] = ip
+                    netmask = system.interfaces[interface["interface_master"]]["netmask"]
+                    dhcp_tag = system.interfaces[interface["interface_master"]]["dhcp_tag"]
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
-                    interface["if_gateway"] = system.interfaces[interface["interface_master"]]["if_gateway"]
+
+                    if ip is None or ip == "":
+                        for (nam2, int2) in system.interfaces.iteritems():
+                            if (nam2.startswith(interface["interface_master"] + ".") and int2["ip_address"] is not None and int2["ip_address"] != ""):
+                                    ip = int2["ip_address"]
+                                    break
+
+                    interface["ip_address"] = ip
+                    interface["netmask"] = netmask
                 else:
                     ip = interface["ip_address"]
+                    netmask = interface["netmask"]
+                    dhcp_tag = interface["dhcp_tag"]
                     host = interface["dns_name"]
 
                 if distro is not None:
@@ -150,8 +173,6 @@ class IscManager:
                     if not interface["netboot_enabled"] and interface['static']:
                         continue
 
-                interface["filename"] = "/pxelinux.0"
-                # can't use pxelinux.0 anymore
                 if distro is not None:
                     if distro.arch.startswith("ppc"):
                         if blended_system["boot_loader"] == "pxelinux":
@@ -161,9 +182,10 @@ class IscManager:
                         else:
                             interface["filename"] = yaboot
 
-                dhcp_tag = interface["dhcp_tag"]
                 if dhcp_tag == "":
-                    dhcp_tag = "default"
+                    dhcp_tag = blended_system["dhcp_tag"]
+                    if dhcp_tag == "":
+                        dhcp_tag = "default"
 
                 if dhcp_tag not in dhcp_tags:
                     dhcp_tags[dhcp_tag] = {
@@ -171,6 +193,13 @@ class IscManager:
                     }
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
+
+        # remove macs from redundant slave interfaces from dhcp_tags
+        # otherwise you get duplicate ip's in the installer
+        for dt in dhcp_tags.keys():
+            for m in dhcp_tags[dt].keys():
+                if m in ignore_macs:
+                    del dhcp_tags[dt][m]
 
         # we are now done with the looping through each interface of each system
         metadata = {

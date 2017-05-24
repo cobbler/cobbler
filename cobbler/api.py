@@ -788,10 +788,10 @@ class CobblerAPI:
         self.log("import_tree", [mirror_url, mirror_name, network_root, autoinstall_file, rsync_flags])
 
         # both --path and --name are required arguments
-        if mirror_url is None:
+        if mirror_url is None or not mirror_url:
             self.log("import failed.  no --path specified")
             return False
-        if mirror_name is None:
+        if mirror_name is None or not mirror_name:
             self.log("import failed.  no --name specified")
             return False
 
@@ -815,7 +815,7 @@ class CobblerAPI:
         if not mirror_url.endswith("/"):
             mirror_url = "%s/" % mirror_url
 
-        if mirror_url.startswith("http://") or mirror_url.startswith("ftp://") or mirror_url.startswith("nfs://"):
+        if mirror_url.startswith("http://") or mirror_url.startswith("https://") or mirror_url.startswith("ftp://") or mirror_url.startswith("nfs://"):
             # http mirrors are kind of primative.  rsync is better.
             # that's why this isn't documented in the manpage and we don't support them.
             # TODO: how about adding recursive FTP as an option?
@@ -853,12 +853,12 @@ class CobblerAPI:
 
             if not network_root.endswith("/"):
                 network_root += "/"
-            valid_roots = ["nfs://", "ftp://", "http://"]
+            valid_roots = ["nfs://", "ftp://", "http://", "https://"]
             for valid_root in valid_roots:
                 if network_root.startswith(valid_root):
                     break
             else:
-                self.log("Network root given to --available-as must be nfs://, ftp://, or http://")
+                self.log("Network root given to --available-as must be nfs://, ftp://, http://, or https://")
                 return False
 
             if network_root.startswith("nfs://"):
@@ -958,14 +958,14 @@ class CobblerAPI:
 
     def build_iso(self, iso=None,
                   profiles=None, systems=None, buildisodir=None, distro=None,
-                  standalone=None, source=None,
+                  standalone=None, airgapped=None, source=None,
                   exclude_dns=None, mkisofs_opts=None, logger=None):
         builder = action_buildiso.BuildIso(self._collection_mgr, logger=logger)
         builder.run(
             iso=iso,
             profiles=profiles, systems=systems,
             buildisodir=buildisodir, distro=distro,
-            standalone=standalone, source=source,
+            standalone=standalone, airgapped=airgapped, source=source,
             exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
         )
 
@@ -977,7 +977,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master=None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
+    def replicate(self, cobbler_master=None, port="80", distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="",
                   mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
@@ -985,6 +985,7 @@ class CobblerAPI:
         replicator = action_replicate.Replicate(self._collection_mgr, logger=logger)
         return replicator.run(
             cobbler_master=cobbler_master,
+            port=port,
             distro_patterns=distro_patterns,
             profile_patterns=profile_patterns,
             system_patterns=system_patterns,

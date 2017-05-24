@@ -6,15 +6,9 @@ server.
 Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
-import distutils.sysconfig
 import re
-import sys
 
-import utils
-
-plib = distutils.sysconfig.get_python_lib()
-mod_path = "%s/cobbler" % plib
-sys.path.insert(0, mod_path)
+import cobbler.utils as utils
 
 
 def register():

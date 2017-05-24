@@ -218,16 +218,21 @@ class Item(object):
             results.append(self.children[k])
         return results
 
-    def get_descendants(self):
+    def get_descendants(self, sort=False):
         """
         Get objects that depend on this object, i.e. those that
         would be affected by a cascading delete, etc.
+        With sort=True the list will be a walk of the tree,
+        e.g., distro -> [profile, sys, sys, profile, sys, sys]
         """
         results = []
-        kids = self.get_children(sorted=False)
-        results.extend(kids)
+        kids = self.get_children(sorted=sort)
+        if not sort:
+            results.extend(kids)
         for kid in kids:
-            grandkids = kid.get_descendants()
+            if sort:
+                results.append(kid)
+            grandkids = kid.get_descendants(sort=sort)
             results.extend(grandkids)
         return results
 
@@ -386,9 +391,12 @@ class Item(object):
         if "interfaces" in data:
             if key in ["mac_address", "ip_address", "netmask", "virt_bridge",
                        "dhcp_tag", "dns_name", "static_routes", "interface_type",
-                       "interface_master", "bonding_opts", "bridge_opts"]:
+                       "interface_master", "bonding_opts", "bridge_opts",
+                       "interface"]:
                 key_found_already = True
                 for (name, interface) in data["interfaces"].iteritems():
+                    if value == name:
+                        return True
                     if value is not None and key in interface:
                         if self.__find_compare(interface[key], value):
                             return True
