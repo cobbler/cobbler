@@ -1,0 +1,64 @@
+{% extends 'master.tmpl' %}
+{% block content %}
+
+{% if not editable %}
+  <blockquote>
+    NOTE: You do not have permission to make changes to this
+    kickstart template and can only read it.  It is possible that
+    other Cobbler users has secured permissions on Cobbler
+    profiles/systems that depend on this template -- changing this
+    template would ultimately affect those profile/system records which
+    you do not have access to.  Alternatively, you may not have access
+    to edit *any* kickstart templates.  Contact your Cobbler server administrator
+    if you need to resolve this.
+  </blockquote>
+  <br />
+{% else %}
+  <h1>{% ifequal editmode 'edit' %}Editing{% else %}Adding{% endifequal %} a Kickstart Template</h1>
+  <hr />
+  <form id="ksform" method="post" action="/cobbler_web/ksfile/save">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="ksdata" class="control-label">{% if ksfile_name %}Editing: {{ ksfile_name }}{% else %}Filename:{% endif %}</label>
+      {% ifnotequal editmode 'edit' %}
+        <input type="text" class="form-control" name="ksfile_name" id="ksfile_name" />
+        <label class="help-block">Example:  foo.ks (to be saved in /var/lib/cobbler/kickstarts/)</label>
+      {% else %}
+        <input type="hidden" name="ksfile_name" value="{{ ksfile_name }}" />
+      {% endifnotequal %}
+      
+      <textarea name="ksdata" id="ksdata" class="form-control" rows="18">{{ ksdata }}</textarea>
+    </div>
+      
+    {% if deleteable %}
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="delete1" value="delete1" />
+          Delete
+        </label>
+      </div>
+
+      <div class="checkbox">
+        <label class="delete" for="delete2">
+          <input type="checkbox" name="delete2" value="delete2" />
+          Really?
+        </label>
+      </div>
+
+      <span class="help-block">Check both buttons and click save to delete this object</span>
+    {% else %}
+      {% ifequal editmode "edit" %}
+        <p class="text-danger">NOTE: This kickstart template is currently in-use.</p>
+      {% endifequal %}
+    {% endif %}
+    {% if editable %}
+      <div class="btn-toolbar">
+        <input type="hidden" name="editmode" value="{{ editmode }}" />
+        <input class="btn btn-primary" type="submit" name="submit" value="Save" />
+        <input class="btn btn-primary" type="reset" name="reset" value="Reset" />
+      </div>
+    {% endif %}
+    </ol>
+  </form>
+{% endif %}
+{% endblock content %}

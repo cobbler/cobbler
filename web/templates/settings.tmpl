@@ -9,18 +9,17 @@
   After making changes <a href="/cobbler_web/sync">sync</a> or run "cobbler sync" from the command line then restart cobblerd.
 </p>
 {% if settings %}
-<table id="listitems" cellspacing="0">
+
+<table class="table table-hover table-responsive">
   <thead>
     <tr>
-      <th></th>
-      <th>Setting</th>
+      <th class="col-xs-6">Setting</th>
       <th>Value</th>
     </tr>
   </thead>
   <tbody>
   {% for setting,value in settings %}
     <tr class="{% cycle 'rowodd' 'roweven' %}">
-      <td></td>
       <td><a href="/cobbler_web/setting/edit/{{ setting }}">{{ setting }}</a></td>
       <td>{% if value %}{{ value }}{% else %}None{% endif %}</td>
     </tr>
