@@ -10,6 +10,8 @@ rpm-build
 release
 build
 MANIFEST
+AUTHORS
+README
 TAGS
 tags
 .project
