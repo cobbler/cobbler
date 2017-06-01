@@ -182,7 +182,7 @@ class CobblerXMLRPCInterface:
             self.remote.api.dlcontent(self.options.get("force", False), self.logger)
         return self.__start_task(runner, token, "get_loaders", "Download Bootloader Content", options)
 
-    def background_sync(self, options, token):
+    def background_sync(self, token, **options):
         def runner(self):
             self.remote.api.sync(self.options.get("verbose", False), logger=self.logger)
         return self.__start_task(runner, token, "sync", "Sync", options)
