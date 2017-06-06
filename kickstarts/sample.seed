@@ -1,5 +1,7 @@
 # Mostly based on the Ubuntu installation guide
 # https://help.ubuntu.com/16.04/installation-guide/
+# Debian sample
+# https://www.debian.org/releases/stable/example-preseed.txt
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US
