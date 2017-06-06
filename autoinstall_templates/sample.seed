@@ -109,6 +109,14 @@ $SNIPPET('preseed_apt_repo_config')
 # authentication. Warning: Insecure, not recommended.
 # d-i debian-installer/allow_unauthenticated boolean true
 
+# Package selection
+# Default for minimal
+tasksel tasksel/first multiselect standard
+# Default for server
+# tasksel tasksel/first multiselect standard, web-server
+# Default for gnome-desktop
+# tasksel tasksel/first multiselect standard, gnome-desktop
+
 # Individual additional packages to install
 # wget is REQUIRED otherwise quite a few things won't work
 # later in the build (like late-command scripts)
