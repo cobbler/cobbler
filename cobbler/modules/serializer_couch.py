@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import yaml # PyYAML
 import simplejson
-import couch
+from cobbler import couch
 
 typez = [ "distro", "profile", "system", "image", "repo" ]
 couchdb = couch.Couch('127.0.0.1')

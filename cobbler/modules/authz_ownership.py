@@ -28,7 +28,7 @@ import ConfigParser
 import os
 
 from cobbler.utils import _
-from cexceptions import CX
+from cobbler.cexceptions import CX
 
 
 def register():
