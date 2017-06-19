@@ -36,8 +36,8 @@ d-i mirror/http/directory string $install_source_directory
 d-i mirror/http/proxy string
 
 #set $os_v = $getVar('os_version','')
-#if $os_v and $os_v.lower()[0] > 'p'
-# Required at least for 12.10+
+#if $breed == "ubuntu" and $os_v and ($os_v.lower()[0] > 'p' or $os_v.lower()[0] < 'd')
+# Required at least for ubuntu 12.10+ , so test os_v is higher than precise and lower than drapper
 d-i live-installer/net-image string http://$http_server/cobbler/links/$distro_name/install/filesystem.squashfs
 #end if
 
