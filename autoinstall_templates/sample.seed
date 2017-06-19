@@ -122,6 +122,13 @@ tasksel tasksel/first multiselect standard
 # later in the build (like late-command scripts)
 d-i pkgsel/include string ntp ssh wget
 
+# Debian needs this for the installer to avoid any question for grub
+# Please verify that it suit your needs as it may overwrite any usb stick
+#if $breed == "debian"
+d-i grub-installer/grub2_instead_of_grub_legacy boolean true
+d-i grub-installer/bootdev string default
+#end if
+
 # Use the following option to add additional boot parameters for the
 # installed system (if supported by the bootloader installer).
 # Note: options passed to the installer will be added automatically.
