@@ -11,6 +11,7 @@ d-i keyboard-configuration/xkb-keymap select us
 d-i keyboard-configuration/xkb-keymap select us
 # Disable automatic (interactive) keymap detection.
 d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/toggle select No toggling
 d-i keyboard-configuration/layoutcode string us
 d-i keyboard-configuration/variantcode string
 
