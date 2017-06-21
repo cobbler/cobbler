@@ -4,7 +4,7 @@
    rotate 4
    weekly
    postrotate
-      /sbin/service cobblerd condrestart > /dev/null
+      /sbin/service cobblerd condrestart > /dev/null 2>&1
    endscript
 }
 
