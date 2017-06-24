@@ -1,5 +1,7 @@
 # Mostly based on the Ubuntu installation guide
 # https://help.ubuntu.com/16.04/installation-guide/
+# Debian sample
+# https://www.debian.org/releases/stable/example-preseed.txt
 
 # Preseeding only locale sets language, country and locale.
 d-i debian-installer/locale string en_US
@@ -9,6 +11,7 @@ d-i keyboard-configuration/xkb-keymap select us
 d-i keyboard-configuration/xkb-keymap select us
 # Disable automatic (interactive) keymap detection.
 d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/toggle select No toggling
 d-i keyboard-configuration/layoutcode string us
 d-i keyboard-configuration/variantcode string
 
@@ -36,8 +39,8 @@ d-i mirror/http/directory string $install_source_directory
 d-i mirror/http/proxy string
 
 #set $os_v = $getVar('os_version','')
-#if $os_v and $os_v.lower()[0] > 'p'
-# Required at least for 12.10+
+#if $breed == "ubuntu" and $os_v and ($os_v.lower()[0] > 'p' or $os_v.lower()[0] < 'd')
+# Required at least for ubuntu 12.10+ , so test os_v is higher than precise and lower than drapper
 d-i live-installer/net-image string http://$http_server/cobbler/links/$distro_name/install/filesystem.squashfs
 #end if
 
@@ -107,10 +110,25 @@ $SNIPPET('preseed_apt_repo_config')
 # authentication. Warning: Insecure, not recommended.
 # d-i debian-installer/allow_unauthenticated boolean true
 
+# Package selection
+# Default for minimal
+tasksel tasksel/first multiselect standard
+# Default for server
+# tasksel tasksel/first multiselect standard, web-server
+# Default for gnome-desktop
+# tasksel tasksel/first multiselect standard, gnome-desktop
+
 # Individual additional packages to install
 # wget is REQUIRED otherwise quite a few things won't work
 # later in the build (like late-command scripts)
 d-i pkgsel/include string ntp ssh wget
+
+# Debian needs this for the installer to avoid any question for grub
+# Please verify that it suit your needs as it may overwrite any usb stick
+#if $breed == "debian"
+d-i grub-installer/grub2_instead_of_grub_legacy boolean true
+d-i grub-installer/bootdev string default
+#end if
 
 # Use the following option to add additional boot parameters for the
 # installed system (if supported by the bootloader installer).
