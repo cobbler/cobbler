@@ -594,7 +594,7 @@ class CobblerCLI:
             self.parser.add_option("--autoinstall", dest="autoinstall_file", help="assign this autoinstall file")
             self.parser.add_option("--rsync-flags", dest="rsync_flags", help="pass additional flags to rsync")
             (options, args) = self.parser.parse_args()
-            if options.path:
+            if options.path and "rsync://" not in options.path:
                 # convert relative path to absolute path
                 options.path = os.path.abspath(options.path)
             task_id = self.start_task("import", options)
