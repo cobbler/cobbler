@@ -7,40 +7,57 @@ Subject: $subject (profile: $name, ip: $boot_ip)
 #end if
 
 Cobbler build report.
-=======================================================
-https://cobbler.github.io
+===========================================================
+https://cobbler.github.io/
 
 #if $getVar("interfaces","") != "":
-
-system name : $name
-profile     : $profile
-distro      : $distro
-
+ System Name: $name
+     Profile: $profile
+      Distro: $distro
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#if $getVar("comment","") != ""
+Details:
+$comment
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#end if
 #for $intf in $interfaces.keys():
     #set $mac = $interfaces[$intf].get("mac_address","")
     #set $ip  = $interfaces[$intf].get("ip_address","")
     #set $static = $interfaces[$intf].get("static","")
-interface: $intf
-mac:       $mac
-ip:        $ip
-static:    $static
 
+   Interface: $intf
+         MAC: $mac
+          IP: $ip
+      Static: $static
 #end for
 #else
-profile : $name
-distro  : $distro
-
+     Profile: $name
+      Distro: $distro
 #end if
 
-kernel_options: $getVar("kernel_options","")
-
-#if $autoinstall.startswith("/") or $autoinstall == "":
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#if $kickstart.startswith("/") or $kickstart == "":
 #if $getVar("interfaces","") != ""
-autoinstall=http://$server/cblr/svc/op/ks/system/$name
+kickstart=http://$server/cblr/svc/op/ks/system/$name
 #else
-autoinstall=http://$server/cblr/svc/op/ks/profile/$name
+kickstart=http://$server/cblr/svc/op/ks/profile/$name
 #end if
 #else
-autoinstall=$autoinstall
+Kickstart used:
+    $kickstart
 #end if
+Kernel Options Used:
+    $getVar("kernel_options","")
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#set $myParmList=['initrd' ,'kernel' ,'kernel_options' ,'kernel_options_post' ,'kickstart' ,'ks_meta' ,'mgmt_parameters']
+#for $myParm in $myParmList
+#set $_param='Unknown'
+#if $varExists($myParm)
+#set $_param=$getVar($myParm)
+#end if
+Paramter: $myParm:
+    $_param
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#end for
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
