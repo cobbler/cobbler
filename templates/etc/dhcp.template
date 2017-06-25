@@ -34,6 +34,8 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
                   filename "grub/grub-x86.efi";
           } else if option pxe-system-type = 00:07 {
                   filename "grub/grub-x86_64.efi";
+          } else if option pxe-system-type = 00:09 {
+                  filename "grub/grub-x86_64.efi";
           } else {
                   filename "pxelinux.0";
           }
