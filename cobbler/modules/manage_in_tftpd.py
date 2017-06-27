@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import glob
 import os.path
 import shutil
-import tftpgen
 
 import cobbler.clogger as clogger
 import cobbler.templar as templar
 import cobbler.utils as utils
+import cobbler.tftpgen as tftpgen
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
