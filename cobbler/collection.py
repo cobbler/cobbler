@@ -25,6 +25,7 @@ import os
 from threading import Lock
 
 from cobbler import action_litesync
+import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
 from cobbler import item_distro
@@ -293,6 +294,7 @@ class Collection:
         during deserialization, in which case extra semantics around the add don't really apply.
         So, in that case, don't run any triggers and don't deal with any actual files.
         """
+        item_base.Item.remove_from_cache(ref)
         if ref is None:
             raise CX("Unable to add a None object")
         if ref.name is None:
