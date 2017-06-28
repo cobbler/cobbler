@@ -23,6 +23,7 @@ import shutil
 
 import cobbler.clogger as clogger
 import cobbler.templar as templar
+import cobbler.tftpgen as tftpgen
 import cobbler.utils as utils
 import cobbler.tftpgen as tftpgen
 
