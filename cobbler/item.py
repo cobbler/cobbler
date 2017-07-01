@@ -87,6 +87,21 @@ class Item(object):
     """
     An Item is a serializable thing that can appear in a Collection
     """
+    converted_cache = {}
+
+    @classmethod
+    def get_from_cache(cls, ref):
+        return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.name)
+
+    @classmethod
+    def set_cache(cls, ref, value):
+        if not ref.COLLECTION_TYPE in cls.converted_cache:
+            cls.converted_cache[ref.COLLECTION_TYPE] = {}
+        cls.converted_cache[ref.COLLECTION_TYPE][ref.name] = value
+
+    @classmethod
+    def remove_from_cache(cls, ref):
+        cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.name, None)
 
     TYPE_NAME = "generic"
 
@@ -137,10 +152,14 @@ class Item(object):
         if isinstance(from_obj, basestring):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
-            if fnmatch.fnmatch(from_obj.lower(), from_search.lower()):
-                return True
+            from_obj_lower = from_obj.lower()
+            from_search_lower = from_search.lower()
+            # it's much faster to not use fnmatch if it's not needed
+            if not '?' in from_search_lower and not '*' in from_search_lower and not '[' in from_search_lower:
+                match = from_obj_lower == from_search_lower
             else:
-                return False
+                match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
+            return match
         else:
             if isinstance(from_search, basestring):
                 if isinstance(from_obj, list):
@@ -195,7 +214,13 @@ class Item(object):
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
     def to_dict(self):
-        return utils.to_dict_from_fields(self, self.get_fields())
+        # return utils.to_dict_from_fields(self, self.get_fields())
+
+        value = self.get_from_cache(self)
+        if value is None:
+            value = utils.to_dict_from_fields(self, self.get_fields())
+        self.set_cache(self, value)
+        return value
 
     def to_string(self):
         return utils.to_string_from_fields(self, self.get_fields())
