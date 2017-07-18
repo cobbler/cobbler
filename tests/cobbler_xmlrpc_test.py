@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 import random
 import re
 import sys
@@ -580,6 +581,7 @@ class Test_DistroProfileSystem(CobblerXmlRpcTest):
         self._remove_system()
         self._remove_profile()
         self._remove_distro()
+
 
 class Test_Repo(CobblerXmlRpcTest):
 
@@ -1281,6 +1283,108 @@ class Test_NonObjectCalls(CobblerXmlRpcTest):
         hexa = "[0-9A-Fa-f]{2}"
         match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
         self.assertTrue(match_obj)
+
+
+class Test_GenerateScript(CobblerXmlRpcTest):
+    """
+    Test remote calls related to distros, profiles and systems
+    These item types are tested together because they have inter-dependencies
+    """
+
+    def _create_distro(self):
+        distro = self.remote.new_distro(self.token)
+        self.remote.modify_distro(distro, 'arch', 'x86_64', self.token)
+        self.remote.modify_distro(distro, 'breed', 'suse', self.token)
+        self.remote.modify_distro(distro, 'initrd', self.fk_initrd, self.token)
+        self.remote.modify_distro(distro, 'name', self.distro_name, self.token)
+        self.remote.modify_distro(distro, 'kernel', self.fk_kernel, self.token)
+        self.remote.save_distro(distro, self.token)
+        return distro
+
+    def _create_profile(self, name):
+        profile = self.remote.new_profile(self.token)
+        self.remote.modify_profile(profile, 'name', name, self.token)
+        self.remote.modify_profile(profile, 'distro', self.distro_name, self.token)
+        self.remote.save_profile(profile, self.token)
+        return profile
+
+    @classmethod
+    def setUpClass(cls):
+        cls.scripts_path = '/var/lib/cobbler/autoinstall_scripts'
+        os.mkdir(cls.scripts_path)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.scripts_path)
+
+    def setUp(self):
+        super(Test_GenerateScript, self).setUp()
+        # Create temp dir
+        self.topdir = "/tmp/cobbler_test"
+        try:
+            os.makedirs(self.topdir)
+        except:
+            pass
+
+        self.fk_initrd = os.path.join(self.topdir,  FAKE_INITRD)
+        self.fk_kernel = os.path.join(self.topdir,  FAKE_KERNEL)
+        self.template = os.path.join(self.scripts_path, 'testtemplate0')
+        for fn in [self.fk_initrd, self.fk_kernel, self.template]:
+            with open(fn, "a"):
+                os.utime(fn, None)
+
+        self.template_link = os.path.join(self.scripts_path, 'link-to-template')
+
+        with open(self.template, 'ab') as f:
+            f.write('template-content')
+
+        os.symlink(self.template, self.template_link)
+
+        self.distro_name = 'testdistro0'
+        self.distro = self._create_distro()
+        self.profile = self._create_profile('testprofile0')
+
+    def tearDown(self):
+        super(Test_GenerateScript, self).tearDown()
+        self.remote.remove_distro(self.distro_name, self.token)  # removes the profile as well
+        shutil.rmtree(self.topdir)
+        os.remove(self.template)
+        os.remove(self.template_link)
+
+    def test_generate_script_using_existing_template(self):
+        """
+        Test: generate script using existing template
+        """
+        tprint("generate_script")
+        response = self.remote.generate_script("testprofile0", None, "testtemplate0")
+        self.assertEqual(response, "template-content")
+
+    def test_generate_script_using_missing_template(self):
+        """
+        Test: generate script ussing non-existing template
+        """
+        tprint("generate_script")
+        script_name = "non-existing-name"
+        response = self.remote.generate_script("testprofile0", None, script_name)
+        self.assertEqual(response, "# script %s not found" % script_name)
+
+    def test_generate_script_using_malicious_relative_path(self):
+        """
+        Test: generate script using malicious relative path
+        """
+        tprint("generate_script")
+        script_name = "../../../../etc/passwd"
+        response = self.remote.generate_script("testprofile0", None, script_name)
+        self.assertEqual(response, "# script %s not found" % script_name)
+
+    def test_generate_script_using_symlink(self):
+        """
+        Test: generate script using symlink
+        """
+        tprint("generate_script")
+        script_name = self.template_link
+        response = self.remote.generate_script("testprofile0", None, script_name)
+        self.assertEqual(response, "template-content")
 
 
 if __name__ == '__main__':

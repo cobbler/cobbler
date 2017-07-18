@@ -1063,9 +1063,16 @@ class TFTPGen:
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.normpath(os.path.join("/var/lib/cobbler/autoinstall_scripts", script_name))
-        if not os.path.exists(template):
-            return "# script template %s not found" % script_name
+        scripts_path = '/var/lib/cobbler/autoinstall_scripts'
+        template = os.path.normpath(os.path.join(scripts_path, script_name))
+
+        available_scripts = []
+        for root, folders, files in os.walk(scripts_path):
+            for file in files:
+                available_scripts.append(os.path.join(root, file))
+
+        if not template in available_scripts:
+            return "# script %s not found" % script_name
 
         template_fh = open(template)
         template_data = template_fh.read()
