@@ -896,7 +896,7 @@
    "esxi65": {
     "signatures":["tboot.b00"],
     "version_file":"vmware-esx-base-osl\\.txt",
-    "version_file_regex":"^ESXi v6\\.5\\.0.*$",
+    "version_file_regex":"^(VMware )?ESXi (v)?6\\.5.*$",
     "kernel_arch":"tools\\.t00",
     "kernel_arch_regex":"^.*(x86_64).*$",
     "supported_arches":["x86_64"],
