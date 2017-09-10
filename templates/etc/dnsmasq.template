@@ -9,7 +9,7 @@ read-ethers
 addn-hosts = /var/lib/cobbler/cobbler_hosts
 
 dhcp-range=192.168.1.5,192.168.1.200
-dhcp-option=3,$next_server
+dhcp-option=66,$next_server
 dhcp-lease-max=1000
 dhcp-authoritative
 dhcp-boot=pxelinux.0
