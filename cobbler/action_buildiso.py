@@ -238,7 +238,7 @@ class BuildIso:
                 append_line += " ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
-                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["autoinstall"]
+                append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["autoinstall"]
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " mirror/http/proxy=%s" % data["proxy"]
                 # hostname is required as a parameter, the one in the preseed is not respected
