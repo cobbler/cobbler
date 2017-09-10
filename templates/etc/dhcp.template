@@ -54,6 +54,11 @@ group {
             #set iface = $dhcp_tags[$dhcp_tag][$mac]
             #set mac_dhcp_format = netaddr.EUI($mac,dialect=netaddr.mac_unix)
     host $iface.name {
+        #if $iface.interface_type == "infiniband":
+        option dhcp-client-identifier = $mac;
+        #else
+        hardware ethernet $mac_dhcp_format;
+        #end if
         hardware ethernet $mac_dhcp_format;
         #if $iface.ip_address:
         fixed-address $iface.ip_address;
