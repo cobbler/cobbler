@@ -229,7 +229,7 @@ class BuildIso:
                 append_line += " ks=%s" % data["kickstart"]
 
              if dist.breed in ["ubuntu","debian"]:
-                append_line += " auto-install/enable=true url=%s netcfg/disable_dhcp=true" % data["kickstart"]
+                append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["kickstart"]
                 if data.has_key("proxy") and data["proxy"] != "":
                     append_line += " mirror/http/proxy=%s" % data["proxy"]
                 # hostname is required as a parameter, the one in the preseed is not respected
