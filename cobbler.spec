@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.8.1
+Version: 2.8.2
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -412,6 +412,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Sat Sep 16 2017 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.8.2 release
 * Wed May 24 2017 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.8.1 release
 * Wed Nov 16 2016 Jörgen Maas <jorgen.maas@gmail.com>
