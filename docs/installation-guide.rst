@@ -14,7 +14,7 @@ Prerequisites
 Packages
 ========
 
-Please note that installing any of the packages here via a package manager (such as yum or apt) can and will require a large number of ancilary packages, which we do not document here. The package definition should automatically pull these packages in and install them along with Cobbler, however it is always best to verify these requirements have been met prior to installing cobbler or any of its components.
+Please note that installing any of the packages here via a package manager (such as dnf/yum or apt) can and will require a large number of ancilary packages, which we do not document here. The package definition should automatically pull these packages in and install them along with Cobbler, however it is always best to verify these requirements have been met prior to installing cobbler or any of its components.
 
 First and foremost, Cobbler requires Python. Any version over 2.7 should work. Cobbler also requires the installation of the following packages:
 
@@ -58,95 +58,16 @@ Installation
 
 Cobbler is available for installation for many Linux variants through their native packaging systems. However, the Cobbler project also provides packages for all supported distributions which is the preferred method of installation.
 
-Supported packages
-==================
+Packages
+========
 
-Fedora
-######
-
-First, get the Cobbler repo file:
-
-.. code-block:: none
-
-    # cd /etc/yum.repos.d
-    # curl -o cobbler30.repo http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/Fedora_20/home:libertas-ict:cobbler30.repo
-    # yum update
-
-
-Then install Cobbler:
-
-.. code-block:: none
-
-    # yum install cobbler cobbler-web
-
-
-RHEL / CentOS
-#############
-
-Make sure you have the EPEL repository enabled on your system:
-
-.. code-block:: none
-
-    # yum repolist
-    Loaded plugins: fastestmirror
-    Loading mirror speeds from cached hostfile
-     * base: centos.mirror.triple-it.nl
-     * epel: mirror.i3d.net
-     * extras: centos.mirror.triple-it.nl
-     * updates: mirror.amsiohosting.net
-    repo id                       repo name                                                    status
-    !base/7/x86_64                CentOS-7 - Base                                              8,465
-    !epel/x86_64                  Extra Packages for Enterprise Linux 7 - x86_64               5,709
-    !extras/7/x86_64              CentOS-7 - Extras                                            30
-    !updates/7/x86_64             CentOS-7 - Updates                                           705
-    repolist: 14,909
-
-
-Then, get the Cobbler repo file:
-
-.. code-block:: none
-
-    # cd /etc/yum.repos.d
-    # curl -o cobbler30.repo http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/CentOS_CentOS-7/home:libertas-ict:cobbler30.repo
-    # yum update
-
-
-Then install Cobbler:
-
-.. code-block:: none
-
-    # yum install cobbler cobbler-web
-
-
-openSUSE
-########
-
-TBD
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/openSUSE_13.1/home:libertas-ict:cobbler30.repo
-
-
-
-
-
-Debian
-######
-
-TBD
-
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/Debian_7.0/
-
-Ubuntu
-######
-
-TBD
-
-http://download.opensuse.org/repositories/home:/libertas-ict:/cobbler30/xUbuntu_14.04/
+We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
 
 
 Packages from source
 ====================
 
-It is also possible to build packages directly from the source tree.
+For some platforms it's also possible to build packages directly from the source tree.
 
 RPM
 ###
@@ -184,7 +105,6 @@ To install cobbler from source on Debian Squeeze, the following steps need to be
     $ a2enmod proxy_http
     $ a2enmod rewrite
 
-    $ ln -s /usr/local/lib/python2.6/dist-packages/cobbler /usr/lib/python2.6/dist-packages/
     $ ln -s /srv/tftp /var/lib/tftpboot
 
     $ chown www-data /var/lib/cobbler/webui_sessions

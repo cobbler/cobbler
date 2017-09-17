@@ -23,20 +23,21 @@ Once we merge in your pull request, you can remove the branch from your repo if 
 Setup
 +++++
 
-The preferred development platform is CentOS 7, you will also need the EPEL repository.
-Get the latest epel-release RPM from ``http://download.fedoraproject.org/pub/epel/7/x86_64/repoview/epel-release.html``
+The preferred development platform is the latest version of Fedora and/or CentOS. You'll also have to disable SELinux to get Cobbler up and running.
+
+For CentOS you will need the EPEL repository: ``http://download.fedoraproject.org/pub/epel/7/x86_64/repoview/epel-release.html``
 
 Install development dependencies:
 
 .. code-block:: none
 
-    # yum install python-devel pyflakes python-pep8 python-sphinx rpm-build
+    # yum install git python-devel pyflakes python-pep8 python-sphinx rpm-build
 
 Install runtime dependencies:
 
 .. code-block:: none
 
-    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah httpd mod_wsgi
+    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah httpd mod_wsgi mod_ssl python-urlgrabber.noarch
 
 Initially, to run Cobbler without using packages:
 
@@ -88,7 +89,7 @@ You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.n
 Contributing to the website
 +++++++++++++++++++++++++++
 
-The github-based git repository for the http://cobbler.github.io website itself is at https://github.com/cobbler/cobbler.github.io.
+The github-based git repository for the https://cobbler.github.io website itself is at https://github.com/cobbler/cobbler.github.io.
 
 If you want to contribute changes to the website, you will need jekyll (http://jekyllrb.com).
 
