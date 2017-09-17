@@ -578,7 +578,7 @@ class BuildIso:
     def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, mkisofs_opts=None):
 
         # the airgapped option implies standalone
-        if airgapped is not None and not standalone:
+        if airgapped is True:
             standalone = True
 
         # the distro option is for stand-alone builds only

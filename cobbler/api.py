@@ -51,6 +51,7 @@ from cobbler import power_manager
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
+from cobbler import autoinstallgen
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -146,6 +147,7 @@ class CobblerAPI:
             # versus reusing this one, which has the wrong logger
             # (most likely) for background tasks.
 
+            self.autoinstallgen = autoinstallgen.AutoInstallationGen(self._collection_mgr)
             self.yumgen = yumgen.YumGen(self._collection_mgr)
             self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
             self.power_mgr = power_manager.PowerManager(self, self._collection_mgr)
