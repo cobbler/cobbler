@@ -648,7 +648,19 @@ class BuildIso:
         if not os.path.exists(chain):
             chain = "/usr/lib/syslinux/chain.c32"
 
-        files = [isolinuxbin, menu, chain]
+        ldlinux = "/usr/share/syslinux/ldlinux.c32"
+        if not os.path.exists(ldlinux):
+            ldlinux = "/usr/lib/syslinux/ldlinux.c32"
+
+        libcom32 = "/usr/share/syslinux/libcom32.c32"
+        if not os.path.exists(libcom32):
+            ldlinux = "/usr/lib/syslinux/libcom32.c32"
+
+        libutil = "/usr/share/syslinux/libutil.c32"
+        if not os.path.exists(libutil):
+            ldlinux = "/usr/lib/syslinux/libutil.c32"
+
+        files = [ isolinuxbin, menu, chain, ldlinux, libcom32, libutil ]
         for f in files:
             if not os.path.exists(f):
                 utils.die(self.logger, "Required file not found: %s" % f)

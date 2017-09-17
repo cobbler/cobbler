@@ -2,10 +2,8 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 18, 19, 20
-# - RHEL: 7
-# - CentOS: 7
-# - Scientific Linux: 7
+# - Fedora: 26
+# - Enterprise Linux (RHEL/CentOS/SL): 7
 # - OpenSuSE: 12.3, 13.1, 13.2, Factory, Tumbleweed
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
@@ -66,7 +64,7 @@ Requires: python-netaddr
 Requires: python-simplejson
 Requires: python-urlgrabber
 Requires: rsync
-Requires: syslinux
+Requires: syslinux >= 6
 Requires: logrotate
 
 %if 0%{?fedora} < 23 || 0%{?rhel} >= 7
