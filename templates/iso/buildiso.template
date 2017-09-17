@@ -1,4 +1,4 @@
-DEFAULT MENU
+DEFAULT menu
 PROMPT 0
 MENU TITLE Cobbler | https://cobbler.github.io
 TIMEOUT 200
