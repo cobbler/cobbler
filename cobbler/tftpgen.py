@@ -96,7 +96,6 @@ class TFTPGen:
                 '/usr/lib/syslinux/ldlinux.c32',
                 dst, api=self.api, cache=False, logger=self.logger)
 
-
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
             '/var/lib/cobbler/loaders/yaboot', dst,

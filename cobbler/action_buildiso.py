@@ -660,7 +660,7 @@ class BuildIso:
         if not os.path.exists(libutil):
             ldlinux = "/usr/lib/syslinux/libutil.c32"
 
-        files = [ isolinuxbin, menu, chain, ldlinux, libcom32, libutil ]
+        files = [isolinuxbin, menu, chain, ldlinux, libcom32, libutil]
         for f in files:
             if not os.path.exists(f):
                 utils.die(self.logger, "Required file not found: %s" % f)
