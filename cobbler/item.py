@@ -95,7 +95,7 @@ class Item(object):
 
     @classmethod
     def set_cache(cls, ref, value):
-        if not ref.COLLECTION_TYPE in cls.converted_cache:
+        if ref.COLLECTION_TYPE not in cls.converted_cache:
             cls.converted_cache[ref.COLLECTION_TYPE] = {}
         cls.converted_cache[ref.COLLECTION_TYPE][ref.name] = value
 
@@ -155,7 +155,7 @@ class Item(object):
             from_obj_lower = from_obj.lower()
             from_search_lower = from_search.lower()
             # it's much faster to not use fnmatch if it's not needed
-            if not '?' in from_search_lower and not '*' in from_search_lower and not '[' in from_search_lower:
+            if '?' not in from_search_lower and '*' not in from_search_lower and '[' not in from_search_lower:
                 match = from_obj_lower == from_search_lower
             else:
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
