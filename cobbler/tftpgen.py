@@ -63,7 +63,7 @@ class TFTPGen:
         grub_dst = os.path.join(dst, "grub")
         boot_dst = os.path.join(dst, "boot/grub")
 
-        # copy syslinux from one of two locations
+        # copy pxelinux from one of two locations
         try:
             try:
                 utils.copyfile_pattern(
@@ -72,6 +72,9 @@ class TFTPGen:
                 utils.copyfile_pattern(
                     '/var/lib/cobbler/loaders/menu.c32',
                     dst, api=self.api, cache=False, logger=self.logger)
+                utils.copyfile_pattern(
+                    '/var/lib/cobbler/loaders/ldlinux.c32',
+                    dst, api=self.api, cache=False, logger=self.logger)
             except:
                 utils.copyfile_pattern(
                     '/usr/share/syslinux/pxelinux.0',
@@ -79,7 +82,9 @@ class TFTPGen:
                 utils.copyfile_pattern(
                     '/usr/share/syslinux/menu.c32',
                     dst, api=self.api, cache=False, logger=self.logger)
-
+                utils.copyfile_pattern(
+                    '/usr/share/syslinux/ldlinux.c32',
+                    dst, api=self.api, cache=False, logger=self.logger)
         except:
             utils.copyfile_pattern(
                 '/usr/lib/syslinux/pxelinux.0',
@@ -87,6 +92,10 @@ class TFTPGen:
             utils.copyfile_pattern(
                 '/usr/lib/syslinux/menu.c32',
                 dst, api=self.api, cache=False, logger=self.logger)
+            utils.copyfile_pattern(
+                '/usr/lib/syslinux/ldlinux.c32',
+                dst, api=self.api, cache=False, logger=self.logger)
+
 
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
