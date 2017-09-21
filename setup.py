@@ -692,6 +692,7 @@ if __name__ == "__main__":
             ("%scobbler/distro_mirror/config" % webroot, []),
             ("%scobbler/links" % webroot, []),
             ("%scobbler/misc" % webroot, []),
+            ("%scobbler/svc" % webroot, []),
             ("%scobbler/pub" % webroot, []),
             ("%scobbler/rendered" % webroot, []),
             ("%scobbler/images" % webroot, []),
