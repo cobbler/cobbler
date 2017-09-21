@@ -1,8 +1,50 @@
-cobbler (2.6.0-1.3) unstable; urgency=low
+cobbler (2.8.2-1) unstable; urgency=low
 
-  * Package "cobbler-nsupdate" for nsupdate module
+  * Maintenance release in the Cobbler 2.8 series
 
- --  Adrian Brzezinski <adrbxx@gmail.com>  Wed, 14 May 2014 08:23:38 +0200
+ --  Jeremy Brown <jwbrown77@yahoo.com>  Wed, 21 Sep 2017 09:30:00 -0700
+
+cobbler (2.6.7-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Wed, 31 Dec 2014 00:19:50 +0200
+
+cobbler (2.6.6-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Sun, 19 Oct 2014 00:19:50 +0200
+
+cobbler (2.6.5-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 15 Aug 2014 00:19:50 +0200
+
+cobbler (2.6.4-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 08 Aug 2014 00:19:50 +0200
+
+cobbler (2.6.3-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Fri, 18 Jul 2014 00:19:50 +0200
+
+cobbler (2.6.2-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Thu, 15 Jul 2014 00:19:50 +0200
+
+cobbler (2.6.1-1) unstable; urgency=low
+
+  * Maintenance release in the Cobbler 2.6 series
+
+ --  Jorgen Maas <jorgen.maas@gmail.com>  Thu, 22 May 2014 00:19:50 +0200
 
 cobbler (2.6.0-1.2) unstable; urgency=low
 
@@ -21,4 +63,5 @@ cobbler (2.6.0-1) unstable; urgency=low
   * Initial release. Orginal package splitted into two: cobbler and koan.
 
  -- Adrian Brzezinski <adrbxx@gmail.com>  Fri, 18 Apr 2014 18:24:22 +0200
+
 
