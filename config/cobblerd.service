@@ -1,0 +1,10 @@
+[Unit]
+Description=Cobbler daemon
+After=network.target tftp.socket httpd.service
+
+[Service]
+ExecStart=/usr/bin/cobblerd --no-daemonize
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
