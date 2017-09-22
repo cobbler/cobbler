@@ -6,7 +6,6 @@ import django
 ALLOWED_HOSTS = ['*']
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -49,7 +48,7 @@ if django.VERSION[0] == 1 and django.VERSION[1] < 4:
         'django.template.loaders.filesystem.load_template_source',
         'django.template.loaders.app_directories.load_template_source',
     )
-else:
+elif django.VERSION[0] == 1 and django.VERSION[1] < 8:
     TEMPLATE_LOADERS = (
         'django.template.loaders.filesystem.Loader',
         'django.template.loaders.app_directories.Loader',
@@ -75,21 +74,52 @@ else:
 
 ROOT_URLCONF = 'urls'
 
-TEMPLATE_DIRS = (
-    '/usr/share/cobbler/web/cobbler_web/templates',
-)
+if django.VERSION[0] == 1 and django.VERSION[1] < 8:
+
+    TEMPLATE_DEBUG = DEBUG
+
+    TEMPLATE_DIRS = (
+        '/usr/share/cobbler/web/cobbler_web/templates',
+    )
+
+    from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
+
+    TEMPLATE_CONTEXT_PROCESSORS += (
+         'django.core.context_processors.request',
+    )
+else:
+    TEMPLATES = [
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'DIRS': [
+                '/usr/share/cobbler/web/cobbler_web/templates',
+            ],
+            'OPTIONS': {
+                'context_processors': [
+                    'django.contrib.auth.context_processors.auth',
+                    'django.template.context_processors.debug',
+                    'django.template.context_processors.i18n',
+                    'django.template.context_processors.media',
+                    'django.template.context_processors.request',
+                    'django.template.context_processors.static',
+                    'django.template.context_processors.tz',
+                    'django.contrib.messages.context_processors.messages',
+                ],
+                'debug': DEBUG,
+                'loaders': [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]
+            },
+        },
+    ]
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'cobbler_web',
-)
-
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
-
-TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
 )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
