@@ -55,7 +55,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'cobbler.web.urls'
 
 TEMPLATE_DIRS = (
-    '/usr/share/cobbler/web/cobbler_web/templates',
+    '/usr/share/cobbler/web/templates',
 )
 INSTALLED_APPS = (
     'django.contrib.auth',
