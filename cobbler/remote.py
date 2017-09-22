@@ -226,19 +226,15 @@ class CobblerXMLRPCInterface:
                      
     def background_reposync(self, options, token):
         def runner(self):
-            # NOTE: WebUI passes in repos here, CLI passes only:
             repos = options.get("repos", [])
             only = options.get("only", None)
             if only is not None:
                 repos = [ only ] 
-
-            if len(repos) > 0:
+            if repos != "":
                 for name in repos:
-                    self.remote.api.reposync(tries=self.options.get("tries", 
-                        3), name=name, nofail=True, logger=self.logger)
-            else:
-                self.remote.api.reposync(tries=self.options.get("tries",3), 
-                        name=None, nofail=False, logger=self.logger)
+                    self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
+                else:
+                    self.remote.api.reposync(tries=self.options.get("tries",3), name=None, nofail=False, logger=self.logger)
             return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
