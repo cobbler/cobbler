@@ -27,7 +27,10 @@ import copy
 import socket
 import glob
 import random
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import shutil
 import string
 import traceback
@@ -44,6 +47,8 @@ import shlex
 import field_info
 import clogger
 import yaml
+import urllib2
+import simplejson
 
 try:
     import hashlib as fiver
@@ -348,6 +353,7 @@ def find_kernel(path):
     """
     if path is None:
         return None
+
     if os.path.isfile(path):
         #filename = os.path.basename(path)
         #if _re_kernel.match(filename):
@@ -355,8 +361,15 @@ def find_kernel(path):
         #elif filename == "vmlinuz":
         #   return path
         return path
+
     elif os.path.isdir(path):
         return find_highest_files(path,"vmlinuz",_re_kernel)
+
+    # For remote URLs we expect an absolute path, and will not
+    # do any searching for the latest:
+    elif file_is_remote(path) and remote_file_exists(path):
+        return path
+
     return None
 
 def remove_yum_olddata(path,logger=None):
@@ -386,6 +399,7 @@ def find_initrd(path):
     # FUTURE: try to match kernel/initrd pairs?
     if path is None:
         return None
+
     if os.path.isfile(path):
         #filename = os.path.basename(path)
         #if _re_initrd.match(filename):
@@ -393,8 +407,15 @@ def find_initrd(path):
         #if filename == "initrd.img" or filename == "initrd":
         #   return path
         return path
+
     elif os.path.isdir(path):
         return find_highest_files(path,"initrd.img",_re_initrd)
+
+    # For remote URLs we expect an absolute path, and will not
+    # do any searching for the latest:
+    elif file_is_remote(path) and remote_file_exists(path):
+        return path
+
     return None
 
 
@@ -403,16 +424,91 @@ def find_kickstart(url):
     Check if a kickstart url looks like an http, ftp, nfs or local path.
     If a local path is used, cobbler will copy the kickstart and serve
     it over http.
+
+    Return None if the url format does not look valid.
     """
     if url is None:
         return None
     x = url.lower()
-    for y in ["http://","nfs://","ftp://","/"]:
+    for y in ["http://", "nfs://", "ftp://", "/"]:
        if x.startswith(y):
            if x.startswith("/") and not os.path.isfile(url):
                return None
            return url
     return None
+
+
+def read_file_contents(file_location, logger=None, fetch_if_remote=False):
+    """
+    Reads the contents of a file, which could be referenced locally
+    or as a URI.
+
+    Returns None if file is remote and templating of remote files is 
+    disabled.
+
+    Throws a FileNotFoundException if the file does not exist at the
+    specified location.
+    """
+
+    # Local files:
+    if file_location.startswith("/"):
+
+        if not os.path.exists(file_location):
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
+        try:
+            f = open(file_location)
+            data = f.read()
+            f.close()
+            return data
+        except:
+            log_exc(logger)
+            raise
+
+    # Remote files:
+    if not fetch_if_remote:
+        return None
+
+    if file_is_remote(file_location):
+        try:
+            handler = urllib2.urlopen(file_location)
+            data = handler.read()
+            handler.close()
+            return data
+        except urllib2.HTTPError:
+            # File likely doesn't exist
+            if logger:
+                logger.warning("File does not exist: %s" % file_location)
+            raise FileNotFoundException("%s: %s" % (_("File not found"), 
+                file_location))
+
+
+def remote_file_exists(file_url):
+    """ Return True if the remote file exists. """
+    try:
+        handler = urllib2.urlopen(file_url)
+        handler.close()
+        return True
+    except urllib2.HTTPError:
+        # File likely doesn't exist
+        return False
+
+
+def file_is_remote(file_location):
+    """ 
+    Returns true if the file is remote and referenced via a protocol
+    we support.
+    """
+    # TODO: nfs and ftp ok too?
+    file_loc_lc = file_location.lower()
+    for prefix in ["http://"]:
+        if file_loc_lc.startswith(prefix):
+            return True
+    return False
+
 
 def input_string_or_list(options):
     """
@@ -423,7 +519,7 @@ def input_string_or_list(options):
        return "<<inherit>>"
     if options is None or options == "" or options == "delete":
        return []
-    elif type(options) == list:
+    elif isinstance(options,list):
        return options
     elif isinstance(options,basestring):
        tokens = options.split(delim)
@@ -443,9 +539,9 @@ def input_string_or_hash(options,allow_multiples=True):
 
     if options is None or options == "delete":
         return (True, {})
-    elif type(options) == list:
+    elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif type(options) == str:
+    elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
@@ -466,7 +562,7 @@ def input_string_or_hash(options,allow_multiples=True):
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
-                if type(new_dict[key]) == list:
+                if isinstance(new_dict[key], list):
                     new_dict[key].append(value)
                 else:
                     new_dict[key] = [new_dict[key], value]
@@ -475,7 +571,7 @@ def input_string_or_hash(options,allow_multiples=True):
         # make sure we have no empty entries
         new_dict.pop('', None)
         return (True, new_dict)
-    elif type(options) == dict:
+    elif isinstance(options, dict):
         options.pop('',None)
         return (True, options)
     else:
@@ -622,9 +718,9 @@ def flatten(data):
         data["ks_meta"] = hash_to_string(data["ks_meta"])
     if data.has_key("template_files"):
         data["template_files"] = hash_to_string(data["template_files"])
-    if data.has_key("repos") and type(data["repos"]) == list:
+    if data.has_key("repos") and isinstance(data["repos"], list):
         data["repos"]   = " ".join(data["repos"])
-    if data.has_key("rpm_list") and type(data["rpm_list"]) == list:
+    if data.has_key("rpm_list") and isinstance(data["rpm_list"], list):
         data["rpm_list"] = " ".join(data["rpm_list"])
 
     # note -- we do not need to flatten "interfaces" as koan does not expect
@@ -662,9 +758,9 @@ def __consolidate(node,results):
     for key in node_data:
        value = node_data[key]
        if value != "<<inherit>>":
-          if type(value) == type({}):
+          if isinstance(value, dict):
               node_data_copy[key] = value.copy()
-          elif type(value) == type([]):
+          elif isinstance(value, list):
               node_data_copy[key] = value[:]
           else:
               node_data_copy[key] = value
@@ -679,10 +775,10 @@ def __consolidate(node,results):
 
           fielddata = results[field]
 
-          if type(fielddata) == dict:
+          if isinstance(fielddata, dict):
              # interweave hash results
              results[field].update(data_item.copy())
-          elif type(fielddata) == list or type(fielddata) == tuple:
+          elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
              # add to lists (cobbler doesn't have many lists)
              # FIXME: should probably uniqueify list after doing this
              results[field].extend(data_item)
@@ -721,13 +817,13 @@ def hash_to_string(hash):
     (though this last part should be changed to hashes)
     """
     buffer = ""
-    if type(hash) != dict:
+    if not isinstance(hash, dict):
        return hash
     for key in hash:
        value = hash[key]
-       if value is None:
+       if not value:
            buffer = buffer + str(key) + " "
-       elif type(value) == list:
+       elif isinstance(value, list):
            # this value is an array, so we print out every
            # key=value
            for item in value:
@@ -749,20 +845,27 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
 
     # Python triggers first, before shell
 
+    if logger is not None:
+        logger.debug("running python triggers from %s" % globber)
     modules = api.get_modules_in_category(globber)
     for m in modules:
-       arglist = []
-       if ref:
-           arglist.append(ref.name)
-       for x in additional:
-           arglist.append(x)
-       rc = m.run(api, arglist, logger)
-       if rc != 0:
-           raise CX("cobbler trigger failed: %s" % m.__name__)
+        arglist = []
+        if ref:
+            arglist.append(ref.name)
+        for x in additional:
+       
+            arglist.append(x)
+        if logger is not None:
+            logger.debug("running python trigger %s" % m.__name__)
+        rc = m.run(api, arglist, logger)
+        if rc != 0:
+            raise CX("cobbler trigger failed: %s" % m.__name__)
 
     # now do the old shell triggers, which are usually going to be slower, but are easier to write  
     # and support any language
 
+    if logger is not None:
+        logger.debug("running shell triggers from %s" % globber)
     triggers = glob.glob(globber)
     triggers.sort()
     for file in triggers:
@@ -775,11 +878,14 @@ def run_triggers(api,ref,globber,additional=[],logger=None):
             if ref:
                 arglist.append(ref.name)
             for x in additional:
-                arglist.append(x)
+                if x:
+                    arglist.append(x)
+            if logger is not None:
+                logger.debug("running shell trigger %s" % file)
             rc = subprocess_call(logger, arglist, shell=False) # close_fds=True)
         except:
             if logger is not None:
-               logger.warning("failed to execute trigger: %s" % file)
+                logger.warning("failed to execute trigger: %s" % file)
             continue
 
         if rc != 0:
@@ -813,9 +919,11 @@ def check_dist():
        return "debian"
     elif os.path.exists("/etc/SuSE-release"):
        return "suse"
-    else:
+    elif os.path.exists("/etc/redhat-release"):
        # valid for Fedora and all Red Hat / Fedora derivatives
        return "redhat"
+    else:
+       return "unknown"
 
 def os_release():
 
@@ -907,7 +1015,55 @@ def is_safe_to_hardlink(src,dst,api):
     # we're dealing with SELinux and files that are not safe to chcon
     return False
 
-def linkfile(src, dst, symlink_ok=False, api=None, logger=None):
+def hashfile(fn, lcache=None, logger=None):
+    """
+    Returns the sha1sum of the file
+    """
+
+    db = {}
+    try:
+        dbfile = os.path.join(lcache,'link_cache.json')
+        if os.path.exists(dbfile):
+            db = simplejson.load(open(dbfile, 'r'))
+    except:
+        pass
+
+    mtime = os.stat(fn).st_mtime
+    if db.has_key(fn):
+        if db[fn][0] >= mtime:
+            return db[fn][1]
+
+    if os.path.exists(fn):
+        cmd = '/usr/bin/sha1sum %s'%fn
+        key = subprocess_get(logger,cmd).split(' ')[0]
+        if lcache is not None:
+            db[fn] = (mtime,key)
+            simplejson.dump(db, open(dbfile,'w'))
+        return key
+    else:
+        return None
+
+def cachefile(src, dst, api=None, logger=None):
+    """
+    Copy a file into a cache and link it into place.
+    Use this with caution, otherwise you could end up
+    copying data twice if the cache is not on the same device
+    as the destination
+    """
+    lcache = os.path.join(os.path.dirname(os.path.dirname(dst)),'.link_cache')
+    if not os.path.isdir(lcache):
+        os.mkdir(lcache)
+    key = hashfile(src, lcache=lcache, logger=logger)
+    cachefile = os.path.join(lcache, key)
+    if not os.path.exists(cachefile):
+        logger.info("trying to create cache file %s"%cachefile)
+        copyfile(src,cachefile,api=api,logger=logger)
+
+    logger.debug("trying cachelink %s -> %s -> %s"%(src,cachefile,dst))
+    rc = os.link(cachefile,dst)
+    return rc
+
+def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
     """
     Attempt to create a link dst that points to src.  Because file
     systems suck we attempt several different methods or bail to
@@ -964,6 +1120,12 @@ def linkfile(src, dst, symlink_ok=False, api=None, logger=None):
         except (IOError, OSError):
             pass
 
+    if cache:
+        try:
+            return cachefile(src,dst,api=api,logger=logger)
+        except (IOError, OSError):
+            pass
+
     # we couldn't hardlink and we couldn't symlink so we must copy
 
     return copyfile(src, dst, api=api, logger=logger)
@@ -1005,14 +1167,14 @@ def check_openfiles(src):
             raise
 
 
-def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,api=None,logger=None):
+def copyfile_pattern(pattern,dst,require_match=True,symlink_ok=False,cache=True,api=None,logger=None):
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
     for file in files:
         base = os.path.basename(file)
         dst1 = os.path.join(dst,os.path.basename(file))
-        linkfile(file,dst1,symlink_ok=symlink_ok,api=api,logger=logger)
+        linkfile(file,dst1,symlink_ok=symlink_ok,cache=cache,api=api,logger=logger)
 
 def rmfile(path,logger=None):
     try:
@@ -1047,7 +1209,7 @@ def rmtree(path,logger=None):
            raise CX(_("Error deleting %s") % path)
        return True
 
-def mkdir(path,mode=0777,logger=None):
+def mkdir(path,mode=0755,logger=None):
    try:
        if logger is not None:
           logger.info("mkdir: %s" % path)
@@ -1166,7 +1328,7 @@ def set_virt_file_size(self,num):
         self.virt_file_size = "<<inherit>>"
         return True
 
-    if type(num) == str and num.find(",") != -1:
+    if isinstance(num, str) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1421,25 +1583,31 @@ def is_remote_file(file):
     if dev.find(":") != -1:
        return True
     else:
-       return False 
+       return False
+
+def subprocess_sp(logger, cmd, shell=True):
+    if logger is not None:
+        logger.info("running: %s" % cmd)
+    try:
+        sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE, close_fds=True)
+    except OSError:
+        if logger is not None:
+            log_exc(logger)
+        die(logger, "OS Error, command not found?  While running: %s" % cmd)
+
+    (out,err) = sp.communicate()
+    rc = sp.returncode
+    if logger is not None:
+        logger.info("received on stdout: %s" % out)
+        logger.debug("received on stderr: %s" % err)
+    return out, rc
 
 def subprocess_call(logger, cmd, shell=True):
-    logger.info("running: %s" % cmd)
-    try:
-       rc = sub_process.call(cmd, shell=shell, stdout=logger.handle(), stderr=logger.handle(), close_fds=True)
-    except OSError:
-       log_exc(logger)
-       if not isinstance(cmd, basestring):
-          cmd = str(" ".join(cmd))
-       die(logger, "OS Error, command not found?  While running: %s" % cmd)
-    logger.info("returned: %s" % rc)
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return rc
 
 def subprocess_get(logger, cmd, shell=True):
-    logger.info("running: %s" % cmd)
-    sp = sub_process.Popen(cmd, shell=shell, stdout=sub_process.PIPE, stderr=sub_process.PIPE)
-    data = sp.communicate()[0] 
-    logger.info("recieved: %s" % data)
+    data, rc = subprocess_sp(logger, cmd, shell=shell)
     return data
 
 def popen2(args, **kwargs):
@@ -1566,6 +1734,7 @@ def to_datastruct_from_fields(obj, fields):
     # they are the only exception in Cobbler.
     if obj.COLLECTION_TYPE == "system":
         ds["interfaces"] = copy.deepcopy(obj.interfaces)
+
     return ds
 
 def printable_from_fields(obj, fields):
@@ -1631,7 +1800,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
             desc = nicename + " (%s)" % tooltip
 
 
-        if type(choices) == type([]) and len(choices) != 0:
+        if isinstance(choices, list) and len(choices) != 0:
             desc = desc + " (valid options: %s)" % ",".join(choices)    
             parser.add_option(niceopt, dest=k, help=desc, choices=choices)
         else:
@@ -1655,7 +1824,7 @@ def add_options_from_fields(object_type, parser, fields, object_action):
         parser.add_option("--recursive", action="store_true", dest="recursive", help="also delete child objects")
     if object_type == "system":
         # system object
-        parser.add_option("--interface", dest="interface", default="eth0", help="which interface to edit")
+        parser.add_option("--interface", dest="interface", help="which interface to edit")
         parser.add_option("--delete-interface", dest="delete_interface", action="store_true")
 
 
@@ -1709,6 +1878,28 @@ def get_shared_secret():
        return -1
     return str(data).strip()
 
+def local_get_cobbler_api_url():
+    # Load server and http port
+    try:
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
+        fh.close()
+    except:
+       traceback.print_exc()
+       raise CX("/etc/cobbler/settings is not a valid YAML file")
+    return "http://%s:%s/cobbler_api" % (data.get("server","127.0.0.1"),data.get("http_port","80"))
+
+def local_get_cobbler_xmlrpc_url():
+    # Load xmlrpc port
+    try:
+        fh = open("/etc/cobbler/settings")
+        data = yaml.load(fh.read())
+        fh.close()
+    except:
+       traceback.print_exc()
+       raise CX("/etc/cobbler/settings is not a valid YAML file")
+    return "http://%s:%s" % ("127.0.0.1",data.get("xmlrpc_port","25151"))
+
 def strip_none(data, omit_none=False):
     """
     Remove "none" entries from datastructures.
@@ -1717,7 +1908,7 @@ def strip_none(data, omit_none=False):
     if data is None:
         data = '~'
 
-    elif type(data) == list:
+    elif isinstance(data, list):
         data2 = []
         for x in data:
             if omit_none and x is None:
@@ -1726,7 +1917,7 @@ def strip_none(data, omit_none=False):
                 data2.append(strip_none(x))
         return data2
 
-    elif type(data) == dict:
+    elif isinstance(data, dict):
         data2 = {}
         for key in data.keys():
             keydata = data[key]
@@ -1779,6 +1970,112 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"
+
+def link_distro(settings, distro):
+    # find the tree location
+    dirname = os.path.dirname(distro.kernel)
+    base = os.path.split(os.path.split(dirname)[0])[0]
+    dest_link = os.path.join(settings.webdir, "links", distro.name)
+
+    # create the links directory only if we are mirroring because with
+    # SELinux Apache can't symlink to NFS (without some doing)
+
+    if not os.path.exists(dest_link):
+        try:
+            os.symlink(base, dest_link)
+        except:
+            # this shouldn't happen but I've seen it ... debug ...
+            print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
+# -------------------------------------------------------
+# Used to parse Cheetah templates and resulting python
+# for any unsafe actions.
+
+import parser
+import symbol
+import token
+
+try:
+    fh = open("/etc/cobbler/settings")
+    data = yaml.load(fh.read())
+    fh.close()
+except:
+    data = {}
+
+parse_whitelist = {
+    'import': data.get("cheetah_import_whitelist",('re','time','random'))
+    }
+
+safe_templating = data.get('safe_templating',True)
+
+parse_blacklist = {
+    'builtins': (
+        'classmethod',
+        'compile',
+        'eval',
+        'exec',
+        'execfile',
+        'file',
+        'global',
+        'input',
+        'open',
+        'os',
+        'raw_input',
+        'staticmethod',
+        #'super',
+        'sys',
+        '__import__',
+    ),
+}
+
+def parse_import_stmt(stmt, whitelist):
+    if stmt[0] == symbol.import_from:
+        module = stmt[2]
+        if module[1][1] not in whitelist:
+            return False, module[1][1]
+    else:
+        modules = stmt[2]
+        for name_list in modules:
+            if type(name_list) is list or type(name_list) is tuple and \
+                    name_list[0] == symbol.dotted_as_name:
+                if name_list[1][1][1] not in whitelist:
+                    return False, name_list[1][1][1]
+    return True, None
+
+def parse_walker(stmt):
+
+    for i, val in enumerate(stmt):
+        if i == 0:
+            if val == token.NAME:
+                if stmt[1] in parse_blacklist['builtins']:
+                    raise CX(
+                        "Unsafe builtin name (%s) used in Cheetah template." %
+                        stmt[1])
+            elif val == symbol.import_stmt:
+                valid, module = parse_import_stmt(stmt[1],
+                                    parse_whitelist['import'])
+                if not valid:
+                    raise CX(
+                        "Unsafe import (%s) made in Cheetah template." %
+                        module)
+                # We have reached a valid import statement
+                break
+            elif val in token.tok_name:
+                #print stmt[1]
+                # We've reached a terminal
+                break
+        else:
+            parse_walker(val)
+    return True
+
+def parse_template_class(class_string):
+    if not safe_templating:
+        return
+    st_tuple = parser.suite(class_string).totuple()
+    return parse_walker(st_tuple)
+
+
+# -------------------------------------------------------
 
 
 if __name__ == "__main__":

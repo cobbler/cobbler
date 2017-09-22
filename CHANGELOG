@@ -1,5 +1,127 @@
 Cobbler CHANGELOG
 
+- Apr 20 2011 - 2.0.11
+- (BUGF) Fix for bug #587 - Un-escaped '$' in snippet silently fails to render
+- (BUGF) Fix cheetah version finding
+- (BUGF) Fix for trac #541 - cobbler sync deletes /var/www/cobbler/pub
+- (BUGF) Only require fence-agents on Fedora due to it not being available in EL6 base. Fixes BZ#661342.
+- (BUGF) Copy memtest to $bootloc/images/.  Fixes BZ#663307
+- (BUGF) Allow dlcontent to use proxy environment variables
+- (BUGF) safe_templating fixups, more tags, and configurable
+- (FEAT) Supports an additional initrd from kernel_options.
+- (BUGF) Use shlex.split() to properly handle a quoted install URL (e.g. url --url="http://example.org")
+- (BUGF) Various cobbler-web UI cleanups
+- (BUGF) Added manage_rsync option which defaults to 0
+- (BUGF) Various replicate cleanups, new switch --sync-all
+- (BUGF) Buildiso fixes
+- (BUGF) restore --no-fail functionality to CLI reposync
+- (BUGF) Fix old style shell triggers
+- (BUGF) Man page cleanups
+- (FEAT) Greater puppet integration
+
+- Dec 24 2010 - 2.0.10
+- (BUGF) Fixed pruning of objects that have children on replicate
+- (BUGF) Exclude initrd.addrsize on import
+- (BUGF) Various reposync fixes
+- (BUGF) Manpage fixes
+- (BUGF) Work with Cheetah >= 2.4.2
+- (BUGF) Better logging when we call subprocesses
+- (BUGF) Fix over agressive caching on copying files
+
+- Dec 8 2010 - 2.0.9
+- (BUGF) Install several templates that were needed
+- (BUGF) Ensure kernel_path is expanded in pxe templates
+- (BUGF) Place qemu_driver_type on other image creators that don't use it so they work
+
+- Dec 3 2010 - 2.0.8
+- (FEAT) PXE
+- (BUGF) Support EL6 and FC14 (and FC15)
+- (FEAT) Ability to force path in koan to overwrite existing files
+- (BUGF) Rename repos instead of deleting them
+- (BUGF) True daemonize
+- (BUGF) Debian cleanups
+- (FEAT) Allow qemu disk type to be specified
+- (BUGF) Close file descriptors so we don't leak listen ports
+- (BUGF) Prefer ethtool over rhpl
+
+- Nov 29 2010
+- (FEAT) --force-path to overwrite virt-path file location
+
+- Oct 18 2010 - 2.0.7
+- (BUGF) Disabled certain undesirable behavior of cheetah
+- (BUGF) Don't fail on reposync just because one reposync fails
+- Enable the use of cobbler on EL6 via mod_wsgi.  cobbler_web still requires mod_python though
+- (BUGF) some fixes for authn_passthru so that sessions do not switch
+- (BUGF) properly handle None being handed to the process caller as the logger
+- (BUGF) Fix replicate when bringing down changed systems
+- (BUGF) Various fixes for koan on RHEL6
+- (BUGF) Add fc14 and fc15
+
+- Jul 15 2010 - 2.0.5
+- (BUGF) Improved logging
+- (BUGF) Improved selinux friendliness
+- (BUGF) Many improvements and bugfixes
+- Full list fde282c4bd88c07a1d5c3d3215950b1af0abe190..189b4096b3ed198651237c49169e48ed49078aa6
+
+- Apr 27 2010 - 2.0.4
+- (BUGF) fetch extra metadata from upstream repositories more safely
+- (BUGF) allow the creation of subprofiles again
+- (BUGF) don't warn needlessly when repo rpm_list is empty
+- (BUGF) run createrepo on partial yum mirrors
+- (BUGF) change default mode for new directories from 0777 to 0755
+- (BUGF) fix replication pruning to not prune systems when inappropriate
+- (BUGF) always authorize the CLI
+- (BUGF) fix passthru auth Trac#549
+- (BUGF) fix for spacewalk bug 529277
+- (BUGF) fix umask so files are not world writable
+- (BUGF) fix default pxe template to support default system record
+- (BUGF) redo the PXE menuif a profile is removed
+- (BUGF) properly escape snippets
+
+- Feb 15 2010 - 2.0.3.1
+- (BUGF) Fix kernel command line parsing
+
+- Feb 12 2010 - 2.0.3
+- (FEAT) API Test Framework
+- (FEAT) Cobbler4j Eclipse bindings
+- (BUGF) Trac544 Create noarch and src repos
+- (BUGF) Snippet Cleanups
+- (FEAT) Cleanup Kickstart Generation
+- (FEAT) Ability to include remote kickstart content
+- (FEAT) Koan ability for remote kickstart content
+- (BUGF) Trac547 Profile Creation in WebUI
+- (BUGF) Trac520 Sort HTML Dropdown Lists
+- (BUGF) Allow koan to use http urls for kernel/initrd
+- (FEAT) Cobbler4j now uses maven to build
+- (FEAT) Allow multiple kernel options with the same name
+- (BUGF) Various logging cleanups
+- (BUGF) Exit with proper error codes
+- (BUGF) Fix multiselect fields in the WUI
+- (BUGF) Trac550 stop leaking FDs in subprocess_call
+- (BUGF) Trac566 link distros on replicate
+- (BUGF) Trac563 Replace dos line endings with unix line endings when saving ksdata
+- (FEAT) Support RHEL6 kernel sizes
+- (BUGF) Preserve hardlinks on replicate
+- Full List 2b3a4f960b564691ca9a0470f677bd902f60b021..b99401d4dc6cf7f6c010eecf6c5d235316b59f73
+
+- Nov 23 2009 - 2.0.2
+- (FEAT) Added support for Cobbler4j
+- (FEAT) Added method for enabling autostart on qemu domains
+- (BUGF) web ui: move sessions directory to /var
+- (BUGF) Update the vlanpattern regex to cover more common virtual interface formats
+- (BUGF) cobbler check: fix BIND detection
+- (BUGF) Fix error message creating profile without a distro
+- (BUGF) use proper HTTP error codes
+- (BUGF) Create more intuitive system for displaying actions under configuration items.
+- (BUGF) Fixed hardlinking
+- (BUGF) Creating subprofile in WebUI no longer fails on default_ownership
+- (BUGF) No longer delete excluded files in reposync rsync
+- (BUGF) Add fedora12 and fedora13 as valid 'redhat' versions
+- (BUGF) Correct improper distro creation while importing i386 Fedora/RHEL.
+- (BUGF) Better messaging for invalid object errors
+- (BUGF) Added a legacy sync mechanism
+- (BUGF) No longer bundle libraries on distros where they are already available
+
 - Sep 18 2009 - 2.0.1
 - (BUGF) Fixes for image based CLI usage and object validation
 - (BUGF) Fix koan check for images ... they don't need a kickstart

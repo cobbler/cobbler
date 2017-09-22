@@ -44,7 +44,7 @@ OBJECT_ACTIONS   = {
    "repo"    : "add copy edit find list remove rename report".split(" ")
 } 
 OBJECT_TYPES = OBJECT_ACTIONS.keys()
-DIRECT_ACTIONS = "aclsetup buildiso deploy import list report reposync sync validateks version".split()
+DIRECT_ACTIONS = "aclsetup buildiso import list report reposync sync validateks version".split()
 
 ####################################################
 
@@ -56,6 +56,9 @@ def report_items(remote, otype):
 def report_item(remote,otype,item=None,name=None):
    if item is None:
       item = remote.get_item(otype, name)
+      if item == "~":
+          print "No %s found: %s" % (otype, name)
+          sys.exit(1)
    if otype == "distro":
       data = utils.printable_from_fields(item, item_distro.FIELDS)
    elif otype == "profile":
@@ -96,10 +99,14 @@ def opt(options, k):
 
 class BootCLI:
 
-    def __init__(self,endpoint="http://127.0.0.1/cobbler_api"):
+    def __init__(self):
+        # Load server ip and ports from local config
+        self.url_cobbler_api = utils.local_get_cobbler_api_url()
+        self.url_cobbler_xmlrpc = utils.local_get_cobbler_xmlrpc_url()
+
         # FIXME: allow specifying other endpoints, and user+pass
         self.parser        = optparse.OptionParser()
-        self.remote        = xmlrpclib.Server(endpoint)
+        self.remote        = xmlrpclib.Server(self.url_cobbler_api)
         self.shared_secret = utils.get_shared_secret()
 
     def start_task(self, name, options):
@@ -149,14 +156,14 @@ class BootCLI:
         nicer error messages for them.
         """
 
-        s = xmlrpclib.Server("http://127.0.0.1:25151")
+        s = xmlrpclib.Server(self.url_cobbler_xmlrpc)
         try:
             s.ping()
         except:
             print >> sys.stderr, "cobblerd does not appear to be running/accessible" 
             sys.exit(411)
 
-        s = xmlrpclib.Server("http://127.0.0.1/cobbler_api")
+        s = xmlrpclib.Server(self.url_cobbler_api)
         try:
             s.ping()
         except:
@@ -201,6 +208,7 @@ class BootCLI:
                 print "### ERROR ###"
                 print "Unexpected remote error, check the server side logs for further info"
                 print err.faultString
+                sys.exit(1)
 
     def cleanup_fault_string(self,str):
         """
@@ -308,7 +316,7 @@ class BootCLI:
             self.parser.add_option("--iso",      dest="iso",  default=defaultiso, help="(OPTIONAL) output ISO to this path")
             self.parser.add_option("--profiles", dest="profiles", help="(OPTIONAL) use these profiles only")
             self.parser.add_option("--systems",  dest="systems",  help="(OPTIONAL) use these systems only")
-            self.parser.add_option("--tempdir",  dest="tempdir",  help="(OPTIONAL) working directory")
+            self.parser.add_option("--tempdir",  dest="buildisodir",  help="(OPTIONAL) working directory")
             self.parser.add_option("--distro",   dest="distro",   help="(OPTIONAL) used with --standalone to create a distro-based ISO including all associated profiles/systems")
             self.parser.add_option("--standalone", dest="standalone", action="store_true", help="(OPTIONAL) creates a standalone ISO with all required distro files on it")
             self.parser.add_option("--source",   dest="source",   help="(OPTIONAL) used with --standalone to specify a source for the distribution files")
@@ -325,6 +333,7 @@ class BootCLI:
             self.parser.add_option("--repos",     dest="repo_patterns",     help="patterns of repos to replicate")
             self.parser.add_option("--image",     dest="image_patterns",   help="patterns of images to replicate")
             self.parser.add_option("--omit-data", dest="omit_data", action="store_true", help="do not rsync data")
+            self.parser.add_option("--sync-all",  dest="sync_all", action="store_true", help="sync all data")
             self.parser.add_option("--prune",     dest="prune", action="store_true", help="remove objects (of all types) not found on the master")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("replicate",options)

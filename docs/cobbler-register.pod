@@ -1,6 +1,6 @@
 =head1 NAME
 
-cobbler-register
+cobbler-register - create a cobbler system record
 
 =head1 SYNOPSIS
 

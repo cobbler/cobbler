@@ -1,0 +1,193 @@
+#!/usr/bin/python
+"""
+Sync Cobbler with a Cobblerv1 Master
+
+Copyright 2008, Red Hat, Inc
+Scott Henson <shenson@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+This script will sync a cobbler 2.x installation with an older cobbler
+1.x installation.  We recommend that the install you are replicating from
+be at least cobbler 1.6.4.  We have not tested replicating earlier versions
+than that.
+
+This script is provided as a best effort to support replication of older
+cobbler systems to newer cobbler systems.  Expect it not to work, but it
+usually does.
+
+This script requires that /var/www/cobbler/{ks,repo}_mirror be synced over
+from the master.
+"""
+
+from cobbler import api
+from cobbler.cexceptions import CobblerException
+from optparse import OptionParser
+import xmlrpclib, os
+
+def link_distro(settings, distro):
+    # find the tree location
+    dirname = os.path.dirname(distro.kernel)
+    tokens = dirname.split("/")
+    tokens = tokens[:-2]
+    base = "/".join(tokens)
+    dest_link = os.path.join(settings.webdir, "links", distro.name)
+
+    # create the links directory only if we are mirroring because with
+    # SELinux Apache can't symlink to NFS (without some doing)
+
+    if not os.path.exists(dest_link):
+        try:
+            os.symlink(base, dest_link)
+        except:
+            # this shouldn't happen but I've seen it ... debug ...
+            print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
+
+def add_distro(cobbler, distro):
+    #Register the distro
+    if os.path.exists(distro['kernel']):
+        new_distro = cobbler.new_distro()
+        new_distro.from_datastruct(distro)
+        #create the symlinks
+        link_distro(cobbler.settings(), new_distro)
+        #Add the distro permanently
+        cobbler.distros().add(new_distro, save=True)
+        print 'Added distro %s. Creating Links.' % distro['name']
+        return True
+    else:
+        print 'Distro %s not here yet.' % distro['name']
+        return False
+
+def add_repo(cobbler, repo):
+    #Register the repo
+    if os.path.exists('/var/www/cobbler/repo_mirror/%s'%repo['name']):
+        new_repo = cobbler.new_repo()
+        new_repo.from_datastruct(repo)
+        #Add the repo permanently
+        cobbler.repos().add(new_repo, save=True)
+        print 'Added repo %s.' % repo['name']
+        return True
+    else:
+        print 'Repo %s not here yet.' % repo['name']
+        return False
+
+def add_profile(cobbler, profile):
+    #Register the new profile
+    new_profile = cobbler.new_profile()
+    try:
+        new_profile.from_datastruct(profile)
+    except CobblerException, ex:
+        print "Could not create profile %s from data from master due to %s." % (profile['name'], ex)
+        return
+
+    if new_profile.distro == '<<inherit>>' or cobbler.find_distro(name=new_profile.distro) is not None:
+        try:
+            cobbler.profiles().add(new_profile, save=True)
+        except:
+            print 'Profile %s failed to be added.'%profile['name']
+        print 'Added profile %s.' % profile['name']
+    else:
+        print 'Distro not here for profile %s.' % profile['name']
+
+def add_system(cobbler, system):
+    #Register the new system
+    new_system = cobbler.new_system()
+    try:
+        new_system.from_datastruct(system)
+    except CobblerException, ex:
+        print "Could not create system %s from data from master due to %s." % (system['name'], ex)
+        return False
+
+    if cobbler.find_profile(name=new_system.profile) is not None:
+        cobbler.systems().add(new_system, save=True)
+        print 'Added system %s.' % system['name']
+        return True
+    else:
+        print 'Profile not here for system %s.' % system['name']
+        return False
+
+def check_profile(cobbler, profiles, profile):
+    if (profile["uid"], profile["ctime"]) in profiles:
+        return False
+    return True
+
+def check_distro(cobbler, distros, distro):
+    if (distro["uid"],distro["ctime"]) in distros:
+        return False
+    return True
+
+def check_system(cobbler, systems, system):
+    if (system["uid"],system["ctime"]) in systems:
+        return False
+    return True
+
+def check_repo(cobbler, repos, repo):
+    if (repo["uid"],repo["ctime"]) in repos:
+        return False
+    return True
+
+def main(uri):
+    remote =  xmlrpclib.Server(uri)
+
+    cobbler = api.BootAPI()
+
+    local_profiles = cobbler.profiles()
+    local_distros = cobbler.distros()
+    local_systems = cobbler.systems()
+    local_repos = cobbler.repos()
+
+    remote_profiles = remote.get_profiles()
+    remote_distros = remote.get_distros()
+    remote_systems = remote.get_systems()
+    remote_repos = remote.get_repos()
+
+    needsync = False
+
+    distros = [ (distro["uid"],distro["ctime"]) for distro in local_distros.to_datastruct() ]
+    for distro in remote_distros:
+        if check_distro(cobbler, distros, distro):
+            print 'Found distro %s.' % distro['name']
+            add_distro(cobbler, distro)
+            needsync = True
+
+    repos = [ (repo["uid"], repo["ctime"]) for repo in local_repos.to_datastruct() ]
+    for repo in remote_repos:
+        if check_repo(cobbler, repos, repo):
+            print 'Found repo %s.' % repo['name']
+            add_repo(cobbler, repo)
+            needsync = True
+
+    profiles = [ (profile["uid"], profile["ctime"]) for profile in local_profiles.to_datastruct() ]
+    for profile in remote_profiles:
+        if check_profile(cobbler, profiles, profile):
+            print 'Found profile %s.' % profile['name']
+            add_profile(cobbler, profile)
+            needsync = True
+
+    systems = [ (system["uid"], system["ctime"]) for system in local_systems.to_datastruct() ]
+    for system in remote_systems:
+        if check_system(cobbler, systems, system):
+            print 'Found system %s.' % system['name']
+            add_system(cobbler, system)
+            needsync = True
+
+    if needsync:
+        cobbler.sync()
+
+if __name__=='__main__':
+    parser = OptionParser()
+    parser.add_option('-s', '--server', dest='server',
+                      help='Server you wish to user',
+                      default=None, type='string')
+    (opts, args) = parser.parse_args()
+
+    if opts.server is None:
+        parser.error('You must provide a server')
+    uri = 'http://%s/cobbler_api' % opts.server
+    main(uri)

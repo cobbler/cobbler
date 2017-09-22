@@ -76,6 +76,7 @@ class BootSync:
         self.dhcp.verbose   = verbose
 
         self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
+        self.grub_dir = os.path.join(self.bootloc, "grub")
         self.images_dir = os.path.join(self.bootloc, "images")
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
@@ -92,8 +93,7 @@ class BootSync:
         if not os.path.exists(self.bootloc):
             utils.die(self.logger,"cannot find directory: %s" % self.bootloc)
 
-        if self.verbose:
-            self.logger.info("running pre-sync triggers")
+        self.logger.info("running pre-sync triggers")
 
         # run pre-triggers...
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
@@ -106,48 +106,43 @@ class BootSync:
 
         # execute the core of the sync operation
 
-        if self.verbose:
-           self.logger.info("cleaning trees")
+        self.logger.info("cleaning trees")
         self.clean_trees()
 
-        if self.verbose:
-           self.logger.info("copying bootloaders")
+        self.logger.info("copying bootloaders")
         self.pxegen.copy_bootloaders()
 
-        if self.verbose:
-           self.logger.info("copying distros")
+        self.logger.info("copying distros")
         self.pxegen.copy_distros()
 
-        if self.verbose:
-           self.logger.info("copying images")
+        self.logger.info("copying images")
         self.pxegen.copy_images()
 
+        self.logger.info("generating PXE configuration files")
         for x in self.systems:
             self.pxegen.write_all_system_files(x)
 
         if self.settings.manage_dhcp:
-           if self.verbose:
-                self.logger.info("rendering DHCP files")
+           self.logger.info("rendering DHCP files")
            self.dhcp.write_dhcp_file()
            self.dhcp.regen_ethers()
         if self.settings.manage_dns:
-           if self.verbose:
-                self.logger.info("rendering DNS files")
+           self.logger.info("rendering DNS files")
            self.dns.regen_hosts()
            self.dns.write_dns_files()
 
-        if self.verbose:
-           self.logger.info("rendering Rsync files")
-        self.rsync_gen()
+        self.logger.info("cleaning link caches")
+        self.clean_link_cache()
 
-        if self.verbose:
-           self.logger.info("generating PXE menu structure")
+        if self.settings.manage_rsync:
+           self.logger.info("rendering Rsync files")
+           self.rsync_gen()
+
+        self.logger.info("generating PXE menu structure")
         self.pxegen.make_pxe_menu()
 
         # run post-triggers
-        if self.verbose:
-            self.logger.info("running post-sync triggers")
-
+        self.logger.info("running post-sync triggers")
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
 
@@ -159,6 +154,11 @@ class BootSync:
         """
         if not os.path.exists(self.pxelinux_dir):
             utils.mkdir(self.pxelinux_dir,logger=self.logger)
+        if not os.path.exists(self.grub_dir):
+            utils.mkdir(self.grub_dir,logger=self.logger)
+        grub_images_link = os.path.join(self.grub_dir, "images")
+        if not os.path.exists(grub_images_link):
+            os.symlink("../images", grub_images_link)
         if not os.path.exists(self.images_dir):
             utils.mkdir(self.images_dir,logger=self.logger)
         if not os.path.exists(self.s390_dir):
@@ -189,7 +189,7 @@ class BootSync:
                 if not x.endswith(".py"):
                     utils.rmfile(path,logger=self.logger)
             if os.path.isdir(path):
-                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","repo_profile","repo_system","svc","rendered"] :
+                if not x in ["aux", "web", "webui", "localmirror","repo_mirror","ks_mirror","images","links","pub","repo_profile","repo_system","svc","rendered",".link_cache"] :
                     # delete directories that shouldn't exist
                     utils.rmtree(path,logger=self.logger)
                 if x in ["kickstarts","kickstarts_sys","images","systems","distros","profiles","repo_profile","repo_system","rendered"]:
@@ -197,12 +197,19 @@ class BootSync:
                     utils.rmtree_contents(path,logger=self.logger)
         self.make_tftpboot()
         utils.rmtree_contents(self.pxelinux_dir,logger=self.logger)
+        utils.rmtree_contents(self.grub_dir,logger=self.logger)
         utils.rmtree_contents(self.images_dir,logger=self.logger)
         utils.rmtree_contents(self.s390_dir,logger=self.logger)
         utils.rmtree_contents(self.yaboot_bin_dir,logger=self.logger)
         utils.rmtree_contents(self.yaboot_cfg_dir,logger=self.logger)
         utils.rmtree_contents(self.rendered_dir,logger=self.logger)
 
+    def clean_link_cache(self):
+        for dirtree in [os.path.join(self.bootloc,'images'), self.settings.webdir]:
+            cachedir = os.path.join(dirtree,'.link_cache')
+            if os.path.isdir(cachedir):
+                cmd = "find %s -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'"%cachedir
+                utils.subprocess_call(self.logger,cmd)
 
     def rsync_gen(self):
         """

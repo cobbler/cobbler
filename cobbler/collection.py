@@ -25,8 +25,8 @@ from cexceptions import *
 import utils
 import glob
 import time
-import sub_process
 import random
+import os
 
 import action_litesync
 import item_system
@@ -183,6 +183,28 @@ class Collection:
 
         self.add(newref, with_triggers=with_triggers,save=True)
 
+        # for a repo, rename the mirror directory
+        if ref.COLLECTION_TYPE == "repo":
+            path = "/var/www/cobbler/repo_mirror/%s" % ref.name
+            if os.path.exists(path):
+                newpath = "/var/www/cobbler/repo_mirror/%s" % newref.name
+                os.renames(path, newpath)
+
+        # for a distro, rename the mirror and references to it
+        if ref.COLLECTION_TYPE == 'distro':
+            path = "/var/www/cobbler/ks_mirror/%s" % ref.name
+            if os.path.exists(path):
+                newpath = "/var/www/cobbler/ks_mirror/%s" % newref.name
+                os.renames(path, newpath)
+
+                # update any reference to this path ...
+                distros = self.api.distros()
+                for d in distros:
+                    if d.kernel.find(path) == 0:
+                        d.set_kernel(d.kernel.replace(path, newpath))
+                        d.set_initrd(d.initrd.replace(path, newpath))
+                        self.config.serialize_item(self, d)
+
         # now descend to any direct ancestors and point them at the new object allowing
         # the original object to be removed without orphanage.  Direct ancestors
         # will either be profiles or systems.  Note that we do have to care as
@@ -231,7 +253,10 @@ class Collection:
         if ref is None or ref.name is None:
            return False
 
-        ref.check_if_valid()
+        try:
+            ref.check_if_valid()
+        except CX, error:
+            return False
 
         if ref.uid == '':
            ref.uid = self.config.generate_uid()

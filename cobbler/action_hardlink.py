@@ -54,7 +54,7 @@ class HardLinker:
 
         self.logger.info("now hardlinking to save space, this may take some time.")
 
-        utils.subprocess_call(self.logger,"/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror",shell=True)
+        rc = utils.subprocess_call(self.logger,"/usr/sbin/hardlink -c -v /var/www/cobbler/ks_mirror /var/www/cobbler/repo_mirror",shell=True)
 
         return rc
 

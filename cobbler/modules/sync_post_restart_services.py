@@ -36,14 +36,14 @@ def run(api,args,logger):
     rc = 0
     if manage_dhcp != "0":
         if which_dhcp_module == "manage_isc":
-            if restart_dhcp:
+            if restart_dhcp != "0":
                 rc = utils.subprocess_call(logger, "dhcpd -t -q", shell=True)
                 if rc != 0:
                    logger.error("dhcpd -t failed")
                    return 1
                 rc = utils.subprocess_call(logger,"/etc/rc.d/init.d/dhcpd restart", shell=True)
         elif which_dhcp_module == "manage_dnsmasq":
-            if restart_dhcp:
+            if restart_dhcp != "0":
                 rc = utils.subprocess_call(logger, "/etc/rc.d/init.d/dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:

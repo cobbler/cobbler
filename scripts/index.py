@@ -143,7 +143,7 @@ def handler(req):
        return apache.OK
     else:
        # catch Cheetah errors and web errors
-       return apache.HTTP_ERROR
+       return apache.HTTP_INTERNAL_SERVER_ERROR
  
 #======================================================
 

@@ -5,11 +5,14 @@ import os.path
 from distutils.core import setup, Extension
 import string
 import yaml # PyYAML
-import cobbler.sub_process as subprocess
+try:
+    import subprocess
+except:
+    import cobbler.sub_process as subprocess
 import Cheetah.Template as Template
 import time
 
-VERSION = "2.0.1"
+VERSION = "2.0.11"
 SHORT_DESC = "Network Boot and Update Server"
 LONG_DESC = """
 Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.  There is also a web interface.
@@ -20,7 +23,7 @@ MODULES_TEMPLATE = os.path.join(TEMPLATES_DIR, "modules.conf.template")
 SETTINGS_TEMPLATE = os.path.join(TEMPLATES_DIR, "settings.template")
 OUTPUT_DIR = "config"
 
-# =========================================================        
+# =========================================================
 def templatify(template, answers, output):
     t = Template.Template(file=template, searchList=answers)
     data = t.respond()
@@ -33,9 +36,9 @@ def gen_build_version():
     gitdate = "?"
     gitstamp = "?"
     builddate = time.asctime()
-    if os.path.exists(".git"): 
+    if os.path.exists(".git"):
        # for builds coming from git, include the date of the last commit
-       cmd = subprocess.Popen(["/usr/bin/git","log"],stdout=subprocess.PIPE)
+       cmd = subprocess.Popen(["/usr/bin/git","log","-1"],stdout=subprocess.PIPE)
        data = cmd.communicate()[0].strip()
        for line in data.split("\n"):
            if line.startswith("commit"):
@@ -54,12 +57,12 @@ def gen_build_version():
     }
     fd.write(yaml.dump(data))
     fd.close()
-    
+
 
 def gen_config():
     defaults_file = open(DEFAULTS)
     defaults_data = defaults_file.read()
-    defaults_file.close() 
+    defaults_file.close()
     defaults = yaml.load(defaults_data)
     templatify(MODULES_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "modules.conf"))
     templatify(SETTINGS_TEMPLATE, defaults, os.path.join(OUTPUT_DIR, "settings"))
@@ -67,7 +70,7 @@ def gen_config():
 if __name__ == "__main__":
     gen_build_version()
     gen_config()
-        
+
     # etc configs
     etcpath     = "/etc/cobbler"
     initpath    = "/etc/init.d"
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     pxepath     = etcpath + "/pxe"
     reppath     = etcpath + "/reporting"
     zonepath    = etcpath + "/zone_templates"
-        
+
     # lib paths
     libpath     = "/var/lib/cobbler"
     backpath    = libpath + "/backup"
@@ -91,8 +94,8 @@ if __name__ == "__main__":
     itemplates  = sharepath + "/installer_templates"
     wwwtmpl     = sharepath + "/webui_templates"
     manpath     = "share/man/man1"
-    spool_koan  = "/var/spool/koan"       
- 
+    spool_koan  = "/var/spool/koan"
+
     # www paths
     wwwpath  = "/var/www/cobbler"
     if os.path.exists("/etc/SuSE-release"):
@@ -116,8 +119,9 @@ if __name__ == "__main__":
     vw_links      = wwwpath + "/links"
     vw_aux        = wwwpath + "/aux"
     modpython     = wwwpath + "/web"
-    modpythonsvc  = wwwpath + "/svc"
-        
+    modwsgisvc    = wwwpath + "/svc"
+    modpythonsvc  = modwsgisvc
+
     # log paths
     logpath  = "/var/log/cobbler"
     logpath2 = logpath + "/kicklog"
@@ -127,13 +131,17 @@ if __name__ == "__main__":
     logpath6 = "/var/log/koan"
     logpath7 = logpath + "/tasks"
 
+    # cache paths
+    cachepath     = "/var/cache/cobbler/"
+    buildisocache = cachepath + "buildiso/"
+
     # django content
     dj_config    = "/etc/httpd/conf.d/"
     dj_templates = "/usr/share/cobbler/web/cobbler_web/templates"
     dj_webui     = "/usr/share/cobbler/web/cobbler_web"
     dj_webui2    = "/usr/share/cobbler/web/cobbler_web/templatetags"
     dj_webui_proj= "/usr/share/cobbler/web"
-    dj_sessions  = "/usr/share/cobbler/web/sessions"
+    dj_sessions  = "/var/lib/cobbler/webui_sessions"
     dj_js        = "/var/www/cobbler_webui_content/"
 
     setup(
@@ -145,22 +153,24 @@ if __name__ == "__main__":
         license = "GPL",
         packages = [
             "cobbler",
-            "cobbler/modules", 
+            "cobbler/modules",
             "koan"
         ],
         scripts = [
-            "scripts/cobbler", 
-            "scripts/cobblerd", 
-            "scripts/cobbler-ext-nodes", 
+            "scripts/cobbler",
+            "scripts/cobblerd",
+            "scripts/cobbler-ext-nodes",
             "scripts/koan",
             "scripts/cobbler-register"
         ],
-        data_files = [ 
+        data_files = [
             (modpythonsvc, ['scripts/services.py']),
- 
+            (modwsgisvc,   ['scripts/services.wsgi']),
+
             # miscellaneous config files
             (rotpath,  ['config/cobblerd_rotate']),
             (wwwconf,  ['config/cobbler.conf']),
+            (wwwconf,  ['config/cobbler_wsgi.conf']),
             (libpath,  ['config/cobbler_hosts']),
             (etcpath,  ['config/modules.conf']),
             (etcpath,  ['config/users.digest']),
@@ -209,17 +219,21 @@ if __name__ == "__main__":
             (dj_webui2,      [ 'web/cobbler_web/templatetags/__init__.py' ]),
             (dj_sessions,  []),
 
+            # Cache Paths
+            (cachepath, []),
+            (buildisocache, []),
+
             # backups for upgrades
             (backpath, []),
 
             # for --version support across distros
             (libpath,  ['config/version']),
-     
+
             # bootloaders and syslinux support files
             # we only package zpxe.rexx because it's source
             # user supplies the others
             (loadpath,  ['scripts/zpxe.rexx']),
-                    
+
             # database/serializer
             (dbpath + "/distros.d",  []),
             (dbpath + "/profiles.d", []),
@@ -233,18 +247,21 @@ if __name__ == "__main__":
             (kickpath,  ['kickstarts/sample_end.ks']),
             (kickpath,  ['kickstarts/default.ks']),
             (kickpath,  ['kickstarts/pxerescue.ks']),
-                                
+
             # seed files for debian
             (kickpath,  ['kickstarts/sample.seed']),
- 
+
             # templates for DHCP, DNS, TFTP, RSYNC
             (etcpath,  ['templates/dhcp.template']),
             (etcpath,  ['templates/dnsmasq.template']),
             (etcpath,  ['templates/named.template']),
             (etcpath,  ['templates/zone.template']),
             (etcpath,  ['templates/rsync.template']),
-                                
+
             # templates for netboot configs
+            (pxepath,  ['templates/pxe/efidefault.template']),
+            (pxepath,  ['templates/pxe/grubprofile.template']),
+            (pxepath,  ['templates/pxe/grubsystem.template']),
             (pxepath,  ['templates/pxedefault.template']),
             (pxepath,  ['templates/pxesystem.template']),
             (pxepath,  ['templates/pxesystem_s390x.template']),
@@ -259,22 +276,22 @@ if __name__ == "__main__":
             (pxepath,  ['templates/pxelocal_s390x.template']),
 
             # templates for power management
-            (powerpath, ['templates/power_apc_snmp.template']), 
-            (powerpath, ['templates/power_integrity.template']), 
+            (powerpath, ['templates/power_apc_snmp.template']),
+            (powerpath, ['templates/power_integrity.template']),
             (powerpath, ['templates/power_ipmilan.template']),
-            (powerpath, ['templates/power_bullpap.template']),     
+            (powerpath, ['templates/power_bullpap.template']),
             (powerpath, ['templates/power_ipmitool.template']),
-            (powerpath, ['templates/power_drac.template']),        
+            (powerpath, ['templates/power_drac.template']),
             (powerpath, ['templates/power_rsa.template']),
-            (powerpath, ['templates/power_ether_wake.template']),  
+            (powerpath, ['templates/power_ether_wake.template']),
             (powerpath, ['templates/power_wti.template']),
             (powerpath, ['templates/power_ilo.template']),
-            (powerpath, ['templates/power_lpar.template']),        
+            (powerpath, ['templates/power_lpar.template']),
             (powerpath, ['templates/power_bladecenter.template']),
-            (powerpath, ['templates/power_virsh.template']),        
+            (powerpath, ['templates/power_virsh.template']),
 
             # templates for reporting
-            (reppath,   ['templates/build_report_email.template']), 
+            (reppath,   ['templates/build_report_email.template']),
 
             # templates for setup
             (itemplates, ['installer_templates/modules.conf.template']),
@@ -302,6 +319,8 @@ if __name__ == "__main__":
             (snippetpath, ['snippets/keep_ssh_host_keys']),
             (snippetpath, ['snippets/log_ks_pre']),
             (snippetpath, ['snippets/log_ks_post']),
+            (snippetpath, ['snippets/puppet_install_if_enabled']),
+            (snippetpath, ['snippets/puppet_register_if_enabled']),
 
             # documentation
             (manpath,  ['docs/cobbler.1.gz']),
@@ -316,7 +335,7 @@ if __name__ == "__main__":
             (logpath5, []),
             (logpath6, []),
             (logpath7, []),
-  
+
             # spoolpaths
             (spool_koan, []),
 

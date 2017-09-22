@@ -25,7 +25,10 @@ import os
 import traceback
 from cobbler.cexceptions import *
 import os
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import sys
 #import xmlrpclib
 import cobbler.module_loader as module_loader

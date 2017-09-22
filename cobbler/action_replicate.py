@@ -50,7 +50,7 @@ class Replicate:
 
     def rsync_it(self,from_path,to_path):
         from_path = "%s::%s" % (self.host, from_path)
-        cmd = "rsync -avz %s %s" % (from_path, to_path)
+        cmd = "rsync -avzH %s %s" % (from_path, to_path)
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc !=0:
             self.logger.info("rsync failed")
@@ -85,6 +85,8 @@ class Replicate:
              if not locals.has_key(rdata["uid"]):
                  creator = getattr(self.api, "new_%s" % obj_type)
                  newobj = creator()
+                 if obj_type == 'distro':
+                     rdata = self.fix_distro(rdata)
                  newobj.from_datastruct(rdata)
                  try:
                      self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
@@ -94,14 +96,14 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def replace_objects_newer_on_remote(self, otype):
-         locals = utils.loh_to_hoh(self.local_data[otype],"uid")
-         remotes = utils.loh_to_hoh(self.remote_data[otype],"uid")
+    def replace_objects_newer_on_remote(self, obj_type):
+         locals = utils.loh_to_hoh(self.local_data[obj_type],"uid")
+         remotes = utils.loh_to_hoh(self.remote_data[obj_type],"uid")
 
          for (ruid, rdata) in remotes.iteritems():
 
              # do not add the system if it is not on the transfer list
-             if not self.must_include[otype].has_key(rdata["name"]):
+             if not self.must_include[obj_type].has_key(rdata["name"]):
                  continue
 
              if locals.has_key(ruid):
@@ -111,12 +113,14 @@ class Replicate:
                      if ldata["name"] != rdata["name"]:
                          self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
                          self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
-                     creator = getattr(self.api, "new_%s" % otype)
+                     creator = getattr(self.api, "new_%s" % obj_type)
                      newobj = creator()
+                     if obj_type == 'distro':
+                         rdata = self.fix_distro(rdata)
                      newobj.from_datastruct(rdata)
                      try:
-                         self.logger.info("updating %s %s" % (otype, rdata["name"]))
-                         self.api.add_item(otype, newobj)
+                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
+                         self.api.add_item(obj_type, newobj)
                      except Exception, e:
                          utils.log_exc(self.logger)
 
@@ -135,11 +139,12 @@ class Replicate:
 
         self.generate_include_map()
 
-        # FIXME: this should be optional as we might want to maintain local system records
-        # and just keep profiles/distros common
         if self.prune:
             self.logger.info("Removing Objects Not Stored On Master")
-            for what in OBJ_TYPES:
+            obj_types = OBJ_TYPES
+            if len(self.system_patterns) == 0 and "system" in obj_types:
+                obj_types.remove("system")
+            for what in obj_types:
                 self.remove_objects_not_on_master(what)
         else:
             self.logger.info("*NOT* Removing Objects Not Stored On Master")
@@ -148,17 +153,9 @@ class Replicate:
             self.logger.info("Rsyncing distros")
             for distro in self.must_include["distro"].keys():
                 if self.must_include["distro"][distro] == 1:
-                    distro = self.remote.get_item('distro',distro)
-                    if distro["breed"] == 'redhat':
-                        dest = distro["kernel"]
-                        top = None
-                        while top != 'images' and top != '':
-                            dest, top = os.path.split(dest)
-                        if not dest == os.path.sep and len(dest) > 1:
-                            parentdir = os.path.split(dest)[0]
-                            if not os.path.isdir(parentdir):
-                                os.makedirs(parentdir)
-                            self.rsync_it("distro-%s"%distro["name"], dest)
+                    src = "distro-%s"%distro
+                    dst = os.path.join(self.settings.webdir,"ks_mirror",distro)
+                    self.rsync_it(src,dst)
             self.logger.info("Rsyncing repos")
             for repo in self.must_include["repo"].keys():
                 if self.must_include["repo"][repo] == 1:
@@ -173,7 +170,7 @@ class Replicate:
         else:
             self.logger.info("*NOT* Rsyncing Data")
 
-        self.logger.info("Removing Objects Not Stored On Local")
+        self.logger.info("Adding Objects Not Stored On Local")
         for what in OBJ_TYPES:
             self.add_objects_not_on_local(what)
 
@@ -181,17 +178,42 @@ class Replicate:
         for what in OBJ_TYPES:
             self.replace_objects_newer_on_remote(what)
 
+    def link_distros(self):
+
+        for distro in self.api.distros():
+            src_link = os.path.join(self.settings.webdir, "ks_mirror", distro.name)
+            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+            if os.path.exists(dest_link):
+                continue
+            self.logger.debug("Linking Distro %s" % distro.name)
+            try:
+                os.symlink(src_link,dest_link)
+            except:
+                # this shouldn't happen but I've seen it ... debug ...
+                print _("- symlink creation failed: %(base)s, %(dest)s") % { "base" : base, "dest" : dest_link }
+
+    def fix_distro(self, distro):
+        for i in ['kernel','initrd']:
+            if not distro.has_key(i):
+                self.logger.debug("Distro %s did not have %s. This shouldn't happen BUG"%(distro['name'],i))
+                continue
+            f = distro[i]
+            if not os.path.exists(f):
+                #find where the kernel and initrd moved
+                tokens = f.split(os.path.sep)
+                base = os.path.join(self.settings.webdir,'ks_mirror',distro['name'])
+                for i in range(len(tokens)):
+                    n = os.path.join(base,os.path.sep.join(tokens[i:]))
+                    if os.path.exists(n):
+                        distro[i] = n
+                        break
+        return distro
+
 
     def generate_include_map(self):
 
         self.remote_names = {}
         self.remote_dict  = {}
-        for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
-            self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
-
-        self.logger.debug("remote names struct is %s" % self.remote_names)
-
         self.must_include = {
             "distro"  : {},
             "profile" : {},
@@ -200,65 +222,75 @@ class Replicate:
             "repo"    : {}
         }
 
-        # include all profiles that are matched by a pattern
-        for otype in OBJ_TYPES:
-            patvar = getattr(self, "%s_patterns" % otype)
-            self.logger.debug("* Finding Explicit %s Matches" % otype)
-            for pat in patvar:
-                for remote in self.remote_names[otype]:
-                    self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
-                    if fnmatch.fnmatch(remote, pat):
-                        self.must_include[otype][remote] = 1
+        for ot in OBJ_TYPES:
+            self.remote_names[ot] = utils.loh_to_hoh(self.remote_data[ot],"name").keys()
+            self.remote_dict[ot]  = utils.loh_to_hoh(self.remote_data[ot],"name")
+            if self.sync_all:
+                for names in self.remote_dict[ot]:
+                    self.must_include[ot][names] = 1
 
-        # include all profiles that systems require
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Profiles Required By Systems")
-        for sys in self.must_include["system"].keys():
-            pro = self.remote_dict["system"][sys].get("profile","")
-            self.logger.debug("?: requires profile: %s" % pro)
-            if pro != "":
-               self.must_include["profile"][pro] = 1
+        self.logger.debug("remote names struct is %s" % self.remote_names)
 
-        # include all profiles that subprofiles require
-        # whether they are explicitly included or not
-        # very deep nesting is possible
-        self.logger.debug("* Adding Profiles Required By SubProfiles")
-        while True:
-            loop_exit = True
-            for pro in self.must_include["profile"].keys():
-                parent = self.remote_dict["profile"][pro].get("parent","")
-                if parent != "":
-                    if not self.must_include["profile"].has_key(parent):
-                        self.must_include["profile"][parent] = 1
-                        loop_exit = False
-            if loop_exit:
-                break
+        if not self.sync_all:
+             # include all profiles that are matched by a pattern
+             for obj_type in OBJ_TYPES:
+                 patvar = getattr(self, "%s_patterns" % obj_type)
+                 self.logger.debug("* Finding Explicit %s Matches" % obj_type)
+                 for pat in patvar:
+                     for remote in self.remote_names[obj_type]:
+                         self.logger.debug("?: seeing if %s looks like %s" % (remote,pat))
+                         if fnmatch.fnmatch(remote, pat):
+                             self.must_include[obj_type][remote] = 1
 
-        # require all distros that any profiles in the generated list requires
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Distros Required By Profiles")
-        for p in self.must_include["profile"].keys():
-            distro = self.remote_dict["profile"][p].get("distro","")
-            if not distro == "<<inherit>>" and not distro == "~":
-                self.logger.info("Adding repo %s for profile %s."%(p, distro))
-                self.must_include["distro"][distro] = 1
+             # include all profiles that systems require
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Profiles Required By Systems")
+             for sys in self.must_include["system"].keys():
+                 pro = self.remote_dict["system"][sys].get("profile","")
+                 self.logger.debug("?: requires profile: %s" % pro)
+                 if pro != "":
+                    self.must_include["profile"][pro] = 1
 
-        # require any repos that any profiles in the generated list requires
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Repos Required By Profiles")
-        for p in self.must_include["profile"].keys():
-            repos = self.remote_dict["profile"][p].get("repos",[])
-            for r in repos:
-                self.must_include["repo"][r] = 1
+             # include all profiles that subprofiles require
+             # whether they are explicitly included or not
+             # very deep nesting is possible
+             self.logger.debug("* Adding Profiles Required By SubProfiles")
+             while True:
+                 loop_exit = True
+                 for pro in self.must_include["profile"].keys():
+                     parent = self.remote_dict["profile"][pro].get("parent","")
+                     if parent != "":
+                         if not self.must_include["profile"].has_key(parent):
+                             self.must_include["profile"][parent] = 1
+                             loop_exit = False
+                 if loop_exit:
+                     break
+     
+             # require all distros that any profiles in the generated list requires
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Distros Required By Profiles")
+             for p in self.must_include["profile"].keys():
+                 distro = self.remote_dict["profile"][p].get("distro","")
+                 if not distro == "<<inherit>>" and not distro == "~":
+                     self.logger.info("Adding repo %s for profile %s."%(p, distro))
+                     self.must_include["distro"][distro] = 1
 
-        # include all images that systems require
-        # whether they are explicitly included or not
-        self.logger.debug("* Adding Images Required By Systems")
-        for sys in self.must_include["system"].keys():
-            img = self.remote_dict["system"][sys].get("image","")
-            self.logger.debug("?: requires profile: %s" % pro)
-            if img != "":
-               self.must_include["image"][img] = 1
+             # require any repos that any profiles in the generated list requires
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Repos Required By Profiles")
+             for p in self.must_include["profile"].keys():
+                 repos = self.remote_dict["profile"][p].get("repos",[])
+                 for r in repos:
+                     self.must_include["repo"][r] = 1
+
+             # include all images that systems require
+             # whether they are explicitly included or not
+             self.logger.debug("* Adding Images Required By Systems")
+             for sys in self.must_include["system"].keys():
+                 img = self.remote_dict["system"][sys].get("image","")
+                 self.logger.debug("?: requires profile: %s" % pro)
+                 if img != "":
+                    self.must_include["image"][img] = 1
 
         # FIXME: remove debug
         for ot in OBJ_TYPES:
@@ -266,7 +298,7 @@ class Replicate:
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False):
+    def run(self, cobbler_master=None, distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None, prune=False, omit_data=False, sync_all=False):
         """
         Get remote profiles and distros and sync them locally
         """
@@ -278,11 +310,14 @@ class Replicate:
         self.image_patterns   = image_patterns.split()
         self.omit_data        = omit_data
         self.prune            = prune
+        self.sync_all         = sync_all
 
         self.logger.info("cobbler_master   = %s" % cobbler_master)
         self.logger.info("profile_patterns = %s" % self.profile_patterns)
         self.logger.info("system_patterns  = %s" % self.system_patterns)
         self.logger.info("omit_data        = %s" % self.omit_data)
+        self.logger.info("sync_all         = %s" % self.sync_all)
+
 
         if cobbler_master is not None:
             self.logger.info("using CLI defined master")
@@ -304,6 +339,7 @@ class Replicate:
         self.local.ping()
 
         self.replicate_data()
+        self.link_distros()
         self.logger.info("Syncing")
         self.api.sync()
         self.logger.info("Done")

@@ -72,6 +72,7 @@ DEFAULTS = {
     "kernel_options_s390x"        : {},
     "manage_dhcp"                 : 0,
     "manage_dns"                  : 0,
+    "manage_rsync"                : 0,
     "manage_forward_zones"        : [],
     "manage_reverse_zones"        : [],
     "mgmt_classes"                : [],
@@ -93,14 +94,17 @@ DEFAULTS = {
     "scm_track_mode"              : "git",
     "server"                      : "127.0.0.1",
     "snippetsdir"                 : "/var/lib/cobbler/snippets",
+    "template_remote_kickstarts"  : 0,
     "virt_auto_boot"              : 0,
     "webdir"                      : "/var/www/cobbler",
+    "buildisodir"                 : "/var/cache/cobbler/buildiso",
     "xmlrpc_port"                 : 25151,
     "yum_post_install_mirror"     : 1,
     "createrepo_flags"            : "-c cache -s sha",
     "yum_distro_priority"         : 1,
     "yumdownloader_flags"         : "--resolve",
-    "reposync_flags"              : "-l -m -d"
+    "reposync_flags"              : "-l -m -d",
+    "consoles"                     : "/var/consoles"
 }
 
 

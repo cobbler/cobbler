@@ -25,7 +25,6 @@ import os
 import os.path
 import shutil
 import time
-import sub_process
 import sys
 import glob
 import traceback
@@ -48,11 +47,11 @@ class DnsmasqManager:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self,config,verbose=False,dhcp=None):
+    def __init__(self,config,logger,dhcp=None):
         """
         Constructor
         """
-        self.verbose     = verbose
+        self.logger      = logger
         self.config      = config
         self.api         = config.api
         self.distros     = config.distros()
@@ -202,6 +201,5 @@ class DnsmasqManager:
         # already taken care of by the regen_hosts()
         pass
 
-def get_manager(config):
-    return DnsmasqManager(config)
-
+def get_manager(config,logger):
+    return DnsmasqManager(config,logger)

@@ -77,7 +77,7 @@ class Item:
         return utils.from_datastruct_from_fields(self,seed_data,self.get_fields())
 
     def to_datastruct(self):
-        return utils.to_datastruct_from_fields(self,self.get_fields())
+        return utils.to_datastruct_from_fields(self, self.get_fields())
 
     def printable(self):
         return utils.printable_from_fields(self,self.get_fields())

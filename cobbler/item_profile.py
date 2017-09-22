@@ -30,36 +30,37 @@ from utils import _
 # this datastructure is described in great detail in item_distro.py -- read the comments there.
 
 FIELDS = [
-  ["name","",None,"Name",True,"Ex: F10-i386-webserver",0],
-  ["uid","","","",False,"",0],
-  ["owners","SETTINGS:default_ownership","SETTINGS:self.settings.default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0],
-  ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution",[]],
-  ["enable_menu","SETTINGS:enable_menu",'<<inherit>>',"Enable PXE Menu?",True,"Show this profile in the PXE menu?",0],
-  ["kickstart","SETTINGS:default_kickstart",'<<inherit>>',"Kickstart",True,"Path to kickstart template",0],
-  ["kernel_options",{},'<<inherit>>',"Kernel Options",True,"Ex: selinux=permissive",0],
-  ["kernel_options_post",{},'<<inherit>>',"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0],
-  ["ks_meta",{},'<<inherit>>',"Kickstart Metadata",True,"Ex: dog=fang agent=86",0],
-  ["repos",[],'<<inherit>>',"Repos",True,"Repos to auto-assign to this profile",[]],
-  ["comment","","","Comment",True,"Free form text description",0],
-  ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0],
-  ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer",0],
-  ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0],
-  ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0],
-  ["depth",1,1,"",False,"",0],
-  ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "vmware"]],
-  ["virt_path","",'<<inherit>>',"Virt Path",True,"Ex: /directory OR VolGroup00",0],
-  ["virt_bridge","SETTINGS:default_virt_bridge",'<<inherit>>',"Virt Bridge",True,"",0],
-  ["dhcp_tag","default",'<<inherit>>',"DHCP Tag",True,"See manpage or leave blank",0],
-  ["parent",'','',"",False,"",0],
-  ["server","<<inherit>>",'<<inherit>>',"Server Override",True,"See manpage or leave blank",0],
-  ["ctime",0,0,"",False,"",0],
-  ["mtime",0,0,"",False,"",0],
-  ["name_servers","SETTINGS:default_name_servers",[],"Name Servers",True,"space delimited",0],
-  ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited",0],
-  ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0],
-  ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0],
-  ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0],
-  ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0]
+  ["name","",None,"Name",True,"Ex: F10-i386-webserver",0,"str"],
+  ["uid","","","",False,"",0,"str"],
+  ["owners","SETTINGS:default_ownership","SETTINGS:default_ownership","Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
+  ["distro",None,'<<inherit>>',"Distribution",True,"Parent distribution",[],"str"],
+  ["parent",'','',"Parent Profile",True,"",[],"str"],
+  ["enable_menu","SETTINGS:enable_menu",'<<inherit>>',"Enable PXE Menu?",True,"Show this profile in the PXE menu?",0,"bool"],
+  ["kickstart","SETTINGS:default_kickstart",'<<inherit>>',"Kickstart",True,"Path to kickstart template",0,"str"],
+  ["kernel_options",{},'<<inherit>>',"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
+  ["kernel_options_post",{},'<<inherit>>',"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
+  ["ks_meta",{},'<<inherit>>',"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
+  ["repos",[],'<<inherit>>',"Repos",True,"Repos to auto-assign to this profile",[],"list"],
+  ["comment","","","Comment",True,"Free form text description",0,"str"],
+  ["virt_auto_boot","SETTINGS:virt_auto_boot",'<<inherit>>',"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
+  ["virt_cpus",1,'<<inherit>>',"Virt CPUs",True,"integer",0,"int"],
+  ["virt_file_size","SETTINGS:default_virt_file_size",'<<inherit>>',"Virt File Size(GB)",True,"",0,"int"],
+  ["virt_ram","SETTINGS:default_virt_ram",'<<inherit>>',"Virt RAM (MB)",True,"",0,"int"],
+  ["depth",1,1,"",False,"",0,"int"],
+  ["virt_type","SETTINGS:default_virt_type",'<<inherit>>',"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu", "vmware"],"str"],
+  ["virt_path","",'<<inherit>>',"Virt Path",True,"Ex: /directory OR VolGroup00",0,"str"],
+  ["virt_bridge","SETTINGS:default_virt_bridge",'<<inherit>>',"Virt Bridge",True,"",0,"str"],
+  ["dhcp_tag","default",'<<inherit>>',"DHCP Tag",True,"See manpage or leave blank",0,"str"],
+  ["server","<<inherit>>",'<<inherit>>',"Server Override",True,"See manpage or leave blank",0,"str"],
+  ["ctime",0,0,"",False,"",0,"int"],
+  ["mtime",0,0,"",False,"",0,"int"],
+  ["name_servers","SETTINGS:default_name_servers",[],"Name Servers",True,"space delimited",0,"list"],
+  ["name_servers_search","SETTINGS:default_name_servers_search",[],"Name Servers Search Path",True,"space delimited",0,"list"],
+  ["mgmt_classes",[],'<<inherit>>',"Management Classes",True,"For external configuration management",0,"list"],
+  ["template_files",{},'<<inherit>>',"Template Files",True,"File mappings for built-in config management",0,"dict"],
+  ["redhat_management_key","<<inherit>>","<<inherit>>","Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
+  ["redhat_management_server","<<inherit>>","<<inherit>>","Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"],
+  ["template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "SETTINGS:template_remote_kickstarts", "", False, "", 0, "bool"]
 ]
 
 class Profile(item.Item):
@@ -88,6 +89,10 @@ class Profile(item.Item):
         work.  So, API users -- make sure you pass is_subobject=True into the
         constructor when using this.
         """
+
+        old_parent = self.get_parent()
+        if isinstance(old_parent, item.Item):
+            old_parent.children.pop(self.name, 'pass')
         if parent_name is None or parent_name == '':
            self.parent = ''
            return True
@@ -100,6 +105,9 @@ class Profile(item.Item):
            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
         self.parent = parent_name       
         self.depth = found.depth + 1
+        parent = self.get_parent()
+        if isinstance(parent, item.Item):
+            parent.children[self.name] = self
         return True
 
     def set_distro(self,distro_name):
@@ -109,8 +117,12 @@ class Profile(item.Item):
 	"""
         d = self.config.distros().find(name=distro_name)
         if d is not None:
+            old_parent = self.get_parent()
+            if isinstance(old_parent, item.Item):
+                old_parent.children.pop(self.name, 'pass')
             self.distro = distro_name
             self.depth  = d.depth +1 # reset depth if previously a subprofile and now top-level
+            d.children[self.name] = self
             return True
         raise CX(_("distribution not found"))
 
@@ -141,6 +153,14 @@ class Profile(item.Item):
         PXE boot menu.  This is pretty forgiving for YAML's sake.
         """
         self.enable_menu = utils.input_boolean(enable_menu)
+        return True
+
+    def set_template_remote_kickstarts(self, template):
+        """
+        Sets whether or not the server is configured to template remote 
+        kickstarts.
+        """
+        self.template_remote_kickstarts = utils.input_boolean(template)
         return True
 
     def set_dhcp_tag(self,dhcp_tag):
@@ -201,6 +221,8 @@ class Profile(item.Item):
         Return object next highest up the tree.
         """
         if self.parent is None or self.parent == '':
+            if self.distro is None:
+                return None
             result = self.config.distros().find(name=self.distro)
         else:
             result = self.config.profiles().find(name=self.parent)
@@ -211,4 +233,4 @@ class Profile(item.Item):
             raise CX("name is required")
         distro = self.get_conceptual_parent()
         if distro is None:
-            raise CX("distro is required")
+            raise CX("Error with profile %s - distro is required" % (self.name))

@@ -28,19 +28,26 @@ import random
 import os
 import traceback
 import tempfile
+import shlex
 
 ANCIENT_PYTHON = 0
 try:
-   import opt_parse  # importing this for backwards compat with 2.2
-   import sub_process
+    try:
+        from optparse import OptionParser
+    except:
+        from opt_parse import OptionParser # importing this for backwards compat with 2.2
+    try:
+        import subprocess as sub_process
+    except:
+        import sub_process
 except:
-   # the main "replace-self" codepath of koan must support
-   # Python 1.5.  Other sections may use 2.3 features (nothing newer)
-   # provided they are conditionally imported.  This is to support
-   # EL 2.1. -- mpd
-   ANCIENT_PYTHON = 1 
-   True = 1
-   False = 0
+    # the main "replace-self" codepath of koan must support
+    # Python 1.5.  Other sections may use 2.3 features (nothing newer)
+    # provided they are conditionally imported.  This is to support
+    # EL 2.1. -- mpd
+    ANCIENT_PYTHON = 1
+    True = 1
+    False = 0
 
 import exceptions
 import time
@@ -68,6 +75,7 @@ DISPLAY_PARAMS = [
    "distro","profile",
    "kickstart","ks_meta",
    "install_tree","kernel","initrd",
+   "netboot_enabled",
    "kernel_options",
    "repos",
    "virt_ram","virt_disk","virt_type", "virt_path", "virt_auto_boot"
@@ -92,7 +100,7 @@ def main():
         print "- usage via spacewalk APIs only.  Python x>=2.3 required"
         return
 
-    p = opt_parse.OptionParser()
+    p = OptionParser()
     p.add_option("-k", "--kopts",
                  dest="kopts_override",
                  help="append additional kernel options")
@@ -144,6 +152,10 @@ def main():
     p.add_option("-P", "--virt-path",
                  dest="virt_path",
                  help="override virt install location")  
+    p.add_option("", "--force-path",
+                 dest="force_path",
+                 action="store_true",
+                 help="Force overwrite of virt install location")
     p.add_option("-T", "--virt-type",
                  dest="virt_type",
                  help="override virt install type")
@@ -174,6 +186,9 @@ def main():
                  dest="embed_kickstart",
                  action="store_true",
                  help="When used with  --replace-self, embed the kickstart in the initrd to overcome potential DHCP timeout issues. (seldom needed)")
+    p.add_option("", "--qemu-disk-type",
+                 dest="qemu_disk_type",
+                 help="when used with --virt_type=qemu, add select of disk drivers: ide,scsi,virtio")
 
     (options, args) = p.parse_args()
 
@@ -191,6 +206,7 @@ def main():
         k.image               = options.image
         k.live_cd             = options.live_cd
         k.virt_path           = options.virt_path
+        k.force_path          = options.force_path
         k.virt_type           = options.virt_type
         k.virt_bridge         = options.virt_bridge
         k.no_gfx              = options.no_gfx
@@ -201,6 +217,7 @@ def main():
         k.should_poll         = options.should_poll
         k.embed_kickstart     = options.embed_kickstart
         k.virt_auto_boot      = options.virt_auto_boot
+        k.qemu_disk_type      = options.qemu_disk_type       
 
         if options.virt_name is not None:
             k.virt_name          = options.virt_name
@@ -253,7 +270,16 @@ class Koan:
         self.static_interface  = None
         self.virt_name         = None
         self.virt_type         = None
-        self.virt_path         = None 
+        self.virt_path         = None
+        self.force_path        = None
+        self.qemu_disk_type    = None
+        self.virt_auto_boot    = None
+
+        # This option adds the --copy-default argument to /sbin/grubby
+        # which uses the default boot entry in the grub.conf
+        # as template for the new entry being added to that file. 
+        # look at /sbin/grubby --help for more info
+        self.grubby_copy_default  =  1
 
     #---------------------------------------------------
 
@@ -314,6 +340,14 @@ class Koan:
                    self.virt_type = "xenpv"
                raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
 
+        # if --qemu-disk-type was called without --virt-type=qemu, then fail
+        if (self.qemu_disk_type is not None):
+            self.qemu_disk_type = self.qemu_disk_type.lower()
+            if self.virt_type not in [ "qemu", "auto" ]:
+               raise InfoException, "--qemu-disk-type must use with --virt-type=qemu"
+
+
+
         # if --static-interface and --profile was called together, then fail
         if self.static_interface is not None and self.profile is not None:
             raise InfoException, "--static-interface option is incompatible with --profile option use --system instead"
@@ -367,10 +401,6 @@ class Koan:
         Determine the name of the cobbler system record that
         matches this MAC address. 
         """
-        try:
-            import rhpl
-        except:
-            raise CX("the rhpl module is required to autodetect a system.  Your OS does not have this, please manually specify --profile or --system")
         systems = self.get_data("systems")
         my_netinfo = utils.get_network_info()
         my_interfaces = my_netinfo.keys()
@@ -389,7 +419,7 @@ class Koan:
                 ip  = obj_interface["ip_address"].upper()
                 for my_mac in mac_criteria:
                     if mac == my_mac:
-                        detLected_systems.append(obj_name)
+                        detected_systems.append(obj_name)
                 for my_ip in ip_criteria:
                     if ip == my_ip:
                         detected_systems.append(obj_name)
@@ -440,7 +470,7 @@ class Koan:
         if profile_data.get("kickstart","") != "":
 
             # fix URLs
-            if profile_data["kickstart"][0] == "/":
+            if profile_data["kickstart"][0] == "/" or profile_data["template_remote_kickstarts"]:
                if not self.system:
                    profile_data["kickstart"] = "http://%s/cblr/svc/op/ks/profile/%s" % (profile_data['http_server'], profile_data['name'])
                else:
@@ -578,10 +608,10 @@ class Koan:
 
             method_re = re.compile('(?P<urlcmd>\s*url\s.*)|(?P<nfscmd>\s*nfs\s.*)')
 
-            url_parser = opt_parse.OptionParser()
+            url_parser = OptionParser()
             url_parser.add_option("--url", dest="url")
 
-            nfs_parser = opt_parse.OptionParser()
+            nfs_parser = OptionParser()
             nfs_parser.add_option("--dir", dest="dir")
             nfs_parser.add_option("--server", dest="server")
 
@@ -590,12 +620,12 @@ class Koan:
                 if match:
                     cmd = match.group("urlcmd")
                     if cmd:
-                        (options,args) = url_parser.parse_args(cmd.split()[1:])
+                        (options,args) = url_parser.parse_args(shlex.split(cmd)[1:])
                         profile_data["install_tree"] = options.url
                         break
                     cmd = match.group("nfscmd")
                     if cmd:
-                        (options,args) = nfs_parser.parse_args(cmd.split()[1:])
+                        (options,args) = nfs_parser.parse_args(shlex.split(cmd)[1:])
                         profile_data["install_tree"] = "nfs://%s:%s" % (options.server,options.dir)
                         break
 
@@ -714,7 +744,7 @@ class Koan:
             kickstart = self.safe_load(profile_data,'kickstart')
             arch      = self.safe_load(profile_data,'arch')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -795,7 +825,7 @@ class Koan:
 
             kickstart = self.safe_load(profile_data,'kickstart')
 
-            (make, version, rest) = utils.os_release()
+            (make, version) = utils.os_release()
 
             if (make == "centos" and version < 6) or (make == "redhat" and version < 6) or (make == "fedora" and version < 10):
 
@@ -836,9 +866,12 @@ class Koan:
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", "\"%s\"" % k_args,
-                    "--copy-default"
+                    "--args", "\"%s\"" % k_args
             ]
+
+            if self.grubby_copy_default:
+                cmd.append("--copy-default")
+
             boot_probe_ret_code, probe_output = self.get_boot_loader_info()
             if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
                 cmd.append("--lilo")
@@ -1016,8 +1049,8 @@ class Koan:
             print "downloading initrd %s to %s" % (initrd_short, initrd_save)
             print "url=%s" % initrd
             utils.urlgrab(initrd,initrd_save)
-            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
 
+            print "downloading kernel %s to %s" % (kernel_short, kernel_save)
             print "url=%s" % kernel
             utils.urlgrab(kernel,kernel_save)
         except:
@@ -1037,6 +1070,8 @@ class Koan:
         if kickstart is not None and kickstart != "":
             if breed is not None and breed == "suse":
                 kextra = "autoyast=" + kickstart
+            elif breed is not None and breed == "debian" or breed =="ubuntu":
+                kextra = "auto url=" + kickstart
             else:
                 kextra = "ks=" + kickstart 
 
@@ -1076,12 +1111,7 @@ class Koan:
         if self.kopts_override is not None:
            hash2 = utils.input_string_or_hash(self.kopts_override)
            hashv.update(hash2)
-        options = ""
-        for x in hashv.keys():
-            if hashv[x] is None:
-                options = options + "%s " % x
-            else:
-                options = options + "%s=%s " % (x, hashv[x])
+        options = utils.hash_to_string(hashv)
         options = string.replace(options, "lang ","lang= ")
         # if using ksdevice=bootif that only works for PXE so replace
         # it with something that will work
@@ -1112,19 +1142,20 @@ class Koan:
         virt_auto_boot      = self.calc_virt_autoboot(pd, self.virt_auto_boot)
 
         results = create_func(
-                name           =  virtname,
-                ram            =  ram,
-                disks          =  disks,
-                uuid           =  uuid, 
-                extra          =  kextra,
-                vcpus          =  vcpus,
-                profile_data   =  profile_data,       
-                arch           =  arch,
-                no_gfx         =  self.no_gfx,   
-                fullvirt       =  fullvirt,    
-                bridge         =  self.virt_bridge,
-                virt_type      =  self.virt_type,
-                virt_auto_boot =  virt_auto_boot
+                name             =  virtname,
+                ram              =  ram,
+                disks            =  disks,
+                uuid             =  uuid,
+                extra            =  kextra,
+                vcpus            =  vcpus,
+                profile_data     =  profile_data,
+                arch             =  arch,
+                no_gfx           =  self.no_gfx,
+                fullvirt         =  fullvirt,
+                bridge           =  self.virt_bridge,
+                virt_type        =  self.virt_type,
+                virt_auto_boot   =  virt_auto_boot,
+                qemu_driver_type =  self.qemu_disk_type
         )
 
         print results
@@ -1160,9 +1191,10 @@ class Koan:
         if virt_auto_boot:
             if self.virt_type in [ "xenpv", "xenfv" ]:
                 utils.create_xendomains_symlink(virtname)
+            elif self.virt_type == "qemu":
+               utils.libvirt_enable_autostart(virtname)
             else:
                 print "- warning: don't know how to autoboot this virt type yet"
-            # else qemu
             # else...
         return results
 
@@ -1380,7 +1412,7 @@ class Koan:
            if self.virt_type in [ "xenpv", "xenfv" ]:
                prefix = "/var/lib/xen/images/"
            elif self.virt_type == "qemu":
-               prefix = "/opt/qemu/"
+               prefix = "/var/lib/libvirt/images/"
            elif self.virt_type == "vmwarew":
                prefix = "/var/lib/vmware/%s/" % name
            else:
@@ -1427,7 +1459,10 @@ class Koan:
             elif not os.path.exists(location) and os.path.isdir(os.path.dirname(location)):
                 return location
             else:
-                raise InfoException, "invalid location: %s" % location                
+                if self.force_path:
+                    return location
+                else:
+		    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):
@@ -1450,7 +1485,7 @@ class Koan:
             cmd = sub_process.Popen(args, stdout=sub_process.PIPE, shell=True)
             freespace_str = cmd.communicate()[0]
             freespace_str = freespace_str.split("\n")[0].strip()
-            freespace_str = freespace_str.replace("G","") # remove gigabytes
+            freespace_str = re.sub("(?i)G","", freespace_str) # remove gigabytes
             print "(%s)" % freespace_str
             freespace = int(float(freespace_str))
 

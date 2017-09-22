@@ -70,7 +70,8 @@ def start_install(name=None,
                   fullvirt=False, 
                   bridge=None, 
                   virt_type=None,
-                  virt_auto_boot=False):
+                  virt_auto_boot=False,
+                  qemu_driver_type=None):
 
     if profile_data.has_key("file"):
         raise koan.InfoException("Xen does not work with --image yet")

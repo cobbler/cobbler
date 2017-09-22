@@ -127,7 +127,8 @@ def start_install(name=None,
                   fullvirt=False, 
                   bridge=None, 
                   virt_type=None,
-                  virt_auto_boot=None):                 
+                  virt_auto_boot=None,
+                  qemu_driver_type=None):
                            
     #FIXME how to do a non-default connection
     #Can we drive off of virt-type?

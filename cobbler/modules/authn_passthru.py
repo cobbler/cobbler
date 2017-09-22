@@ -16,6 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import distutils.sysconfig
 import sys
 import os
+from cobbler import utils
 from utils import _
 import traceback
 
@@ -37,13 +38,10 @@ def authenticate(api_handle,username,password):
     Validate a username/password combo, returning True/False
     Uses cobbler_auth_helper
     """
-
-    fd = open("/var/lib/cobbler/web.ss")
-    data = fd.read()
-    if password == data:
-       rc = 1
+    ss = utils.get_shared_secret()
+    if password == ss:
+       rc = True
     else:
-       rc = 0
-    fd.close()
-    return data
+       rc = False
+    return rc
 

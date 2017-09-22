@@ -26,7 +26,6 @@ import os.path
 import time
 import yaml # Howell-Clark version
 import sys
-import sub_process
 HAS_YUM = True
 try:
     import yum
@@ -167,11 +166,11 @@ class RepoSync:
 
             # add any repo metadata we can use
             mdoptions = []
-            if os.path.isfile("%s/repodata/repomd.xml" % (dirname)):
+            if os.path.isfile("%s/.origin/repomd.xml" % (dirname)):
                 if not HAS_YUM:
                    utils.die(self.logger,"yum is required to use this feature")
 
-                rmd = yum.repoMDObject.RepoMD('', "%s/repodata/repomd.xml" % (dirname))
+                rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repomd.xml" % (dirname))
                 if rmd.repoData.has_key("group"):
                     groupmdfile = rmd.getData("group").location[1]
                     mdoptions.append("-g %s" % groupmdfile)
@@ -183,7 +182,7 @@ class RepoSync:
                         if createrepo_ver >= "0.9.7":
                             mdoptions.append("--deltas")
                         else:
-                            utils.die(self.logger,"this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags","(ERROR: FLAGS)")
@@ -209,7 +208,7 @@ class RepoSync:
         if not repo.mirror_locally:
             utils.die(self.logger,"rsync:// urls must be mirrored locally, yum cannot access them directly")
 
-        if repo.rpm_list != "":
+        if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
 
         # FIXME: don't hardcode
@@ -222,7 +221,7 @@ class RepoSync:
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "rsync -rltDv %s --delete --delete-excluded --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)       
+        cmd = "rsync -rltDv %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc !=0:
@@ -251,7 +250,7 @@ class RepoSync:
 
         # detect cases that require special handling
 
-        if repo.rpm_list != "":
+        if repo.rpm_list != "" and repo.rpm_list != []:
             has_rpm_list = True
 
         # create yum config file for use by reposync
@@ -259,7 +258,7 @@ class RepoSync:
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
 
-        if not os.path.isdir(temp_path) and repo.mirror_locally:
+        if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
          
@@ -291,10 +290,10 @@ class RepoSync:
         # commands here.  Any failure at any point stops the operation.
 
         if repo.mirror_locally:
-            #rc = sub_process.call(cmd, shell=True, close_fds=True)
             rc = utils.subprocess_call(self.logger, cmd)
-            if rc !=0:
-                utils.die(self.logger,"cobbler reposync failed")
+            # Don't die if reposync fails, it is logged
+            # if rc !=0:
+            #     utils.die(self.logger,"cobbler reposync failed")
 
         # some more special case handling for RHN.
         # create the config file now, because the directory didn't exist earlier
@@ -389,16 +388,14 @@ class RepoSync:
             utils.die(self.logger,"no /usr/bin/wget found, please install wget")
 
         # grab repomd.xml and use it to download any metadata we can use
-        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O /dev/null" % (repo_mirror)
+        cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, temp_path)
         rc = utils.subprocess_call(self.logger,cmd2)
         if rc == 0:
+            # create our repodata directory now, as any extra metadata we're
+            # about to download probably lives there
             if not os.path.isdir(repodata_path):
                 os.makedirs(repodata_path)
-            cmd2 = "/usr/bin/wget -q %s/repodata/repomd.xml -O %s/repomd.xml" % (repo_mirror, repodata_path)
-            rc = utils.subprocess_call(self.logger,cmd2)
-            if rc !=0:
-                utils.die(self.logger,"wget failed")
-            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (repodata_path))
+            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
             for mdtype in rmd.repoData.keys():
                 # don't download metadata files that are created by default
                 if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
@@ -409,9 +406,8 @@ class RepoSync:
                         utils.die(self.logger,"wget failed")
 
         # now run createrepo to rebuild the index
-        # only needed if we didn't use yum's reposync already.
 
-        if not has_rpm_list and repo.mirror_locally:
+        if repo.mirror_locally:
             os.path.walk(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
@@ -440,7 +436,7 @@ class RepoSync:
 #
 #        # detect cases that require special handling
 #
-#        if repo.rpm_list != "":
+#        if repo.rpm_list != "" and repo.rpm_list != []:
 #            utils.die(self.logger,"has_rpm_list not yet supported on apt repos")
 #
 #        if not repo.arch:
@@ -573,9 +569,3 @@ class RepoSync:
         cmd2 = "chmod -R 755 %s" % repo_path
         utils.subprocess_call(self.logger, cmd2)
 
-        if self.config.api.is_selinux_enabled():
-            cmd3 = "chcon --reference /var/www %s >/dev/null 2>/dev/null" % repo_path
-            utils.subprocess_call(self.logger, cmd3)
-
-
-            

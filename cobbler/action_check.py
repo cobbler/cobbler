@@ -209,10 +209,10 @@ class BootCheck:
            selinux_msg = "you need to set some SELinux rules if you want to use cobbler-web (an optional package), run the following: /usr/sbin/semanage fcontext -a -t httpd_sys_content_rw_t \"%s\""
            rule4 = False
            for line in data4.split("\n"):
-               if line.startswith("/usr/share/cobbler/web/sessions/.*"):
+               if line.startswith("/var/lib/cobbler/webui_sessions/.*"):
                    rule4 = True
            if not rule4:
-               status.append(selinux_msg % "/usr/share/cobbler/web/sessions/.*")
+               status.append(selinux_msg % "/var/lib/cobbler/webui_sessions/.*")
 
 
    def check_for_default_password(self,status):
@@ -279,8 +279,9 @@ class BootCheck:
        """
        Check if bind is installed.
        """
-       rc = utils.subprocess_get(self.logger,"named --help")
-       if rc.find("unknown option") == -1:
+       rc = utils.subprocess_get(self.logger,"named -v")
+       # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
+       if rc.find("BIND") == -1:
            status.append("named is not installed and/or in path")
        
    def check_bootloaders(self,status):
@@ -290,17 +291,23 @@ class BootCheck:
        # FIXME: move zpxe.rexx to loaders
 
        bootloaders = {
-          "elilo"      : [ "ia64",       [ "/var/lib/cobbler/loaders/elilo*.efi" ]],
-          "menu.c32"   : [ "x86/x86_64", [ "/usr/share/syslinux/menu.c32", "/usr/lib/syslinux/menu.c32", "/var/lib/cobbler/loaders/menu.c32" ]],
-          "yaboot"     : [ "ppc/ppc64",  [ "/var/lib/cobbler/loaders/yaboot*" ]],
-          "pxelinux.0" : [ "x86_64",     [ "/usr/share/syslinux/pxelinux.0", "/usr/lib/syslinux/pxelinux.0", "/var/lib/cobbler/loaders/pxelinux.0" ]]
+          "elilo"      : [ "/var/lib/cobbler/loaders/elilo*.efi" ],
+          "menu.c32"   : [ "/usr/share/syslinux/menu.c32",
+              "/usr/lib/syslinux/menu.c32",
+              "/var/lib/cobbler/loaders/menu.c32" ],
+          "yaboot"     : [ "/var/lib/cobbler/loaders/yaboot*" ],
+          "pxelinux.0" : [ "/usr/share/syslinux/pxelinux.0",
+              "/usr/lib/syslinux/pxelinux.0",
+              "/var/lib/cobbler/loaders/pxelinux.0" ],
+          "efi"        : [ "/var/lib/cobbler/loaders/grub-x86.efi",
+              "/var/lib/cobbler/loaders/grub-x86_64.efi" ],
        }
 
        # look for bootloaders at the glob locations above
        found_bootloaders = []
        items = bootloaders.keys()
        for loader_name in items:
-          arch, patterns = bootloaders[loader_name]
+          patterns = bootloaders[loader_name]
           for pattern in patterns:
              matches = glob.glob(pattern)
              if len(matches) > 0:
@@ -312,18 +319,7 @@ class BootCheck:
           if loader_name not in found_bootloaders:
              not_found.append(loader_name)
 
-       missing = False
-       # generate warnings about what we haven't found.
-       for loader_name in not_found:
-          arch = bootloaders[loader_name][0]
-          patterns = bootloaders[loader_name][1]
-          if len(patterns) == 0:
-             pattern_str = patterns[0]
-          else:
-             pattern_str = " or ".join(patterns)
-          missing = True
-
-       if missing:
+       if len(not_found) > 0:
           status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
  
    def check_tftpd_bin(self,status):

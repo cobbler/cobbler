@@ -49,6 +49,7 @@ $SNIPPET('pre_anamon')
 
 %packages
 $SNIPPET('func_install_if_enabled')
+$SNIPPET('puppet_install_if_enabled')
 
 %post
 $SNIPPET('log_ks_post')
@@ -58,6 +59,7 @@ $yum_config_stanza
 $SNIPPET('post_install_kernel_options')
 $SNIPPET('post_install_network_config')
 $SNIPPET('func_register_if_enabled')
+$SNIPPET('puppet_register_if_enabled')
 $SNIPPET('download_config_files')
 $SNIPPET('koan_environment')
 $SNIPPET('redhat_register')

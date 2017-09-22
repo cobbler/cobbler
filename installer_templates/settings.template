@@ -168,6 +168,35 @@ mgmt_classes: []
 mgmt_parameters:
    from_cobbler: 1
 
+# if enabled, this setting ensures that puppet is installed during
+# machine provision, a client certificate is generated and a
+# certificate signing request is made with the puppet master server
+puppet_auto_setup: 0
+
+# when puppet starts on a system after installation it needs to have
+# its certificate signed by the puppet master server. Enabling the
+# following feature will ensure that the puppet server signs the
+# certificate after installation if the puppet master server is
+# running on the same machine as cobbler. This requires
+# puppet_auto_setup above to be enabled
+sign_puppet_certs_automatically: 0
+
+# location of the puppet signing utility puppetca
+puppetca_path: "/usr/sbin/puppetca"
+
+# when a puppet managed machine is reinstalled it is necessary to
+# remove the puppet certificate from the puppet master server before a
+# new certificate is signed (see above). Enabling the following
+# feature will ensure that the certificate for the machine to be
+# installed is removed from the puppet master server if the puppet
+# master server is running on the same machine as cobbler. This
+# requires puppet_auto_setup above to be enabled
+remove_old_puppet_certs_automatically: 0
+
+# set to 1 to enable Cobbler's Rsync management features.
+# this is required for sub Cobblers to replicate via rsync
+manage_rsync: 0
+
 # set to 1 to enable Cobbler's DHCP management features.
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: $enable_dhcp
@@ -211,6 +240,9 @@ pxe_just_once: $pxe_once
 # the templates used for PXE config generation are sourced
 # from what directory?
 pxe_template_dir: "/etc/cobbler/pxe"
+
+# Path to where system consoles are 
+consoles: "/var/consoles"
 
 # Are you using a Red Hat management platform in addition to Cobbler?
 # Cobbler can help you register to it.  Choose one of the following:
@@ -309,6 +341,13 @@ server: $server
 # this directory should not be required.
 snippetsdir: /var/lib/cobbler/snippets
 
+# Normally if a kickstart is specified at a remote location, this
+# URL will be passed directly to the kickstarting system, thus bypassing
+# the usual snippet templating Cobbler does for local kickstart files. If
+# this option is enabled, Cobbler will fetch the file contents internally
+# and serve a templated version of the file to the client.
+template_remote_kickstarts: 0
+
 # should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
 # this can be overridden on each profile or system object.
 virt_auto_boot: 1
@@ -344,4 +383,34 @@ yum_distro_priority: 1
 # --resolve.
 yumdownloader_flags: "--resolve"
 
+# Safe Tempating disables several features of cheetah that may prove
+# to be undesirable in situations where cobbler_web is used.  We
+#  recommend that you enable safe templating any time you have
+# individuals writting templates that do not have root access to the
+# cobbler system.
+safe_templating: true
 
+# The Safe Templating Whitelist contains Cheetah directives that will
+# be allowed in rendered templates. Be careful allowing additional
+# directives as it may allow unsafe code execution as root.
+safe_templating_whitelist:
+   - import
+   - from
+   - if
+   - elif
+   - else
+   - unless
+   - def
+   - block
+   - end
+   - for
+   - include
+   - echo
+   - set
+   - snippet
+   - errorcatcher
+   - break
+   - continue
+   - silent
+   - slurp
+   - raw

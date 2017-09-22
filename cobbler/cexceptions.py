@@ -35,6 +35,10 @@ class CobblerException(exceptions.Exception):
    def __str__(self):
        return repr(self.value)
 
+
 class CX(CobblerException):
    pass
 
+
+class FileNotFoundException(CobblerException):
+    pass

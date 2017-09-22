@@ -112,11 +112,13 @@ class BootLiteSync:
             self.sync.pxegen.make_pxe_menu()
         return True
          
-    def remove_single_profile(self, name):
+    def remove_single_profile(self, name, rebuild_menu=True):
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on kickstarts/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "kickstarts", name))
+        if rebuild_menu:
+            self.sync.pxegen.make_pxe_menu()
    
     def update_system_netboot_status(self,name):
         system = self.systems.find(name=name)
@@ -150,7 +152,7 @@ class BootLiteSync:
         itanic = False
         profile = self.profiles.find(name=system_record.profile)
         if profile is not None:
-            distro = self.distros.find(name=profile.distro)
+            distro = self.distros.find(name=profile.get_conceptual_parent().name)
             if distro is not None and distro in [ "ia64", "IA64"]:
                 itanic = True
 
@@ -159,6 +161,7 @@ class BootLiteSync:
 
             if not itanic:
                 utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
+                utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
             else:
                 utils.rmfile(os.path.join(bootloc, filename))
 

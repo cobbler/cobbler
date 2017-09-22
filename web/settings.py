@@ -65,5 +65,5 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 ) 
      
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
-SESSION_FILE_PATH = '/usr/share/cobbler/web/sessions'
+SESSION_FILE_PATH = '/var/lib/cobbler/webui_sessions'
 

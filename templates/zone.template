@@ -4,7 +4,7 @@
                                         600         ; Refresh
                                         1800         ; Retry
                                         604800       ; Expire
-                                        300          ; TTL 
+                                        300          ; TTL
                                         )
 
                         IN      NS      $cobbler_server.

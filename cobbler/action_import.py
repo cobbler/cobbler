@@ -526,7 +526,7 @@ class Importer:
 
        for x in fnames:
 
-           adtl = None
+           adtls = []
 
            fullname = os.path.join(dirname,x)
            if os.path.islink(fullname) and os.path.isdir(fullname):
@@ -537,7 +537,7 @@ class Importer:
               self.logger.info("following symlink: %s" % fullname)
               os.path.walk(fullname, self.distro_adder, distros_added)
 
-           if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size":
+           if ( x.startswith("initrd") or x.startswith("ramdisk.image.gz") ) and x != "initrd.size" and x != "initrd.addrsize":
                if x.find("PAE") == -1:
                   initrd = os.path.join(dirname,x)
                else:
@@ -551,15 +551,17 @@ class Importer:
 
            # if we've collected a matching kernel and initrd pair, turn the in and add them to the list
            if initrd is not None and kernel is not None and dirname.find("isolinux") == -1:
-               adtl = self.add_entry(dirname,kernel,initrd)
-           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
-               adtl = self.add_entry(dirname,pae_kernel,pae_initrd)
-           if adtl != None:
-               distros_added.extend(adtl)
-               initrd = None
+               adtls.append(self.add_entry(dirname,kernel,initrd))
                kernel = None
-               
-   
+               initrd = None
+           elif pae_initrd is not None and pae_kernel is not None and dirname.find("isolinux") == -1:
+               adtls.append(self.add_entry(dirname,pae_kernel,pae_initrd))
+               pae_kernel = None
+               pae_initrd = None
+           for adtl in adtls:
+               distros_added.extend(adtl)
+
+
    # ========================================================================
 
    def add_entry(self,dirname,kernel,initrd):
@@ -799,6 +801,7 @@ def guess_breed(kerneldir,path,cli_breed,logger):
        [ 'Fedora'      , "redhat" ],
        [ 'Server'      , "redhat" ],
        [ 'Client'      , "redhat" ],
+       [ 'SL'          , "redhat" ],
        [ 'isolinux.bin', None ],
     ]
     guess = None
@@ -818,7 +821,7 @@ def guess_breed(kerneldir,path,cli_breed,logger):
         if cli_breed:
             logger.info("Warning: No distro signature for kernel at %s, using value from command line" % kerneldir)
             return (cli_breed , kerneldir , None)
-        utils.die(self.logger, "No distro signature for kernel at %s" % kerneldir )
+        utils.die(logger, "No distro signature for kernel at %s" % kerneldir )
 
     if guess == "debian" :
         for suite in [ "debian" , "ubuntu" ] :

@@ -95,7 +95,7 @@ def handler(req):
     if content.find("# *** ERROR ***") != -1:
         req.write(content)
         apache.log_error("possible cheetah template error")
-        return apache.HTTP_ERROR
+        return apache.HTTP_INTERNAL_SERVER_ERROR
     elif content.find("# profile not found") != -1 or content.find("# system not found") != -1 or content.find("# object not found") != -1:
         req.content_type = "text/html;charset=utf-8"
         req.write(" ")

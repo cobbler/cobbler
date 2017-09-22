@@ -28,10 +28,13 @@ import tempfile
 import exceptions
 ANCIENT_PYTHON = 0
 try:
-   import sub_process
-   import urllib2	
+    try:
+        import subprocess as sub_process
+    except:
+       import sub_process
+    import urllib2
 except:
-   ANCIENT_PYTHON = 1
+    ANCIENT_PYTHON = 1
 import time
 import shutil
 import errno
@@ -175,7 +178,7 @@ def subprocess_call(cmd,ignore_rc=0):
         raise InfoException, "command failed (%s)" % rc
     return rc
 
-def input_string_or_hash(options,delim=None):
+def input_string_or_hash(options,delim=None,allow_multiples=True):
     """
     Older cobbler files stored configurations in a flat way, such that all values for strings.
     Newer versions of cobbler allow dictionaries.  This function is used to allow loading
@@ -191,12 +194,29 @@ def input_string_or_hash(options,delim=None):
         tokens = string.split(options, delim)
         for t in tokens:
             tokens2 = string.split(t,"=")
-            if len(tokens2) == 1 and tokens2[0] != '':
-                new_dict[tokens2[0]] = None
-            elif len(tokens2) == 2 and tokens2[0] != '':
-                new_dict[tokens2[0]] = tokens2[1]
+            if len(tokens2) == 1:
+                # this is a singleton option, no value
+                key = tokens2[0]
+                value = None
             else:
-                return {}
+                key = tokens2[0]
+                value = tokens2[1]
+
+            # if we're allowing multiple values for the same key,
+            # check to see if this token has already been
+            # inserted into the dictionary of values already
+
+            if key in new_dict.keys() and allow_multiples:
+                # if so, check to see if there is already a list of values
+                # otherwise convert the dictionary value to an array, and add
+                # the new value to the end of the list
+                if type(new_dict[key]) == list:
+                    new_dict[key].append(value)
+                else:
+                    new_dict[key] = [new_dict[key], value]
+            else:
+                new_dict[key] = value
+
         # dict.pop is not avail in 2.2
         if new_dict.has_key(""):
            del new_dict[""]
@@ -206,6 +226,29 @@ def input_string_or_hash(options,delim=None):
         return options
     else:
         raise InfoException("invalid input type: %s" % type(options))
+
+def hash_to_string(hash):
+    """
+    Convert a hash to a printable string.
+    used primarily in the kernel options string
+    and for some legacy stuff where koan expects strings
+    (though this last part should be changed to hashes)
+    """
+    buffer = ""
+    if type(hash) != dict:
+       return hash
+    for key in hash:
+       value = hash[key]
+       if value is None:
+           buffer = buffer + str(key) + " "
+       elif type(value) == list:
+           # this value is an array, so we print out every
+           # key=value
+           for item in value:
+              buffer = buffer + str(key) + "=" + str(item) + " "
+       else:
+              buffer = buffer + str(key) + "=" + str(value) + " "
+    return buffer
 
 def nfsmount(input_path):
     # input:  [user@]server:/foo/bar/x.img as string
@@ -286,41 +329,34 @@ def os_release():
    """
 
    if ANCIENT_PYTHON:
-      return ("unknown", 0, 0)
+      return ("unknown", 0)
 
    if check_dist() == "redhat":
-
-      if not os.path.exists("/bin/rpm"):
-         return ("unknown", 0, 0)
-      args = ["/bin/rpm", "-q", "--whatprovides", "redhat-release"]
-      cmd = sub_process.Popen(args,shell=False,stdout=sub_process.PIPE,close_fds=True)
-      data = cmd.communicate()[0]
-      data = data.rstrip().lower()
-      make = "other"
-      if data.find("redhat") != -1:
-          make = "redhat"
+      fh = open("/etc/redhat-release")
+      data = fh.read().lower()
+      if data.find("fedora") != -1:
+         make = "fedora"
       elif data.find("centos") != -1:
-          make = "centos"
-      elif data.find("fedora") != -1:
-          make = "fedora"
-      version = data.split("release-")[-1]
-      rest = 0
-      if version.find("-"):
-         parts = version.split("-")
-         version = parts[0]
-         rest = parts[1]
-      try:
-         version = float(version)
-      except:
-         version = float(version[0])
-      return (make, float(version), rest)
+         make = "centos"
+      else:
+         make = "redhat"
+      release_index = data.find("release")
+      rest = data[release_index+7:-1]
+      tokens = rest.split(" ")
+      for t in tokens:
+         try:
+             return (make,float(t))
+         except ValueError, ve:
+             pass
+      raise CX("failed to detect local OS version from /etc/redhat-release")
+
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")
       parts = fd.read().split(".")
       version = parts[0]
       rest = parts[1]
       make = "debian"
-      return (make, float(version), rest)
+      return (make, float(version))
    elif check_dist() == "suse":
       fd = open("/etc/SuSE-release")
       for line in fd.read().split("\n"):
@@ -329,9 +365,9 @@ def os_release():
          if line.find("PATCHLEVEL") != -1:
             rest = line.replace("PATCHLEVEL = ","")
       make = "suse"
-      return (make, float(version), rest)
+      return (make, float(version))
    else:
-      return ("unknown",0,0)
+      return ("unknown",0)
 
 def uniqify(lst, purge=None):
    temp = {}
@@ -347,22 +383,26 @@ def uniqify(lst, purge=None):
 
 def get_network_info():
    try:
-      import rhpl.ethtool 
+      import ethtool
    except:
-      raise InfoException("the rhpl module is required to use this feature (is your OS>=EL3?)")
+      try:
+         import rhpl.ethtool
+         ethtool = rhpl.ethtool
+      except:
+           raise InfoException("the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
 
    interfaces = {}
    # get names
-   inames  = rhpl.ethtool.get_devices() 
+   inames  = ethtool.get_devices()
 
    for iname in inames:
-      mac = rhpl.ethtool.get_hwaddr(iname)
+      mac = ethtool.get_hwaddr(iname)
 
       if mac == "00:00:00:00:00:00":
          mac = "?"
 
       try:
-         ip  = rhpl.ethtool.get_ipaddr(iname)
+         ip  = ethtool.get_ipaddr(iname)
          if ip == "127.0.0.1":
             ip = "?"
       except:
@@ -372,7 +412,7 @@ def get_network_info():
       module = ""
 
       try:
-         nm  = rhpl.ethtool.get_netmask(iname)
+         nm  = ethtool.get_netmask(iname)
       except:
          nm  = "?"
 
@@ -423,6 +463,19 @@ def create_xendomains_symlink(name):
         os.symlink(src, dst)
     else:
         raise InfoException("Could not create /etc/xen/auto/%s symlink.  Please check write permissions and ownership" % name)
+
+def libvirt_enable_autostart(domain_name):
+   import libvirt
+   try:
+      conn = libvirt.open("qemu:///system")
+      conn.listDefinedDomains()
+      domain = conn.lookupByName(domain_name)
+      domain.setAutostart(1)
+   except:
+      raise InfoException("libvirt could not find domain %s" % domain_name)
+
+   if not domain.autostart:
+      raise InfoException("Could not enable autostart on domain %s." % domain_name)
 
 def make_floppy(kickstart):
 

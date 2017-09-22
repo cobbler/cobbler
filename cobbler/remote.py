@@ -36,7 +36,10 @@ import fcntl
 import string
 import traceback
 import glob
-import sub_process as subprocess
+try:
+    import subprocess
+except:
+    import sub_process as subprocess
 from threading import Thread
 
 import api as cobbler_api
@@ -51,8 +54,6 @@ import clogger
 import utils
 #from utils import * # BAD!
 from utils import _
-
-import sub_process
 
 # FIXME: make configurable?
 TOKEN_TIMEOUT = 60*60 # 60 minutes
@@ -146,7 +147,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("iso","/var/www/cobbler/pub/generated.iso"),
                 self.options.get("profiles",None),
                 self.options.get("systems",None),
-                self.options.get("tempdir",None),
+                self.options.get("buildisodir",None),
                 self.options.get("distro",None),
                 self.options.get("standalone",False),
                 self.options.get("source",None),
@@ -205,6 +206,7 @@ class CobblerXMLRPCInterface:
                 self.options.get("image_patterns", ""),
                 self.options.get("prune", False),
                 self.options.get("omit_data", False),
+                self.options.get("sync_all", False),
                 self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
@@ -226,15 +228,20 @@ class CobblerXMLRPCInterface:
                      
     def background_reposync(self, options, token):
         def runner(self):
+            # NOTE: WebUI passes in repos here, CLI passes only:
             repos = options.get("repos", [])
             only = options.get("only", None)
             if only is not None:
                 repos = [ only ] 
-            if repos != "":
+            nofail = options.get("nofail", len(repos) > 0)
+
+            if len(repos) > 0:
                 for name in repos:
-                    self.remote.api.reposync(tries=self.options.get("tries",3), name=name, nofail=True, logger=self.logger)
-                else:
-                    self.remote.api.reposync(tries=self.options.get("tries",3), name=None, nofail=False, logger=self.logger)
+                    self.remote.api.reposync(tries=self.options.get("tries",
+                        3), name=name, nofail=nofail, logger=self.logger)
+            else:
+                self.remote.api.reposync(tries=self.options.get("tries",3),
+                        name=None, nofail=nofail, logger=self.logger)
             return True
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
@@ -319,9 +326,11 @@ class CobblerXMLRPCInterface:
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
         thr_obj = CobblerThread(event_id,self,logatron,args)
+        on_done_type = type(thr_obj.on_done)
+
         thr_obj._run = thr_obj_fn
         if on_done is not None:
-           thr_obj.on_done = on_done
+           thr_obj.on_done = on_done_type(on_done, thr_obj, CobblerThread)
         thr_obj.start()
         return event_id
 
@@ -564,7 +573,7 @@ class CobblerXMLRPCInterface:
         Example:  { "name" : "*.example.org" }
         Wildcards work as described by 'pydoc fnmatch'.
         """
-        self._log("find_items(%s)"%what)
+        self._log("find_items(%s); criteria(%s); sort(%s)" % (what,criteria,sort_field))
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         if not expand:     
@@ -591,7 +600,7 @@ class CobblerXMLRPCInterface:
         a web app that wants to show a limited amount of items per page.
         """
         # FIXME: make token required for all logging calls
-        self._log("find_items_paged(%s)" % what, token=token)
+        self._log("find_items_paged(%s); criteria(%s); sort(%s)" % (what,criteria,sort_field), token=token)
         items = self.api.find_items(what,criteria=criteria)
         items = self.__sort(items,sort_field)
         (items,pageinfo) = self.__paginate(items,page,items_per_page)
@@ -694,7 +703,7 @@ class CobblerXMLRPCInterface:
     def rename_image(self,object_id,newname,token=None):
         return self.rename_item("image",object_id,newname,token)
     
-    def new_item(self,what,token):
+    def new_item(self,what,token,is_subobject=False):
         """
         Creates a new (unconfigured) object, returning an object
         handle that can be used with modify_* methods and then finally
@@ -705,15 +714,15 @@ class CobblerXMLRPCInterface:
         self._log("new_item(%s)"%what,token=token)
         self.check_access(token,"new_%s"%what)
         if what == "distro":
-            d = item_distro.Distro(self.api._config)
+            d = item_distro.Distro(self.api._config,is_subobject=is_subobject)
         elif what == "profile":
-            d = item_profile.Profile(self.api._config)
+            d = item_profile.Profile(self.api._config,is_subobject=is_subobject)
         elif what == "system":
-            d = item_system.System(self.api._config)
+            d = item_system.System(self.api._config,is_subobject=is_subobject)
         elif what == "repo":
-            d = item_repo.Repo(self.api._config)
+            d = item_repo.Repo(self.api._config,is_subobject=is_subobject)
         elif what == "image":
-            d = item_image.Image(self.api._config)
+            d = item_image.Image(self.api._config,is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what,self.__get_random(25))
@@ -724,8 +733,8 @@ class CobblerXMLRPCInterface:
         return self.new_item("distro",token)
     def new_profile(self,token):
         return self.new_item("profile",token)
-    # for API backwards compatibility reasons only:
-    new_subprofile = new_profile
+    def new_subprofile(self,token):
+        return self.new_item("profile",token,is_subobject=True)
     def new_system(self,token):
         return self.new_item("system",token)
     def new_repo(self,token):
@@ -777,7 +786,9 @@ class CobblerXMLRPCInterface:
         Though we must preserve the old ways for backwards compatibility these 
         cause much less XMLRPC traffic.
 
-        Ex: xapi_object_edit("distro","el5","new",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
+        edit_type - One of 'add', 'rename', 'copy', 'remove'
+
+        Ex: xapi_object_edit("distro","el5","add",{"kernel":"/tmp/foo","initrd":"/tmp/foo"},token)
         """
         self.check_access(token,"xedit_%s" % object_type, token)
 
@@ -792,7 +803,8 @@ class CobblerXMLRPCInterface:
                 raise CX("it seems unwise to overwrite this object, try 'edit'")
 
         if edit_type == "add":
-            handle = self.new_item(object_type, token) 
+            is_subobject = object_type == "profile" and "parent" in attributes
+            handle = self.new_item(object_type, token, is_subobject=is_subobject)
         else:
             handle = self.get_item_handle(object_type, object_name)
 
@@ -914,8 +926,14 @@ class CobblerXMLRPCInterface:
     def get_blended_data(self,profile=None,system=None):
         if profile is not None and profile != "":
             obj = self.api.find_profile(profile)
-        else:
+            if obj is None:
+                raise CX("profile not found: %s" % profile)
+        elif system is not None and system != "":
             obj = self.api.find_system(system)
+            if obj is None:
+                raise CX("system not found: %s" % system)
+        else:
+            raise CX("internal error, no system or profile specified")
         return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
 
     def get_settings(self,token=None,**rest):
@@ -924,7 +942,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("get_settings",token=token)
         results = self.api.settings().to_datastruct()
-        self._log("my settings are: %s" % results)
+        self._log("my settings are: %s" % results, debug=True)
         return self.xmlrpc_hacks(results)
 
     def get_repo_config_for_profile(self,profile_name,**rest):
@@ -1192,7 +1210,7 @@ class CobblerXMLRPCInterface:
         # time if reinstalling all of a cluster all at once.
         # we can do that at "cobbler check" time.
 
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip])
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode, additional=[objtype,name,ip],logger=self.logger)
 
 
         return True
@@ -1339,7 +1357,7 @@ class CobblerXMLRPCInterface:
         inheritance/graph engine.  Shows what would be installed, not
         the input data.
         """
-        return self.get_system_for_koan(self,name)
+        return self.get_system_for_koan(name)
 
     def get_system_for_koan(self,name,token=None,**rest):
         """
@@ -1528,8 +1546,11 @@ class CobblerXMLRPCInterface:
     def check_access(self,token,resource,arg1=None,arg2=None):
         validated = self.__validate_token(token)
         user = self.get_user_from_token(token)
-        rc = self.__authorize(token,resource,arg1,arg2)
-        self._log("authorization result: %s" % rc)
+        if user == "<DIRECT>":
+            self._log("CLI Authorized", debug=True)
+            return True
+        rc = self.api.authorize(user,resource,arg1,arg2)
+        self._log("%s authorization result: %s" % (user,rc),debug=True)
         if not rc:
             raise CX("authorization failure for user %s" % user) 
         return rc
@@ -1557,15 +1578,6 @@ class CobblerXMLRPCInterface:
             return token
         else:
             utils.die(self.logger, "login failed (%s)" % login_user)
-
-    def __authorize(self,token,resource,arg1=None,arg2=None):
-        user = self.get_user_from_token(token)
-        args = [ resource, arg1, arg2 ]
-        rc = self.api.authorize(user,resource,arg1,arg2)
-        if rc:
-            return True
-        else:
-            utils.die(self.logger, "user %s does not have access to resource: %s" % (user,resource))
 
     def logout(self,token):
         """
@@ -1638,6 +1650,12 @@ class CobblerXMLRPCInterface:
                 else:
                     utils.die(self.logger, "attempt to delete in-use file")
             else:
+                import template_api
+                template_obj = template_api.Template.compile(new_data)()
+                class_str = template_obj.generatedClassCode()
+                # This will throw an exception if it fails
+                utils.parse_template_class(class_str)
+
                 fileh = open(kickstart_file,"w+")
                 fileh.write(new_data)
                 fileh.close()
@@ -1676,6 +1694,12 @@ class CobblerXMLRPCInterface:
                 # FIXME: no way to check if something is using it
                 os.remove(snippet_file)
             else:
+                import template_api
+                template_obj = template_api.Template.compile(new_data)()
+                class_str = template_obj.generatedClassCode()
+                # This will throw an exception if it fails
+                utils.parse_template_class(class_str)
+
                 fileh = open(snippet_file,"w+")
                 fileh.write(new_data)
                 fileh.close()
@@ -1698,6 +1722,15 @@ class CobblerXMLRPCInterface:
             rc=self.api.reboot(obj, user=None, password=None, logger=logger)
         else:
             utils.die(self.logger, "invalid power mode '%s', expected on/off/reboot" % power)
+        return rc
+
+    def clear_system_logs(self, object_id, token=None, logger=None):
+        """
+        clears console logs of a system
+        """
+        obj = self.__get_object(object_id)
+        self.check_access(token, "clear_system_logs", obj)
+        rc=self.api.clear_logs(obj, logger=logger)
         return rc
 
 # *********************************************************************************

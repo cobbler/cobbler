@@ -158,20 +158,6 @@ function save_intf(which)
        itable = interface_table[iname]
     }
 
-    is_slave  = false
-    is_master = false
-
-    value = document.getElementById("bonding").value
-    if (value == "master") {
-       master = true;
-    } else if (value == "slave") {
-       slave = true;
-    }
-    is_static=document.getElementById("static").checked
-
-    itable["name"]       = iname
-    itable["mac_address"] = document.getElementById("mac_address").value
-
     var bond = document.getElementById("bonding").value
     var is_slave  = false;
     var is_master = false;
@@ -343,15 +329,15 @@ $(document).ready(function()
     <input type="hidden" name="editmode" value="{{ editmode }}"/>
     <input type="hidden" name="subobject" value="{{ subobject }}"/>
     <div>
-      <table border=0 width=0 height=0>
+      <table border="0" width="0" height="0">
       {% for item in fields %}
         {% ifchanged item.block_section %}
       </table>
     </div>
-    <h3 class="sectionheader action">&raquo; {{ item.block_section }}</h3>
+    <h3 class="sectionheader action">&rArr; {{ item.block_section }}</h3>
     <div class="sectionbody" id="block_{{ item.block_section }}">
     <table border="0">
-      {% endifchanged %}
+       {% endifchanged %}
       <tr id="{{ item.dname  }}_row" class="editrow">
         <td valign="top"><label id="{{ item.dname }}_caption">{{ item.caption }}</label></td>
         {% ifequal item.html_element "widget" %}
@@ -359,7 +345,11 @@ $(document).ready(function()
         {% else %}
         <td>
           {% ifequal item.html_element "text" %}
+          {% smart_if editmode == "edit" and item.dname == "name" %}
+          {{ item.value }}<input type="hidden" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+          {% else %}
           <input type="text" name="{{ item.dname }}" id="{{ item.dname }}" value="{{ item.value }}"/>
+          {% endsmart_if %}
           {% endifequal %}
           {% ifequal item.html_element "textarea" %}
           <textarea name="{{ item.dname }}" id="{{ item.dname }}" rows="4" cols="40">{{ item.value }}</textarea><br />
@@ -392,7 +382,7 @@ $(document).ready(function()
           </select>
           {% endifequal %}
           {% ifequal item.html_element "multiselect" %}
-          <select multiple id="{{ item.dname }}" class="edit">
+          <select multiple id="{{ item.dname }}" name="{{ item.dname }}" class="edit">
             {% for choice in item.choices %}
               {% smart_if choice in item.value_raw %}
           <option value="{{ choice }}" selected>{{ choice }}</a>
@@ -402,7 +392,11 @@ $(document).ready(function()
             {% endfor %} 
           </select>
           {% endifequal %}
-          <sup><em>{{ item.tooltip }}</em></sup>
+          {% smart_if editmode == "edit" and item.dname == "name" %}
+          (editing, value is read-only)
+          {% else %}
+          <em>{{ item.tooltip }}</em>
+          {% endsmart_if %}
         </td>
         {% endifequal %}
       </tr>

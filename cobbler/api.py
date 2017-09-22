@@ -36,10 +36,14 @@ import action_replicate
 import action_acl
 import action_report
 import action_power
+import action_log
 import action_hardlink
 import action_dlcontent
 from cexceptions import *
-import sub_process
+try:
+    import subprocess as sub_process
+except:
+    import sub_process
 import module_loader
 import kickgen
 import yumgen
@@ -238,13 +242,13 @@ class BootAPI:
     # ==========================================================
 
     def get_item(self, what, name):
-        self.log("get_item",[what,name])
+        self.log("get_item",[what,name],debug=True)
         return self._config.get_items(what).get(name)
 
     # =============================================================
 
     def get_items(self, what):
-        self.log("get_items",[what])
+        self.log("get_items",[what],debug=True)
         return self._config.get_items(what)
     
     def distros(self):
@@ -317,9 +321,10 @@ class BootAPI:
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         if isinstance(what, basestring):
-             ref = self.get_item(what, ref)
-             if ref is None:
-                return # nothing to remove
+            if isinstance(ref, basestring):
+                ref = self.get_item(what, ref)
+                if ref is None:
+                    return # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
         return self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers, logger=logger)
 
@@ -612,12 +617,12 @@ class BootAPI:
            "dhcp",
            "module",
            "manage_isc"
-        ).get_manager(self._config)
+        ).get_manager(self._config,logger)
         self.dns = self.get_module_from_file(
            "dns",
            "module",
            "manage_bind"
-        ).get_manager(self._config)
+        ).get_manager(self._config,logger)
         return action_sync.BootSync(self._config,dhcp=self.dhcp,dns=self.dns,verbose=verbose,logger=logger)
 
     # ==========================================================================
@@ -746,10 +751,10 @@ class BootAPI:
 
     # ==========================================================================
 
-    def build_iso(self,iso=None,profiles=None,systems=None,tempdir=None,distro=None,standalone=None,source=None, exclude_dns=None, logger=None):
+    def build_iso(self,iso=None,profiles=None,systems=None,buildisodir=None,distro=None,standalone=None,source=None, exclude_dns=None, logger=None):
         builder = action_buildiso.BuildIso(self._config, logger=logger)
         return builder.run(
-           iso=iso, profiles=profiles, systems=systems, tempdir=tempdir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns
+           iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone, source=source, exclude_dns=exclude_dns
         )
 
     # ==========================================================================
@@ -760,7 +765,7 @@ class BootAPI:
 
     # ==========================================================================
 
-    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, logger=None):
+    def replicate(self, cobbler_master = None, distro_patterns="", profile_patterns="", system_patterns="", repo_patterns="", image_patterns="", prune=False, omit_data=False, sync_all=False, logger=None):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
@@ -773,7 +778,8 @@ class BootAPI:
               repo_patterns    = repo_patterns,
               image_patterns   = image_patterns,
               prune            = prune,
-              omit_data        = omit_data
+              omit_data        = omit_data,
+              sync_all         = sync_all
         )
 
     # ==========================================================================
@@ -815,6 +821,12 @@ class BootAPI:
         return self.power_on(system, user, password, logger=logger)
 
     # ==========================================================================
+
+    def clear_logs(self, system, logger=None):
+        """
+        Clears console and anamon logs for system
+        """
+        return action_log.LogTool(self._config,system,self, logger=logger).clear()
 
     def get_os_details(self):
         return (self.dist, self.os_version)

@@ -3,7 +3,7 @@ PROMPT 0
 MENU TITLE Cobbler | http://fedorahosted.org/cobbler
 TIMEOUT 200
 TOTALTIMEOUT 6000
-ONTIMEOUT local
+ONTIMEOUT $pxe_timeout_profile
 
 LABEL local
         MENU LABEL (local)
