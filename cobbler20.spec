@@ -1,16 +1,21 @@
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 %define _binaries_in_noarch_packages_terminate_build 0
 %global debug_package %{nil}
 Summary: Boot server configurator
-Name: cobbler
+Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 1%{?dist}
-Source0: cobbler-%{version}.tar.gz
+Release: 64%{?dist}
+Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
-Requires: python >= 2.3
+
+Provides: cobbler = %{version}-%{release}
+Obsoletes: cobbler <= %{version}-%{release}
+
+Requires: python
 %if 0%{?suse_version} >= 1000
 Requires: apache2
 Requires: apache2-mod_python
@@ -20,48 +25,37 @@ Requires: httpd
 Requires: tftp-server
 %endif
 
-%if 0%{?rhel} >= 6
 Requires: mod_wsgi
-%else
-Requires: mod_python
+# syslinux is only available on x86
+%if "%{_arch}" == "i386" || "%{_arch}" == "i686" || "%{_arch}" == "x86_64"
+Requires: syslinux
 %endif
 
 Requires: createrepo
-%if 0%{?fedora} >= 11
-Requires: fence-agents
+%if 0%{?fedora}
+Requires: fence-agents-all
 %endif
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
 Requires: genisoimage
-%else
-Requires: mkisofs
-%endif
 Requires: libyaml
 Requires: python-cheetah
 Requires: python-devel
 Requires: python-netaddr
 Requires: python-simplejson
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%else
 BuildRequires: python-setuptools
-%endif
 Requires: python-urlgrabber
 Requires: PyYAML
 %if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
 %endif
 Requires: rsync
-%if 0%{?fedora} >= 6 || 0%{?rhel} >= 5
 Requires: yum-utils
-%endif
 
+%if 0%{?fedora} || 0%{?rhel} >= 7
+BuildRequires: systemd
+%else
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
-
 Requires(preun): /sbin/service
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]" || echo 0)}
-Requires: python(abi) >= %{pyver}
 %endif
 
 BuildRequires: PyYAML
@@ -87,21 +81,28 @@ a XMLRPC API for integration with other applications.
 %setup -q
 
 %build
-%{__python} setup.py build 
+make all
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version} >= 1000
 PREFIX="--prefix=/usr"
 %endif
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 mkdir $RPM_BUILD_ROOT/var/www/cobbler/rendered/
+%if 0%{?fedora} || 0%{?rhel} >= 7
+rm $RPM_BUILD_ROOT/etc/init.d/cobblerd
+mkdir -p $RPM_BUILD_ROOT%{_unitdir}
+install -m 0644 config/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}/
+%endif
 
 %post
 if [ "$1" = "1" ];
 then
     # This happens upon initial install. Upgrades will follow the next else
-    /sbin/chkconfig --add cobblerd
+    if [ -f /etc/init.d/cobblerd ]; then
+        /sbin/chkconfig --add cobblerd
+    fi
 elif [ "$1" -ge "2" ];
 then
     # backup config
@@ -136,19 +137,30 @@ then
     # reserialize and restart
     # FIXIT: ?????
     #/usr/bin/cobbler reserialize
+%if 0%{?fedora} || 0%{?rhel} >= 7
+    /usr/bin/systemctl condrestart cobblerd.service
+%else
     /sbin/service cobblerd condrestart
+%endif
 fi
 
 %preun
 if [ $1 = 0 ]; then
-    /sbin/service cobblerd stop >/dev/null 2>&1 || :
-    chkconfig --del cobblerd || :
+    if [ -f /etc/init.d/cobblerd ]; then
+        /sbin/service cobblerd stop >/dev/null 2>&1 || :
+        chkconfig --del cobblerd || :
+    fi
 fi
 
 %postun
 if [ "$1" -ge "1" ]; then
+%if 0%{?fedora}
+    /usr/bin/systemctl condrestart cobblerd.service >/dev/null 2>&1 || :
+    /usr/bin/systemctl condrestart httpd.service >/dev/null 2>&1 || :
+%else
     /sbin/service cobblerd condrestart >/dev/null 2>&1 || :
     /sbin/service httpd condrestart >/dev/null 2>&1 || :
+%endif
 fi
 
 
@@ -157,7 +169,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 
-%defattr(755,apache,apache)
+%defattr(644,apache,apache,755)
 %dir /var/www/cobbler/pub/
 %dir /var/www/cobbler/web/
 /var/www/cobbler/web/index.html
@@ -166,18 +178,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /var/www/cobbler/svc/*.py*
 /var/www/cobbler/svc/*.wsgi*
 
-%defattr(755,root,root)
+%defattr(644,root,root,755)
 %dir /usr/share/cobbler/installer_templates
-%defattr(744,root,root)
 /usr/share/cobbler/installer_templates/*.template
-%defattr(744,root,root)
 /usr/share/cobbler/installer_templates/defaults
-#%defattr(755,apache,apache)               (MOVED to cobbler-web)
-#%dir /usr/share/cobbler/webui_templates   (MOVED to cobbler-web)
-#%defattr(444,apache,apache)               (MOVED to cobbler-web)
-#/usr/share/cobbler/webui_templates/*.tmpl (MOVED to cobbler-web)
 
-%defattr(755,apache,apache)
+%defattr(644,apache,apache,755)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/tasks
 %dir /var/log/cobbler/kicklog
@@ -188,20 +194,17 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/www/cobbler/ks_mirror/config
 %dir /var/www/cobbler/images
 %dir /var/www/cobbler/links
-%defattr(755,apache,apache)
-#%dir /var/www/cobbler/webui (MOVED to cobbler-web)
+%defattr(444,apache,apache,755)
 %dir /var/www/cobbler/aux
-%defattr(444,apache,apache)
-#/var/www/cobbler/webui/*    (MOVED TO cobbler-web)
 /var/www/cobbler/aux/anamon
 /var/www/cobbler/aux/anamon.init
 
-%defattr(755,root,root)
+%defattr(755,root,root,755)
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 
-%defattr(-,root,root)
+%defattr(644,root,root,755)
 %dir /etc/cobbler
 %dir /etc/cobbler/pxe
 %dir /etc/cobbler/reporting
@@ -217,33 +220,29 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/cobbler/modules.conf
 %config(noreplace) /etc/cobbler/users.conf
 %config(noreplace) /etc/cobbler/cheetah_macros
-%dir %{python_sitelib}/cobbler
-%dir %{python_sitelib}/cobbler/modules
-%{python_sitelib}/cobbler/*.py*
-#%{python_sitelib}/cobbler/server/*.py*
-%{python_sitelib}/cobbler/modules/*.py*
-%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
-%exclude %{python_sitelib}/cobbler/sub_process.py*
-%endif
+%dir %{python2_sitelib}/cobbler
+%dir %{python2_sitelib}/cobbler/modules
+%{python2_sitelib}/cobbler/*.py*
+%{python2_sitelib}/cobbler/modules/*.py*
+%exclude %{python2_sitelib}/cobbler/sub_process.py*
 %{_mandir}/man1/cobbler.1.gz
+%if 0%{?fedora} || 0%{?rhel} >= 7
+%{_unitdir}/cobblerd.service
+%else
 /etc/init.d/cobblerd
+%endif
 
 %if 0%{?suse_version} >= 1000
 %config(noreplace) /etc/apache2/conf.d/cobbler.conf
 %else
-%if 0%{?rhel} >= 6
 %config(noreplace) /etc/httpd/conf.d/cobbler_wsgi.conf
 %exclude /etc/httpd/conf.d/cobbler.conf
-%else
-%config(noreplace) /etc/httpd/conf.d/cobbler.conf
-%exclude /etc/httpd/conf.d/cobbler_wsgi.conf
-%endif
 %endif
 
 %dir /var/log/cobbler/syslog
 %dir /var/log/cobbler/anamon
 
-%defattr(755,root,root)
+%defattr(644,root,root,755)
 %dir /var/lib/cobbler
 %dir /var/lib/cobbler/config/
 %dir /var/lib/cobbler/config/distros.d/
@@ -291,40 +290,28 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/cache/cobbler
 %dir /var/cache/cobbler/buildiso
 
-%defattr(664,root,root)
+%defattr(644,root,root,755)
 %config(noreplace) /etc/cobbler/settings
 /var/lib/cobbler/version
 %config(noreplace) /var/lib/cobbler/snippets/*
 %dir /var/lib/cobbler/loaders/
 /var/lib/cobbler/loaders/zpxe.rexx
-%defattr(660,root,root)
+%defattr(640,root,root,755)
 %config(noreplace) /etc/cobbler/users.digest 
 
-%defattr(664,root,root)
+%defattr(644,root,root,755)
 %config(noreplace) /var/lib/cobbler/cobbler_hosts
 
-%defattr(-,root,root)
-%if 0%{?fedora} > 8 || 0%{?rhel} >= 6
-%{python_sitelib}/cobbler*.egg-info
-%endif
+%{python2_sitelib}/cobbler*.egg-info
 %doc AUTHORS CHANGELOG README COPYING
 
 %package -n koan
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Group: Applications/System
-Requires: python >= 1.5
+Requires: python
 BuildRequires: python-devel
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
-Requires: python(abi) >= %{pyver}
-%endif
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%endif
-%if 0%{?rhel} >= 4
 BuildRequires: python-setuptools
-%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler/
@@ -337,26 +324,43 @@ network installation of new virtualized guests and reinstallation
 of an existing system.  For use with a boot-server configured with Cobbler
 
 %files -n koan
-%defattr(-,root,root)
+%defattr(644,root,root,755)
 # FIXME: need to generate in setup.py
-#%if 0%{?fedora} > 8
-#%{python_sitelib}/koan*.egg-info
-#%endif
 %dir /var/spool/koan
 %{_bindir}/koan
 %{_bindir}/cobbler-register
-%dir %{python_sitelib}/koan
-%{python_sitelib}/koan/*.py*
-%if 0%{?fedora} >= 9 || 0%{?rhel} >= 5
-%exclude %{python_sitelib}/koan/sub_process.py*
-%exclude %{python_sitelib}/koan/opt_parse.py*
-%exclude %{python_sitelib}/koan/text_wrap.py*
-%endif
+%dir %{python2_sitelib}/koan
+%{python2_sitelib}/koan/*.py*
+%exclude %{python2_sitelib}/koan/sub_process.py*
+%exclude %{python2_sitelib}/koan/opt_parse.py*
+%exclude %{python2_sitelib}/koan/text_wrap.py*
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
 %doc AUTHORS COPYING CHANGELOG README
 
+%package -n cobbler2
+Summary: Compatibility package to pull in cobbler from Spacewalk repo
+Group: Applications/System
+Requires: cobbler20 = %{version}-%{release}
+
+%description -n cobbler2
+
+Compatibility package to pull in cobbler from Spacewalk repo.
+
+%files -n cobbler2
+
+%package -n cobbler-epel
+Summary: Compatibility package to pull in cobbler package from EPEL/Fedora
+Group: Applications/System
+Requires: cobbler >= 2.2
+Provides: cobbler2
+
+%description -n cobbler-epel
+
+Compatibility package to pull in cobbler package from EPEL/Fedora.
+
+%files -n cobbler-epel
 
 %package -n cobbler-web
 
@@ -369,15 +373,7 @@ Requires: apache2-mod_python
 %else
 Requires: mod_python
 %endif
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{!?pyver: %define pyver %(%{__python} -c "import sys ; print sys.version[:3]")}
-Requires: python(abi) >= %{pyver}
-%endif
-%if 0%{?fedora} >= 8
-BuildRequires: python-setuptools-devel
-%else
 BuildRequires: python-setuptools
-%endif
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler/
@@ -387,11 +383,9 @@ Url: http://fedorahosted.org/cobbler/
 Web interface for Cobbler that allows visiting http://server/cobbler_web to configure the install server.
 
 %files -n cobbler-web
-%defattr(-,apache,apache)
+%defattr(644,apache,apache,755)
 %dir /usr/share/cobbler/web
 /usr/share/cobbler/web/*
-%dir /usr/share/cobbler/web/cobbler_web
-/usr/share/cobbler/web/cobbler_web/*
 %config(noreplace) /etc/httpd/conf.d/cobbler_web.conf
 %dir /var/lib/cobbler/webui_sessions
 %dir /var/www/cobbler_webui_content
@@ -408,7 +402,7 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 * Fri Dec  3 2010 Scott Henson <shenson@redhat.com> - 2.0.8-1
 - New upstream release
 
-* Wed Oct 18 2010 Scott Henson <shenson@redhat.com> - 2.0.7-1
+* Mon Oct 18 2010 Scott Henson <shenson@redhat.com> - 2.0.7-1
 - Bug fix relase, see Changelog for details
 
 * Tue Jul 13 2010 Scott Henson <shenson@redhat.com> - 2.0.5-1
