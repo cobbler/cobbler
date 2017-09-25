@@ -8,7 +8,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 64%{?dist}
+Release: 65%{?dist}
 Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
 
@@ -393,6 +393,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Sep 25 2017 Jan Dobes 2.0.11-65
+- new package built with tito
+
 * Fri Dec 24 2010 Scott Henson <shenson@redhat.com> - 2.0.10-1
 - New upstream release
 
