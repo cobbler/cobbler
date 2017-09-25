@@ -2,4 +2,4 @@
 default_builder = tito.builder.Builder
 default_tagger = tito.tagger.ReleaseTagger
 changelog_do_not_remove_cherrypick = 0
-changelog_format = %s (%ae)
+changelog_format = %s
