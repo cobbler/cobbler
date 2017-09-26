@@ -154,7 +154,7 @@ fi
 
 %postun
 if [ "$1" -ge "1" ]; then
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 7
     /usr/bin/systemctl condrestart cobblerd.service >/dev/null 2>&1 || :
     /usr/bin/systemctl condrestart httpd.service >/dev/null 2>&1 || :
 %else
