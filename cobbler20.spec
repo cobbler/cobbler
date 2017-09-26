@@ -8,7 +8,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 65%{?dist}
+Release: 66%{?dist}
 Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
 
@@ -395,6 +395,12 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Tue Sep 26 2017 Jan Dobes 2.0.11-66
+- fence-agents-all are on fedora and el7, fence-agents on el6 and suse
+- do this on el7 too
+- init.d script needs to be executable
+- don't include email in changelog generated from commits
+
 * Mon Sep 25 2017 Jan Dobes 2.0.11-65
 - new package built with tito
 
