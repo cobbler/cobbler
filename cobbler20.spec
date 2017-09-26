@@ -229,7 +229,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora} || 0%{?rhel} >= 7
 %{_unitdir}/cobblerd.service
 %else
-/etc/init.d/cobblerd
+%attr(755,root,root) /etc/init.d/cobblerd
 %endif
 
 %if 0%{?suse_version} >= 1000
