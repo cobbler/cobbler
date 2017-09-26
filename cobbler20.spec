@@ -32,8 +32,10 @@ Requires: syslinux
 %endif
 
 Requires: createrepo
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 7
 Requires: fence-agents-all
+%else
+Requires: fence-agents
 %endif
 Requires: genisoimage
 Requires: libyaml
