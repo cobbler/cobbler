@@ -8,7 +8,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 66%{?dist}
+Release: 67%{?dist}
 Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
 
@@ -395,6 +395,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Wed Sep 27 2017 Jan Dobes 2.0.11-67
+- 1314379 - updating logrotate config to cobbler 2.8 state
+
 * Tue Sep 26 2017 Jan Dobes 2.0.11-66
 - fence-agents-all are on fedora and el7, fence-agents on el6 and suse
 - do this on el7 too
