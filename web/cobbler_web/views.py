@@ -2,7 +2,7 @@ from django.template.loader import get_template
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 
@@ -1268,7 +1268,7 @@ def login(request, next=None, message=None, expired=False):
 
     if expired and not message:
         message = "Sorry, either you need to login or your session expired."
-    return render_to_response('login.tmpl', RequestContext(request,{'next':next,'message':message}))
+    return render(request, 'login.tmpl', {'next': next, 'message': message})
 
 def accept_remote_user(request, nextsite):
     global username
