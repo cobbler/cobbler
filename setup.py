@@ -64,13 +64,18 @@ def glob(*args, **kwargs):
 
 def gen_build_version():
     builddate = time.asctime()
-    cmd = subprocess.Popen(["/usr/bin/git", "log", "--format=%h%n%ad", "-1"], stdout=subprocess.PIPE)
-    data = cmd.communicate()[0].strip()
-    if cmd.returncode == 0:
-        gitstamp, gitdate = data.split("\n")
+
+    gitloc = "/usr/bin/git"
+    gitdate = "?"
+    gitstamp = "?"
+    if not os.path.isfile(gitloc):
+        print("warning: " + gitloc + " not found")
     else:
-        gitdate = "?"
-        gitstamp = "?"
+        cmd = subprocess.Popen([gitloc, "log", "--format=%h%n%ad", "-1"],
+                               stdout=subprocess.PIPE)
+        data = cmd.communicate()[0].strip()
+        if cmd.returncode == 0:
+            gitstamp, gitdate = data.split("\n")
 
     fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
     config = ConfigParser()
