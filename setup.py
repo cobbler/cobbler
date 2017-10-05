@@ -506,6 +506,19 @@ class savestate(statebase):
         self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
 
 
+def parse_os_release():
+    out = {}
+    osreleasepath = "/etc/os-release"
+    if os.path.exists(osreleasepath):
+        with open(osreleasepath, 'rb') as os_release:
+            out.update(
+                map(
+                    lambda line: [it.strip('"\n') for it in line.split('=', 1)],
+                    [line for line in os_release.xreadlines() if not line.startswith('#') and '=' in line]
+                )
+            )
+    return out
+
 #####################################################################
 # # Actual Setup.py Script ###########################################
 #####################################################################
@@ -520,8 +533,13 @@ if __name__ == "__main__":
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
+    os_release = parse_os_release()
+    suse_release = (
+        os.path.exists("/etc/SuSE-release") or
+        os_release.get('ID_LIKE', '').lower() == 'suse'
+    )
 
-    if os.path.exists("/etc/SuSE-release"):
+    if suse_release:
         webconfig = "/etc/apache2/conf.d"
         webroot = "/srv/www/"
         http_user = "wwwrun"
