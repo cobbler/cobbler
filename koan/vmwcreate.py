@@ -77,7 +77,7 @@ def random_mac():
 
 def make_disk(disksize,image):
     cmd = "vmware-vdiskmanager -c -a lsilogic -s %sGb -t 0 %s" % (disksize, image)
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if rc != 0:
        raise VirtCreateException("command failed")
@@ -96,7 +96,7 @@ def make_vmx(path,vmdk_image,image_name,mac_address,memory):
 
 def register_vmx(vmx_file):
     cmd = "vmware-cmd -s register %s" % vmx_file
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if rc!=0:
        raise VirtCreateException("vmware registration failed")
@@ -104,7 +104,7 @@ def register_vmx(vmx_file):
 def start_vm(vmx_file):
     os.chmod(vmx_file,0755)
     cmd = "vmware-cmd %s start" % vmx_file
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if rc != 0:
        raise VirtCreateException("vm start failed")
@@ -130,19 +130,19 @@ def start_install(name=None,
 
     mac = None
     if not profile_data.has_key("interfaces"):
-        print "- vmware installation requires a system, not a profile"
+        print("- vmware installation requires a system, not a profile")
         return 1
     for iname in profile_data["interfaces"]:
         intf = profile_data["interfaces"][iname]
         mac = intf["mac_address"]
     if mac is None:
-        print "- no MAC information available in this record, cannot install"
+        print("- no MAC information available in this record, cannot install")
         return 1
 
-    print "DEBUG: name=%s" % name
-    print "DEBUG: ram=%s" % ram
-    print "DEBUG: mac=%s" % mac
-    print "DEBUG: disks=%s" % disks
+    print("DEBUG: name=%s" % name)
+    print("DEBUG: ram=%s" % ram)
+    print("DEBUG: mac=%s" % mac)
+    print("DEBUG: disks=%s" % disks)
     # starts vmware using PXE.  disk/mem info come from Cobbler
     # rest of the data comes from PXE which is also intended
     # to be managed by Cobbler.
@@ -159,10 +159,10 @@ def start_install(name=None,
     disksize = disks[0][1]
 
     image = "%s/%s" % (IMAGE_DIR, name)
-    print "- saving virt disk image as %s" % image
+    print("- saving virt disk image as %s" % image)
     make_disk(disksize,image)
     vmx = "%s/%s" % (VMX_DIR, name)
-    print "- saving vmx file as %s" % vmx
+    print("- saving vmx file as %s" % vmx)
     make_vmx(vmx,image,name,mac,ram)
     register_vmx(vmx)
     start_vm(vmx)

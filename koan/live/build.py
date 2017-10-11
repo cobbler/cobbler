@@ -45,7 +45,7 @@ def main(args):
    (options,args) = p.parse_args()
 
    if options.server is None:
-      print >>sys.stderr, "error: --server is required"
+      sys.stderr.write("error: --server is required\n")
       sys.exit(1)
    if options.koan is None:
       options.koan = "--replace-self --server=%s" % options.server
@@ -55,15 +55,15 @@ def main(args):
       options.koan = options.koan + " --replace-self"
 
    if not os.path.exists("/usr/bin/livecd-creator"):
-      print "livecd-tools needs to be installed"
+      print("livecd-tools needs to be installed")
       sys.exit(1)
 
    if not os.path.exists("/usr/bin/createrepo"):
-      print "createrepo needs to be installed"
+      print("createrepo needs to be installed")
       sys.exit(1)
 
    if not os.path.exists("/sbin/mksquashfs"):
-      print "squashfs-tools needs to be installed"
+      print("squashfs-tools needs to be installed")
       sys.exit(1)
 
 
@@ -89,12 +89,12 @@ def main(args):
    #for x in packages:
    #   cmd = cmd + " --package=%s" % x
    
-   print "running: %s" % cmd
+   print("running: %s" % cmd)
 
    try:
        os.remove("koan-live-cd.iso")
    except:
-       print "existing file not removed"
+       print("existing file not removed")
    subprocess.call(cmd, shell=True)
 
 if __name__ == "__main__":

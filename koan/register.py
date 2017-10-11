@@ -65,7 +65,7 @@ def main():
 
     (options, args) = p.parse_args()
     #if not os.getuid() == 0:
-    #    print "koan requires root access"
+    #    print("koan requires root access")
     #    return 3
 
     try:
@@ -80,11 +80,11 @@ def main():
         (xa, xb, tb) = sys.exc_info()
         try:
             getattr(e,"from_koan")
-            print str(e)[1:-1] # nice exception, no traceback needed
+            print(str(e)[1:-1]) # nice exception, no traceback needed
         except:
-            print xa
-            print xb
-            print string.join(traceback.format_list(traceback.extract_tb(tb)))
+            print(xa)
+            print(xb)
+            print(string.join(traceback.format_list(traceback.extract_tb(tb))))
         return 1
 
     return 0
@@ -127,13 +127,13 @@ class Register:
         if os.getuid() != 0:
            raise InfoException("root access is required to register")
  
-        print "- preparing to koan home"
+        print("- preparing to koan home")
         self.conn = utils.connect_to_server(self.server, self.port)
         reg_info = {}
-        print "- gathering network info"
+        print("- gathering network info")
         netinfo = utils.get_network_info()
         reg_info["interfaces"] = netinfo
-        print "- checking hostname"
+        print("- checking hostname")
         sysname = ""
         if self.hostname != "" and self.hostname != "*AUTO*":
             hostname = self.hostname
@@ -171,14 +171,14 @@ class Register:
 
         if not self.batch:
             self.conn.register_new_system(reg_info)
-            print "- registration successful, new system name: %s" % sysname
+            print("- registration successful, new system name: %s" % sysname)
         else:
             try:
                 self.conn.register_new_system(reg_info)
-                print "- registration successful, new system name: %s" % sysname
+                print("- registration successful, new system name: %s" % sysname)
             except:
                 traceback.print_exc()
-                print "- registration failed, ignoring because of --batch"
+                print("- registration failed, ignoring because of --batch")
 
         return
    

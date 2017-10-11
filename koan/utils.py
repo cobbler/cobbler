@@ -90,7 +90,7 @@ def urlread(url):
     parts of urlread and urlgrab from urlgrabber, in ways that
     are less cool and less efficient.
     """
-    print "- reading URL: %s" % url
+    print("- reading URL: %s" % url)
     if url is None or url == "":
         raise InfoException, "invalid URL: %s" % url
 
@@ -147,7 +147,7 @@ def subprocess_call(cmd,ignore_rc=0):
     """
     Wrapper around subprocess.call(...)
     """
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = sub_process.call(cmd)
     if rc != 0 and not ignore_rc:
         raise InfoException, "command failed (%s)" % rc
@@ -157,7 +157,7 @@ def subprocess_get_response(cmd, ignore_rc=False):
     """
     Wrapper around subprocess.check_output(...)
     """
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = 0
     try:
         result = sub_process.check_output(cmd).strip()
@@ -251,14 +251,14 @@ def nfsmount(input_path):
     mount_cmd = [
          "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir
     ]
-    print "- running: %s" % mount_cmd
+    print("- running: %s" % mount_cmd)
     rc = sub_process.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)
         raise koan.InfoException("nfs mount failed: %s" % dirpath)
     # NOTE: option for a blocking install might be nice, so we could do this
     # automatically, if supported by virt-install
-    print "after install completes, you may unmount and delete %s" % tempdir
+    print("after install completes, you may unmount and delete %s" % tempdir)
     return (tempdir, filename)
 
 
@@ -411,7 +411,7 @@ def get_network_info():
          "module"      : module
       }
 
-   # print interfaces
+   # print(interfaces)
    return interfaces
 
 def connect_to_server(server=None,port=None):
@@ -431,7 +431,7 @@ def connect_to_server(server=None,port=None):
         "https://%s/cobbler_api" % (server),
     ]
     for url in try_urls:
-        print "- looking for Cobbler at %s" % url
+        print("- looking for Cobbler at %s" % url)
         server = __try_connect(url)
         if server is not None:
            return server
@@ -467,18 +467,18 @@ def libvirt_enable_autostart(domain_name):
 def make_floppy(kickstart):
 
     (fd, floppy_path) = tempfile.mkstemp(suffix='.floppy', prefix='tmp', dir="/tmp")
-    print "- creating floppy image at %s" % floppy_path
+    print("- creating floppy image at %s" % floppy_path)
 
     # create the floppy image file
     cmd = "dd if=/dev/zero of=%s bs=1440 count=1024" % floppy_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("dd failed")
 
     # vfatify
     cmd = "mkdosfs %s" % floppy_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("mkdosfs failed")
@@ -486,19 +486,19 @@ def make_floppy(kickstart):
     # mount the floppy
     mount_path = tempfile.mkdtemp(suffix=".mnt", prefix='tmp', dir="/tmp")
     cmd = "mount -o loop -t vfat %s %s" % (floppy_path, mount_path)
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("mount failed")
 
     # download the kickstart file onto the mounted floppy
-    print "- downloading %s" % kickstart
+    print("- downloading %s" % kickstart)
     save_file = os.path.join(mount_path, "unattended.txt")
     urlgrabber.urlgrab(kickstart,filename=save_file)
 
     # umount    
     cmd = "umount %s" % mount_path
-    print "- %s" % cmd
+    print("- %s" % cmd)
     rc = os.system(cmd)
     if not rc == 0:
         raise InfoException("umount failed")

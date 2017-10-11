@@ -182,7 +182,7 @@ def build_commandline(uri,
     oldstyle_accelerate = False
 
     if not virtinst_version:
-        print ("- warning: old virt-install detected, a lot of features will be disabled")
+        print("- warning: old virt-install detected, a lot of features will be disabled")
         disable_autostart = True
         disable_boot_opt = True
         disable_virt_type = True
@@ -230,7 +230,7 @@ def build_commandline(uri,
 
         # this is an image based installation
         input_path = profile_data["file"]
-        print "- using image location %s" % input_path
+        print("- using image location %s" % input_path)
         if input_path.find(":") == -1:
             # this is not an NFS path
             cdrom = input_path
@@ -242,7 +242,7 @@ def build_commandline(uri,
         if kickstart != "":
             # we have a (windows?) answer file we have to provide
             # to the ISO.
-            print "I want to make a floppy for %s" % kickstart
+            print("I want to make a floppy for %s" % kickstart)
             floppy = utils.make_floppy(kickstart)
     elif is_qemu or is_xen:
         # images don't need to source this
@@ -363,7 +363,7 @@ def build_commandline(uri,
             if os_version in supported_variants:
                 cmd += "--os-variant %s " % os_version
             else:
-                print ("- warning: virt-install doesn't know this os_version, defaulting to generic26")
+                print("- warning: virt-install doesn't know this os_version, defaulting to generic26")
                 cmd += "--os-variant generic26 "
         else:
             distro = "unix"
@@ -379,8 +379,8 @@ def build_commandline(uri,
         cmd += "--disk path=%s " % importpath
 
     for path, size, driver_type in disks:
-        print ("- adding disk: %s of size %s (driver type=%s)" %
-               (path, size, driver_type))
+        print("- adding disk: %s of size %s (driver type=%s)" %
+              (path, size, driver_type))
         cmd += "--disk path=%s" % (path)
         if str(size) != "0":
             cmd += ",size=%s" % size
