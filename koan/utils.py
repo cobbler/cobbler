@@ -370,50 +370,60 @@ def uniqify(lst, purge=None):
    return list(temp.keys())
 
 def get_network_info():
-   try:
-      import ethtool
-   except:
-      try:
-         import rhpl.ethtool
-         ethtool = rhpl.ethtool
-      except:
-           raise InfoException("the rhpl or ethtool module is required to use this feature (is your OS>=EL3?)")
+    try: # python 2
+        import ethtool
+        ethtool_available = True
+    except ImportError:  # python 3
+        import netifaces
+        ethtool_available = False
 
-   interfaces = {}
-   # get names
-   inames  = ethtool.get_devices()
+    interfaces = {}
+    # get names
+    if ethtool_available:
+        inames = ethtool.get_devices()
+    else:
+        inames = netifaces.interfaces()
 
-   for iname in inames:
-      mac = ethtool.get_hwaddr(iname)
+    for iname in inames:
+        if ethtool_available:
+            mac = ethtool.get_hwaddr(iname)
+        else:
+            mac = netifaces.ifaddresses(iname)[netifaces.AF_LINK][0]['addr']
 
-      if mac == "00:00:00:00:00:00":
-         mac = "?"
+        if mac == "00:00:00:00:00:00":
+            mac = "?"
 
-      try:
-         ip  = ethtool.get_ipaddr(iname)
-         if ip == "127.0.0.1":
-            ip = "?"
-      except:
-         ip  = "?"
+        try:
+            if ethtool_available:
+                ip = ethtool.get_ipaddr(iname)
+            else:
+                ip = netifaces.ifaddresses(iname)[netifaces.AF_INET][0]['addr']
+            if ip == "127.0.0.1":
+                ip = "?"
+        except:
+            ip  = "?"
 
-      bridge = 0
-      module = ""
+        bridge = 0
+        module = ""
 
-      try:
-         nm  = ethtool.get_netmask(iname)
-      except:
-         nm  = "?"
+        try:
+            if ethtool_available:
+                nm  = ethtool.get_netmask(iname)
+            else:
+                nm = netifaces.ifaddresses(iname)[netifaces.AF_INET][0]['netmask']
+        except:
+            nm  = "?"
 
-      interfaces[iname] = {
-         "ip_address"  : ip,
-         "mac_address" : mac,
-         "netmask"     : nm,
-         "bridge"      : bridge,
-         "module"      : module
-      }
+        interfaces[iname] = {
+            "ip_address"  : ip,
+            "mac_address" : mac,
+            "netmask"     : nm,
+            "bridge"      : bridge,
+            "module"      : module
+        }
 
-   # print(interfaces)
-   return interfaces
+    # print(interfaces)
+    return interfaces
 
 def connect_to_server(server=None,port=None):
 
