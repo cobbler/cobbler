@@ -25,7 +25,6 @@ import os, sys, time, stat
 import tempfile
 import random
 from optparse import OptionParser
-import exceptions
 import errno
 import re
 import virtinst
@@ -64,7 +63,7 @@ memsize = "%(MEMORY)s"
 """
 #ide1:0.filename = "%(PATH_TO_ISO)s"
 
-class VirtCreateException(exceptions.Exception):
+class VirtCreateException(Exception):
     pass
 
 def random_mac():

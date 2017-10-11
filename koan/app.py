@@ -49,7 +49,6 @@ except:
     True = 1
     False = 0
 
-import exceptions
 import time
 import shutil
 import errno
@@ -257,7 +256,7 @@ def main():
 
 #=======================================================
 
-class InfoException(exceptions.Exception):
+class InfoException(Exception):
     """
     Custom exception for tracking of fatal errors.
     """

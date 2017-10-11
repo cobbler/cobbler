@@ -25,7 +25,6 @@ import random
 import os
 import traceback
 import tempfile
-import exceptions
 ANCIENT_PYTHON = 0
 try:
     try:
@@ -59,7 +58,7 @@ VIRT_STATE_NAME_MAP = {
    6 : "crashed"
 }
 
-class InfoException(exceptions.Exception):
+class InfoException(Exception):
     """
     Custom exception for tracking of fatal errors.
     """

@@ -27,7 +27,6 @@ try:
     from optparse import OptionParser
 except:
     from opt_parse import OptionParser  # importing this for backwards compat with 2.2
-import exceptions
 try:
     import subprocess as sub_process
 except:
@@ -100,7 +99,7 @@ def main():
 
 #=======================================================
 
-class InfoException(exceptions.Exception):
+class InfoException(Exception):
     """
     Custom exception for tracking of fatal errors.
     """
