@@ -20,26 +20,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import random
 import os
 import traceback
-try:
-    from optparse import OptionParser
-except:
-    from opt_parse import OptionParser  # importing this for backwards compat with 2.2
-try:
-    import subprocess as sub_process
-except:
-    import sub_process
+from optparse import OptionParser
 import time
-import errno
 import sys
 import xmlrpclib
-import glob
 import socket
 import utils
 import string
-import pprint
 
 # usage: cobbler-register [--server=server] [--hostname=hostname] --profile=foo
 

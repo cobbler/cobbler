@@ -27,40 +27,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import random
 import os
 import traceback
-import tempfile
 import shlex
 
-ANCIENT_PYTHON = 0
-try:
-    try:
-        from optparse import OptionParser
-    except:
-        from opt_parse import OptionParser # importing this for backwards compat with 2.2
-    try:
-        import subprocess as sub_process
-    except:
-        import sub_process
-except:
-    # the main "replace-self" codepath of koan must support
-    # Python 1.5.  Other sections may use 2.3 features (nothing newer)
-    # provided they are conditionally imported.  This is to support
-    # EL 2.1. -- mpd
-    ANCIENT_PYTHON = 1
-    True = 1
-    False = 0
+from optparse import OptionParser
+import subprocess as sub_process
 
 import time
 import shutil
 import errno
-import re
 import sys
 import xmlrpclib
 import string
 import re
-import glob
-import socket
 import utils
-import time
 
 COBBLER_REQUIRED = 1.300
 
@@ -93,11 +72,6 @@ def main():
     except:
         # most likely running RHEL3, where we don't need virt logging anyway
         pass
-
-    if ANCIENT_PYTHON:
-        print "- command line usage on this version of python is unsupported"
-        print "- usage via spacewalk APIs only.  Python x>=2.3 required"
-        return
 
     p = OptionParser()
     p.add_option("-k", "--kopts",
@@ -539,16 +513,15 @@ class Koan:
                 else:
                     # FIXME: auto never selects vmware, maybe it should if we find it?
 
-                    if not ANCIENT_PYTHON:
-                        cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
-                        uname_str = cmd.communicate()[0]
-                        if uname_str.find("xen") != -1:
-                            self.virt_type = "xenpv"
-                        elif os.path.exists("/usr/bin/qemu-img"):
-                            self.virt_type = "qemu"
-                        else:
-                            # assume Xen, we'll check to see if virt-type is really usable later.
-                            raise InfoException, "Not running a Xen kernel and qemu is not installed"
+                    cmd = sub_process.Popen("/bin/uname -r", stdout=sub_process.PIPE, shell=True)
+                    uname_str = cmd.communicate()[0]
+                    if uname_str.find("xen") != -1:
+                        self.virt_type = "xenpv"
+                    elif os.path.exists("/usr/bin/qemu-img"):
+                        self.virt_type = "qemu"
+                    else:
+                        # assume Xen, we'll check to see if virt-type is really usable later.
+                        raise InfoException, "Not running a Xen kernel and qemu is not installed"
 
                 print "- no virt-type specified, auto-selecting %s" % self.virt_type
 
@@ -812,12 +785,6 @@ class Koan:
     #---------------------------------------------------
         
     def get_boot_loader_info(self):
-        if ANCIENT_PYTHON:
-            # FIXME: implement this to work w/o subprocess
-            if os.path.exists("/etc/grub.conf"):
-               return (0, "grub")
-            else:
-               return (0, "lilo") 
         cmd = [ "/sbin/grubby", "--bootloader-probe" ]
         probe_process = sub_process.Popen(cmd, stdout=sub_process.PIPE)
         which_loader = probe_process.communicate()[0]
@@ -863,11 +830,8 @@ class Koan:
                         profile_data
                     )
 
-            if not ANCIENT_PYTHON:
-                arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
-                arch = arch_cmd.communicate()[0]
-            else:
-                arch = "i386"
+            arch_cmd = sub_process.Popen("/bin/uname -m", stdout=sub_process.PIPE, shell=True)
+            arch = arch_cmd.communicate()[0]
 
             # Validate kernel argument length (limit depends on architecture --
             # see asm-*/setup.h).  For example:
@@ -876,15 +840,14 @@ class Koan:
             #   asm-powerpc/setup.h:#define COMMAND_LINE_SIZE   512
             #   asm-s390/setup.h:#define COMMAND_LINE_SIZE  896
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
-            if not ANCIENT_PYTHON:
-                if arch.startswith("ppc") or arch.startswith("ia64"):
-                    if len(k_args) > 511:
-                        raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
-                elif arch.startswith("s390"):
-                    if len(k_args) > 895:
-                        raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
-                elif len(k_args) > 255:
-                    raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+            if arch.startswith("ppc") or arch.startswith("ia64"):
+                if len(k_args) > 511:
+                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+            elif arch.startswith("s390"):
+                if len(k_args) > 895:
+                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+            elif len(k_args) > 255:
+                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
 
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
@@ -911,21 +874,20 @@ class Koan:
                cmd.append("--config-file=/tmp/boot/boot/grub/grub.conf")
 
             # Are we running on ppc?
-            if not ANCIENT_PYTHON:
-               if arch.startswith("ppc"):
-                   cmd.append("--yaboot")
-               elif arch.startswith("s390"):
-                   cmd.append("--zipl")
+            if arch.startswith("ppc"):
+                cmd.append("--yaboot")
+            elif arch.startswith("s390"):
+                cmd.append("--zipl")
 
             utils.subprocess_call(cmd)
 
             # Any post-grubby processing required (e.g. ybin, zipl, lilo)?
-            if not ANCIENT_PYTHON and arch.startswith("ppc"):
+            if arch.startswith("ppc"):
                 # FIXME - CHRP hardware uses a 'PPC PReP Boot' partition and doesn't require running ybin
                 print "- applying ybin changes"
                 cmd = [ "/sbin/ybin" ]
                 utils.subprocess_call(cmd)
-            elif not ANCIENT_PYTHON and arch.startswith("s390"):
+            elif arch.startswith("s390"):
                 print "- applying zipl changes"
                 cmd = [ "/sbin/zipl" ]
                 utils.subprocess_call(cmd)

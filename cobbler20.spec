@@ -333,9 +333,6 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %{_bindir}/cobbler-register
 %dir %{python2_sitelib}/koan
 %{python2_sitelib}/koan/*.py*
-%exclude %{python2_sitelib}/koan/sub_process.py*
-%exclude %{python2_sitelib}/koan/opt_parse.py*
-%exclude %{python2_sitelib}/koan/text_wrap.py*
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan

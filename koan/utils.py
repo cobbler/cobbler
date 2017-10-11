@@ -21,29 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import random
 import os
 import traceback
-import tempfile
-ANCIENT_PYTHON = 0
-try:
-    try:
-        import subprocess as sub_process
-    except:
-       import sub_process
-    import urllib2
-except:
-    ANCIENT_PYTHON = 1
-import time
-import shutil
-import errno
-import re
+import subprocess as sub_process
+import urllib2
 import sys
 import xmlrpclib
 import string
-import re
-import glob
-import socket
 import shutil
 import tempfile
 import urlgrabber
@@ -131,13 +115,6 @@ def urlread(url):
             fd.close()
             return data
         except:
-            if ANCIENT_PYTHON:
-                # this logic is to support python 1.5 and EL 2
-                import urllib
-                fd = urllib.urlopen(url)
-                data = fd.read()
-                fd.close()
-                return data
             traceback.print_exc()
             raise InfoException, "Couldn't download: %s" % url
     elif url[0:4] == "file":
@@ -167,12 +144,7 @@ def subprocess_call(cmd,ignore_rc=0):
     Wrapper around subprocess.call(...)
     """
     print "- %s" % cmd
-    if not ANCIENT_PYTHON:
-        rc = sub_process.call(cmd)
-    else:
-        cmd = string.join(cmd, " ")
-        print "cmdstr=(%s)" % cmd
-        rc = os.system(cmd)
+    rc = sub_process.call(cmd)
     if rc != 0 and not ignore_rc:
         raise InfoException, "command failed (%s)" % rc
     return rc
@@ -183,17 +155,11 @@ def subprocess_get_response(cmd, ignore_rc=False):
     """
     print "- %s" % cmd
     rc = 0
-    result = ""
-    if not ANCIENT_PYTHON:
-        try:
-            result = sub_process.check_output(cmd).strip()
-        except sub_process.CalledProcessError, e:
-            rc = e.returncode
-            result = e.output
-    else:
-        cmd = string.join(cmd, " ")
-        print "cmdstr=(%s)" % cmd
-        rc = os.system(cmd)
+    try:
+        result = sub_process.check_output(cmd).strip()
+    except sub_process.CalledProcessError, e:
+        rc = e.returncode
+        result = e.output
     if not ignore_rc and rc != 0:
         raise InfoException, "command failed (%s)" % rc
     return rc, result
@@ -347,9 +313,6 @@ def os_release():
    """
    This code is borrowed from Cobbler and really shouldn't be repeated.
    """
-
-   if ANCIENT_PYTHON:
-      return ("unknown", 0)
 
    if check_dist() == "redhat":
       fh = open("/etc/redhat-release")
