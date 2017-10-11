@@ -428,7 +428,7 @@ class Koan:
         systems = self.get_data("systems")
         for system in systems:
             obj_name = system["name"]
-            for (obj_iname, obj_interface) in system['interfaces'].iteritems():
+            for (obj_iname, obj_interface) in system['interfaces'].items():
                 mac = obj_interface["mac_address"].upper()
                 ip  = obj_interface["ip_address"].upper()
                 for my_mac in mac_criteria:
