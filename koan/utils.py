@@ -367,7 +367,7 @@ def uniqify(lst, purge=None):
          if x != purge:
             temp2[x] = 1
       temp = temp2
-   return temp.keys()
+   return list(temp.keys())
 
 def get_network_info():
    try:
