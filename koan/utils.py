@@ -34,7 +34,6 @@ except ImportError:  # python 3
     import urllib.request as urllib2
     import xmlrpc.client as xmlrpclib
 import sys
-import string
 import shutil
 import tempfile
 import urlgrabber
@@ -184,9 +183,9 @@ def input_string_or_hash(options,delim=None,allow_multiples=True):
         raise InfoException("No idea what to do with list: %s" % options)
     elif type(options) == type(""):
         new_dict = {}
-        tokens = string.split(options, delim)
+        tokens = options.split(delim)
         for t in tokens:
-            tokens2 = string.split(t,"=")
+            tokens2 = t.split("=", 1)
             if len(tokens2) == 1:
                 # this is a singleton option, no value
                 key = tokens2[0]
@@ -249,7 +248,7 @@ def nfsmount(input_path):
     # FIXME: move this function to util.py so other modules can use it
     # we have to mount it first
     filename = input_path.split("/")[-1]
-    dirpath = string.join(input_path.split("/")[:-1],"/")
+    dirpath = "/".join(input_path.split("/")[:-1])
     tempdir = tempfile.mkdtemp(suffix='.mnt', prefix='koan_', dir='/tmp')
     mount_cmd = [
          "/bin/mount", "-t", "nfs", "-o", "ro", dirpath, tempdir

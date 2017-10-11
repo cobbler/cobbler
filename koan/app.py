@@ -41,7 +41,6 @@ try:  # python 2
     import xmlrpclib
 except ImportError:  # python 3
     import xmlrpc.client as xmlrpclib
-import string
 import re
 from . import utils
 
@@ -882,7 +881,7 @@ class Koan:
                 cmd.append("--copy-default")
 
             boot_probe_ret_code, probe_output = self.get_boot_loader_info()
-            if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") >= 0:
+            if boot_probe_ret_code == 0 and probe_output.find("lilo") >= 0:
                 cmd.append("--lilo")
 
             if self.add_reinstall_entry:
@@ -917,7 +916,7 @@ class Koan:
             else:
                 # if grubby --bootloader-probe returns lilo,
                 #    apply lilo changes
-                if boot_probe_ret_code == 0 and string.find(probe_output, "lilo") != -1:
+                if boot_probe_ret_code == 0 and probe_output.find("lilo") != -1:
                     print("- applying lilo changes")
                     cmd = [ "/sbin/lilo" ]
                     utils.subprocess_call(cmd)
@@ -1120,10 +1119,10 @@ class Koan:
            hash2 = utils.input_string_or_hash(self.kopts_override)
            hashv.update(hash2)
         options = utils.hash_to_string(hashv)
-        options = string.replace(options, "lang ","lang= ")
+        options = options.replace("lang ","lang= ")
         # if using ksdevice=bootif that only works for PXE so replace
         # it with something that will work
-        options = string.replace(options, "ksdevice=bootif","ksdevice=link")
+        options = options.replace("ksdevice=bootif","ksdevice=link")
         return options
 
     #---------------------------------------------------

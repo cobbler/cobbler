@@ -31,7 +31,6 @@ except ImportError:  # python 3
     import xmlrpc.client as xmlrpclib
 import socket
 from . import utils
-import string
 
 # usage: cobbler-register [--server=server] [--hostname=hostname] --profile=foo
 
@@ -84,7 +83,7 @@ def main():
         except:
             print(xa)
             print(xb)
-            print(string.join(traceback.format_list(traceback.extract_tb(tb))))
+            print("".join(traceback.format_list(traceback.extract_tb(tb))))
         return 1
 
     return 0
