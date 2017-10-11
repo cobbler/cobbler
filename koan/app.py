@@ -36,10 +36,14 @@ import time
 import shutil
 import errno
 import sys
-import xmlrpclib
+
+try:  # python 2
+    import xmlrpclib
+except ImportError:  # python 3
+    import xmlrpc.client as xmlrpclib
 import string
 import re
-import utils
+from . import utils
 
 COBBLER_REQUIRED = 1.300
 
@@ -1111,9 +1115,9 @@ class Koan:
         """
         pd = profile_data
         # importing can't throw exceptions any more, don't put it in a sub-method
-        import xencreate
-        import qcreate
-        import imagecreate
+        from . import xencreate
+        from .import qcreate
+        from .import imagecreate
 
         arch                          = self.safe_load(pd,'arch','x86')
         kextra                        = self.calc_kernel_args(pd)
@@ -1198,11 +1202,11 @@ class Koan:
         if (self.image is not None) and (pd["image_type"] == "virt-clone"):
             fullvirt = True
             uuid = None
-            import imagecreate
+            from . import imagecreate
             creator = imagecreate.start_install
         elif self.virt_type in [ "xenpv", "xenfv" ]:
             uuid    = self.get_uuid(self.calc_virt_uuid(pd))
-            import xencreate
+            from . import xencreate
             creator = xencreate.start_install
             if self.virt_type == "xenfv":
                fullvirt = True 
@@ -1210,15 +1214,15 @@ class Koan:
         elif self.virt_type == "qemu":
             fullvirt = True
             uuid    = None
-            import qcreate
+            from . import qcreate
             creator = qcreate.start_install
             can_poll = "qemu"
         elif self.virt_type == "vmware":
-            import vmwcreate
+            from . import vmwcreate
             uuid = None
             creator = vmwcreate.start_install
         elif self.virt_type == "vmwarew":
-            import vmwwcreate
+            from . import vmwwcreate
             uuid = None
             creator = vmwwcreate.start_install
         else:

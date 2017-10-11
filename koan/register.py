@@ -25,9 +25,12 @@ import traceback
 from optparse import OptionParser
 import time
 import sys
-import xmlrpclib
+try:  # python 2
+    import xmlrpclib
+except ImportError:  # python 3
+    import xmlrpc.client as xmlrpclib
 import socket
-import utils
+from . import utils
 import string
 
 # usage: cobbler-register [--server=server] [--hostname=hostname] --profile=foo

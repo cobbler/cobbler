@@ -30,8 +30,8 @@ import os
 import re
 import shlex
 
-import app as koan
-import utils
+from . import app as koan
+from . import utils
 
 # The virtinst module will no longer be availabe to import in some
 # distros. We need to get all the info we need from the virt-install

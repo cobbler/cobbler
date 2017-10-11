@@ -24,9 +24,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import traceback
 import subprocess as sub_process
-import urllib2
+try:  # python 2
+    import urllib2
+    import xmlrpclib
+except ImportError:  # python 3
+    import urllib.request as urllib2
+    import xmlrpc.client as xmlrpclib
 import sys
-import xmlrpclib
 import string
 import shutil
 import tempfile
