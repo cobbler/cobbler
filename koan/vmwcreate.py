@@ -104,7 +104,7 @@ def register_vmx(vmx_file):
        raise VirtCreateException("vmware registration failed")
     
 def start_vm(vmx_file):
-    os.chmod(vmx_file,0755)
+    os.chmod(vmx_file, 0o755)
     cmd = "vmware-cmd %s start" % vmx_file
     print("- %s" % cmd)
     rc = os.system(cmd)
