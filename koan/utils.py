@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import traceback
 import subprocess as sub_process
+
+from . import app as koan
+
 try:  # python 2
     import urllib2
     import xmlrpclib
@@ -92,7 +95,7 @@ def urlread(url):
     """
     print("- reading URL: %s" % url)
     if url is None or url == "":
-        raise InfoException, "invalid URL: %s" % url
+        raise InfoException("invalid URL: %s" % url)
 
     elif url[0:3] == "nfs":
         try:
@@ -110,7 +113,7 @@ def urlread(url):
             return data
         except:
             traceback.print_exc()
-            raise InfoException, "Couldn't mount and read URL: %s" % url
+            raise InfoException("Couldn't mount and read URL: %s" % url)
           
     elif url[0:4] == "http":
         try:
@@ -120,7 +123,7 @@ def urlread(url):
             return data
         except:
             traceback.print_exc()
-            raise InfoException, "Couldn't download: %s" % url
+            raise InfoException("Couldn't download: %s" % url)
     elif url[0:4] == "file":
         try:
             fd = open(url[5:])
@@ -128,10 +131,10 @@ def urlread(url):
             fd.close()
             return data
         except:
-            raise InfoException, "Couldn't read file from URL: %s" % url
+            raise InfoException("Couldn't read file from URL: %s" % url)
               
     else:
-        raise InfoException, "Unhandled URL protocol: %s" % url
+        raise InfoException("Unhandled URL protocol: %s" % url)
 
 def urlgrab(url,saveto):
     """
@@ -150,7 +153,7 @@ def subprocess_call(cmd,ignore_rc=0):
     print("- %s" % cmd)
     rc = sub_process.call(cmd)
     if rc != 0 and not ignore_rc:
-        raise InfoException, "command failed (%s)" % rc
+        raise InfoException("command failed (%s)" % rc)
     return rc
 
 def subprocess_get_response(cmd, ignore_rc=False):
@@ -161,11 +164,11 @@ def subprocess_get_response(cmd, ignore_rc=False):
     rc = 0
     try:
         result = sub_process.check_output(cmd).strip()
-    except sub_process.CalledProcessError, e:
+    except sub_process.CalledProcessError as e:
         rc = e.returncode
         result = e.output
     if not ignore_rc and rc != 0:
-        raise InfoException, "command failed (%s)" % rc
+        raise InfoException("command failed (%s)" % rc)
     return rc, result
 
 def input_string_or_hash(options,delim=None,allow_multiples=True):
@@ -333,9 +336,9 @@ def os_release():
       for t in tokens:
          try:
              return (make,float(t))
-         except ValueError, ve:
+         except ValueError:
              pass
-      raise CX("failed to detect local OS version from /etc/redhat-release")
+      raise koan.KX("failed to detect local OS version from /etc/redhat-release")
 
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")

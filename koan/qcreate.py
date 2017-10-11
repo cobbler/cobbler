@@ -26,6 +26,7 @@ requires python-virtinst-0.200 (or virt-install in later distros).
 from . import utils
 from . import virtinstall
 from xml.dom.minidom import parseString
+from . import app as koan
 
 def start_install(*args, **kwargs):
     if 'arch' in kwargs.keys():

@@ -219,20 +219,37 @@ def main():
             k.port              = options.port
         k.run()
 
-    except Exception, e:
+    except Exception as e:
         (xa, xb, tb) = sys.exc_info()
         try:
-            getattr(e,"from_koan")
-            print(str(e)[1:-1]) # nice exception, no traceback needed
+            getattr(e, "from_koan")
+            print(str(e)[1:-1])  # nice exception, no traceback needed
         except:
             print(xa)
             print(xb)
-            print(string.join(traceback.format_list(traceback.extract_tb(tb))))
+            print("".join(traceback.format_list(traceback.extract_tb(tb))))
         return 1
 
     return 0
 
 #=======================================================
+
+
+class KoanException(Exception):
+
+    def __init__(self, value, *args):
+        self.value = value % args
+        # this is a hack to work around some odd exception handling
+        # in older pythons
+        self.from_koan = 1
+
+    def __str__(self):
+        return repr(self.value)
+
+
+class KX(KoanException):
+    pass
+
 
 class InfoException(Exception):
     """
@@ -289,7 +306,7 @@ class Koan:
         # we can get the info we need from either the cobbler server
         #  or a kickstart file
         if self.server is None:
-            raise InfoException, "no server specified"
+            raise InfoException("no server specified")
 
         # check to see that exclusive arguments weren't used together
         found = 0
@@ -297,13 +314,13 @@ class Koan:
             if x:
                found = found+1
         if found != 1:
-            raise InfoException, "choose: --virt, --replace-self, --update-files, --list=what, or --display"
+            raise InfoException("choose: --virt, --replace-self, --update-files, --list=what, or --display")
  
 
         # This set of options are only valid with --server
         if not self.server or self.server == "":
             if self.list_items or self.profile or self.system or self.port:
-                raise InfoException, "--server is required"
+                raise InfoException("--server is required")
 
         self.xmlrpc_server = utils.connect_to_server(server=self.server, port=self.port)
 
@@ -321,7 +338,7 @@ class Koan:
         # if both --profile and --system were ommitted, autodiscover
         if self.is_virt:
             if (self.profile is None and self.system is None and self.image is None):
-                raise InfoException, "must specify --profile, --system, or --image"
+                raise InfoException("must specify --profile, --system, or --image")
         else:
             if (self.profile is None and self.system is None and self.image is None):
                 self.system = self.autodetect_system(allow_interactive=self.live_cd)
@@ -336,19 +353,19 @@ class Koan:
             if self.virt_type not in [ "qemu", "xenpv", "xenfv", "xen", "vmware", "vmwarew", "auto" ]:
                if self.virt_type == "xen":
                    self.virt_type = "xenpv"
-               raise InfoException, "--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto"
+               raise InfoException("--virt-type should be qemu, xenpv, xenfv, vmware, vmwarew, or auto")
 
         # if --qemu-disk-type was called without --virt-type=qemu, then fail
         if (self.qemu_disk_type is not None):
             self.qemu_disk_type = self.qemu_disk_type.lower()
             if self.virt_type not in [ "qemu", "auto" ]:
-               raise InfoException, "--qemu-disk-type must use with --virt-type=qemu"
+               raise InfoException("--qemu-disk-type must use with --virt-type=qemu")
 
 
 
         # if --static-interface and --profile was called together, then fail
         if self.static_interface is not None and self.profile is not None:
-            raise InfoException, "--static-interface option is incompatible with --profile option use --system instead"
+            raise InfoException("--static-interface option is incompatible with --profile option use --system instead")
 
         # perform one of three key operations
         if self.is_virt:
@@ -425,12 +442,12 @@ class Koan:
         detected_systems = utils.uniqify(detected_systems)
 
         if len(detected_systems) > 1:
-            raise InfoException, "Error: Multiple systems matched"
+            raise InfoException("Error: Multiple systems matched")
         elif len(detected_systems) == 0:
             if not allow_interactive:
                 mac_criteria = utils.uniqify(mac_criteria, purge="?")
                 ip_criteria  = utils.uniqify(ip_criteria, purge="?")
-                raise InfoException, "Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria))
+                raise InfoException("Error: Could not find a matching system with MACs: %s or IPs: %s" % (",".join(mac_criteria), ",".join(ip_criteria)))
             else:
                 return None
         elif len(detected_systems) == 1:
@@ -525,7 +542,7 @@ class Koan:
                         self.virt_type = "qemu"
                     else:
                         # assume Xen, we'll check to see if virt-type is really usable later.
-                        raise InfoException, "Not running a Xen kernel and qemu is not installed"
+                        raise InfoException("Not running a Xen kernel and qemu is not installed")
 
                 print("- no virt-type specified, auto-selecting %s" % self.virt_type)
 
@@ -768,12 +785,12 @@ class Koan:
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
-                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+                    raise InfoException("Kernel options are too long, 512 chars exceeded: %s" % k_args)
             elif arch.startswith("s390"):
                 if len(k_args) > 895:
-                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+                    raise InfoException("Kernel options are too long, 896 chars exceeded: %s" % k_args)
             elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+                raise InfoException("Kernel options are too long, 255 chars exceeded: %s" % k_args)
 
             utils.subprocess_call([
                 'kexec',
@@ -802,19 +819,21 @@ class Koan:
         """
         try:
             shutil.rmtree("/var/spool/koan")
-        except OSError, (err, msg):
+        except OSError as xxx_todo_changeme:
+            (err, msg) = xxx_todo_changeme.args
             if err != errno.ENOENT:
                 raise
         try:
             os.makedirs("/var/spool/koan")
-        except OSError, (err, msg):
+        except OSError as xxx_todo_changeme:
+            (err, msg) = xxx_todo_changeme.args
             if err != errno.EEXIST:
                 raise
     
 
         def after_download(self, profile_data):
             if not os.path.exists("/sbin/grubby"):
-                raise InfoException, "grubby is not installed"
+                raise InfoException("grubby is not installed")
             k_args = self.calc_kernel_args(profile_data,replace_self=1)
 
             kickstart = self.safe_load(profile_data,'kickstart')
@@ -846,12 +865,12 @@ class Koan:
             #   asm-x86_64/setup.h:#define COMMAND_LINE_SIZE    256
             if arch.startswith("ppc") or arch.startswith("ia64"):
                 if len(k_args) > 511:
-                    raise InfoException, "Kernel options are too long, 512 chars exceeded: %s" % k_args
+                    raise InfoException("Kernel options are too long, 512 chars exceeded: %s" % k_args)
             elif arch.startswith("s390"):
                 if len(k_args) > 895:
-                    raise InfoException, "Kernel options are too long, 896 chars exceeded: %s" % k_args
+                    raise InfoException("Kernel options are too long, 896 chars exceeded: %s" % k_args)
             elif len(k_args) > 255:
-                raise InfoException, "Kernel options are too long, 255 chars exceeded: %s" % k_args
+                raise InfoException("Kernel options are too long, 255 chars exceeded: %s" % k_args)
 
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
@@ -961,7 +980,7 @@ class Koan:
     #---------------------------------------------------
 
     def connect_fail(self):
-        raise InfoException, "Could not communicate with %s:%s" % (self.server, self.port)
+        raise InfoException("Could not communicate with %s:%s" % (self.server, self.port))
 
     #---------------------------------------------------
 
@@ -1044,7 +1063,7 @@ class Koan:
             utils.urlgrab(kernel,kernel_save)
         except:
             traceback.print_exc()
-            raise InfoException, "error downloading files"
+            raise InfoException("error downloading files")
         profile_data['kernel_local'] = kernel_save
         profile_data['initrd_local'] = initrd_save
 
@@ -1226,7 +1245,7 @@ class Koan:
             uuid = None
             creator = vmwwcreate.start_install
         else:
-            raise InfoException, "Unspecified virt type: %s" % self.virt_type
+            raise InfoException("Unspecified virt type: %s" % self.virt_type)
         return (uuid, creator, fullvirt, can_poll)
 
     #---------------------------------------------------
@@ -1245,7 +1264,7 @@ class Koan:
         if len(disks) == 0:
             print("paths: ", paths)
             print("sizes: ", sizes)
-            raise InfoException, "Disk configuration not resolvable!"
+            raise InfoException("Disk configuration not resolvable!")
         return disks
 
     #---------------------------------------------------
@@ -1451,13 +1470,13 @@ class Koan:
                 if self.force_path:
                     return location
                 else:
-                    raise InfoException, "The location %s is an existing file. Consider '--force-path' to overwrite it." % location
+                    raise InfoException("The location %s is an existing file. Consider '--force-path' to overwrite it." % location)
         elif location.startswith("/dev/"):
             # partition
             if os.path.exists(location):
                 return location
             else:
-                raise InfoException, "virt path is not a valid block device"
+                raise InfoException("virt path is not a valid block device")
         else:
             # it's a volume group, verify that it exists
             args = "vgs -o vg_name"
@@ -1466,7 +1485,7 @@ class Koan:
             print(vgnames)
 
             if vgnames.find(location) == -1:
-                raise InfoException, "The volume group [%s] does not exist." % location
+                raise InfoException("The volume group [%s] does not exist." % location)
             
             # check free space
             args = "LANG=C vgs --noheadings -o vg_free --units g %s" % location
@@ -1501,13 +1520,13 @@ class Koan:
                     print("%s" % args)
                     lv_create = sub_process.call(args, shell=True)
                     if lv_create != 0:
-                        raise InfoException, "LVM creation failed"
+                        raise InfoException("LVM creation failed")
 
                 # return partition location
                 return "/dev/%s/%s" % (location,name)
 
             else:
-                raise InfoException, "volume group needs %s GB free space." % virt_size
+                raise InfoException("volume group needs %s GB free space." % virt_size)
 
 
     def randomUUID(self):

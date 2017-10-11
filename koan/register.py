@@ -76,7 +76,7 @@ def main():
         k.hostname            = options.hostname
         k.batch               = options.batch
         k.run()
-    except Exception, e:
+    except Exception as e:
         (xa, xb, tb) = sys.exc_info()
         try:
             getattr(e,"from_koan")

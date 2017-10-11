@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import random
 
+from . import app as koan
+
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"
 
