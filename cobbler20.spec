@@ -307,7 +307,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python2_sitelib}/cobbler*.egg-info
 %doc AUTHORS CHANGELOG README COPYING
 
-%package -n koan
+%package -n koan20
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Group: Applications/System
@@ -318,14 +318,17 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler/
 
+Provides: koan = %{version}-%{release}
+Obsoletes: koan <= %{version}-%{release}
+Obsoletes: koan >= 2.2
 
-%description -n koan
+%description -n koan20
 
 Koan stands for kickstart-over-a-network and allows for both
 network installation of new virtualized guests and reinstallation 
 of an existing system.  For use with a boot-server configured with Cobbler
 
-%files -n koan
+%files -n koan20
 %defattr(644,root,root,755)
 # FIXME: need to generate in setup.py
 %dir /var/spool/koan
