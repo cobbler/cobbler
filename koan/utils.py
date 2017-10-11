@@ -140,7 +140,7 @@ def urlgrab(url,saveto):
     see comments for urlread as to why it's this way.
     """
     data = urlread(url)
-    fd = open(saveto, "w+")
+    fd = open(saveto, "w+b")
     fd.write(data)
     fd.close()
 
