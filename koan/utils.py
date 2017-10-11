@@ -36,7 +36,6 @@ except ImportError:  # python 3
 import sys
 import shutil
 import tempfile
-import urlgrabber
 
 VIRT_STATE_NAME_MAP = {
    0 : "running",
@@ -496,7 +495,7 @@ def make_floppy(kickstart):
     # download the kickstart file onto the mounted floppy
     print("- downloading %s" % kickstart)
     save_file = os.path.join(mount_path, "unattended.txt")
-    urlgrabber.urlgrab(kickstart,filename=save_file)
+    urlgrab(kickstart,save_file)
 
     # umount    
     cmd = "umount %s" % mount_path
