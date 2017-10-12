@@ -1,3 +1,10 @@
+%if 0%{?fedora}
+%global build_py3   1
+%global default_py3 1
+%endif
+
+%define pythonX %{?default_py3: python3}%{!?default_py3: python2}
+
 %{!?__python2: %global __python2 /usr/bin/python2}
 %{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
@@ -62,6 +69,7 @@ Requires(preun): /sbin/service
 
 BuildRequires: PyYAML
 BuildRequires: python-cheetah
+BuildRequires: /usr/bin/pod2man
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler
@@ -90,7 +98,14 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version} >= 1000
 PREFIX="--prefix=/usr"
 %endif
+%if 0%{?build_py3}
+sed -i 's|#!/usr/bin/python|#!/usr/bin/python3|' {scripts/koan,scripts/cobbler-register}
+%endif
 %{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%if 0%{?build_py3}
+make clean
+%{__python3} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%endif
 mkdir $RPM_BUILD_ROOT/var/www/cobbler/rendered/
 %if 0%{?fedora} || 0%{?rhel} >= 7
 rm $RPM_BUILD_ROOT/etc/init.d/cobblerd
@@ -226,7 +241,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python2_sitelib}/cobbler/modules
 %{python2_sitelib}/cobbler/*.py*
 %{python2_sitelib}/cobbler/modules/*.py*
-%exclude %{python2_sitelib}/cobbler/sub_process.py*
 %{_mandir}/man1/cobbler.1.gz
 %if 0%{?fedora} || 0%{?rhel} >= 7
 %{_unitdir}/cobblerd.service
@@ -311,9 +325,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 Group: Applications/System
-Requires: python
-BuildRequires: python-devel
-BuildRequires: python-setuptools
+Requires: %{pythonX}-koan20 = %{version}-%{release}
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler/
@@ -332,14 +344,44 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %defattr(644,root,root,755)
 # FIXME: need to generate in setup.py
 %dir /var/spool/koan
-%{_bindir}/koan
-%{_bindir}/cobbler-register
-%dir %{python2_sitelib}/koan
-%{python2_sitelib}/koan/*.py*
+%attr(755,root,root) %{_bindir}/koan
+%attr(755,root,root) %{_bindir}/cobbler-register
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
 %doc AUTHORS COPYING CHANGELOG README
+
+%package -n python2-koan20
+
+Summary: Helper tool that performs cobbler orders on remote machines.
+BuildRequires:  python
+BuildRequires:  python-setuptools
+Requires:       python
+
+%description -n python2-koan20
+Python 2 specific files for koan.
+
+%files -n python2-koan20
+%{python2_sitelib}/koan/
+
+%if 0%{?build_py3}
+
+%package -n python3-koan20
+Summary: Helper tool that performs cobbler orders on remote machines.
+%{?python_provide:%python_provide python3-koan20}
+BuildRequires:  python3
+BuildRequires:  python3-rpm-macros
+BuildRequires:  python3-setuptools
+Requires:       python3
+
+%description -n python3-koan20
+Python 3 specific files for koan.
+
+%files -n python3-koan20
+%{python3_sitelib}/koan/
+%{python3_sitelib}/koan-*.egg-info
+
+%endif
 
 %package -n cobbler2
 Summary: Compatibility package to pull in cobbler from Spacewalk repo
