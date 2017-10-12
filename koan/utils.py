@@ -209,7 +209,7 @@ def input_string_or_hash(options,delim=None,allow_multiples=True):
                 new_dict[key] = value
 
         # dict.pop is not avail in 2.2
-        if new_dict.has_key(""):
+        if "" in new_dict:
            del new_dict[""]
         return new_dict
     elif type(options) == type({}):

@@ -224,7 +224,7 @@ def build_commandline(uri,
             raise koan.InfoException("Profile 'file' required for image "
                                      "install")
 
-    elif profile_data.has_key("file"):
+    elif "file" in profile_data:
         if is_xen:
             raise koan.InfoException("Xen does not work with --image yet")
 
@@ -246,7 +246,7 @@ def build_commandline(uri,
             floppy = utils.make_floppy(kickstart)
     elif is_qemu or is_xen:
         # images don't need to source this
-        if not profile_data.has_key("install_tree"):
+        if "install_tree" not in profile_data:
             raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):

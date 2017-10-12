@@ -456,9 +456,9 @@ class Koan:
     #---------------------------------------------------
 
     def safe_load(self,hashv,primary_key,alternate_key=None,default=None):
-        if hashv.has_key(primary_key): 
+        if primary_key in hashv:
             return hashv[primary_key]
-        elif alternate_key is not None and hashv.has_key(alternate_key):
+        elif alternate_key is not None and alternate_key in hashv:
             return hashv[alternate_key]
         else:
             return default
@@ -526,7 +526,7 @@ class Koan:
                 if profile_data.get("xml_file","") != "":
                     raise InfoException("xmlfile based installations are not supported")
 
-                elif profile_data.has_key("file"):
+                elif "file" in profile_data:
                     print("- ISO or Image based installation, always uses --virt-type=qemu")
                     self.virt_type = "qemu"
                     
@@ -663,7 +663,7 @@ class Koan:
             raise InfoException("koan does not know how to list that")
         data = self.get_data(what)
         for x in data:
-            if x.has_key("name"):
+            if "name" in x:
                 print(x["name"])
         return True
 
@@ -672,7 +672,7 @@ class Koan:
     def display(self):
         def after_download(self, profile_data):
             for x in DISPLAY_PARAMS:
-                if profile_data.has_key(x):
+                if x in profile_data:
                     value = profile_data[x]
                     if x == 'kernel_options':
                         value = self.calc_kernel_args(profile_data)
@@ -734,7 +734,7 @@ class Koan:
             print("- file: %s" % save_as)
 
             pattern = "http://%s/cblr/svc/op/template/%s/%s/path/%s"
-            if profile_data.has_key("interfaces"):
+            if "interfaces" in profile_data:
                 url = pattern % (profile_data["http_server"],"system",profile_data["name"],dest)
             else:
                 url = pattern % (profile_data["http_server"],"profile",profile_data["name"],dest)
@@ -1272,7 +1272,7 @@ class Koan:
         if self.virt_name is not None:
            # explicit override
            name = self.virt_name
-        elif profile_data.has_key("interfaces"):
+        elif "interfaces" in profile_data:
            # this is a system object, just use the name
            name = profile_data["name"]
         else:

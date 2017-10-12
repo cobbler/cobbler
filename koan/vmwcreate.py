@@ -127,11 +127,11 @@ def start_install(name=None,
                   virt_auto_boot=False,
                   qemu_driver_type=None):
 
-    if profile_data.has_key("file"):
+    if "file" in profile_data:
         raise koan.InfoException("vmware does not work with --image yet")
 
     mac = None
-    if not profile_data.has_key("interfaces"):
+    if "interfaces" not in profile_data:
         print("- vmware installation requires a system, not a profile")
         return 1
     for iname in profile_data["interfaces"]:
