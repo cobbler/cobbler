@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 67%{?dist}
+Release: 68%{?dist}
 Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
 
@@ -437,6 +437,26 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Oct 16 2017 Jan Dobes 2.0.11-68
+- new pod2man doesn't accept empty string as release
+- build koan for Python 3
+- build koan20 similarly as cobbler20 due to incompatibility with koan from
+  EPEL
+- has_key is not in Python 3
+- Python 3 ethtool and indentation fixes
+- make sure list is returned
+- make sure it's a string
+- open target file in binary mode
+- replace iteritems with items
+- do not require urlgrabber
+- Python 3 compatible string operations
+- octal number Python 3 fix
+- Python 3 compatible exceptions
+- Python 3 compatible prints
+- fixing xmlrpclib, urllib2 and local imports in Python 3
+- cleanup ANCIENT_PYTHON stuff and unused imports
+- exceptions module doesn't have to be imported
+
 * Wed Sep 27 2017 Jan Dobes 2.0.11-67
 - 1314379 - updating logrotate config to cobbler 2.8 state
 
