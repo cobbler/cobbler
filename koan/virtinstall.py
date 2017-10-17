@@ -67,7 +67,7 @@ except:
         # messages from being output
         rc, response = subprocess_get_response(
                 shlex.split('virt-install --os-variant list'))
-        variants = response.split('\n')
+        variants = response.decode('utf-8').split('\n')
         for variant in variants:
             supported_variants.add(variant.split()[0])
     except:
@@ -75,7 +75,7 @@ except:
             # maybe on newer os using osinfo-query?
             rc, response = subprocess_get_response(
                     shlex.split('osinfo-query -f short-id os'))
-            variants = response.split('\n')
+            variants = response.decode('utf-8').split('\n')
             for variant in variants:
                 supported_variants.add(variant.strip())
             # osinfo-query does not list virtio26, add it here for fallback

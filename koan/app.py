@@ -616,7 +616,7 @@ class Koan:
             nfs_parser.add_option("--server", dest="server")
 
             for line in lines:
-                match = method_re.match(line)
+                match = method_re.match(line.decode('utf-8'))
                 if match:
                     cmd = match.group("urlcmd")
                     if cmd:
