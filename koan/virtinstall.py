@@ -63,13 +63,26 @@ try:
             supported_variants.add(variant)
 except:
     try:
+        # This will fail on EL7+, gobble stderr to avoid confusing error
+        # messages from being output
         rc, response = subprocess_get_response(
                 shlex.split('virt-install --os-variant list'))
         variants = response.split('\n')
         for variant in variants:
             supported_variants.add(variant.split()[0])
     except:
-        pass # No problem, we'll just use generic
+        try:
+            # maybe on newer os using osinfo-query?
+            rc, response = subprocess_get_response(
+                    shlex.split('osinfo-query -f short-id os'))
+            variants = response.split('\n')
+            for variant in variants:
+                supported_variants.add(variant.strip())
+            # osinfo-query does not list virtio26, add it here for fallback
+            supported_variants.add('virtio26')
+        except:
+            # okay, probably on old os and we'll just use generic26
+            pass
 
 def _sanitize_disks(disks):
     ret = []
@@ -358,13 +371,24 @@ def build_commandline(uri,
                 if suse_version_re.match(os_version):
                     os_version = suse_version_re.match(os_version).groups()[0]
             # make sure virt-install knows about our os_version,
-            # otherwise default it to generic26
-            found = False
+            # otherwise default it to virtio26 or generic26
+            # found = False
             if os_version in supported_variants:
-                cmd += "--os-variant %s " % os_version
+                pass  # os_version is correct
+            elif os_version + ".0" in supported_variants:
+                # osinfo based virt-install only knows about major.minor
+                # variants, not just major variants like it used to. Default
+                # to major.0 variant in that case. Lack of backwards
+                # compatibility in virt-install grumble grumble.
+                os_version = os_version + ".0"
             else:
-                print("- warning: virt-install doesn't know this os_version, defaulting to generic26")
-                cmd += "--os-variant generic26 "
+                if "virtio26" in supported_variants:
+                    os_version = "virtio26"
+                else:
+                    os_version = "generic26"
+                print("- warning: virt-install doesn't know this os_version, "
+                      "defaulting to %s" % os_version)
+            cmd += "--os-variant %s " % os_version
         else:
             distro = "unix"
             if breed in [ "debian", "suse", "redhat" ]:
