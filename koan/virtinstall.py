@@ -101,8 +101,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
     if not nics:
         return ret
 
-    interfaces = nics.keys()
-    interfaces.sort()
+    interfaces = sorted(nics)
     counter = -1
     vlanpattern = re.compile("[a-zA-Z0-9]+\.[0-9]+")
 
