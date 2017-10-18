@@ -30,15 +30,15 @@ import os
 import re
 import shlex
 
-from . import app as koan
-from . import utils
+from koan import app
+from koan.utils import subprocess_get_response, nfsmount, make_floppy
 
 # The virtinst module will no longer be availabe to import in some
 # distros. We need to get all the info we need from the virt-install
 # command line tool. This should work on both old and new variants,
 # as the virt-install command line tool has always been provided by
 # python-virtinst (and now the new virt-install rpm).
-rc, response = utils.subprocess_get_response(
+rc, response = subprocess_get_response(
         shlex.split('virt-install --version'), True)
 if rc == 0:
     virtinst_version = response
@@ -63,7 +63,7 @@ try:
             supported_variants.add(variant)
 except:
     try:
-        rc, response = utils.subprocess_get_response(
+        rc, response = subprocess_get_response(
                 shlex.split('virt-install --os-variant list'))
         variants = response.split('\n')
         for variant in variants:
@@ -81,7 +81,7 @@ def _sanitize_disks(disks):
         if d[1] != 0 or d[0].startswith("/dev"):
             ret.append((d[0], d[1], driver_type))
         else:
-            raise koan.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
+            raise app.InfoException("this virtualization type does not work without a disk image, set virt-size in Cobbler to non-zero")
 
     return ret
 
@@ -119,7 +119,7 @@ def _sanitize_nics(nics, bridge, profile_bridge, network_count):
             intf_bridge = intf["virt_bridge"]
             if intf_bridge == "":
                 if profile_bridge == "":
-                    raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+                    raise app.InfoException("virt-bridge setting is not defined in cobbler")
                 intf_bridge = profile_bridge
 
         else:
@@ -142,7 +142,8 @@ def create_image_file(disks=None, **kwargs):
             continue
         if str(size) == "0":
             continue
-        utils.create_qemu_image_file(path, size, driver_type)
+        # This method doesn't exist and this functionality is probably broken
+        # create_qemu_image_file(path, size, driver_type)
 
 def build_commandline(uri,
                       name=None,
@@ -221,12 +222,12 @@ def build_commandline(uri,
     if is_import:
         importpath = profile_data.get("file")
         if not importpath:
-            raise koan.InfoException("Profile 'file' required for image "
+            raise app.InfoException("Profile 'file' required for image "
                                      "install")
 
     elif "file" in profile_data:
         if is_xen:
-            raise koan.InfoException("Xen does not work with --image yet")
+            raise app.InfoException("Xen does not work with --image yet")
 
         # this is an image based installation
         input_path = profile_data["file"]
@@ -235,7 +236,7 @@ def build_commandline(uri,
             # this is not an NFS path
             cdrom = input_path
         else:
-            (tempdir, filename) = utils.nfsmount(input_path)
+            (tempdir, filename) = nfsmount(input_path)
             cdrom = os.path.join(tempdir, filename)
 
         kickstart = profile_data.get("kickstart","")
@@ -243,11 +244,11 @@ def build_commandline(uri,
             # we have a (windows?) answer file we have to provide
             # to the ISO.
             print("I want to make a floppy for %s" % kickstart)
-            floppy = utils.make_floppy(kickstart)
+            floppy = make_floppy(kickstart)
     elif is_qemu or is_xen:
         # images don't need to source this
         if "install_tree" not in profile_data:
-            raise koan.InfoException("Cannot find install source in kickstart file, aborting.")
+            raise app.InfoException("Cannot find install source in kickstart file, aborting.")
 
         if not profile_data["install_tree"].endswith("/"):
             profile_data["install_tree"] = profile_data["install_tree"] + "/"
@@ -268,7 +269,7 @@ def build_commandline(uri,
             bridge = profile_data["virt_bridge"]
 
         if bridge == "":
-            raise koan.InfoException("virt-bridge setting is not defined in cobbler")
+            raise app.InfoException("virt-bridge setting is not defined in cobbler")
         nics = [(bridge, None)]
 
 

@@ -15,5 +15,5 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
-import koan.app as app
+from koan import app
 sys.exit(app.main() or 0)

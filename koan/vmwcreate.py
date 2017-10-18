@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import random
 
-from . import app as koan
+from koan import app
 
 IMAGE_DIR = "/var/lib/vmware/images"
 VMX_DIR = "/var/lib/vmware/vmx"
@@ -128,7 +128,7 @@ def start_install(name=None,
                   qemu_driver_type=None):
 
     if "file" in profile_data:
-        raise koan.InfoException("vmware does not work with --image yet")
+        raise app.InfoException("vmware does not work with --image yet")
 
     mac = None
     if "interfaces" not in profile_data:

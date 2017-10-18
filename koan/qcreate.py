@@ -23,10 +23,11 @@ module for creating fullvirt guests via KVM/kqemu/qemu
 requires python-virtinst-0.200 (or virt-install in later distros).
 """
 
-from . import utils
-from . import virtinstall
 from xml.dom.minidom import parseString
-from . import app as koan
+from koan.utils import subprocess_call
+from koan import virtinstall
+from koan import app
+
 
 def start_install(*args, **kwargs):
     if 'arch' in kwargs.keys():
@@ -36,7 +37,7 @@ def start_install(*args, **kwargs):
     try:
         import libvirt
     except:
-        raise koan.InfoException("package libvirt is required for installing virtual guests")
+        raise app.InfoException("package libvirt is required for installing virtual guests")
     conn = libvirt.openReadOnly(None)
     # See http://libvirt.org/formatcaps.html
     capabilities = parseString(conn.getCapabilities())
@@ -48,4 +49,4 @@ def start_install(*args, **kwargs):
 
     virtinstall.create_image_file(*args, **kwargs)
     cmd = virtinstall.build_commandline("qemu:///system", *args, **kwargs)
-    utils.subprocess_call(cmd)
+    subprocess_call(cmd)

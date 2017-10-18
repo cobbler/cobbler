@@ -42,7 +42,7 @@ try:  # python 2
 except ImportError:  # python 3
     import xmlrpc.client as xmlrpclib
 import re
-from . import utils
+from koan import utils
 
 COBBLER_REQUIRED = 1.300
 
@@ -232,22 +232,6 @@ def main():
     return 0
 
 #=======================================================
-
-
-class KoanException(Exception):
-
-    def __init__(self, value, *args):
-        self.value = value % args
-        # this is a hack to work around some odd exception handling
-        # in older pythons
-        self.from_koan = 1
-
-    def __str__(self):
-        return repr(self.value)
-
-
-class KX(KoanException):
-    pass
 
 
 class InfoException(Exception):
@@ -1133,9 +1117,9 @@ class Koan:
         """
         pd = profile_data
         # importing can't throw exceptions any more, don't put it in a sub-method
-        from . import xencreate
-        from .import qcreate
-        from .import imagecreate
+        from koan import xencreate
+        from koan import qcreate
+        from koan import imagecreate
 
         arch                          = self.safe_load(pd,'arch','x86')
         kextra                        = self.calc_kernel_args(pd)
@@ -1220,11 +1204,11 @@ class Koan:
         if (self.image is not None) and (pd["image_type"] == "virt-clone"):
             fullvirt = True
             uuid = None
-            from . import imagecreate
+            from koan import imagecreate
             creator = imagecreate.start_install
         elif self.virt_type in [ "xenpv", "xenfv" ]:
             uuid    = self.get_uuid(self.calc_virt_uuid(pd))
-            from . import xencreate
+            from koan import xencreate
             creator = xencreate.start_install
             if self.virt_type == "xenfv":
                fullvirt = True 
@@ -1232,15 +1216,15 @@ class Koan:
         elif self.virt_type == "qemu":
             fullvirt = True
             uuid    = None
-            from . import qcreate
+            from koan import qcreate
             creator = qcreate.start_install
             can_poll = "qemu"
         elif self.virt_type == "vmware":
-            from . import vmwcreate
+            from koan import vmwcreate
             uuid = None
             creator = vmwcreate.start_install
         elif self.virt_type == "vmwarew":
-            from . import vmwwcreate
+            from koan import vmwwcreate
             uuid = None
             creator = vmwwcreate.start_install
         else:

@@ -25,8 +25,6 @@ import os
 import traceback
 import subprocess as sub_process
 
-from . import app as koan
-
 try:  # python 2
     import urllib2
     import xmlrpclib
@@ -47,6 +45,7 @@ VIRT_STATE_NAME_MAP = {
    6 : "crashed"
 }
 
+
 class InfoException(Exception):
     """
     Custom exception for tracking of fatal errors.
@@ -56,6 +55,7 @@ class InfoException(Exception):
         self.from_koan = 1
     def __str__(self):
         return repr(self.value)
+
 
 def setupLogging(appname):
     """
@@ -256,7 +256,7 @@ def nfsmount(input_path):
     rc = sub_process.call(mount_cmd)
     if not rc == 0:
         shutil.rmtree(tempdir, ignore_errors=True)
-        raise koan.InfoException("nfs mount failed: %s" % dirpath)
+        raise InfoException("nfs mount failed: %s" % dirpath)
     # NOTE: option for a blocking install might be nice, so we could do this
     # automatically, if supported by virt-install
     print("after install completes, you may unmount and delete %s" % tempdir)
@@ -336,7 +336,7 @@ def os_release():
              return (make,float(t))
          except ValueError:
              pass
-      raise koan.KX("failed to detect local OS version from /etc/redhat-release")
+      raise InfoException("failed to detect local OS version from /etc/redhat-release")
 
    elif check_dist() == "debian":
       fd = open("/etc/debian_version")

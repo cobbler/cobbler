@@ -30,7 +30,7 @@ try:  # python 2
 except ImportError:  # python 3
     import xmlrpc.client as xmlrpclib
 import socket
-from . import utils
+from koan.utils import connect_to_server, get_network_info
 
 # usage: cobbler-register [--server=server] [--hostname=hostname] --profile=foo
 
@@ -127,10 +127,10 @@ class Register:
            raise InfoException("root access is required to register")
  
         print("- preparing to koan home")
-        self.conn = utils.connect_to_server(self.server, self.port)
+        self.conn = connect_to_server(self.server, self.port)
         reg_info = {}
         print("- gathering network info")
-        netinfo = utils.get_network_info()
+        netinfo = get_network_info()
         reg_info["interfaces"] = netinfo
         print("- checking hostname")
         sysname = ""

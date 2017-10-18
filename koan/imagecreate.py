@@ -23,9 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from . import utils
-from . import virtinstall
+from koan.utils import subprocess_call
+from koan import virtinstall
+
 
 def start_install(*args, **kwargs):
     cmd = virtinstall.build_commandline("import", *args, **kwargs)
-    utils.subprocess_call(cmd)
+    subprocess_call(cmd)
