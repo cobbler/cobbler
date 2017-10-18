@@ -98,14 +98,19 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %if 0%{?suse_version} >= 1000
 PREFIX="--prefix=/usr"
 %endif
-%if 0%{?build_py3}
-sed -i 's|#!/usr/bin/python|#!/usr/bin/python3|' {scripts/koan,scripts/cobbler-register}
-%endif
 %{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+mv $RPM_BUILD_ROOT/usr/bin/koan $RPM_BUILD_ROOT/usr/bin/koan-%{python_version}
+mv $RPM_BUILD_ROOT/usr/bin/cobbler-register $RPM_BUILD_ROOT/usr/bin/cobbler-register-%{python_version}
 %if 0%{?build_py3}
 make clean
 %{__python3} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+mv $RPM_BUILD_ROOT/usr/bin/koan $RPM_BUILD_ROOT/usr/bin/koan-%{python3_version}
+mv $RPM_BUILD_ROOT/usr/bin/cobbler-register $RPM_BUILD_ROOT/usr/bin/cobbler-register-%{python3_version}
 %endif
+# create links to default script version
+%define default_suffix %{?default_py3:-%{python3_version}}%{!?default_py3:-%{python_version}}
+ln -s "koan%{default_suffix}" "$RPM_BUILD_ROOT%{_bindir}/koan"
+ln -s "cobbler-register%{default_suffix}" "$RPM_BUILD_ROOT%{_bindir}/cobbler-register"
 mkdir $RPM_BUILD_ROOT/var/www/cobbler/rendered/
 %if 0%{?fedora} || 0%{?rhel} >= 7
 rm $RPM_BUILD_ROOT/etc/init.d/cobblerd
@@ -344,8 +349,8 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %defattr(644,root,root,755)
 # FIXME: need to generate in setup.py
 %dir /var/spool/koan
-%attr(755,root,root) %{_bindir}/koan
-%attr(755,root,root) %{_bindir}/cobbler-register
+%{_bindir}/koan
+%{_bindir}/cobbler-register
 %{_mandir}/man1/koan.1.gz
 %{_mandir}/man1/cobbler-register.1.gz
 %dir /var/log/koan
@@ -362,6 +367,8 @@ Requires:       python
 Python 2 specific files for koan.
 
 %files -n python2-koan20
+%{_bindir}/koan-%{python_version}
+%{_bindir}/cobbler-register-%{python_version}
 %{python2_sitelib}/koan/
 
 %if 0%{?build_py3}
@@ -378,6 +385,8 @@ Requires:       python3
 Python 3 specific files for koan.
 
 %files -n python3-koan20
+%{_bindir}/koan-%{python3_version}
+%{_bindir}/cobbler-register-%{python3_version}
 %{python3_sitelib}/koan/
 %{python3_sitelib}/koan-*.egg-info
 
