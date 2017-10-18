@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 68%{?dist}
+Release: 69%{?dist}
 Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
 Group: Applications/System
 
@@ -446,6 +446,11 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Wed Oct 18 2017 Jan Dobes 2.0.11-69
+- keys() and sort() doesn't work on Python 3
+- package both Python 2 and Python 3 versions
+- relative imports don't work on both Python 2 and 3
+
 * Mon Oct 16 2017 Jan Dobes 2.0.11-68
 - new pod2man doesn't accept empty string as release
 - build koan for Python 3
