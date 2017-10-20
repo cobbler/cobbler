@@ -16,7 +16,7 @@ License: GPLv2+
 AutoReq: no
 Version: 2.0.11
 Release: 69%{?dist}
-Source0: https://github.com/spacewalkproject/cobbler/archive/release20.tar.gz
+Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
 Provides: cobbler = %{version}-%{release}
