@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 69%{?dist}
+Release: 70%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -446,6 +446,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Fri Oct 20 2017 Jan Dobes <jdobes@redhat.com> 2.0.11-70
+- specify base version instead of branch to fix tito build
+
 * Wed Oct 18 2017 Jan Dobes 2.0.11-69
 - keys() and sort() doesn't work on Python 3
 - package both Python 2 and Python 3 versions
