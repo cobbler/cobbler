@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 70%{?dist}
+Release: 71%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -446,6 +446,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Fri Oct 27 2017 Jan Dobes <jdobes@redhat.com> 2.0.11-71
+- 1487007 - copy init info from Cobbler 2.8
+
 * Fri Oct 20 2017 Jan Dobes <jdobes@redhat.com> 2.0.11-70
 - specify base version instead of branch to fix tito build
 
