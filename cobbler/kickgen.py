@@ -168,6 +168,10 @@ class KickGen:
             # see if this is a source_repo or not
             repo_obj = self.api.find_repo(repo)
             if repo_obj is not None:
+                if repo_obj.proxy != '<<None>>' and repo_obj.proxy != '':
+    ￼                proxy='--proxy=%s' % repo_obj.proxy
+                else:
+                    proxy=''
                 yumopts=''
                 for opt in repo_obj.yumopts:
                     if opt in ['exclude', 'include']:
@@ -183,7 +187,7 @@ class KickGen:
                         included[baseurl] = 1
                     else:
                         if repo_obj.mirror not in included:
-                            buf = buf + "repo --name=%s --baseurl=%s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts)
+                            buf = buf + "repo --name=%s --baseurl=%s %s %s\n" % (repo_obj.name, repo_obj.mirror, yumopts, proxy)
                         included[repo_obj.mirror] = 1
             else:
                 # FIXME: what to do if we can't find the repo object that is listed?
