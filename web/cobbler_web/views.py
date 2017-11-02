@@ -10,6 +10,7 @@ import xmlrpclib
 import simplejson
 import string
 import time
+import ipaddress
 
 import cobbler.item_distro    as item_distro
 import cobbler.item_profile   as item_profile
@@ -891,6 +892,32 @@ def events(request):
    t = get_template('events.tmpl')
    html = t.render(RequestContext(request,{
        'results'  : events2,
+       'version'  : remote.extended_version(request.session['token'])['version'],
+       'username' : username
+   }))
+   return HttpResponse(html)
+
+# ======================================================================
+
+def iplist(request):
+   """
+   This page presents a list of all the IP addresses
+   """
+   if not test_user_authenticated(request): return login(request, next="/cobbler_web/iplist", expired=True)
+   systems = remote.get_systems()
+   iplist = []
+   for system in systems:
+      for iname in system["interfaces"]:
+         if system["interfaces"][iname]["ip_address"] != "":
+            iplist.append([system["interfaces"][iname]["ip_address"], system["interfaces"][iname]["dns_name"], system["name"], iname])
+
+   def sorter(a,b):
+      return cmp(ipaddress.ip_address(unicode(a[0])),ipaddress.ip_address(unicode(b[0])))
+   iplist.sort(sorter)
+
+   t = get_template('iplist.tmpl')
+   html = t.render(RequestContext(request,{
+       'results'  : iplist,
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
    }))
