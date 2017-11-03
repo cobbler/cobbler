@@ -8,7 +8,7 @@ usr/share/cobbler/*
 var/lib/cobbler/*
 usr/share/man/man1/cobbler.1.gz
 etc/cobbler/*
-etc/apache2/conf.d/*
+etc/apache2/conf-available/*
 etc/init.d/cobblerd
 srv/www/cobbler/*
 srv/www/cobbler_webui_content/*
