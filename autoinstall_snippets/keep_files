@@ -1,3 +1,5 @@
+# #
+# # Keep Files (Preserve files during re-build)
 ##  This snippet preserves files during re-build.
 ##  It supersedes other similar snippets - keep_*_keys.
 ##  Put it in %pre section of the kickstart template file
@@ -11,10 +13,15 @@
 ##  base channels, i.e. RHEL4 -> RHEL5 upgrades.
 ##
 
-#if $getVar('$preserve_files','') != ''
-  #set $preserve_files = $getVar('$preserve_files','')	
-  preserve_files = $preserve_files  
-  
+# Allow you to set attributes in the KS-file before calling this snippet.
+# Example: #attr $preserve_files_ks = 'ssh'
+# Passed external args has precedence.
+#set $preserve_files_ks = $getVar('preserve_files_ks',  '')
+
+#if $getVar('preserve_files', $preserve_files_ks) != ''
+   #set $preserve_files = $getVar('$preserve_files', $preserve_files_ks)
+   preserve_files=$preserve_files
+
 #raw
 # Nifty trick to restore keys without using a nochroot %post
 
@@ -31,9 +38,9 @@ function findkeys
     mkdir -p /tmp/$tmpdir
     mount $disk /tmp/$tmpdir
     if [ $? -ne 0 ]; then # Skip to the next partition if the mount fails
-      rm -rf /tmp/$tmpdir                                                
-      continue                                                           
-    fi                                                                   
+      rm -rf /tmp/$tmpdir
+      continue
+    fi
     # Copy current host keys out to be reused
     if [ -d /tmp/$tmpdir$SEARCHDIR ] && cp -a /tmp/$tmpdir$SEARCHDIR/${PATTERN}* /tmp/$TEMPDIR; then
         keys_found="yes"
@@ -63,14 +70,14 @@ function search_for_keys
  SHORTDIR=${SEARCHDIR#/var}
  if [ $SHORTDIR = $SEARCHDIR ]; then
 	SHORTDIR=''
- fi	
+ fi
 
  mkdir -p /tmp/$TEMPDIR
 
  DISKS=$(awk '{if ($NF ~ "^[a-zA-Z].*[0-9]$" && $NF !~ "c[0-9]+d[0-9]+$" && $NF !~ "^loop.*") print "/dev/"$NF}'  /proc/partitions)
  # In the awk line above we want to make list of partitions, but not devices/controllers
  # cciss raid controllers have partitions like /dev/cciss/cNdMpL, where N,M,L - some digits, we want to make sure 'pL' is there
- # No need to scan loopback niether.
+ # No need to scan loopback neither.
  # Try to find the keys on ordinary partitions
 
  findkeys
@@ -92,14 +99,36 @@ function search_for_keys
         # Activate any VG we found
         lvm vgchange -ay $vg
     done
-    
+
     DISKS=$(lvm lvs | tail -n +2 | awk '{ print "/dev/" $2 "/" $1 }')
-    findkeys    
+    findkeys
 
     # And clean up..
     for vg in $vgs; do
         lvm vgchange -an $vg
     done
+ fi
+}
+
+function fix_ssh_key_groups
+{
+ # CentOS 7 has the ssh key-files owned by the group: ssh_keys
+ # On CentOS 7.4 this results in that the group id may change from the
+ # Squash-image and when it boots up from the system drive.
+ # If it's not corrected - SSHD will not start.
+ # We can't be sure that the existing Group is correct either - assume ssh_keys if group exists.
+
+ if ls /mnt/sysimage/etc/ssh/ssh_host*key > /dev/null; then
+    echo "We have ssh_host -keys to check"
+    gid_ssh_keys=$(grep ssh_keys /mnt/sysimage/etc/group | cut -d ':'  -f 3)
+    re_number='^[0-9]+$'
+    if [[ $gid_ssh_keys =~ $re_number ]]; then
+        # On systems where we don't have a ssh_keys group, this will not be run.
+        echo "SSH: ssh_keys has group id: $gid_ssh_keys -> setting that on the key-files."
+        chown :$gid_ssh_keys /mnt/sysimage/etc/ssh/ssh_host*key
+    else
+	echo "SSH: ssh_keys -group id not found."
+    fi
  fi
 }
 
@@ -109,13 +138,16 @@ function restore_keys
  TEMPDIR=$2
  PATTERN=$3
  # Loop until the corresponding rpm is installed if the keys are saved
- if [ "$keys_found" = "yes" ] && [ -f /tmp/$TEMPDIR/${PATTERN}* ]; then
+ if [ "$keys_found" = "yes" ] && ls /tmp/${TEMPDIR}/${PATTERN}*; then
     while : ; do
         sleep 10
-        if [ -d /mnt/sysimage$SEARCHDIR ] ; then
-            cp -af /tmp/$TEMPDIR/${PATTERN}* /mnt/sysimage$SEARCHDIR
-            logger "$TEMPDIR keys copied to newly installed system"
-            break
+        if [ -d /mnt/sysimage${SEARCHDIR} ] ; then
+            cp -af /tmp/${TEMPDIR}/${PATTERN}* /mnt/sysimage${SEARCHDIR}
+            logger "${TEMPDIR} keys copied to newly installed system"
+	    if [ "$PATTERN" = "ssh_host_" ]; then
+	       fix_ssh_key_groups
+	    fi
+	    break
         fi
     done &
  fi
@@ -148,7 +180,6 @@ do
    echo "Nothing to restore!" > /dev/ttyS0
  fi
 done
-
 
 #end raw
 #end if
