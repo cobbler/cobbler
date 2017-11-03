@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 72%{?dist}
+Release: 73%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -446,6 +446,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Fri Nov 03 2017 Jan Dobes 2.0.11-73
+- check_output is not on older (EL6 based) distros, using call from Cobbler 2.8
+
 * Thu Nov 02 2017 Jan Dobes 2.0.11-72
 - fixing TypeError - bytes like object expected
 - updating from Cobbler 2.8 to support listing using osinfo-query
