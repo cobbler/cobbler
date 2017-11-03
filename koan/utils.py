@@ -159,12 +159,10 @@ def subprocess_get_response(cmd, ignore_rc=False):
     Wrapper around subprocess.check_output(...)
     """
     print("- %s" % cmd)
-    rc = 0
-    try:
-        result = sub_process.check_output(cmd).strip()
-    except sub_process.CalledProcessError as e:
-        rc = e.returncode
-        result = e.output
+    p = sub_process.Popen(cmd, stdout=sub_process.PIPE,
+                          stderr=sub_process.PIPE)
+    result, stderr_result = p.communicate()
+    rc = p.wait()
     if not ignore_rc and rc != 0:
         raise InfoException("command failed (%s)" % rc)
     return rc, result
