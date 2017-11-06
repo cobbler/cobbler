@@ -616,7 +616,11 @@ class Koan:
             nfs_parser.add_option("--server", dest="server")
 
             for line in lines:
-                match = method_re.match(line.decode('utf-8'))
+                # Workaround - shlex.split doesn't work on Python 2.6 if string is unicode,
+                # decode it only on Python 3 where line is a byte string
+                if not isinstance(line, str):
+                    line = line.decode('utf-8')
+                match = method_re.match(line)
                 if match:
                     cmd = match.group("urlcmd")
                     if cmd:
