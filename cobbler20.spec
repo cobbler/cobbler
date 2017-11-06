@@ -15,7 +15,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 73%{?dist}
+Release: 74%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -446,6 +446,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Mon Nov 06 2017 Jan Dobes 2.0.11-74
+- workaround on Python 2.6 - shlex.split can't parse unicode strings
+
 * Fri Nov 03 2017 Jan Dobes 2.0.11-73
 - check_output is not on older (EL6 based) distros, using call from Cobbler 2.8
 
