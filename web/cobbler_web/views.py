@@ -910,9 +910,9 @@ def iplist(request):
       for iname in system["interfaces"]:
          if system["interfaces"][iname]["ip_address"] != "" and system["interfaces"][iname]["interface_type"] != "bond_slave" and system["interfaces"][iname]["interface_type"] != "bridge_slave":
             if system["interfaces"][iname]["dns_name"] != "":
-               iplist.append([system["interfaces"][iname]["ip_address"], system["interfaces"][iname]["dns_name"], system["name"], iname])
+               iplist.append([system["interfaces"][iname]["ip_address"], system["interfaces"][iname]["dns_name"], system["name"], iname, system["interfaces"][iname]["mac_address"]])
             else:
-               iplist.append([system["interfaces"][iname]["ip_address"], system["hostname"], system["name"], iname])
+               iplist.append([system["interfaces"][iname]["ip_address"], system["hostname"], system["name"], iname, system["interfaces"][iname]["mac_address"]])
 
    def sorter(a,b):
       return cmp(ipaddress.ip_address(unicode(a[0])),ipaddress.ip_address(unicode(b[0])))

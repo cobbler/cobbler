@@ -15,10 +15,11 @@ function action_sort(value) {
   <thead>
     <tr>
       <th></th>
-      <th width="30%"><a href="javascript:action_sort('ip_address');">IP Address</a></th>
-      <th width="35%"><a href="javascript:action_sort('dns_name');">DNS Name</a></th>
-      <th width="25%"><a href="javascript:action_sort('name');">System</a></th>
+      <th width="20%"><a href="javascript:action_sort('ip_address');">IP Address</a></th>
+      <th width="30%"><a href="javascript:action_sort('dns_name');">DNS Name</a></th>
+      <th width="20%"><a href="javascript:action_sort('name');">System</a></th>
       <th width="10%"><a href="javascript:action_sort('interface');">Interface</a></th>
+      <th width="20%"><a href="javascript:action_sort('mac_address');">MAC Address</a></th>
     </tr>
   </thead>
   <tbody>
@@ -29,6 +30,7 @@ function action_sort(value) {
       <td>{{ line.1|safe }}</td>
       <td>{{ line.2|safe }}</td>
       <td>{{ line.3|safe }}</td>
+      <td>{{ line.4|safe }}</td>
     </tr>
   {% endfor %}
   </tbody>
