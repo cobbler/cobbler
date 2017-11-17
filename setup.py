@@ -304,7 +304,7 @@ class build_man(Command):
                 # It is. Configure it
                 self.build_one_file(infile, outfile)
 
-    _COMMAND = 'pod2man --center="%s" --release="" %s | gzip -c > %s'
+    _COMMAND = 'pod2man --center="%s" --release="unreleased" %s | gzip -c > %s'
 
     def build_one_file(self, infile, outfile):
         man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]

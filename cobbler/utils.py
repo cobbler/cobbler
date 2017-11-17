@@ -1003,9 +1003,10 @@ def tftpboot_location():
         return "/var/lib/tftpboot"
     elif make == "ubuntu" and os.path.exists("/srv/tftp"):
         return "/srv/tftp"
-    elif make == "debian" and int(str_version.split('.')[0]) < 6:
-        return "/var/lib/tftpboot"
-    elif make == "debian" and int(str_version.split('.')[0]) >= 6:
+    #elif make == "debian" and int(str_version.split('.')[0]) < 6:
+    #    return "/var/lib/tftpboot"
+    #elif make == "debian" and int(str_version.split('.')[0]) >= 6:
+    elif make == "debian":
         return "/srv/tftp"
     else:
         return "/tftpboot"
@@ -2018,8 +2019,8 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     elif dist == "suse":
         return "/etc/dhcpd.conf"
-    elif dist == "debian" and int(version[1].split('.')[0]) < 6:
-        return "/etc/dhcp3/dhcpd.conf"
+    #elif dist == "debian" and int(version[1].split('.')[0]) < 6:
+    #    return "/etc/dhcp3/dhcpd.conf"
     elif dist == "ubuntu" and version[1] < 11.10:
         return "/etc/dhcp3/dhcpd.conf"
     else:
