@@ -6,7 +6,8 @@ import views
 # from cobbler_web.contrib import admin
 # admin.autodiscover()
 
-urlpatterns = [
+urlpatterns = patterns(
+    '',
     url(r'^$', views.index),
 
     url(r'^setting/list$', views.setting_list),
@@ -51,4 +52,4 @@ urlpatterns = [
     url(r'^login$', views.login),
     url(r'^do_login$', views.do_login),
     url(r'^logout$', views.do_logout),
-]
+)

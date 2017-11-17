@@ -74,5 +74,20 @@ INSTALLED_APPS = (
     'cobbler.web',
 )
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request'
+            ],
+        },
+    },
+]
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = '/var/lib/cobbler/webui_sessions'
