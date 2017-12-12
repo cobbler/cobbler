@@ -587,7 +587,7 @@ class ImportSignatureManager:
 
             fname = os.path.join(self.settings.webdir, "ks_mirror", "config", "%s" % (dotrepo))
 
-            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s-%s.repo" % (distro.name, counter)
+            repo_url = "http://@@http_server@@/cobbler/ks_mirror/config/%s" % (dotrepo)
             repo_url2 = "http://@@http_server@@/cobbler/ks_mirror/%s" % (urlseg)
 
             distro.source_repos.append([repo_url,repo_url2])
