@@ -15,10 +15,6 @@
 %{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %{!?pyver: %global pyver %(%{__python2} -c "import sys ; print sys.version[:3]" || echo 0)}
 
-%global debug_package %{nil}
-%define _binaries_in_noarch_packages_terminate_build 0
-%define _unpackaged_files_terminate_build 1
-
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
 %define apache_etc /etc/apache2/
@@ -45,18 +41,15 @@
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
-AutoReq: no
 Version: 2.9.0
 Release: 1%{?dist}
 Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
-Group: Applications/System
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: https://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl
-BuildRequires: python-devel
+BuildRequires: python2-devel
 Requires: python >= 2.7
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
@@ -129,7 +122,6 @@ Cobbler has a XMLRPC API for integration with other applications.
 
 
 %install
-test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 # cobbler
@@ -214,10 +206,6 @@ fi
 %endif
 
 
-%clean
-test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-
-
 %files
 # binaries
 %{_bindir}/cobbler
@@ -246,7 +234,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 # data
 %{tftp_dir}
 %{apache_dir}/cobbler
-%config(noreplace) %{_var}/lib/cobbler
+%{_var}/lib/cobbler
 %exclude %{apache_dir}/cobbler_webui_content
 %exclude %{_var}/lib/cobbler/webui_sessions
 
@@ -270,14 +258,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %package -n cobbler-web
 
 Summary: Web interface for Cobbler
-Group: Applications/System
 Requires: python(abi) >= %{pyver}
 Requires: cobbler
 Requires(post): openssl
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 Requires: httpd
-Requires: Django >= 1.4
+Requires: Django >= 1.8
 Requires: mod_wsgi
 %endif
 
@@ -328,7 +315,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %package -n cobbler-nsupdate
 
 Summary: module for dynamic dns updates
-Group: Applications/System
 Requires: cobbler
 Requires: python-dns
 
