@@ -997,7 +997,7 @@
    }
   },
   "freebsd": {
-   "8.2": {
+   "freebsd8.2": {
     "signatures":["boot"],
     "version_file":"8\\.2-RELEASE",
     "version_file_regex":null,
@@ -1013,7 +1013,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "8.3": {
+   "freebsd8.3": {
     "signatures":["boot"],
     "version_file":"8\\.3-RELEASE",
     "version_file_regex":null,
@@ -1029,7 +1029,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "8.4": {
+   "freebsd8.4": {
     "signatures":["boot"],
     "version_file":"8\\.4-RELEASE",
     "version_file_regex":null,
@@ -1045,7 +1045,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "9.0": {
+   "freebsd9.0": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
     "version_file_regex":"^.*FreeBSD: release/9.0(.*)/sys/(.*)/conf/GENERIC.hints.*$",
@@ -1061,7 +1061,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "9.1": {
+   "freebsd9.1": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
     "version_file_regex":"^.*FreeBSD: release/9.1(.*)/sys/(.*)/conf/GENERIC.hints.*$",
@@ -1077,7 +1077,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "9.2": {
+   "freebsd9.2": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
     "version_file_regex":"^.*FreeBSD: release/9.2(.*)/sys/(.*)/conf/GENERIC.hints.*$",
@@ -1093,7 +1093,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "9.3": {
+   "freebsd9.3": {
     "signatures":["boot"],
     "version_file":"device\\.hints",
     "version_file_regex":"^.*FreeBSD: release/9.3(.*)/sys/(.*)/conf/GENERIC.hints.*$",
@@ -1109,7 +1109,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "10.0": {
+   "freebsd10.0": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"10.0-RELEASE\"",
@@ -1125,7 +1125,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "10.1": {
+   "freebsd10.1": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"10.1-RELEASE\"",
@@ -1141,7 +1141,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "10.2": {
+   "freebsd10.2": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"10.2-RELEASE\"",
@@ -1157,7 +1157,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "10.3": {
+   "freebsd10.3": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"10.3-RELEASE\"",
@@ -1173,7 +1173,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "10.4": {
+   "freebsd10.4": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"10.4-RELEASE\"",
@@ -1189,7 +1189,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "11.0": {
+   "freebsd11.0": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"11.0-RELEASE.*\"",
@@ -1205,7 +1205,7 @@
     "kernel_options_post":"",
     "boot_files":[]
    },
-   "11.1": {
+   "freebsd11.1": {
     "signatures":["boot"],
     "version_file":"freebsd-version",
     "version_file_regex":"USERLAND_VERSION=\"11.1-RELEASE.*\"",
