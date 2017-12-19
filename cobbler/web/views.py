@@ -904,9 +904,9 @@ def setting_list(request):
 
     t = get_template('settings.tmpl')
     html = t.render(context={
-         'settings': results,
-         'version': remote.extended_version(request.session['token'])['version'],
-         'username': username,
+        'settings': results,
+        'version': remote.extended_version(request.session['token'])['version'],
+        'username': username,
     }, request=request)
     return HttpResponse(html)
 
