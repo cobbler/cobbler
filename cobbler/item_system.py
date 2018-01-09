@@ -77,6 +77,8 @@ FIELDS = [
     ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
     ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
     ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
+    ["serial_device", "", 0, "Serial Device #", True, "Serial Device Number", 0, "int"],
+    ["serial_baud_rate", "", 0, "Serial Baud Rate", True, "Serial Baud Rate", ["", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "int"],
 ]
 
 # network interface fields are in a separate list because a system may contain
@@ -733,5 +735,11 @@ class System(item.Item):
 
     def set_repos_enabled(self, repos_enabled):
         self.repos_enabled = utils.input_boolean(repos_enabled)
+
+    def set_serial_device(self, device_number):
+        return utils.set_serial_device(self, device_number)
+
+    def set_serial_baud_rate(self, baud_rate):
+        return utils.set_serial_baud_rate(self, baud_rate)
 
 # EOF

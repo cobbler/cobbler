@@ -613,8 +613,23 @@ class TFTPGen:
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
 
+        metadata["serial"] = ""
         if system:
             metadata["system_name"] = system.name
+            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+                if system.serial_device is not None:
+                    serial_device = system.serial_device
+                else:
+                    serial_device = 0
+                if system.serial_baud_rate is not None:
+                    serial_baud_rate = system.serial_baud_rate
+                else:
+                    serial_baud_rate = 115200
+
+                if format == "pxe":
+                    metadata["serial"] = "serial %d %d\n" % (serial_device, serial_baud_rate)
+                elif format == "grub":
+                    metadata["serial"] = "serial --unit=%d --speed=%d --word=8 --parity=no --stop=1\n" % (serial_device, serial_baud_rate)
 
         # get the template
         if kernel_path is not None:
@@ -627,6 +642,10 @@ class TFTPGen:
 
         # save file and/or return results, depending on how called.
         buffer = self.templar.render(template_data, metadata, None)
+
+        if "serial" in metadata and metadata["serial"]:
+            buffer = metadata["serial"] + buffer
+
         if filename is not None:
             self.logger.info("generating: %s" % filename)
             fd = open(filename, "w")
