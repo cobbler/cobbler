@@ -1,0 +1,25 @@
+# ******************************************************************
+# Cobbler managed genders file.
+#
+# generated from cobbler genders template ($date)
+# Do NOT make changes to /etc/genders. Instead, make your changes
+# in /etc/cobbler/genders.template, as /etc/genders will be
+# overwritten.
+#
+# Then run: cobbler sync
+# to apply your changes.
+#
+# ******************************************************************
+
+#for profile in $profiles_genders.keys():
+$profiles_genders[$profile]     profile=$profile
+#end for
+
+#for distro in $distros_genders.keys():
+$distros_genders[$distro]       distro=$distro
+#end for
+
+
+#for mgmtcls in $mgmtcls_genders.keys():
+$mgmtcls_genders[$mgmtcls]  $mgmtcls
+#end for
