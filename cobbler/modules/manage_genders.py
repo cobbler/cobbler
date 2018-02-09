@@ -1,10 +1,10 @@
 import distutils.sysconfig
 import sys
 import os
-import templar
-from utils import _
-from cexceptions import CX
 import time
+import cobbler.templar
+from cobbler.utils import _
+from cobbler.cexceptions import CX
 
 plib = distutils.sysconfig.get_python_lib()
 mod_path = "%s/cobbler" % plib
@@ -24,7 +24,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     /var/lib/cobbler/settings.
     """
 
-    templar_inst = templar.Templar(config)
+    templar_inst = cobbler.templar.Templar(config)
     try:
         f2 = open(template_file, "r")
     except:
@@ -46,7 +46,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
 def run(api, args, logger):
 
     # do not run if we are not enabled.
-    if(not api.settings.manage_genders):
+    if(not api.settings().manage_genders):
         return 0
 
     profiles_genders = dict()
@@ -99,5 +99,5 @@ def run(api, args, logger):
         logger.info("Please run: touch " + settings_file + " as root and try again.")
         return 1
 
-    write_genders_file(api._config, profiles_genders, distros_genders, mgmtcls_genders)
+    write_genders_file(api._collection_mgr, profiles_genders, distros_genders, mgmtcls_genders)
     return 0
