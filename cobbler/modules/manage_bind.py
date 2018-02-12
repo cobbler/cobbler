@@ -30,6 +30,7 @@ import cobbler.utils as utils
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX
+import socket
 
 
 def register():
@@ -147,6 +148,29 @@ class BindManager:
 
                 # strip the zone off the dns_name
                 host = re.sub('\.%s$' % best_match, '', host)
+
+                # if we are to manage ipmi hosts, add that too
+                if (self.settings.bind_manage_ipmi):
+                    if (system.power_address != ""):
+                        power_address_is_ip = False
+                        # see if the power address is an IP
+                        try:
+                            socket.inet_aton(system.power_address)
+                            power_address_is_ip = True
+                        except socket.error:
+                            power_address_is_ip = False
+
+                        # if the power address is an IP, then add it to the DNS
+                        # with the host suffix of "-ipmi"
+                        # TODO: Perhpas the suffix can be configurable through settings?
+                        if(power_address_is_ip):
+                            ipmi_host = host + "-ipmi"
+                            ipmi_ips = []
+                            ipmi_ips.append(system.power_address)
+                            try:
+                                zones[best_match][ipmi_host] = ipmi_ips + zones[best_match][ipmi_host]
+                            except KeyError:
+                                zones[best_match][ipmi_host] = ipmi_ips
 
                 # Create a list of IP addresses for this host
                 ips = []
