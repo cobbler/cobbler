@@ -4,6 +4,13 @@
 %endif
 
 %define pythonX %{?default_py3: python3}%{!?default_py3: python2}
+%if  0%{?fedora} >= 28  || 0%{?rhel} >= 8
+%global python_prefix python2
+%else
+%global python_prefix python
+%global build_py2   1
+%endif
+
 
 %{!?__python2: %global __python2 /usr/bin/python2}
 %{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
@@ -46,12 +53,12 @@ Requires: fence-agents
 %endif
 Requires: genisoimage
 Requires: libyaml
-Requires: python-cheetah
-Requires: python-devel
-Requires: python-netaddr
-Requires: python-simplejson
-BuildRequires: python-setuptools
-Requires: python-urlgrabber
+Requires: %{python_prefix}-cheetah
+Requires: %{python_prefix}-devel
+Requires: %{python_prefix}-netaddr
+Requires: %{python_prefix}-simplejson
+BuildRequires: %{python_prefix}-setuptools
+Requires: %{python_prefix}-urlgrabber
 Requires: PyYAML
 %if 0%{?suse_version} < 0
 BuildRequires: redhat-rpm-config
@@ -68,7 +75,7 @@ Requires(preun): /sbin/service
 %endif
 
 BuildRequires: PyYAML
-BuildRequires: python-cheetah
+BuildRequires: %{python_prefix}-cheetah
 BuildRequires: /usr/bin/pod2man
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -99,8 +106,10 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 PREFIX="--prefix=/usr"
 %endif
 %{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%if 0%{?build_py2}
 mv $RPM_BUILD_ROOT/usr/bin/koan $RPM_BUILD_ROOT/usr/bin/koan-%{python_version}
 mv $RPM_BUILD_ROOT/usr/bin/cobbler-register $RPM_BUILD_ROOT/usr/bin/cobbler-register-%{python_version}
+%endif
 %if 0%{?build_py3}
 make clean
 %{__python3} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
@@ -112,6 +121,9 @@ mv $RPM_BUILD_ROOT/usr/bin/cobbler-register $RPM_BUILD_ROOT/usr/bin/cobbler-regi
 ln -s "koan%{default_suffix}" "$RPM_BUILD_ROOT%{_bindir}/koan"
 ln -s "cobbler-register%{default_suffix}" "$RPM_BUILD_ROOT%{_bindir}/cobbler-register"
 mkdir $RPM_BUILD_ROOT/var/www/cobbler/rendered/
+%if ! 0%{?build_py2}
+rm -rf $RPM_BUILD_ROOT/%{python2_sitelib}/koan/*
+%endif
 %if 0%{?fedora} || 0%{?rhel} >= 7
 rm $RPM_BUILD_ROOT/etc/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
@@ -356,11 +368,13 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %dir /var/log/koan
 %doc AUTHORS COPYING CHANGELOG README
 
+%if 0%{?build_py2}
+
 %package -n python2-koan20
 
 Summary: Helper tool that performs cobbler orders on remote machines.
 BuildRequires:  python
-BuildRequires:  python-setuptools
+BuildRequires:  %{python_prefix}-setuptools
 Requires:       python
 
 %description -n python2-koan20
@@ -370,6 +384,7 @@ Python 2 specific files for koan.
 %{_bindir}/koan-%{python_version}
 %{_bindir}/cobbler-register-%{python_version}
 %{python2_sitelib}/koan/
+%endif
 
 %if 0%{?build_py3}
 
@@ -426,7 +441,7 @@ Requires: apache2-mod_python
 %else
 Requires: mod_python
 %endif
-BuildRequires: python-setuptools
+BuildRequires: %{python_prefix}-setuptools
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://fedorahosted.org/cobbler/
