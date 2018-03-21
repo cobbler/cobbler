@@ -22,7 +22,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 74%{?dist}
+Release: 75%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -461,6 +461,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Wed Mar 21 2018 Jiri Dostal <jdostal@redhat.com> 2.0.11-75
+- Make cobbler follow fedora packaging guidelines
+
 * Mon Nov 06 2017 Jan Dobes 2.0.11-74
 - workaround on Python 2.6 - shlex.split can't parse unicode strings
 
