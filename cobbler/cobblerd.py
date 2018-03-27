@@ -59,11 +59,12 @@ def regen_ss_file():
     fd.close()
     if not os.path.isfile(ssfile):
         fd = os.open(ssfile, os.O_CREAT|os.O_RDWR, 0600)
+        os.fchmod(fd, 0660)
         os.write(fd, binascii.hexlify(data))
         os.close(fd)
         utils.os_system("chown apache /var/lib/cobbler/web.ss")
     else:
-        fd = os.open(ssfile, os.O_CREAT|os.O_RDWR, 0600)
+        fd = os.open(ssfile, os.O_RDWR)
         os.write(fd, binascii.hexlify(data))
         os.close(fd)
 
