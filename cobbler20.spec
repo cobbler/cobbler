@@ -22,7 +22,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 75%{?dist}
+Release: 76%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -461,6 +461,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Tue Mar 27 2018 Jiri Dostal <jdostal@redhat.com> 2.0.11-76
+- Fix permission issue with cobbler/selinux
+
 * Wed Mar 21 2018 Jiri Dostal <jdostal@redhat.com> 2.0.11-75
 - Make cobbler follow fedora packaging guidelines
 
