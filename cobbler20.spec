@@ -217,10 +217,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/cobbler/installer_templates/*.template
 /usr/share/cobbler/installer_templates/defaults
 
-%defattr(644,apache,apache,755)
+%defattr(644,root,apache,775)
 %dir /var/log/cobbler
 %dir /var/log/cobbler/tasks
 %dir /var/log/cobbler/kicklog
+%defattr(644,apache,apache,755)
 %dir /var/www/cobbler/
 %dir /var/www/cobbler/localmirror
 %dir /var/www/cobbler/repo_mirror
