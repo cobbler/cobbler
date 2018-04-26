@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import os.path
+import pipes
 import urlgrabber
 
 HAS_YUM = True
@@ -201,7 +202,7 @@ class RepoSync:
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
                 # BOOKMARK
-                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, dirname)
+                cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, pipes.quote(dirname))
                 utils.subprocess_call(self.logger, cmd)
             except:
                 utils.log_exc(self.logger)
@@ -225,7 +226,7 @@ class RepoSync:
         dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "wget -N -np -r -l inf -nd -P %s %s" % (dest_path, repo_mirror)
+        cmd = "wget -N -np -r -l inf -nd -P %s %s" % (pipes.quote(dest_path), pipes.quote(repo_mirror))
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc != 0:
@@ -257,7 +258,7 @@ class RepoSync:
             repo.mirror = "%s/" % repo.mirror
 
         # FIXME: wrapper for subprocess that logs to logger
-        cmd = "rsync -rltDv --copy-unsafe-links --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, repo.mirror, dest_path)
+        cmd = "rsync -rltDv --copy-unsafe-links --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc != 0:
@@ -321,7 +322,7 @@ class RepoSync:
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]      # everything after rhn://
-        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, rest, self.settings.webdir + "/repo_mirror")
+        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -415,7 +416,7 @@ class RepoSync:
 
         if not has_rpm_list:
             # if we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" % (cmd, self.rflags, temp_file, repo.name, self.settings.webdir + "/repo_mirror")
+            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" % (cmd, self.rflags, temp_file, pipes.quote(repo.name), pipes.quote(self.settings.webdir + "/repo_mirror"))
             if repo.arch != "":
                 if repo.arch == "x86":
                     repo.arch = "i386"      # FIX potential arch errors
@@ -443,7 +444,7 @@ class RepoSync:
                 cmd = "/usr/bin/dnf download"
             else:
                 cmd = "/usr/bin/yumdownloader"
-            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (cmd, extra_flags, use_source, repo.name, temp_file, dest_path, " ".join(repo.rpm_list))
+            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path), " ".join(repo.rpm_list))
 
         # now regardless of whether we're doing yumdownloader or reposync
         # or whether the repo was http://, ftp://, or rhn://, execute all queued
@@ -534,7 +535,7 @@ class RepoSync:
             dists = ",".join(repo.apt_dists)
             components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (method, host, mirror, dists, components)
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (pipes.quote(method), pipes.quote(host), pipes.quote(mirror), pipes.quote(dists), pipes.quote(components))
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
@@ -543,6 +544,7 @@ class RepoSync:
                 else:
                     rflags += " %s" % x
             cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, dest_path)
+            cmd = "%s %s %s %s" % (mirror_program, rflags, mirror_data, pipes.quote(dest_path))
             if repo.arch == "src":
                 cmd = "%s --source" % cmd
             else:
