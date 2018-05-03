@@ -1566,6 +1566,32 @@ def get_mtab(mtab="/etc/mtab", vfstype=None):
     return mtab_map
 
 
+def set_serial_device(self, device_number):
+    if device_number == "" or device_number is None:
+        device_number = None
+    else:
+        try:
+            device_number = int(str(device_number))
+        except:
+            raise CX(_("invalid value for serial device (%s)" % device_number))
+
+    self.serial_device = device_number
+    return True
+
+
+def set_serial_baud_rate(self, baud_rate):
+    if baud_rate == "" or baud_rate is None:
+        baud_rate = None
+    else:
+        try:
+            baud_rate = int(str(baud_rate))
+        except:
+            raise CX(_("invalid value for serial baud (%s)" % baud_rate))
+
+    self.serial_baud_rate = baud_rate
+    return True
+
+
 def __cache_mtab__(mtab="/etc/mtab"):
     f = open(mtab)
     mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
