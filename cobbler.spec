@@ -2,7 +2,7 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 23, 24, 25, 26
+# - Fedora: 26, 27, 28
 # - RHEL: 6, 7
 # - CentOS: 6, 7
 # - Scientific Linux: 6, 7
@@ -48,7 +48,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.8.2
+Version: 2.8.3
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
@@ -412,6 +412,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Fri May 4 2018 Jörgen Maas <jorgen.maas@gmail.com
+- Cobbler 2.8.3 release
 * Sat Sep 16 2017 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.8.2 release
 * Wed May 24 2017 Jörgen Maas <jorgen.maas@gmail.com>
