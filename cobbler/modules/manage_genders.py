@@ -99,5 +99,5 @@ def run(api, args, logger):
         logger.info("Please run: touch " + settings_file + " as root and try again.")
         return 1
 
-    write_genders_file(api._collection_mgr, profiles_genders, distros_genders, mgmtcls_genders)
+    write_genders_file(api._config, profiles_genders, distros_genders, mgmtcls_genders)
     return 0
