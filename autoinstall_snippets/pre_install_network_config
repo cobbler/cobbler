@@ -129,6 +129,8 @@ get_ifname() {
                 ## Skip this interface, it's set as static, but without
                 ## networking info.
 #  Skipping (no configuration)...
+#  Ensure there is some pre_install_network_config file created
+touch /tmp/pre_install_network_config
                 #continue
             #end if
             #if $hostname != ""
