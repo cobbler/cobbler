@@ -90,6 +90,7 @@ DEFAULTS = {
     "ldap_tls_certfile"                   : ["", "str"],
     "manage_dhcp"                         : [0,"bool"],
     "manage_dns"                          : [0,"bool"],
+    "manage_genders"                      : [0,"bool"],
     "manage_tftp"                         : [1,"bool"],
     "manage_tftpd"                        : [1,"bool"],
     "manage_rsync"                        : [0,"bool"],
