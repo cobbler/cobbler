@@ -93,10 +93,11 @@ class IscManager:
                 # and we don't want to affect the master copy.
                 interface = copy.deepcopy(system_interface)
 
-                # this is really not a per-interface setting
-                # but we do this to make the templates work
-                # without upgrade
-                interface["gateway"] = system.gateway
+                if "if_gateway" in interface:
+                    interface["gateway"] = interface["if_gateway"]
+                else:
+                    interface["gateway"] = system.gateway
+
                 mac  = interface["mac_address"]
 
                 if interface["interface_type"] in ("slave","bond_slave","bridge_slave","bonded_bridge_slave"):
