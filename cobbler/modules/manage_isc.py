@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with thi
 """
 
 import time
+import copy
 
 import cobbler.utils as utils
 import cobbler.templar as templar
@@ -86,7 +87,11 @@ class IscManager:
             distro  = profile.get_conceptual_parent()
 
             # if distro is None then the profile is really an image record
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, system_interface) in system.interfaces.iteritems():
+
+                # We make a copy because we may modify it before adding it to the dhcp_tags
+                # and we don't want to affect the master copy.
+                interface = copy.deepcopy(system_interface)
 
                 # this is really not a per-interface setting
                 # but we do this to make the templates work
