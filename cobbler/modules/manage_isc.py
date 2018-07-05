@@ -93,7 +93,7 @@ class IscManager:
                 # and we don't want to affect the master copy.
                 interface = copy.deepcopy(system_interface)
 
-                if "if_gateway" in interface:
+                if interface["if_gateway"]:
                     interface["gateway"] = interface["if_gateway"]
                 else:
                     interface["gateway"] = system.gateway
