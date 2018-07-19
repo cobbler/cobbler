@@ -19,7 +19,7 @@
     ## different versions of RHEL.  These probably should be set for Fedora too.
     ## RHEL < 6: /etc/modprobe.conf
     ## RHEL >= 6: /etc/modprobe.d/bonding.conf
-    #if $osversion == "rhel6" or $osversion == "rhel7"
+    #if $osversion == "rhel6" or $osversion == "rhel7" or $osversion == "ovz7"
         #set $mp_bonding = "/etc/modprobe.d/bonding.conf"
     #else
         #set $mp_bonding = "/etc/modprobe.conf"
@@ -179,7 +179,7 @@ fi
 if [ -f "$mp_bonding" ]; then
     echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> $(mp_bonding).cobbler
 fi
-            #elif $osversion == "rhel7"
+            #elif $osversion == "rhel7" or $osversion == "ovz7"
             ## Add required bonding options to interface file
 echo "TYPE=Bond" >> $devfile
 echo "BONDING_MASTER=yes" >> $devfile
