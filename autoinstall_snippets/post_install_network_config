@@ -145,6 +145,9 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## determine if this interface is for a VLAN
         #if $vlanpattern.match($iname)
             #set $is_vlan = "true"
+            ## Set the vlan name
+            #set $vlan_device = $iname.split(".")[0]
+            #set $vlan_id = $iname.split(".")[1]            
         #else
             #set $is_vlan = "false"
         #end if
@@ -211,6 +214,8 @@ echo "BRIDGE=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
         #elif $iface_type == "infiniband"
 echo "TYPE=InfiniBand" >> $devfile
+        #elif $is_vlan == "true"
+echo "TYPE=VLan" >> $devfile
         #else
 echo "TYPE=Ethernet" >> $devfile
         #end if
@@ -267,7 +272,8 @@ echo "PEERDNS=no" >> $devfile
         ## ===================================================================
         #if $is_vlan == "true"
 echo "VLAN=yes" >> $devfile
-echo "ONPARENT=yes" >> $devfile
+echo "VLAN_ID=$vlan_id" >> $devfile
+echo "PHYSDEV=$vlan_device" >> $devfile        
         #end if
         ## ===================================================================
         ## Optional configuration stuff
