@@ -43,7 +43,7 @@ from template_api import Template
 import utils
 
 major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = (int(major),int(minor),int(release)) >= (2,4,2)
+fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
 
 class Templar:
