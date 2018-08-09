@@ -2065,6 +2065,9 @@ class ProxiedXMLRPCInterface:
 
     def _dispatch(self, method, params, **rest):
 
+        if method.startswith('_'):
+            raise CX("forbidden method")
+
         if not hasattr(self.proxied, method):
             raise CX("unknown remote method")
 
