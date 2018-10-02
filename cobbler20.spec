@@ -22,7 +22,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 78%{?dist}
+Release: 79%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -463,6 +463,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Tue Oct 02 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-79
+- use explicit version of python
+
 * Thu Aug 09 2018 Tomas Kasparek <tkasparek@redhat.com> 2.0.11-78
 - forbid exposure of private methods in the API
 
