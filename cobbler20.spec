@@ -29,7 +29,7 @@ Group: Applications/System
 Provides: cobbler = %{version}-%{release}
 Obsoletes: cobbler <= %{version}-%{release}
 
-Requires: python
+Requires: %{python_prefix}
 %if 0%{?suse_version} >= 1000
 Requires: apache2
 Requires: apache2-mod_python
@@ -57,6 +57,7 @@ Requires: %{python_prefix}-cheetah
 Requires: %{python_prefix}-devel
 Requires: %{python_prefix}-netaddr
 Requires: %{python_prefix}-simplejson
+BuildRequires: %{python_prefix}
 BuildRequires: %{python_prefix}-setuptools
 Requires: %{python_prefix}-urlgrabber
 Requires: PyYAML

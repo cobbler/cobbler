@@ -38,14 +38,14 @@ nosetests:
 	nosetests cobbler/*.py -v | tee test.log
 
 build: manpage
-	python setup.py build -f
+	python2 setup.py build -f
 
 install: build manpage
-	python setup.py install -f
+	python2 setup.py install -f
 	chown -R apache /usr/share/cobbler/web
 
 debinstall: manpage
-	python setup.py install -f --root $(DESTDIR)
+	python2 setup.py install -f --root $(DESTDIR)
 
 devinstall:
 	-rm -rf /usr/share/cobbler
@@ -83,7 +83,7 @@ restorestate:
 	rm -rf $(statepath)
 
 completion:
-	python mkbash.py
+	python2 mkbash.py
 
 webtest: devinstall
 	make clean
@@ -95,7 +95,7 @@ restartservices:
 	/sbin/service httpd restart
 
 sdist: manpage
-	python setup.py sdist
+	python2 setup.py sdist
 
 rpms: clean manpage sdist
 	mkdir -p rpm-build
