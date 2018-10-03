@@ -11,6 +11,7 @@
 %global build_py2   1
 %endif
 
+%define manzip %{?mageia:xz}%{!?mageia:gz}
 
 %{!?__python2: %global __python2 /usr/bin/python2}
 %{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
@@ -260,7 +261,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python2_sitelib}/cobbler/modules
 %{python2_sitelib}/cobbler/*.py*
 %{python2_sitelib}/cobbler/modules/*.py*
-%{_mandir}/man1/cobbler.1.gz
+%{_mandir}/man1/cobbler.1.%{manzip}
 %if 0%{?fedora} || 0%{?rhel} >= 7
 %{_unitdir}/cobblerd.service
 %else
@@ -365,8 +366,8 @@ of an existing system.  For use with a boot-server configured with Cobbler
 %dir /var/spool/koan
 %{_bindir}/koan
 %{_bindir}/cobbler-register
-%{_mandir}/man1/koan.1.gz
-%{_mandir}/man1/cobbler-register.1.gz
+%{_mandir}/man1/koan.1.%{manzip}
+%{_mandir}/man1/cobbler-register.1.%{manzip}
 %dir /var/log/koan
 %doc AUTHORS COPYING CHANGELOG README
 
