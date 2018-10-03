@@ -23,7 +23,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 79%{?dist}
+Release: 80%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -464,6 +464,9 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
+* Wed Oct 03 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-80
+- mageia uses xz to compress man pages
+
 * Tue Oct 02 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-79
 - use explicit version of python
 
