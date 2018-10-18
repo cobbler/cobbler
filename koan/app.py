@@ -862,7 +862,7 @@ class Koan:
             cmd = [ "/sbin/grubby",
                     "--add-kernel", self.safe_load(profile_data,'kernel_local'),
                     "--initrd", self.safe_load(profile_data,'initrd_local'),
-                    "--args", "\"%s\"" % k_args
+                    "--args", k_args
             ]
 
             if self.grubby_copy_default:
