@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import glob
 import time
+import gzip
+import re
 
 import clogger
 
@@ -52,9 +54,30 @@ class CobblerStatusReport:
     # -------------------------------------------------------
 
     def scan_logfiles(self):
-        files = glob.glob("/var/log/cobbler/install.log*")
+        """
+        Scan the install log-files - starting with the oldest file.
+        :return:
+        """
+        unsorted_files = glob.glob("/var/log/cobbler/install.log*")
+        files_dict = dict()
+        log_id_re = re.compile(r'install.log.(\d+)')
+        for fname in unsorted_files:
+            id_match = log_id_re.search(fname)
+            if id_match:
+                files_dict[int(id_match.group(1))] = fname
+
+        files = list()
+        sorted_ids = sorted(files_dict, key=files_dict.get, reverse=True)
+        for file_id in sorted_ids:
+            files.append(files_dict[file_id])
+        if '/var/log/cobbler/install.log' in unsorted_files:
+            files.append('/var/log/cobbler/install.log')
+
         for fname in files:
-            fd = open(fname)
+            if fname.endswith('.gz'):
+                fd = gzip.open(fname)
+            else:
+                fd = open(fname)
             data = fd.read()
             for line in data.split("\n"):
                 tokens = line.split()
