@@ -117,7 +117,7 @@ class IscManager:
 
                     # We may have multiple bonded interfaces, so we need a composite index into ding.
                     name_master = "%s-%s" % (system.name, interface["interface_master"])
-                    if not name_master in ding:
+                    if name_master not in ding:
                         ding[name_master] = {interface["interface_master"]: []}
 
                     if len(ding[name_master][interface["interface_master"]]) == 0:
