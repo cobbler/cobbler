@@ -587,6 +587,8 @@ class RepoSync:
         if not os.path.exists(dest_path):
             utils.mkdir(dest_path)
         config_file = open(fname, "w+")
+        if not output:
+            config_file.write("[main]\nreposdir=/dev/null\n")
         config_file.write("[%s]\n" % repo.name)
         config_file.write("name=%s\n" % repo.name)
 
