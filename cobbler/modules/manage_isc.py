@@ -106,11 +106,13 @@ class IscManager:
                     if interface["interface_master"] not in system.interfaces:
                         continue
 
-                    if not system.name in ding:
-                        ding[system.name] = {interface["interface_master"]: []}
+                    # We may have multiple bonded interfaces, so we need a composite index into ding.
+                    name_master="%s-%s" % (system.name, interface["interface_master"])
+                    if not name_master in ding:
+                      ding[name_master] = {interface["interface_master"]: []}
 
-                    if len(ding[system.name][interface["interface_master"]]) == 0:
-                        ding[system.name][interface["interface_master"]].append(mac)
+                    if len(ding[name_master][interface["interface_master"]]) == 0:
+                        ding[name_master][interface["interface_master"]].append(mac)
                     else:
                         ignore_macs.append(mac)
 
