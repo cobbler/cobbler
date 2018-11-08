@@ -33,7 +33,7 @@ import string
 
 import Cheetah
 major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = int(major) >= 2 and int(minor) >=4 and int(release) >= 2
+fix_cheetah_class = fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
 jinja2_available = False
 try: 
