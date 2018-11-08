@@ -902,6 +902,8 @@ class CobblerXMLRPCInterface:
         return self.modify_item("file", object_id, attribute, arg, token)
 
     def modify_setting(self, setting_name, value, token):
+        self._log("modify_setting(%s)" % setting_name, token=token)
+        self.check_access(token, "modify_setting")
         try:
             self.api.settings().set(setting_name, value)
             return 0
