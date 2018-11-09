@@ -403,7 +403,7 @@ class BuildIso:
                      append_line += " netcfg/get_gateway=%s" % my_gw
 
              if exclude_dns is None or my_dns is not None:
-                if dist.breed == "suse":
+                if dist.breed == "suse" and type(my_dns) == list and len(my_dns) >= 1:
                    append_line += " nameserver=%s" % my_dns[0]
                 if dist.breed == "redhat":
                    if type(my_dns) == list:
