@@ -23,7 +23,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 83%{?dist}
+Release: 84%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
@@ -465,7 +465,7 @@ Web interface for Cobbler that allows visiting http://server/cobbler_web to conf
 %doc AUTHORS COPYING CHANGELOG README
 
 %changelog
-* Fri Nov 16 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-83
+* Fri Nov 16 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-84
 - fix openSUSE build in copr
 
 * Thu Oct 18 2018 Michael Mraka <michael.mraka@redhat.com> 2.0.11-82
