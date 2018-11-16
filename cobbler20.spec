@@ -35,7 +35,7 @@ Requires: %{python_prefix}
 Requires: apache2
 Requires: apache2-mod_python
 Requires: tftp
-BuildRequires: /etc/SuSE-release
+BuildRequires: openSUSE-release
 %else
 Requires: httpd
 Requires: tftp-server
