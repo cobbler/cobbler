@@ -26,7 +26,6 @@ standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
 from builtins import object
-import exceptions
 import optparse
 import os
 import sys
@@ -45,6 +44,7 @@ from cobbler import item_package
 from cobbler import item_file
 from cobbler import settings
 from cobbler import utils
+from cobbler.cexceptions import NotImplementedException
 
 
 OBJECT_ACTIONS_MAP = {
@@ -509,9 +509,9 @@ class CobblerCLI(object):
                 else:
                     print("Signatures were successfully loaded")
             else:
-                raise exceptions.NotImplementedError()
+                raise NotImplementedException()
         else:
-            raise exceptions.NotImplementedError()
+            raise NotImplementedException()
 
         # FIXME: add tail/polling code here
         if task_id != -1:

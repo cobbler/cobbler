@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from past.builtins import cmp
-import exceptions
 import os
 import glob
 import simplejson
 import yaml
 
 import cobbler.api as capi
+from cobbler.cexceptions import CX
 
 
 def register():
@@ -55,7 +55,7 @@ def serialize_item(collection, item):
     """
 
     if item.name is None or item.name == "":
-        raise exceptions.RuntimeError("name unset for item!")
+        raise CX("name unset for item!")
 
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases

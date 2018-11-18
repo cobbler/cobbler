@@ -22,7 +22,6 @@ from __future__ import absolute_import
 
 from builtins import range
 from builtins import object
-import exceptions
 from . import utils
 import time
 import os
@@ -40,7 +39,7 @@ from cobbler import item_package
 from cobbler import item_file
 
 from cobbler.utils import _
-from cobbler.cexceptions import CX
+from cobbler.cexceptions import CX, NotImplementedException
 
 
 class Collection(object):
@@ -76,7 +75,7 @@ class Collection(object):
         Must override in subclass.  Factory_produce returns an Item object
         from dict
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -88,9 +87,9 @@ class Collection(object):
         @param: bool with_triggers (run "on delete" triggers)
         @param: bool recursive (recursively delete children)
         @param: clogger logger (logger object)
-        @returns: exceptions.NotImplementedError
+        @returns: NotImplementedException
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def get(self, name):
         """
@@ -473,6 +472,6 @@ class Collection(object):
         """
         Returns the string key for the name of the collection (for use in messages for humans)
         """
-        return exceptions.NotImplementedError
+        return NotImplementedException()
 
 # EOF

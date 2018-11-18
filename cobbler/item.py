@@ -13,13 +13,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from past.builtins import basestring
 from builtins import object
-import exceptions
 import fnmatch
 import pprint
 
 from cobbler import utils
 from cobbler import validate
-from cobbler.cexceptions import CX
+from cobbler.cexceptions import CX, NotImplementedException
 from cobbler.utils import _
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
@@ -195,7 +194,7 @@ class Item(object):
         Get serializable fields
         Must be defined in any subclass
         """
-        raise exceptions.NotImplementedError()
+        raise NotImplementedException()
 
     def clear(self, is_subobject=False):
         """
@@ -207,7 +206,7 @@ class Item(object):
         """
         Must be defined in any subclass
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def from_dict(self, _dict):
         """

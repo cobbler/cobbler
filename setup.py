@@ -25,10 +25,11 @@ except:
 
 import codecs
 import unittest
-import exceptions
 import pwd
 import shutil
 import subprocess
+
+from builtins import OSError
 
 try:
     import coverage
@@ -357,7 +358,7 @@ class install(_install):
                         os.lchown(os.path.join(root, dirname), user.pw_uid, -1)
                     for filename in files:
                         os.lchown(os.path.join(root, filename), user.pw_uid, -1)
-        except exceptions.OSError as e:
+        except OSError as e:
             # We only check for errno = 1 (EPERM) here because its kinda
             # expected when installing as a non root user.
             if e.errno == 1:
