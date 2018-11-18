@@ -79,16 +79,16 @@ def gen_build_version():
                                stdout=subprocess.PIPE)
         data = cmd.communicate()[0].strip()
         if cmd.returncode == 0:
-            gitstamp, gitdate = data.split("\n")
+            gitstamp, gitdate = data.split(b"\n")
 
     fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
     config = ConfigParser()
     config.add_section("cobbler")
-    config.set("cobbler", "gitdate", gitdate)
-    config.set("cobbler", "gitstamp", gitstamp)
+    config.set("cobbler", "gitdate", str(gitdate))
+    config.set("cobbler", "gitstamp", str(gitstamp))
     config.set("cobbler", "builddate", builddate)
     config.set("cobbler", "version", VERSION)
-    config.set("cobbler", "version_tuple", [int(x) for x in VERSION.split(".")])
+    config.set("cobbler", "version_tuple", str([int(x) for x in VERSION.split(".")]))
     config.write(fd)
     fd.close()
 
