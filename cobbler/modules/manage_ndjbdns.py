@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
+from builtins import object
 import os
 import subprocess
 
@@ -38,7 +39,7 @@ def get_manager(config, logger):
     return NDjbDnsManager(config, logger)
 
 
-class NDjbDnsManager:
+class NDjbDnsManager(object):
 
     def __init__(self, config, logger):
         self.logger = logger
@@ -66,7 +67,7 @@ class NDjbDnsManager:
             template_content = f.read()
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 host = interface['dns_name']
                 ip = interface['ip_address']
 
@@ -76,7 +77,7 @@ class NDjbDnsManager:
                     a_records[host] = ip
 
         template_vars = {'forward': []}
-        for host, ip in a_records.items():
+        for host, ip in list(a_records.items()):
             template_vars['forward'].append((host, ip))
 
         self.templar.render(template_content, template_vars, data_file)

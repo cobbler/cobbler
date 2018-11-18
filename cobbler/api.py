@@ -17,8 +17,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
 
-from ConfigParser import ConfigParser
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
+
+try:
+    # Python 2
+    from ConfigParser import ConfigParser
+except:
+    # Python 3
+    from configparser import ConfigParser
+
 import os
 import random
 import tempfile
@@ -70,7 +84,7 @@ RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 # on a request by request basis.
 
 
-class CobblerAPI:
+class CobblerAPI(object):
     """
     Python API module for Cobbler.
     See source for cobbler.py, or pydoc, for example usage.
@@ -184,7 +198,7 @@ class CobblerAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
+            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0o200)
             os.write(fd, "0")
             os.close(fd)
             return 0
@@ -625,7 +639,7 @@ class CobblerAPI:
             # FIXME: probably doesn't work for yum-rhn-plugin ATM
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
-            print "auto adding: %s (%s)" % (auto_name, url)
+            print("auto adding: %s (%s)" % (auto_name, url))
             self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes

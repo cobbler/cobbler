@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import object
 import glob
 import os
 import os.path
@@ -49,7 +51,7 @@ def register():
     return "manage/import"
 
 
-class ImportSignatureManager:
+class ImportSignatureManager(object):
 
     def __init__(self, collection_mgr, logger):
         """
@@ -161,10 +163,10 @@ class ImportSignatureManager:
         """
         sigdata = self.api.get_signatures()
         # self.logger.debug("signature cache: %s" % str(sigdata))
-        for breed in sigdata["breeds"].keys():
+        for breed in list(sigdata["breeds"].keys()):
             if self.breed and self.breed != breed:
                 continue
-            for version in sigdata["breeds"][breed].keys():
+            for version in list(sigdata["breeds"][breed].keys()):
                 if self.os_version and self.os_version != version:
                     continue
                 for sig in sigdata["breeds"][breed][version]["signatures"]:
@@ -388,7 +390,7 @@ class ImportSignatureManager:
         if result.pop("x86", False):
             result["i386"] = 1
 
-        return result.keys()
+        return list(result.keys())
 
     def arch_walker(self, foo, dirname, fnames):
         """

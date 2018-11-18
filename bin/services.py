@@ -19,11 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
 
 # Only add standard python modules here. When running under a virtualenv other modules are not
 # available at this point.
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import os
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import cgi
 
 
@@ -40,7 +46,7 @@ def application(environ, start_response):
     import yaml
     from cobbler.services import CobblerSvc
 
-    my_uri = urllib.unquote(environ['REQUEST_URI'])
+    my_uri = urllib.parse.unquote(environ['REQUEST_URI'])
 
     form = {}
 
@@ -98,7 +104,7 @@ def application(environ, start_response):
     func = getattr(cw, mode)
     content = func(**form)
 
-    content = unicode(content).encode('utf-8')
+    content = str(content).encode('utf-8')
     status = '200 OK'
 
     if content.find("# *** ERROR ***") != -1:

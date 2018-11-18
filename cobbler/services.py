@@ -20,13 +20,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import simplejson
 import time
 import urlgrabber
-import xmlrpclib
+import xmlrpc.client
 import yaml
-import collection_manager
+from . import collection_manager
 
 
 class CobblerSvc(object):
@@ -47,7 +52,7 @@ class CobblerSvc(object):
         This is the version that does not require logins.
         """
         if self.remote is None:
-            self.remote = xmlrpclib.Server(self.server, allow_none=True)
+            self.remote = xmlrpc.client.Server(self.server, allow_none=True)
 
     def index(self, **args):
         return "no mode specified"
@@ -109,7 +114,7 @@ class CobblerSvc(object):
             data = self.remote.get_events(user)
 
         # sort it... it looks like { timestamp : [ array of details ] }
-        keylist = data.keys()
+        keylist = list(data.keys())
         keylist.sort()
         results = []
         for k in keylist:
@@ -269,7 +274,7 @@ class CobblerSvc(object):
             data.pop("environment", None)
 
         if settings.get("puppet_parameterized_classes", False):
-            for ckey in classes.keys():
+            for ckey in list(classes.keys()):
                 tmp = {}
                 class_name = classes[ckey].get("class_name", "")
                 if class_name in (None, ""):
@@ -279,7 +284,7 @@ class CobblerSvc(object):
                     def_name = classes[ckey]["params"].get("name", "")
                     del classes[ckey]["params"]["name"]
                     if def_name != "":
-                        for pkey in classes[ckey]["params"].keys():
+                        for pkey in list(classes[ckey]["params"].keys()):
                             def_tmp[pkey] = classes[ckey]["params"][pkey]
                         tmp["instances"] = {def_name: def_tmp}
                     else:
@@ -287,11 +292,11 @@ class CobblerSvc(object):
                         # skip silently...
                         continue
                 else:
-                    for pkey in classes[ckey]["params"].keys():
+                    for pkey in list(classes[ckey]["params"].keys()):
                         tmp[pkey] = classes[ckey]["params"][pkey]
                 del classes[ckey]
                 classes[class_name] = tmp
         else:
-            classes = classes.keys()
+            classes = list(classes.keys())
 
         return yaml.dump(data, default_flow_style=False)

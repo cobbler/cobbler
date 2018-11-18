@@ -1,3 +1,5 @@
+from past.builtins import basestring
+from builtins import object
 import os
 
 from cobbler import autoinstallgen
@@ -9,7 +11,7 @@ TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
 
 
-class AutoInstallationManager:
+class AutoInstallationManager(object):
     """
     Manage automatic installation templates, snippets and final files
     """

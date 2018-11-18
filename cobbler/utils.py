@@ -19,7 +19,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
+from past.builtins import cmp
+from future import standard_library
+from functools import reduce
+standard_library.install_aliases()
+from builtins import map
+from builtins import str
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 import copy
 import errno
 import glob
@@ -35,10 +47,12 @@ import subprocess
 import string
 import sys
 import traceback
-import urllib2
+import urllib.request
+import urllib.error
+import urllib.parse
 import yaml
 
-from cexceptions import FileNotFoundException, CX
+from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate
@@ -68,7 +82,7 @@ CHEETAH_ERROR_DISCLAIMER = """
 
 
 # From http://code.activestate.com/recipes/303342/
-class Translator:
+class Translator(object):
     allchars = string.maketrans('', '')
 
     def __init__(self, frm='', to='', delete='', keep=None):
@@ -180,7 +194,7 @@ def get_host_ip(ip, shorten=True):
             # not enough to make the last nibble insignificant
             return pretty
         else:
-            cutoff = (32 - cidr.prefixlen) / 4
+            cutoff = old_div((32 - cidr.prefixlen), 4)
             return pretty[0:-cutoff]
 
 
@@ -275,7 +289,7 @@ def get_random_mac(api_handle, virt_type="xenpv"):
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ':'.join(map(lambda x: "%02x" % x, mac))
+    mac = ':'.join(["%02x" % x for x in mac])
     systems = api_handle.systems()
     while (systems.find(mac_address=mac)):
         mac = get_random_mac(api_handle)
@@ -437,11 +451,11 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
 
     if file_is_remote(file_location):
         try:
-            handler = urllib2.urlopen(file_location)
+            handler = urllib.request.urlopen(file_location)
             data = handler.read()
             handler.close()
             return data
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             # File likely doesn't exist
             if logger:
                 logger.warning("File does not exist: %s" % file_location)
@@ -451,10 +465,10 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
 def remote_file_exists(file_url):
     """ Return True if the remote file exists. """
     try:
-        handler = urllib2.urlopen(file_url)
+        handler = urllib.request.urlopen(file_url)
         handler.close()
         return True
-    except urllib2.HTTPError:
+    except urllib.error.HTTPError:
         # File likely doesn't exist
         return False
 
@@ -520,7 +534,7 @@ def input_string_or_dict(options, allow_multiples=True):
             # check to see if this token has already been
             # inserted into the dictionary of values already
 
-            if key in new_dict.keys() and allow_multiples:
+            if key in list(new_dict.keys()) and allow_multiples:
                 # if so, check to see if there is already a list of values
                 # otherwise convert the dictionary value to an array, and add
                 # the new value to the end of the list
@@ -590,8 +604,8 @@ def blender(api_handle, remove_dicts, root_obj):
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":
-        for (name, interface) in root_obj.interfaces.iteritems():
-            for key in interface.keys():
+        for (name, interface) in list(root_obj.interfaces.items()):
+            for key in list(interface.keys()):
                 results["%s_%s" % (key, name)] = interface[key]
 
     # if the root object is a profile or system, add in all
@@ -755,7 +769,7 @@ def __consolidate(node, results):
 def dict_removals(results, subkey):
     if subkey not in results:
         return
-    scan = results[subkey].keys()
+    scan = list(results[subkey].keys())
     for k in scan:
         if str(k).startswith("!") and k != "!":
             remove_me = k[1:]
@@ -1088,7 +1102,7 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
     if api is None:
         # FIXME: this really should not be a keyword
         # arg
-        raise "Internal error: API handle is required"
+        raise CX("Internal error: API handle is required")
 
     if os.path.exists(dst):
         # if the destination exists, is it right in terms of accuracy
@@ -1167,11 +1181,11 @@ def copyremotefile(src, dst1, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst1))
-        srcfile = urllib2.urlopen(src)
+        srcfile = urllib.request.urlopen(src)
         output = open(dst1, 'wb')
         output.write(srcfile.read())
         output.close()
-    except Exception, e:
+    except Exception as e:
         raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e.message)))
 
 
@@ -1190,7 +1204,7 @@ def rmfile(path, logger=None):
             logger.info("removing: %s" % path)
         os.unlink(path)
         return True
-    except OSError, ioe:
+    except OSError as ioe:
         if not ioe.errno == errno.ENOENT:   # doesn't exist
             if logger is not None:
                 log_exc(logger)
@@ -1212,7 +1226,7 @@ def rmtree(path, logger=None):
             if logger is not None:
                 logger.info("removing: %s" % path)
             return shutil.rmtree(path, ignore_errors=True)
-    except OSError, ioe:
+    except OSError as ioe:
         if logger is not None:
             log_exc(logger)
         if not ioe.errno == errno.ENOENT:   # doesn't exist
@@ -1220,12 +1234,12 @@ def rmtree(path, logger=None):
         return True
 
 
-def mkdir(path, mode=0755, logger=None):
+def mkdir(path, mode=0o755, logger=None):
     try:
         if logger is not None:
             logger.info("mkdir: %s" % path)
         return os.makedirs(path, mode)
-    except OSError, oe:
+    except OSError as oe:
         if not oe.errno == 17:  # already exists (no constant for 17?)
             if logger is not None:
                 log_exc(logger)
@@ -1758,8 +1772,8 @@ def from_dict_from_fields(item, item_dict, fields):
     if item.COLLECTION_TYPE == "system":
         item.interfaces = copy.deepcopy(item_dict["interfaces"])
         # deprecated field switcheroo for interfaces
-        for interface in item.interfaces.keys():
-            for k in item.interfaces[interface].keys():
+        for interface in list(item.interfaces.keys()):
+            for k in list(item.interfaces[interface].keys()):
                 if k in field_info.DEPRECATED_FIELDS:
                     if not field_info.DEPRECATED_FIELDS[k] in item.interfaces[interface] or \
                             item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
@@ -1818,7 +1832,7 @@ def to_string_from_fields(item_dict, fields, interface_fields=None):
         for elem in interface_fields:
             keys.append((elem[0], elem[3], elem[4]))
         keys.sort()
-        for iname in item_dict["interfaces"].keys():
+        for iname in list(item_dict["interfaces"].keys()):
             # FIXME: inames possibly not sorted
             buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
@@ -1862,7 +1876,7 @@ def get_valid_breeds():
     Return a list of valid breeds found in the import signatures
     """
     if "breeds" in SIGNATURE_CACHE:
-        return SIGNATURE_CACHE["breeds"].keys()
+        return list(SIGNATURE_CACHE["breeds"].keys())
     else:
         return []
 
@@ -1873,7 +1887,7 @@ def get_valid_os_versions_for_breed(breed):
     """
     os_versions = []
     if breed in get_valid_breeds():
-        os_versions = SIGNATURE_CACHE["breeds"][breed].keys()
+        os_versions = list(SIGNATURE_CACHE["breeds"][breed].keys())
     return os_versions
 
 
@@ -1884,7 +1898,7 @@ def get_valid_os_versions():
     os_versions = []
     try:
         for breed in get_valid_breeds():
-            os_versions += SIGNATURE_CACHE["breeds"][breed].keys()
+            os_versions += list(SIGNATURE_CACHE["breeds"][breed].keys())
     except:
         pass
     return uniquify(os_versions)
@@ -1897,7 +1911,7 @@ def get_valid_archs():
     archs = []
     try:
         for breed in get_valid_breeds():
-            for operating_system in SIGNATURE_CACHE["breeds"][breed].keys():
+            for operating_system in list(SIGNATURE_CACHE["breeds"][breed].keys()):
                 archs += SIGNATURE_CACHE["breeds"][breed][operating_system]["supported_arches"]
     except:
         pass
@@ -1974,7 +1988,7 @@ def strip_none(data, omit_none=False):
 
     elif isinstance(data, dict):
         data2 = {}
-        for key in data.keys():
+        for key in list(data.keys()):
             if omit_none and data[key] is None:
                 pass
             else:
@@ -2001,7 +2015,7 @@ def revert_strip_none(data):
 
     if isinstance(data, dict):
         data2 = {}
-        for key in data.keys():
+        for key in list(data.keys()):
             data2[key] = revert_strip_none(data[key])
         return data2
 
@@ -2110,7 +2124,7 @@ def link_distro(settings, distro):
             os.symlink(base, dest_link)
         except:
             # this shouldn't happen but I've seen it ... debug ...
-            print _("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link}
+            print(_("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link})
 
 
 def find_distro_path(settings, distro):
@@ -2129,4 +2143,4 @@ def compare_versions_gt(ver1, ver2):
     return versiontuple(ver1) > versiontuple(ver2)
 
 if __name__ == "__main__":
-    print os_release()  # returns 2, not 3
+    print(os_release())  # returns 2, not 3

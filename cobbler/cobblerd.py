@@ -19,6 +19,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import binascii
 import os
@@ -26,9 +28,9 @@ import pwd
 import sys
 import time
 
-import api as cobbler_api
-import remote
-import utils
+from . import api as cobbler_api
+from . import remote
+from . import utils
 
 
 def core(api):
@@ -49,7 +51,7 @@ def regen_ss_file():
     data = fd.read(512)
     fd.close()
 
-    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0600)
+    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600)
     os.write(fd, binascii.hexlify(data))
     os.close(fd)
 
@@ -72,7 +74,7 @@ def log(logger, msg):
     if logger is not None:
         logger.info(msg)
     else:
-        print >>sys.stderr, msg
+        print(msg, file=sys.stderr)
 
 
 def do_xmlrpc_rw(cobbler_api, settings, port):
@@ -85,7 +87,7 @@ def do_xmlrpc_rw(cobbler_api, settings, port):
 
     while True:
         try:
-            print "SERVING!"
+            print("SERVING!")
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again

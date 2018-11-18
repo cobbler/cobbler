@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
 import os
 import sys
 import time
@@ -12,7 +15,13 @@ from distutils.command.build_py import build_py as _build_py
 from distutils import log
 from distutils import dep_util
 from distutils.dist import Distribution as _Distribution
-from ConfigParser import ConfigParser
+
+try:
+    # python 2
+    from ConfigParser import ConfigParser
+except:
+    # python 3
+    from configparser import ConfigParser
 
 import codecs
 import unittest
@@ -239,7 +248,7 @@ class build_cfg(Command):
             shutil.copymode(infile, outfile)
 
     def substitute_values(self, string, values):
-        for name, val in values.iteritems():
+        for name, val in values.items():
             # print("replacing @@%s@@ with %s" % (name, val))
             string = string.replace("@@%s@@" % (name), val)
         return string
@@ -364,7 +373,7 @@ class install(_install):
         path = os.path.join(self.install_data, 'share/cobbler/web')
         try:
             self.change_owner(path, http_user)
-        except KeyError, e:
+        except KeyError as e:
             # building RPMs in a mock chroot, user 'apache' won't exist
             log.warn("Error in 'chown apache %s': %s" % (path, e))
         if not os.path.abspath(libpath):
@@ -373,7 +382,7 @@ class install(_install):
         path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
-        except KeyError, e:
+        except KeyError as e:
             log.warn("Error in 'chown apache %s': %s" % (path, e))
 
 
@@ -517,10 +526,7 @@ def parse_os_release():
     if os.path.exists(osreleasepath):
         with open(osreleasepath, 'rb') as os_release:
             out.update(
-                map(
-                    lambda line: [it.strip('"\n') for it in line.split('=', 1)],
-                    [line for line in os_release.xreadlines() if not line.startswith('#') and '=' in line]
-                )
+                [[it.strip('"\n') for it in line.split('=', 1)] for line in [line for line in os_release if not line.startswith('#') and '=' in line]]
             )
     return out
 

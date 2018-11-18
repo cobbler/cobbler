@@ -19,13 +19,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import object
 import glob
 import os.path
 import re
 
-import utils
-from utils import _
+from . import utils
+from .utils import _
 
 TESTMODE = False
 
@@ -177,7 +181,7 @@ if bind_config_filename:
                 DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
 
-class Settings:
+class Settings(object):
 
     def collection_type(self):
         return "settings"
@@ -190,7 +194,7 @@ class Settings:
 
     def _clear(self):
         self.__dict__ = {}
-        for key in DEFAULTS.keys():
+        for key in list(DEFAULTS.keys()):
             self.__dict__[key] = DEFAULTS[key][0]
 
     def set(self, name, value):
@@ -213,7 +217,7 @@ class Settings:
         Modify this object to load values in dictionary.
         """
         if _dict is None:
-            print _("warning: not loading empty structure for %s") % self.filename()
+            print(_("warning: not loading empty structure for %s") % self.filename())
             return
 
         self._clear()

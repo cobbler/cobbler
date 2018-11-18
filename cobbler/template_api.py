@@ -21,13 +21,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from past.builtins import basestring
 import Cheetah.Template
 import os.path
 import re
 
-from cexceptions import FileNotFoundException
-import utils
+from .cexceptions import FileNotFoundException
+from . import utils
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 

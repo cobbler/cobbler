@@ -266,7 +266,7 @@ class System(item.Item):
         """
         if self.name == "default":
             return True
-        for (name, x) in self.interfaces.iteritems():
+        for (name, x) in list(self.interfaces.items()):
             mac = x.get("mac_address", None)
             ip = x.get("ip_address", None)
             if ip is not None and not cidr_ok and ip.find("/") != -1:
@@ -660,7 +660,7 @@ class System(item.Item):
         Used by the WUI to modify an interface more-efficiently
         """
 
-        for (key, value) in _dict.iteritems():
+        for (key, value) in list(_dict.items()):
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 

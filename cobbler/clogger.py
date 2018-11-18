@@ -20,7 +20,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
 
+from builtins import object
 import os
 import time
 
@@ -30,7 +32,7 @@ DEBUG = "DEBUG"
 INFO = "INFO"
 
 
-class Logger:
+class Logger(object):
 
     def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
         self.logfile = None

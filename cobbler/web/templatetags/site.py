@@ -1,3 +1,4 @@
+from builtins import object
 from django import template
 from collections import OrderedDict
 
@@ -373,7 +374,7 @@ ifinlist = register.tag(smart_if)
 def listsort(value):
     if isinstance(value, dict):
         new_dict = OrderedDict()
-        key_list = value.keys()
+        key_list = list(value.keys())
         key_list.sort()
         for key in key_list:
             new_dict[key] = value[key]

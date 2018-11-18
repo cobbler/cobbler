@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import object
 import time
 
 import cobbler.templar as templar
@@ -34,7 +36,7 @@ def register():
     return "manage"
 
 
-class DnsmasqManager:
+class DnsmasqManager(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -92,7 +94,7 @@ class DnsmasqManager:
 
             profile = system.get_conceptual_parent()
             distro = profile.get_conceptual_parent()
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
 
                 mac = interface["mac_address"]
                 ip = interface["ip_address"]
@@ -143,7 +145,7 @@ class DnsmasqManager:
         }
 
         # now add in other DHCP expansions that are not tagged with "default"
-        for x in system_definitions.keys():
+        for x in list(system_definitions.keys()):
             if x == "default":
                 continue
             metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]
@@ -158,7 +160,7 @@ class DnsmasqManager:
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 mac = interface["mac_address"]
                 ip = interface["ip_address"]
                 if mac is None or mac == "":
@@ -175,7 +177,7 @@ class DnsmasqManager:
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 mac = interface["mac_address"]
                 host = interface["dns_name"]
                 ip = interface["ip_address"]

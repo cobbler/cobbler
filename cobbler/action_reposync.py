@@ -20,7 +20,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from builtins import range
+from builtins import object
 import os
 import os.path
 import pipes
@@ -32,11 +35,11 @@ try:
 except:
     HAS_YUM = False
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 
-class RepoSync:
+class RepoSync(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -103,7 +106,7 @@ class RepoSync:
             env = repo.environment
             old_env = {}
 
-            for k in env.keys():
+            for k in list(env.keys()):
                 self.logger.debug("setting repo environment: %s=%s" % (k, env[k]))
                 if env[k] is not None:
                     if os.getenv(k):
@@ -127,7 +130,7 @@ class RepoSync:
             # cleanup/restore any environment variables that were
             # added or changed above
 
-            for k in env.keys():
+            for k in list(env.keys()):
                 if env[k] is not None:
                     if k in old_env:
                         self.logger.debug("resetting repo environment: %s=%s" % (k, old_env[k]))
@@ -475,7 +478,7 @@ class RepoSync:
         if not os.path.isdir(repodata_path):
             os.makedirs(repodata_path)
         rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
-        for mdtype in rmd.repoData.keys():
+        for mdtype in list(rmd.repoData.keys()):
             # don't download metadata files that are created by default
             if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                 mdfile = rmd.getData(mdtype).location[1]
@@ -632,7 +635,7 @@ class RepoSync:
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
-            if 'exclude' in repo.yumopts.keys():
+            if 'exclude' in list(repo.yumopts.keys()):
                 self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
                 config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 

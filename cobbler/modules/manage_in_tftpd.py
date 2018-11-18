@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
 import glob
 import os.path
 import shutil
@@ -37,7 +38,7 @@ def register():
     return "manage"
 
 
-class InTftpdManager:
+class InTftpdManager(object):
 
     def what(self):
         return "in_tftpd"
@@ -80,7 +81,7 @@ class InTftpdManager:
         # Loop through the dict of boot files,
         # executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
-        for file in target["boot_files"].keys():
+        for file in list(target["boot_files"].keys()):
             rendered_file = templater.render(file, metadata, None)
             try:
                 for f in glob.glob(target["boot_files"][file]):
@@ -177,7 +178,7 @@ class InTftpdManager:
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
-            except CX, e:
+            except CX as e:
                 self.logger.error(e.value)
 
         self.logger.info("copying images")

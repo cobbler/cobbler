@@ -24,8 +24,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-import ConfigParser
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import os
+
+try:
+    # Python 2
+    import ConfigParser as configparser
+except:
+    # Python 3
+    import configparser
 
 from cobbler.cexceptions import CX
 from cobbler.utils import _
@@ -42,7 +51,7 @@ def __parse_config():
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(etcfile)
     alldata = {}
     sections = config.sections()
@@ -140,7 +149,7 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
 
     found_user = False
     found_groups = []
-    grouplist = user_groups.keys()
+    grouplist = list(user_groups.keys())
     for g in grouplist:
         for x in user_groups[g]:
             if x == user:

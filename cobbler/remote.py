@@ -17,14 +17,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import division
 
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import base64
 import errno
 import fcntl
 import os
 import random
-import SimpleXMLRPCServer
-from SocketServer import ThreadingMixIn
+import xmlrpc.server
+from socketserver import ThreadingMixIn
 import stat
 import string
 from threading import Thread
@@ -98,7 +106,7 @@ class CobblerThread(Thread):
 # *********************************************************************
 
 
-class CobblerXMLRPCInterface:
+class CobblerXMLRPCInterface(object):
     """
     This is the interface used for all XMLRPC methods, for instance,
     as used by koan or CobblerWeb.
@@ -280,7 +288,7 @@ class CobblerXMLRPCInterface:
         """
         # return only the events the user has not seen
         self.events_filtered = {}
-        for (k, x) in self.events.iteritems():
+        for (k, x) in list(self.events.items()):
             if for_user in x[3]:
                 pass
             else:
@@ -288,7 +296,7 @@ class CobblerXMLRPCInterface:
 
         # mark as read so user will not get events again
         if for_user is not None and for_user != "":
-            for (k, x) in self.events.iteritems():
+            for (k, x) in list(self.events.items()):
                 if for_user in x[3]:
                     pass
                 else:
@@ -470,7 +478,7 @@ class CobblerXMLRPCInterface:
             items_per_page = default_items_per_page
 
         num_items = len(data)
-        num_pages = ((num_items - 1) / items_per_page) + 1
+        num_pages = (old_div((num_items - 1), items_per_page)) + 1
         if num_pages == 0:
             num_pages = 1
         if page > num_pages:
@@ -496,7 +504,7 @@ class CobblerXMLRPCInterface:
             'page': page,
             'prev_page': prev_page,
             'next_page': next_page,
-            'pages': range(1, num_pages + 1),
+            'pages': list(range(1, num_pages + 1)),
             'num_pages': num_pages,
             'num_items': num_items,
             'start_item': start_item,
@@ -981,7 +989,7 @@ class CobblerXMLRPCInterface:
             # modify when done, rather than now.
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
-            for (k, v) in attributes.iteritems():
+            for (k, v) in list(attributes.items()):
                 if object_type != "system" or not self.__is_interface_field(k):
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
@@ -990,7 +998,7 @@ class CobblerXMLRPCInterface:
                         details = self.get_item(object_type, object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_dict(v)
-                        for (a, b) in input.iteritems():
+                        for (a, b) in list(input.items()):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
                             else:
@@ -1237,7 +1245,7 @@ class CobblerXMLRPCInterface:
         profile = info.get("profile", "")
         hostname = info.get("hostname", "")
         interfaces = info.get("interfaces", {})
-        ilen = len(interfaces.keys())
+        ilen = len(list(interfaces.keys()))
 
         if name == "":
             raise CX("no system name submitted")
@@ -1250,7 +1258,7 @@ class CobblerXMLRPCInterface:
 
         # validate things first
         name = info.get("name", "")
-        inames = interfaces.keys()
+        inames = list(interfaces.keys())
         if self.api.find_system(name=name):
             raise CX("system name conflicts")
         if hostname != "" and self.api.find_system(hostname=hostname):
@@ -1379,12 +1387,12 @@ class CobblerXMLRPCInterface:
         # FIXME ... get the base dir from cobbler settings()
         udir = "/var/log/cobbler/anamon/%s" % sys_name
         if not os.path.isdir(udir):
-            os.mkdir(udir, 0755)
+            os.mkdir(udir, 0o755)
 
         fn = "%s/%s" % (udir, fn)
         try:
             st = os.lstat(fn)
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 pass
             else:
@@ -1393,7 +1401,7 @@ class CobblerXMLRPCInterface:
             if not stat.S_ISREG(st.st_mode):
                 raise CX("destination not a file: %s" % fn)
 
-        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0644)
+        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0o644)
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
@@ -1751,17 +1759,17 @@ class CobblerXMLRPCInterface:
         Also removes expired events
         """
         timenow = time.time()
-        for token in self.token_cache.keys():
+        for token in list(self.token_cache.keys()):
             (tokentime, user) = self.token_cache[token]
             if (timenow > tokentime + self.api.settings().auth_token_expiration):
                 self._log("expiring token", token=token, debug=True)
                 del self.token_cache[token]
         # and also expired objects
-        for oid in self.object_cache.keys():
+        for oid in list(self.object_cache.keys()):
             (tokentime, entry) = self.object_cache[oid]
             if (timenow > tokentime + CACHE_TIMEOUT):
                 del self.object_cache[oid]
-        for tid in self.events.keys():
+        for tid in list(self.events.keys()):
             (eventtime, name, status, who) = self.events[tid]
             if (timenow > eventtime + EVENT_TIMEOUT):
                 del self.events[tid]
@@ -2039,15 +2047,15 @@ class CobblerXMLRPCInterface:
 # *********************************************************************************
 
 
-class CobblerXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer.SimpleXMLRPCServer):
+class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
+        xmlrpc.server.SimpleXMLRPCServer.__init__(self, args)
 
 # *********************************************************************************
 
 
-class ProxiedXMLRPCInterface:
+class ProxiedXMLRPCInterface(object):
 
     def __init__(self, api, proxy_class):
         self.proxied = proxy_class(api)
@@ -2066,7 +2074,7 @@ class ProxiedXMLRPCInterface:
         # FIXME: see if this works without extra boilerplate
         try:
             return method_handle(*params)
-        except Exception, e:
+        except Exception as e:
             utils.log_exc(self.logger)
             raise e
 

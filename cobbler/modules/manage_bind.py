@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import re
 import time
 
@@ -40,7 +44,7 @@ def register():
     return "manage"
 
 
-class BindManager:
+class BindManager(object):
 
     def what(self):
         return "bind"
@@ -119,7 +123,7 @@ class BindManager:
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 host = interface["dns_name"]
                 ip = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
@@ -139,7 +143,7 @@ class BindManager:
                 # - b.c.d.e
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ''
-                for zone in zones.keys():
+                for zone in list(zones.keys()):
                     if re.search('\.%s$' % zone, host) and len(zone) > len(best_match):
                         best_match = zone
 
@@ -210,7 +214,7 @@ class BindManager:
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 host = interface["dns_name"]
                 ip = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
@@ -229,7 +233,7 @@ class BindManager:
                     # - 1.2.3
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ''
-                    for zone in zones.keys():
+                    for zone in list(zones.keys()):
                         if re.search('^%s\.' % zone, ip) and len(zone) > len(best_match):
                             best_match = zone
 
@@ -272,7 +276,7 @@ class BindManager:
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': self.__forward_zones().keys(),
+        metadata = {'forward_zones': list(self.__forward_zones().keys()),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -285,7 +289,7 @@ zone "%(zone)s." {
 """ % {'zone': zone}
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
-        for zone in self.__reverse_zones().keys():
+        for zone in list(self.__reverse_zones().keys()):
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx
@@ -330,7 +334,7 @@ zone "%(arpa)s." {
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': self.__forward_zones().keys(),
+        metadata = {'forward_zones': list(self.__forward_zones().keys()),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -346,7 +350,7 @@ zone "%(zone)s." {
 """ % {'zone': zone, 'master': self.settings.bind_master}
                 metadata['zone_include'] = metadata['zone_include'] + txt
 
-        for zone in self.__reverse_zones().keys():
+        for zone in list(self.__reverse_zones().keys()):
             # IPv6 zones are : delimited
             if ":" in zone:
                 # if IPv6, assume xxxx:xxxx:xxxx:xxxx for the zone
@@ -404,11 +408,11 @@ zone "%(arpa)s." {
                 octets.append([int(i) for i in each_ip.split('.')])
         quartets.sort()
         # integers back to four character hex strings
-        quartets = map(lambda x: [format(i, '04x') for i in x], quartets)
+        quartets = [[format(i, '04x') for i in x] for x in quartets]
         #
         octets.sort()
         # integers back to strings
-        octets = map(lambda x: [str(i) for i in x], octets)
+        octets = [[str(i) for i in x] for x in octets]
         #
         return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
@@ -421,11 +425,11 @@ zone "%(arpa)s." {
         # particular system
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 if interface["dns_name"] == "":
                     self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
 
-        names = [k for k, v in hosts.iteritems()]
+        names = [k for k, v in list(hosts.items())]
         if not names:
             return ''       # zones with no hosts
 
@@ -466,7 +470,7 @@ zone "%(arpa)s." {
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in list(system.interfaces.items()):
                 cnames = interface.get("cnames", [])
 
                 try:
@@ -522,7 +526,7 @@ zone "%(arpa)s." {
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
-        for (zone, hosts) in forward.iteritems():
+        for (zone, hosts) in list(forward.items()):
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
@@ -565,7 +569,7 @@ zone "%(arpa)s." {
                 self.logger.info("generating (forward) %s" % zonefilename)
             self.templar.render(template_data, metadata, zonefilename, None)
 
-        for (zone, hosts) in reverse.iteritems():
+        for (zone, hosts) in list(reverse.items()):
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,

@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
+from builtins import object
 import cobbler.clogger as clogger
 import cobbler.tftpgen as tftpgen
 import cobbler.templar as templar
@@ -33,7 +34,7 @@ def register():
     return "manage"
 
 
-class TftpdPyManager:
+class TftpdPyManager(object):
 
     def what(self):
         return "tftpd"

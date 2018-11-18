@@ -21,7 +21,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import Cheetah
 import functools
 import os
@@ -37,16 +41,16 @@ except:
     """ FIXME: log a message here """
     pass
 
-from cexceptions import CX
-import clogger
-from template_api import Template
-import utils
+from .cexceptions import CX
+from . import clogger
+from .template_api import Template
+from . import utils
 
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
 
-class Templar:
+class Templar(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -129,7 +133,7 @@ class Templar:
             repstr = server
         search_table["http_server"] = repstr
 
-        for x in search_table.keys():
+        for x in list(search_table.keys()):
             if type(x) == str:
                 data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
 
@@ -207,7 +211,7 @@ class Templar:
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
                 self.logger.warning("\n" + pprint.pformat(self.last_errors))
-        except Exception, e:
+        except Exception as e:
             self.logger.error(utils.cheetah_exc(e))
             raise CX("Error templating file, check cobbler.log for more details")
 

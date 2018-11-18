@@ -20,6 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
 
 import fcntl
 import os
@@ -34,7 +35,7 @@ LOCK_HANDLE = None
 
 
 def handler(num, frame):
-    print >> sys.stderr, "Ctrl-C not allowed during writes.  Please wait."
+    print("Ctrl-C not allowed during writes.  Please wait.", file=sys.stderr)
     return True
 
 
@@ -62,7 +63,7 @@ def __release_lock(with_changes=False):
         # this file is used to know the time of last modification on collections
         # was made -- allowing the API to work more smoothly without
         # a lot of unneccessary reloads.
-        fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
+        fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0o200)
         os.write(fd, "%f" % time.time())
         os.close(fd)
     if LOCK_ENABLED:

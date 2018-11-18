@@ -20,14 +20,25 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
-import ConfigParser
+from future import standard_library
+standard_library.install_aliases()
+
+try:
+    # Python 2
+    import ConfigParser as configparser
+except:
+    # Python 3
+    import configparser
+
 import glob
 import os
 
-from cexceptions import CX
-import clogger
-from utils import _, log_exc
+from .cexceptions import CX
+from . import clogger
+from .utils import _, log_exc
 
 # add cobbler/modules to python path
 import cobbler
@@ -36,7 +47,7 @@ mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'mod
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
 
-cp = ConfigParser.ConfigParser()
+cp = configparser.ConfigParser()
 cp.read("/etc/cobbler/modules.conf")
 
 
@@ -69,7 +80,7 @@ def load_modules(module_path=mod_path, blacklist=None):
             if not hasattr(blip, "register"):
                 if not modname.startswith("__init__"):
                     errmsg = _("%(module_path)s/%(modname)s is not a proper module")
-                    print errmsg % {'module_path': module_path, 'modname': modname}
+                    print(errmsg % {'module_path': module_path, 'modname': modname})
                 continue
             category = blip.register()
             if category:
@@ -132,7 +143,7 @@ def get_module_from_file(category, field, fallback_module_name=None):
 def get_modules_in_category(category):
     if category not in MODULES_BY_CATEGORY:
         return []
-    return MODULES_BY_CATEGORY[category].values()
+    return list(MODULES_BY_CATEGORY[category].values())
 
 if __name__ == "__main__":
-    print load_modules(mod_path)
+    print(load_modules(mod_path))

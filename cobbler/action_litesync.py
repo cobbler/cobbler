@@ -22,16 +22,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from builtins import object
 import os
 import os.path
 
-import clogger
-import module_loader
-import utils
+from . import clogger
+from . import module_loader
+from . import utils
 
 
-class CobblerLiteSync:
+class CobblerLiteSync(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -159,7 +161,7 @@ class CobblerLiteSync:
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
-        for (name, interface) in system_record.interfaces.iteritems():
+        for (name, interface) in list(system_record.interfaces.items()):
             filename = utils.get_config_filename(system_record, interface=name)
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))

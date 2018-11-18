@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from past.builtins import cmp
 import exceptions
 import os
 import glob
@@ -164,7 +165,7 @@ def filter_upgrade_duplicates(file_list):
             lookup = bases.get(basekey, "")
             if not lookup.endswith(".json"):
                 bases[basekey] = f
-    return bases.values()
+    return list(bases.values())
 
 
 def deserialize(collection, topological=True):

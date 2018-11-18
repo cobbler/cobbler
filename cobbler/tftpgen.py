@@ -20,7 +20,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from __future__ import absolute_import
 
+from past.builtins import cmp
+from builtins import object
 import os
 import os.path
 import re
@@ -28,12 +31,12 @@ import shutil
 import socket
 import string
 
-from cexceptions import CX
-import templar
-import utils
+from .cexceptions import CX
+from . import templar
+from . import utils
 
 
-class TFTPGen:
+class TFTPGen(object):
     """
     Generate files provided by TFTP server
     """
@@ -142,7 +145,7 @@ class TFTPGen:
         for i in self.images:
             try:
                 self.copy_single_image_files(i)
-            except CX, e:
+            except CX as e:
                 errors.append(e)
                 self.logger.error(e.value)
 
@@ -230,7 +233,7 @@ class TFTPGen:
         pxe_metadata = {'pxe_menu_items': menu_items}
 
         # generate one record for each described NIC ..
-        for (name, interface) in system.interfaces.iteritems():
+        for (name, interface) in list(system.interfaces.items()):
 
             f1 = utils.get_config_filename(system, interface=name)
             if f1 is None:
@@ -243,7 +246,7 @@ class TFTPGen:
                 working_arch = distro.arch
 
             if working_arch is None:
-                raise "internal error, invalid arch supplied"
+                raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
             grub_path = None
@@ -438,7 +441,7 @@ class TFTPGen:
         Can be used for different formats, "pxe" (default) and "grub".
         """
         if arch is None:
-            raise "missing arch"
+            raise CX("missing arch")
 
         if image and not os.path.exists(image.file):
             return None     # nfs:// URLs or something, can't use for TFTP
@@ -448,7 +451,7 @@ class TFTPGen:
 
         (rval, settings) = utils.input_string_or_dict(self.settings.to_dict())
         if rval:
-            for key in settings.keys():
+            for key in list(settings.keys()):
                 metadata[key] = settings[key]
         # ---
         # just some random variables
@@ -541,7 +544,7 @@ class TFTPGen:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
                     if arch is not None and arch.startswith("ppc"):
                         # Disable yaboot network booting for all interfaces on the system
-                        for (name, interface) in system.interfaces.iteritems():
+                        for (name, interface) in list(system.interfaces.items()):
 
                             filename = "%s" % utils.get_config_filename(system, interface=name).lower()
 
@@ -664,7 +667,7 @@ class TFTPGen:
             blended = utils.blender(self.api, False, system)
             # find the first management interface
             try:
-                for intf in system.interfaces.keys():
+                for intf in list(system.interfaces.keys()):
                     if system.interfaces[intf]["management"]:
                         management_interface = intf
                         break
@@ -685,7 +688,7 @@ class TFTPGen:
         # the interfaces' MAC addresses in ppc systems.
         # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
         if system and arch and "ppc" in arch:
-            for intf in system.interfaces.keys():
+            for intf in list(system.interfaces.keys()):
                 # use first interface with defined IP and MAC, since these are required
                 # fields in a DHCP entry
                 mac_address = system.interfaces[intf]['mac_address']
@@ -736,7 +739,7 @@ class TFTPGen:
 
                 # rework kernel options for debian distros
                 translations = {'ksdevice': "interface", 'lang': "locale"}
-                for k, v in translations.iteritems():
+                for k, v in list(translations.items()):
                     append_line = append_line.replace("%s=" % k, "%s=" % v)
 
                 # interface=bootif causes a failure
@@ -869,7 +872,7 @@ class TFTPGen:
             blended['img_path'] = os.path.join("/images", blended["distro_name"])
             blended['local_img_path'] = os.path.join(utils.tftpboot_location(), "images", blended["distro_name"])
 
-        for template in templates.keys():
+        for template in list(templates.keys()):
             dest = templates[template]
             if dest is None:
                 continue

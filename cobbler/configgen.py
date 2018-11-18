@@ -22,19 +22,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
+from __future__ import absolute_import
 
+from builtins import object
 from Cheetah.Template import Template
 import simplejson as json
 import string
 
-from cexceptions import CX
-import clogger
+from .cexceptions import CX
+from . import clogger
 import cobbler.api as capi
 import cobbler.utils
-import utils
+from . import utils
 
 
-class ConfigGen:
+class ConfigGen(object):
     """
     Generate configuration data for Cobbler's management resources:
     repos, files and packages. Mainly used by Koan to configure systems.
