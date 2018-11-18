@@ -17,14 +17,9 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-import os
+from configparser import SafeConfigParser
 
-try:
-    # python 2
-    import ConfigParser as configparser
-except:
-    # python 3
-    import configparser
+import os
 
 CONFIG_FILE = '/etc/cobbler/users.conf'
 
@@ -39,7 +34,7 @@ def register():
 def __parse_config():
     if not os.path.exists(CONFIG_FILE):
         return []
-    config = configparser.SafeConfigParser()
+    config = SafeConfigParser()
     config.read(CONFIG_FILE)
     alldata = {}
     groups = config.sections()

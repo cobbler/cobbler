@@ -25,13 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
-
-try:
-    # Python 2
-    import ConfigParser as configparser
-except:
-    # Python 3
-    import configparser
+from configparser import ConfigParser
 
 pymongo_loaded = False
 try:
@@ -45,7 +39,7 @@ import yaml
 
 from cobbler.cexceptions import CX
 
-cp = configparser.ConfigParser()
+cp = ConfigParser()
 cp.read("/etc/cobbler/mongodb.conf")
 
 host = cp.get("connection", "host")

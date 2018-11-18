@@ -26,12 +26,7 @@ from __future__ import absolute_import
 from future import standard_library
 standard_library.install_aliases()
 
-try:
-    # Python 2
-    import ConfigParser as configparser
-except:
-    # Python 3
-    import configparser
+from configparser import ConfigParser
 
 import glob
 import os
@@ -47,7 +42,7 @@ mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'mod
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
 
-cp = configparser.ConfigParser()
+cp = ConfigParser()
 cp.read("/etc/cobbler/modules.conf")
 
 

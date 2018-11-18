@@ -25,13 +25,7 @@ standard_library.install_aliases()
 from builtins import str
 from past.builtins import basestring
 from builtins import object
-
-try:
-    # Python 2
-    from ConfigParser import ConfigParser
-except:
-    # Python 3
-    from configparser import ConfigParser
+from configparser import ConfigParser
 
 import os
 import random

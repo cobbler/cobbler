@@ -15,13 +15,7 @@ from distutils.command.build_py import build_py as _build_py
 from distutils import log
 from distutils import dep_util
 from distutils.dist import Distribution as _Distribution
-
-try:
-    # python 2
-    from ConfigParser import ConfigParser
-except:
-    # python 3
-    from configparser import ConfigParser
+from configparser import ConfigParser
 
 import codecs
 import unittest

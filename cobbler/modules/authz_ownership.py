@@ -27,14 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-import os
+from configparser import ConfigParser
 
-try:
-    # Python 2
-    import ConfigParser as configparser
-except:
-    # Python 3
-    import configparser
+import os
 
 from cobbler.cexceptions import CX
 from cobbler.utils import _
@@ -51,7 +46,7 @@ def __parse_config():
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
-    config = configparser.ConfigParser()
+    config = ConfigParser()
     config.read(etcfile)
     alldata = {}
     sections = config.sections()
