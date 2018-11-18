@@ -519,7 +519,7 @@ def parse_os_release():
     out = {}
     osreleasepath = "/etc/os-release"
     if os.path.exists(osreleasepath):
-        with open(osreleasepath, 'rb') as os_release:
+        with open(osreleasepath, 'r') as os_release:
             out.update(
                 [[it.strip('"\n') for it in line.split('=', 1)] for line in [line for line in os_release if not line.startswith('#') and '=' in line]]
             )
