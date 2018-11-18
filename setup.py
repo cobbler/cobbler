@@ -248,7 +248,7 @@ class build_cfg(Command):
             shutil.copymode(infile, outfile)
 
     def substitute_values(self, string, values):
-        for name, val in values.items():
+        for name, val in list(values.items()):
             # print("replacing @@%s@@ with %s" % (name, val))
             string = string.replace("@@%s@@" % (name), val)
         return string
