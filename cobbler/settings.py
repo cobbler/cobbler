@@ -89,16 +89,19 @@ DEFAULTS = {
     "ldap_tls_cacertfile": ["", "str"],
     "ldap_tls_certfile": ["", "str"],
     "ldap_tls_keyfile": ["", "str"],
+    "bind_manage_ipmi": [0, "bool"],
     "manage_dhcp": [0, "bool"],
     "manage_dns": [0, "bool"],
     "manage_forward_zones": [[], "list"],
     "manage_reverse_zones": [[], "list"],
+    "manage_genders": [0, "bool"],
     "manage_rsync": [0, "bool"],
     "manage_tftp": [1, "bool"],
     "manage_tftpd": [1, "bool"],
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
     "next_server": ["127.0.0.1", "str"],
+    "nsupdate_enabled": [0, "bool"],
     "power_management_default_type": ["ipmitool", "str"],
     "power_template_dir": ["/etc/cobbler/power", "str"],
     "proxy_url_ext": ["", "str"],
@@ -252,7 +255,10 @@ class Settings(object):
 
             return 0
         else:
-            raise AttributeError
+            # FIXME. Not sure why __dict__ is part of name
+            # workaround applied, ignore exception
+            #raise AttributeError
+            pass
 
     def __getattr__(self, name):
         try:
