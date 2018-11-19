@@ -1379,8 +1379,8 @@ class CobblerXMLRPCInterface(object):
 
         # XXX - have an incoming dir and move after upload complete
         # SECURITY - ensure path remains under uploadpath
-        tt = string.maketrans("/", "+")
-        fn = string.translate(file, tt)
+        tt = str.maketrans("/", "+")
+        fn = str.translate(file, tt)
         if fn.startswith('..'):
             raise CX("invalid filename used: %s" % fn)
 

@@ -83,12 +83,12 @@ CHEETAH_ERROR_DISCLAIMER = """
 
 # From http://code.activestate.com/recipes/303342/
 class Translator(object):
-    allchars = string.maketrans('', '')
+    allchars = str.maketrans('', '')
 
     def __init__(self, frm='', to='', delete='', keep=None):
         if len(to) == 1:
             to = to * len(frm)
-        self.trans = string.maketrans(frm, to)
+        self.trans = str.maketrans(frm, to)
         if keep is None:
             self.delete = delete
         else:

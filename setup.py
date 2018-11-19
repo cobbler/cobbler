@@ -8,6 +8,7 @@ import sys
 import time
 import glob as _glob
 
+from builtins import str
 from distutils.core import setup, Command
 from distutils.command.build import build as _build
 from distutils.command.install import install as _install
@@ -245,7 +246,7 @@ class build_cfg(Command):
     def substitute_values(self, string, values):
         for name, val in list(values.items()):
             # print("replacing @@%s@@ with %s" % (name, val))
-            string = string.replace("@@%s@@" % (name), val)
+            string = str.replace("@@%s@@" % (name), val)
         return string
 
 
