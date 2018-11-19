@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from builtins import Exception
 
+
 class CobblerException(Exception):
 
     def __init__(self, value, *args):
@@ -37,8 +38,10 @@ class CobblerException(Exception):
 class CX(CobblerException):
     pass
 
+
 class FileNotFoundException(CobblerException):
     pass
+
 
 class NotImplementedException(CobblerException):
     pass
