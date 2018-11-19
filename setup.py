@@ -364,6 +364,10 @@ class install(_install):
         # Run the usual stuff.
         _install.run(self)
 
+        # If --root wasn't specified default to /usr/local
+        if self.root is None:
+            self.root = "/usr/local"
+
         # Hand over some directories to the webserver user
         path = os.path.join(self.install_data, 'share/cobbler/web')
         try:
@@ -374,7 +378,9 @@ class install(_install):
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
-        path = os.path.join(self.root + libpath, 'webui_sessions')
+        # libpath is hardcoded in the code everywhere
+        # therefor cant relocate using self.root
+        path = os.path.join(libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except KeyError as e:
