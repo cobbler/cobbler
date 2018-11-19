@@ -30,7 +30,6 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
-import urlgrabber
 
 from cobbler import action_acl
 from cobbler import action_buildiso
@@ -60,6 +59,7 @@ from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
 from cobbler import autoinstallgen
+from cobbler import download_manager
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -572,14 +572,13 @@ class CobblerAPI(object):
 
     def signature_update(self, logger):
         try:
+            url = self.settings().signature_url
+            dlmgr = download_manager.DownloadManager(self._collection_mgr, self.logger)
+            # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
-            proxies = {}
-            proxies['http'] = self.settings().proxy_url_ext
-            response = urlgrabber.grabber.urlopen(self.settings().signature_url, proxies=proxies)
-            sigjson = response.read()
+            sigjson = dlmgr.urlread(url)
             tmpfile.write(sigjson)
             tmpfile.flush()
-
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
             try:

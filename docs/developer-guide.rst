@@ -37,7 +37,7 @@ Install runtime dependencies:
 
 .. code-block:: none
 
-    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah httpd mod_wsgi mod_ssl python-urlgrabber.noarch
+    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah httpd mod_wsgi mod_ssl
 
 Initially, to run Cobbler without using packages:
 

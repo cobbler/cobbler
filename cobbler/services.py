@@ -28,10 +28,10 @@ from builtins import str
 from builtins import object
 import simplejson
 import time
-import urlgrabber
 import xmlrpc.client
 import yaml
 from . import collection_manager
+from . import download_manager
 
 
 class CobblerSvc(object):
@@ -45,6 +45,8 @@ class CobblerSvc(object):
         self.remote = None
         self.req = req
         self.collection_mgr = collection_manager.CollectionManager(self)
+        self.logger = None
+        self.dlmgr = download_manager.DownloadManager(self.collection_manager, self.logger)
 
     def __xmlrpc_setup(self):
         """
@@ -247,7 +249,7 @@ class CobblerSvc(object):
             url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
 
         try:
-            return urlgrabber.urlread(url)
+            return self.dlmgr.urlread(url)
         except:
             return "# automatic installation file retrieval failed (%s)" % url
 

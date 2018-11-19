@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 import yaml
-import urlgrabber
+import requests
 import sys
 
 
@@ -18,4 +18,4 @@ if __name__ == "__main__":
         config = yaml.safe_load(conf.read())
         conf.close()
         url = "http://%s:%s/cblr/svc/op/puppet/hostname/%s" % (config["server"], config["http_port"], hostname)
-        print(urlgrabber.urlread(url))
+        print(requests.get(url))

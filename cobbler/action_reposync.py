@@ -27,7 +27,6 @@ from builtins import object
 import os
 import os.path
 import pipes
-import urlgrabber
 
 HAS_YUM = True
 try:
@@ -37,6 +36,7 @@ except:
 
 from . import clogger
 from . import utils
+from . import download_manager
 
 
 class RepoSync(object):
@@ -62,6 +62,7 @@ class RepoSync(object):
         self.tries = tries
         self.nofail = nofail
         self.logger = logger
+        self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
 
         if logger is None:
             self.logger = clogger.Logger()
@@ -361,28 +362,21 @@ class RepoSync(object):
     # ====================================================================================
 
     # This function translates yum repository options into the appropriate
-    # options for urlgrabber
+    # options for python-requests
     def gen_urlgrab_ssl_opts(self, yumopts):
         # use SSL options if specified in yum opts
-        urlgrab_ssl_opts = {}
-        if 'sslclientkey' in yumopts:
-            urlgrab_ssl_opts["ssl_key"] = yumopts['sslclientkey']
-        if 'sslclientcert' in yumopts:
-            urlgrab_ssl_opts["ssl_cert"] = yumopts['sslclientcert']
-        if 'sslcacert' in yumopts:
-            urlgrab_ssl_opts["ssl_ca_cert"] = yumopts['sslcacert']
-        # note that the default of urlgrabber is to verify the peer and host
+        if 'sslclientkey' and 'sslclientcert' in yumopts:
+            cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
+        # note that the default of requests is to verify the peer and host
         # but the default here is NOT to verify them unless sslverify is
         # explicitly set to 1 in yumopts
         if 'sslverify' in yumopts:
             if yumopts['sslverify'] == 1:
-                urlgrab_ssl_opts["ssl_verify_peer"] = True
-                urlgrab_ssl_opts["ssl_verify_host"] = True
+                verify = True
             else:
-                urlgrab_ssl_opts["ssl_verify_peer"] = False
-                urlgrab_ssl_opts["ssl_verify_host"] = False
+                verify = False
 
-        return urlgrab_ssl_opts
+        return (cert, verify)
 
     # ====================================================================================
 
@@ -462,14 +456,14 @@ class RepoSync(object):
         # grab repomd.xml and use it to download any metadata we can use
         proxies = None
         if repo.proxy == '<<inherit>>':
-            proxies = {'http': self.settings.proxy_url_ext}
+            proxies = self.settings.proxy_url_ext
         elif repo.proxy != '<<None>>' and repo.proxy != '':
             proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
-        urlgrab_ssl_opts = self.gen_urlgrab_ssl_opts(repo.yumopts)
+        (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+            self.dlmgr.download_file(src, dst, proxies, cert, verify)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -485,7 +479,7 @@ class RepoSync(object):
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+                    self.dlmgr.download_file(src, dst, proxies, cert, verify)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 

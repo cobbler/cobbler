@@ -23,9 +23,9 @@ from __future__ import absolute_import
 
 from builtins import object
 import os
-import urlgrabber
 
 from . import clogger
+from . import download_manager
 
 
 class ContentDownloader(object):
@@ -63,14 +63,12 @@ class ContentDownloader(object):
             ("%s/grub-0.97-x86_64.efi" % content_server, "%s/grub-x86_64.efi" % dest),
         )
 
-        proxies = {}
-        proxies['http'] = self.settings.proxy_url_ext
-
+        dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
         for src, dst in files:
             if os.path.exists(dst) and not force:
                 self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
                 continue
             self.logger.info("downloading %s to %s" % (src, dst))
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+            dlmgr.download_file(src, dst)
 
 # EOF
