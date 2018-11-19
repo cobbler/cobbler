@@ -565,7 +565,7 @@ def input_boolean(value):
 def update_settings_file(data):
     if 1:
         # clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
-        settings_file = file("/etc/cobbler/settings", "w")
+        settings_file = open("/etc/cobbler/settings", "w")
         yaml.safe_dump(data, settings_file)
         settings_file.close()
         return True

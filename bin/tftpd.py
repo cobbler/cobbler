@@ -196,9 +196,9 @@ class RRQPacket(Packet):
 
         # opcode already extracted, and unpack is awkward for this
         # so pulling out strings by hand
-        (file, mode, rfc2347str) = data[2:].split('\0', 2)
+        (f, mode, rfc2347str) = data[2:].split('\0', 2)
 
-        logging.debug("RRQ for file %s(%s) from %s" % (file, mode, remote_addr))
+        logging.debug("RRQ for file %s(%s) from %s" % (f, mode, remote_addr))
         # Ug.  Can't come up with a simplier way of doing this
         if rfc2347str:
             # the "-1" is to trim off the trailing \0
@@ -208,11 +208,11 @@ class RRQPacket(Packet):
         else:
             self.req_options = deque()
 
-        self.filename = file
+        self.filename = f
         self.mode = mode
 
     def get_request(self, templar):
-        return Request(file, self.remote_addr, templar)
+        return Request(self.filename, self.remote_addr, templar)
 
 
 class DATAPacket(Packet):
