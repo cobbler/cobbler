@@ -192,13 +192,13 @@ class CobblerAPI(object):
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0o200)
+            fd = os.open("/var/lib/cobbler/.mtime", 'w')
             os.write(fd, "0")
             os.close(fd)
             return 0
-        fd = open("/var/lib/cobbler/.mtime")
+        fd = open("/var/lib/cobbler/.mtime", 'r')
         data = fd.read().strip()
-        return float(data)
+        return data
 
     # ==========================================================
 
