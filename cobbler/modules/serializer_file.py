@@ -178,7 +178,7 @@ def deserialize(collection, topological=True):
 
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
-        datastruct.sort(__depth_cmp)
+        datastruct.sort(key=__depth_cmp)
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:
