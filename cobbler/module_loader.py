@@ -71,7 +71,7 @@ def load_modules(module_path=mod_path, blacklist=None):
         mods.add(modname)
 
         try:
-            blip = __import__("modules.%s" % (modname), globals(), locals(), [modname])
+            blip = __import__("cobbler.modules.%s" % (modname), globals(), locals(), [modname])
             if not hasattr(blip, "register"):
                 if not modname.startswith("__init__"):
                     errmsg = _("%(module_path)s/%(modname)s is not a proper module")
