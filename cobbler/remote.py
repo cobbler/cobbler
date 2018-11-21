@@ -1737,10 +1737,9 @@ class CobblerXMLRPCInterface(object):
         return self.api.status(mode=mode)
 
     def __get_random(self, length):
-        urandom = open("/dev/urandom")
+        urandom = open("/dev/urandom", 'rb')
         b64 = base64.encodestring(urandom.read(length))
         urandom.close()
-        b64 = b64.replace("\n", "")
         return b64
 
     def __make_token(self, user):
@@ -1850,7 +1849,7 @@ class CobblerXMLRPCInterface(object):
             return False
 
     def check_access(self, token, resource, arg1=None, arg2=None):
-        user = self.get_user_from_token(token)
+        user = self.get_user_from_token(token.data)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
             return True

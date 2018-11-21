@@ -1911,7 +1911,7 @@ def get_shared_secret():
     """
 
     try:
-        fd = open("/var/lib/cobbler/web.ss")
+        fd = open("/var/lib/cobbler/web.ss", 'rb')
         data = fd.read()
     except:
         return -1
