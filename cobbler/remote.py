@@ -126,7 +126,6 @@ class CobblerXMLRPCInterface(object):
         self.events = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.translator = utils.Translator(keep=string.printable)
         self.tftpgen = tftpgen.TFTPGen(api._collection_mgr, self.logger)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
 
@@ -315,7 +314,6 @@ class CobblerXMLRPCInterface(object):
         if os.path.exists(path):
             fh = open(path, "r")
             data = str(fh.read())
-            data = self.translator(data)
             fh.close()
             return data
         else:
