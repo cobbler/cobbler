@@ -100,7 +100,7 @@ def py2_setup():
 
     # www paths
     wwwpath = "/var/www/cobbler"
-    if os.path.exists("/etc/SuSE-release"):
+    if os.path.exists("/etc/SuSE-release") or os.path.exists("/etc/products.d/openSUSE.prod"):
         wwwconf = "/etc/apache2/conf.d"
     elif os.path.exists("/etc/debian_version"):
         wwwconf = "/etc/apache2/conf.d"

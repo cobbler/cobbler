@@ -35,7 +35,6 @@ Requires: %{python_prefix}
 Requires: apache2
 Requires: apache2-mod_python
 Requires: tftp
-BuildRequires: openSUSE-release
 %else
 Requires: httpd
 Requires: tftp-server
@@ -271,6 +270,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %if 0%{?suse_version} >= 1000
 %config(noreplace) /etc/apache2/conf.d/cobbler.conf
+%config(noreplace) /etc/apache2/conf.d/cobbler_wsgi.conf
 %else
 %config(noreplace) /etc/httpd/conf.d/cobbler_wsgi.conf
 %exclude /etc/httpd/conf.d/cobbler.conf
