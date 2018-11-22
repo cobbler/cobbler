@@ -23,7 +23,7 @@ Name: cobbler20
 License: GPLv2+
 AutoReq: no
 Version: 2.0.11
-Release: 84%{?dist}
+Release: 85%{?dist}
 Source0: %{name}-%{version}.tar.gz
 Group: Applications/System
 
