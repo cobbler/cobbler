@@ -34,7 +34,6 @@ import random
 import xmlrpc.server
 from socketserver import ThreadingMixIn
 import stat
-import string
 from threading import Thread
 import time
 
