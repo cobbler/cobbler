@@ -26,6 +26,7 @@ import os
 import os.path
 import re
 import shutil
+import stat
 
 # Import aptsources module if available to obtain repo mirror.
 try:
@@ -49,6 +50,36 @@ def register():
     The mandatory cobbler module registration hook.
     """
     return "manage/import"
+
+
+def import_walker(top, func, arg):
+    """
+    Directory tree walk with callback function.
+    For each directory in the directory tree rooted at top (including top
+    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
+    dirname is the name of the directory, and fnames a list of the names of
+    the files and subdirectories in dirname (excluding '.' and '..').  func
+    may modify the fnames list in-place (e.g. via del or slice assignment),
+    and walk will only recurse into the subdirectories whose names remain in
+    fnames; this can be used to implement a filter, or to impose a specific
+    order of visiting.  No semantics are defined for, or required of, arg,
+    beyond that arg is always passed to func.  It can be used, e.g., to pass
+    a filename pattern, or a mutable object designed to accumulate
+    statistics.  Passing None for arg is common.
+    """
+    try:
+        names = os.listdir(top)
+    except os.error:
+        return
+    func(arg, top, names)
+    for name in names:
+        name = os.path.join(top, name)
+        try:
+            st = os.lstat(name)
+        except os.error:
+            continue
+        if stat.S_ISDIR(st.st_mode):
+            import_walker(name, func, arg)
 
 
 class ImportSignatureManager(object):
@@ -144,7 +175,7 @@ class ImportSignatureManager(object):
         # now walk the filesystem looking for distributions that match certain patterns
         self.logger.info("Adding distros from path %s:" % self.path)
         distros_added = []
-        os.path.walk(self.path, self.distro_adder, distros_added)
+        import_walker(self.path, self.distro_adder, distros_added)
 
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
@@ -212,7 +243,7 @@ class ImportSignatureManager(object):
 
     def distro_adder(self, distros_added, dirname, fnames):
         """
-        This is an os.path.walk routine that finds distributions in the directory
+        This is an import_walker routine that finds distributions in the directory
         to be scanned and then creates them.
         """
 
@@ -241,7 +272,7 @@ class ImportSignatureManager(object):
                     # self.logger.warning("avoiding symlink loop")
                     continue
                 self.logger.info("following symlink: %s" % fullname)
-                os.path.walk(fullname, self.distro_adder, distros_added)
+                import_walker(fullname, self.distro_adder, distros_added)
 
             if re_img.match(x):
                 if x.find("PAE") == -1:
@@ -379,7 +410,7 @@ class ImportSignatureManager(object):
         result = {}
 
         # FIXME : this is called only once, should not be a walk
-        os.path.walk(self.path, self.arch_walker, result)
+        import_walker(self.path, self.arch_walker, result)
 
         if result.pop("amd64", False):
             result["x86_64"] = 1
@@ -536,11 +567,11 @@ class ImportSignatureManager(object):
         For yum, we recursively scan the rootdir for repos to add
         """
         self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
-        os.path.walk(self.rootdir, self.yum_repo_scanner, distro)
+        import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
     def yum_repo_scanner(self, distro, dirname, fnames):
         """
-        This is an os.path.walk routine that looks for potential yum repositories
+        This is an import_walker routine that looks for potential yum repositories
         to be added to the configuration for post-install usage.
         """
 
