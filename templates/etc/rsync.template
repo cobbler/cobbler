@@ -7,7 +7,7 @@
 # ******************************************************************
 
 [cobbler-distros]
-    path    = $webdir/ks_mirror
+    path    = $webdir/distro_mirror
     comment = All Cobbler Distros
 
 [cobbler-repos]

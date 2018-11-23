@@ -543,7 +543,7 @@ class BuildIso(object):
                     autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name, autoinstall_data)
 
                 # rewrite any split-tree repos, such as in redhat, to use cdrom
-                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/ks_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
+                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
                 autoinstall_data = srcreporegex.sub(r"\1" + "file:///mnt/source" + r"\2", autoinstall_data)
 
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
