@@ -300,15 +300,11 @@ class TFTPGen(object):
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
-
-        def sort_name(a, b):
-            return cmp(a.name, b.name)
-
-        profile_list.sort(sort_name)
+        profile_list.sort()
 
         # sort the images
         image_list = [image for image in self.images]
-        image_list.sort(sort_name)
+        image_list.sort()
 
         # Build out menu items and append each to this master list, used for
         # the default menus:
@@ -357,11 +353,7 @@ class TFTPGen(object):
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
-
-        def sort_name(a, b):
-            return cmp(a.name, b.name)
-
-        profile_list.sort(sort_name)
+        profile_list.sort()
 
         # Build out menu items and append each to this master list, used for
         # the default menus:

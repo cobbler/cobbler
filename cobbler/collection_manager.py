@@ -23,10 +23,9 @@ from __future__ import absolute_import
 
 from past.builtins import cmp
 from builtins import object
-import binascii
-import random
 import time
 import weakref
+import uuid
 
 from .cexceptions import CX
 from . import collection_distros as distros
@@ -78,8 +77,7 @@ class CollectionManager(object):
         Cobbler uses unique names in each collection as the object id
         aka primary key
         """
-        data = "%s%s" % (time.time(), random.uniform(1, 9999999))
-        return binascii.b2a_base64(data).replace("=", "").strip()
+        return uuid.uuid4().hex
 
     def __cmp(self, a, b):
         return cmp(a.name, b.name)
