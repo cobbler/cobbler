@@ -39,6 +39,37 @@ from . import utils
 from . import download_manager
 
 
+def repo_walker(top, func, arg):
+    """
+    Directory tree walk with callback function.
+    For each directory in the directory tree rooted at top (including top
+    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
+    dirname is the name of the directory, and fnames a list of the names of
+    the files and subdirectories in dirname (excluding '.' and '..').  func
+    may modify the fnames list in-place (e.g. via del or slice assignment),
+    and walk will only recurse into the subdirectories whose names remain in
+    fnames; this can be used to implement a filter, or to impose a specific
+    order of visiting.  No semantics are defined for, or required of, arg,
+    beyond that arg is always passed to func.  It can be used, e.g., to pass
+    a filename pattern, or a mutable object designed to accumulate
+    statistics.  Passing None for arg is common.
+    """
+    try:
+        names = os.listdir(top)
+    except os.error:
+        return
+    func(arg, top, names)
+    for name in names:
+        name = os.path.join(top, name)
+        try:
+            st = os.lstat(name)
+        except os.error:
+            continue
+        if stat.S_ISDIR(st.st_mode):
+            import_walker(name, func, arg)
+
+
+
 class RepoSync(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
@@ -235,7 +266,7 @@ class RepoSync(object):
 
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
-        os.path.walk(dest_path, self.createrepo_walker, repo)
+        repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
@@ -267,7 +298,7 @@ class RepoSync(object):
 
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
-        os.path.walk(dest_path, self.createrepo_walker, repo)
+        repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
@@ -353,7 +384,7 @@ class RepoSync(object):
         # now run createrepo to rebuild the index
 
         if repo.mirror_locally:
-            os.path.walk(dest_path, self.createrepo_walker, repo)
+            repo_walker(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
 
@@ -485,7 +516,7 @@ class RepoSync(object):
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
-            os.path.walk(dest_path, self.createrepo_walker, repo)
+            repo_walker(dest_path, self.createrepo_walker, repo)
 
     # ====================================================================================
 
