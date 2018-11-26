@@ -304,7 +304,7 @@ class build_man(Command):
                 # It is. Configure it
                 self.build_one_file(infile, outfile)
 
-    _COMMAND = 'pod2man --center="%s" --release="" %s | gzip -c > %s'
+    _COMMAND = 'pod2man --center="%s" --release="%s" %s | gzip -c > %s'
 
     def build_one_file(self, infile, outfile):
         man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
@@ -315,7 +315,7 @@ class build_man(Command):
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
             # Now create the manpage
-            cmd = build_man._COMMAND % ('man', infile, outfile)
+            cmd = build_man._COMMAND % ('man', VERSION, infile, outfile)
             if os.system(cmd):
                 self.announce("Creation of %s manpage failed." % man, log.ERROR)
                 exit(1)
