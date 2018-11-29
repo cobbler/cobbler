@@ -1907,7 +1907,7 @@ def get_valid_archs():
 def get_shared_secret():
     """
     The 'web.ss' file is regenerated each time cobblerd restarts and is
-    used to agree on shared secret interchange between mod_python and
+    used to agree on shared secret interchange between the web server and
     cobblerd, and also the CLI and cobblerd, when username/password
     access is not required.  For the CLI, this enables root users
     to avoid entering username/pass if on the cobbler server.
