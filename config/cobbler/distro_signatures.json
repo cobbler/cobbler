@@ -66,6 +66,22 @@
     "boot_files":[],
     "boot_loaders":{"ppc64":["grub2"], "ppc64le":["grub2"]}
    },
+   "rhel8": {
+    "signatures":["BaseOS"],
+    "version_file":"(redhat|sl|slf|centos|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*8[\\.-]+(.*)\\.rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*).rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","x86_64","ppc","ppc64","ppc64le"],
+    "supported_repo_breeds":["rsync", "rhn", "yum"],
+    "kernel_file":"vmlinuz(.*)",
+    "initrd_file":"initrd(.*)\\.img",
+    "isolinux_ok":false,
+    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "kernel_options":"",
+    "kernel_options_post":"",
+    "boot_files":[]
+   },
    "ovz7": {
     "signatures":["Packages"],
     "version_file":"(openvz)-release-7(.*)\\.rpm",
