@@ -596,7 +596,15 @@ if __name__ == "__main__":
         license="GPLv2+",
         requires=[
             "mod_python",
-            "cobbler",
+            "requests",
+            "future",
+            "pyyaml",
+            "simplejson",
+            "netaddr",
+            "Cheetah3",
+            "coverage",
+            "Django",
+            "pymongo"
         ],
         packages=[
             "cobbler",
