@@ -587,7 +587,7 @@ if __name__ == "__main__":
         url="https://cobbler.github.io",
         license="GPLv2+",
         requires=[
-            "mod_python",
+            "mod_wsgi",
             "cobbler",
         ],
         packages=[
