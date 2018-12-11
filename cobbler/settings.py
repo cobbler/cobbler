@@ -257,7 +257,7 @@ class Settings(object):
         else:
             # FIXME. Not sure why __dict__ is part of name
             # workaround applied, ignore exception
-            #raise AttributeError
+            # raise AttributeError
             pass
 
     def __getattr__(self, name):

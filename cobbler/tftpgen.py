@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 from __future__ import absolute_import
 
-from past.builtins import cmp
 from builtins import object
 import os
 import os.path

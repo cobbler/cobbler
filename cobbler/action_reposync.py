@@ -27,6 +27,7 @@ from builtins import object
 import os
 import os.path
 import pipes
+import stat
 
 HAS_YUM = True
 try:
@@ -66,8 +67,7 @@ def repo_walker(top, func, arg):
         except os.error:
             continue
         if stat.S_ISDIR(st.st_mode):
-            import_walker(name, func, arg)
-
+            repo_walker(name, func, arg)
 
 
 class RepoSync(object):
