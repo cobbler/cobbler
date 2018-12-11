@@ -675,6 +675,9 @@ class TFTPGen(object):
         kopts = blended.get("kernel_options", dict())
         kopts = utils.revert_strip_none(kopts)
 
+        # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+        utils.suse_kopts_textmode_overwrite(distro.breed, kopts)
+
         # since network needs to be configured again (it was already in netboot) when kernel boots
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
         # the interfaces' MAC addresses in ppc systems.

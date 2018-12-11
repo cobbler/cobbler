@@ -2125,5 +2125,16 @@ def compare_versions_gt(ver1, ver2):
         return tuple(map(int, (v.split("."))))
     return versiontuple(ver1) > versiontuple(ver2)
 
+
+def suse_kopts_textmode_overwrite(distro_breed, kopts):
+    """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
+    if distro_breed == "suse":
+        if 'textmode' in kopts.keys():
+            kopts.pop('text', None)
+        elif 'text' in kopts.keys():
+            kopts.pop('text', None)
+            kopts['textmode'] = ['1']
+
+
 if __name__ == "__main__":
     print(os_release())  # returns 2, not 3

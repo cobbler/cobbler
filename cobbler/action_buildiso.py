@@ -164,6 +164,10 @@ class BuildIso(object):
             cfg.write("  kernel %s.krn\n" % distname)
 
             data = utils.blender(self.api, False, profile)
+
+            # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+            utils.suse_kopts_textmode_overwrite(dist.breed, data['kernel_options'])
+
             if not re.match("[a-z]+://.*", data["autoinstall"]):
                 data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
                     data["server"], self.api.settings().http_port, profile.name
@@ -488,6 +492,9 @@ class BuildIso(object):
                 menu_indent = 4
 
             data = utils.blender(self.api, False, descendant)
+
+            # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+            utils.suse_kopts_textmode_overwrite(distro.breed, data['kernel_options'])
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
