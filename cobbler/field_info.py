@@ -51,6 +51,7 @@ USES_SELECT = [
    "kickstart",
    "image_type",
    "virt_type",
+   "virt_disk_driver",
    "arch",
    "*interface_type",
    "parent",
