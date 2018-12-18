@@ -19,8 +19,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from __future__ import print_function
-
 # Only add standard python modules here. When running under a virtualenv other modules are not
 # available at this point.
 from future import standard_library
@@ -115,7 +113,7 @@ def application(environ, start_response):
     elif content.find("# profile not found") != -1 or \
             content.find("# system not found") != -1 or \
             content.find("# object not found") != -1:
-        print("content not found: %s" % my_uri)
+        print(("content not found: %s" % my_uri))
         status = "404 NOT FOUND"
 
     # req.content_type = "text/plain;charset=utf-8"
