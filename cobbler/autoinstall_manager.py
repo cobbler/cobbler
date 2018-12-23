@@ -1,5 +1,6 @@
-from past.builtins import basestring
+
 from builtins import object
+from builtins import str
 import os
 
 from cobbler import autoinstallgen
@@ -42,7 +43,7 @@ class AutoInstallationManager(object):
         @returns str automatic installation template relative file path
         """
 
-        if not isinstance(autoinstall, basestring):
+        if not isinstance(autoinstall, str):
             raise CX("Invalid input, autoinstall must be a string")
         else:
             autoinstall = autoinstall.strip()
@@ -149,7 +150,7 @@ class AutoInstallationManager(object):
         @returns: str snippet or CX
         """
 
-        if not isinstance(snippet, basestring):
+        if not isinstance(snippet, str):
             raise CX("Invalid input, snippet must be a string")
         else:
             snippet = snippet.strip()
