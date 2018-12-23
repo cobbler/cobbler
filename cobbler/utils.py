@@ -19,9 +19,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
 
 from past.builtins import cmp
 from future import standard_library
@@ -29,7 +26,6 @@ from functools import reduce
 standard_library.install_aliases()
 from builtins import map
 from builtins import str
-from past.builtins import basestring
 from past.utils import old_div
 from builtins import object
 import copy
@@ -479,7 +475,7 @@ def input_string_or_list(options):
         return []
     elif isinstance(options, list):
         return options
-    elif isinstance(options, basestring):
+    elif isinstance(options, str):
         tokens = shlex.split(options)
         return tokens
     else:
@@ -500,7 +496,7 @@ def input_string_or_dict(options, allow_multiples=True):
         return (True, {})
     elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif isinstance(options, basestring):
+    elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
@@ -1343,7 +1339,7 @@ def set_virt_file_size(self, num):
         self.virt_file_size = "<<inherit>>"
         return
 
-    if isinstance(num, basestring) and num.find(",") != -1:
+    if isinstance(num, str) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1529,7 +1525,7 @@ class MntEntObj(object):
     mnt_passno = 0      # pass number on parallel fsck
 
     def __init__(self, input=None):
-        if input and isinstance(input, basestring):
+        if input and isinstance(input, str):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
@@ -1723,7 +1719,7 @@ def clear_from_fields(item, fields, is_subobject=False):
             val = elems[2]
         else:
             val = elems[1]
-        if isinstance(val, basestring):
+        if isinstance(val, str):
             if val.startswith("SETTINGS:"):
                 setkey = val.split(":")[-1]
                 val = getattr(item.settings, setkey)
@@ -2129,9 +2125,9 @@ def compare_versions_gt(ver1, ver2):
 def suse_kopts_textmode_overwrite(distro_breed, kopts):
     """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
     if distro_breed == "suse":
-        if 'textmode' in kopts.keys():
+        if 'textmode' in list(kopts.keys()):
             kopts.pop('text', None)
-        elif 'text' in kopts.keys():
+        elif 'text' in list(kopts.keys()):
             kopts.pop('text', None)
             kopts['textmode'] = ['1']
 
