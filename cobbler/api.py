@@ -17,13 +17,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from __future__ import print_function
 
 from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from past.builtins import basestring
 from builtins import object
 from configparser import ConfigParser
 
@@ -351,8 +349,8 @@ class CobblerAPI(object):
     # ==========================================================================
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        if isinstance(what, basestring):
-            if isinstance(ref, basestring):
+        if isinstance(what, str):
+            if isinstance(ref, str):
                 ref = self.get_item(what, ref)
                 if ref is None:
                     return      # nothing to remove
