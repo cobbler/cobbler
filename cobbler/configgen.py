@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
-from __future__ import absolute_import
 
 from builtins import object
 from Cheetah.Template import Template
