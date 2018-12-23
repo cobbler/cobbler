@@ -61,4 +61,4 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
 
 
 if __name__ == "__main__":
-    print(__parse_config())
+    print((__parse_config()))
