@@ -150,4 +150,4 @@ def authenticate(api_handle, username, password):
 
 
 if __name__ == "__main__":
-    print(authenticate(None, "admin", "redhat"))
+    print((authenticate(None, "admin", "redhat")))
