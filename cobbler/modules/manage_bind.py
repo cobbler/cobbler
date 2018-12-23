@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from builtins import str
 from builtins import range
-from past.builtins import basestring
 from builtins import object
 import re
 import time
@@ -446,7 +445,7 @@ zone "%(arpa)s." {
             my_name = "%s%s" % (name, spacing)
             my_host_record = hosts[name]
             my_host_list = []
-            if isinstance(my_host_record, basestring):
+            if isinstance(my_host_record, str):
                 my_host_list = [my_host_record]
             else:
                 my_host_list = my_host_record
