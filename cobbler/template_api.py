@@ -21,9 +21,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from __future__ import absolute_import
 
-from past.builtins import basestring
+from past.builtins import str
 import Cheetah.Template
 import os.path
 import re
@@ -102,7 +101,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
             # Normally, the cheetah compiler worries about this, but we need to
             # preprocess the actual source
             if source is None:
-                if isinstance(file, basestring):
+                if isinstance(file, str):
                     if os.path.exists(file):
                         f = open(file)
                         source = "#errorCatcher Echo\n" + f.read()
