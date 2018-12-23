@@ -1,9 +1,8 @@
-from __future__ import absolute_import
+
 from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from past.builtins import basestring
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -167,7 +166,7 @@ def get_fields(what, is_subobject, seed_item=None):
         # template logic
         ui_field["value_raw"] = ui_field["value"]
 
-        if isinstance(ui_field["value"], basestring) and ui_field["value"].startswith("SETTINGS:"):
+        if isinstance(ui_field["value"], str) and ui_field["value"].startswith("SETTINGS:"):
             key = ui_field["value"].replace("SETTINGS:", "", 1)
             ui_field["value"] = settings[key]
 
@@ -186,7 +185,7 @@ def get_fields(what, is_subobject, seed_item=None):
             else:
                 tokens = []
                 for (x, y) in list(ui_field["value"].items()):
-                    if isinstance(y, basestring) and y.strip() != "~":
+                    if isinstance(y, str) and y.strip() != "~":
                         y = y.replace(" ", "\\ ")
                         tokens.append("%s=%s" % (x, y))
                     elif isinstance(y, list):
