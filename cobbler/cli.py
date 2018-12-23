@@ -19,12 +19,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from __future__ import print_function
 
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from past.builtins import basestring
 from builtins import object
 import optparse
 import os
@@ -201,7 +199,7 @@ def _add_parser_option_from_field(parser, field, settings):
     # extract data from field dictionary
     name = field[0]
     default = field[1]
-    if isinstance(default, basestring) and default.startswith("SETTINGS:"):
+    if isinstance(default, str) and default.startswith("SETTINGS:"):
         setting_name = default.replace("SETTINGS:", "", 1)
         default = settings[setting_name]
     description = field[3]
