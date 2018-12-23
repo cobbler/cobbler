@@ -11,8 +11,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-from past.builtins import basestring
 from builtins import object
+from builtins import str
 import fnmatch
 import pprint
 
@@ -150,7 +150,7 @@ class Item(object):
 
     def __find_compare(self, from_search, from_obj):
 
-        if isinstance(from_obj, basestring):
+        if isinstance(from_obj, str):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
             from_obj_lower = from_obj.lower()
@@ -162,7 +162,7 @@ class Item(object):
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
             return match
         else:
-            if isinstance(from_search, basestring):
+            if isinstance(from_search, str):
                 if isinstance(from_obj, list):
                     from_search = utils.input_string_or_list(from_search)
                     for x in from_search:
