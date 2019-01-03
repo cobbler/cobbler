@@ -47,6 +47,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import yaml
+import distro
 
 from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
@@ -920,11 +921,7 @@ def check_dist():
     """
     Determines what distro we're running under.
     """
-    import platform
-    try:
-        return platform.linux_distribution()[0].lower().strip()
-    except AttributeError:
-        return platform.dist()[0].lower().strip()
+    return distro.linux_distribution()[0].lower().strip()
 
 
 def os_release():
