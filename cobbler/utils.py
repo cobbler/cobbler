@@ -910,9 +910,9 @@ def get_family():
     for item in redhat_list:
         if item in dist:
             return "redhat"
-    if dist in ("debian", "ubuntu"):
+    if "debian" in dist or "ubuntu" in dist:
         return "debian"
-    if "suse" in dist:
+    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
         return "suse"
     return dist
 
