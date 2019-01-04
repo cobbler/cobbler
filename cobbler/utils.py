@@ -2304,10 +2304,20 @@ def find_distro_path(settings, distro):
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
 
+def suse_kopts_textmode_overwrite(distro_breed, kopts):
+    """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
+    if distro_breed == "suse":
+        if 'textmode' in kopts.keys():
+            kopts.pop('text', None)
+        elif 'text' in kopts.keys():
+            kopts.pop('text', None)
+            kopts['textmode'] = ['1']
+
 def compare_versions_gt(ver1, ver2):
     def versiontuple(v):
         return tuple(map(int, (v.split("."))))
     return versiontuple(ver1) > versiontuple(ver2)
+
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3

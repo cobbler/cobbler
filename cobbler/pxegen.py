@@ -782,6 +782,10 @@ class PXEGen:
 
         append_line = ""
         kopts = blended.get("kernel_options", dict())
+
+        # SUSE is not using 'text'. Instead 'textmode' is used as kernel option
+        utils.suse_kopts_textmode_overwrite(distro.breed, kopts)
+
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:
             append_line = ",%s" % kopts.pop("initrd")

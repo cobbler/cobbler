@@ -115,7 +115,7 @@ class BuildIso:
        """
        return cmp(a.name,b.name)
 
-  
+
     def generate_netboot_iso(self,imagesdir,isolinuxdir,profiles=None,systems=None,exclude_dns=None):
        """
        Create bootable CD image to be used for network installations
@@ -155,6 +155,9 @@ class BuildIso:
              cfg.write("  kernel %s.krn\n" % distname)
 
              data = utils.blender(self.api, False, profile)
+             # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+             utils.suse_kopts_textmode_overwrite(dist.breed, data['kernel_options'])
+
              if data["kickstart"].startswith("/"):
                  data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
                      data["server"], self.api.settings().http_port, profile.name
@@ -357,7 +360,7 @@ class BuildIso:
              if my_dns is None:
                 if data.has_key("name_servers") and data["name_servers"] != "":
                    my_dns = data["name_servers"]
-             
+
              # add information to the append_line
              if my_int is not None:
                  if dist.breed == "suse":
@@ -394,7 +397,7 @@ class BuildIso:
                      append_line += " netcfg/get_gateway=%s" % my_gw
 
              if exclude_dns is None or my_dns is not None:
-                if dist.breed == "suse":
+                if dist.breed == "suse" and type(my_dns) == list and len(my_dns) >= 1:
                    append_line += " nameserver=%s" % my_dns[0]
                 if dist.breed == "redhat":
                    if type(my_dns) == list:
@@ -456,6 +459,8 @@ class BuildIso:
 
         for descendant in descendants:
             data = utils.blender(self.api, False, descendant)
+            # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+            utils.suse_kopts_textmode_overwrite(distro.breed, data['kernel_options'])
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
