@@ -925,7 +925,6 @@ def check_dist():
 
 
 def os_release():
-
     family = get_family()
     if family == "redhat":
         fh = open("/etc/redhat-release")
@@ -962,16 +961,11 @@ def os_release():
             return (make, float(version))
 
     elif family == "suse":
-        fd = open("/etc/SuSE-release")
-        for line in fd.read().split("\n"):
-            if line.find("VERSION") != -1:
-                version = line.replace("VERSION = ", "")
-            if line.find("PATCHLEVEL") != -1:
-                rest = line.replace("PATCHLEVEL = ", "")
         make = "suse"
+        distribution, version = distro.linux_distribution()[:2]
+        if distribution.lower() not in ("sles", "opensuse leap", "opensuse tumbleweed"):
+            make = "unknown"
         return (make, float(version))
-    else:
-        return ("unknown", 0)
 
 
 def tftpboot_location():

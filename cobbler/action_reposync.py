@@ -27,6 +27,7 @@ import os
 import os.path
 import pipes
 import stat
+import distro
 
 HAS_YUM = True
 try:
@@ -690,9 +691,10 @@ class RepoSync(object):
         """
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"
-        if os.path.exists("/etc/SuSE-release"):
+        distribution = distro.linux_distribution()[0]
+        if distribution.lower() in ("sles", "opensuse leap", "opensuse tumbleweed"):
             owner = "root:www"
-        elif os.path.exists("/etc/debian_version"):
+        elif "debian" in distribution.lower()
             owner = "root:www-data"
 
         cmd1 = "chown -R " + owner + " %s" % repo_path
