@@ -46,7 +46,7 @@ class ContentDownloader:
         they can still source their cross-arch bootloader content manually.
         """
 
-        content_server = "http://www.cobblerd.org/loaders"
+        content_server = "http://cobbler.github.io/loaders"
         dest = "/var/lib/cobbler/loaders"
 
         files = (
@@ -54,6 +54,7 @@ class ContentDownloader:
             ("%s/COPYING.elilo" % content_server, "%s/COPYING.elilo" % dest),
             ("%s/COPYING.yaboot" % content_server, "%s/COPYING.yaboot" % dest),
             ("%s/COPYING.syslinux" % content_server, "%s/COPYING.syslinux" % dest),
+            ("%s/elilo-3.8-ia64.efi" % content_server, "%s/elilo-ia64.efi" % dest),
             ("%s/yaboot-1.3.17" % content_server, "%s/yaboot" % dest),
             ("%s/pxelinux.0-3.86" % content_server, "%s/pxelinux.0" % dest),
             ("%s/menu.c32-3.86" % content_server, "%s/menu.c32" % dest),

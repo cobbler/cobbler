@@ -26,7 +26,7 @@ try:
 except:
     converage = None
 
-VERSION = "2.6.6"
+VERSION = "2.6.11"
 OUTPUT_DIR = "config"
 
 
@@ -567,7 +567,7 @@ if __name__ == "__main__":
         long_description = "Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
         author = "Team Cobbler",
         author_email = "cobbler@lists.fedorahosted.org",
-        url = "http://www.cobblerd.org/",
+        url = "http://cobbler.github.io/",
         license = "GPLv2+",
         requires = [
             "mod_python",
@@ -613,7 +613,6 @@ if __name__ == "__main__":
             ("%s" % webconfig,              ["build/config/cobbler_web.conf"]),
             ("%s" % initpath,               ["build/config/cobblerd"]),
             ("%s" % docpath,                glob("build/docs/man/*.1.gz")),
-            ("share/cobbler/installer_templates",         glob("installer_templates/*")),
             ("%skickstarts" % libpath,      glob("kickstarts/*")),
             ("%skickstarts/install_profiles" % libpath,      glob("kickstarts/install_profiles/*")),
             ("%ssnippets" % libpath,        glob("snippets/*", recursive=True)),
@@ -640,7 +639,6 @@ if __name__ == "__main__":
                                              "config/cobbler_bash",
                                              "config/cobblerd_rotate",
                                              "config/completions",
-                                             "config/distro_signatures.json",
                                              "config/import_rsync_whitelist",
                                              "config/modules.conf",
                                              "config/mongodb.conf",

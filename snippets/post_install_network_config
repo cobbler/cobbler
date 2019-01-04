@@ -14,6 +14,16 @@
     #set $configbymac = True
     #set $numbondingdevs = 0
     #set $enableipv6 = False
+    #set $usedbondingopts = False
+	## Non-interface specific bonding options are located in different files for
+    ## different versions of RHEL.  These probably should be set for Fedora too.
+    ## RHEL < 6: /etc/modprobe.conf
+    ## RHEL >= 6: /etc/modprobe.d/bonding.conf
+	#if $osversion == "rhel6" or $osversion == "rhel7"
+	  #set $mp_bonding = "/etc/modprobe.d/bonding.conf"
+	#else
+	  #set $mp_bonding = "/etc/modprobe.conf"
+	#end if
     ## =============================================================================
     #for $iname in $ikeys
         ## look at the interface hash data for the specific interface
@@ -37,15 +47,6 @@
     ## end looping through the interfaces to see which ones we need to configure.
     ## =============================================================================
     #set $i = 0
-    ## setup bonding if we have to
-    #if $numbondingdevs > 0
-
-# we have bonded interfaces, so set max_bonds
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "options bonding max_bonds=$numbondingdevs" >> /etc/modprobe.conf
-fi
-    #end if
-    ## =============================================================================
     ## create a staging directory to build out our network scripts into
     ## make sure we preserve the loopback device
 
@@ -107,6 +108,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## create lots of variables to use later
         #set $idata                = $interfaces[$iname]
         #set $mac                  = $idata.get("mac_address", "").upper()
+        #set $connected_mode       = $idata.get("connected_mode", "")
         #set $mtu                  = $idata.get("mtu", "")
         #set $static               = $idata.get("static", "")
         #set $ip                   = $idata.get("ip_address", "")
@@ -134,7 +136,7 @@ mv /etc/sysconfig/network.cobbler /etc/sysconfig/network
         ## slave interfaces are assumed to be static
         #if $iface_type in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
             #set $static = 1
-        #end if 
+        #end if
         ## ===================================================================
         ## Things every interface get, no matter what
         ## ===================================================================
@@ -159,16 +161,19 @@ fi
         #if $iface_type in ("master","bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> /etc/modprobe.conf.cobbler
+if [ -f "$mp_bonding" ]; then
+    echo "install $iname /sbin/modprobe bonding -o $iname $bonding_opts" >> $(mp_bonding).cobbler
 fi
+            #elif $osversion == "rhel7"
+            ## Add required bonding options to interface file
+echo "TYPE=Bond" >> $devfile
+echo "BONDING_MASTER=yes" >> $devfile
             #else
-            ## Add required entry to modprobe.conf
-if [ -f "/etc/modprobe.conf" ]; then
-    echo "alias $iname bonding" >> /etc/modprobe.conf.cobbler
-fi
+            ## Add required entry to modprobe config
+echo "alias $iname bonding" >> $(mp_bonding).cobbler
             #end if
             #if $bonding_opts != ""
+            #set $usedbondingopts = True
 cat >> $devfile << EOF
 BONDING_OPTS="$bonding_opts"
 EOF
@@ -180,16 +185,17 @@ echo "HOTPLUG=no" >> $devfile
         #end if
         #if $iface_type == "bridge"
 echo "TYPE=Bridge" >> $devfile
-        #for $bridge_opt in $bridge_opts
-            #if $bridge_opt.strip() != ""
+            #for $bridge_opt in $bridge_opts
+                #if $bridge_opt.strip() != ""
 echo "$bridge_opt" >> $devfile
-            #end if
-        #end for
+                #end if
+            #end for
         #elif ($iface_type == "bridge_slave" or $iface_type == "bonded_bridge_slave") and $iface_master != ""
 echo "BRIDGE=$iface_master" >> $devfile
 echo "HOTPLUG=no" >> $devfile
-        #end if
-        #if $iface_type != "bridge"
+        #elif $iface_type == "infiniband"
+echo "TYPE=InfiniBand" >> $devfile
+        #else
 echo "TYPE=Ethernet" >> $devfile
         #end if
         ## ===================================================================
@@ -250,6 +256,13 @@ echo "ONPARENT=yes" >> $devfile
         ## ===================================================================
         ## Optional configuration stuff
         ## ===================================================================
+        #if $iface_type == "infiniband"
+            #if $connected_mode != ""
+echo "CONNECTED_MODE=yes" >> $devfile
+            #else
+echo "CONNECTED_MODE=no" >> $devfile
+            #end if
+        #end if
         #if $mtu != ""
 echo "MTU=$mtu" >> $devfile
         #end if
@@ -330,9 +343,11 @@ rm -f /etc/sysconfig/network-scripts/ifcfg-$iname
     #end for
 mv /etc/sysconfig/network-scripts/cobbler/* /etc/sysconfig/network-scripts/
 rm -r /etc/sysconfig/network-scripts/cobbler
-if [ -f "/etc/modprobe.conf" ]; then
-cat /etc/modprobe.conf.cobbler >> /etc/modprobe.conf
-rm -f /etc/modprobe.conf.cobbler
-fi
+    #if not $usedbondingopts
+## Bonding opts were not used, so set max_bonds in modprobe
+echo "options bonding max_bonds=$numbondingdevs" >> $mp_bonding
+cat $(mp_bonding).cobbler >> $mp_bonding
+    #end if
+rm -f $(mp_bonding).cobbler
 #end if
 # End post_install_network_config generated code

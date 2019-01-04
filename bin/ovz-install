@@ -34,7 +34,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 KICKSTART="/tmp/$PROFILE_NAME-kickstart.cfg"
 # get the kickstart
-wget $KICKSTART_URL -q -O $KICKSTART
+curl $KICKSTART_URL -s -o $KICKSTART
 
 # get the root password hash from kickstart
 ROOTPW=`cat $KICKSTART| awk '/^rootpw/{ print $NF }'`

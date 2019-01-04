@@ -95,9 +95,9 @@ class KickGen:
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None):
         self.api.logger.info("autoyast XML file found. Checkpoint: profile=%s system=%s" % (profile,system) )
-        nopxe = "\nwget \"http://%s/cblr/svc/op/nopxe/system/%s\" -O /dev/null"
+        nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" > /dev/null"
         runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" > /dev/null"
-        runpre  = "\nwget \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" -O /dev/null"
+        runpre  = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" > /dev/null"
 
         what = "profile"
         blend_this = profile
@@ -183,7 +183,10 @@ class KickGen:
             if repo_obj is not None:
                 yumopts=''
                 for opt in repo_obj.yumopts:
-                    if not opt in ['enabled', 'gpgcheck', 'gpgkey']:
+                    if opt in ['exclude', 'include']:
+                        value = repo_obj.yumopts[opt].replace(' ', ',')
+                        yumopts = yumopts + " --%spkgs=%s" % (opt, value)
+                    elif not opt in ['enabled', 'gpgcheck', 'gpgkey']:
                         yumopts = yumopts + " %s=%s" % (opt, repo_obj.yumopts[opt])
                 if 'enabled' not in repo_obj.yumopts or repo_obj.yumopts['enabled'] == '1':
                     if repo_obj.mirror_locally:
@@ -234,7 +237,7 @@ class KickGen:
         else:
            url = "http://%s/cblr/svc/op/yum/system/%s" % (blended["http_server"], obj.name)
 
-        return "wget \"%s\" --output-document=/etc/yum.repos.d/cobbler-config.repo\n" % (url)
+        return "curl \"%s\" --output /etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
     def generate_kickstart_for_system(self, sys_name):
 

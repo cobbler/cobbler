@@ -1331,9 +1331,9 @@ def set_arch(self,arch,repo=False):
        arch = "i386"
 
    if repo:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "noarch", "src", "arm" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "s390", "s390x", "noarch", "src", "arm" ]
    else:
-       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "s390", "s390x", "arm" ]
+       valids = [ "i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "s390", "s390x", "arm" ]
 
    if arch in valids:
        self.arch = arch
@@ -2312,6 +2312,12 @@ def suse_kopts_textmode_overwrite(distro_breed, kopts):
         elif 'text' in kopts.keys():
             kopts.pop('text', None)
             kopts['textmode'] = ['1']
+
+def compare_versions_gt(ver1, ver2):
+    def versiontuple(v):
+        return tuple(map(int, (v.split("."))))
+    return versiontuple(ver1) > versiontuple(ver2)
+
 
 if __name__ == "__main__":
     print os_release() # returns 2, not 3

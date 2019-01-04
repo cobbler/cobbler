@@ -1,3 +1,4 @@
+#set $osversion = $getVar("os_version","")
 #set $hostname = $getVar("hostname","")
 #if $hostname == ""
 #set $hostname = $getVar("system_name","cobbler")
@@ -38,59 +39,107 @@
     </dns>
     <interfaces config:type="list">
     #if $getVar("system_name","") != ""
+    #import re
+    #set $vlanpattern = $re.compile("[a-zA-Z0-9]+[\.][0-9]+")
     #set $ikeys = $interfaces.keys()
     #for $iface in $ikeys
-      #set $idata         = $interfaces[$iface]
-      #set $mac           = $idata["mac_address"]
-      #set $ip            = $idata["ip_address"]
-      #set $netmask       = $idata["netmask"]
-      #set $iface_type    = $idata["interface_type"]
-      #set $bonding_opts  = $idata["bonding_opts"]
-      #if $iface_type.lower() == "bond"
+      #set $idata                = $interfaces[$iface]
+      #set $mac                  = $idata.get("mac_address", "").lower()
+      #set $static               = $idata.get("static", "")
+      #set $ip                   = $idata.get("ip_address", "")
+      #set $netmask              = $idata.get("netmask", "")
+      #set $static_routes        = $idata.get("static_routes", "")
+      #set $iface_type           = $idata.get("interface_type", "").lower()
+      #set $iface_master         = $idata.get("interface_master", "")
+      #set $bonding_opts         = $idata.get("bonding_opts", "").lower()
+      #set $ipv6_address         = $idata.get("ipv6_address", "")
+      #set $ipv6_secondaries     = $idata.get("ipv6_secondaries", "")
+      #set $ipv6_mtu             = $idata.get("ipv6_mtu", "")
+      #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+      #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+      ## start of interface section
       <interface>
+      #if $iface_type in ("bond", "master")
         <bonding_master>yes</bonding_master>
-        <bonding_module_opts>$bonding_opts.lower()</bonding_module_opts>
+        <bonding_module_opts>$bonding_opts</bonding_module_opts>
         #set $loop_ikeys = $interfaces.keys()
         #set $loop_counter = 0
         #for $loop_iface in $loop_ikeys
           #set $loop_idata          = $interfaces[$loop_iface]
-          #set $loop_interface_type = $loop_idata["interface_type"]
-          #if $loop_interface_type.lower == "bond_slave"
+          #set $loop_interface_type = $loop_idata.get("interface_type", "").lower()
+          #if $loop_interface_type in ("slave","bond_slave")
              #if $loop_idata["interface_master"] != ""
                 #if $loop_idata["interface_master"].lower() == $iface.lower()
-                   <bonding_slave$loop_counter>$loop_iface</bonding_slave$loop_counter>
+        <bonding_slave$loop_counter>$loop_iface</bonding_slave$loop_counter>
                    #set $loop_counter += 1
                 #end if
              #end if
           #end if
         #end for
+        #if $static
         <bootproto>static</bootproto>
+        #else
+        <bootproto>dhcp</bootproto>
+        #end if
         <device>$iface</device>
         <ipaddr>$ip</ipaddr>
         <netmask>$netmask</netmask>
         <startmode>auto</startmode>
         <usercontrol>no</usercontrol>
-      </interface>
-      #end if
-      #if $iface_type.lower() in ["bond_slave","bridge_slave"]
-      <interface>
+      #elif $iface_type in ("slave","bond_slave","bridge_slave")
         <bootproto>none</bootproto>
         <device>$iface</device>
+        #if $osversion == "sles12" or re.match('^sles12sp[1234]$', $osversion)
+        <startmode>hotplug</startmode>
+        #else
         <startmode>off</startmode>
+        #end if
         <usercontrol>no</usercontrol>
-      </interface>
-      #end if
-      #if $iface_type.lower() in ["","na"]
-      <interface>
+      #elif $iface_type in ("","na")
+        #if $static
         <bootproto>static</bootproto>
+        #else
+        <bootproto>dhcp</bootproto>
+        #end if
         <device>$iface</device>
-        <lladdr>$mac.lower()</lladdr>
+        <lladdr>$mac</lladdr>
         <ipaddr>$ip</ipaddr>
         <netmask>$netmask</netmask>
         <startmode>auto</startmode>
         <usercontrol>no</usercontrol>
-      </interface>
       #end if
+      ## ===================================================================
+      ## VLAN configuration
+      ## ===================================================================
+      #if $vlanpattern.match($iface)
+        #set [$etherdevice, $vlanid] = $iface.split(".")
+        <etherdevice>$etherdevice</etherdevice>
+        <vlan_id>$vlanid</vlan_id>
+      #end if
+      ## ===================================================================
+      ## IPv6 support
+      ## ===================================================================
+      #if $ipv6_address != ""
+        <aliases>
+          <alias0>
+            <IPADDR>$ipv6_address</IPADDR>
+            <LABEL>a0</LABEL>
+            <PREFIXLEN>64</PREFIXLEN>
+          </alias0>
+        #if $ipv6_secondaries != ""
+          #set $s = 1
+          #for $alias in $ipv6_secondaries
+          <alias${s}>
+            <IPADDR>$alias</IPADDR>
+            <LABEL>a${s}</LABEL>
+            <PREFIXLEN>64</PREFIXLEN>
+          </alias${s}>
+            #set $s += 1
+          #end for
+        #end if
+        </aliases>
+      #end if
+      </interface>
     #end for
     #end if
     </interfaces>
@@ -117,7 +166,6 @@
     <routing>
       <ip_forward config:type="boolean">false</ip_forward>
       #if $getVar("system_name","") != ""
-      ## TODO: add in static routes here
       <routes config:type="list">
         <route>
           <destination>default</destination>
@@ -125,6 +173,55 @@
           <device>-</device>
           <gateway>$gateway</gateway>
         </route>
+        ## ===================================================================
+        ## IPv4 static route setup
+        ## ===================================================================
+        #for $iface in $ikeys
+          #set $idata         = $interfaces[$iface]
+          #set $static_routes = $idata.get("static_routes", "")
+          #for $route in $static_routes
+            #set routepattern = $re.compile("[0-9/.]+:[0-9.]+")
+            #if $routepattern.match($route)
+              #set $routebits = $route.split(":")
+              #set [$network, $router] = $route.split(":")
+        <route>
+          <destination>$network</destination>
+          <netmask>-</netmask>
+          <device>$iface</device>
+          <gateway>$router</gateway>
+        </route>
+            #end if
+          #end for
+        #end for
+        ## ===================================================================
+        ## IPv6 routing setup
+        ## ===================================================================
+        #for $iface in $ikeys
+          #set $idata                = $interfaces[$iface]
+          #set $ipv6_static_routes   = $idata.get("ipv6_static_routes", "")
+          #set $ipv6_default_gateway = $idata.get("ipv6_default_gateway", "")
+          #if $ipv6_default_gateway != ""
+        <route>
+          <destination>default</destination>
+          <netmask>-</netmask>
+          <device>$iface</device>
+          <gateway>$ipv6_default_gateway</gateway>
+        </route>
+          #end if
+          #for $route in $ipv6_static_routes
+            #set routepattern = $re.compile("[0-9a-fA-F:/]+,[0-9a-fA-F:]+")
+            #if $routepattern.match($route)
+              #set $routebits = $route.split(",")
+              #set [$network, $router] = $route.split(",")
+        <route>
+          <destination>$network</destination>
+          <netmask>-</netmask>
+          <device>$iface</device>
+          <gateway>$router</gateway>
+        </route>
+            #end if
+          #end for
+        #end for
       </routes>
       #end if
     </routing>

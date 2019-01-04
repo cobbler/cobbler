@@ -40,11 +40,7 @@ build:
 
 # Debian/Ubuntu requires an additional parameter in setup.py
 install: build
-	if [ -e /etc/debian_version ]; then \
-		python setup.py install --root $(DESTDIR) -f --install-layout=deb; \
-	else \
-		python setup.py install --root $(DESTDIR) -f; \
-	fi
+	python setup.py install --root $(DESTDIR) -f
 
 devinstall:
 	-rm -rf $(DESTDIR)/usr/share/cobbler
@@ -64,7 +60,7 @@ restorestate:
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
 	elif [ -n "`getent passwd wwwrun`" ] ; then \
 		chown -R wwwrun $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
-	elif [-n "`getent passwd www-data`"] ; then \
+	elif [ -n "`getent passwd www-data`"] ; then \
 		chown -R www-data $(DESTDIR)/usr/share/cobbler/web/cobbler_web; \
 	fi
 	if [ -d $(DESTDIR)/var/www/cobbler ] ; then \
@@ -88,16 +84,21 @@ webtest: devinstall
 # Check if we are on Red Hat, Suse or Debian based distribution
 restartservices:
 	if [ -x /sbin/service ] ; then \
-		# Red Hat-based or Suse-based
 		/sbin/service cobblerd restart; \
-	    if [ -f /etc/init.d/httpd ] ; then \
-			# Red Hat-based
+		if [ -f /etc/init.d/httpd ] ; then \
 			/sbin/service httpd restart; \
+		elif [ -f /usr/lib/systemd/system/httpd.service ]; then \
+			/bin/systemctl restart httpd.service; \
 		else \
-			# Suse-based
 			/sbin/service apache2 restart; \
+		fi; \
+	elif [ -x /bin/systemctl ]; then \
+		if [ -d /lib/systemd/system/apache2.service.d ]; then \
+			/bin/systemctl restart apache2.service; \
+		else \
+			/bin/systemctl restart httpd.service; \
+		fi \
 	else \
-		# Debian / Ubuntu
 		/usr/sbin/service cobblerd restart; \
 		/usr/sbin/service apache2 restart; \
 	fi

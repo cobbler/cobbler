@@ -38,10 +38,14 @@ import utils
 # command line tool. This should work on both old and new variants,
 # as the virt-install command line tool has always been provided by
 # python-virtinst (and now the new virt-install rpm).
-rc, response = utils.subprocess_get_response(
-        shlex.split('virt-install --version'), True)
+# virt-install 1.0.1 responds to --version on stderr. WTF? Check both.
+rc, response, stderr_response = utils.subprocess_get_response(
+    shlex.split('virt-install --version'), True, True)
 if rc == 0:
-    virtinst_version = response
+    if response:
+        virtinst_version = response
+    else:
+        virtinst_version = stderr_response
 else:
     virtinst_version = None
 
@@ -63,13 +67,27 @@ try:
             supported_variants.add(variant)
 except:
     try:
-        rc, response = utils.subprocess_get_response(
-                shlex.split('virt-install --os-variant list'))
+        # This will fail on EL7+, gobble stderr to avoid confusing error
+        # messages from being output
+        rc, response, stderr_respose = utils.subprocess_get_response(
+                shlex.split('virt-install --os-variant list'), False, True)
         variants = response.split('\n')
         for variant in variants:
             supported_variants.add(variant.split()[0])
     except:
-        pass # No problem, we'll just use generic
+        try:
+            # maybe on newer os using osinfo-query?
+            rc, response = utils.subprocess_get_response(
+                    shlex.split('osinfo-query -f short-id os'))
+            variants = response.split('\n')
+            for variant in variants:
+                supported_variants.add(variant.strip())
+            # osinfo-query does not list virtio26, add it here for fallback
+            supported_variants.add('virtio26')
+        except:
+            # okay, probably on old os and we'll just use generic26
+            pass
+
 
 def _sanitize_disks(disks):
     ret = []
@@ -358,8 +376,16 @@ def build_commandline(uri,
                     os_version = suse_version_re.match(os_version).groups()[0]
             # make sure virt-install knows about our os_version,
             # otherwise default it to virtio26 or generic26
-            found = False
-            if os_version not in supported_variants:
+            # found = False
+            if os_version in supported_variants:
+                pass # os_version is correct
+            elif os_version + ".0" in supported_variants:
+                # osinfo based virt-install only knows about major.minor
+                # variants, not just major variants like it used to. Default
+                # to major.0 variant in that case. Lack of backwards
+                # compatibility in virt-install grumble grumble.
+                os_version = os_version + ".0"
+            else:
                 if "virtio26" in supported_variants:
                     os_version = "virtio26"
                 else:

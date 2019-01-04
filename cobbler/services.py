@@ -1,10 +1,10 @@
 """
 Mod Python service functions for Cobbler's public interface
-(aka cool stuff that works with wget)
+(aka cool stuff that works with wget/curl)
 
 based on code copyright 2007 Albert P. Tobey <tobert@gmail.com>
 additions: 2007-2009 Michael DeHaan <michael.dehaan AT gmail>
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -55,7 +55,7 @@ class CobblerSvc(object):
 
     def __xmlrpc_setup(self):
         """
-        Sets up the connection to the Cobbler XMLRPC server. 
+        Sets up the connection to the Cobbler XMLRPC server.
         This is the version that does not require logins.
         """
         if self.remote is None:
@@ -76,19 +76,27 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_kickstart(profile,system,REMOTE_ADDR,REMOTE_MAC)
-        return u"%s" % data    
+        return u"%s" % data
 
-    def gpxe(self,profile=None,system=None,**rest):
+    def gpxe(self, profile=None, system=None, mac=None, **rest):
         """
         Generate a gPXE config
         """
         self.__xmlrpc_setup()
-        data = self.remote.generate_gpxe(profile,system)
+        if not system and mac:
+            query = {"mac_address": mac}
+            if profile:
+                query["profile"] = profile
+            found = self.remote.find_system(query)
+            if found:
+                system = found[0]
+
+        data = self.remote.generate_gpxe(profile, system)
         return u"%s" % data
 
     def bootcfg(self,profile=None,system=None,**rest):
         """
-        Generate a boot.cfg config file. Used primarily 
+        Generate a boot.cfg config file. Used primarily
         for VMware ESXi.
         """
         self.__xmlrpc_setup()
@@ -121,7 +129,7 @@ class CobblerSvc(object):
             nowtime = time.time()
             if ((nowtime - etime) < 30):
                 results.append([k, data[k][0], data[k][1], data[k][2]])
-        return simplejson.dumps(results) 
+        return simplejson.dumps(results)
 
     def template(self,profile=None,system=None,path=None,**rest):
         """
@@ -239,7 +247,7 @@ class CobblerSvc(object):
 
         serverseg = "http//%s" % self.config._settings.server
 
-        name = "?"    
+        name = "?"
         type = "system"
         if system is not None:
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
@@ -248,10 +256,10 @@ class CobblerSvc(object):
         else:
             name = self.autodetect(**rest)
             if name.startswith("FAILED"):
-                return "# autodetection %s" % name 
+                return "# autodetection %s" % name
             url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
-                
-        try: 
+
+        try:
             return urlgrabber.urlread(url)
         except:
             return "# kickstart retrieval failed (%s)" % url
@@ -261,7 +269,7 @@ class CobblerSvc(object):
 
         if hostname is None:
            return "hostname is required"
-         
+
         settings = self.remote.get_settings()
         results = self.remote.find_system_by_dns_name(hostname)
 
@@ -412,12 +420,12 @@ def test_services_access():
     data = urlgrabber.urlread(url)
     print "D1=%s" % data
     assert data.find("repo0") != -1
-    
+
     url = "http://127.0.0.1/cblr/svc/op/yum/system/system0"
     data = urlgrabber.urlread(url)
-    print "D2=%s" % data 
+    print "D2=%s" % data
     assert data.find("repo0") != -1
-  
+
     for a in [ "pre", "post" ]:
        filename = "/var/lib/cobbler/triggers/install/%s/unit_testing" % a
        fd = open(filename, "w+")
@@ -436,8 +444,8 @@ def test_services_access():
     for x in urls:
         print "reading: %s" % url
         data = urlgrabber.urlread(x)
-        print "read: %s" % data        
-        time.sleep(5) 
+        print "read: %s" % data
+        time.sleep(5)
         assert os.path.exists("/var/log/cobbler/kicklog/cobbler_trigger_test")
         os.unlink("/var/log/cobbler/kicklog/cobbler_trigger_test")
 
@@ -458,7 +466,7 @@ def test_services_access():
 
     sys = api.find_system("system0")
     assert str(sys.netboot_enabled).lower() not in [ "1", "true", "yes" ]
-    
+
     # now let's test the listing URLs since we document
     # them even know I don't know of anything relying on them.
 
@@ -485,7 +493,7 @@ def test_services_access():
     # these features may be removed in a later release
     # of cobbler but really aren't hurting anything so there
     # is no pressing need.
-  
+
     # now let's test the puppet external nodes support
     # and just see if we get valid YAML back without
     # doing much more
@@ -496,11 +504,11 @@ def test_services_access():
     assert data.find("beta") != -1
     assert data.find("gamma") != -1
     assert data.find("3") != -1
-    
+
     data = yaml.safe_load(data)
     assert data.has_key("classes")
     assert data.has_key("parameters")
-    
+
     # now let's test the template file serving
     # which is used by the snippet download_config_files
     # and also by koan's --update-files
@@ -508,7 +516,7 @@ def test_services_access():
     url = "http://127.0.0.1/cblr/svc/op/template/profile/profile0/path/_tmp_t1-rendered"
     data = urlgrabber.urlread(url)
     assert data.find("profile0") != -1
-    assert data.find("$profile_name") == -1    
+    assert data.find("$profile_name") == -1
 
     url = "http://127.0.0.1/cblr/svc/op/template/system/system0/path/_tmp_t2-rendered"
     data = urlgrabber.urlread(url)
@@ -516,7 +524,6 @@ def test_services_access():
     assert data.find("$system_name") == -1
 
     os.unlink("/tmp/cobbler_t1")
-    os.unlink("/tmp/cobbler_t2") 
+    os.unlink("/tmp/cobbler_t2")
 
     remote._test_remove_objects()
-

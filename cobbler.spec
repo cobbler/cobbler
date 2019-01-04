@@ -2,10 +2,11 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 18, 19, 20
+# - Fedora: 22, 23
 # - RHEL: 6, 7
 # - CentOS: 6, 7
-# - OpenSuSE: 12.3, 13.1, Factory
+# - Scientific Linux: 6, 7
+# - OpenSuSE: 12.3, 13.1, 13.2, Tumbleweed, Factory
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
@@ -47,13 +48,13 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.6.6
+Version: 2.6.11
 Release: 1%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
-Url: http://www.cobblerd.org/
+Url: http://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl
@@ -66,8 +67,15 @@ Requires: python-simplejson
 Requires: python-urlgrabber
 Requires: rsync
 Requires: syslinux
-Requires: yum-utils
 Requires: logrotate
+
+%if 0%{?fedora} < 23 || 0%{?rhel} >= 6
+Requires: yum-utils
+%endif
+
+%if 0%{?fedora} >= 23
+Requires: dnf-core-plugins
+%endif
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 BuildRequires: redhat-rpm-config
@@ -281,7 +289,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # data
 %{tftp_dir}
-%{tftp_dir}/images
 %{apache_dir}/cobbler
 %config(noreplace) %{_var}/lib/cobbler
 %exclude %{apache_dir}/cobbler_webui_content
@@ -289,7 +296,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 # share
 %{_usr}/share/cobbler
-%{_usr}/share/cobbler/installer_templates
 %exclude %{_usr}/share/cobbler/spool
 %exclude %{_usr}/share/cobbler/web
 
@@ -402,6 +408,16 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Sat Jan 23 2016 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.11 release
+* Wed Sep 30 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.10 release
+* Fri Jun 12 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.9 release
+* Wed May 6 2015 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.8 release
+* Wed Dec 31 2014 Jörgen Maas <jorgen.maas@gmail.com>
+- Cobbler 2.6.7 release
 * Sun Oct 19 2014 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.6.6 release
 * Fri Aug 15 2014 Jörgen Maas <jorgen.maas@gmail.com>

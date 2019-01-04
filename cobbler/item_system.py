@@ -32,14 +32,14 @@ import sys
 FIELDS = [
   ["name","",0,"Name",True,"Ex: vanhalen.example.org",0,"str"],
   ["uid","",0,"",False,"",0,"str"],
-  ["owners","SETTINGS:default_ownership",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
+  ["owners","<<inherit>>",0,"Owners",True,"Owners list for authz_ownership (space delimited)",0,"list"],
   ["profile",None,0,"Profile",True,"Parent profile",[],"str"],
   ["image",None,0,"Image",True,"Parent image (if not a profile)",0,"str"],
   ["status","production",0,"Status",True,"System status",["","development","testing","acceptance","production"],"str"],
   ["kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
   ["kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
   ["ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86",0,"dict"],
-  ["enable_gpxe","SETTINGS:enable_gpxe",0,"Enable gPXE?",True,"Use gPXE instead of PXELINUX for advanced booting options",0,"bool"],
+  ["enable_gpxe","<<inherit>>",0,"Enable gPXE?",True,"Use gPXE instead of PXELINUX for advanced booting options",0,"bool"],
   ["proxy","<<inherit>>",0,"Internal proxy",True,"Internal proxy URL",0,"str"],
   ["netboot_enabled",True,0,"Netboot Enabled",True,"PXE (re)install this machine at next boot?",0,"bool"],
   ["kickstart","<<inherit>>",0,"Kickstart",True,"Path to kickstart template",0,"str"],
@@ -50,7 +50,7 @@ FIELDS = [
   ["virt_type","<<inherit>>",0,"Virt Type",True,"Virtualization technology to use",["xenpv","xenfv","qemu","kvm","vmware","openvz"],"str"],
   ["virt_cpus","<<inherit>>",0,"Virt CPUs",True,"",0,"int"],
   ["virt_file_size","<<inherit>>",0,"Virt File Size(GB)",True,"",0,"float"],
-  ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk","raw","str"],
+  ["virt_disk_driver","<<inherit>>",0,"Virt Disk Driver Type",True,"The on-disk format for the virtualization disk",["<<inherit>>","raw"],"str"],
   ["virt_ram","<<inherit>>",0,"Virt RAM (MB)",True,"",0,"int"],
   ["virt_auto_boot","<<inherit>>",0,"Virt Auto Boot",True,"Auto boot this VM?",0,"bool"],
   ["virt_pxe_boot",0,0,"Virt PXE Boot",True,"Use PXE to build this VM?",0,"bool"],
@@ -71,9 +71,10 @@ FIELDS = [
   ["network_widget_b","",0,"Edit Interface",True,"",0,"str"], # not a real field, a marker for the web app
   ["*mac_address","",0,"MAC Address",True,"(Place \"random\" in this field for a random MAC Address.)",0,"str"],
   ["network_widget_c","",0,"",True,"",0,"str"], # not a real field, a marker for the web app
+  ["*connected_mode",False,0,"InfiniBand Connected Mode",True,"Should be used with --interface",0,"bool"],
   ["*mtu","",0,"MTU",True,"",0,"str"],
   ["*ip_address","",0,"IP Address",True,"Should be used with --interface",0,"str"],
-  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","master","slave","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave"],"str"],
+  ["*interface_type","na",0,"Interface Type",True,"Should be used with --interface",["na","master","slave","bond","bond_slave","bridge","bridge_slave","bonded_bridge_slave","infiniband"],"str"],
   ["*interface_master","",0,"Master Interface",True,"Should be used with --interface",0,"str"],
   ["*bonding_opts","",0,"Bonding Opts",True,"Should be used with --interface",0,"str"],
   ["*bridge_opts","",0,"Bridge Opts",True,"Should be used with --interface",0,"str"],
@@ -94,7 +95,7 @@ FIELDS = [
   ["mgmt_classes","<<inherit>>",0,"Management Classes",True,"For external config management",0,"list"],
   ["mgmt_parameters","<<inherit>>",0,"Management Parameters",True,"Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0,"str"],
   [ "boot_files",{},'<<inherit>>',"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
-  ["fetchable_files",{},'<<inherit>>',"Fetchable Files",True,"Templates for tftp or wget",0,"dict"],
+  ["fetchable_files",{},'<<inherit>>',"Fetchable Files",True,"Templates for tftp or wget/curl",0,"dict"],
   ["template_files",{},0,"Template Files",True,"File mappings for built-in configuration management",0,"dict"],
   ["redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Satellite, or Spacewalk",0,"str"],
   ["redhat_management_server","<<inherit>>",0,"Red Hat Management Server",True,"Address of Satellite or Spacewalk Server",0,"str"],
@@ -185,6 +186,7 @@ class System(item.Item):
                 "ipv6_static_routes"   : [],
                 "ipv6_default_gateway" : "",
                 "cnames"               : [],
+                "connected_mode"       : False,
             }
 
         return self.interfaces[name]
@@ -433,7 +435,7 @@ class System(item.Item):
     def set_interface_type(self,type,interface):
         # master and slave are deprecated, and will
         # be assumed to mean bonding slave/master
-        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","master","slave","na",""]
+        interface_types = ["bridge","bridge_slave","bond","bond_slave","bonded_bridge_slave","master","slave","na","infiniband",""]
         if type not in interface_types:
             raise CX(_("interface type value must be one of: %s or blank" % interface_types.join(",")))
         if type == "na":
@@ -525,6 +527,10 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["mtu"] = mtu
         return True
+
+    def set_connected_mode(self,truthiness,interface):
+        intf = self.__get_interface(interface)
+        intf["connected_mode"] = utils.input_boolean(truthiness)
 
     def set_enable_gpxe(self,enable_gpxe):
         """
@@ -724,6 +730,7 @@ class System(item.Item):
             if field == "ipv6staticroutes"    : self.set_ipv6_static_routes(value, interface)
             if field == "ipv6defaultgateway"  : self.set_ipv6_default_gateway(value, interface)
             if field == "cnames"              : self.set_cnames(value, interface)
+            if field == "connected_mode"      : self.set_connected_mode(value, interface)
 
         return True
 

@@ -114,7 +114,9 @@ echo "  $bridge_opt" >> /etc/network/interfaces
         #if $static
             #if $ip != "" and $iface_type not in ("slave","bond_slave","bridge_slave","bonded_bridge_slave")
 echo "iface $iname inet static" >> /etc/network/interfaces 
+        #if $mac != ""
 echo "   hwaddress $mac" >> /etc/network/interfaces
+        #end if
 echo "   address $ip" >> /etc/network/interfaces 
                 #if $netmask != ""
 echo "   netmask $netmask" >> /etc/network/interfaces 

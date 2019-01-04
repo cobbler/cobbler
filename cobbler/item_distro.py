@@ -103,7 +103,7 @@ FIELDS = [
    [ "kernel_options",{},0,"Kernel Options",True,"Ex: selinux=permissive",0,"dict"],
    [ "kernel_options_post",{},0,"Kernel Options (Post Install)",True,"Ex: clocksource=pit noapic",0,"dict"],
    [ "ks_meta",{},0,"Kickstart Metadata",True,"Ex: dog=fang agent=86", 0,"dict"],
-   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','ppc64','s390', 'arm'],"str"],
+   [ "arch",'i386',0,"Architecture",True,"", ['i386','x86_64','ia64','ppc','ppc64','ppc64le','s390', 'arm'],"str"],
    [ "breed",'redhat',0,"Breed",True,"What is the type of distribution?",utils.get_valid_breeds(),"str"],
    [ "os_version","generic26",0,"OS Version",True,"Needed for some virtualization optimizations",utils.get_valid_os_versions(),"str"],
    [ "source_repos",[],0,"Source Repos", False,"",0,"list"],
@@ -112,7 +112,7 @@ FIELDS = [
    [ "tree_build_time",0,0,"Tree Build Time",False,"",0,"str"],
    [ "mgmt_classes",[],0,"Management Classes",True,"Management classes for external config management",0,"list"],
    [ "boot_files",{},0,"TFTP Boot Files",True,"Files copied into tftpboot beyond the kernel/initrd",0,"list"],
-   [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget",0,"list"],
+   [ "fetchable_files",{},0,"Fetchable Files",True,"Templates for tftp or wget/curl",0,"list"],
    [ "template_files",{},0,"Template Files",True,"File mappings for built-in config management",0,"list"],
    [ "redhat_management_key","<<inherit>>",0,"Red Hat Management Key",True,"Registration key for RHN, Spacewalk, or Satellite",0,"str"],
    [ "redhat_management_server", "<<inherit>>",0,"Red Hat Management Server",True,"Address of Spacewalk or Satellite Server",0,"str"]

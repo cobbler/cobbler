@@ -550,8 +550,10 @@ class Koan:
             if profile_data["breed"] in [ "ubuntu", "debian", "suse" ]:
                 self.get_install_tree_from_profile_data(profile_data)
             else:
-                # find_kickstart source tree in the kickstart file
-                self.get_install_tree_from_kickstart(profile_data)
+                # find install source tree from kernel options
+                if not self.get_install_tree_from_kernel_options(profile_data):
+                    # Otherwise find kickstart source tree in the kickstart file
+                    self.get_install_tree_from_kickstart(profile_data)
 
             # if we found an install_tree, and we don't have a kernel or initrd
             # use the ones in the install_tree
@@ -629,8 +631,12 @@ class Koan:
                 if not os.path.exists("/usr/bin/qemu-img"):
                     raise InfoException("qemu package needs to be installed")
                 # is libvirt new enough?
-                rc, version_str = utils.subprocess_get_response(shlex.split('/usr/bin/virt-install --version'), True)
-                if rc != 0 or re.match('^0\.[01].*',version_str):
+                rc, response, stderr_response = utils.subprocess_get_response(shlex.split('/usr/bin/virt-install --version'), True, True)
+                if response:
+                    version_str = response.strip()
+                else:
+                    version_str = stderr_response.strip()
+                if len(version_str) == 0 and not utils.check_version_greater_or_equal(version_str, "0.2.0"):
                     raise InfoException("need python-virtinst >= 0.2 or virt-install package to do installs for qemu/kvm (depending on your OS)")
 
             # for vmware
@@ -764,6 +770,47 @@ class Koan:
         except:
             pass
 
+    def get_install_tree_from_kernel_options(self, profile_data):
+        """
+        Split kernel options to obtain the inst.stage2 path. Generate the install_tree
+           using the http_server and the tree obtained from the inst.stage2 path
+
+        """
+
+        try:
+            tree = profile_data["kernel_options"].split()
+            # Ensure we only take the tree in case ks_meta args are passed
+            # First check for tree= in ks_meta arguments
+            meta_re = re.compile('inst.stage2=')
+            tree_found = ''
+            for entry in tree:
+                if meta_re.match(entry):
+                    tree_found = entry.split("=")[-1]
+                    break
+
+            if tree_found == '':
+                return False
+            else:
+                tree = tree_found
+            tree_re = re.compile('(http|ftp|nfs):')
+            # Next check for installation tree on remote server
+            if tree_re.match(tree):
+                tree = tree.replace(
+                    "@@http_server@@",
+                    profile_data["http_server"])
+                profile_data["install_tree"] = tree
+            else:
+                # Now take the first parameter as the local path
+                profile_data["install_tree"] = "http://" + \
+                    profile_data["http_server"] + tree
+
+            if self.safe_load(profile_data, "install_tree"):
+                print("install_tree:", profile_data["install_tree"])
+            else:
+                print("warning: kickstart found but no install_tree found")
+        except:
+            pass
+
     #---------------------------------------------------
 
     def list(self,what):
@@ -803,7 +850,7 @@ class Koan:
 
     def update_files(self):
         """
-        Contact the cobbler server and wget any config-management
+        Contact the cobbler server and get any config-management
         files in cobbler that we are providing to nodes.  Basically
         this turns cobbler into a lighweight configuration management
         system for folks who are not needing a more complex CMS.
@@ -848,7 +895,7 @@ class Koan:
                 url = pattern % (profile_data["http_server"],"profile",profile_data["name"],dest)
             if not os.path.exists(os.path.dirname(save_as)):
                 os.makedirs(os.path.dirname(save_as))
-            cmd = [ "/usr/bin/wget", url, "--output-document", save_as ]
+            cmd = ["/usr/bin/curl", url, "--output ", save_as]
             utils.subprocess_call(cmd)
        
         return True 
@@ -1325,6 +1372,7 @@ class Koan:
         kickstart = self.safe_load(pd,'kickstart')
         options   = self.safe_load(pd,'kernel_options',default='')
         breed     = self.safe_load(pd,'breed')
+        os_version= self.safe_load(pd,'os_version')
 
         kextra    = ""
         if kickstart is not None and kickstart != "":
@@ -1357,6 +1405,7 @@ class Koan:
             netmask = self.safe_load(interface_data, "netmask")
             gateway = self.safe_load(pd, "gateway")
             dns = self.safe_load(pd, "name_servers")
+            hostname = self.safe_load(interface_data, "dns_name")
 
             if breed == "debian" or breed == "ubuntu":
                 hostname = self.safe_load(pd, "hostname")
@@ -1381,25 +1430,43 @@ class Koan:
                 hashv["netdevice"] = self.static_interface
             else:
                 hashv["ksdevice"] = self.static_interface
+            newdracut = False
+            if (breed == "redhat" and
+                ((os_version[0:4] == "rhel" and int(os_version[4:]) >= 7) or
+                 (os_version[0:6] == "fedora" and int(os_version[6:]) >= 17))):
+                newdracut = True
             if ip is not None:
                 if breed == "suse":
                     hashv["hostip"] = ip
                 elif breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_ipaddress"] = ip
+                elif newdracut:
+                    def get_cidr(netmask):
+                        binary_str = ''
+                        for octet in netmask.split('.'):
+                            binary_str += bin(int(octet))[2:].zfill(8)
+                        return str(len(binary_str.rstrip('0')))
+                    hashv["ip"] = "%s::%s:%s:%s:%s:none" % (ip,gateway,get_cidr(netmask),hostname,interface_name)
                 else:
                     hashv["ip"] = ip
             if netmask is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_netmask"] = netmask
+                elif newdracut:
+                    pass
                 else:
                     hashv["netmask"] = netmask
             if gateway is not None:
                 if breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_gateway"] = gateway
+                elif newdracut:
+                    pass
                 else:
                     hashv["gateway"] = gateway
             if dns is not None:
-                if breed == "suse":
+                if newdracut:
+                    hashv["ip"] += ":" + ":".join(dns[0:2])
+                elif breed == "suse":
                     hashv["nameserver"] = dns[0]
                 elif breed == "debian" or breed == "ubuntu":
                     hashv["netcfg/get_nameservers"] = " ".join(dns)
@@ -1934,6 +2001,7 @@ class Koan:
         if uuid:
             return uuid
         return self.uuidToString(self.randomUUID())
+
 
 if __name__ == "__main__":
     main()

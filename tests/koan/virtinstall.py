@@ -1,5 +1,6 @@
 import unittest
 import koan
+import koan.utils
 
 from koan.virtinstall import build_commandline
 from koan.virtinstall import create_image_file
@@ -198,6 +199,19 @@ class KoanVirtInstallTest(unittest.TestCase):
              "--disk path=/some/install/image.img --network bridge=br0 "
              "--network bridge=br2 --wait 0 --noautoconsole")
         )
+
+    def testVirtVersionCheckTest(self):
+        tss = [
+            ("19.19.19", "2.2.2", True),
+            ("1.19.19", "2.2.2", False),
+            ("2.19.19", "2.2.2", True),
+            ("2.2.19", "2.2.2", True),
+            ("1.1.0", "2.2.2", False),
+            ("1.2.1", "2.2.2", False),
+            ("2.2.2", "2.2.2", True),
+        ]
+        for t in tss:
+            self.assertTrue(koan.utils.check_version_greater_or_equal(t[0], t[1]) == t[2])
 
     @patch('koan.virtinstall.utils.subprocess_call')
     @patch('koan.virtinstall.utils.os.path', new_callable=OsPathMock)
