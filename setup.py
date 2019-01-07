@@ -603,7 +603,8 @@ if __name__ == "__main__":
             "Cheetah3",
             "coverage",
             "Django",
-            "pymongo"
+            "pymongo",
+            "distro",
         ],
         packages=[
             "cobbler",

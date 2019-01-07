@@ -47,6 +47,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import yaml
+import distro
 
 from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
@@ -120,7 +121,7 @@ def log_exc(logger):
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occured: %s" % t)
     logger.info("Exception value: %s" % v)
-    logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+    logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
 
 
 def get_exc(exc, full=True):
@@ -909,9 +910,9 @@ def get_family():
     for item in redhat_list:
         if item in dist:
             return "redhat"
-    if dist in ("debian", "ubuntu"):
+    if "debian" in dist or "ubuntu" in dist:
         return "debian"
-    if "suse" in dist:
+    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
         return "suse"
     return dist
 
@@ -920,15 +921,10 @@ def check_dist():
     """
     Determines what distro we're running under.
     """
-    import platform
-    try:
-        return platform.linux_distribution()[0].lower().strip()
-    except AttributeError:
-        return platform.dist()[0].lower().strip()
+    return distro.linux_distribution()[0].lower().strip()
 
 
 def os_release():
-
     family = get_family()
     if family == "redhat":
         fh = open("/etc/redhat-release")
@@ -965,16 +961,11 @@ def os_release():
             return (make, float(version))
 
     elif family == "suse":
-        fd = open("/etc/SuSE-release")
-        for line in fd.read().split("\n"):
-            if line.find("VERSION") != -1:
-                version = line.replace("VERSION = ", "")
-            if line.find("PATCHLEVEL") != -1:
-                rest = line.replace("PATCHLEVEL = ", "")
         make = "suse"
+        distribution, version = distro.linux_distribution()[:2]
+        if distribution.lower() not in ("sles", "opensuse leap", "opensuse tumbleweed"):
+            make = "unknown"
         return (make, float(version))
-    else:
-        return ("unknown", 0)
 
 
 def tftpboot_location():
