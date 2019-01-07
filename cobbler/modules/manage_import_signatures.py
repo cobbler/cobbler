@@ -483,7 +483,7 @@ class ImportSignatureManager(object):
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
         for separator in ['-', '_', '.']:
-            for arch in ["i386", "x86_64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "386", "amd"]:
+            for arch in ["i386", "x86_64", "ia64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "s390x", "s390", "386", "amd"]:
                 name = name.replace("%s%s" % (separator, arch), "")
 
         return name
