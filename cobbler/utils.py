@@ -950,12 +950,12 @@ def os_release():
         raise CX("failed to detect local OS version from /etc/redhat-release")
 
     elif family == "debian":
-        distro = check_dist()
-        if distro == "debian":
+        distribution = check_dist()
+        if distribution == "debian":
             import lsb_release
             release = lsb_release.get_distro_information()['RELEASE']
             return ("debian", release)
-        elif distro == "ubuntu":
+        elif distribution == "ubuntu":
             version = subprocess_get(None, "lsb_release --release --short").rstrip()
             make = "ubuntu"
             return (make, float(version))
