@@ -605,6 +605,8 @@ if __name__ == "__main__":
             "Django",
             "pymongo",
             "distro",
+            "ldap",
+            "dnspython3"
         ],
         test_requires=[
             "pytest",
