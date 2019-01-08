@@ -575,7 +575,7 @@ class CobblerAPI(object):
             # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
             sigjson = dlmgr.urlread(url)
-            tmpfile.write(sigjson)
+            tmpfile.write(sigjson.text.encode())
             tmpfile.flush()
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
@@ -586,7 +586,7 @@ class CobblerAPI(object):
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
-            f.write(sigjson)
+            f.write(sigjson.text)
             f.close()
 
             utils.load_signatures(self.settings().signature_path)
