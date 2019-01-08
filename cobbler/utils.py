@@ -40,7 +40,6 @@ import shlex
 import shutil
 import simplejson
 import subprocess
-import string
 import sys
 import traceback
 import urllib.request
