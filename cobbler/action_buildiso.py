@@ -135,7 +135,7 @@ class BuildIso:
 
         return which_objs
 
-    def generate_netboot_iso(self, imagesdir, isolinuxdir, profiles=None, systems=None, exclude_dns=None):
+    def generate_netboot_iso(self, imagesdir, isolinuxdir, grubdir, profiles=None, systems=None, exclude_dns=None):
         """
         Create bootable CD image to be used for network installations
         """
@@ -144,8 +144,20 @@ class BuildIso:
 
         # setup isolinux.cfg
         isolinuxcfg = os.path.join(isolinuxdir, "isolinux.cfg")
+        grubcfg = os.path.join(grubdir, "grub.cfg")
+
         cfg = open(isolinuxcfg, "w+")
         cfg.write(self.iso_template)
+
+        gcfg = open(grubcfg, "w+")
+        gcfg.write("set timeout=180\n")
+        gcfg.write("set default=0\n")
+        gcfg.write("\n")
+        gcfg.write("menuentry 'Boot from local disk' {\n")
+        gcfg.write("  set root=(hd0)\n")
+        gcfg.write("  chainloader +1\n")
+        gcfg.write("  boot\n")
+        gcfg.write("}\n")
 
         # iterate through selected profiles
         for profile in which_profiles:
@@ -166,6 +178,8 @@ class BuildIso:
                 )
 
             append_line = " append initrd=%s.img" % distname
+            grub_prefix_to_remove_later = append_line
+
             if dist.breed == "suse":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s" % data["proxy"]
@@ -194,6 +208,26 @@ class BuildIso:
             append_line += self.add_remaining_kopts(data["kernel_options"])
             cfg.write(append_line)
 
+            gcfg.write("\n")
+            gcfg.write("menuentry 'UEFI %s' {\n" % profile.name)
+            gcfg.write("  linuxefi %s.krn %s\n" % (
+                    distname,
+                    append_line.replace(grub_prefix_to_remove_later, ''
+                    )
+            )
+            gcfg.write("  initrdefi %s.img\n" % distname)
+            gcfg.write("}\n")
+
+            gcfg.write("\n")
+            gcfg.write("menuentry 'LEGACY %s' {\n" % profile.name)
+            gcfg.write("  linux %s.krn %s\n" % (
+                    distname,
+                    append_line.replace(grub_prefix_to_remove_later, ''
+                    )
+            )
+            gcfg.write("  initrd %s.img\n" % distname)
+            gcfg.write("}\n")
+
         cfg.write("\nMENU SEPARATOR\n")
 
         # iterate through all selected systems
@@ -216,6 +250,8 @@ class BuildIso:
                 )
 
             append_line = " append initrd=%s.img" % distname
+            grub_prefix_to_remove_later = append_line
+
             if dist.breed == "suse":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s" % data["proxy"]
@@ -427,9 +463,30 @@ class BuildIso:
             append_line += self.add_remaining_kopts(data["kernel_options"])
             cfg.write(append_line)
 
+            gcfg.write("\n")
+            gcfg.write("menuentry 'UEFI %s' {\n" % system.name)
+            gcfg.write("  linuxefi %s.krn %s\n" % (
+                    distname,
+                    append_line.replace(grub_prefix_to_remove_later, ''
+                    )
+            )
+            gcfg.write("  initrdefi %s.img\n" % distname)
+            gcfg.write("}\n")
+
+            gcfg.write("\n")
+            gcfg.write("menuentry 'LEGACY %s' {\n" % system.name)
+            gcfg.write("  linux %s.krn %s\n" % (
+                    distname,
+                    append_line.replace(grub_prefix_to_remove_later, ''
+                    )
+            )
+            gcfg.write("  initrd %s.img\n" % distname)
+            gcfg.write("}\n")
+
         cfg.write("\n")
         cfg.write("MENU END\n")
         cfg.close()
+        gcfg.close()
 
     def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped, profiles):
         """
@@ -627,12 +684,15 @@ class BuildIso:
 
         imagesdir = os.path.join(buildisodir, "images")
         isolinuxdir = os.path.join(buildisodir, "isolinux")
+        grubdir = os.path.join(buildisodir, "boot/grub")
 
         self.logger.info("building tree for isolinux")
         if not os.path.exists(imagesdir):
             os.makedirs(imagesdir)
         if not os.path.exists(isolinuxdir):
             os.makedirs(isolinuxdir)
+        if not os.path.exists(grubdir):
+            os.makedirs(grubdir)
 
         self.logger.info("copying miscellaneous files")
 
@@ -670,7 +730,7 @@ class BuildIso:
         if standalone or airgapped:
             self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped, profiles)
         else:
-            self.generate_netboot_iso(imagesdir, isolinuxdir, profiles, systems, exclude_dns)
+            self.generate_netboot_iso(imagesdir, isolinuxdir, grubdir, profiles, systems, exclude_dns)
 
         if mkisofs_opts is None:
             mkisofs_opts = ""
