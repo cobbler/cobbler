@@ -610,11 +610,11 @@ class TFTPGen(object):
         if system:
             metadata["system_name"] = system.name
             if (system.serial_device is not None) or (system.serial_baud_rate is not None):
-                if system.serial_device is not None:
+                if system.serial_device:
                     serial_device = system.serial_device
                 else:
                     serial_device = 0
-                if system.serial_baud_rate is not None:
+                if system.serial_baud_rate:
                     serial_baud_rate = system.serial_baud_rate
                 else:
                     serial_baud_rate = 115200
