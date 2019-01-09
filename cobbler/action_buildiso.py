@@ -222,7 +222,7 @@ class BuildIso:
             gcfg.write("menuentry 'LEGACY %s' {\n" % profile.name)
             gcfg.write("  linux %s.krn %s\n" % (
                     distname,
-                    append_line.replace(grub_prefix_to_remove_later, ''
+                    append_line.replace(grub_prefix_to_remove_later, '')
                     )
             )
             gcfg.write("  initrd %s.img\n" % distname)
@@ -477,7 +477,7 @@ class BuildIso:
             gcfg.write("menuentry 'LEGACY %s' {\n" % system.name)
             gcfg.write("  linux %s.krn %s\n" % (
                     distname,
-                    append_line.replace(grub_prefix_to_remove_later, ''
+                    append_line.replace(grub_prefix_to_remove_later, '')
                     )
             )
             gcfg.write("  initrd %s.img\n" % distname)
