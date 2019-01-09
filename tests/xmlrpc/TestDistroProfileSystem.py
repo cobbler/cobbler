@@ -1,4 +1,3 @@
-import unittest
 import os
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
@@ -13,36 +12,14 @@ TEST_SYSTEM = ""
 cleanup_dirs = []
 
 
-"""
-Order is currently important:
-self._get_distros()
-self._create_distro()
-self._get_distro()
-self._find_distro()
-self._copy_distro()
-self._rename_distro()
+def tprint(call_name):
+    """
+    Print a remote call debug message
 
-self._get_profiles()
-self._create_profile()
-self._create_subprofile()
-self._get_profile()
-self._find_profile()
-self._copy_profile()
-self._rename_profile()
-self._get_repo_config_for_profile()
+    @param call_name str remote call name
+    """
 
-self._get_systems()
-self._create_system()
-self._get_system()
-self._find_system()
-self._copy_system()
-self._rename_system()
-self._get_repo_config_for_system()
-
-self._remove_system()
-self._remove_profile()
-self._remove_distro()
-"""
+    print("test remote call: %s()" % call_name)
 
 
 class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
@@ -211,36 +188,41 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         for fn in self.files_create:
             os.remove(fn)
 
-    def test_get_distros(self):
+    def _get_distros(self):
         """
         Test: get distros
         """
 
+        tprint("get_distros")
         self.remote.get_distros(self.token)
 
-    def test_get_profiles(self):
+    def _get_profiles(self):
         """
         Test: get profiles
         """
 
+        tprint("get_profiles")
         self.remote.get_profiles(self.token)
 
-    def test_get_systems(self):
+    def _get_systems(self):
         """
         Test: get systems
         """
 
+        tprint("get_systems")
         self.remote.get_systems(self.token)
 
-    def test_create_distro(self):
+    def _create_distro(self):
         """
         Test: create/edit a distro
         """
 
         distros = self.remote.get_distros(self.token)
 
+        tprint("new_distro")
         distro = self.remote.new_distro(self.token)
 
+        tprint("modify_distro")
         for field in self.distro_fields:
             (fname, fgood, fbad) = field
             for fb in fbad:
@@ -257,6 +239,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
+        tprint("save_distro")
         self.assertTrue(self.remote.save_distro(distro, self.token))
 
         # FIXME: if field in item_<type>.FIELDS defines possible values,
@@ -273,14 +256,16 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         new_distros = self.remote.get_distros(self.token)
         self.assertTrue(len(new_distros) == len(distros) + 1)
 
-    def test_create_profile(self):
+    def _create_profile(self):
         """
         Test: create/edit a profile object"""
 
         profiles = self.remote.get_profiles(self.token)
 
+        tprint("new_profile")
         profile = self.remote.new_profile(self.token)
 
+        tprint("modify_profile")
         for field in self.profile_fields:
             (fname, fgood, fbad) = field
             for fb in fbad:
@@ -296,36 +281,42 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
+        tprint("save_profile")
         self.assertTrue(self.remote.save_profile(profile, self.token))
 
         new_profiles = self.remote.get_profiles(self.token)
         self.assertTrue(len(new_profiles) == len(profiles) + 1)
 
-    def test_create_subprofile(self):
+    def _create_subprofile(self):
         """
         Test: create/edit a subprofile object"""
 
         profiles = self.remote.get_profiles(self.token)
 
+        tprint("new_subprofile")
         subprofile = self.remote.new_subprofile(self.token)
 
+        tprint("modify_profile")
         self.assertTrue(self.remote.modify_profile(subprofile, "name", "testsubprofile0", self.token))
         self.assertTrue(self.remote.modify_profile(subprofile, "parent", "testprofile0", self.token))
 
+        tprint("save_profile")
         self.assertTrue(self.remote.save_profile(subprofile, self.token))
 
         new_profiles = self.remote.get_profiles(self.token)
         self.assertTrue(len(new_profiles) == len(profiles) + 1)
 
-    def test_create_system(self):
+    def _create_system(self):
         """
         Test: create/edit a system object
         """
 
         systems = self.remote.get_systems(self.token)
 
+        tprint("new_system")
         system = self.remote.new_system(self.token)
 
+        tprint("modify_system")
         self.assertTrue(self.remote.modify_system(system, "name", "testsystem0", self.token))
         self.assertTrue(self.remote.modify_system(system, "profile", "testprofile0", self.token))
         for field in self.system_fields:
@@ -343,140 +334,185 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
+        tprint("save_system")
         self.assertTrue(self.remote.save_system(system, self.token))
 
         new_systems = self.remote.get_systems(self.token)
         self.assertTrue(len(new_systems) == len(systems) + 1)
 
-    def test_get_distro(self):
+    def _get_distro(self):
         """
         Test: get a distro object"""
 
+        tprint("get_distro")
         distro = self.remote.get_distro("testdistro0")
 
-    def test_get_profile(self):
+    def _get_profile(self):
         """
         Test: get a profile object"""
 
+        tprint("get_profile")
         profile = self.remote.get_profile("testprofile0")
 
-    def test_get_system(self):
+    def _get_system(self):
         """
         Test: get a system object"""
 
+        tprint("get_system")
         system = self.remote.get_system("testsystem0")
 
-    def test_find_distro(self):
+    def _find_distro(self):
         """
         Test: find a distro object
         """
 
+        tprint("find_distro")
         result = self.remote.find_distro({"name": "testdistro0"}, self.token)
         self.assertTrue(result)
 
-    def test_find_profile(self):
+    def _find_profile(self):
         """
         Test: find a profile object
         """
 
+        tprint("find_profile")
         result = self.remote.find_profile({"name": "testprofile0"}, self.token)
         self.assertTrue(result)
 
-    def test_find_system(self):
+    def _find_system(self):
         """
         Test: find a system object
         """
 
+        tprint("find_system")
         result = self.remote.find_system({"name": "testsystem0"}, self.token)
         self.assertTrue(result)
 
-    def test_copy_distro(self):
+    def _copy_distro(self):
         """
         Test: copy a distro object
         """
 
+        tprint("copy_distro")
         distro = self.remote.get_item_handle("distro", "testdistro0", self.token)
         self.assertTrue(self.remote.copy_distro(distro, "testdistrocopy", self.token))
 
-    def test_copy_profile(self):
+    def _copy_profile(self):
         """
         Test: copy a profile object
         """
 
+        tprint("copy_profile")
         profile = self.remote.get_item_handle("profile", "testprofile0", self.token)
         self.assertTrue(self.remote.copy_profile(profile, "testprofilecopy", self.token))
 
-    def test_copy_system(self):
+    def _copy_system(self):
         """
         Test: copy a system object
         """
 
+        tprint("copy_system")
         system = self.remote.get_item_handle("system", "testsystem0", self.token)
         self.assertTrue(self.remote.copy_system(system, "testsystemcopy", self.token))
 
-    def test_rename_distro(self):
+    def _rename_distro(self):
         """
         Test: rename a distro object
         """
 
+        tprint("rename_distro")
         distro = self.remote.get_item_handle("distro", "testdistrocopy", self.token)
         self.assertTrue(self.remote.rename_distro(distro, "testdistro1", self.token))
 
-    def test_rename_profile(self):
+    def _rename_profile(self):
         """
         Test: rename a profile object
         """
 
+        tprint("rename_profile")
         profile = self.remote.get_item_handle("profile", "testprofilecopy", self.token)
         self.assertTrue(self.remote.rename_profile(profile, "testprofile1", self.token))
 
-    def test_rename_system(self):
+    def _rename_system(self):
         """
         Test: rename a system object
         """
 
+        tprint("rename_system")
         system = self.remote.get_item_handle("system", "testsystemcopy", self.token)
         self.assertTrue(self.remote.rename_system(system, "testsystem1", self.token))
 
-    def test_remove_distro(self):
+    def _remove_distro(self):
         """
         Test: remove a distro object
         """
 
+        tprint("remove_distro")
         self.assertTrue(self.remote.remove_distro("testdistro0", self.token))
         self.assertTrue(self.remote.remove_distro("testdistro1", self.token))
 
-    def test_remove_profile(self):
+    def _remove_profile(self):
         """
         Test: remove a profile object
         """
 
+        tprint("remove_profile")
         self.assertTrue(self.remote.remove_profile("testsubprofile0", self.token))
         self.assertTrue(self.remote.remove_profile("testprofile0", self.token))
         self.assertTrue(self.remote.remove_profile("testprofile1", self.token))
 
-    def test_remove_system(self):
+    def _remove_system(self):
         """
         Test: remove a system object
         """
 
+        tprint("remove_system")
         self.assertTrue(self.remote.remove_system("testsystem0", self.token))
         self.assertTrue(self.remote.remove_system("testsystem1", self.token))
 
-    def test_get_repo_config_for_profile(self):
+    def _get_repo_config_for_profile(self):
         """
         Test: get repository configuration of a profile
         """
 
         self.remote.get_repo_config_for_profile("testprofile0")
 
-    def test_get_repo_config_for_system(self):
+    def _get_repo_config_for_system(self):
         """
         Test: get repository configuration of a system
         """
 
         self.remote.get_repo_config_for_system("testprofile0")
 
+    def test_distro_profile_system(self):
+        """
+        Test remote calls related to distro, profile and system
+        """
 
-if __name__ == '__main__':
-    unittest.main()
+        self._get_distros()
+        self._create_distro()
+        self._get_distro()
+        self._find_distro()
+        self._copy_distro()
+        self._rename_distro()
+
+        self._get_profiles()
+        self._create_profile()
+        self._create_subprofile()
+        self._get_profile()
+        self._find_profile()
+        self._copy_profile()
+        self._rename_profile()
+        self._get_repo_config_for_profile()
+
+        self._get_systems()
+        self._create_system()
+        self._get_system()
+        self._find_system()
+        self._copy_system()
+        self._rename_system()
+        self._get_repo_config_for_system()
+
+        self._remove_system()
+        self._remove_profile()
+        self._remove_distro()

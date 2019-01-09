@@ -1,4 +1,3 @@
-import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -108,6 +107,3 @@ class TestItem(CobblerXmlRpcBaseTest):
 
         new_items_names = self.remote.get_item_names(type)
         self.assertTrue(len(new_items_names) == len(items_names))
-
-if __name__ == '__main__':
-    unittest.main()
