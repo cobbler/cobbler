@@ -660,7 +660,7 @@ class BuildIso(object):
                                     self.api)
                         file_copy_success[file_to_copy] = True
 
-        if False in file_copy_success.values()
+        if False in file_copy_success.values():
             for k, v in file_copy_success:
                 if not v:
                     self.logger.error("File not found: %s" % k)
