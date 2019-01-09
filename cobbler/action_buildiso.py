@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from past.builtins import cmp
 from builtins import str
 from builtins import object
 import os
@@ -104,12 +103,6 @@ class BuildIso(object):
             shutil.copyfile(distro.kernel, os.path.join(destdir, "%s.krn" % prefix))
             shutil.copyfile(distro.initrd, os.path.join(destdir, "%s.img" % prefix))
 
-    def sort_name(self, a, b):
-        """
-        Sort profiles/systems by name
-        """
-        return cmp(a.name, b.name)
-
     def filter_systems_or_profiles(self, selected_items, list_type):
         """
         Return a list of valid profile or system objects selected from all profiles
@@ -122,7 +115,7 @@ class BuildIso(object):
         else:
             utils.die(self.logger, "Invalid list_type argument: " + list_type)
 
-        all_objs.sort(self.sort_name)
+        all_objs.sort(key=lambda profile: profile.name)
 
         # no profiles/systems selection is made, let's process everything
         if not selected_items:
@@ -647,36 +640,31 @@ class BuildIso(object):
 
         self.logger.info("copying miscellaneous files")
 
-        isolinuxbin = "/usr/share/syslinux/isolinux.bin"
-        if not os.path.exists(isolinuxbin):
-            isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
+        files_to_copy = ["isolinux.bin", "menu.c32", "chain.c32",
+                         "ldlinux.c32", "libcom32.c32", "libutil.c32"]
 
-        menu = "/usr/share/syslinux/menu.c32"
-        if not os.path.exists(menu):
-            menu = "/var/lib/cobbler/loaders/menu.c32"
+        syslinux_folders = ["/usr/share/syslinux/",
+                            "/usr/lib/syslinux/modules/bios/",
+                            "/usr/lib/syslinux/",
+                            "/usr/lib/ISOLINUX/"]
 
-        chain = "/usr/share/syslinux/chain.c32"
-        if not os.path.exists(chain):
-            chain = "/usr/lib/syslinux/chain.c32"
+        # file_copy_success will be used to check for missing files
+        file_copy_success = {f: False for f in files_to_copy if f != "ldlinux32.c32"}
+        for syslinux_folder in syslinux_folders:
+            if os.path.isdir(os.path.join(syslinux_folder)):
+                for file_to_copy in files_to_copy:
+                    source_file = os.path.join(syslinux_folder, file_to_copy)
+                    if os.path.exists(source_file):
+                        utils.copyfile(source_file,
+                                    os.path.join(isolinuxdir, file_to_copy),
+                                    self.api)
+                        file_copy_success[file_to_copy] = True
 
-        ldlinux = "/usr/share/syslinux/ldlinux.c32"
-        if not os.path.exists(ldlinux):
-            ldlinux = "/usr/lib/syslinux/ldlinux.c32"
-
-        libcom32 = "/usr/share/syslinux/libcom32.c32"
-        if not os.path.exists(libcom32):
-            ldlinux = "/usr/lib/syslinux/libcom32.c32"
-
-        libutil = "/usr/share/syslinux/libutil.c32"
-        if not os.path.exists(libutil):
-            ldlinux = "/usr/lib/syslinux/libutil.c32"
-
-        files = [isolinuxbin, menu, chain, ldlinux, libcom32, libutil]
-        for f in files:
-            if not os.path.exists(f):
-                utils.die(self.logger, "Required file not found: %s" % f)
-            else:
-                utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
+        if False in file_copy_success.values()
+            for k, v in file_copy_success:
+                if not v:
+                    self.logger.error("File not found: %s" % k)
+            utils.die(self.logger, "Required file(s) not found. Please check your syslinux installation")
 
         if standalone or airgapped:
             self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped, profiles)
