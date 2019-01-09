@@ -350,7 +350,7 @@ class CobblerXMLRPCInterface(object):
 
         thr_obj._run = thr_obj_fn
         if on_done is not None:
-            thr_obj.on_done = on_done_type(on_done, thr_obj, CobblerThread)
+            thr_obj.on_done = on_done.__get__(thr_obj, CobblerThread)
         thr_obj.start()
         return event_id
 
