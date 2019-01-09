@@ -1032,7 +1032,7 @@ def hashfile(fn, lcache=None, logger=None):
 
     if os.path.exists(fn):
         cmd = '/usr/bin/sha1sum %s' % fn
-        key = subprocess_get(logger, cmd).split(' ')[0]
+        key = str(subprocess_get(logger, cmd), 'utf-8').split(' ')[0]
         if lcache is not None:
             db[fn] = (mtime, key)
             simplejson.dump(db, open(dbfile, 'w'))
