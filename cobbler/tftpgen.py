@@ -75,7 +75,7 @@ class TFTPGen(object):
                     dst, api=self.api, cache=False, logger=self.logger)
                 utils.copyfile_pattern(
                     '/var/lib/cobbler/loaders/ldlinux.c32',
-                    dst, api=self.api, cache=False, logger=self.logger)
+                    dst, require_match=False, api=self.api, cache=False, logger=self.logger)
             except:
                 utils.copyfile_pattern(
                     '/usr/share/syslinux/pxelinux.0',
@@ -85,7 +85,7 @@ class TFTPGen(object):
                     dst, api=self.api, cache=False, logger=self.logger)
                 utils.copyfile_pattern(
                     '/usr/share/syslinux/ldlinux.c32',
-                    dst, api=self.api, cache=False, logger=self.logger)
+                    dst, require_match=False, api=self.api, cache=False, logger=self.logger)
         except:
             utils.copyfile_pattern(
                 '/usr/lib/syslinux/pxelinux.0',
@@ -95,7 +95,7 @@ class TFTPGen(object):
                 dst, api=self.api, cache=False, logger=self.logger)
             utils.copyfile_pattern(
                 '/usr/lib/syslinux/ldlinux.c32',
-                dst, api=self.api, cache=False, logger=self.logger)
+                dst, require_match=False, api=self.api, cache=False, logger=self.logger)
 
         # copy yaboot which we include for PowerPC targets
         utils.copyfile_pattern(
