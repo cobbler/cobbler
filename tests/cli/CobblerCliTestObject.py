@@ -39,9 +39,9 @@ class CobblerCliTestObject(unittest.TestCase):
     """
 
     def setUp(self):
-        '''
+        """
         Initializes testcase
-        '''
+        """
 
         # create files if necessary
         if not os.path.exists(dummy_file_path):
@@ -52,21 +52,21 @@ class CobblerCliTestObject(unittest.TestCase):
         #        manually before running tests again
 
     def tearDown(self):
-        '''
+        """
         Cleans up testcase
-        '''
+        """
 
         # remove files
         if os.path.exists(dummy_file_path):
             os.remove(dummy_file_path)
 
     def _list_objects(self, type):
-        '''
+        """
         Get objects of a type
 
-        @param str type object type
+        @param type str object type
         @return list objects
-        '''
+        """
 
         objects = []
         output = run_cmd("cobbler %s list" % type)
@@ -77,18 +77,18 @@ class CobblerCliTestObject(unittest.TestCase):
         return objects
 
     def _test_generic_commands(self, type, name, attr, objects):
-        '''
+        """
         Test object type generic commands
 
-        @param str type object type
-        @param str name object name
-        @param dict attr object attributes to be tested.
+        @param type str object type
+        @param name str object name
+        @param attr dict object attributes to be tested.
                     Valid keys: name, long_name, initial_value, value
-        @param list objects list of objects returned in cobbler <type> list.
+        @param objects list list of objects returned in cobbler <type> list.
                     This is an input parameter for performance reasons. Objects
                     list is already generated before this call(), when object is
                     created, so there is no reason to regenerate it.
-        '''
+        """
 
         new_name = "test-%s2" % type
 
@@ -329,157 +329,3 @@ class CobblerCliTestObject(unittest.TestCase):
         self._test_repo()
         self._test_mgmtclass()
         self._test_package()
-
-
-class CobblerCliTestDirect(unittest.TestCase):
-    """
-    Tests Cobbler CLI direct commands
-    """
-
-    def setUp(self):
-        """
-        Set up
-        """
-        return
-
-    def tearDown(self):
-        """
-        Cleanup here
-        """
-        return
-
-    def test_cobbler_version(self):
-        """Runs 'cobbler version'"""
-        output = run_cmd("cobbler version")
-        line = output.split("\n")[0]
-        match_obj = re.match("Cobbler \d+\.\d+\.\d+", line)
-        self.assertTrue(match_obj is not None)
-
-    def test_cobbler_status(self):
-        """Runs 'cobbler status'"""
-        output = run_cmd("cobbler status")
-        lines = output.split("\n")
-        match_obj = re.match("ip\s+|target\s+|start\s+|state\s+", lines[0])
-        self.assertTrue(match_obj is not None)
-
-    def test_cobbler_sync(self):
-        """Runs 'cobbler sync'"""
-        output = run_cmd("cobbler sync")
-        lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
-
-    def test_cobbler_signature_report(self):
-        """Runs 'cobbler signature report'"""
-        output = run_cmd("cobbler signature report")
-        lines = output.split("\n")
-        self.assertTrue("Currently loaded signatures:" == lines[0])
-        expected_output = "\d+ breeds with \d+ total signatures loaded"
-        match_obj = re.match(expected_output, get_last_line(lines))
-        self.assertTrue(match_obj is not None)
-
-    def test_cobbler_signature_update(self):
-        """Runs 'cobbler signature update'"""
-        output = run_cmd("cobbler signature update")
-        lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
-
-    def test_cobbler_acl_adduser(self):
-        """Runs 'cobbler aclsetup --adduser'"""
-        output = run_cmd("cobbler aclsetup --adduser=cobbler")
-        # TODO: verify user acl exists on directories
-
-    def test_cobbler_acl_addgroup(self):
-        """Runs 'cobbler aclsetup --addgroup'"""
-        output = run_cmd("cobbler aclsetup --addgroup=cobbler")
-        # TODO: verify group acl exists on directories
-
-    def test_cobbler_acl_removeuser(self):
-        """Runs 'cobbler aclsetup --removeuser'"""
-        output = run_cmd("cobbler aclsetup --removeuser=cobbler")
-        # TODO: verify user acl no longer exists on directories
-
-    def test_cobbler_acl_removegroup(self):
-        """Runs 'cobbler aclsetup --removegroup'"""
-        output = run_cmd("cobbler aclsetup --removegroup=cobbler")
-        # TODO: verify group acl no longer exists on directories
-
-    def test_cobbler_reposync(self):
-        """Runs 'cobbler reposync'"""
-        output = run_cmd("cobbler reposync")
-        output = run_cmd("cobbler reposync --tries=3")
-        output = run_cmd("cobbler reposync --no-fail")
-
-    def test_cobbler_buildiso(self):
-        """Runs 'cobbler buildiso'"""
-
-        output = run_cmd("cobbler buildiso")
-        lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
-        self.assertTrue(os.path.isfile("/root/generated.iso"))
-
-    def _assert_list_section(self, lines, start_line, section_name):
-
-        i = start_line
-        self.assertEqual(lines[i], "%s:" % section_name)
-        i += 1
-        while lines[i] != "":
-            i += 1
-        i += 1
-
-        return i
-
-    def test_11_cobbler_list(self):
-
-        output = run_cmd("cobbler list")
-        lines = output.split("\n")
-        i = 0
-        i = self._assert_list_section(lines, i, "distros")
-        i = self._assert_list_section(lines, i, "profiles")
-        i = self._assert_list_section(lines, i, "systems")
-        i = self._assert_list_section(lines, i, "repos")
-        i = self._assert_list_section(lines, i, "images")
-        i = self._assert_list_section(lines, i, "mgmtclasses")
-        i = self._assert_list_section(lines, i, "packages")
-        i = self._assert_list_section(lines, i, "files")
-
-    def _assert_report_section(self, lines, start_line, section_name):
-
-        i = start_line
-        self.assertEqual(lines[i], "%s:" % section_name)
-        i += 1
-        match_obj = re.match("=+$", lines[i].strip())
-        self.assertTrue(match_obj is not None)
-        i += 1
-        while i < len(lines) - 1 and re.match("=+$", lines[i + 1]) is None:
-            while i < len(lines) and lines[i] != "":
-                i += 1
-            while i < len(lines) and lines[i] == "":
-                i += 1
-
-        return i
-
-    def test_cobbler_report(self):
-        output = run_cmd("cobbler report")
-        lines = output.split("\n")
-        i = 0
-        i = self._assert_report_section(lines, i, "distros")
-        i = self._assert_report_section(lines, i, "profiles")
-        i = self._assert_report_section(lines, i, "systems")
-        i = self._assert_report_section(lines, i, "repos")
-        i = self._assert_report_section(lines, i, "images")
-        i = self._assert_report_section(lines, i, "mgmtclasses")
-        i = self._assert_report_section(lines, i, "packages")
-        i = self._assert_report_section(lines, i, "files")
-
-    def test_cobbler_getloaders(self):
-        output = run_cmd("cobbler get-loaders")
-        lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
-
-    # @IMPROVEMENT test cobbler validateks
-    # @IMPROVEMENT test cobbler hardlink
-    # @IMPROVEMENT test cobbler replicate. Requires 2 test cobbler servers
-
-
-if __name__ == '__main__':
-    unittest.main()
