@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -78,3 +79,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
 
         self.assertTrue(self.remote.remove_repo("testrepo0", self.token))
         self.assertTrue(self.remote.remove_repo("testrepo1", self.token))
+
+
+if __name__ == '__main__':
+    unittest.main()

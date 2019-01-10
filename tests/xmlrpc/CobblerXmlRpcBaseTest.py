@@ -32,3 +32,7 @@ class CobblerXmlRpcBaseTest(unittest.TestCase):
         Cleanup here
         """
         return
+
+
+if __name__ == '__main__':
+    unittest.main()

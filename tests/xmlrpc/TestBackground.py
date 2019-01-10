@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -37,3 +38,7 @@ class TestBackground(CobblerXmlRpcBaseTest):
     def test_background_validate_autoinstall_files(self):
         # TODO: test remote.background_validate_autoinstall_files()
         raise NotImplemented()
+
+
+if __name__ == '__main__':
+    unittest.main()
