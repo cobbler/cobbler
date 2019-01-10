@@ -329,3 +329,7 @@ class CobblerCliTestObject(unittest.TestCase):
         self._test_repo()
         self._test_mgmtclass()
         self._test_package()
+
+
+if __name__ == '__main__':
+    unittest.main()

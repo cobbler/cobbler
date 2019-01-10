@@ -1,3 +1,4 @@
+import unittest
 import time
 import re
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
@@ -171,3 +172,7 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         hexa = "[0-9A-Fa-f]{2}"
         match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
         self.assertTrue(match_obj)
+
+
+if __name__ == '__main__':
+    unittest.main()
