@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -82,3 +83,7 @@ class TestFile(CobblerXmlRpcBaseTest):
 
         self.assertTrue(self.remote.remove_file("testfile0", self.token))
         self.assertTrue(self.remote.remove_file("testfile1", self.token))
+
+
+if __name__ == '__main__':
+    unittest.main()

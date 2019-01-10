@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -90,3 +91,6 @@ class TestImage(CobblerXmlRpcBaseTest):
         self._copy_image()
         self._rename_image()
         self._remove_image()
+
+if __name__ == '__main__':
+    unittest.main()

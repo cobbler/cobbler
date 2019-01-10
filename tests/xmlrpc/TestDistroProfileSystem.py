@@ -1,3 +1,4 @@
+import unittest
 import os
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
@@ -475,3 +476,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         """
 
         self.remote.get_repo_config_for_system("testprofile0")
+
+
+if __name__ == '__main__':
+    unittest.main()
