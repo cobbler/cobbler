@@ -44,16 +44,6 @@ self._remove_distro()
 """
 
 
-def tprint(call_name):
-    """
-    Print a remote call debug message
-
-    @param call_name str remote call name
-    """
-
-    print("test remote call: %s()" % call_name)
-
-
 class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
     """
     Test remote calls related to distros, profiles and systems
@@ -225,7 +215,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: get distros
         """
 
-        tprint("get_distros")
         self.remote.get_distros(self.token)
 
     def test_get_profiles(self):
@@ -233,7 +222,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: get profiles
         """
 
-        tprint("get_profiles")
         self.remote.get_profiles(self.token)
 
     def test_get_systems(self):
@@ -241,7 +229,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: get systems
         """
 
-        tprint("get_systems")
         self.remote.get_systems(self.token)
 
     def test_create_distro(self):
@@ -251,10 +238,8 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         distros = self.remote.get_distros(self.token)
 
-        tprint("new_distro")
         distro = self.remote.new_distro(self.token)
 
-        tprint("modify_distro")
         for field in self.distro_fields:
             (fname, fgood, fbad) = field
             for fb in fbad:
@@ -271,7 +256,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
-        tprint("save_distro")
         self.assertTrue(self.remote.save_distro(distro, self.token))
 
         # FIXME: if field in item_<type>.FIELDS defines possible values,
@@ -294,10 +278,8 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         profiles = self.remote.get_profiles(self.token)
 
-        tprint("new_profile")
         profile = self.remote.new_profile(self.token)
 
-        tprint("modify_profile")
         for field in self.profile_fields:
             (fname, fgood, fbad) = field
             for fb in fbad:
@@ -313,7 +295,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
-        tprint("save_profile")
         self.assertTrue(self.remote.save_profile(profile, self.token))
 
         new_profiles = self.remote.get_profiles(self.token)
@@ -325,14 +306,11 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         profiles = self.remote.get_profiles(self.token)
 
-        tprint("new_subprofile")
         subprofile = self.remote.new_subprofile(self.token)
 
-        tprint("modify_profile")
         self.assertTrue(self.remote.modify_profile(subprofile, "name", "testsubprofile0", self.token))
         self.assertTrue(self.remote.modify_profile(subprofile, "parent", "testprofile0", self.token))
 
-        tprint("save_profile")
         self.assertTrue(self.remote.save_profile(subprofile, self.token))
 
         new_profiles = self.remote.get_profiles(self.token)
@@ -345,10 +323,8 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         systems = self.remote.get_systems(self.token)
 
-        tprint("new_system")
         system = self.remote.new_system(self.token)
 
-        tprint("modify_system")
         self.assertTrue(self.remote.modify_system(system, "name", "testsystem0", self.token))
         self.assertTrue(self.remote.modify_system(system, "profile", "testprofile0", self.token))
         for field in self.system_fields:
@@ -366,7 +342,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
-        tprint("save_system")
         self.assertTrue(self.remote.save_system(system, self.token))
 
         new_systems = self.remote.get_systems(self.token)
@@ -376,21 +351,18 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         """
         Test: get a distro object"""
 
-        tprint("get_distro")
         distro = self.remote.get_distro("testdistro0")
 
     def test_get_profile(self):
         """
         Test: get a profile object"""
 
-        tprint("get_profile")
         profile = self.remote.get_profile("testprofile0")
 
     def test_get_system(self):
         """
         Test: get a system object"""
 
-        tprint("get_system")
         system = self.remote.get_system("testsystem0")
 
     def test_find_distro(self):
@@ -398,7 +370,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: find a distro object
         """
 
-        tprint("find_distro")
         result = self.remote.find_distro({"name": "testdistro0"}, self.token)
         self.assertTrue(result)
 
@@ -407,7 +378,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: find a profile object
         """
 
-        tprint("find_profile")
         result = self.remote.find_profile({"name": "testprofile0"}, self.token)
         self.assertTrue(result)
 
@@ -416,7 +386,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: find a system object
         """
 
-        tprint("find_system")
         result = self.remote.find_system({"name": "testsystem0"}, self.token)
         self.assertTrue(result)
 
@@ -425,7 +394,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: copy a distro object
         """
 
-        tprint("copy_distro")
         distro = self.remote.get_item_handle("distro", "testdistro0", self.token)
         self.assertTrue(self.remote.copy_distro(distro, "testdistrocopy", self.token))
 
@@ -434,7 +402,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: copy a profile object
         """
 
-        tprint("copy_profile")
         profile = self.remote.get_item_handle("profile", "testprofile0", self.token)
         self.assertTrue(self.remote.copy_profile(profile, "testprofilecopy", self.token))
 
@@ -443,7 +410,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: copy a system object
         """
 
-        tprint("copy_system")
         system = self.remote.get_item_handle("system", "testsystem0", self.token)
         self.assertTrue(self.remote.copy_system(system, "testsystemcopy", self.token))
 
@@ -452,7 +418,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: rename a distro object
         """
 
-        tprint("rename_distro")
         distro = self.remote.get_item_handle("distro", "testdistrocopy", self.token)
         self.assertTrue(self.remote.rename_distro(distro, "testdistro1", self.token))
 
@@ -461,7 +426,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: rename a profile object
         """
 
-        tprint("rename_profile")
         profile = self.remote.get_item_handle("profile", "testprofilecopy", self.token)
         self.assertTrue(self.remote.rename_profile(profile, "testprofile1", self.token))
 
@@ -470,7 +434,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: rename a system object
         """
 
-        tprint("rename_system")
         system = self.remote.get_item_handle("system", "testsystemcopy", self.token)
         self.assertTrue(self.remote.rename_system(system, "testsystem1", self.token))
 
@@ -479,7 +442,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: remove a distro object
         """
 
-        tprint("remove_distro")
         self.assertTrue(self.remote.remove_distro("testdistro0", self.token))
         self.assertTrue(self.remote.remove_distro("testdistro1", self.token))
 
@@ -488,7 +450,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: remove a profile object
         """
 
-        tprint("remove_profile")
         self.assertTrue(self.remote.remove_profile("testsubprofile0", self.token))
         self.assertTrue(self.remote.remove_profile("testprofile0", self.token))
         self.assertTrue(self.remote.remove_profile("testprofile1", self.token))
@@ -498,7 +459,6 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: remove a system object
         """
 
-        tprint("remove_system")
         self.assertTrue(self.remote.remove_system("testsystem0", self.token))
         self.assertTrue(self.remote.remove_system("testsystem1", self.token))
 

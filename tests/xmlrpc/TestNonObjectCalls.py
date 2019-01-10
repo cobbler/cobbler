@@ -14,16 +14,6 @@ TEST_SYSTEM = ""
 cleanup_dirs = []
 
 
-def tprint(call_name):
-    """
-    Print a remote call debug message
-
-    @param call_name str remote call name
-    """
-
-    print("test remote call: %s()" % call_name)
-
-
 class TestNonObjectCalls(CobblerXmlRpcBaseTest):
 
     # TODO: Obsolete this method via a unittest method
@@ -52,7 +42,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get user data from authentication token
         """
 
-        tprint("get_user_from_token")
         self.assertTrue(self.remote.get_user_from_token(self.token))
 
     def test_check(self):
@@ -60,7 +49,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: check Cobbler status
         """
 
-        tprint("check")
         self.assertTrue(self.remote.check(self.token))
 
     def test_last_modified_time(self):
@@ -68,7 +56,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get last modification time
         """
 
-        tprint("last_modified_time")
         assert self.remote.last_modified_time(self.token) != 0
 
     def test_power_system(self):
@@ -77,7 +64,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         """
 
         if TEST_SYSTEM and TEST_POWER_MANAGEMENT:
-            tprint("background_power_system")
             tid = self.remote.background_power_system({"systems": [TEST_SYSTEM],
                                                        "power": "reboot"},
                                                       self.token)
@@ -89,16 +75,13 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         (dhcp, tftp, dns)
         """
 
-        tprint("background_sync")
         tid = self.remote.background_sync({}, self.token)
-
-        tprint("get_events")
         events = self.remote.get_events(self.token)
+
         self.assertTrue(len(events) > 0)
 
         self._wait_task_end(tid)
 
-        tprint("get_event_log")
         event_log = self.remote.get_event_log(tid)
 
     def test_get_kickstart_templates(self):
@@ -106,7 +89,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get kickstart templates
         """
 
-        tprint("get_kickstart_templates")
         result = self.remote.get_kickstart_templates()
         self.assertTrue(len(result) > 0)
 
@@ -115,7 +97,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get snippets
         """
 
-        tprint("get_snippets")
         result = self.remote.get_snippets(self.token)
         self.assertTrue(len(result) > 0)
 
@@ -125,7 +106,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         """
 
         if TEST_SYSTEM:
-            tprint("generate_kickstart")
             self.remote.generate_kickstart(None, TEST_SYSTEM)
 
     def test_generate_gpxe(self):
@@ -134,7 +114,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         """
 
         if TEST_SYSTEM:
-            tprint("generate_gpxe")
             self.remote.generate_gpxe(None, TEST_SYSTEM)
 
     def test_generate_bootcfg(self):
@@ -143,7 +122,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         """
 
         if TEST_SYSTEM:
-            tprint("generate_bootcfg")
             self.remote.generate_bootcfg(None, TEST_SYSTEM)
 
     def test_get_settings(self):
@@ -151,7 +129,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get settings
         """
 
-        tprint("get_settings")
         self.remote.get_settings(self.token)
 
     def test_get_signatures(self):
@@ -159,7 +136,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get distro signatures
         """
 
-        tprint("get_signatures")
         self.remote.get_signatures(self.token)
 
     def test_get_valid_breeds(self):
@@ -167,7 +143,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get valid OS breeds
         """
 
-        tprint("get_valid_breeds")
         breeds = self.remote.get_valid_breeds(self.token)
         self.assertTrue(len(breeds) > 0)
 
@@ -176,7 +151,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get valid OS versions for a OS breed
         """
 
-        tprint("get_valid_os_versions_for_breeds")
         versions = self.remote.get_valid_os_versions_for_breed("generic", self.token)
         self.assertTrue(len(versions) > 0)
 
@@ -185,7 +159,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get valid OS versions
         """
 
-        tprint("get_valid_os_versions")
         versions = self.remote.get_valid_os_versions(self.token)
         self.assertTrue(len(versions) > 0)
 
@@ -194,7 +167,6 @@ class TestNonObjectCalls(CobblerXmlRpcBaseTest):
         Test: get a random mac for a virtual network interface
         """
 
-        tprint("get_random_mac")
         mac = self.remote.get_random_mac("xen", self.token)
         hexa = "[0-9A-Fa-f]{2}"
         match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
