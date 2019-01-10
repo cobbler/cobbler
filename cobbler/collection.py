@@ -116,7 +116,10 @@ class Collection(object):
 
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
-            return self.listing.get(kargs["name"].lower(), None)
+            try:
+                return self.listing.get(kargs["name"].lower(), None)
+            except:
+                return self.listing.get(kargs["name"], None)
 
         self.lock.acquire()
         try:

@@ -261,7 +261,7 @@ class AutoInstallationManager(object):
         autoinstall = blended["autoinstall"]
         if autoinstall is None or autoinstall == "":
             self.logger.info("%s has no automatic installation template set, skipping" % obj.name)
-            return [True, None, None]
+            return [True, 0, ()]
 
         # generate automatic installation file
         os_version = blended["os_version"]
@@ -274,6 +274,8 @@ class AutoInstallationManager(object):
         last_errors = self.autoinstallgen.get_last_errors()
         if len(last_errors) > 0:
             return [False, TEMPLATING_ERROR, last_errors]
+        else:
+            return [True, 0, ()]
 
     def validate_autoinstall_files(self, logger=None):
         """
@@ -287,11 +289,12 @@ class AutoInstallationManager(object):
         @param Logger logger logger
         @return bool if all automatic installation files are valid
         """
+        overall_success = True
 
         for x in self.collection_mgr.profiles():
             (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
             if not success:
-                overall_success = True
+                overall_success = False
             if len(errors) > 0:
                 self.log_autoinstall_validation_errors(errors_type, errors)
         for x in self.collection_mgr.systems():
