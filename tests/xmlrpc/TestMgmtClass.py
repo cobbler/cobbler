@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -92,3 +93,6 @@ class TestMgmtClass(CobblerXmlRpcBaseTest):
         self._copy_mgmtclass()
         self._rename_mgmtclass()
         self._remove_mgmtclass()
+
+if __name__ == '__main__':
+    unittest.main()

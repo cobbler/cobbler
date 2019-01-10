@@ -1,3 +1,4 @@
+import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -74,3 +75,7 @@ class TestPackage(CobblerXmlRpcBaseTest):
 
         self.assertTrue(self.remote.remove_package("testpackage0", self.token))
         self.assertTrue(self.remote.remove_package("testpackage1", self.token))
+
+
+if __name__ == '__main__':
+    unittest.main()
