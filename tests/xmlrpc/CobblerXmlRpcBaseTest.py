@@ -6,6 +6,7 @@ from cobbler.utils import local_get_cobbler_api_url, get_shared_secret
 
 # "import xmlrpc.client" does currently not work. No explanation found anywhere.
 
+
 class CobblerXmlRpcBaseTest(unittest.TestCase):
 
     def setUp(self):
