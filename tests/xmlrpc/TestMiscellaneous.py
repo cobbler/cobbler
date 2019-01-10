@@ -1,4 +1,3 @@
-import unittest
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
@@ -98,7 +97,3 @@ class TestMiscellaneous(CobblerXmlRpcBaseTest):
     def test_xapi_object_edit(self):
         # TODO: test remote.xapi_object_edit()
         raise NotImplemented()
-
-
-if __name__ == '__main__':
-    unittest.main()
