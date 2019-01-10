@@ -26,6 +26,7 @@ def tprint(call_name):
 
 class TestNonObjectCalls(CobblerXmlRpcBaseTest):
 
+    # TODO: Obsolete this method via a unittest method
     def _wait_task_end(self, tid):
         """
         Wait until a task is finished
