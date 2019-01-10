@@ -1,16 +1,6 @@
 from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
 
 
-def tprint(call_name):
-    """
-    Print a remote call debug message
-
-    @param call_name str remote call name
-    """
-
-    print("test remote call: %s()" % call_name)
-
-
 """
 Order is important currently:
 self._get_packages()
@@ -31,17 +21,9 @@ class TestPackage(CobblerXmlRpcBaseTest):
         """
 
         packages = self.remote.get_packages(self.token)
-
-        tprint("get_packages")
-        packages = self.remote.get_packages(self.token)
-
-        tprint("new_package")
         package = self.remote.new_package(self.token)
 
-        tprint("modify_package")
         self.assertTrue(self.remote.modify_package(package, "name", "testpackage0", self.token))
-
-        tprint("save_package")
         self.assertTrue(self.remote.save_package(package, self.token))
 
         new_packages = self.remote.get_packages(self.token)
@@ -51,7 +33,7 @@ class TestPackage(CobblerXmlRpcBaseTest):
         """
         Test: Get packages
         """
-        tprint("get_package")
+
         package = self.remote.get_packages()
 
     def test_get_package(self):
@@ -59,7 +41,6 @@ class TestPackage(CobblerXmlRpcBaseTest):
         Test: Get a package object
         """
 
-        tprint("get_package")
         package = self.remote.get_package("testpackage0")
 
     def test_find_package(self):
@@ -67,7 +48,6 @@ class TestPackage(CobblerXmlRpcBaseTest):
         Test: find a package object
         """
 
-        tprint("find_package")
         result = self.remote.find_package({"name": "testpackage0"}, self.token)
         self.assertTrue(result)
 
@@ -76,7 +56,6 @@ class TestPackage(CobblerXmlRpcBaseTest):
         Test: copy a package object
         """
 
-        tprint("copy_package")
         package = self.remote.get_item_handle("package", "testpackage0", self.token)
         self.assertTrue(self.remote.copy_package(package, "testpackagecopy", self.token))
 
@@ -85,7 +64,6 @@ class TestPackage(CobblerXmlRpcBaseTest):
         Test: rename a package object
         """
 
-        tprint("rename_package")
         package = self.remote.get_item_handle("package", "testpackagecopy", self.token)
         self.assertTrue(self.remote.rename_package(package, "testpackage1", self.token))
 
@@ -94,6 +72,5 @@ class TestPackage(CobblerXmlRpcBaseTest):
         Test: remove a package object
         """
 
-        tprint("remove_package")
         self.assertTrue(self.remote.remove_package("testpackage0", self.token))
         self.assertTrue(self.remote.remove_package("testpackage1", self.token))
