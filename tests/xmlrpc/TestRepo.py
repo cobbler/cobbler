@@ -11,9 +11,21 @@ def tprint(call_name):
     print("test remote call: %s()" % call_name)
 
 
+"""
+Order is currently important:
+self._get_repos()
+self._create_repo()
+self._get_repo()
+self._find_repo()
+self._copy_repo()
+self._rename_repo()
+self._remove_repo()
+"""
+
+
 class TestRepo(CobblerXmlRpcBaseTest):
 
-    def _create_repo(self):
+    def test_create_repo(self):
         """
         Test: create/edit a repo object
         """
@@ -34,7 +46,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         new_repos = self.remote.get_repos(self.token)
         self.assertTrue(len(new_repos) == len(repos) + 1)
 
-    def _get_repos(self):
+    def test_get_repos(self):
         """
         Test: Get repos
         """
@@ -42,7 +54,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         tprint("get_repos")
         self.remote.get_repos()
 
-    def _get_repo(self):
+    def test_get_repo(self):
         """
         Test: Get a repo object
         """
@@ -50,7 +62,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         tprint("get_repo")
         repo = self.remote.get_repo("testrepo0")
 
-    def _find_repo(self):
+    def test_find_repo(self):
         """
         Test: find a repo object
         """
@@ -59,7 +71,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         result = self.remote.find_repo({"name": "testrepo0"}, self.token)
         self.assertTrue(result)
 
-    def _copy_repo(self):
+    def test_copy_repo(self):
         """
         Test: copy a repo object
         """
@@ -68,7 +80,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         repo = self.remote.get_item_handle("repo", "testrepo0", self.token)
         self.assertTrue(self.remote.copy_repo(repo, "testrepocopy", self.token))
 
-    def _rename_repo(self):
+    def test_rename_repo(self):
         """
         Test: rename a repo object
         """
@@ -77,7 +89,7 @@ class TestRepo(CobblerXmlRpcBaseTest):
         repo = self.remote.get_item_handle("repo", "testrepocopy", self.token)
         self.assertTrue(self.remote.rename_repo(repo, "testrepo1", self.token))
 
-    def _remove_repo(self):
+    def test_remove_repo(self):
         """
         Test: remove a repo object
         """
@@ -85,12 +97,3 @@ class TestRepo(CobblerXmlRpcBaseTest):
         tprint("remove_repo")
         self.assertTrue(self.remote.remove_repo("testrepo0", self.token))
         self.assertTrue(self.remote.remove_repo("testrepo1", self.token))
-
-    def test_repo(self):
-        self._get_repos()
-        self._create_repo()
-        self._get_repo()
-        self._find_repo()
-        self._copy_repo()
-        self._rename_repo()
-        self._remove_repo()
