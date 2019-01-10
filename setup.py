@@ -5,30 +5,27 @@ standard_library.install_aliases()
 import os
 import sys
 import time
+import logging
 import glob as _glob
 
 from builtins import str
-from distutils.core import setup, Command
-from distutils.command.build import build as _build
-from distutils.command.install import install as _install
-from distutils.command.build_py import build_py as _build_py
-from distutils import log
-from distutils import dep_util
-from distutils.dist import Distribution as _Distribution
+from setuptools import setup
+from setuptools import Command
+from setuptools.command.install import install as _install
+from setuptools import Distribution as _Distribution
+from setuptools.command.build_py import build_py as _build_py
+from setuptools import dep_util
+import setuptools.command.build_py
 from configparser import ConfigParser
 
 import codecs
 import unittest
+from coverage import Coverage
 import pwd
 import shutil
 import subprocess
 
 from builtins import OSError
-
-try:
-    import coverage
-except:
-    pass
 
 VERSION = "2.9.0"
 OUTPUT_DIR = "config"
@@ -121,11 +118,11 @@ class build_py(_build_py):
 #####################################################################
 
 
-class build(_build):
+class build(setuptools.command.build_py.build_py):
     """Specialized Python source builder."""
 
     def run(self):
-        _build.run(self)
+        setuptools.command.build_py.build_py.run(self)
 
 #####################################################################
 # # Configure files ##################################################
@@ -226,7 +223,7 @@ class build_cfg(Command):
                 self.configure_one_file(infile, outfile)
 
     def configure_one_file(self, infile, outfile):
-        self.announce("configuring %s" % (infile), log.INFO)
+        self.announce("configuring %s" % (infile), logging.INFO)
         if not self.dry_run:
             # Read the file
             with codecs.open(infile, 'r', 'utf-8') as fh:
@@ -312,7 +309,7 @@ class build_man(Command):
 
     def build_one_file(self, infile, outfile):
         man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
-        self.announce("building %s manpage" % (man), log.INFO)
+        self.announce("building %s manpage" % (man), logging.INFO)
         if not self.dry_run:
             # Create the output directory if necessary
             outdir = os.path.dirname(outfile)
@@ -321,7 +318,7 @@ class build_man(Command):
             # Now create the manpage
             cmd = build_man._COMMAND % ('man', infile, outfile)
             if os.system(cmd):
-                self.announce("Creation of %s manpage failed." % man, log.ERROR)
+                self.announce("Creation of %s manpage failed." % man, logging.ERROR)
                 exit(1)
 
 
@@ -342,7 +339,7 @@ class install(_install):
     def change_owner(self, path, owner):
         user = pwd.getpwnam(owner)
         try:
-            log.info("changing mode of %s" % path)
+            logging.info("changing mode of %s" % path)
             if not self.dry_run:
                 # os.walk does not include the toplevel directory
                 os.lchown(path, user.pw_uid, -1)
@@ -374,7 +371,7 @@ class install(_install):
             self.change_owner(path, http_user)
         except KeyError as e:
             # building RPMs in a mock chroot, user 'apache' won't exist
-            log.warn("Error in 'chown apache %s': %s" % (path, e))
+            logging.warning("Error in 'chown apache %s': %s" % (path, e))
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
@@ -384,7 +381,7 @@ class install(_install):
         try:
             self.change_owner(path, http_user)
         except KeyError as e:
-            log.warn("Error in 'chown apache %s': %s" % (path, e))
+            logging.warning("Error in 'chown apache %s': %s" % (path, e))
 
 
 #####################################################################
@@ -402,30 +399,18 @@ class test_command(Command):
         pass
 
     def run(self):
-        testfiles = []
-        testdirs = []
-
-        for d in testdirs:
-            testdir = os.path.join(os.getcwd(), "tests", d)
-
-            for t in _glob.glob(os.path.join(testdir, '*.py')):
-                if t.endswith('__init__.py'):
-                    continue
-                testfile = '.'.join(['tests', d,
-                                     os.path.splitext(os.path.basename(t))[0]])
-                testfiles.append(testfile)
-
-        tests = unittest.TestLoader().loadTestsFromNames(testfiles)
+        tests = unittest.TestLoader().discover("tests", pattern="*[t|T]est*.py")
         runner = unittest.TextTestRunner(verbosity=1)
 
-        if coverage:
-            coverage.erase()
-            coverage.start()
+        cov = Coverage()
+        cov.erase()
+        cov.start()
 
         result = runner.run(tests)
 
-        if coverage:
-            coverage.stop()
+        cov.stop()
+        cov.save()
+        cov.html_report(directory="covhtml")
         sys.exit(int(bool(len(result.failures) > 0 or
                           len(result.errors) > 0)))
 
@@ -451,13 +436,13 @@ class statebase(Command):
     def _copy(self, frm, to):
         if os.path.isdir(frm):
             to = os.path.join(to, os.path.basename(frm))
-            self.announce("copying %s/ to %s/" % (frm, to), log.DEBUG)
+            self.announce("copying %s/ to %s/" % (frm, to), logging.DEBUG)
             if not self.dry_run:
                 if os.path.exists(to):
                     shutil.rmtree(to)
                 shutil.copytree(frm, to)
         else:
-            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), log.DEBUG)
+            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), logging.DEBUG)
             if not self.dry_run:
                 shutil.copy2(frm, to)
 
@@ -474,7 +459,7 @@ class restorestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        self.announce("restoring the current configuration from %s" % self.statepath, log.INFO)
+        self.announce("restoring the current configuration from %s" % self.statepath, logging.INFO)
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
@@ -503,9 +488,9 @@ class savestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        self.announce("backing up the current configuration to %s" % self.statepath, log.INFO)
+        self.announce("backing up the current configuration to %s" % self.statepath, logging.INFO)
         if os.path.exists(self.statepath):
-            self.announce("deleting existing %s" % self.statepath, log.DEBUG)
+            self.announce("deleting existing %s" % self.statepath, logging.DEBUG)
             if not self.dry_run:
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
@@ -608,9 +593,10 @@ if __name__ == "__main__":
             "ldap",
             "dnspython3"
         ],
-        test_requires=[
+        tests_require=[
             "pytest",
-            "nose"
+            "nose",
+            "coverage"
         ],
         packages=[
             "cobbler",
