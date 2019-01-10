@@ -642,6 +642,8 @@ class BuildIso(object):
 
         files_to_copy = ["isolinux.bin", "menu.c32", "chain.c32",
                          "ldlinux.c32", "libcom32.c32", "libutil.c32"]
+        
+        optional_files = ["ldlinux.c32", "libcom32.c32", "libutil.c32"]
 
         syslinux_folders = ["/usr/share/syslinux/",
                             "/usr/lib/syslinux/modules/bios/",
@@ -649,7 +651,7 @@ class BuildIso(object):
                             "/usr/lib/ISOLINUX/"]
 
         # file_copy_success will be used to check for missing files
-        file_copy_success = {f: False for f in files_to_copy if f != "ldlinux32.c32"}
+        file_copy_success = {f: False for f in files_to_copy if f not in optional_files}
         for syslinux_folder in syslinux_folders:
             if os.path.isdir(os.path.join(syslinux_folder)):
                 for file_to_copy in files_to_copy:
