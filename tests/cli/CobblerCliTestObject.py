@@ -21,7 +21,7 @@ self._test_mgmtclass()
 self._test_package()
 """
 
-# TODO: Do not use other test functions. These dependencys must be ereased!
+# TODO: Do not use other test functions. These dependencys must be erased!
 
 
 def run_cmd(cmd):
