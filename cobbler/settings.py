@@ -167,7 +167,7 @@ if bind_config_filename:
         pass
     else:
         for line in bind_config_file:
-            if re.match("[a-zA-Z]+=", line):
+            if re.match(r"[a-zA-Z]+=", line):
                 (name, value) = line.rstrip().split("=")
                 bind_config[name] = value.strip('"')
         # RHEL, SysV Fedora

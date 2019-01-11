@@ -63,7 +63,7 @@ def is_local_file(file_location):
     @return bool if file is local
     """
 
-    return not re.match("[a-z]+://", file_location)
+    return not re.match(r"[a-z]+://", file_location)
 
 def download_file(file_url):
     """
