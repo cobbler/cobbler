@@ -53,14 +53,14 @@ class CobblerCliTestDirect(unittest.TestCase):
         """Runs 'cobbler version'"""
         output = run_cmd("cobbler version")
         line = output.split("\n")[0]
-        match_obj = re.match("Cobbler \d+\.\d+\.\d+", line)
+        match_obj = re.match(r"Cobbler \d+\.\d+\.\d+", line)
         self.assertTrue(match_obj is not None)
 
     def test_cobbler_status(self):
         """Runs 'cobbler status'"""
         output = run_cmd("cobbler status")
         lines = output.split("\n")
-        match_obj = re.match("ip\s+|target\s+|start\s+|state\s+", lines[0])
+        match_obj = re.match(r"ip\s+|target\s+|start\s+|state\s+", lines[0])
         self.assertTrue(match_obj is not None)
 
     def test_cobbler_sync(self):
@@ -74,7 +74,7 @@ class CobblerCliTestDirect(unittest.TestCase):
         output = run_cmd("cobbler signature report")
         lines = output.split("\n")
         self.assertTrue("Currently loaded signatures:" == lines[0])
-        expected_output = "\d+ breeds with \d+ total signatures loaded"
+        expected_output = r"\d+ breeds with \d+ total signatures loaded"
         match_obj = re.match(expected_output, get_last_line(lines))
         self.assertTrue(match_obj is not None)
 
@@ -148,10 +148,10 @@ class CobblerCliTestDirect(unittest.TestCase):
         i = start_line
         self.assertEqual(lines[i], "%s:" % section_name)
         i += 1
-        match_obj = re.match("=+$", lines[i].strip())
+        match_obj = re.match(r"=+$", lines[i].strip())
         self.assertTrue(match_obj is not None)
         i += 1
-        while i < len(lines) - 1 and re.match("=+$", lines[i + 1]) is None:
+        while i < len(lines) - 1 and re.match(r"=+$", lines[i + 1]) is None:
             while i < len(lines) and lines[i] != "":
                 i += 1
             while i < len(lines) and lines[i] == "":

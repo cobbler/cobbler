@@ -115,7 +115,7 @@ class CobblerCliTestObject(unittest.TestCase):
         for object in objects:
             found_objects[object] = False
         for line in lines:
-            match_obj = re.match("Name\s*:\s*(.*)", line)
+            match_obj = re.match(r"Name\s*:\s*(.*)", line)
             if match_obj:
                 object = match_obj.group(1)
                 self.assertTrue(match_obj.group(1) in objects)
@@ -124,7 +124,7 @@ class CobblerCliTestObject(unittest.TestCase):
 
         # cobbler <type> report <name>
         output = run_cmd("cobbler %s report --name=%s" % (object_type, name))
-        regex = "%s\s+:\s+%s" % (attr["long_name"], attr["initial_value"])
+        regex = r"%s\s+:\s+%s" % (attr["long_name"], attr["initial_value"])
         lines = output.split("\n")
         found = False
         for line in lines:
@@ -137,7 +137,7 @@ class CobblerCliTestObject(unittest.TestCase):
         run_cmd(cmd)
 
         output = run_cmd("cobbler %s report --name=%s" % (object_type, name))
-        regex = "%s\s+:\s+%s" % (attr["long_name"], attr["value"])
+        regex = re.escape(attr["long_name"]) + r"\s+:\s+" + re.escape(attr["value"])
         lines = output.split("\n")
         found = False
         for line in lines:
