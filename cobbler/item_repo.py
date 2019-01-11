@@ -38,7 +38,7 @@ FIELDS = [
     # editable in UI
     ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
     ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
-    ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 'ppc64le', 'ppc64el', 's390', "arm", 'noarch', 'src'],"str"],
+    ["arch", "", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 'ppc64le', 'ppc64el', 's390', "arm", 'noarch', 'src'], "str"],
     ["breed", "", 0, "Breed", True, "", validate.REPO_BREEDS, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["createrepo_flags", '<<inherit>>', 0, "Createrepo Flags", True, "Flags to use with createrepo", 0, "dict"],
