@@ -642,7 +642,7 @@ class BuildIso(object):
 
         files_to_copy = ["isolinux.bin", "menu.c32", "chain.c32",
                          "ldlinux.c32", "libcom32.c32", "libutil.c32"]
-        
+
         optional_files = ["ldlinux.c32", "libcom32.c32", "libutil.c32"]
 
         syslinux_folders = ["/usr/share/syslinux/",
