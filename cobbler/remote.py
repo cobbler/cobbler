@@ -346,8 +346,6 @@ class CobblerXMLRPCInterface(object):
         logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
         thr_obj = CobblerThread(event_id, self, logatron, args, role_name, self.api)
-        on_done_type = type(thr_obj.on_done)
-
         thr_obj._run = thr_obj_fn
         if on_done is not None:
             thr_obj.on_done = on_done.__get__(thr_obj, CobblerThread)
