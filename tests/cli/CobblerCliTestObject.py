@@ -76,16 +76,16 @@ class CobblerCliTestObject(unittest.TestCase):
         if os.path.exists(dummy_file_path):
             os.remove(dummy_file_path)
 
-    def list_objects(self, type):
+    def list_objects(self, object_type):
         """
         Get objects of a type
 
-        @param type str object type
+        @param object_type str object type
         @return list objects
         """
 
         objects = []
-        output = run_cmd("cobbler %s list" % type)
+        output = run_cmd("cobbler %s list" % object_type)
         lines = output.split("\n")
         for line in lines:
             if line.strip() != "":
@@ -112,14 +112,14 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd("cobbler %s report" % object_type)
         lines = output.split("\n")
         found_objects = {}
-        for object in objects:
-            found_objects[object] = False
+        for cur_object in objects:
+            found_objects[cur_object] = False
         for line in lines:
             match_obj = re.match(r"Name\s*:\s*(.*)", line)
             if match_obj:
-                object = match_obj.group(1)
+                cur_object = match_obj.group(1)
                 self.assertTrue(match_obj.group(1) in objects)
-                found_objects[object] = True
+                found_objects[cur_object] = True
         self.assertTrue(False not in found_objects.values())
 
         # cobbler <type> report <name>
@@ -171,167 +171,167 @@ class CobblerCliTestObject(unittest.TestCase):
 
     def test_distro(self, remove):
 
-        type = "distro"
-        distro_name = "test-%s" % type
+        item_type = "distro"
+        distro_name = "test-%s" % item_type
         attr = {"name": "arch",
                 "long_name": "Architecture",
                 "value": "x86_64",
                 "initial_value": "i386"}
 
-        distros = self.list_objects(type)
+        distros = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --kernel=%s --initrd=%s --%s=%s" % (
-        type, distro_name, dummy_file_path, dummy_file_path, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --kernel=%s --initrd=%s --%s=%s" \
+              % (item_type, distro_name, dummy_file_path, dummy_file_path, attr["name"], attr["initial_value"])
         output = run_cmd(cmd)
 
-        new_distros = self.list_objects(type)
+        new_distros = self.list_objects(item_type)
         self.assertTrue(len(new_distros) == len(distros) + 1)
 
-        self.test_generic_commands(type, distro_name, attr, new_distros)
+        self.test_generic_commands(item_type, distro_name, attr, new_distros)
 
         if remove:
             # cobbler <type> remove
-            run_cmd("cobbler %s remove --name=%s" % (type, distro_name))
+            run_cmd("cobbler %s remove --name=%s" % (item_type, distro_name))
 
     def test_profile(self, remove):
 
-        type = "profile"
-        profile_name = "test-%s" % type
+        item_type = "profile"
+        profile_name = "test-%s" % item_type
         attr = {"name": "distro",
                 "long_name": "Distribution",
                 "value": "test-distro",
                 "initial_value": "test-distro"}
 
-        profiles = self.list_objects(type)
+        profiles = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, profile_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, profile_name, attr["name"], attr["initial_value"])
         run_cmd(cmd)
 
-        new_profiles = self.list_objects(type)
+        new_profiles = self.list_objects(item_type)
         self.assertTrue(len(new_profiles) == len(profiles) + 1)
 
-        self.test_generic_commands(type, profile_name, attr, new_profiles)
+        self.test_generic_commands(item_type, profile_name, attr, new_profiles)
 
         if remove:
             # cobbler <type> remove
-            run_cmd("cobbler %s remove --name=%s" % (type, profile_name))
+            run_cmd("cobbler %s remove --name=%s" % (item_type, profile_name))
 
     def test_system(self):
 
-        type = "system"
-        system_name = "test-%s" % type
+        item_type = "system"
+        system_name = "test-%s" % item_type
         attr = {"name": "profile",
                 "long_name": "Profile",
                 "value": "test-profile",
                 "initial_value": "test-profile"}
 
-        systems = self.list_objects(type)
+        systems = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, system_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, system_name, attr["name"], attr["initial_value"])
         run_cmd(cmd)
 
-        new_systems = self.list_objects(type)
+        new_systems = self.list_objects(item_type)
         self.assertTrue(len(new_systems) == len(systems) + 1)
 
-        self.test_generic_commands(type, system_name, attr, new_systems)
+        self.test_generic_commands(item_type, system_name, attr, new_systems)
 
         # cobbler <type> remove
-        run_cmd("cobbler %s remove --name=%s" % (type, system_name))
+        run_cmd("cobbler %s remove --name=%s" % (item_type, system_name))
 
     def test_image(self):
 
-        type = "image"
-        image_name = "test-%s" % type
+        item_type = "image"
+        image_name = "test-%s" % item_type
         attr = {"name": "arch",
                 "long_name": "Architecture",
                 "value": "i386",
                 "initial_value": "x86_64"}
 
-        images = self.list_objects(type)
+        images = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, image_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, image_name, attr["name"], attr["initial_value"])
         output = run_cmd(cmd)
 
-        new_images = self.list_objects(type)
+        new_images = self.list_objects(item_type)
         self.assertTrue(len(new_images) == len(images) + 1)
 
-        self.test_generic_commands(type, image_name, attr, new_images)
+        self.test_generic_commands(item_type, image_name, attr, new_images)
 
         # cobbler <type> remove
-        run_cmd("cobbler %s remove --name=%s" % (type, image_name))
+        run_cmd("cobbler %s remove --name=%s" % (item_type, image_name))
 
     def test_repo(self):
 
-        type = "repo"
-        repo_name = "test-%s" % type
+        item_type = "repo"
+        repo_name = "test-%s" % item_type
         attr = {"name": "mirror",
                 "long_name": "Mirror",
                 "value": "ftp://test2.ibm.com",
                 "initial_value": "ftp://test.ibm.com/"}
 
-        repos = self.list_objects(type)
+        repos = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, repo_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, repo_name, attr["name"], attr["initial_value"])
         output = run_cmd(cmd)
 
-        new_repos = self.list_objects(type)
+        new_repos = self.list_objects(item_type)
         self.assertTrue(len(new_repos) == len(repos) + 1)
 
-        self.test_generic_commands(type, repo_name, attr, new_repos)
+        self.test_generic_commands(item_type, repo_name, attr, new_repos)
 
         # cobbler <type> remove
-        run_cmd("cobbler %s remove --name=%s" % (type, repo_name))
+        run_cmd("cobbler %s remove --name=%s" % (item_type, repo_name))
 
     def test_mgmtclass(self):
 
-        type = "mgmtclass"
-        mgmtclass_name = "test-%s" % type
+        item_type = "mgmtclass"
+        mgmtclass_name = "test-%s" % item_type
         attr = {"name": "class-name",
                 "long_name": "Class Name",
                 "value": "test2",
                 "initial_value": "test"}
 
-        mgmt_classes = self.list_objects(type)
+        mgmt_classes = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, mgmtclass_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, mgmtclass_name, attr["name"], attr["initial_value"])
         output = run_cmd(cmd)
 
-        new_mgmt_classes = self.list_objects(type)
+        new_mgmt_classes = self.list_objects(item_type)
         self.assertTrue(len(new_mgmt_classes) == len(mgmt_classes) + 1)
 
-        self.test_generic_commands(type, mgmtclass_name, attr, new_mgmt_classes)
+        self.test_generic_commands(item_type, mgmtclass_name, attr, new_mgmt_classes)
 
         # cobbler <type> remove
-        run_cmd("cobbler %s remove --name=%s" % (type, mgmtclass_name))
+        run_cmd("cobbler %s remove --name=%s" % (item_type, mgmtclass_name))
 
     def test_package(self):
 
-        type = "package"
-        package_name = "test-%s" % type
+        item_type = "package"
+        package_name = "test-%s" % item_type
         attr = {"name": "version",
                 "long_name": "Version",
                 "value": "2.0",
                 "initial_value": "1.0"}
 
-        packages = self.list_objects(type)
+        packages = self.list_objects(item_type)
 
         # cobbler <type> add
-        cmd = "cobbler %s add --name=%s --%s=%s" % (type, package_name, attr["name"], attr["initial_value"])
+        cmd = "cobbler %s add --name=%s --%s=%s" % (item_type, package_name, attr["name"], attr["initial_value"])
         output = run_cmd(cmd)
 
-        new_packages = self.list_objects(type)
+        new_packages = self.list_objects(item_type)
         self.assertTrue(len(new_packages) == len(packages) + 1)
 
-        self.test_generic_commands(type, package_name, attr, new_packages)
+        self.test_generic_commands(item_type, package_name, attr, new_packages)
 
         # cobbler <type> remove
-        run_cmd("cobbler %s remove --name=%s" % (type, package_name))
+        run_cmd("cobbler %s remove --name=%s" % (item_type, package_name))
 
 
 if __name__ == '__main__':
