@@ -1654,7 +1654,7 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out, err) = sp.communicate(input)
+    (out, err) = sp.communicate(bytes(input, 'utf-8'))
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
