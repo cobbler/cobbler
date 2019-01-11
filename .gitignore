@@ -3,8 +3,6 @@
 *.tmp
 *~
 *.class
-*~
-*.class
 dist
 rpm-build
 release
@@ -35,3 +33,13 @@ cobbler4j/target
 
 # Testrun output
 test.log
+
+# IntelliJ IDEA + venv
+.idea/
+# Normal venv.
+venv/
+# Venv for developnig with Python3 for the futurize branch.
+venv3/
+
+# Coverage
+covhtml/

@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+
+from builtins import str
 import traceback
 
 # we'll import this just a bit later
@@ -26,6 +28,7 @@ import traceback
 # import ldap
 
 import cobbler.api as cobbler_api
+from cobbler.cexceptions import CX
 
 
 def register():
@@ -104,7 +107,7 @@ def authenticate(api_handle, username, password):
         searchpw = api_handle.settings().ldap_search_passwd
 
         if searchdn == '' or searchpw == '':
-            raise "Missing search bind settings"
+            raise CX("Missing search bind settings")
 
         try:
             dir.simple_bind_s(searchdn, searchpw)
@@ -138,4 +141,4 @@ def authenticate(api_handle, username, password):
 
 if __name__ == "__main__":
     api_handle = cobbler_api.CobblerAPI()
-    print authenticate(api_handle, "guest", "guest")
+    print((authenticate(api_handle, "guest", "guest")))

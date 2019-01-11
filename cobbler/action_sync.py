@@ -21,19 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
 import glob
 import os
 import time
 
-from cexceptions import CX
-import clogger
-import templar
-import tftpgen
-import utils
-from utils import _
+from .cexceptions import CX
+from . import clogger
+from . import templar
+from . import tftpgen
+from . import utils
+from .utils import _
 
 
-class CobblerSync:
+class CobblerSync(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -107,7 +108,7 @@ class CobblerSync:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
                 self.tftpgen.write_templates(d, write_file=True)
-            except CX, e:
+            except CX as e:
                 self.logger.error(e.value)
 
         # make the default pxe menu anyway...

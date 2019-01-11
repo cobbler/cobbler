@@ -20,12 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import object
 import glob
 import os.path
 import re
 
-import utils
-from utils import _
+from . import utils
+from .utils import _
 
 TESTMODE = False
 
@@ -85,16 +87,19 @@ DEFAULTS = {
     "ldap_tls_cacertfile": ["", "str"],
     "ldap_tls_certfile": ["", "str"],
     "ldap_tls_keyfile": ["", "str"],
+    "bind_manage_ipmi": [0, "bool"],
     "manage_dhcp": [0, "bool"],
     "manage_dns": [0, "bool"],
     "manage_forward_zones": [[], "list"],
     "manage_reverse_zones": [[], "list"],
+    "manage_genders": [0, "bool"],
     "manage_rsync": [0, "bool"],
     "manage_tftp": [1, "bool"],
     "manage_tftpd": [1, "bool"],
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
     "next_server": ["127.0.0.1", "str"],
+    "nsupdate_enabled": [0, "bool"],
     "power_management_default_type": ["ipmitool", "str"],
     "power_template_dir": ["/etc/cobbler/power", "str"],
     "proxy_url_ext": ["", "str"],
@@ -177,7 +182,7 @@ if bind_config_filename:
                 DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
 
-class Settings:
+class Settings(object):
 
     def collection_type(self):
         return "settings"
@@ -190,7 +195,7 @@ class Settings:
 
     def _clear(self):
         self.__dict__ = {}
-        for key in DEFAULTS.keys():
+        for key in list(DEFAULTS.keys()):
             self.__dict__[key] = DEFAULTS[key][0]
 
     def set(self, name, value):
@@ -213,7 +218,7 @@ class Settings:
         Modify this object to load values in dictionary.
         """
         if _dict is None:
-            print _("warning: not loading empty structure for %s") % self.filename()
+            print(_("warning: not loading empty structure for %s") % self.filename())
             return
 
         self._clear()
@@ -248,7 +253,10 @@ class Settings:
 
             return 0
         else:
-            raise AttributeError
+            # FIXME. Not sure why __dict__ is part of name
+            # workaround applied, ignore exception
+            # raise AttributeError
+            pass
 
     def __getattr__(self, name):
         try:

@@ -26,7 +26,6 @@ First and foremost, Cobbler requires Python. Any version over 2.7 should work. C
 * python-cheetah
 * python-netaddr
 * python-simplejson
-* python-urlgrabber
 * PyYAML / python-yaml
 * rsync
 * syslinux
@@ -96,7 +95,6 @@ To install cobbler from source on Debian Squeeze, the following steps need to be
     $ apt-get install python-cheetah
     $ apt-get install python-netaddr
     $ apt-get install python-simplejson
-    $ apt-get install python-urlgrabber
     $ apt-get install libapache2-mod-wsgi
     $ apt-get install python-django
     $ apt-get install atftpd

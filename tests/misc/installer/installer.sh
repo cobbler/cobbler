@@ -304,7 +304,7 @@ function install_cobbler_dependencies ()
     # build dependencies
     local dependencies="gcc git python-devel python-setuptools"
     # runtime dependencies
-    dependencies="$dependencies createrepo httpd mkisofs mod_ssl mod_wsgi pykickstart python-cheetah python-netaddr python-simplejson python-urlgrabber rsync tftp-server"
+    dependencies="$dependencies createrepo httpd mkisofs mod_ssl mod_wsgi pykickstart python-cheetah python-netaddr python-simplejson rsync tftp-server"
     if [ $redhat_version == "7" ]; then
         dependencies="$dependencies PyYAML"
     fi

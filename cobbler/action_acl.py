@@ -23,12 +23,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cexceptions import CX
-import clogger
-import utils
+
+from builtins import object
+from .cexceptions import CX
+from . import clogger
+from . import utils
 
 
-class AclConfig:
+class AclConfig(object):
 
     def __init__(self, collection_mgr, logger=None):
         """

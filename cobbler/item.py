@@ -11,13 +11,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-import exceptions
+from builtins import object
+from builtins import str
 import fnmatch
 import pprint
 
 from cobbler import utils
 from cobbler import validate
-from cobbler.cexceptions import CX
+from cobbler.cexceptions import CX, NotImplementedException
 from cobbler.utils import _
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
@@ -149,7 +150,7 @@ class Item(object):
 
     def __find_compare(self, from_search, from_obj):
 
-        if isinstance(from_obj, basestring):
+        if isinstance(from_obj, str):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
             from_obj_lower = from_obj.lower()
@@ -161,7 +162,7 @@ class Item(object):
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
             return match
         else:
-            if isinstance(from_search, basestring):
+            if isinstance(from_search, str):
                 if isinstance(from_obj, list):
                     from_search = utils.input_string_or_list(from_search)
                     for x in from_search:
@@ -170,7 +171,7 @@ class Item(object):
                     return True
                 if isinstance(from_obj, dict):
                     (junk, from_search) = utils.input_string_or_dict(from_search, allow_multiples=True)
-                    for x in from_search.keys():
+                    for x in list(from_search.keys()):
                         y = from_search[x]
                         if x not in from_obj:
                             return False
@@ -193,7 +194,7 @@ class Item(object):
         Get serializable fields
         Must be defined in any subclass
         """
-        raise exceptions.NotImplementedError()
+        raise NotImplementedException()
 
     def clear(self, is_subobject=False):
         """
@@ -205,7 +206,7 @@ class Item(object):
         """
         Must be defined in any subclass
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def from_dict(self, _dict):
         """
@@ -235,7 +236,7 @@ class Item(object):
         """
         Get direct children of this object.
         """
-        keys = self.children.keys()
+        keys = list(self.children.keys())
         if sorted:
             keys.sort()
         results = []
@@ -399,7 +400,7 @@ class Item(object):
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
         data = self.to_dict()
-        for (key, value) in kwargs.iteritems():
+        for (key, value) in list(kwargs.items()):
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
                 res = not self.find_match_single_key(data, key, value[1:], no_errors)
@@ -419,7 +420,7 @@ class Item(object):
                        "interface_master", "bonding_opts", "bridge_opts",
                        "interface"]:
                 key_found_already = True
-                for (name, interface) in data["interfaces"].iteritems():
+                for (name, interface) in list(data["interfaces"].items()):
                     if value == name:
                         return True
                     if value is not None and key in interface:

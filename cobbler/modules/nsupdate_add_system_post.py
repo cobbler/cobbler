@@ -10,6 +10,7 @@
 #   - python-dnspython (Debian)
 #   - python-dns (RH/CentOS)
 
+from builtins import str
 import dns.query
 import dns.tsigkeyring
 import dns.update
@@ -73,7 +74,7 @@ def run(api, args, logger):
     system = api.find_system(args[0])
 
     # process all interfaces and perform dynamic update for those with --dns-name
-    for (name, interface) in system.interfaces.iteritems():
+    for (name, interface) in list(system.interfaces.items()):
         host = interface["dns_name"]
         host_ip = interface["ip_address"]
 

@@ -8,6 +8,7 @@
 # send out a pretty email report that
 # contains target information.
 
+from builtins import str
 import smtplib
 from cobbler.cexceptions import CX
 import cobbler.templar as templar

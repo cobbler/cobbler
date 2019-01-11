@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from past.builtins import str
 from cobbler import item
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -92,7 +93,7 @@ class Mgmtclass(item.Item):
         self.is_definition = utils.input_boolean(isdef)
 
     def set_class_name(self, name):
-        if not isinstance(name, basestring):
+        if not isinstance(name, str):
             raise CX(_("class name must be a string"))
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:

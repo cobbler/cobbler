@@ -24,7 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-import ConfigParser
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from configparser import ConfigParser
+
 import os
 
 from cobbler.cexceptions import CX
@@ -42,9 +46,7 @@ def __parse_config():
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
-    config = ConfigParser.ConfigParser()
-    # Make users case sensitive to handle kerberos
-    config.optionxform = str
+    config = ConfigParser()
     config.read(etcfile)
     alldata = {}
     sections = config.sections()
@@ -142,7 +144,7 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
 
     found_user = False
     found_groups = []
-    grouplist = user_groups.keys()
+    grouplist = list(user_groups.keys())
     for g in grouplist:
         for x in user_groups[g]:
             if x == user:

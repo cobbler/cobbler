@@ -18,14 +18,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import exceptions
-import utils
+from builtins import range
+from builtins import object
+from . import utils
 import time
 import os
 from threading import Lock
 
 from cobbler import action_litesync
-import item as item_base
+from . import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
 from cobbler import item_distro
@@ -36,10 +37,10 @@ from cobbler import item_package
 from cobbler import item_file
 
 from cobbler.utils import _
-from cobbler.cexceptions import CX
+from cobbler.cexceptions import CX, NotImplementedException
 
 
-class Collection:
+class Collection(object):
     """
     Base class for any serializable list of things.
     """
@@ -58,21 +59,21 @@ class Collection:
         """
         Iterator for the collection.  Allows list comprehensions, etc.
         """
-        for a in self.listing.values():
+        for a in list(self.listing.values()):
             yield a
 
     def __len__(self):
         """
         Returns size of the collection.
         """
-        return len(self.listing.values())
+        return len(list(self.listing.values()))
 
     def factory_produce(self, collection_mgr, seed_data):
         """
         Must override in subclass.  Factory_produce returns an Item object
         from dict
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
@@ -84,9 +85,9 @@ class Collection:
         @param: bool with_triggers (run "on delete" triggers)
         @param: bool recursive (recursively delete children)
         @param: clogger logger (logger object)
-        @returns: exceptions.NotImplementedError
+        @returns: NotImplementedException
         """
-        raise exceptions.NotImplementedError
+        raise NotImplementedException()
 
     def get(self, name):
         """
@@ -115,11 +116,14 @@ class Collection:
 
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
-            return self.listing.get(kargs["name"].lower(), None)
+            try:
+                return self.listing.get(kargs["name"].lower(), None)
+            except:
+                return self.listing.get(kargs["name"], None)
 
         self.lock.acquire()
         try:
-            for (name, obj) in self.listing.iteritems():
+            for (name, obj) in list(self.listing.items()):
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
         finally:
@@ -160,7 +164,7 @@ class Collection:
         Thankfully we don't have a LOT to remap.
         """
         new_dict = {}
-        for x in _dict.keys():
+        for x in list(_dict.keys()):
             if x in self.SEARCH_REKEY:
                 newkey = self.SEARCH_REKEY[x]
                 new_dict[newkey] = _dict[x]
@@ -172,7 +176,7 @@ class Collection:
         """
         Serialize the collection
         """
-        _list = [x.to_dict() for x in self.listing.values()]
+        _list = [x.to_dict() for x in list(self.listing.values())]
         return _list
 
     def from_list(self, _list):
@@ -189,7 +193,7 @@ class Collection:
         ref.set_name(newname)
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
-            for iname in ref.interfaces.keys():
+            for iname in list(ref.interfaces.keys()):
                 # clear all these out to avoid DHCP/DNS conflicts
                 ref.set_dns_name("", iname)
                 ref.set_mac_address("", iname)
@@ -371,7 +375,7 @@ class Collection:
                 elif isinstance(ref, item_file.File):
                     pass
                 else:
-                    print _("Internal error. Object type not recognized: %s") % type(ref)
+                    print(_("Internal error. Object type not recognized: %s") % type(ref))
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, item_system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -422,7 +426,7 @@ class Collection:
             return
 
         if isinstance(ref, item_system.System):
-            for (name, intf) in ref.interfaces.iteritems():
+            for (name, intf) in list(ref.interfaces.items()):
                 match_ip = []
                 match_mac = []
                 match_hosts = []
@@ -455,7 +459,7 @@ class Collection:
         would be better off reading the JSON in the collections files
         directly.
         """
-        values = self.listing.values()[:]   # copy the values
+        values = list(self.listing.values())[:]   # copy the values
         values.sort()                       # sort the copy (2.3 fix)
         results = []
         for i, v in enumerate(values):
@@ -469,6 +473,6 @@ class Collection:
         """
         Returns the string key for the name of the collection (for use in messages for humans)
         """
-        return exceptions.NotImplementedError
+        return NotImplementedException()
 
 # EOF

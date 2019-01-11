@@ -20,13 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
 import os
-import utils
+from . import utils
 
-import clogger
+from . import clogger
 
 
-class HardLinker:
+class HardLinker(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -42,6 +43,9 @@ class HardLinker:
         if self.family == "debian":
             self.hardlink = "/usr/bin/hardlink"
             self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
+        elif self.family == "suse":
+            self.hardlink = "/usr/bin/hardlink"
+            self.hardlink_args = "-f -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         else:
             self.hardlink = "/usr/sbin/hardlink"
             self.hardlink_args = "-c -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
@@ -68,6 +72,6 @@ class HardLinker:
         if os.path.exists("/srv/www"):
             webdir = "/srv/www/cobbler"
 
-        rc = utils.subprocess_call(self.logger, "/usr/sbin/hardlink -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror", shell=True)
+        rc = utils.subprocess_call(self.logger, self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror", shell=True)
 
         return rc

@@ -1,3 +1,6 @@
+
+from builtins import object
+from builtins import str
 import os
 
 from cobbler import autoinstallgen
@@ -9,7 +12,7 @@ TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
 
 
-class AutoInstallationManager:
+class AutoInstallationManager(object):
     """
     Manage automatic installation templates, snippets and final files
     """
@@ -40,7 +43,7 @@ class AutoInstallationManager:
         @returns str automatic installation template relative file path
         """
 
-        if not isinstance(autoinstall, basestring):
+        if not isinstance(autoinstall, str):
             raise CX("Invalid input, autoinstall must be a string")
         else:
             autoinstall = autoinstall.strip()
@@ -147,7 +150,7 @@ class AutoInstallationManager:
         @returns: str snippet or CX
         """
 
-        if not isinstance(snippet, basestring):
+        if not isinstance(snippet, str):
             raise CX("Invalid input, snippet must be a string")
         else:
             snippet = snippet.strip()
@@ -258,7 +261,7 @@ class AutoInstallationManager:
         autoinstall = blended["autoinstall"]
         if autoinstall is None or autoinstall == "":
             self.logger.info("%s has no automatic installation template set, skipping" % obj.name)
-            return [True, None, None]
+            return [True, 0, ()]
 
         # generate automatic installation file
         os_version = blended["os_version"]
@@ -271,6 +274,8 @@ class AutoInstallationManager:
         last_errors = self.autoinstallgen.get_last_errors()
         if len(last_errors) > 0:
             return [False, TEMPLATING_ERROR, last_errors]
+        else:
+            return [True, 0, ()]
 
     def validate_autoinstall_files(self, logger=None):
         """
@@ -284,11 +289,12 @@ class AutoInstallationManager:
         @param Logger logger logger
         @return bool if all automatic installation files are valid
         """
+        overall_success = True
 
         for x in self.collection_mgr.profiles():
             (success, errors_type, errors) = self.validate_autoinstall_file(x, True)
             if not success:
-                overall_success = True
+                overall_success = False
             if len(errors) > 0:
                 self.log_autoinstall_validation_errors(errors_type, errors)
         for x in self.collection_mgr.systems():

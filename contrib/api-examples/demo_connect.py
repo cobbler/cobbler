@@ -33,12 +33,12 @@ if __name__ == "__main__":
 
     sp = ServerProxy("http://127.0.0.1:25151")
     (options, args) = p.parse_args()
-    print "- trying to login with user=%s" % options.user
+    print("- trying to login with user=%s" % options.user)
     token = sp.login(options.user,options.password)
-    print "- token: %s" % token
-    print "- authenticated ok, now seeing if user is authorized"
+    print("- token: %s" % token)
+    print("- authenticated ok, now seeing if user is authorized")
     check = sp.check_access(token,"imaginary_method_name")
-    print "- access ok? %s" % check
+    print("- access ok? %s" % check)
 
 
 

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
 import os
 import time
 
@@ -30,7 +31,7 @@ DEBUG = "DEBUG"
 INFO = "INFO"
 
 
-class Logger:
+class Logger(object):
 
     def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
         self.logfile = None

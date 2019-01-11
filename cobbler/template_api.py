@@ -22,12 +22,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from past.builtins import str
 import Cheetah.Template
 import os.path
 import re
 
-from cexceptions import FileNotFoundException
-import utils
+from .cexceptions import FileNotFoundException
+from . import utils
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
@@ -100,7 +101,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
             # Normally, the cheetah compiler worries about this, but we need to
             # preprocess the actual source
             if source is None:
-                if isinstance(file, basestring):
+                if isinstance(file, str):
                     if os.path.exists(file):
                         f = open(file)
                         source = "#errorCatcher Echo\n" + f.read()

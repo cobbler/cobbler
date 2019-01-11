@@ -21,17 +21,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import fnmatch
 import os
-import xmlrpclib
+import xmlrpc.client
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 
 
-class Replicate:
+class Replicate(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -63,7 +67,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in locals.iteritems():
+        for (luid, ldata) in list(locals.items()):
             if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
@@ -100,7 +104,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in remotes.iteritems():
+        for (ruid, rdata) in list(remotes.items()):
             # do not add the system if it is not on the transfer list
             if not rdata["name"] in self.must_include[obj_type]:
                 continue
@@ -149,7 +153,7 @@ class Replicate:
 
         if not self.omit_data:
             self.logger.info("Rsyncing distros")
-            for distro in self.must_include["distro"].keys():
+            for distro in list(self.must_include["distro"].keys()):
                 if self.must_include["distro"][distro] == 1:
                     self.logger.info("Rsyncing distro %s" % distro)
                     target = self.remote.get_distro(distro)
@@ -170,7 +174,7 @@ class Replicate:
                         self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror" % distro)
 
             self.logger.info("Rsyncing repos")
-            for repo in self.must_include["repo"].keys():
+            for repo in list(self.must_include["repo"].keys()):
                 if self.must_include["repo"][repo] == 1:
                     self.rsync_it("repo-%s" % repo, os.path.join(self.settings.webdir, "repo_mirror", repo), "repo")
 
@@ -216,7 +220,7 @@ class Replicate:
         }
 
         for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.lod_to_dod(self.remote_data[ot], "name").keys()
+            self.remote_names[ot] = list(utils.lod_to_dod(self.remote_data[ot], "name").keys())
             self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
             if self.sync_all:
                 for names in self.remote_dict[ot]:
@@ -239,7 +243,7 @@ class Replicate:
             # include all profiles that systems require
             # whether they are explicitly included or not
             self.logger.debug("* Adding Profiles Required By Systems")
-            for sys in self.must_include["system"].keys():
+            for sys in list(self.must_include["system"].keys()):
                 pro = self.remote_dict["system"][sys].get("profile", "")
                 self.logger.debug("?: system %s requires profile %s." % (sys, pro))
                 if pro != "":
@@ -252,7 +256,7 @@ class Replicate:
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
-                for pro in self.must_include["profile"].keys():
+                for pro in list(self.must_include["profile"].keys()):
                     parent = self.remote_dict["profile"][pro].get("parent", "")
                     if parent != "":
                         if parent not in self.must_include["profile"]:
@@ -265,7 +269,7 @@ class Replicate:
             # require all distros that any profiles in the generated list requires
             # whether they are explicitly included or not
             self.logger.debug("* Adding Distros Required By Profiles")
-            for p in self.must_include["profile"].keys():
+            for p in list(self.must_include["profile"].keys()):
                 distro = self.remote_dict["profile"][p].get("distro", "")
                 if not distro == "<<inherit>>" and not distro == "~":
                     self.logger.debug("Adding distro %s for profile %s." % (distro, p))
@@ -274,7 +278,7 @@ class Replicate:
             # require any repos that any profiles in the generated list requires
             # whether they are explicitly included or not
             self.logger.debug("* Adding Repos Required By Profiles")
-            for p in self.must_include["profile"].keys():
+            for p in list(self.must_include["profile"].keys()):
                 repos = self.remote_dict["profile"][p].get("repos", [])
                 if repos != "<<inherit>>":
                     for r in repos:
@@ -284,7 +288,7 @@ class Replicate:
             # include all images that systems require
             # whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
-            for sys in self.must_include["system"].keys():
+            for sys in list(self.must_include["system"].keys()):
                 img = self.remote_dict["system"][sys].get("image", "")
                 self.logger.debug("?: system %s requires image %s." % (sys, img))
                 if img != "":
@@ -293,7 +297,7 @@ class Replicate:
 
         # FIXME: remove debug
         for ot in OBJ_TYPES:
-            self.logger.debug("transfer list for %s is %s" % (ot, self.must_include[ot].keys()))
+            self.logger.debug("transfer list for %s is %s" % (ot, list(self.must_include[ot].keys())))
 
     # -------------------------------------------------------
 
@@ -347,10 +351,10 @@ class Replicate:
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
-        self.remote = xmlrpclib.Server(self.uri)
+        self.remote = xmlrpc.client.Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
-        self.local = xmlrpclib.Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
+        self.local = xmlrpc.client.Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
         self.local.ping()
 
         self.replicate_data()

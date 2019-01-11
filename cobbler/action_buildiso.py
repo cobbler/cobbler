@@ -21,16 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+
+from builtins import str
+from builtins import object
 import os
 import os.path
 import re
 import shutil
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 
-class BuildIso:
+class BuildIso(object):
     """
     Handles conversion of internal state to the isolinux tree layout
     """
@@ -62,7 +65,7 @@ class BuildIso:
         Add remaining kernel_options to append_line
         """
         append_line = ""
-        for (k, v) in koptdict.iteritems():
+        for (k, v) in list(koptdict.items()):
             if v is None:
                 append_line += " %s" % k
             else:
@@ -100,12 +103,6 @@ class BuildIso:
             shutil.copyfile(distro.kernel, os.path.join(destdir, "%s.krn" % prefix))
             shutil.copyfile(distro.initrd, os.path.join(destdir, "%s.img" % prefix))
 
-    def sort_name(self, a, b):
-        """
-        Sort profiles/systems by name
-        """
-        return cmp(a.name, b.name)
-
     def filter_systems_or_profiles(self, selected_items, list_type):
         """
         Return a list of valid profile or system objects selected from all profiles
@@ -118,7 +115,7 @@ class BuildIso:
         else:
             utils.die(self.logger, "Invalid list_type argument: " + list_type)
 
-        all_objs.sort(self.sort_name)
+        all_objs.sort(key=lambda profile: profile.name)
 
         # no profiles/systems selection is made, let's process everything
         if not selected_items:
@@ -160,6 +157,10 @@ class BuildIso:
             cfg.write("  kernel %s.krn\n" % distname)
 
             data = utils.blender(self.api, False, profile)
+
+            # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+            utils.suse_kopts_textmode_overwrite(dist.breed, data['kernel_options'])
+
             if not re.match("[a-z]+://.*", data["autoinstall"]):
                 data["autoinstall"] = "http://%s:%s/cblr/svc/op/autoinstall/profile/%s" % (
                     data["server"], self.api.settings().http_port, profile.name
@@ -323,8 +324,8 @@ class BuildIso:
                 mgmt_ints = []
                 mgmt_ints_multi = []
                 slave_ints = []
-                if len(data["interfaces"].keys()) >= 1:
-                    for (iname, idata) in data["interfaces"].iteritems():
+                if len(list(data["interfaces"].keys())) >= 1:
+                    for (iname, idata) in list(data["interfaces"].items()):
                         if idata["management"] and idata["interface_type"] in ["bond", "bridge"]:
                             # bonded/bridged management interface
                             mgmt_ints_multi.append(iname)
@@ -335,7 +336,7 @@ class BuildIso:
                 if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
                     # bonded/bridged management interface, find a slave interface
                     # if eth0 is a slave use that (it's what people expect)
-                    for (iname, idata) in data["interfaces"].iteritems():
+                    for (iname, idata) in list(data["interfaces"].items()):
                         if idata["interface_type"] in ["bond_slave", "bridge_slave", "bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
                             slave_ints.append(iname)
 
@@ -485,6 +486,9 @@ class BuildIso:
 
             data = utils.blender(self.api, False, descendant)
 
+            # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+            utils.suse_kopts_textmode_overwrite(distro.breed, data['kernel_options'])
+
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
             if menu_indent:
@@ -539,7 +543,7 @@ class BuildIso:
                     autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name, autoinstall_data)
 
                 # rewrite any split-tree repos, such as in redhat, to use cdrom
-                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/ks_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
+                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
                 autoinstall_data = srcreporegex.sub(r"\1" + "file:///mnt/source" + r"\2", autoinstall_data)
 
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
@@ -636,36 +640,33 @@ class BuildIso:
 
         self.logger.info("copying miscellaneous files")
 
-        isolinuxbin = "/usr/share/syslinux/isolinux.bin"
-        if not os.path.exists(isolinuxbin):
-            isolinuxbin = "/usr/lib/syslinux/isolinux.bin"
+        files_to_copy = ["isolinux.bin", "menu.c32", "chain.c32",
+                         "ldlinux.c32", "libcom32.c32", "libutil.c32"]
+        
+        optional_files = ["ldlinux.c32", "libcom32.c32", "libutil.c32"]
 
-        menu = "/usr/share/syslinux/menu.c32"
-        if not os.path.exists(menu):
-            menu = "/var/lib/cobbler/loaders/menu.c32"
+        syslinux_folders = ["/usr/share/syslinux/",
+                            "/usr/lib/syslinux/modules/bios/",
+                            "/usr/lib/syslinux/",
+                            "/usr/lib/ISOLINUX/"]
 
-        chain = "/usr/share/syslinux/chain.c32"
-        if not os.path.exists(chain):
-            chain = "/usr/lib/syslinux/chain.c32"
+        # file_copy_success will be used to check for missing files
+        file_copy_success = {f: False for f in files_to_copy if f not in optional_files}
+        for syslinux_folder in syslinux_folders:
+            if os.path.isdir(os.path.join(syslinux_folder)):
+                for file_to_copy in files_to_copy:
+                    source_file = os.path.join(syslinux_folder, file_to_copy)
+                    if os.path.exists(source_file):
+                        utils.copyfile(source_file,
+                                    os.path.join(isolinuxdir, file_to_copy),
+                                    self.api)
+                        file_copy_success[file_to_copy] = True
 
-        ldlinux = "/usr/share/syslinux/ldlinux.c32"
-        if not os.path.exists(ldlinux):
-            ldlinux = "/usr/lib/syslinux/ldlinux.c32"
-
-        libcom32 = "/usr/share/syslinux/libcom32.c32"
-        if not os.path.exists(libcom32):
-            ldlinux = "/usr/lib/syslinux/libcom32.c32"
-
-        libutil = "/usr/share/syslinux/libutil.c32"
-        if not os.path.exists(libutil):
-            ldlinux = "/usr/lib/syslinux/libutil.c32"
-
-        files = [isolinuxbin, menu, chain, ldlinux, libcom32, libutil]
-        for f in files:
-            if not os.path.exists(f):
-                utils.die(self.logger, "Required file not found: %s" % f)
-            else:
-                utils.copyfile(f, os.path.join(isolinuxdir, os.path.basename(f)), self.api)
+        if False in file_copy_success.values():
+            for k, v in file_copy_success:
+                if not v:
+                    self.logger.error("File not found: %s" % k)
+            utils.die(self.logger, "Required file(s) not found. Please check your syslinux installation")
 
         if standalone or airgapped:
             self.generate_standalone_iso(imagesdir, isolinuxdir, distro, source, airgapped, profiles)

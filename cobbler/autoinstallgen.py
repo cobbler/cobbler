@@ -21,7 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import urlparse
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import urllib.parse
 import xml.dom.minidom
 
 from cobbler import templar
@@ -31,7 +35,7 @@ from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler.utils import _
 
 
-class AutoInstallationGen:
+class AutoInstallationGen(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -283,7 +287,7 @@ class AutoInstallationGen:
         # add install_source_directory metavariable to autoinstall metavariables
         # if distro is based on Debian
         if distro.breed in ["debian", "ubuntu"] and "tree" in meta:
-            urlparts = urlparse.urlsplit(meta["tree"])
+            urlparts = urllib.parse.urlsplit(meta["tree"])
             meta["install_source_directory"] = urlparts[2]
 
         try:

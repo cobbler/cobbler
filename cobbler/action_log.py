@@ -19,15 +19,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-
+from builtins import filter
+from builtins import object
 import glob
 import os
 import os.path
 
-import clogger
+from . import clogger
 
 
-class LogTool:
+class LogTool(object):
     """
     Helpers for dealing with System logs, anamon, etc..
     """
@@ -50,13 +51,13 @@ class LogTool:
         """
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
-            logs = filter(os.path.isfile, glob.glob('%s/*' % anamon_dir))
+            logs = list(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
         for log in logs:
             try:
                 f = open(log, 'w')
                 f.truncate()
                 f.close()
-            except IOError, e:
+            except IOError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
-            except OSError, e:
+            except OSError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))

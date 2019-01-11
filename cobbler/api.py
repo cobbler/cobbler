@@ -18,11 +18,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from ConfigParser import ConfigParser
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from configparser import ConfigParser
+
 import os
 import random
 import tempfile
-import urlgrabber
 
 from cobbler import action_acl
 from cobbler import action_buildiso
@@ -52,6 +57,7 @@ from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
 from cobbler import autoinstallgen
+from cobbler import download_manager
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -70,7 +76,7 @@ RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 # on a request by request basis.
 
 
-class CobblerAPI:
+class CobblerAPI(object):
     """
     Python API module for Cobbler.
     See source for cobbler.py, or pydoc, for example usage.
@@ -184,13 +190,13 @@ class CobblerAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
-            os.write(fd, "0")
-            os.close(fd)
+            fd = open("/var/lib/cobbler/.mtime", 'w')
+            fd.write("0")
+            fd.close()
             return 0
-        fd = open("/var/lib/cobbler/.mtime")
+        fd = open("/var/lib/cobbler/.mtime", 'r')
         data = fd.read().strip()
-        return float(data)
+        return data
 
     # ==========================================================
 
@@ -343,8 +349,8 @@ class CobblerAPI:
     # ==========================================================================
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        if isinstance(what, basestring):
-            if isinstance(ref, basestring):
+        if isinstance(what, str):
+            if isinstance(ref, str):
                 ref = self.get_item(what, ref)
                 if ref is None:
                     return      # nothing to remove
@@ -564,14 +570,13 @@ class CobblerAPI:
 
     def signature_update(self, logger):
         try:
+            url = self.settings().signature_url
+            dlmgr = download_manager.DownloadManager(self._collection_mgr, self.logger)
+            # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
-            proxies = {}
-            proxies['http'] = self.settings().proxy_url_ext
-            response = urlgrabber.grabber.urlopen(self.settings().signature_url, proxies=proxies)
-            sigjson = response.read()
-            tmpfile.write(sigjson)
+            sigjson = dlmgr.urlread(url)
+            tmpfile.write(sigjson.text.encode())
             tmpfile.flush()
-
             logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
             try:
@@ -581,7 +586,7 @@ class CobblerAPI:
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
-            f.write(sigjson)
+            f.write(sigjson.text)
             f.close()
 
             utils.load_signatures(self.settings().signature_path)
@@ -625,7 +630,7 @@ class CobblerAPI:
             # FIXME: probably doesn't work for yum-rhn-plugin ATM
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
-            print "auto adding: %s (%s)" % (auto_name, url)
+            print("auto adding: %s (%s)" % (auto_name, url))
             self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes

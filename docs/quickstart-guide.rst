@@ -104,7 +104,7 @@ Completely going through the dhcpd.conf configuration syntax is beyond the scope
 Notes on files and directories
 ++++++++++++++++++++++++++++++
 
-Cobbler makes heavy use of the `/var` directory. The `/var/www/cobbler/ks_mirror` directory is where all of the distrubtion and repository files are copied, so you will need 5-10GB of free space per distribution you wish to import. 
+Cobbler makes heavy use of the `/var` directory. The `/var/www/cobbler/distro_mirror` directory is where all of the distrubtion and repository files are copied, so you will need 5-10GB of free space per distribution you wish to import. 
 
 If you have installed Cobbler onto a system that has very little free space in the partition containing `/var`, please read the "Relocating Your Installation" section of the Installation Guide to learn how you can relocate your installation properly.
 
@@ -241,8 +241,8 @@ The report command shows the details of objects in cobbler:
     Breed                           : redhat
     Comment                         : 
     Fetchable Files                 : {}
-    Initrd                          : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/initrd.img
-    Kernel                          : /var/www/cobbler/ks_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
+    Initrd                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/initrd.img
+    Kernel                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
     Kernel Options                  : {}
     Kernel Options (Post Install)   : {}
     Automatic Installation Template Metadata : {'tree': 'http://@@http_server@@/cblr/links/fedora17-x86_64'}

@@ -21,12 +21,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import simplejson
 import time
-import urlgrabber
-import xmlrpclib
+import xmlrpc.client
 import yaml
-import collection_manager
+from . import collection_manager
+from . import download_manager
 
 
 class CobblerSvc(object):
@@ -40,6 +44,8 @@ class CobblerSvc(object):
         self.remote = None
         self.req = req
         self.collection_mgr = collection_manager.CollectionManager(self)
+        self.logger = None
+        self.dlmgr = download_manager.DownloadManager(self.collection_manager, self.logger)
 
     def __xmlrpc_setup(self):
         """
@@ -47,7 +53,7 @@ class CobblerSvc(object):
         This is the version that does not require logins.
         """
         if self.remote is None:
-            self.remote = xmlrpclib.Server(self.server, allow_none=True)
+            self.remote = xmlrpc.client.Server(self.server, allow_none=True)
 
     def index(self, **args):
         return "no mode specified"
@@ -64,7 +70,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
-        return u"%s" % data
+        return "%s" % data
 
     def gpxe(self, profile=None, system=None, mac=None, **rest):
         """
@@ -80,7 +86,7 @@ class CobblerSvc(object):
                 system = found[0]
 
         data = self.remote.generate_gpxe(profile, system)
-        return u"%s" % data
+        return "%s" % data
 
     def bootcfg(self, profile=None, system=None, **rest):
         """
@@ -89,7 +95,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_bootcfg(profile, system)
-        return u"%s" % data
+        return "%s" % data
 
     def script(self, profile=None, system=None, **rest):
         """
@@ -99,7 +105,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
-        return u"%s" % data
+        return "%s" % data
 
     def events(self, user="", **rest):
         self.__xmlrpc_setup()
@@ -109,7 +115,7 @@ class CobblerSvc(object):
             data = self.remote.get_events(user)
 
         # sort it... it looks like { timestamp : [ array of details ] }
-        keylist = data.keys()
+        keylist = list(data.keys())
         keylist.sort()
         results = []
         for k in keylist:
@@ -242,7 +248,7 @@ class CobblerSvc(object):
             url = "%s/cblr/svc/op/autoinstall/system/%s" % (serverseg, name)
 
         try:
-            return urlgrabber.urlread(url)
+            return self.dlmgr.urlread(url)
         except:
             return "# automatic installation file retrieval failed (%s)" % url
 
@@ -269,7 +275,7 @@ class CobblerSvc(object):
             data.pop("environment", None)
 
         if settings.get("puppet_parameterized_classes", False):
-            for ckey in classes.keys():
+            for ckey in list(classes.keys()):
                 tmp = {}
                 class_name = classes[ckey].get("class_name", "")
                 if class_name in (None, ""):
@@ -279,7 +285,7 @@ class CobblerSvc(object):
                     def_name = classes[ckey]["params"].get("name", "")
                     del classes[ckey]["params"]["name"]
                     if def_name != "":
-                        for pkey in classes[ckey]["params"].keys():
+                        for pkey in list(classes[ckey]["params"].keys()):
                             def_tmp[pkey] = classes[ckey]["params"][pkey]
                         tmp["instances"] = {def_name: def_tmp}
                     else:
@@ -287,11 +293,11 @@ class CobblerSvc(object):
                         # skip silently...
                         continue
                 else:
-                    for pkey in classes[ckey]["params"].keys():
+                    for pkey in list(classes[ckey]["params"].keys()):
                         tmp[pkey] = classes[ckey]["params"][pkey]
                 del classes[ckey]
                 classes[class_name] = tmp
         else:
-            classes = classes.keys()
+            classes = list(classes.keys())
 
         return yaml.dump(data, default_flow_style=False)

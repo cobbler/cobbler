@@ -23,15 +23,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import range
+from builtins import object
 import glob
 import os
 import re
 import time
 
-from cexceptions import CX
-import clogger
-import templar
-import utils
+from .cexceptions import CX
+from . import clogger
+from . import templar
+from . import utils
 
 
 def get_power_types():
@@ -85,7 +87,7 @@ def get_power_command(power_type):
     return None
 
 
-class PowerManager:
+class PowerManager(object):
     """
     Handles power management in systems
     """

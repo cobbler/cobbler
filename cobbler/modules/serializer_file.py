@@ -22,13 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import exceptions
+from past.builtins import cmp
 import os
 import glob
 import simplejson
 import yaml
 
 import cobbler.api as capi
+from cobbler.cexceptions import CX
 
 
 def register():
@@ -54,7 +55,7 @@ def serialize_item(collection, item):
     """
 
     if item.name is None or item.name == "":
-        raise exceptions.RuntimeError("name unset for item!")
+        raise CX("name unset for item!")
 
     # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
@@ -164,7 +165,7 @@ def filter_upgrade_duplicates(file_list):
             lookup = bases.get(basekey, "")
             if not lookup.endswith(".json"):
                 bases[basekey] = f
-    return bases.values()
+    return list(bases.values())
 
 
 def deserialize(collection, topological=True):
@@ -177,7 +178,9 @@ def deserialize(collection, topological=True):
 
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
-        datastruct.sort(__depth_cmp)
+        # FIXME
+        # datastruct.sort(key=__depth_cmp)
+        pass
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:

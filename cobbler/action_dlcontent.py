@@ -20,13 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
 import os
-import urlgrabber
 
-import clogger
+from . import clogger
+from . import download_manager
 
 
-class ContentDownloader:
+class ContentDownloader(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -61,14 +62,12 @@ class ContentDownloader:
             ("%s/grub-0.97-x86_64.efi" % content_server, "%s/grub-x86_64.efi" % dest),
         )
 
-        proxies = {}
-        proxies['http'] = self.settings.proxy_url_ext
-
+        dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
         for src, dst in files:
             if os.path.exists(dst) and not force:
                 self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
                 continue
             self.logger.info("downloading %s to %s" % (src, dst))
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies)
+            dlmgr.download_file(src, dst)
 
 # EOF

@@ -13,7 +13,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-import ConfigParser
+
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from configparser import SafeConfigParser
+
 import os
 
 CONFIG_FILE = '/etc/cobbler/users.conf'
@@ -29,7 +34,7 @@ def register():
 def __parse_config():
     if not os.path.exists(CONFIG_FILE):
         return []
-    config = ConfigParser.SafeConfigParser()
+    config = SafeConfigParser()
     config.read(CONFIG_FILE)
     alldata = {}
     groups = config.sections()
@@ -56,4 +61,4 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
 
 
 if __name__ == "__main__":
-    print __parse_config()
+    print((__parse_config()))

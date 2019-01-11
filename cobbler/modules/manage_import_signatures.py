@@ -19,11 +19,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import object
 import glob
 import os
 import os.path
 import re
 import shutil
+import stat
 
 # Import aptsources module if available to obtain repo mirror.
 try:
@@ -49,7 +52,37 @@ def register():
     return "manage/import"
 
 
-class ImportSignatureManager:
+def import_walker(top, func, arg):
+    """
+    Directory tree walk with callback function.
+    For each directory in the directory tree rooted at top (including top
+    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
+    dirname is the name of the directory, and fnames a list of the names of
+    the files and subdirectories in dirname (excluding '.' and '..').  func
+    may modify the fnames list in-place (e.g. via del or slice assignment),
+    and walk will only recurse into the subdirectories whose names remain in
+    fnames; this can be used to implement a filter, or to impose a specific
+    order of visiting.  No semantics are defined for, or required of, arg,
+    beyond that arg is always passed to func.  It can be used, e.g., to pass
+    a filename pattern, or a mutable object designed to accumulate
+    statistics.  Passing None for arg is common.
+    """
+    try:
+        names = os.listdir(top)
+    except os.error:
+        return
+    func(arg, top, names)
+    for name in names:
+        name = os.path.join(top, name)
+        try:
+            st = os.lstat(name)
+        except os.error:
+            continue
+        if stat.S_ISDIR(st.st_mode):
+            import_walker(name, func, arg)
+
+
+class ImportSignatureManager(object):
 
     def __init__(self, collection_mgr, logger):
         """
@@ -142,7 +175,7 @@ class ImportSignatureManager:
         # now walk the filesystem looking for distributions that match certain patterns
         self.logger.info("Adding distros from path %s:" % self.path)
         distros_added = []
-        os.path.walk(self.path, self.distro_adder, distros_added)
+        import_walker(self.path, self.distro_adder, distros_added)
 
         if len(distros_added) == 0:
             self.logger.warning("No distros imported, bailing out")
@@ -161,10 +194,10 @@ class ImportSignatureManager:
         """
         sigdata = self.api.get_signatures()
         # self.logger.debug("signature cache: %s" % str(sigdata))
-        for breed in sigdata["breeds"].keys():
+        for breed in list(sigdata["breeds"].keys()):
             if self.breed and self.breed != breed:
                 continue
-            for version in sigdata["breeds"][breed].keys():
+            for version in list(sigdata["breeds"][breed].keys()):
                 if self.os_version and self.os_version != version:
                     continue
                 for sig in sigdata["breeds"][breed][version]["signatures"]:
@@ -210,7 +243,7 @@ class ImportSignatureManager:
 
     def distro_adder(self, distros_added, dirname, fnames):
         """
-        This is an os.path.walk routine that finds distributions in the directory
+        This is an import_walker routine that finds distributions in the directory
         to be scanned and then creates them.
         """
 
@@ -239,7 +272,7 @@ class ImportSignatureManager:
                     # self.logger.warning("avoiding symlink loop")
                     continue
                 self.logger.info("following symlink: %s" % fullname)
-                os.path.walk(fullname, self.distro_adder, distros_added)
+                import_walker(fullname, self.distro_adder, distros_added)
 
             if re_img.match(x):
                 if x.find("PAE") == -1:
@@ -377,7 +410,7 @@ class ImportSignatureManager:
         result = {}
 
         # FIXME : this is called only once, should not be a walk
-        os.path.walk(self.path, self.arch_walker, result)
+        import_walker(self.path, self.arch_walker, result)
 
         if result.pop("amd64", False):
             result["x86_64"] = 1
@@ -388,7 +421,7 @@ class ImportSignatureManager:
         if result.pop("x86", False):
             result["i386"] = 1
 
-        return result.keys()
+        return list(result.keys())
 
     def arch_walker(self, foo, dirname, fnames):
         """
@@ -450,7 +483,7 @@ class ImportSignatureManager:
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
         for separator in ['-', '_', '.']:
-            for arch in ["i386", "x86_64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "386", "amd"]:
+            for arch in ["i386", "x86_64", "ia64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "s390x", "s390", "386", "amd"]:
                 name = name.replace("%s%s" % (separator, arch), "")
 
         return name
@@ -534,11 +567,11 @@ class ImportSignatureManager:
         For yum, we recursively scan the rootdir for repos to add
         """
         self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
-        os.path.walk(self.rootdir, self.yum_repo_scanner, distro)
+        import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
     def yum_repo_scanner(self, distro, dirname, fnames):
         """
-        This is an os.path.walk routine that looks for potential yum repositories
+        This is an import_walker routine that looks for potential yum repositories
         to be added to the configuration for post-install usage.
         """
 

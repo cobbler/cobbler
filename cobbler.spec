@@ -55,7 +55,7 @@ Requires: python(abi) >= %{pyver}
 Requires: createrepo
 Requires: python-netaddr
 Requires: python-simplejson
-Requires: python-urlgrabber
+Requires: python-requests
 Requires: rsync
 Requires: syslinux >= 6
 Requires: logrotate

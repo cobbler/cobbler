@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import str
+from builtins import object
 import time
 import copy
 
@@ -38,7 +40,7 @@ def register():
     return "manage"
 
 
-class IscManager:
+class IscManager(object):
 
     def what(self):
         return "isc"
@@ -96,7 +98,7 @@ class IscManager:
             distro = profile.get_conceptual_parent()
 
             # if distro is None then the profile is really an image record
-            for (name, system_interface) in system.interfaces.iteritems():
+            for (name, system_interface) in list(system.interfaces.items()):
 
                 # We make a copy because we may modify it before adding it to the dhcp_tags
                 # and we don't want to affect the master copy.
@@ -131,7 +133,7 @@ class IscManager:
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if ip is None or ip == "":
-                        for (nam2, int2) in system.interfaces.iteritems():
+                        for (nam2, int2) in list(system.interfaces.items()):
                             if (nam2.startswith(interface["interface_master"] + ".") and int2["ip_address"] is not None and int2["ip_address"] != ""):
                                     ip = int2["ip_address"]
                                     break
@@ -204,8 +206,8 @@ class IscManager:
 
         # remove macs from redundant slave interfaces from dhcp_tags
         # otherwise you get duplicate ip's in the installer
-        for dt in dhcp_tags.keys():
-            for m in dhcp_tags[dt].keys():
+        for dt in list(dhcp_tags.keys()):
+            for m in list(dhcp_tags[dt].keys()):
                 if m in ignore_macs:
                     del dhcp_tags[dt][m]
 

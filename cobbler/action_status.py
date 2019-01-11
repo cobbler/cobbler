@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import object
+from past.utils import old_div
 import glob
 import time
 import gzip
 import re
 
-import clogger
+from . import clogger
 
 # ARRAY INDEXES
 MOST_RECENT_START = 0
@@ -37,7 +39,7 @@ SEEN_STOP = 4
 STATE = 5
 
 
-class CobblerStatusReport:
+class CobblerStatusReport(object):
 
     def __init__(self, collection_mgr, mode, logger=None):
         """
@@ -123,7 +125,7 @@ class CobblerStatusReport:
     def process_results(self):
         # FIXME: this should update the times here
         tnow = int(time.time())
-        for ip in self.ip_data.keys():
+        for ip in list(self.ip_data.keys()):
             elem = self.ip_data[ip]
             start = int(elem[MOST_RECENT_START])
             stop = int(elem[MOST_RECENT_STOP])
@@ -131,7 +133,7 @@ class CobblerStatusReport:
                 elem[STATE] = "finished"
             else:
                 delta = tnow - start
-                min = delta / 60
+                min = old_div(delta, 60)
                 sec = delta % 60
                 if min > 100:
                     elem[STATE] = "unknown/stalled"
@@ -143,7 +145,7 @@ class CobblerStatusReport:
     def get_printable_results(self):
         format = "%-15s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data
-        ips = ip_data.keys()
+        ips = list(ip_data.keys())
         ips.sort()
         line = (
             "ip",

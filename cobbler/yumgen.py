@@ -21,14 +21,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+
+from builtins import object
 import os
 import os.path
 
-import templar
-import utils
+from . import templar
+from . import utils
 
 
-class YumGen:
+class YumGen(object):
 
     def __init__(self, collection_mgr):
         """

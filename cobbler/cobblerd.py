@@ -26,9 +26,9 @@ import pwd
 import sys
 import time
 
-import api as cobbler_api
-import remote
-import utils
+from . import api as cobbler_api
+from . import remote
+from . import utils
 
 
 def core(api):
@@ -45,11 +45,11 @@ def regen_ss_file():
     # it identifies XMLRPC requests from Apache that have already
     # been cleared by Kerberos.
     ssfile = "/var/lib/cobbler/web.ss"
-    fd = open("/dev/urandom")
+    fd = open("/dev/urandom", 'rb')
     data = fd.read(512)
     fd.close()
 
-    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0600)
+    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600)
     os.write(fd, binascii.hexlify(data))
     os.close(fd)
 
@@ -72,7 +72,7 @@ def log(logger, msg):
     if logger is not None:
         logger.info(msg)
     else:
-        print >>sys.stderr, msg
+        print(msg, file=sys.stderr)
 
 
 def do_xmlrpc_rw(cobbler_api, settings, port):
@@ -85,7 +85,7 @@ def do_xmlrpc_rw(cobbler_api, settings, port):
 
     while True:
         try:
-            print "SERVING!"
+            print("SERVING!")
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again

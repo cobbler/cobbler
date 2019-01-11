@@ -20,25 +20,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import binascii
-import random
+from past.builtins import cmp
+from builtins import object
 import time
 import weakref
+import uuid
 
-from cexceptions import CX
-import collection_distros as distros
-import collection_files as files
-import collection_images as images
-import collection_mgmtclasses as mgmtclasses
-import collection_packages as packages
-import collection_profiles as profiles
-import collection_repos as repos
-import collection_systems as systems
-import settings
-import serializer
+from .cexceptions import CX
+from . import collection_distros as distros
+from . import collection_files as files
+from . import collection_images as images
+from . import collection_mgmtclasses as mgmtclasses
+from . import collection_packages as packages
+from . import collection_profiles as profiles
+from . import collection_repos as repos
+from . import collection_systems as systems
+from . import settings
+from . import serializer
 
 
-class CollectionManager:
+class CollectionManager(object):
 
     has_loaded = False
     __shared_state = {}
@@ -75,8 +76,7 @@ class CollectionManager:
         Cobbler uses unique names in each collection as the object id
         aka primary key
         """
-        data = "%s%s" % (time.time(), random.uniform(1, 9999999))
-        return binascii.b2a_base64(data).replace("=", "").strip()
+        return uuid.uuid4().hex
 
     def __cmp(self, a, b):
         return cmp(a.name, b.name)

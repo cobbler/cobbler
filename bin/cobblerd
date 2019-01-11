@@ -13,7 +13,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
-
 import sys
 import os
 import traceback
@@ -30,14 +29,14 @@ def daemonize_self():
         if pid > 0:
             # exit first parent
             sys.exit(0)
-    except OSError, e:
-        print >>sys.stderr, "fork #1 failed: %d (%s)" % (e.errno, e.strerror)
+    except OSError as e:
+        print("fork #1 failed: %d (%s)" % (e.errno, e.strerror), file=sys.stderr)
         sys.exit(1)
 
     # decouple from parent environment
     os.chdir("/")
     os.setsid()
-    os.umask(022)
+    os.umask(0o22)
 
     # do second fork
     try:
@@ -45,11 +44,11 @@ def daemonize_self():
         if pid > 0:
             # print "Daemon PID %d" % pid
             sys.exit(0)
-    except OSError, e:
-        print >>sys.stderr, "fork #2 failed: %d (%s)" % (e.errno, e.strerror)
+    except OSError as e:
+        print("fork #2 failed: %d (%s)" % (e.errno, e.strerror), file=sys.stderr)
         sys.exit(1)
 
-    dev_null = file('/dev/null', 'rw')
+    dev_null = open('/dev/null', 'rw')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
     os.dup2(dev_null.fileno(), sys.stdout.fileno())
     os.dup2(dev_null.fileno(), sys.stderr.fileno())
@@ -74,8 +73,8 @@ def main():
     api = None
     try:
         api = cobbler_api.CobblerAPI(is_cobblerd=True)
-    except Exception, exc:
-        if sys.exc_type == SystemExit:
+    except Exception as exc:
+        if sys.exc_info()[0] == SystemExit:
             return exc.code
         else:
             # FIXME: log this too
@@ -89,7 +88,7 @@ def main():
 
     try:
         app.core(api)
-    except Exception, e:
+    except Exception as e:
         logger.error(e)
         traceback.print_exc()
 

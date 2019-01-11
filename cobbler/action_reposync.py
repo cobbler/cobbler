@@ -21,10 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from builtins import range
+from builtins import object
 import os
 import os.path
 import pipes
-import urlgrabber
+import stat
+import distro
 
 HAS_YUM = True
 try:
@@ -32,11 +35,42 @@ try:
 except:
     HAS_YUM = False
 
-import clogger
-import utils
+from . import clogger
+from . import utils
+from . import download_manager
 
 
-class RepoSync:
+def repo_walker(top, func, arg):
+    """
+    Directory tree walk with callback function.
+    For each directory in the directory tree rooted at top (including top
+    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
+    dirname is the name of the directory, and fnames a list of the names of
+    the files and subdirectories in dirname (excluding '.' and '..').  func
+    may modify the fnames list in-place (e.g. via del or slice assignment),
+    and walk will only recurse into the subdirectories whose names remain in
+    fnames; this can be used to implement a filter, or to impose a specific
+    order of visiting.  No semantics are defined for, or required of, arg,
+    beyond that arg is always passed to func.  It can be used, e.g., to pass
+    a filename pattern, or a mutable object designed to accumulate
+    statistics.  Passing None for arg is common.
+    """
+    try:
+        names = os.listdir(top)
+    except os.error:
+        return
+    func(arg, top, names)
+    for name in names:
+        name = os.path.join(top, name)
+        try:
+            st = os.lstat(name)
+        except os.error:
+            continue
+        if stat.S_ISDIR(st.st_mode):
+            repo_walker(name, func, arg)
+
+
+class RepoSync(object):
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -59,6 +93,7 @@ class RepoSync:
         self.tries = tries
         self.nofail = nofail
         self.logger = logger
+        self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
 
         if logger is None:
             self.logger = clogger.Logger()
@@ -103,7 +138,7 @@ class RepoSync:
             env = repo.environment
             old_env = {}
 
-            for k in env.keys():
+            for k in list(env.keys()):
                 self.logger.debug("setting repo environment: %s=%s" % (k, env[k]))
                 if env[k] is not None:
                     if os.getenv(k):
@@ -127,7 +162,7 @@ class RepoSync:
             # cleanup/restore any environment variables that were
             # added or changed above
 
-            for k in env.keys():
+            for k in list(env.keys()):
                 if env[k] is not None:
                     if k in old_env:
                         self.logger.debug("resetting repo environment: %s=%s" % (k, old_env[k]))
@@ -231,7 +266,7 @@ class RepoSync:
 
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
-        os.path.walk(dest_path, self.createrepo_walker, repo)
+        repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
@@ -263,7 +298,7 @@ class RepoSync:
 
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
-        os.path.walk(dest_path, self.createrepo_walker, repo)
+        repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
@@ -349,7 +384,7 @@ class RepoSync:
         # now run createrepo to rebuild the index
 
         if repo.mirror_locally:
-            os.path.walk(dest_path, self.createrepo_walker, repo)
+            repo_walker(dest_path, self.createrepo_walker, repo)
 
         # create the config file the hosts will use to access the repository.
 
@@ -358,28 +393,21 @@ class RepoSync:
     # ====================================================================================
 
     # This function translates yum repository options into the appropriate
-    # options for urlgrabber
+    # options for python-requests
     def gen_urlgrab_ssl_opts(self, yumopts):
         # use SSL options if specified in yum opts
-        urlgrab_ssl_opts = {}
-        if 'sslclientkey' in yumopts:
-            urlgrab_ssl_opts["ssl_key"] = yumopts['sslclientkey']
-        if 'sslclientcert' in yumopts:
-            urlgrab_ssl_opts["ssl_cert"] = yumopts['sslclientcert']
-        if 'sslcacert' in yumopts:
-            urlgrab_ssl_opts["ssl_ca_cert"] = yumopts['sslcacert']
-        # note that the default of urlgrabber is to verify the peer and host
+        if 'sslclientkey' and 'sslclientcert' in yumopts:
+            cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
+        # note that the default of requests is to verify the peer and host
         # but the default here is NOT to verify them unless sslverify is
         # explicitly set to 1 in yumopts
         if 'sslverify' in yumopts:
             if yumopts['sslverify'] == 1:
-                urlgrab_ssl_opts["ssl_verify_peer"] = True
-                urlgrab_ssl_opts["ssl_verify_host"] = True
+                verify = True
             else:
-                urlgrab_ssl_opts["ssl_verify_peer"] = False
-                urlgrab_ssl_opts["ssl_verify_host"] = False
+                verify = False
 
-        return urlgrab_ssl_opts
+        return (cert, verify)
 
     # ====================================================================================
 
@@ -459,14 +487,14 @@ class RepoSync:
         # grab repomd.xml and use it to download any metadata we can use
         proxies = None
         if repo.proxy == '<<inherit>>':
-            proxies = {'http': self.settings.proxy_url_ext}
+            proxies = self.settings.proxy_url_ext
         elif repo.proxy != '<<None>>' and repo.proxy != '':
             proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
         dst = temp_path + "/repomd.xml"
-        urlgrab_ssl_opts = self.gen_urlgrab_ssl_opts(repo.yumopts)
+        (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+            self.dlmgr.download_file(src, dst, proxies, cert, verify)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -475,20 +503,20 @@ class RepoSync:
         if not os.path.isdir(repodata_path):
             os.makedirs(repodata_path)
         rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
-        for mdtype in rmd.repoData.keys():
+        for mdtype in list(rmd.repoData.keys()):
             # don't download metadata files that are created by default
             if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
                 mdfile = rmd.getData(mdtype).location[1]
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    urlgrabber.grabber.urlgrab(src, filename=dst, proxies=proxies, **urlgrab_ssl_opts)
+                    self.dlmgr.download_file(src, dst, proxies, cert, verify)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
-            os.path.walk(dest_path, self.createrepo_walker, repo)
+            repo_walker(dest_path, self.createrepo_walker, repo)
 
     # ====================================================================================
 
@@ -632,7 +660,7 @@ class RepoSync:
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
-            if 'exclude' in repo.yumopts.keys():
+            if 'exclude' in list(repo.yumopts.keys()):
                 self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
                 config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 
@@ -663,9 +691,10 @@ class RepoSync:
         """
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"
-        if os.path.exists("/etc/SuSE-release"):
+        distribution = distro.linux_distribution()[0]
+        if distribution.lower() in ("sles", "opensuse leap", "opensuse tumbleweed"):
             owner = "root:www"
-        elif os.path.exists("/etc/debian_version"):
+        elif "debian" in distribution.lower():
             owner = "root:www-data"
 
         cmd1 = "chown -R " + owner + " %s" % repo_path

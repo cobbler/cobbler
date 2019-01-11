@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import exceptions
+from builtins import Exception
 
 
-class CobblerException(exceptions.Exception):
+class CobblerException(Exception):
 
     def __init__(self, value, *args):
         self.value = value % args
@@ -40,4 +40,8 @@ class CX(CobblerException):
 
 
 class FileNotFoundException(CobblerException):
+    pass
+
+
+class NotImplementedException(CobblerException):
     pass
