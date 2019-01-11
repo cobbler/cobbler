@@ -177,9 +177,17 @@ class CobblerCliTestDirect(unittest.TestCase):
         lines = output.split("\n")
         self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
 
-    # @IMPROVEMENT test cobbler validateks
-    # @IMPROVEMENT test cobbler hardlink
-    # @IMPROVEMENT test cobbler replicate. Requires 2 test cobbler servers
+    def test_cobbler_hardlink(self):
+        # TODO: test cobbler hardlink
+        raise NotImplemented()
+
+    def test_cobbler_replicate(self):
+        # TODO: test cobbler replicate. Requires 2 test cobbler servers
+        raise NotImplemented()
+
+    def test_cobbler_validate_autoinstalls(self):
+        # TODO: test cobbler validateks
+        raise NotImplemented()
 
 
 if __name__ == '__main__':
