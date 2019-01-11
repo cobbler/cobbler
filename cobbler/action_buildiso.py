@@ -657,9 +657,7 @@ class BuildIso(object):
                 for file_to_copy in files_to_copy:
                     source_file = os.path.join(syslinux_folder, file_to_copy)
                     if os.path.exists(source_file):
-                        utils.copyfile(source_file,
-                                    os.path.join(isolinuxdir, file_to_copy),
-                                    self.api)
+                        utils.copyfile(source_file, os.path.join(isolinuxdir, file_to_copy), self.api)
                         file_copy_success[file_to_copy] = True
 
         if False in file_copy_success.values():
