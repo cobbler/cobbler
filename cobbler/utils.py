@@ -1033,7 +1033,7 @@ def hashfile(fn, lcache=None, logger=None):
 
     if os.path.exists(fn):
         cmd = '/usr/bin/sha1sum %s' % fn
-        key = str(subprocess_get(logger, cmd), 'utf-8').split(' ')[0]
+        key = subprocess_get(logger, cmd).split(' ')[0]
         if lcache is not None:
             db[fn] = (mtime, key)
             simplejson.dump(db, open(dbfile, 'w'))
@@ -1650,13 +1650,14 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
         stdin = subprocess.PIPE
 
     try:
-        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8",
+                              close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out, err) = sp.communicate(bytes(input, 'utf-8'))
+    (out, err) = sp.communicate(input)
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
