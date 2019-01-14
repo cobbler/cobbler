@@ -1,13 +1,12 @@
 language: python
 python:
- - "2.7"
+ - "3.7"
 branches:
  only:
   - master
-  - release28
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -y python-all python-cheetah python-yaml git-core python-setuptools python-netaddr python-nose python-simplejson pyflakes pep8
+ - sudo apt-get install -y python3-all python3-yaml git-core python3-setuptools python3-netaddr python3-nose python3-simplejson python3-pyflakes python3-pycodestyle
 install:
  - "/bin/true"
 script: make qa
