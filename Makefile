@@ -3,7 +3,7 @@
 #
 PYTHON=/usr/bin/python3
 PYFLAKES=/usr/bin/pyflakes-3
-PEP8=/usr/bin/python3-pep8
+PYCODESTYLE=/usr/bin/pycodestyle-3
 
 TOP_DIR:=$(shell pwd)
 DESTDIR=/
@@ -50,8 +50,8 @@ qa:
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
-	@echo "checking: pep8"
-	@${PEP8} -r --ignore E501,E402 \
+	@echo "checking: pycodestyle"
+	@${PYCODESTYLE} -r --ignore E501,E402 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
