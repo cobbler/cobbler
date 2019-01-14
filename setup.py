@@ -15,7 +15,7 @@ from setuptools.command.install import install as _install
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_py import build_py as _build_py
 from setuptools import dep_util
-import setuptools.command.build_py
+from distutils.command.build import build as _build
 from configparser import ConfigParser
 
 import codecs
@@ -29,6 +29,8 @@ from builtins import OSError
 
 VERSION = "2.9.0"
 OUTPUT_DIR = "config"
+
+log = logging.getLogger("setup.py")
 
 
 #####################################################################
@@ -118,11 +120,11 @@ class build_py(_build_py):
 #####################################################################
 
 
-class build(setuptools.command.build_py.build_py):
+class build(_build):
     """Specialized Python source builder."""
 
     def run(self):
-        setuptools.command.build_py.build_py.run(self)
+        _build.run(self)
 
 #####################################################################
 # # Configure files ##################################################
@@ -223,7 +225,7 @@ class build_cfg(Command):
                 self.configure_one_file(infile, outfile)
 
     def configure_one_file(self, infile, outfile):
-        self.announce("configuring %s" % (infile), logging.INFO)
+        log.info("configuring %s" % infile)
         if not self.dry_run:
             # Read the file
             with codecs.open(infile, 'r', 'utf-8') as fh:
@@ -309,7 +311,7 @@ class build_man(Command):
 
     def build_one_file(self, infile, outfile):
         man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
-        self.announce("building %s manpage" % (man), logging.INFO)
+        log.info("building %s manpage" % man)
         if not self.dry_run:
             # Create the output directory if necessary
             outdir = os.path.dirname(outfile)
@@ -318,7 +320,7 @@ class build_man(Command):
             # Now create the manpage
             cmd = build_man._COMMAND % ('man', VERSION, infile, outfile)
             if os.system(cmd):
-                self.announce("Creation of %s manpage failed." % man, logging.ERROR)
+                log.error("Creation of %s manpage failed." % man)
                 exit(1)
 
 
@@ -339,7 +341,7 @@ class install(_install):
     def change_owner(self, path, owner):
         user = pwd.getpwnam(owner)
         try:
-            logging.info("changing mode of %s" % path)
+            log.info("changing mode of %s" % path)
             if not self.dry_run:
                 # os.walk does not include the toplevel directory
                 os.lchown(path, user.pw_uid, -1)
@@ -371,7 +373,7 @@ class install(_install):
             self.change_owner(path, http_user)
         except KeyError as e:
             # building RPMs in a mock chroot, user 'apache' won't exist
-            logging.warning("Error in 'chown apache %s': %s" % (path, e))
+            log.warning("Error in 'chown apache %s': %s" % (path, e))
         if not os.path.abspath(libpath):
             # The next line only works for absolute libpath
             raise Exception("libpath is not absolute.")
@@ -381,7 +383,7 @@ class install(_install):
         try:
             self.change_owner(path, http_user)
         except KeyError as e:
-            logging.warning("Error in 'chown apache %s': %s" % (path, e))
+            log.warning("Error in 'chown apache %s': %s" % (path, e))
 
 
 #####################################################################
@@ -436,13 +438,13 @@ class statebase(Command):
     def _copy(self, frm, to):
         if os.path.isdir(frm):
             to = os.path.join(to, os.path.basename(frm))
-            self.announce("copying %s/ to %s/" % (frm, to), logging.DEBUG)
+            log.debug("copying %s/ to %s/" % (frm, to))
             if not self.dry_run:
                 if os.path.exists(to):
                     shutil.rmtree(to)
                 shutil.copytree(frm, to)
         else:
-            self.announce("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))), logging.DEBUG)
+            log.debug("copying %s to %s" % (frm, os.path.join(to, os.path.basename(frm))))
             if not self.dry_run:
                 shutil.copy2(frm, to)
 
@@ -459,7 +461,7 @@ class restorestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        self.announce("restoring the current configuration from %s" % self.statepath, logging.INFO)
+        log.info("restoring the current configuration from %s" % self.statepath)
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
@@ -488,9 +490,9 @@ class savestate(statebase):
         statebase._copy(self, frm, to)
 
     def run(self):
-        self.announce("backing up the current configuration to %s" % self.statepath, logging.INFO)
+        log.info("backing up the current configuration to %s" % self.statepath)
         if os.path.exists(self.statepath):
-            self.announce("deleting existing %s" % self.statepath, logging.DEBUG)
+            log.debug("deleting existing %s" % self.statepath)
             if not self.dry_run:
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
