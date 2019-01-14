@@ -15,7 +15,7 @@ from setuptools.command.install import install as _install
 from setuptools import Distribution as _Distribution
 from setuptools.command.build_py import build_py as _build_py
 from setuptools import dep_util
-import setuptools.command.build_py
+from distutils.command.build import build as _build
 from configparser import ConfigParser
 
 import codecs
@@ -118,11 +118,11 @@ class build_py(_build_py):
 #####################################################################
 
 
-class build(setuptools.command.build_py.build_py):
+class build(_build):
     """Specialized Python source builder."""
 
     def run(self):
-        setuptools.command.build_py.build_py.run(self)
+        _build.run(self)
 
 #####################################################################
 # # Configure files ##################################################
