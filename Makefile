@@ -51,7 +51,7 @@ qa:
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pycodestyle"
-	@${PYCODESTYLE} -r --ignore E501,E402 \
+	@${PYCODESTYLE} -r --ignore E501,E402,E722 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
