@@ -329,8 +329,7 @@ class XMLRPCSystem(object):
                 if name is not None:
                     logging.debug("Using cache name for system %s,%s" % (cache_ent["name"], ip_address))
                     resolve = False
-                elif (name is None and mac_address is None and
-                        cache_ent["time"] + neg_cache_time > now):
+                elif (name is None and mac_address is None and cache_ent["time"] + neg_cache_time > now):
                     age = (cache_ent["time"] + neg_cache_time) - now
                     logging.debug("Using neg-cache for system %s:%f" % (ip_address, age))
                     resolve = False
