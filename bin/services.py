@@ -28,6 +28,7 @@ import os
 import urllib.request
 import urllib.parse
 import urllib.error
+import xmlrpc.server
 import cgi
 
 
@@ -100,21 +101,24 @@ def application(environ, start_response):
 
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr(cw, mode)
-    content = func(**form)
+    try:
+        content = func(**form)
+        content = content.encode("uft-8")
 
-    content = str(content).encode('utf-8')
-    status = '200 OK'
+        if content.find("# *** ERROR ***") != -1:
+            status = '500 SERVER ERROR'
+            print("possible cheetah template error")
 
-    if content.find("# *** ERROR ***") != -1:
-        status = '500 SERVER ERROR'
-        print("possible cheetah template error")
+        # TODO: Not sure these strings are the right ones to look for...
+        elif content.find("# profile not found") != -1 or \
+                content.find("# system not found") != -1 or \
+                content.find("# object not found") != -1:
+            print(("content not found: %s" % my_uri))
+            status = "404 NOT FOUND"
+    except xmlrpc.server.Fault as err:
+        status = "500 SERVER ERROR"
+        content = err.faultString
 
-    # TODO: Not sure these strings are the right ones to look for...
-    elif content.find("# profile not found") != -1 or \
-            content.find("# system not found") != -1 or \
-            content.find("# object not found") != -1:
-        print(("content not found: %s" % my_uri))
-        status = "404 NOT FOUND"
 
     # req.content_type = "text/plain;charset=utf-8"
     response_headers = [('Content-type', 'text/plain;charset=utf-8'),
