@@ -4,9 +4,9 @@ python:
 branches:
  only:
   - master
-before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -y python3-all python3-yaml git-core python3-setuptools python3-netaddr python3-nose python3-simplejson python3-pyflakes python3-pycodestyle
 install:
- - "/bin/true"
-script: make qa
+ - pip install pep8
+ - pip install pyflakes
+script:
+ - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
+ - pep8 -r --ignore E501,E402 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
