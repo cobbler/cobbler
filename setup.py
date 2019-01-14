@@ -257,6 +257,7 @@ def has_man_pages(build):
     """Check if the distribution has configuration files to work on."""
     return bool(build.distribution.man_pages)
 
+
 build.sub_commands.extend((
     ('build_man', has_man_pages),
     ('build_cfg', has_configure_files)
@@ -517,6 +518,7 @@ def parse_os_release():
                 [[it.strip('"\n') for it in line.split('=', 1)] for line in [line for line in os_release if not line.startswith('#') and '=' in line]]
             )
     return out
+
 
 #####################################################################
 # # Actual Setup.py Script ###########################################

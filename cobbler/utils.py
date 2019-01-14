@@ -81,6 +81,7 @@ CHEETAH_ERROR_DISCLAIMER = """
 def _(foo):
     return foo
 
+
 MODULE_CACHE = {}
 SIGNATURE_CACHE = {}
 
@@ -1499,6 +1500,7 @@ def is_selinux_enabled():
         return True
     else:
         return False
+
 
 # We cache the contents of /etc/mtab ... the following variables are used
 # to keep our cache in sync

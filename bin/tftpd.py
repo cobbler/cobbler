@@ -853,6 +853,7 @@ class Request(object):
 
         raise NotImplementedError("Unknown state %d" % (self.state))
 
+
 REQ_NAME = 0
 REQ_CLASS = 1
 REQUESTS = [
@@ -1143,6 +1144,7 @@ def main():
     finally:
         OPTIONS["sock"].close()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

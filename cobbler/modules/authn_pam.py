@@ -91,12 +91,14 @@ class PamResponse(Structure):
     def __repr__(self):
         return "<PamResponse %i '%s'>" % (self.resp_retcode, self.resp)
 
+
 CONV_FUNC = CFUNCTYPE(c_int, c_int, POINTER(POINTER(PamMessage)), POINTER(POINTER(PamResponse)), c_void_p)
 
 
 class PamConv(Structure):
     """wrapper class for pam_conv structure"""
     _fields_ = [("conv", CONV_FUNC), ("appdata_ptr", c_void_p)]
+
 
 PAM_START = LIBPAM.pam_start
 PAM_START.restype = c_int
