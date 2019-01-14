@@ -140,8 +140,7 @@ class build_cfg(Command):
         ('install-platbase=', None, "base installation directory for platform-specific files "),
         ('install-purelib=', None, "installation directory for pure Python module distributions"),
         ('install-platlib=', None, "installation directory for non-pure module distributions"),
-        ('install-lib=', None, "installation directory for all module distributions " +
-         "(overrides --install-purelib and --install-platlib)"),
+        ('install-lib=', None, "installation directory for all module distributions " + "(overrides --install-purelib and --install-platlib)"),
         ('install-headers=', None, "installation directory for C/C++ headers"),
         ('install-scripts=', None, "installation directory for Python scripts"),
         ('install-data=', None, "installation directory for data files"),
@@ -414,13 +413,12 @@ class test_command(Command):
         cov.stop()
         cov.save()
         cov.html_report(directory="covhtml")
-        sys.exit(int(bool(len(result.failures) > 0 or
-                          len(result.errors) > 0)))
+        sys.exit(int(bool(len(result.failures) > 0 or len(result.errors) > 0)))
+
 
 #####################################################################
 # # state command base class #########################################
 #####################################################################
-
 
 class statebase(Command):
 
@@ -536,8 +534,7 @@ if __name__ == "__main__":
     statepath = "/tmp/cobbler_settings/devinstall"
     os_release = parse_os_release()
     suse_release = (
-        os.path.exists("/etc/SuSE-release") or
-        os_release.get('ID_LIKE', '').lower() == 'suse'
+        os.path.exists("/etc/SuSE-release") or os_release.get('ID_LIKE', '').lower() == 'suse'
     )
 
     if suse_release:
