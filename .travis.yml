@@ -5,7 +5,7 @@ branches:
  only:
   - master
 install:
- - pip install pep8
+ - pip install pyflakes
  - pip install pycodestyle
 script:
  - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
