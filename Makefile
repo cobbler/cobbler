@@ -22,7 +22,7 @@ clean:
 	@rm -f cobbler/web/*.pyc
 	@rm -f cobbler/web/templatetags/*.pyc
 	@echo "cleaning: build artifacts"
-	@rm -rf build rpm-build release dist
+	@rm -rf build rpm-build release dist cobbler.egg-info
 	@rm -f MANIFEST AUTHORS README
 	@rm -f config/version
 	@rm -f docs/*.1.gz

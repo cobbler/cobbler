@@ -2,18 +2,16 @@
 # RPM spec file for all Cobbler packages
 #
 # Supported/tested build targets:
-# - Fedora: 26
-# - Enterprise Linux (RHEL/CentOS/SL): 7
-# - OpenSuSE: 12.3, 13.1, 13.2, Factory, Tumbleweed
+# - Fedora: 29
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
 #
 
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?pyver: %global pyver %(%{__python2} -c "import sys ; print sys.version[:3]" || echo 0)}
+%{!?__python3: %global __python3 /usr/bin/python3}
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print sys.version[:3]" || echo 0)}
 
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
@@ -49,15 +47,15 @@ Url: https://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl
-BuildRequires: python2-devel
-Requires: python >= 2.7
+BuildRequires: python3-devel
+Requires: python >= 3.6
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
-Requires: python-netaddr
-Requires: python-simplejson
-Requires: python-requests
+Requires: python3-netaddr
+Requires: python3-simplejson
+Requires: python3-requests
 Requires: rsync
-Requires: syslinux >= 6
+Requires: syslinux >= 4
 Requires: logrotate
 
 %if 0%{?fedora} < 23 || 0%{?rhel} >= 7
@@ -76,8 +74,8 @@ Requires: dnf-plugins-core
 BuildRequires: redhat-rpm-config
 BuildRequires: systemd-units
 Requires: genisoimage
-Requires: python-cheetah
-Requires: PyYAML
+Requires: python3-cheetah
+Requires: python3-pyyaml
 Requires: httpd
 Requires: mod_wsgi
 Requires(post): systemd-sysv
@@ -118,11 +116,11 @@ Cobbler has a XMLRPC API for integration with other applications.
 
 
 %build
-%{__python2} setup.py build
+%{__python3} setup.py build
 
 
 %install
-%{__python2} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
+%{__python3} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT $PREFIX
 
 # cobbler
 rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler.conf
@@ -214,11 +212,13 @@ fi
 %{_sbindir}/tftpd.py
 
 # python
-%{python2_sitelib}/cobbler/*.py*
-%{python2_sitelib}/cobbler/modules/*.py*
-%{python2_sitelib}/cobbler*.egg-info
-%exclude %{python2_sitelib}/cobbler/modules/nsupdate*
-%exclude %{python2_sitelib}/cobbler/web
+%{python3_sitelib}/cobbler/*.py*
+%{python3_sitelib}/cobbler/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/*.py*
+%{python3_sitelib}/cobbler/modules/__pycache__/*.py*
+%{python3_sitelib}/cobbler*.egg-info
+%exclude %{python3_sitelib}/cobbler/modules/nsupdate*
+%exclude %{python3_sitelib}/cobbler/web
 
 
 # configuration
@@ -290,7 +290,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %files -n cobbler-web
 %doc AUTHORS COPYING README
 
-%{python2_sitelib}/cobbler/web/
+%{python3_sitelib}/cobbler/web/
 %dir %{apache_etc}
 %dir %{apache_etc}/conf.d
 %config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf
@@ -323,7 +323,7 @@ Cobbler module providing secure dynamic dns updates
 
 %files -n cobbler-nsupdate
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
-%{python2_sitelib}/cobbler/modules/nsupdate*
+%{python3_sitelib}/cobbler/modules/nsupdate*
 
 %doc AUTHORS COPYING README
 
