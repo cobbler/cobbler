@@ -71,9 +71,17 @@ class BuildIso(object):
             else:
                 if isinstance(v, list):
                     for i in v:
-                        append_line += " %s=%s" % (k, i)
+                        _i = str(i).strip()
+                        if ' ' in _i:
+                            append_line += " %s='%s'" % (k, _i)
+                        else:
+                            append_line += " %s=%s" % (k, _i)
                 else:
-                    append_line += " %s=%s" % (k, v)
+                    _v = str(v).strip()
+                    if ' ' in _v:
+                        append_line += " %s='%s'" % (k, _v)
+                    else:
+                        append_line += " %s=%s" % (k, _v)
         append_line += "\n"
         return append_line
 

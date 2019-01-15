@@ -776,9 +776,18 @@ def dict_to_string(_dict):
             # this value is an array, so we print out every
             # key=value
             for item in value:
-                buffer += str(key) + "=" + str(item) + " "
+                # strip possible leading and trailing whitespaces
+                _item = str(item).strip()
+                if ' ' in _item:
+                    buffer += str(key) + "='" + _item + "' "
+                else:
+                    buffer += str(key) + "=" + _item + " "
         else:
-            buffer += str(key) + "=" + str(value) + " "
+            _value = str(value).strip()
+            if ' ' in _value:
+                buffer += str(key) + "='" + _value + "' "
+            else:
+                buffer += str(key) + "=" + _value + " "
     return buffer
 
 
@@ -1000,6 +1009,9 @@ def is_safe_to_hardlink(src, dst, api):
     (dev2, path2) = get_file_device_path(dst)
     if dev1 != dev2:
         return False
+    # do not hardlink to a symbolic link; chances are high the new link will be dangling
+    if os.path.islink(src):
+        return False
     if dev1.find(":") != -1:
         # is remoted
         return False
@@ -1033,7 +1045,7 @@ def hashfile(fn, lcache=None, logger=None):
 
     if os.path.exists(fn):
         cmd = '/usr/bin/sha1sum %s' % fn
-        key = str(subprocess_get(logger, cmd), 'utf-8').split(' ')[0]
+        key = subprocess_get(logger, cmd).split(' ')[0]
         if lcache is not None:
             db[fn] = (mtime, key)
             simplejson.dump(db, open(dbfile, 'w'))
@@ -1650,13 +1662,14 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
         stdin = subprocess.PIPE
 
     try:
-        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8",
+                              close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
         die(logger, "OS Error, command not found?  While running: %s" % cmd)
 
-    (out, err) = sp.communicate(bytes(input, 'utf-8'))
+    (out, err) = sp.communicate(input)
     rc = sp.returncode
     if logger is not None:
         logger.info("received on stdout: %s" % out)
