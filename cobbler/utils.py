@@ -942,7 +942,7 @@ def os_release():
         tokens = rest.split(" ")
         for t in tokens:
             try:
-                match = re.match('^\d+(?:\.\d+)?', t)
+                match = re.match(r'^\d+(?:\.\d+)?', t)
                 if match:
                     return (make, float(match.group(0)))
             except ValueError:
