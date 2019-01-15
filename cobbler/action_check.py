@@ -102,13 +102,16 @@ class CobblerCheck(object):
         return status
 
     def check_for_ksvalidator(self, status):
-        if self.checked_family == "debian":
+        # ubuntu also identifies as "debian"
+        if self.checked_family in ["debian", "suse"]:
             return
 
         if not os.path.exists("/usr/bin/ksvalidator"):
             status.append("ksvalidator was not found, install pykickstart")
 
     def check_for_cman(self, status):
+        if self.checked_family == "suse":
+            return
         # not doing rpm -q here to be cross-distro friendly
         if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
             status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
@@ -160,6 +163,9 @@ class CobblerCheck(object):
             status.append(_("yumdownloader is not installed, install yum-utils or dnf-plugins-core"))
 
     def check_debmirror(self, status):
+        if self.checked_family == "suse":
+            return
+
         if not os.path.exists("/usr/bin/debmirror"):
             status.append(_("debmirror package is not installed, it will be required to manage debian deployments and repositories"))
         if os.path.exists("/etc/debmirror.conf"):
@@ -197,6 +203,9 @@ class CobblerCheck(object):
             status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
 
     def check_for_default_password(self, status):
+        if self.checked_family == "suse":
+            return
+
         default_pass = self.settings.default_password_crypted
         if default_pass == "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.":
             status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to generate new one"))
