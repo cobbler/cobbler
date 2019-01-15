@@ -31,9 +31,7 @@ from .utils import _
 
 TESTMODE = False
 
-# defaults is to be used if the config file doesn't contain the value
-# we need.
-
+# defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
     "allow_duplicate_hostnames": [0, "bool"],
     "allow_duplicate_ips": [0, "bool"],
@@ -63,7 +61,7 @@ DEFAULTS = {
     "default_name_servers": [[], "list"],
     "default_name_servers_search": [[], "list"],
     "default_ownership": [["admin"], "list"],
-    "default_password_crypted": ["\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.", "str"],
+    "default_password_crypted": [r"\$1\$mF86/UHC\$WvcIcX2t6crBz2onWxyac.", "str"],
     "default_template_type": ["cheetah", "str"],
     "default_virt_bridge": ["xenbr0", "str"],
     "default_virt_disk_driver": ["raw", "str"],
@@ -177,7 +175,7 @@ if bind_config_filename:
             DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
         # Debian, Systemd Fedora
         if "OPTIONS" in bind_config:
-            rootdirmatch = re.search("-t ([/\w]+)", bind_config["OPTIONS"])
+            rootdirmatch = re.search(r"-t ([/\w]+)", bind_config["OPTIONS"])
             if rootdirmatch is not None:
                 DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
 
