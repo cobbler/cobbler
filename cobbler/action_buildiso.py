@@ -513,7 +513,7 @@ class BuildIso(object):
                 autoinstall_data = self.api.autoinstallgen.generate_autoinstall_for_system(descendant.name)
 
             if distro.breed == "redhat":
-                cdregex = re.compile("^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
+                cdregex = re.compile(r"^\s*url .*\n", re.IGNORECASE | re.MULTILINE)
                 autoinstall_data = cdregex.sub("cdrom\n", autoinstall_data, count=1)
 
             if airgapped:
@@ -534,11 +534,11 @@ class BuildIso(object):
                     repo_names_to_copy[repo_obj.name] = mirrordir
 
                     # update the baseurl in autoinstall_data to use the cdrom copy of this repo
-                    reporegex = re.compile("^(\s*repo --name=" + repo_obj.name + " --baseurl=).*", re.MULTILINE)
+                    reporegex = re.compile(r"^(\s*repo --name=" + repo_obj.name + " --baseurl=).*", re.MULTILINE)
                     autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name, autoinstall_data)
 
                 # rewrite any split-tree repos, such as in redhat, to use cdrom
-                srcreporegex = re.compile("^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name + "/?(.*)", re.MULTILINE)
+                srcreporegex = re.compile(r"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name + r"/?(.*)", re.MULTILINE)
                 autoinstall_data = srcreporegex.sub(r"\1" + "file:///mnt/source" + r"\2", autoinstall_data)
 
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
@@ -674,7 +674,7 @@ class BuildIso(object):
         # removed --quiet
         cmd = "mkisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso, mkisofs_opts)
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
-        cmd = cmd + " -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
+        cmd = cmd + r" -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
 
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc != 0:
