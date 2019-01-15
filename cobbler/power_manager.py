@@ -169,7 +169,7 @@ class PowerManager(object):
                 # If the desired state is actually a query for the status
                 # return different information than command return code
                 if power_operation == 'status':
-                    match = re.match('^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE | re.MULTILINE)
+                    match = re.match(r'^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE | re.MULTILINE)
                     if match:
                         power_status = match.groups()[1]
                         if power_status.lower() == 'on':
