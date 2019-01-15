@@ -776,9 +776,18 @@ def dict_to_string(_dict):
             # this value is an array, so we print out every
             # key=value
             for item in value:
-                buffer += str(key) + "=" + str(item) + " "
+                # strip possible leading and trailing whitespaces
+                _item = str(item).strip()
+                if ' ' in _item:
+                    buffer += str(key) + "='" + _item + "' "
+                else:
+                    buffer += str(key) + "=" + _item + " "
         else:
-            buffer += str(key) + "=" + str(value) + " "
+            _value = str(value).strip()
+            if ' ' in _value:
+                buffer += str(key) + "='" + _value + "' "
+            else:
+                buffer += str(key) + "=" + _value + " "
     return buffer
 
 
