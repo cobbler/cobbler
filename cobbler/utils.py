@@ -999,6 +999,9 @@ def is_safe_to_hardlink(src, dst, api):
     (dev2, path2) = get_file_device_path(dst)
     if dev1 != dev2:
         return False
+    # do not hardlink to a symbolic link; chances are high the new link will be dangling
+    if os.path.islink(src):
+        return False
     if dev1.find(":") != -1:
         # is remoted
         return False
