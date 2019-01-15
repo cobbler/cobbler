@@ -7,6 +7,7 @@ ExecStart=@@install_scripts@@/cobblerd -F
 ExecStartPost=-/usr/bin/touch @@install_data@@/share/cobbler/web/cobbler.wsgi
 PrivateTmp=yes
 KillMode=process
+Wants=apache2.service
 
 [Install]
 WantedBy=multi-user.target
