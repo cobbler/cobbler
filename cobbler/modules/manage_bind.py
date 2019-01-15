@@ -143,14 +143,14 @@ class BindManager(object):
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ''
                 for zone in list(zones.keys()):
-                    if re.search('\.%s$' % zone, host) and len(zone) > len(best_match):
+                    if re.search(r'\.%s$' % zone, host) and len(zone) > len(best_match):
                         best_match = zone
 
                 if best_match == '':        # no match
                     continue
 
                 # strip the zone off the dns_name
-                host = re.sub('\.%s$' % best_match, '', host)
+                host = re.sub(r'\.%s$' % best_match, '', host)
 
                 # if we are to manage ipmi hosts, add that too
                 if (self.settings.bind_manage_ipmi):
@@ -233,7 +233,7 @@ class BindManager(object):
                     # then 1.2.3.4 should go in 1.2.3
                     best_match = ''
                     for zone in list(zones.keys()):
-                        if re.search('^%s\.' % zone, ip) and len(zone) > len(best_match):
+                        if re.search(r'^%s\.' % zone, ip) and len(zone) > len(best_match):
                             best_match = zone
 
                     if best_match != '':
@@ -548,7 +548,7 @@ zone "%(arpa)s." {
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
                 if zone_origin:
-                    template_data = "\$ORIGIN " + zone_origin + "\n" + fd.read()
+                    template_data = r"\$ORIGIN " + zone_origin + "\n" + fd.read()
                 else:
                     template_data = fd.read()
                 fd.close()
@@ -556,7 +556,7 @@ zone "%(arpa)s." {
                 # If this is an IPv6 zone, set the origin to the zone for this
                 # template
                 if zone_origin:
-                    template_data = "\$ORIGIN " + zone_origin + "\n" + default_template_data
+                    template_data = r"\$ORIGIN " + zone_origin + "\n" + default_template_data
                 else:
                     template_data = default_template_data
 
