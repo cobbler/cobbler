@@ -189,9 +189,9 @@ def get_fields(what, is_subobject, seed_item=None):
                         y = y.replace(" ", "\\ ")
                         tokens.append("%s=%s" % (x, y))
                     elif isinstance(y, list):
-                        for l in y:
-                            l = l.replace(" ", "\\ ")
-                            tokens.append("%s=%s" % (x, l))
+                        for item in y:
+                            item = item.replace(" ", "\\ ")
+                            tokens.append("%s=%s" % (x, item))
                     elif y is not None:
                         tokens.append("%s" % x)
                 ui_field["value"] = " ".join(tokens)
