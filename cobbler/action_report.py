@@ -38,7 +38,7 @@ class Report(object):
         self.report_name = None
         self.report_fields = None
         self.report_noheaders = None
-        self.array_re = re.compile('([^[]+)\[([^]]+)\]')
+        self.array_re = re.compile(r'([^[]+)\[([^]]+)\]')
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
