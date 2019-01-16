@@ -103,7 +103,7 @@ class CobblerSync(object):
                 self.logger.info("lockdir creation failed")
                 return False
 
-        pidfd = os.open(pidfile, os.O_CREAT|os.O_WRONLY)
+        pidfd = os.open(pidfile, os.O_CREAT | os.O_WRONLY)
         os.write(pidfd, str(os.getpid()))
         os.close(pidfd)
 
