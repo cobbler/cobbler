@@ -104,12 +104,12 @@ devinstall:
 	make restorestate
 
 savestate:
-	@{PYTHON} setup.py -v savestate --root $(DESTDIR); \
+	@${PYTHON} setup.py -v savestate --root $(DESTDIR); \
 
 
 # Check if we are on Red Hat, Suse or Debian based distribution
 restorestate:
-	@{PYTHON} setup.py -v restorestate --root $(DESTDIR); \
+	@${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
 		chown -R apache $(DESTDIR)/var/www/cobbler; \
