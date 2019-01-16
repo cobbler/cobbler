@@ -179,7 +179,10 @@ class BuildIso(object):
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s" % data["proxy"]
                 if "install" in data["kernel_options"] and data["kernel_options"]["install"] != "":
-                    append_line += " install=%s" % data["kernel_options"]["install"]
+                    v = data["kernel_options"]["install"]
+                    if isinstance(v, list):
+                        v = v[0]
+                        append_line += " install=%s" % v
                     del data["kernel_options"]["install"]
                 else:
                     append_line += " install=http://%s:%s/cblr/links/%s" % (
