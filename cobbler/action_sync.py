@@ -81,6 +81,32 @@ class CobblerSync(object):
         if not os.path.exists(self.bootloc):
             utils.die(self.logger, "cannot find directory: %s" % self.bootloc)
 
+        piddir = "/tmp/cobbler-sync"
+        pidfile = piddir + "/pid"
+        try:
+            os.mkdir(piddir)
+        except OSError:
+            if os.path.exists(piddir):
+                if os.path.exists(pidfile):
+                    with open(pidfile, 'r') as f:
+                        pidstr = f.read()
+                        f.close()
+                        pid = int(pidstr)
+                        try:
+                            os.kill(pid, 0)
+                            self.logger.info("Another instance running!")
+                            return False
+                        except OSError:
+                            self.logger.info("Stale lock file found! Removing...")
+                            os.remove(pidfile)
+            else:
+                self.logger.info("lockdir creation failed")
+                return False
+
+        pidfd = os.open(pidfile, os.O_CREAT | os.O_WRONLY)
+        os.write(pidfd, str(os.getpid()))
+        os.close(pidfd)
+
         self.logger.info("running pre-sync triggers")
 
         # run pre-triggers...
@@ -139,6 +165,9 @@ class CobblerSync(object):
         self.logger.info("running post-sync triggers")
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
+
+        os.remove(pidfile)
+        os.rmdir(piddir)
 
     def make_tftpboot(self):
         """
