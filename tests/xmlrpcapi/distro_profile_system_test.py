@@ -1,6 +1,6 @@
 import unittest
 import os
-from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
+from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 
 FAKE_INITRD = "initrd1.img"
 FAKE_INITRD2 = "initrd2.img"

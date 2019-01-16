@@ -1,5 +1,5 @@
 import unittest
-from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
+from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 
 
 def tprint(call_name):

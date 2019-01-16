@@ -1,7 +1,7 @@
 import unittest
 import time
 import re
-from xmlrpc.CobblerXmlRpcBaseTest import CobblerXmlRpcBaseTest
+from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 from cobbler.remote import EVENT_COMPLETE
 
 FAKE_INITRD = "initrd1.img"
