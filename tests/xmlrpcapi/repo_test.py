@@ -1,4 +1,6 @@
 import unittest
+import pytest
+
 from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 
 
@@ -15,6 +17,14 @@ self._remove_repo()
 
 
 class TestRepo(CobblerXmlRpcBaseTest):
+
+    @pytest.fixture
+    def createRepo(self):
+        repo = self.remote.new_repo(self.token)
+        self.remote.modify_repo(repo, "name", "testrepo0", self.token)
+        self.remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", self.token)
+        self.remote.modify_repo(repo, "mirror_locally", "0", self.token)
+        self.remote.save_repo(repo, self.token)
 
     def test_create_repo(self):
         """
