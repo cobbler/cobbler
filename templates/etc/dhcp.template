@@ -31,11 +31,11 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
      class "pxeclients" {
           match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
           if option pxe-system-type = 00:06 {
-                  filename "grub/grub-x86.efi";
+                  filename "grub/grub2-x86.efi";
           } else if option pxe-system-type = 00:07 {
-                  filename "grub/grub-x86_64.efi";
+                  filename "grub/grub2-x86_64.efi";
           } else if option pxe-system-type = 00:09 {
-                  filename "grub/grub-x86_64.efi";
+                  filename "grub/grub2-x86_64.efi";
           } else {
                   filename "pxelinux.0";
           }
@@ -59,7 +59,6 @@ group {
         #else
         hardware ethernet $mac_dhcp_format;
         #end if
-        hardware ethernet $mac_dhcp_format;
         #if $iface.ip_address:
         fixed-address $iface.ip_address;
         #end if

@@ -253,7 +253,7 @@ class TFTPGen(object):
                 f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
 
                 # Only generating grub menus for these arch's:
-                grub_path = os.path.join(self.bootloc, "grub", f1.upper())
+                grub_path = os.path.join(self.bootloc, "grub", f1.lower())
 
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific bootloader config
@@ -404,10 +404,10 @@ class TFTPGen(object):
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
-        # Write the grub menu:
+        # Write the grub2 menu:
         metadata = {"grub_menu_items": menu_items['grub']}
-        outfile = os.path.join(self.bootloc, "grub", "efidefault")
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "efidefault.template"))
+        outfile = os.path.join(self.bootloc, "grub", "grub.cfg")
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "grub.cfg.template"))
         template_data = template_src.read()
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
@@ -504,9 +504,9 @@ class TFTPGen(object):
         if system:
             if format == "grub":
                 if system.netboot_enabled:
-                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
+                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2system.template")
                 else:
-                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grublocal.template")
+                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2local.template")
                     if os.path.exists(local):
                         template = local
             else:   # pxe
@@ -561,7 +561,7 @@ class TFTPGen(object):
             if arch.startswith("arm"):
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_arm.template")
             elif format == "grub":
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubprofile.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2profile.template")
             elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")

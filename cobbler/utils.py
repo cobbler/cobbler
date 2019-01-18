@@ -210,7 +210,7 @@ def get_config_filename(sys, interface):
     mac = sys.get_mac_address(interface)
     ip = sys.get_ip_address(interface)
     if mac is not None and mac != "":
-        return "01-" + "-".join(mac.split(":")).lower()
+        return "grub.cfg-01-" + "-".join(mac.split(":")).lower()
     elif ip is not None and ip != "":
         return get_host_ip(ip)
     else:
