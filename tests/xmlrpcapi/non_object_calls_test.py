@@ -4,15 +4,8 @@ import re
 from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 from cobbler.remote import EVENT_COMPLETE
 
-FAKE_INITRD = "initrd1.img"
-FAKE_INITRD2 = "initrd2.img"
-FAKE_INITRD3 = "initrd3.img"
-FAKE_KERNEL = "vmlinuz1"
-FAKE_KERNEL2 = "vmlinuz2"
-FAKE_KERNEL3 = "vmlinuz3"
 TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
-cleanup_dirs = []
 
 
 class TestNonObjectCalls(CobblerXmlRpcBaseTest):
