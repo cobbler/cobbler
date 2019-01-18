@@ -712,7 +712,7 @@ class CobblerCLI(object):
             else:
                 if line.find(" | "):
                     line = line.split(" | ")[-1]
-                print(line)
+                print(line, end='')
 
     def print_object_help(self, object_type):
         """
