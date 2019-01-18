@@ -56,7 +56,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         super(TestDistroProfileSystem, self).setUp()
 
         # Create temp dir
-        self.topdir = "/tmp/cobbler_test"
+        self.topdir = "/dev/shm/cobbler_test"
         try:
             os.makedirs(self.topdir)
         except:
