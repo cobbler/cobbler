@@ -51,6 +51,12 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
     These item types are tested together because they have inter-dependencies
     """
 
+    @pytest.fixture
+    def removeTestdistro(self):
+        yield
+        if not self.remote.get_distro("testdistro0") == "~":
+            self.remote.remove_distro("testdistro0", self.token)
+
     def setUp(self):
 
         super(TestDistroProfileSystem, self).setUp()
