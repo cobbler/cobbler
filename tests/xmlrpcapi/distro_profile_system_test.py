@@ -331,7 +331,14 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
     def test_create_profile(self):
         """
-        Test: create/edit a profile object"""
+        Test: create/edit a profile object
+        """
+
+        # TODO: Arrange
+
+        # TODO: Act
+
+        # TODO: Assert
 
         profiles = self.remote.get_profiles(self.token)
 
@@ -356,10 +363,18 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         new_profiles = self.remote.get_profiles(self.token)
         self.assertTrue(len(new_profiles) == len(profiles) + 1)
+        assert 0
 
     def test_create_subprofile(self):
         """
-        Test: create/edit a subprofile object"""
+        Test: create/edit a subprofile object
+        """
+
+        # TODO: Arrange
+
+        # TODO: Act
+
+        # TODO: Assert
 
         profiles = self.remote.get_profiles(self.token)
 
@@ -372,11 +387,18 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         new_profiles = self.remote.get_profiles(self.token)
         self.assertTrue(len(new_profiles) == len(profiles) + 1)
+        assert 0
 
     def test_create_system(self):
         """
         Test: create/edit a system object
         """
+
+        # TODO: Arrange
+
+        # TODO: Act
+
+        # TODO: Assert
 
         systems = self.remote.get_systems(self.token)
 
@@ -403,135 +425,246 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
         new_systems = self.remote.get_systems(self.token)
         self.assertTrue(len(new_systems) == len(systems) + 1)
+        assert 0
 
     def test_get_distro(self):
         """
         Test: get a distro object"""
 
+        # TODO: Arrange
+
+        # Act
         distro = self.remote.get_distro("testdistro0")
+
+        # TODO: Assert
+        assert 0
 
     def test_get_profile(self):
         """
-        Test: get a profile object"""
+        Test: get a profile object
+        """
 
+        # TODO: Arrange
+
+        # Act
         profile = self.remote.get_profile("testprofile0")
+
+        # TODO: Assert
+        assert 0
 
     def test_get_system(self):
         """
-        Test: get a system object"""
+        Test: get a system object
+        """
 
+        # TODO: Arrange
+
+        # Act
         system = self.remote.get_system("testsystem0")
+
+        # TODO: Assert
+        assert 0
 
     def test_find_distro(self):
         """
         Test: find a distro object
         """
 
+        # TODO: Arrange
+
+        # Act
         result = self.remote.find_distro({"name": "testdistro0"}, self.token)
+
+        # TODO: Assert
         self.assertTrue(result)
+        assert 0
 
     def test_find_profile(self):
         """
         Test: find a profile object
         """
 
+        # TODO: Arrange
+
+        # Act
         result = self.remote.find_profile({"name": "testprofile0"}, self.token)
+
+        # TODO: Assert
         self.assertTrue(result)
+        assert 0
 
     def test_find_system(self):
         """
         Test: find a system object
         """
 
+        # TODO: Arrange
+
+        # Act
         result = self.remote.find_system({"name": "testsystem0"}, self.token)
+
+        # TODO: Assert
         self.assertTrue(result)
+        assert 0
 
     def test_copy_distro(self):
         """
         Test: copy a distro object
         """
 
+        # TODO: Arrange
+
+        # Act
         distro = self.remote.get_item_handle("distro", "testdistro0", self.token)
+
+        # TODO: Assert
         self.assertTrue(self.remote.copy_distro(distro, "testdistrocopy", self.token))
+        assert 0
 
     def test_copy_profile(self):
         """
         Test: copy a profile object
         """
 
+        # TODO: Arrange
+
+        # Act
         profile = self.remote.get_item_handle("profile", "testprofile0", self.token)
+
+        # TODO: Assert
         self.assertTrue(self.remote.copy_profile(profile, "testprofilecopy", self.token))
+        assert 0
 
     def test_copy_system(self):
         """
         Test: copy a system object
         """
 
+        # TODO: Arrange
+
+        # Act
         system = self.remote.get_item_handle("system", "testsystem0", self.token)
+
+        # TODO: Assert
         self.assertTrue(self.remote.copy_system(system, "testsystemcopy", self.token))
+        assert 0
 
     def test_rename_distro(self):
         """
         Test: rename a distro object
         """
 
+        # TODO: Arrange
         distro = self.remote.get_item_handle("distro", "testdistrocopy", self.token)
-        self.assertTrue(self.remote.rename_distro(distro, "testdistro1", self.token))
+
+        # Act
+        result = self.remote.rename_distro(distro, "testdistro1", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result)
+        assert 0
 
     def test_rename_profile(self):
         """
         Test: rename a profile object
         """
 
+        # TODO: Arrange
         profile = self.remote.get_item_handle("profile", "testprofilecopy", self.token)
-        self.assertTrue(self.remote.rename_profile(profile, "testprofile1", self.token))
+
+        # Act
+        result = self.remote.rename_profile(profile, "testprofile1", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result)
+        assert 0
 
     def test_rename_system(self):
         """
         Test: rename a system object
         """
 
+        # TODO: Arrange
+        # Create System
+        # Get Object-ID
         system = self.remote.get_item_handle("system", "testsystemcopy", self.token)
-        self.assertTrue(self.remote.rename_system(system, "testsystem1", self.token))
+
+        # Act
+        result = self.remote.rename_system(system, "testsystem1", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result)
+        assert 0
 
     def test_remove_distro(self):
         """
         Test: remove a distro object
         """
 
-        self.assertTrue(self.remote.remove_distro("testdistro0", self.token))
-        self.assertTrue(self.remote.remove_distro("testdistro1", self.token))
+        # TODO: Arrange
+
+        # Act
+        result = self.remote.remove_distro("testdistro0", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result)
+        assert 0
 
     def test_remove_profile(self):
         """
         Test: remove a profile object
         """
 
-        self.assertTrue(self.remote.remove_profile("testsubprofile0", self.token))
-        self.assertTrue(self.remote.remove_profile("testprofile0", self.token))
-        self.assertTrue(self.remote.remove_profile("testprofile1", self.token))
+        # TODO: Arrange
+
+        # Act
+        result_subprofile_remove = self.remote.remove_profile("testsubprofile0", self.token)
+        result_profile_remove = self.remote.remove_profile("testprofile0", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result_subprofile_remove)
+        self.assertTrue(result_profile_remove)
+        assert 0
 
     def test_remove_system(self):
         """
         Test: remove a system object
         """
 
-        self.assertTrue(self.remote.remove_system("testsystem0", self.token))
-        self.assertTrue(self.remote.remove_system("testsystem1", self.token))
+        # TODO: Arrange
+
+        # Act
+        result = self.remote.remove_system("testsystem0", self.token)
+
+        # TODO: Assert
+        self.assertTrue(result)
+        assert 0
 
     def test_get_repo_config_for_profile(self):
         """
         Test: get repository configuration of a profile
         """
 
-        self.remote.get_repo_config_for_profile("testprofile0")
+        # TODO: Arrange
+
+        # Act
+        result = self.remote.get_repo_config_for_profile("testprofile0")
+
+        # TODO: Assert
+        assert 0
 
     def test_get_repo_config_for_system(self):
         """
         Test: get repository configuration of a system
         """
 
-        self.remote.get_repo_config_for_system("testprofile0")
+        # TODO: Arrange
+
+        # TODO: Act
+        result = self.remote.get_repo_config_for_system("testprofile0")
+
+        # TODO: Assert
+        assert 0
 
 
 if __name__ == '__main__':
