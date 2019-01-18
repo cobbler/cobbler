@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import os
 from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
 
@@ -479,4 +479,4 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main()
