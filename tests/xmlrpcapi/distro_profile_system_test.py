@@ -222,40 +222,55 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         Test: get distros
         """
 
-        self.remote.get_distros(self.token)
+        # Arrange --> Nothing to arrange
+
+        # Act
+        result = self.remote.get_distros(self.token)
+
+        # Assert
+        assert result == []
 
     def test_get_profiles(self):
         """
         Test: get profiles
         """
 
-        self.remote.get_profiles(self.token)
+        # Arrange --> Nothing to arrange
+
+        # Act
+        result = self.remote.get_profiles(self.token)
+
+        # Assert
+        assert result == []
 
     def test_get_systems(self):
         """
         Test: get systems
         """
 
-        self.remote.get_systems(self.token)
+        # Arrange --> Nothing to arrange
 
-    def test_create_distro(self):
+        # Act
+        result = self.remote.get_systems(self.token)
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.usefixtures("removeTestdistro")
+    def test_create_distro_positive(self):
         """
-        Test: create/edit a distro
+        Test: create/edit a distro with valid values
         """
 
-        distros = self.remote.get_distros(self.token)
+        # Arrange --> Nothing to do.
 
+        # Act
         distro = self.remote.new_distro(self.token)
+        self.remote.modify_distro(distro, "name", "testdistro", self.token)
 
+        # Assert
         for field in self.distro_fields:
             (fname, fgood, fbad) = field
-            for fb in fbad:
-                try:
-                    self.remote.modify_distro(distro, fname, fb, self.token)
-                except:
-                    pass
-                else:
-                    self.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
             for fg in fgood:
                 try:
                     result = self.remote.modify_distro(distro, fname, fg, self.token)
@@ -263,7 +278,8 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
                 except Exception as e:
                     self.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
-        self.assertTrue(self.remote.save_distro(distro, self.token))
+        result_save_success = self.remote.save_distro(distro, self.token)
+        self.assertTrue(result_save_success)
 
         # FIXME: if field in item_<type>.FIELDS defines possible values,
         # test all of them. This is valid for all item types
@@ -276,8 +292,42 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
         #             fvalue = "testing_" + fname
         #        self.assertTrue(self.remote.modify_profile(subprofile,fname,fvalue,self.token))
 
-        new_distros = self.remote.get_distros(self.token)
-        self.assertTrue(len(new_distros) == len(distros) + 1)
+    @pytest.mark.usefixtures("removeTestdistro")
+    def test_create_distro_negative(self):
+        """
+        Test: create/edit a distro with invalid values
+        """
+
+        # Arrange --> Nothing to do.
+
+        # Act
+        distro = self.remote.new_distro(self.token)
+        self.remote.modify_distro(distro, "name", "testdistro", self.token)
+
+        # Assert
+        for field in self.distro_fields:
+            (fname, fgood, fbad) = field
+            for fb in fbad:
+                try:
+                    self.remote.modify_distro(distro, fname, fb, self.token)
+                except:
+                    pass
+                else:
+                    self.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
+
+        result_save_success = self.remote.save_distro(distro, self.token)
+        self.assertTrue(result_save_success)
+
+        # FIXME: if field in item_<type>.FIELDS defines possible values,
+        # test all of them. This is valid for all item types
+        # for field in item_system.FIELDS:
+        #    (fname,def1,def2,display,editable,tooltip,values,type) = field
+        #    if fname not in ["name","distro","parent"] and editable:
+        #        if values and isinstance(values,list):
+        #            fvalue = random.choice(values)
+        #        else:
+        #             fvalue = "testing_" + fname
+        #        self.assertTrue(self.remote.modify_profile(subprofile,fname,fvalue,self.token))
 
     def test_create_profile(self):
         """
