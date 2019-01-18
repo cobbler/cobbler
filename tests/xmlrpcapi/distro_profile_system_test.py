@@ -95,7 +95,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
             ["kernel", [self.fk_kernel, ], ["", ]],
             ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
             ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-            ["ks_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
+            ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
             ["mgmt_classes", ["one two three", ], []],
             ["os_version", ["generic26", ], ["bados", ]],
             ["owners", ["user1 user2 user3", ], []],
@@ -114,7 +114,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
             ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
             ["kickstart", [self.redhat_kickstart, self.suse_autoyast, self.ubuntu_preseed],
              ["/path/to/bad/kickstart", ]],
-            ["ks_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
+            ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
             ["mgmt_classes", ["one two three", ], []],
             ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
             ["name", ["testprofile0"], []],
@@ -143,7 +143,7 @@ class TestDistroProfileSystem(CobblerXmlRpcBaseTest):
             ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
             ["kickstart", [self.redhat_kickstart, self.suse_autoyast, self.ubuntu_preseed],
              ["/path/to/bad/kickstart", ]],
-            ["ks_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
+            ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
             ["mgmt_classes", ["one two three", ], []],
             ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
             ["name", ["testsystem0"], []],
