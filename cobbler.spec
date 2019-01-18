@@ -58,6 +58,10 @@ Requires: rsync
 Requires: syslinux >= 4
 Requires: logrotate
 
+# FIXME: check on other distros
+Requires: grub2-efi-ia32-modules
+Requires: grub2-efi-x64-modules
+
 %if 0%{?fedora} < 23 || 0%{?rhel} >= 7
 Requires: yum-utils
 %endif
