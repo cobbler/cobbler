@@ -5,6 +5,7 @@ branches:
  only:
   - master
 install:
+ - apt install apache2 acl mkisofs apache2-mod_wsgi ipmitool rsync fence-agents genders
  - pip install -r requirements-test.txt
  - python setup.py build
  - python setup.py install
