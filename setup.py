@@ -596,8 +596,6 @@ if __name__ == "__main__":
         ],
         tests_require=[
             "pytest",
-            "nose",
-            "coverage"
         ],
         packages=[
             "cobbler",
