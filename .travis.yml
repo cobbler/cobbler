@@ -8,6 +8,7 @@ addons:
   apt:
    packages:
     - apache2
+    - apache2-dev
     - acl
     - libapache2-mod-wsgi-py3
     - ipmitool
@@ -17,6 +18,8 @@ addons:
     # mkisofs is not available on ubuntu
     - genisoimage
 install:
+ - sudo a2enmod wsgi
+ - sudo systemctl restart apache2
  - sudo pip install -r requirements-test.txt
  - python setup.py build
  - sudo python setup.py install
