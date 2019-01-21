@@ -7,6 +7,9 @@ branches:
 addons:
   apt:
    packages:
+    # We need this explicitly because if we don't install it it is not available.
+    # See: https://stackoverflow.com/questions/31065550/travis-ci-cant-find-python3-pip-package
+    - python3-pip
     - apache2
     - apache2-dev
     - acl
@@ -18,7 +21,7 @@ addons:
     # mkisofs is not available on ubuntu
     - genisoimage
 install:
- - sudo pip install -r requirements-test.txt
+ - sudo pip3 install -r requirements-test.txt
  - python setup.py build
  - sudo python setup.py install
 before_script:
