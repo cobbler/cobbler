@@ -179,15 +179,15 @@ class CobblerCliTestDirect(unittest.TestCase):
 
     def test_cobbler_hardlink(self):
         # TODO: test cobbler hardlink
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_cobbler_replicate(self):
         # TODO: test cobbler replicate. Requires 2 test cobbler servers
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_cobbler_validate_autoinstalls(self):
         # TODO: test cobbler validateks
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':

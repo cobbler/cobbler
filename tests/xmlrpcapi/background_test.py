@@ -9,35 +9,35 @@ class TestBackground(CobblerXmlRpcBaseTest):
 
     def test_background_acletup(self):
         # TODO: test remote.background_aclsetup()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_buildiso(self):
         # TODO: test remote.background_buildiso()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_dlccontent(self):
         # TODO: test remote.background_dlcontent()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_hardlink(self):
         # TODO: test remote.background_hardlink()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_import(self):
         # TODO: test remote.background_import()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_replicate(self):
         # TODO: test remote.background_replicate()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_reposync(self):
         # TODO: test remote.background_reposync()
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def test_background_validate_autoinstall_files(self):
         # TODO: test remote.background_validate_autoinstall_files()
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 if __name__ == '__main__':
