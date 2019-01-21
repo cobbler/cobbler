@@ -23,7 +23,7 @@ install:
  - deactivate
  - sudo pip3 install --upgrade pip
  - sudo pip3 install --upgrade --force-reinstall setuptools
- - sudo pip3 install -r requirements-test.txt
+ - sudo pip3 install -r requirements-test.txt --ignore-installed six
  - sudo python3 setup.py build
  - sudo python3 setup.py install
 before_script:
