@@ -19,7 +19,7 @@ addons:
     - genisoimage
 install:
  - sudo a2enmod wsgi
- - sudo systemctl restart apache2
+ - sudo service apache2 restart
  - sudo pip install -r requirements-test.txt
  - python setup.py build
  - sudo python setup.py install
