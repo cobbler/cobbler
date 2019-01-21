@@ -29,4 +29,4 @@ install:
 before_script:
  - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
  - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
-script: pytest test
+script: pytest
