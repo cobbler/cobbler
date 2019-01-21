@@ -21,6 +21,8 @@ addons:
 install:
  # Disable venv and use root for installation.
  - deactivate
+ - sudo pip3 install --upgrade pip
+ - sudo pip3 install --upgrade --force-reinstall setuptools
  - sudo pip3 install -r requirements-test.txt
  - sudo python3 setup.py build
  - sudo python3 setup.py install
