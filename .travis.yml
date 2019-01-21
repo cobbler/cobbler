@@ -18,9 +18,11 @@ addons:
     # mkisofs is not available on ubuntu
     - genisoimage
 install:
- - pip install -r requirements-test.txt
- - python setup.py build
- - python setup.py install
+ # Disable venv and use root for installation.
+ - deactivate
+ - sudo pip3 install -r requirements-test.txt
+ - sudo python3.6 setup.py build
+ - sudo python3.6 setup.py install
 before_script:
  - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
  - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
