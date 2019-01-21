@@ -1,0 +1,13 @@
+mod_wsgi
+requests
+future
+pyyaml
+simplejson
+netaddr
+Cheetah3
+coverage
+Django
+pymongo
+distro
+ldap
+dnspython3

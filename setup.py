@@ -518,6 +518,24 @@ def parse_os_release():
     return out
 
 
+def requires(filename):
+    """Returns a list of all pip requirements
+    Source of this function: https://github.com/tomschr/leo/blob/develop/setup.py
+    :param filename: the Pip requirement file (usually 'requirements.txt')
+    :return: list of modules
+    :rtype: list
+    """
+    modules = []
+    with open(filename, 'r') as pipreq:
+        for line in pipreq:
+            line = line.strip()
+            # Checks if line starts with a comment or referencing
+            # external pip requirements file (with '-e'):
+            if line.startswith('#') or line.startswith('-') or not line:
+                continue
+            modules.append(line)
+    return modules
+
 #####################################################################
 # # Actual Setup.py Script ###########################################
 #####################################################################
@@ -579,26 +597,8 @@ if __name__ == "__main__":
         author_email="cobbler@lists.fedorahosted.org",
         url="https://cobbler.github.io",
         license="GPLv2+",
-        requires=[
-            "mod_wsgi",
-            "requests",
-            "future",
-            "pyyaml",
-            "simplejson",
-            "netaddr",
-            "Cheetah3",
-            "coverage",
-            "Django",
-            "pymongo",
-            "distro",
-            "ldap",
-            "dnspython3"
-        ],
-        tests_require=[
-            "pytest",
-            "nose",
-            "coverage"
-        ],
+        requires=requires("requirements.txt"),
+        tests_require=requires("requirements-test.txt"),
         packages=[
             "cobbler",
             "cobbler/modules",

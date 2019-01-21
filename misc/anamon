@@ -30,16 +30,8 @@ import time
 import re
 import base64
 import shlex
+from xmlrpc import client
 
-# on older installers (EL 2) we might not have xmlrpclib
-# and can't do logging, however this is more widely
-# supported than remote syslog and also provides more
-# detail.
-try:
-    import xmlrpclib
-except ImportError, e:
-    print "xmlrpclib not available, exiting"
-    sys.exit(0)
 
 # shlex.split support arrived in python-2.3, the following will provide some
 # accomodation for older distros (e.g. RHEL3)
@@ -264,7 +256,7 @@ while n < len(sys.argv):
     n = n+1
 
 # Create an xmlrpc session handle
-session = xmlrpclib.Server("http://%s:%s/cobbler_api" % (server, port))
+session = client.Server("http://%s:%s/cobbler_api" % (server, port))
 
 # Fork and loop
 if daemon:

@@ -5,8 +5,11 @@ branches:
  only:
   - master
 install:
- - pip install pyflakes
- - pip install pycodestyle
-script:
+ - sudo apt install apache2 acl mkisofs apache2-mod_wsgi ipmitool rsync fence-agents genders
+ - sudo pip install -r requirements-test.txt
+ - python setup.py build
+ - sudo python setup.py install
+before_script:
  - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
  - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
+script: pytest test
