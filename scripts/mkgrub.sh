@@ -29,8 +29,8 @@ CD_MODULES="${CD_MODULES} linux"
 
 GRUB_MODULES="${CD_MODULES} ${FS_MODULES} ${PXE_MODULES} ${CRYPTO_MODULES} mdraid09 mdraid1x lvm serial regexp tr"
 
+mkdir -p "${BOOTLOADERS_DIR}/grub/"
 for TARGET in $TARGETS;do
-    mkdir -p "${BOOTLOADERS_DIR}/grub2/${TARGET}"
     case $TARGET in
 	i386-pc)
 	    PXE_MODULES="${PXE_MODULES} pxe biosdisk"
@@ -39,16 +39,12 @@ for TARGET in $TARGETS;do
 	    ;;
 	x86_64-efi)
 	    PXE_MODULES="${PXE_MODULES} efinet"
-	    BINARY="grubx64.efi"
+	    BINARY="grub2-x86_64.efi"
 	    CD_MODULES="${CD_MODULES} chain"
-	    ARCH="x86_64"
-	    HAVE_SIGNED_GRUB=1
 	    ;;
 	arm64-efi)
 	    PXE_MODULES="${PXE_MODULES} efinet"
 	    BINARY="grubaa64.efi"
-	    ARCH="aarch64"
-	    # HAVE_SIGNED_GRUB=1
 	    ;;
 	powerpc-ieee1275)
 	    PXE_MODULES="${PXE_MODULES} net ofnet"
@@ -56,7 +52,7 @@ for TARGET in $TARGETS;do
 	    ;;
     esac
     set -x
-    grub2-mkimage -O ${TARGET} -o "${BOOTLOADERS_DIR}/grub2/${BINARY}" --prefix= ${GRUB_MODULES}
+    grub2-mkimage -O ${TARGET} -o "${BOOTLOADERS_DIR}/grub/${BINARY}" --prefix= ${GRUB_MODULES}
     set +x
     echo "grub2/${BINARY}" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
 done
@@ -94,5 +90,3 @@ done
         ln -s "/usr/share/*pxe/undionly.kpxe" "${BOOTLOADERS_DIR}/undionly.kpxe"
         echo "undionly.kpxe" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
     fi
-    
-    
