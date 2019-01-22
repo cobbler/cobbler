@@ -10,4 +10,4 @@ Django
 pymongo
 distro
 ldap
-dnspython3
+dnspython
