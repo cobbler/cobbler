@@ -5,7 +5,7 @@
 [[ -z "$SYSLINUX_DIR" ]] && SYSLINUX_DIR="/usr/share/syslinux"
 
 BOOTLOADERS_DIR="/var/lib/cobbler/loaders"
-TARGETS="arm64-efi i386-pc powerpc-ieee1275 x86_64-efi"
+TARGETS="arm64-efi i386-pc-pxe powerpc-ieee1275 x86_64-efi"
 
 rm -rf "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
 
@@ -32,7 +32,7 @@ GRUB_MODULES="${CD_MODULES} ${FS_MODULES} ${PXE_MODULES} ${CRYPTO_MODULES} mdrai
 mkdir -p "${BOOTLOADERS_DIR}/grub/"
 for TARGET in $TARGETS;do
     case $TARGET in
-	i386-pc)
+	i386-pc-pxe)
 	    PXE_MODULES="${PXE_MODULES} pxe biosdisk"
 	    BINARY="grub.0"
 	    CD_MODULES="${CD_MODULES} chain"
@@ -58,17 +58,17 @@ for TARGET in $TARGETS;do
 done
 
     # ToDo: Use shim_dir and grub_dir variables for other distros to pass them in
-    if [[ -e /usr/share/efi/x86_64/shim.efi ]] && [[ ! -e "${BOOTLOADERS_DIR}/grub2/shim.efi" ]];then
-        ln -s /usr/share/efi/x86_64/shim.efi "${BOOTLOADERS_DIR}/grub2/shim.efi"
-        echo "grub2/shim.efi" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
+    if [[ -e /usr/share/efi/x86_64/shim.efi ]] && [[ ! -e "${BOOTLOADERS_DIR}/grub/shim.efi" ]];then
+        ln -s /usr/share/efi/x86_64/shim.efi "${BOOTLOADERS_DIR}/grub/shim.efi"
+        echo "grub/shim.efi" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
     fi
-    if [[ -e /usr/share/efi/grub.efi ]] && [[ ! -e "${BOOTLOADERS_DIR}/grub2/grub.efi" ]];then
-	    ln -s /usr/share/efi/grub.efi "${BOOTLOADERS_DIR}/grub2/grub.efi"
-	    echo "grub2/grub.efi" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
+    if [[ -e /usr/share/efi/grub.efi ]] && [[ ! -e "${BOOTLOADERS_DIR}/grub/grub.efi" ]];then
+	    ln -s /usr/share/efi/grub.efi "${BOOTLOADERS_DIR}/grub/grub.efi"
+	    echo "grub/grub.efi" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
     fi
     if [[ -e "$SYSLINUX_DIR"/pxelinux.0 ]] && [[ ! -e "${BOOTLOADERS_DIR}/pxelinux.0" ]];then
         ln -s "$SYSLINUX_DIR"/pxelinux.0 "${BOOTLOADERS_DIR}/pxelinux.0"
-        echo "grub2/${BINARY}" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
+        echo "grub/${BINARY}" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
     fi
     if [[ -e "$SYSLINUX_DIR"/pxelinux.0 ]] && [[ ! -e "${BOOTLOADERS_DIR}/pxelinux.0" ]];then
         ln -s "$SYSLINUX_DIR"/pxelinux.0 "${BOOTLOADERS_DIR}/pxelinux.0"
