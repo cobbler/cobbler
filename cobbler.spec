@@ -174,7 +174,7 @@ if (( $1 == 1 )); then
     %service_add_post cobblerd.service
 fi
 # Create bootloders into /var/lib/cobbler/loaders                                                                                                                           
-%{_prefix}/lib/%{name}/bin/mkgrub.sh
+%{_prefix}/share/%{name}/bin/mkgrub.sh
 %preun
 # last package removal
 if (( $1 == 0 )); then
