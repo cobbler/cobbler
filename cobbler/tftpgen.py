@@ -233,7 +233,7 @@ class TFTPGen(object):
         # generate one record for each described NIC ..
         for (name, interface) in list(system.interfaces.items()):
 
-            f1 = utils.get_config_filename(system, interface=name)
+            f1 = system.get_config_filename(interface=name)
             if f1 is None:
                 self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name, name))
                 continue
@@ -257,7 +257,7 @@ class TFTPGen(object):
 
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific bootloader config
-                filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                filename = "%s" % system.get_config_filename(interface=name).lower()
                 # to inherit the distro and system's boot_loader values correctly
                 blended_system = utils.blender(self.api, False, system)
                 if blended_system["boot_loader"] == "pxelinux":
@@ -536,7 +536,7 @@ class TFTPGen(object):
                         # Disable yaboot network booting for all interfaces on the system
                         for (name, interface) in list(system.interfaces.items()):
 
-                            filename = "%s" % utils.get_config_filename(system, interface=name).lower()
+                            filename = "%s" % system.get_config_filename(interface=name).lower()
 
                             # Remove symlink to the yaboot binary
                             f3 = os.path.join(self.bootloc, "ppc", filename)

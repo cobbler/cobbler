@@ -191,32 +191,6 @@ def _IP(ip):
         return ip_class(ip)
 
 
-def get_config_filename(sys, interface):
-    """
-    The configuration file for each system pxe uses is either
-    a form of the MAC address of the hex version of the IP.  If none
-    of that is available, just use the given name, though the name
-    given will be unsuitable for PXE configuration (For this, check
-    system.is_management_supported()).  This same file is used to store
-    system config information in the Apache tree, so it's still relevant.
-    """
-
-    interface = str(interface)
-    if interface not in sys.interfaces:
-        return None
-
-    if sys.name == "default":
-        return "default"
-    mac = sys.get_mac_address(interface)
-    ip = sys.get_ip_address(interface)
-    if mac is not None and mac != "":
-        return "grub.cfg-01-" + "-".join(mac.split(":")).lower()
-    elif ip is not None and ip != "":
-        return get_host_ip(ip)
-    else:
-        return sys.name
-
-
 def is_ip(strdata):
     """
     Return whether the argument is an IP address.
