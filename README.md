@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/cobbler/cobbler.svg)](https://travis-ci.org/cobbler/cobbler)
 [![Documentation Status](https://readthedocs.org/projects/cobbler/badge/?version=latest)](https://cobbler.readthedocs.io/en/latest/)
-[![Code Health](https://landscape.io/github/cobbler/cobbler/master/landscape.svg?style=flat)](https://landscape.io/github/cobbler/cobbler/master)
+[![Gitter chat](https://badges.gitter.im/cobbler/gitter.png)](https://gitter.im/cobbler/community)
 
 Cobbler
 =======
