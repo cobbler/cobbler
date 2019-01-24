@@ -27,9 +27,9 @@ import weakref
 import uuid
 
 from cexceptions import CX
-from collections import collection_files as files, collection_systems as systems, collection_mgmtclasses as mgmtclasses, \
-    collection_distros as distros, collection_profiles as profiles, collection_repos as repos, \
-    collection_packages as packages, collection_images as images
+from collections import files as files, systems as systems, mgmtclasses as mgmtclasses, \
+    distros as distros, profiles as profiles, repos as repos, \
+    packages as packages, images as images
 from cobbler import settings
 from cobbler import serializer
 

@@ -33,7 +33,7 @@ from actions import status, dlcontent, hardlink, \
     sync, buildiso, replicate, report, log
 from cobbler import autoinstall_manager
 from cobbler import clogger
-from collections import collection_manager
+from collections import manager
 from cobbler import item_distro
 from cobbler import item_file
 from cobbler import item_image
@@ -113,7 +113,7 @@ class CobblerAPI(object):
             # load the modules first, or nothing else works...
             module_loader.load_modules()
 
-            self._collection_mgr = collection_manager.CollectionManager(self)
+            self._collection_mgr = manager.CollectionManager(self)
             self.deserialize()
 
             # import signatures

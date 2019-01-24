@@ -29,7 +29,7 @@ import simplejson
 import time
 import xmlrpc.client
 import yaml
-from collections import collection_manager
+from collections import manager
 from . import download_manager
 
 
@@ -43,7 +43,7 @@ class CobblerSvc(object):
         self.server = server
         self.remote = None
         self.req = req
-        self.collection_mgr = collection_manager.CollectionManager(self)
+        self.collection_mgr = manager.CollectionManager(self)
         self.logger = None
         self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
 
