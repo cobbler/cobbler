@@ -20,8 +20,8 @@ from builtins import str
 from builtins import object
 import re
 
-from . import clogger
-from . import utils
+from cobbler import clogger
+from cobbler import utils
 
 
 class Report(object):

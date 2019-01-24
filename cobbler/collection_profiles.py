@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler import action_litesync
+from actions import action_litesync
 from cobbler import collection
 from cobbler import item_profile as profile
 from cobbler import utils

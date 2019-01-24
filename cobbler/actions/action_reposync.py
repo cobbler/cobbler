@@ -34,10 +34,10 @@ try:
 except:
     HAS_YUM = False
 
-from . import clogger
-from . import utils
-from . import download_manager
-from .utils import os_release
+from cobbler import clogger
+from cobbler import utils
+from cobbler import download_manager
+from cobbler.utils import os_release
 
 
 def repo_walker(top, func, arg):

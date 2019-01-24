@@ -29,8 +29,8 @@ import fnmatch
 import os
 import xmlrpc.client
 
-from . import clogger
-from . import utils
+from cobbler import clogger
+from cobbler import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 

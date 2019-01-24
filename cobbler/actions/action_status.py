@@ -28,7 +28,7 @@ import time
 import gzip
 import re
 
-from . import clogger
+from cobbler import clogger
 
 # ARRAY INDEXES
 MOST_RECENT_START = 0

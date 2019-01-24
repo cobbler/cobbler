@@ -29,17 +29,8 @@ import os
 import random
 import tempfile
 
-from cobbler import action_acl
-from cobbler import action_buildiso
-from cobbler import action_check
-from cobbler import action_dlcontent
-from cobbler import action_hardlink
-from cobbler import action_log
-from cobbler import action_replicate
-from cobbler import action_report
-from cobbler import action_reposync
-from cobbler import action_status
-from cobbler import action_sync
+from actions import action_acl, action_check, action_reposync, action_status, action_dlcontent, action_hardlink, \
+    action_sync, action_buildiso, action_replicate, action_report, action_log
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import collection_manager

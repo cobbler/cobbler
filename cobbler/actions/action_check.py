@@ -24,9 +24,9 @@ import glob
 import os
 import re
 
-from . import clogger
-from . import utils
-from .utils import _
+from cobbler import clogger
+from cobbler import utils
+from utils import _
 
 
 class CobblerCheck(object):

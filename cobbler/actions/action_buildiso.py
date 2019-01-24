@@ -29,8 +29,8 @@ import os.path
 import re
 import shutil
 
-from . import clogger
-from . import utils
+from cobbler import clogger
+from cobbler import utils
 
 
 class BuildIso(object):

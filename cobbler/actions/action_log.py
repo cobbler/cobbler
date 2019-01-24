@@ -25,7 +25,7 @@ import glob
 import os
 import os.path
 
-from . import clogger
+from cobbler import clogger
 
 
 class LogTool(object):

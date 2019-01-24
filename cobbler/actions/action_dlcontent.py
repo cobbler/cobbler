@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from builtins import object
 import os
 
-from . import clogger
-from . import download_manager
+from cobbler import clogger
+from cobbler import download_manager
 
 
 class ContentDownloader(object):

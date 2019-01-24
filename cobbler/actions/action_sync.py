@@ -26,12 +26,12 @@ import glob
 import os
 import time
 
-from .cexceptions import CX
-from . import clogger
-from . import templar
-from . import tftpgen
-from . import utils
-from .utils import _
+from cexceptions import CX
+from cobbler import clogger
+from cobbler import templar
+from cobbler import tftpgen
+from cobbler import utils
+from utils import _
 
 
 class CobblerSync(object):

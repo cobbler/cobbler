@@ -27,9 +27,9 @@ from builtins import object
 import os
 import os.path
 
-from . import clogger
-from . import module_loader
-from . import utils
+from cobbler import clogger
+from cobbler import module_loader
+from cobbler import utils
 
 
 class CobblerLiteSync(object):

@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from builtins import object
 import os
-from . import utils
+from cobbler import utils
 
-from . import clogger
+from cobbler import clogger
 
 
 class HardLinker(object):

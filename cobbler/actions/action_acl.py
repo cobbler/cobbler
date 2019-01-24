@@ -25,9 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 
 from builtins import object
-from .cexceptions import CX
-from . import clogger
-from . import utils
+from cexceptions import CX
+from cobbler import clogger
+from cobbler import utils
 
 
 class AclConfig(object):

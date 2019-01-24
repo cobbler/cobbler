@@ -25,7 +25,7 @@ import time
 import os
 from threading import Lock
 
-from cobbler import action_litesync
+from actions import action_litesync
 from . import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
