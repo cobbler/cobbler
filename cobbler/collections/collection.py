@@ -26,8 +26,8 @@ import os
 from threading import Lock
 
 from actions import litesync
-from items import item_package, item_system, item as item_base, item_image, item_profile, item_repo, item_mgmtclass, \
-    item_distro, item_file
+from items import package, system, item as item_base, image, profile, repo, mgmtclass, \
+    distro, file
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX, NotImplementedException
@@ -345,32 +345,32 @@ class Collection(object):
             self.collection_mgr.serialize_item(self, ref)
 
             if with_sync:
-                if isinstance(ref, item_system.System):
+                if isinstance(ref, system.System):
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":
                         ref.netboot_enabled = False
                     self.lite_sync.add_single_system(ref.name)
-                elif isinstance(ref, item_profile.Profile):
+                elif isinstance(ref, profile.Profile):
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":
                         ref.enable_menu = 0
                     self.lite_sync.add_single_profile(ref.name)
-                elif isinstance(ref, item_distro.Distro):
+                elif isinstance(ref, distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
-                elif isinstance(ref, item_image.Image):
+                elif isinstance(ref, image.Image):
                     self.lite_sync.add_single_image(ref.name)
-                elif isinstance(ref, item_repo.Repo):
+                elif isinstance(ref, repo.Repo):
                     pass
-                elif isinstance(ref, item_mgmtclass.Mgmtclass):
+                elif isinstance(ref, mgmtclass.Mgmtclass):
                     pass
-                elif isinstance(ref, item_package.Package):
+                elif isinstance(ref, package.Package):
                     pass
-                elif isinstance(ref, item_file.File):
+                elif isinstance(ref, file.File):
                     pass
                 else:
                     print(_("Internal error. Object type not recognized: %s") % type(ref))
             if not with_sync and quick_pxe_update:
-                if isinstance(ref, item_system.System):
+                if isinstance(ref, system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
 
             # save the tree, so if neccessary, scripts can examine it.
@@ -392,21 +392,21 @@ class Collection(object):
         # always protect against duplicate names
         if check_for_duplicate_names:
             match = None
-            if isinstance(ref, item_system.System):
+            if isinstance(ref, system.System):
                 match = self.api.find_system(ref.name)
-            elif isinstance(ref, item_profile.Profile):
+            elif isinstance(ref, profile.Profile):
                 match = self.api.find_profile(ref.name)
-            elif isinstance(ref, item_distro.Distro):
+            elif isinstance(ref, distro.Distro):
                 match = self.api.find_distro(ref.name)
-            elif isinstance(ref, item_repo.Repo):
+            elif isinstance(ref, repo.Repo):
                 match = self.api.find_repo(ref.name)
-            elif isinstance(ref, item_image.Image):
+            elif isinstance(ref, image.Image):
                 match = self.api.find_image(ref.name)
-            elif isinstance(ref, item_mgmtclass.Mgmtclass):
+            elif isinstance(ref, mgmtclass.Mgmtclass):
                 match = self.api.find_mgmtclass(ref.name)
-            elif isinstance(ref, item_package.Package):
+            elif isinstance(ref, package.Package):
                 match = self.api.find_package(ref.name)
-            elif isinstance(ref, item_file.File):
+            elif isinstance(ref, file.File):
                 match = self.api.find_file(ref.name)
             else:
                 raise CX("internal error, unknown object type")
@@ -418,7 +418,7 @@ class Collection(object):
         if not check_for_duplicate_netinfo:
             return
 
-        if isinstance(ref, item_system.System):
+        if isinstance(ref, system.System):
             for (name, intf) in list(ref.interfaces.items()):
                 match_ip = []
                 match_mac = []

@@ -39,7 +39,7 @@ import time
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import configgen
-from items import item_package, item_system, item_image, item_profile, item_repo, item_mgmtclass, item_distro, item_file
+from items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -829,21 +829,21 @@ class CobblerXMLRPCInterface(object):
         self._log("new_item(%s)" % what, token=token)
         self.check_access(token, "new_%s" % what)
         if what == "distro":
-            d = item_distro.Distro(self.api._collection_mgr, is_subobject=is_subobject)
+            d = distro.Distro(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "profile":
-            d = item_profile.Profile(self.api._collection_mgr, is_subobject=is_subobject)
+            d = profile.Profile(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "system":
-            d = item_system.System(self.api._collection_mgr, is_subobject=is_subobject)
+            d = system.System(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "repo":
-            d = item_repo.Repo(self.api._collection_mgr, is_subobject=is_subobject)
+            d = repo.Repo(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "image":
-            d = item_image.Image(self.api._collection_mgr, is_subobject=is_subobject)
+            d = image.Image(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "mgmtclass":
-            d = item_mgmtclass.Mgmtclass(self.api._collection_mgr, is_subobject=is_subobject)
+            d = mgmtclass.Mgmtclass(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "package":
-            d = item_package.Package(self.api._collection_mgr, is_subobject=is_subobject)
+            d = package.Package(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "file":
-            d = item_file.File(self.api._collection_mgr, is_subobject=is_subobject)
+            d = file.File(self.api._collection_mgr, is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what, self.__get_random(25))
@@ -933,7 +933,7 @@ class CobblerXMLRPCInterface(object):
         if f in ("delete_interface", "rename_interface"):
             return True
 
-        for x in item_system.NETWORK_INTERFACE_FIELDS:
+        for x in system.NETWORK_INTERFACE_FIELDS:
             if f == x[0]:
                 return True
         return False
