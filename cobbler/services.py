@@ -29,7 +29,7 @@ import simplejson
 import time
 import xmlrpc.client
 import yaml
-from . import collection_manager
+from collections import collection_manager
 from . import download_manager
 
 

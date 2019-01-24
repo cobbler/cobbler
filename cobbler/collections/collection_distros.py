@@ -22,7 +22,7 @@ import os.path
 import glob
 
 from actions import litesync
-from cobbler import collection
+from collections import collection
 from cobbler import item_distro as distro
 from cobbler import utils
 from cobbler.cexceptions import CX

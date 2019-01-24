@@ -29,11 +29,11 @@ import os
 import random
 import tempfile
 
-from actions import acl, check, reposync, status, dlcontent, hardlink, \
+from actions import status, dlcontent, hardlink, \
     sync, buildiso, replicate, report, log
 from cobbler import autoinstall_manager
 from cobbler import clogger
-from cobbler import collection_manager
+from collections import collection_manager
 from cobbler import item_distro
 from cobbler import item_file
 from cobbler import item_image

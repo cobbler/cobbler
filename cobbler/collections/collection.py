@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from builtins import range
 from builtins import object
-from . import utils
+from cobbler import utils
 import time
 import os
 from threading import Lock
 
 from actions import litesync
-from . import item as item_base
+from cobbler import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
 from cobbler import item_distro

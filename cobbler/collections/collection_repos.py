@@ -18,67 +18,65 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from actions import litesync
-from cobbler import collection
-from cobbler import item_profile as profile
+import os.path
+
+from collections import collection
+from cobbler import item_repo as repo
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-class Profiles(collection.Collection):
+class Repos(collection.Collection):
     """
-    A profile represents a distro paired with an automatic OS installation
-    template file.
+    Repositories in cobbler are way to create a local mirror of a yum repository.
+    When used in conjunction with a mirrored distro tree (see "cobbler import"),
+    outside bandwidth needs can be reduced and/or eliminated.
     """
 
     def collection_type(self):
-        return "profile"
+        return "repo"
 
-    def factory_produce(self, collection_mgr, item_dict):
+    def factory_produce(self, config, item_dict):
         """
         Return a Distro forged from item_dict
         """
-        new_profile = profile.Profile(collection_mgr)
-        new_profile.from_dict(item_dict)
-        return new_profile
+        new_repo = repo.Repo(config)
+        new_repo.from_dict(item_dict)
+        return new_repo
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
+        # NOTE: with_delete isn't currently meaningful for repos
+        # but is left in for consistancy in the API.  Unused.
         name = name.lower()
-        if not recursive:
-            for v in self.collection_mgr.systems():
-                if v.profile is not None and v.profile.lower() == name:
-                    raise CX(_("removal would orphan system: %s") % v.name)
-
         obj = self.find(name=name)
         if obj is not None:
-            if recursive:
-                kids = obj.get_children()
-                for k in kids:
-                    if k.COLLECTION_TYPE == "profile":
-                        self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
-                    else:
-                        self.collection_mgr.api.remove_system(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
-
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
+
             self.lock.acquire()
             try:
                 del self.listing[name]
             finally:
                 self.lock.release()
             self.collection_mgr.serialize_delete(self, obj)
+
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
-                if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
-                    lite_sync.remove_single_profile(name)
+
+                # FIXME: better use config.settings() webdir?
+                path = "/var/www/cobbler/repo_mirror/%s" % obj.name
+                if os.path.exists("/srv/www/"):
+                    path = "/srv/www/cobbler/repo_mirror/%s" % obj.name
+                if os.path.exists(path):
+                    utils.rmtree(path)
+
             return
 
         raise CX(_("cannot delete an object that does not exist: %s") % name)

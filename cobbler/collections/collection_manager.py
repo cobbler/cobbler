@@ -26,17 +26,12 @@ import time
 import weakref
 import uuid
 
-from .cexceptions import CX
-from . import collection_distros as distros
-from . import collection_files as files
-from . import collection_images as images
-from . import collection_mgmtclasses as mgmtclasses
-from . import collection_packages as packages
-from . import collection_profiles as profiles
-from . import collection_repos as repos
-from . import collection_systems as systems
-from . import settings
-from . import serializer
+from cexceptions import CX
+from collections import collection_files as files, collection_systems as systems, collection_mgmtclasses as mgmtclasses, \
+    collection_distros as distros, collection_profiles as profiles, collection_repos as repos, \
+    collection_packages as packages, collection_images as images
+from cobbler import settings
+from cobbler import serializer
 
 
 class CollectionManager(object):
