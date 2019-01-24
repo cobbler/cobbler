@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from actions import action_litesync
+from actions import litesync
 from cobbler import collection
 from cobbler import item_profile as profile
 from cobbler import utils
@@ -77,7 +77,7 @@ class Profiles(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
                 if with_sync:
-                    lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
                     lite_sync.remove_single_profile(name)
             return
 

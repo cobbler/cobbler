@@ -29,8 +29,8 @@ import os
 import random
 import tempfile
 
-from actions import action_acl, action_check, action_reposync, action_status, action_dlcontent, action_hardlink, \
-    action_sync, action_buildiso, action_replicate, action_report, action_log
+from actions import acl, check, reposync, status, dlcontent, hardlink, \
+    sync, buildiso, replicate, report, log
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import collection_manager
@@ -702,7 +702,7 @@ class CobblerAPI(object):
         """
         # FIXME: teach code that copies it to grab from the right place
         self.log("dlcontent")
-        grabber = action_dlcontent.ContentDownloader(self._collection_mgr, logger=logger)
+        grabber = dlcontent.ContentDownloader(self._collection_mgr, logger=logger)
         return grabber.run(force)
 
     # ==========================================================================
@@ -754,7 +754,7 @@ class CobblerAPI(object):
             "in_tftpd",
         ).get_manager(self._collection_mgr, logger)
 
-        return action_sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
+        return sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
 
     # ==========================================================================
 
@@ -764,13 +764,13 @@ class CobblerAPI(object):
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync", [name])
-        reposync = action_reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
+        reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
         reposync.run(name)
 
     # ==========================================================================
 
     def status(self, mode, logger=None):
-        statusifier = action_status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
+        statusifier = status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
         return statusifier.run()
 
     # ==========================================================================
@@ -876,7 +876,7 @@ class CobblerAPI(object):
         Configures users/groups to run the cobbler CLI as non-root.
         Pass in only one option at a time.  Powers "cobbler aclconfig"
         """
-        acl = action_acl.AclConfig(self._collection_mgr, logger)
+        acl = acl.AclConfig(self._collection_mgr, logger)
         acl.run(
             adduser=adduser,
             addgroup=addgroup,
@@ -958,7 +958,7 @@ class CobblerAPI(object):
                   profiles=None, systems=None, buildisodir=None, distro=None,
                   standalone=None, airgapped=None, source=None,
                   exclude_dns=None, mkisofs_opts=None, logger=None):
-        builder = action_buildiso.BuildIso(self._collection_mgr, logger=logger)
+        builder = buildiso.BuildIso(self._collection_mgr, logger=logger)
         builder.run(
             iso=iso,
             profiles=profiles, systems=systems,
@@ -970,7 +970,7 @@ class CobblerAPI(object):
     # ==========================================================================
 
     def hardlink(self, logger=None):
-        linker = action_hardlink.HardLinker(self._collection_mgr, logger=logger)
+        linker = hardlink.HardLinker(self._collection_mgr, logger=logger)
         return linker.run()
 
     # ==========================================================================
@@ -980,7 +980,7 @@ class CobblerAPI(object):
         """
         Pull down data/configs from a remote cobbler server that is a master to this server.
         """
-        replicator = action_replicate.Replicate(self._collection_mgr, logger=logger)
+        replicator = replicate.Replicate(self._collection_mgr, logger=logger)
         return replicator.run(
             cobbler_master=cobbler_master,
             port=port,
@@ -1004,7 +1004,7 @@ class CobblerAPI(object):
         """
         Report functionality for cobbler
         """
-        reporter = action_report.Report(self._collection_mgr)
+        reporter = report.Report(self._collection_mgr)
         return reporter.run(report_what=report_what, report_name=report_name,
                             report_type=report_type, report_fields=report_fields,
                             report_noheaders=report_noheaders)
@@ -1042,4 +1042,4 @@ class CobblerAPI(object):
         """
         Clears console and anamon logs for system
         """
-        action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
+        log.LogTool(self._collection_mgr, system, self, logger=logger).clear()

@@ -25,7 +25,7 @@ import time
 import os
 from threading import Lock
 
-from actions import action_litesync
+from actions import litesync
 from . import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
@@ -316,7 +316,7 @@ class Collection(object):
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = action_litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+            self.lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
