@@ -18,6 +18,7 @@ from setuptools.command.build_py import build_py as _build_py
 from setuptools import dep_util
 from distutils.command.build import build as _build
 from configparser import ConfigParser
+from setuptools import find_packages
 
 import codecs
 from coverage import Coverage
@@ -588,12 +589,7 @@ if __name__ == "__main__":
         license="GPLv2+",
         install_requires=requires("requirements.txt"),
         tests_require=requires("requirements-test.txt"),
-        packages=[
-            "cobbler",
-            "cobbler/modules",
-            "cobbler/web",
-            "cobbler/web/templatetags",
-        ],
+        packages=find_packages(exclude="*tests*"),
         scripts=[
             "bin/cobbler",
             "bin/cobblerd",
