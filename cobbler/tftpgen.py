@@ -290,7 +290,43 @@ class TFTPGen(object):
                     utils.rmfile(grub_path)
 
     def make_pxe_menu(self):
-        self.make_actual_pxe_menu()
+        """
+        Generates both pxe and grub boot menus.
+        """
+        # only do this if there is NOT a system named default.
+        default = self.systems.find(name="default")
+
+        if default is None:
+            timeout_action = "local"
+        else:
+            timeout_action = default.profile
+
+        menu_items = self.get_menu_items()
+
+        # Write the PXE menu:
+        metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
+        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
+
+        # Write the grub2 menu:
+        metadata = {"grub_menu_items": menu_items['grub']}
+        outfile = os.path.join(self.bootloc, "grub", "grub.cfg")
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "grub.cfg.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
+
+        # write the nexenta menu
+        menu_items = self.get_menu_items_nexenta()
+        metadata = {"grub_menu_items": menu_items['grub']}
+        outfile = os.path.join(self.bootloc, "boot", 'grub', 'menu.lst')
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "nexenta_grub_menu.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile, None)
+        template_src.close()
 
     def get_menu_items(self):
         """
@@ -381,45 +417,6 @@ class TFTPGen(object):
                     grub_menu_items += grub_contents + "\n"
 
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
-
-    def make_actual_pxe_menu(self):
-        """
-        Generates both pxe and grub boot menus.
-        """
-        # only do this if there is NOT a system named default.
-        default = self.systems.find(name="default")
-
-        if default is None:
-            timeout_action = "local"
-        else:
-            timeout_action = default.profile
-
-        menu_items = self.get_menu_items()
-
-        # Write the PXE menu:
-        metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
-        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
-        template_src.close()
-
-        # Write the grub2 menu:
-        metadata = {"grub_menu_items": menu_items['grub']}
-        outfile = os.path.join(self.bootloc, "grub", "grub.cfg")
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "grub.cfg.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
-        template_src.close()
-
-        # write the nexenta menu
-        menu_items = self.get_menu_items_nexenta()
-        metadata = {"grub_menu_items": menu_items['grub']}
-        outfile = os.path.join(self.bootloc, "boot", 'grub', 'menu.lst')
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "nexenta_grub_menu.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
-        template_src.close()
 
     def write_pxe_file(self, filename, system, profile, distro, arch,
                        image=None, include_header=True, metadata=None, format="pxe"):
