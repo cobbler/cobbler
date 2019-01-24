@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import string
 
 from cobbler import autoinstall_manager
-from cobbler import item
+from items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _

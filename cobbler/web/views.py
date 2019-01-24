@@ -12,14 +12,14 @@ import simplejson
 import time
 import xmlrpc.client
 
-import cobbler.item_distro as item_distro
-import cobbler.item_file as item_file
-import cobbler.item_image as item_image
-import cobbler.item_mgmtclass as item_mgmtclass
-import cobbler.item_package as item_package
-import cobbler.item_profile as item_profile
-import cobbler.item_repo as item_repo
-import cobbler.item_system as item_system
+import items.item_distro as item_distro
+import items.item_file as item_file
+import items.item_image as item_image
+import items.item_mgmtclass as item_mgmtclass
+import items.item_package as item_package
+import items.item_profile as item_profile
+import items.item_repo as item_repo
+import items.item_system as item_system
 import cobbler.settings as item_settings
 import cobbler.utils as utils
 from . import field_ui_info

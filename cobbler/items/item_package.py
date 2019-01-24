@@ -18,9 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from . import resource
+from cobbler import resource
 
-from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
@@ -34,35 +33,27 @@ FIELDS = [
     ["uid", "", 0, "", False, "", 0, "str"],
 
     # editable in UI
-    ["action", "create", 0, "Action", True, "Create or remove file resource", 0, "str"],
+    ["action", "create", 0, "Action", True, "Install or remove package resource", 0, "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["group", "", 0, "Owner group in file system", True, "File owner group in file system", 0, "str"],
-    ["is_dir", False, 0, "Is Directory", True, "Treat file resource as a directory", 0, "bool"],
-    ["mode", "", 0, "Mode", True, "The mode of the file", 0, "str"],
+    ["installer", "yum", 0, "Installer", True, "Package Manager", 0, "str"],
     ["name", "", 0, "Name", True, "Name of file resource", 0, "str"],
-    ["owner", "", 0, "Owner user in file system", True, "File owner user in file system", 0, "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
-    ["path", "", 0, "Path", True, "The path for the file", 0, "str"],
-    ["template", "", 0, "Template", True, "The template for the file", 0, "str"]
+    ["version", "", 0, "Version", True, "Package Version", 0, "str"],
 ]
 
 
-class File(resource.Resource):
-    """
-    A Cobbler file object.
-    """
+class Package(resource.Resource):
 
-    TYPE_NAME = _("file")
-    COLLECTION_TYPE = "file"
+    TYPE_NAME = _("package")
+    COLLECTION_TYPE = "package"
 
     #
     # override some base class methods first (item.Item)
     #
 
     def make_clone(self):
-
         _dict = self.to_dict()
-        cloned = File(self.collection_mgr)
+        cloned = Package(self.collection_mgr)
         cloned.from_dict(_dict)
         return cloned
 
@@ -70,31 +61,17 @@ class File(resource.Resource):
         return FIELDS
 
     def check_if_valid(self):
-        """
-        Insure name, path, owner, group, and mode are set.
-        Templates are only required for files, is_dir = False
-        """
         if not self.name:
             raise CX("name is required")
-        if not self.path:
-            raise CX("path is required")
-        if not self.owner:
-            raise CX("owner is required")
-        if not self.group:
-            raise CX("group is required")
-        if not self.mode:
-            raise CX("mode is required")
-        if not self.is_dir and self.template == "":
-            raise CX("Template is required when not a directory")
 
     #
-    # specific methods for item.File
+    # specific methods for item.Package
     #
 
-    def set_is_dir(self, is_dir):
-        """
-        If true, treat file resource as a directory. Templates are ignored.
-        """
-        self.is_dir = utils.input_boolean(is_dir)
+    def set_installer(self, installer):
+        self.installer = installer.lower()
+
+    def set_version(self, version):
+        self.version = version
 
 # EOF

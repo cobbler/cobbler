@@ -32,14 +32,7 @@ import traceback
 import xmlrpc.client
 
 from cobbler import field_info
-from cobbler import item_distro
-from cobbler import item_profile
-from cobbler import item_system
-from cobbler import item_repo
-from cobbler import item_image
-from cobbler import item_mgmtclass
-from cobbler import item_package
-from cobbler import item_file
+from items import item_package, item_system, item_image, item_profile, item_repo, item_mgmtclass, item_distro, item_file
 from cobbler import settings
 from cobbler import utils
 from cobbler.cexceptions import NotImplementedException

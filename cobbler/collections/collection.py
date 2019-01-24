@@ -26,15 +26,8 @@ import os
 from threading import Lock
 
 from actions import litesync
-from cobbler import item as item_base
-from cobbler import item_system
-from cobbler import item_profile
-from cobbler import item_distro
-from cobbler import item_repo
-from cobbler import item_image
-from cobbler import item_mgmtclass
-from cobbler import item_package
-from cobbler import item_file
+from items import item_package, item_system, item as item_base, item_image, item_profile, item_repo, item_mgmtclass, \
+    item_distro, item_file
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX, NotImplementedException

@@ -14,7 +14,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from .cexceptions import CX
-from . import item
+from items import item
 
 
 class Resource(item.Item):

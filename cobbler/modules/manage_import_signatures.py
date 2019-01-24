@@ -36,11 +36,10 @@ try:
 except:
     apt_available = False
 
-from cobbler import item_distro
-from cobbler import item_profile
+from items import item_profile, item_distro
 from cobbler.cexceptions import CX
 
-import cobbler.item_repo as item_repo
+import items.item_repo as item_repo
 import cobbler.templar as templar
 import cobbler.utils as utils
 
