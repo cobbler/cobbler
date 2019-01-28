@@ -11,7 +11,6 @@ addons:
       - deadsnakes
     packages:
       - python3.6
-      - python3-pip
       - apache2
       - apache2-dev
       - acl
@@ -25,6 +24,7 @@ addons:
 install:
   # Disable venv and use root for installation.
   - deactivate
+  - curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
   - sudo pip3 install --upgrade pip
   - sudo pip3 install --upgrade --force-reinstall setuptools
   - sudo pip3 install -r requirements-test.txt --ignore-installed six
