@@ -32,7 +32,7 @@ install:
   - sudo python3.6 setup.py build
   - sudo python3.6 setup.py install
   - sudo cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
-  - sudo cp /etc/cobbler/cobbler.conf /etc/apache2/conf.d/
+  - sudo cp /etc/cobbler/cobbler.conf /etc/apache2/conf-available/
   - sudo service apache2 reload
 before_script:
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
