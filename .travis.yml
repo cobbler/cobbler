@@ -38,4 +38,5 @@ before_script:
 script:
   - sudo service cobblerd start
   - sudo service cobblerd status
+  - sudo service apache2 status
   - pytest
