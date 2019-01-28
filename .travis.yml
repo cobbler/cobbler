@@ -7,7 +7,10 @@ branches:
     - master
 addons:
   apt:
+    sources:
+      - deadsnakes
     packages:
+      - python3.6
       - python3-pip
       - apache2
       - apache2-dev
@@ -28,10 +31,6 @@ install:
   - sudo python3.6 setup.py build
   - sudo python3.6 setup.py install
 before_script:
-  # This is needed because outside the venv there is 3.4 by default.
-  - sudo add-apt-repository ppa:deadsnakes/ppa
-  - sudo apt-get update
-  - sudo apt-get install python3.6
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
 script:
