@@ -11,6 +11,7 @@ addons:
       - deadsnakes
     packages:
       - python3.6
+      - python3.6-dev
       - apache2
       - apache2-dev
       - acl
