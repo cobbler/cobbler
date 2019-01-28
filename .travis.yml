@@ -44,5 +44,6 @@ before_script:
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
 script:
   - sudo service cobblerd start
-  - cat /var/lib/cobbler/web.ss
+  - sudo ls -al /var/lib/cobbler
+  - sudo cat /var/lib/cobbler/web.ss
   - pytest
