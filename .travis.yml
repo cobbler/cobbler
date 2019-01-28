@@ -33,6 +33,9 @@ install:
   - sudo python3.6 setup.py install
   - sudo cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
   - sudo cp /etc/cobbler/cobbler.conf /etc/apache2/conf-available/
+  - sudo a2enmod proxy
+  - sudo a2enmod proxy_http
+  - sudo service apache2 reload
   - sudo a2enconf cobbler.conf
   - sudo apachectl configtest
   - sudo service apache2 status
