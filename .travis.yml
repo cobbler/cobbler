@@ -31,6 +31,7 @@ install:
   - sudo pip3 install -r requirements-test.txt --ignore-installed six
   - sudo python3.6 setup.py build
   - sudo python3.6 setup.py install
+  - sudo cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
 before_script:
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
