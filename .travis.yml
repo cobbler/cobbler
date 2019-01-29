@@ -45,6 +45,7 @@ before_script:
 script:
   - sudo service cobblerd start
   - sudo service cobblerd restart
+  - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
   - pytest
