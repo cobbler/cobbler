@@ -45,9 +45,7 @@ def regen_ss_file():
     # it identifies XMLRPC requests from Apache that have already
     # been cleared by Kerberos.
     ssfile = "/var/lib/cobbler/web.ss"
-    fd = open("/dev/urandom", 'rb')
-    data = fd.read(512)
-    fd.close()
+    data = os.urandom(512)
 
     fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600)
     os.write(fd, binascii.hexlify(data))
