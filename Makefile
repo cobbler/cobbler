@@ -1,7 +1,7 @@
 #
 # Setup Makefile to match your environment
 #
-PYTHON=/usr/bin/python3
+PYTHON=/usr/bin/python3.6
 PYFLAKES=/usr/bin/pyflakes-3
 PYCODESTYLE=/usr/bin/pycodestyle-3
 

@@ -29,8 +29,7 @@ install:
   - sudo pip3 install --upgrade pip
   - sudo pip3 install --upgrade --force-reinstall setuptools
   - sudo pip3 install -r requirements-test.txt --ignore-installed six
-  - sudo python3.6 setup.py build
-  - sudo python3.6 setup.py install
+  - sudo make install
   - sudo cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
   - sudo cp /etc/cobbler/cobbler.conf /etc/apache2/conf-available/
   - sudo a2enmod proxy
@@ -48,6 +47,7 @@ script:
   - cat /var/log/cobbler/cobbler.log
   - cat /usr/lib/systemd/system/cobblerd.service
   - cat /usr/local/bin/cobblerd
+  -
   - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
