@@ -47,5 +47,5 @@ script:
   - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
-  - pytest
+  - pytest -s -v
   - cat log.txt
