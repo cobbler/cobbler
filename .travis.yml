@@ -48,7 +48,8 @@ script:
   - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
-  - pytest -s -v
+  # - pytest -s -v
+  - sudo python3.6 /usr/lib/python3.6/site-packages/cobbler/cobblerd.py
   - cat log.txt
   - which cobblerd
   - echo $PATH
