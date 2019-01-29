@@ -49,9 +49,10 @@ def regen_ss_file():
 
     log(None, "Data: \"%s\"" % binascii.hexlify(data))
 
-    with os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600) as fd:
-        os.write(fd, binascii.hexlify(data))
-        log(None, "Write file passed. (Not necessarily written.)")
+    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600)
+    os.write(fd, binascii.hexlify(data))
+    os.close(fd)
+    log(None, "Write file passed. (Not necessarily written.)")
 
     http_user = "apache"
     family = utils.get_family()
