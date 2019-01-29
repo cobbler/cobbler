@@ -49,3 +49,5 @@ script:
   - sudo cat /var/lib/cobbler/web.ss
   - pytest -s -v
   - cat log.txt
+  - which cobblerd
+  - echo $PATH
