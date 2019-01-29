@@ -68,6 +68,8 @@ def main():
 
     options, args = op.parse_args()
 
+    print("##############################Options##############################")
+
     # load the API now rather than later, to ensure cobblerd
     # startup time is done before the service returns
     api = None
@@ -86,6 +88,8 @@ def main():
     if options.daemonize:
         daemonize_self()
 
+    print("##############################Try start##############################")
+
     try:
         app.core(api)
     except Exception as e:
@@ -94,4 +98,6 @@ def main():
 
 
 if __name__ == "__main__":
+    print("##############################Start##############################")
     main()
+    print("##############################STOP##############################")
