@@ -42,9 +42,10 @@ before_script:
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
 script:
-  - sudo cobblerd -F &
+  - sudo cobblerd -F &> log.txt &
   - cat /var/log/cobbler/cobbler.log
   - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
   - pytest
+  - cat log.txt
