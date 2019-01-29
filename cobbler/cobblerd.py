@@ -47,11 +47,11 @@ def regen_ss_file():
     ssfile = "/var/lib/cobbler/web.ss"
     data = os.urandom(512)
 
-    print("Data: \"%s\"" % binascii.hexlify(data))
+    log(None, "Data: \"%s\"" % binascii.hexlify(data))
 
     with os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600) as fd:
         os.write(fd, binascii.hexlify(data))
-        print("Write file passed. (Not necessarily written.)")
+        log(None, "Write file passed. (Not necessarily written.)")
 
     http_user = "apache"
     family = utils.get_family()
