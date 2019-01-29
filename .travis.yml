@@ -46,6 +46,7 @@ script:
   - sudo service cobblerd start
   - sudo service cobblerd restart
   - cat /var/log/cobbler/cobbler.log
+  - cat /usr/lib/systemd/system/cobblerd.service
   - sudo cobbler sync
   - sudo ls -al /var/lib/cobbler
   - sudo cat /var/lib/cobbler/web.ss
