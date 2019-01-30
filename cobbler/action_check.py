@@ -327,7 +327,7 @@ class CobblerCheck(object):
         if self.checked_family == "debian":
             return
 
-        bootloc = utils.tftpboot_location()
+        bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
             status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
 
@@ -365,7 +365,7 @@ class CobblerCheck(object):
         if self.checked_family == "debian":
             return
 
-        bootloc = utils.tftpboot_location()
+        bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
             status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
 
