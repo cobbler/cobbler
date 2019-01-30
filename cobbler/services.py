@@ -45,7 +45,7 @@ class CobblerSvc(object):
         self.req = req
         self.collection_mgr = collection_manager.CollectionManager(self)
         self.logger = None
-        self.dlmgr = download_manager.DownloadManager(self.collection_manager, self.logger)
+        self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
 
     def __xmlrpc_setup(self):
         """
