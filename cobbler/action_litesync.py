@@ -156,11 +156,10 @@ class CobblerLiteSync(object):
 
     def remove_single_system(self, name):
         bootloc = utils.tftpboot_location()
-        system_record = self.systems.find(name=name)
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 
         for (name, interface) in list(system_record.interfaces.items()):
-            filename = utils.get_config_filename(system_record, interface=name)
+            filename = system_record.get_config_filename(interface=name)
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
