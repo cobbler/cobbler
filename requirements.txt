@@ -11,3 +11,4 @@ pymongo
 distro
 ldap
 dnspython
+tornado
