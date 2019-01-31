@@ -52,7 +52,7 @@ class TFTPGen(object):
         self.repos = collection_mgr.repos()
         self.images = collection_mgr.images()
         self.templar = templar.Templar(collection_mgr)
-        self.bootloc = utils.tftpboot_location()
+        self.bootloc = collection_mgr.settings.tftpboot_location
 
     def copy_bootloaders(self):
         """
@@ -860,7 +860,7 @@ class TFTPGen(object):
         #        available to templates across the board
         if blended["distro_name"]:
             blended['img_path'] = os.path.join("/images", blended["distro_name"])
-            blended['local_img_path'] = os.path.join(utils.tftpboot_location(), "images", blended["distro_name"])
+            blended['local_img_path'] = os.path.join(self.bootloc, "images", blended["distro_name"])
 
         for template in list(templates.keys()):
             dest = templates[template]
@@ -885,8 +885,8 @@ class TFTPGen(object):
             # a user granted cobbler privileges via sudo can't overwrite
             # arbitrary system files (This also makes cleanup easier).
             if os.path.isabs(dest_dir) and write_file:
-                if dest_dir.find(utils.tftpboot_location()) != 0:
-                    raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir, utils.tftpboot_location()))
+                if dest_dir.find(self.bootloc) != 0:
+                    raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir, self.bootloc))
                     continue
             elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)

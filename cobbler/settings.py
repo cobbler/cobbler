@@ -19,13 +19,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import sys
 from builtins import str
 from builtins import object
 import glob
 import os.path
 import re
 
+from cexceptions import CX
 from . import utils
 from .utils import _
 
@@ -129,6 +130,7 @@ DEFAULTS = {
     "sign_puppet_certs_automatically": [0, "bool"],
     "signature_path": ["/var/lib/cobbler/distro_signatures.json", "str"],
     "signature_url": ["https://cobbler.github.io/signatures/3.0.x/latest.json", "str"],
+    "tftpboot_location": ["/srv/tftpboot", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
     "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
@@ -190,6 +192,9 @@ class Settings(object):
         Constructor.
         """
         self._clear()
+        if (self.manage_tftp or self.manage_tftpd) and not os.path.isdir(self.tftpboot_location):
+            # TODO: Logging of this.
+            sys.exit(1)
 
     def _clear(self):
         self.__dict__ = {}

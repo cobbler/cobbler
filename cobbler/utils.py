@@ -951,33 +951,6 @@ def os_release():
         return (make, float(version))
 
 
-def tftpboot_location():
-    """
-    Guesses the location of the tftpboot directory,
-    based on the distro on which cobblerd is running
-    """
-    (make, version) = os_release()
-    str_version = str(version)
-
-    if make in ("fedora", "redhat", "centos", "virtuozzo"):
-        return "/var/lib/tftpboot"
-    elif make == "suse":
-        return "/srv/tftpboot"
-    # As of Ubuntu 12.04, while they seem to have settled on sticking with
-    # /var/lib/tftpboot, they haven't scrubbed all of the packages that came
-    # from Debian that use /srv/tftp by default.
-    elif make == "ubuntu" and os.path.exists("/var/lib/tftpboot"):
-        return "/var/lib/tftpboot"
-    elif make == "ubuntu" and os.path.exists("/srv/tftp"):
-        return "/srv/tftp"
-    elif make == "debian" and int(str_version.split('.')[0]) < 6:
-        return "/var/lib/tftpboot"
-    elif make == "debian" and int(str_version.split('.')[0]) >= 6:
-        return "/srv/tftp"
-    else:
-        return "/tftpboot"
-
-
 def is_safe_to_hardlink(src, dst, api):
     (dev1, path1) = get_file_device_path(src)
     (dev2, path2) = get_file_device_path(dst)

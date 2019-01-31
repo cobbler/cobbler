@@ -56,7 +56,7 @@ class InTftpdManager(object):
         self.settings_file = "/etc/xinetd.d/tftp"
         self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
         self.systems = collection_mgr.systems()
-        self.bootloc = utils.tftpboot_location()
+        self.bootloc = collection_mgr.settings.tftpboot_location
 
     def regen_hosts(self):
         pass        # not used
@@ -74,7 +74,7 @@ class InTftpdManager(object):
         # Right now, just using local_img_path, but adding more
         # cobbler variables here would probably be good
         metadata = {}
-        metadata["local_img_path"] = os.path.join(utils.tftpboot_location(), "images", distro.name)
+        metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar(self.collection_mgr)
 

@@ -60,7 +60,8 @@ import xmlrpc.client
 
 from collections import deque
 from fnmatch import fnmatch
-from cobbler.utils import local_get_cobbler_api_url, tftpboot_location
+from cobbler.utils import local_get_cobbler_api_url
+from cobbler import settings
 
 import tornado.ioloop as ioloop
 import cobbler.templar
@@ -95,7 +96,7 @@ OPTIONS = {
     "cache-time": 5 * 300,
     "neg-cache-time": 10,
     "active": 0,
-    "prefix": tftpboot_location(),
+    "prefix": settings.Settings.tftpboot_location,
     "logger": "stream",
     "file_cmd": "/usr/bin/file",
     "user": "nobody",
