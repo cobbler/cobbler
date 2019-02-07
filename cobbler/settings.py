@@ -47,6 +47,7 @@ DEFAULTS = {
     "bind_chroot_path": ["", "str"],
     "bind_master": ["127.0.0.1", "str"],
     "boot_loader_conf_template_dir": ["/etc/cobbler/boot_loader_conf", "str"],
+    "bootloaders_dir": ["/var/lib/cobbler/loaders", "str"],
     "build_reporting_enabled": [0, "bool"],
     "build_reporting_ignorelist": ["", "str"],
     "build_reporting_sender": ["", "str"],

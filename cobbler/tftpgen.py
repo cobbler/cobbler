@@ -60,71 +60,15 @@ class TFTPGen(object):
         NOTE: we support different arch's if defined in
         /etc/cobbler/settings.
         """
-        dst = self.bootloc
-        grub_dst = os.path.join(dst, "grub")
-        boot_dst = os.path.join(dst, "boot/grub")
+        src = self.settings.bootloaders_dir
+        dest = self.bootloc
+        # unfortunately using shutils copy_tree the dest directory must not exist,
+        # but we must not delete an already partly synced /srv/tftp dir here.
+        # rsync is very convenient here, being very fast on an already copied folder
+        utils.subprocess_call(self.logger, "rsync -rpt --copy-links --exclude=.cobbler_postun_cleanup {src}\ {dest}".format(src=src, dest=dest, shell=False))
 
-        # copy pxelinux from one of two locations
-        try:
-            try:
-                utils.copyfile_pattern(
-                    '/var/lib/cobbler/loaders/pxelinux.0',
-                    dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern(
-                    '/var/lib/cobbler/loaders/menu.c32',
-                    dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern(
-                    '/var/lib/cobbler/loaders/ldlinux.c32',
-                    dst, require_match=False, api=self.api, cache=False, logger=self.logger)
-            except:
-                utils.copyfile_pattern(
-                    '/usr/share/syslinux/pxelinux.0',
-                    dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern(
-                    '/usr/share/syslinux/menu.c32',
-                    dst, api=self.api, cache=False, logger=self.logger)
-                utils.copyfile_pattern(
-                    '/usr/share/syslinux/ldlinux.c32',
-                    dst, require_match=False, api=self.api, cache=False, logger=self.logger)
-        except:
-            utils.copyfile_pattern(
-                '/usr/lib/syslinux/pxelinux.0',
-                dst, api=self.api, cache=False, logger=self.logger)
-            utils.copyfile_pattern(
-                '/usr/lib/syslinux/menu.c32',
-                dst, api=self.api, cache=False, logger=self.logger)
-            utils.copyfile_pattern(
-                '/usr/lib/syslinux/ldlinux.c32',
-                dst, require_match=False, api=self.api, cache=False, logger=self.logger)
-
-        # copy yaboot which we include for PowerPC targets
-        utils.copyfile_pattern(
-            '/var/lib/cobbler/loaders/yaboot', dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
-        utils.copyfile_pattern(
-            '/var/lib/cobbler/loaders/boot/grub/*', boot_dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
-        try:
-            utils.copyfile_pattern(
-                '/usr/lib/syslinux/memdisk',
-                dst, api=self.api, cache=False, logger=self.logger)
-        except:
-            utils.copyfile_pattern(
-                '/usr/share/syslinux/memdisk', dst,
-                require_match=False, api=self.api, cache=False, logger=self.logger)
-
-        # Copy gPXE/iPXE bootloader if it exists
-        utils.copyfile_pattern(
-            '/usr/share/*pxe/undionly.kpxe', dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
-        # Copy grub EFI bootloaders if possible:
-        utils.copyfile_pattern(
-            '/var/lib/cobbler/loaders/grub*.efi', grub_dst,
-            require_match=False, api=self.api, cache=False, logger=self.logger)
-
+        # This looks rather intrusive.
+        # ToDo: How can nexenta be better integrated?
         pxegrub_imported = False
         for i in self.distros:
             if 'nexenta' == i.breed and not pxegrub_imported:
