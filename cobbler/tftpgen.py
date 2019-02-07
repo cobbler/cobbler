@@ -67,18 +67,6 @@ class TFTPGen(object):
         # rsync is very convenient here, being very fast on an already copied folder
         utils.subprocess_call(self.logger, "rsync -rpt --copy-links --exclude=.cobbler_postun_cleanup {src}\ {dest}".format(src=src, dest=dest, shell=False))
 
-        # This looks rather intrusive.
-        # ToDo: How can nexenta be better integrated?
-        pxegrub_imported = False
-        for i in self.distros:
-            if 'nexenta' == i.breed and not pxegrub_imported:
-                # name_without_arch = i.name[:-7] # removing -x86_64 from the fin on the string.
-                if os.path.isdir(os.path.join(self.bootloc, 'boot')):
-                    shutil.rmtree(os.path.join(self.bootloc, 'boot'))
-                shutil.copytree(os.path.join('/var', 'www', 'cobbler', 'distro_mirror', i.name, 'boot'),
-                                os.path.join(self.bootloc, 'boot'))
-                pxegrub_imported = True
-
     def copy_images(self):
         """
         Like copy_distros except for images.
@@ -125,25 +113,6 @@ class TFTPGen(object):
             b_initrd = os.path.basename(initrd)
             dst1 = os.path.join(distro_dir, b_initrd)
             utils.copyremotefile(initrd, dst1, api=None, logger=self.logger)
-
-        if "nexenta" == d.breed:
-            try:
-                os.makedirs(os.path.join(distro_dir, 'platform', 'i86pc', 'kernel', 'amd64'))
-                os.makedirs(os.path.join(distro_dir, 'platform', 'i86pc', 'amd64'))
-            except OSError:
-                pass
-            b_kernel = os.path.basename(kernel)
-            utils.linkfile(kernel, os.path.join(distro_dir, 'platform', 'i86pc', 'kernel', 'amd64', b_kernel),
-                           symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-            b_initrd = os.path.basename(initrd)
-            utils.linkfile(initrd, os.path.join(distro_dir, 'platform', 'i86pc', 'amd64', b_initrd),
-                           symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-
-            # the [:-7] removes the architecture
-            if os.path.isdir(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles')):
-                shutil.rmtree(os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
-            shutil.copytree(os.path.join('/var', 'lib', 'cobbler', 'autoinstall_templates', 'install_profiles'),
-                            os.path.join('/var', 'www', 'cobbler', 'links', d.name, 'install_profiles'))
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -263,15 +232,6 @@ class TFTPGen(object):
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
-        # write the nexenta menu
-        menu_items = self.get_menu_items_nexenta()
-        metadata = {"grub_menu_items": menu_items['grub']}
-        outfile = os.path.join(self.bootloc, "boot", 'grub', 'menu.lst')
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "nexenta_grub_menu.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
-        template_src.close()
-
     def get_menu_items(self):
         """
         Generates menu items for pxe and grub
@@ -295,9 +255,6 @@ class TFTPGen(object):
                 # This profile has been excluded from the menu
                 continue
             distro = profile.get_conceptual_parent()
-            if distro.name.find('exenta') != -1:
-                # nexenta has a separate menu
-                continue
 
             contents = self.write_pxe_file(
                 filename=None,
@@ -322,43 +279,6 @@ class TFTPGen(object):
                     image=image)
                 if contents is not None:
                     pxe_menu_items += contents + "\n"
-
-        return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
-
-    def get_menu_items_nexenta(self):
-        """
-        Generates menu items for nexenta
-        """
-        # sort the profiles
-        profile_list = [profile for profile in self.profiles]
-        profile_list = sorted(profile_list, key=lambda profile: profile.name)
-
-        # Build out menu items and append each to this master list, used for
-        # the default menus:
-        pxe_menu_items = ""
-        grub_menu_items = ""
-
-        # For now, profiles are the only items we want grub EFI boot menu entries for:
-        for profile in profile_list:
-            if not profile.enable_menu:
-                # This profile has been excluded from the menu
-                continue
-            distro = profile.get_conceptual_parent()
-
-            if distro.name.find('nexenta') != -1:
-                contents = self.write_pxe_file(
-                    filename=None,
-                    system=None, profile=profile, distro=distro, arch=distro.arch,
-                    include_header=False)
-                if contents is not None:
-                    pxe_menu_items += contents + "\n"
-
-                grub_contents = self.write_pxe_file(
-                    filename=None,
-                    system=None, profile=profile, distro=distro, arch=distro.arch,
-                    include_header=False, format="nexenta")
-                if grub_contents is not None:
-                    grub_menu_items += grub_contents + "\n"
 
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
 
@@ -400,10 +320,7 @@ class TFTPGen(object):
 
             img_path = os.path.join("/images", distro.name)
 
-            if 'nexenta' == distro.breed:
-                kernel_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'kernel', 'amd64', os.path.basename(distro.kernel))
-                initrd_path = os.path.join("/images", distro.name, 'platform', 'i86pc', 'amd64', os.path.basename(distro.initrd))
-            elif 'http' in distro.kernel and 'http' in distro.initrd:
+            if 'http' in distro.kernel and 'http' in distro.initrd:
                 kernel_path = distro.kernel
                 initrd_path = distro.initrd
             else:
@@ -506,8 +423,6 @@ class TFTPGen(object):
             elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")
-            elif 'nexenta' == format:
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, 'nexenta_profile.template')
             else:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
 
@@ -731,8 +646,6 @@ class TFTPGen(object):
             # A similar issue exists with suite name, as installer requires
             # the existence of "stable" in the dists directory
             append_line = "%s suite=%s" % (append_line, distro.os_version)
-        elif distro is not None and distro.breed == 'nexenta':
-            append_line = "-B iso_nfs_path=%s:/var/www/cobbler/links/%s,auto_install=1" % (blended['next_server'], distro.name)
 
         # append necessary kernel args for arm architectures
         if arch is not None and arch.startswith("arm"):
