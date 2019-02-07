@@ -56,7 +56,7 @@ class InTftpdManager(object):
         self.settings_file = "/etc/xinetd.d/tftp"
         self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
         self.systems = collection_mgr.systems()
-        self.bootloc = collection_mgr.settings.tftpboot_location
+        self.bootloc = collection_mgr.settings().tftpboot_location
 
     def regen_hosts(self):
         pass        # not used

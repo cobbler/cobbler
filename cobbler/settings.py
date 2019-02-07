@@ -26,7 +26,6 @@ import glob
 import os.path
 import re
 
-from cexceptions import CX
 from . import utils
 from .utils import _
 

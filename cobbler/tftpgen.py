@@ -52,7 +52,7 @@ class TFTPGen(object):
         self.repos = collection_mgr.repos()
         self.images = collection_mgr.images()
         self.templar = templar.Templar(collection_mgr)
-        self.bootloc = collection_mgr.settings.tftpboot_location
+        self.bootloc = self.settings.tftpboot_location
 
     def copy_bootloaders(self):
         """

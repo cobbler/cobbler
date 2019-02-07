@@ -60,7 +60,7 @@ class CobblerSync(object):
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
-        self.bootloc = collection_mgr.settings.tftpboot_location
+        self.bootloc = self.settings.tftpboot_location
         self.tftpgen.verbose = verbose
         self.dns.verbose = verbose
         self.dhcp.verbose = verbose
