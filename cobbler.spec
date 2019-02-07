@@ -173,6 +173,8 @@ if (( $1 == 1 )); then
     sysconf_addword /etc/sysconfig/apache2 APACHE_MODULES wsgi > /dev/null 2>&1
     %service_add_post cobblerd.service
 fi
+# Create bootloders into /var/lib/cobbler/loaders
+%{_prefix}/share/%{name}/bin/mkgrub.sh
 %preun
 # last package removal
 if (( $1 == 0 )); then
@@ -182,6 +184,12 @@ fi
 # last package removal
 if (( $1 == 0 )); then
     %service_del_postun cobblerd.service
+fi
+if [ -e /var/lib/cobbler/loaders/.cobbler_postun_cleanup ];then
+    for file in $(cat /var/lib/cobbler/loaders/.cobbler_postun_cleanup);do
+        rm /var/lib/cobbler/loaders/$file
+    done
+    rm -rf /var/lib/cobbler/loaders/.cobbler_postun_cleanup
 fi
 %endif
 
