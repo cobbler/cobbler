@@ -1,0 +1,10 @@
+
+timeout=1
+default='linux'
+
+menuentry 'linux' --class opensuse --class gnu-linux --class gnu --class os {
+  echo 'Loading kernel ...'
+  clinux $kernel_path $kernel_options
+  echo 'Loading initial ramdisk ...'
+  cinitrd $initrd_path
+}

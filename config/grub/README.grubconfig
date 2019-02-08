@@ -1,0 +1,5 @@
+This directory contains grub boot loader (version 2.02)
+configuration files.
+The directory structure is exactly synced (e.g. via cobbler sync)
+to the tftp (or http/www for http network boot) directory and must
+be kept as is.

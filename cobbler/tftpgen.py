@@ -65,7 +65,9 @@ class TFTPGen(object):
         # unfortunately using shutils copy_tree the dest directory must not exist,
         # but we must not delete an already partly synced /srv/tftp dir here.
         # rsync is very convenient here, being very fast on an already copied folder
-        utils.subprocess_call(self.logger, "rsync -rpt --copy-links --exclude=.cobbler_postun_cleanup {src}\ {dest}".format(src=src, dest=dest, shell=False))
+        utils.subprocess_call(self.logger, "rsync -rpt --copy-links --exclude=.cobbler_postun_cleanup {src}/ {dest}".format(src=src, dest=dest, shell=False))
+        src = self.settings.grubconfig_dir
+        utils.subprocess_call(self.logger, "rsync -rpt --copy-links --exclude=README.grubconfig {src}/ {dest}".format(src=src, dest=dest, shell=False))
 
     def copy_images(self):
         """
@@ -146,8 +148,16 @@ class TFTPGen(object):
         # generate one record for each described NIC ..
         for (name, interface) in list(system.interfaces.items()):
 
-            f1 = system.get_config_filename(interface=name)
-            if f1 is None:
+            pxe_name = system.get_config_filename(interface=name)
+            grub_name = system.get_config_filename(interface=name, loader="grub")
+
+            if pxe_name is not None:
+                pxe_path = os.path.join(self.bootloc, "pxelinux.cfg", pxe_name)
+
+            if grub_name is not None:
+                grub_path = os.path.join(self.bootloc, "grub", "system", grub_name)
+
+            if grub_path is None and pxe_path is None:
                 self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name, name))
                 continue
 
@@ -160,13 +170,9 @@ class TFTPGen(object):
                 raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
-            grub_path = None
-            if working_arch in ["i386", "x86", "x86_64", "arm", "standard"]:
-                # pxelinux wants a file named $name under pxelinux.cfg
-                f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
-
-                # Only generating grub menus for these arch's:
-                grub_path = os.path.join(self.bootloc, "grub", f1.lower())
+            if working_arch in ["i386", "x86", "x86_64", "arm", "armv7", "ppc64le", "ppc64el", "standard"]:
+                # ToDo: This is old, move this logic into item_system.get_config_filename()
+                pass
 
             elif working_arch.startswith("ppc"):
                 # Determine filename for system-specific bootloader config
@@ -174,13 +180,9 @@ class TFTPGen(object):
                 # to inherit the distro and system's boot_loader values correctly
                 blended_system = utils.blender(self.api, False, system)
                 if blended_system["boot_loader"] == "pxelinux":
-                    # pxelinux wants a file named $name under pxelinux.cfg
-                    f2 = os.path.join(self.bootloc, "pxelinux.cfg", f1)
-                elif distro.boot_loader == "grub2" or blended_system["boot_loader"] == "grub2":
-                    f2 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
+                    pass
                 else:
-                    f2 = os.path.join(self.bootloc, "etc", filename)
-
+                    pxe_path = os.path.join(self.bootloc, "etc", filename)
                     # Link to the yaboot binary
                     f3 = os.path.join(self.bootloc, "ppc", filename)
                     if os.path.lexists(f3):
@@ -191,14 +193,17 @@ class TFTPGen(object):
 
             if system.is_management_supported():
                 if not image_based:
-                    self.write_pxe_file(f2, system, profile, distro, working_arch, metadata=pxe_metadata)
+                    if pxe_path:
+                        self.write_pxe_file(pxe_path, system, profile, distro, working_arch, metadata=pxe_metadata)
                     if grub_path:
                         self.write_pxe_file(grub_path, system, profile, distro, working_arch, format="grub")
+                        # Generate a link named after system to the mac file for easier lookup
+                        os.link(os.path.join("..", "system", grub_name), os.path.join("system_link", system.name))
                 else:
-                    self.write_pxe_file(f2, system, None, None, working_arch, image=profile, metadata=pxe_metadata)
+                    self.write_pxe_file(pxe_path, system, None, None, working_arch, image=profile, metadata=pxe_metadata)
             else:
                 # ensure the file doesn't exist
-                utils.rmfile(f2)
+                utils.rmfile(pxe_path)
                 if grub_path:
                     utils.rmfile(grub_path)
 
@@ -224,13 +229,11 @@ class TFTPGen(object):
         self.templar.render(template_data, metadata, outfile, None)
         template_src.close()
 
-        # Write the grub2 menu:
-        metadata = {"grub_menu_items": menu_items['grub']}
-        outfile = os.path.join(self.bootloc, "grub", "grub.cfg")
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "grub.cfg.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
-        template_src.close()
+        # Write the grub menu:
+        outfile = os.path.join(self.bootloc, "grub", "menu_items.cfg")        
+        fd = open(outfile, "w+")
+        fd.write(menu_items['grub'])
+        fd.close()
 
     def get_menu_items(self):
         """
@@ -362,9 +365,9 @@ class TFTPGen(object):
         if system:
             if format == "grub":
                 if system.netboot_enabled:
-                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2system.template")
+                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
                 else:
-                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2local.template")
+                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grublocal.template")
                     if os.path.exists(local):
                         template = local
             else:   # pxe
@@ -376,8 +379,6 @@ class TFTPGen(object):
                         blended_system = utils.blender(self.api, False, system)
                         if blended_system["boot_loader"] == "pxelinux":
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
-                        elif distro.boot_loader == "grub2" or blended_system["boot_loader"] == "grub2":
-                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2_ppc.template")
                         else:
                             template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
                     elif arch.startswith("arm"):
@@ -400,11 +401,6 @@ class TFTPGen(object):
                             f3 = os.path.join(self.bootloc, "ppc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)
-
-                            # Remove the interface-specific config file
-                            f3 = os.path.join(self.bootloc, "boot/grub", "grub.cfg-" + filename)
-                            if os.path.lexists(f3):
-                                utils.rmfile(f3)
                             f3 = os.path.join(self.bootloc, "etc", filename)
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)
@@ -419,7 +415,7 @@ class TFTPGen(object):
             if arch.startswith("arm"):
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_arm.template")
             elif format == "grub":
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grub2profile.template")
+                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubprofile.template")
             elif distro and distro.os_version.startswith("esxi"):
                 # ESXi uses a very different pxe method, see comment above in the system section
                 template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")
@@ -462,9 +458,8 @@ class TFTPGen(object):
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
 
-        metadata["serial"] = ""
+        buffer = ""
         if system:
-            metadata["system_name"] = system.name
             if (system.serial_device is not None) or (system.serial_baud_rate is not None):
                 if system.serial_device:
                     serial_device = system.serial_device
@@ -476,9 +471,9 @@ class TFTPGen(object):
                     serial_baud_rate = 115200
 
                 if format == "pxe":
-                    metadata["serial"] = "serial %d %d\n" % (serial_device, serial_baud_rate)
+                    buffer = "serial %d %d\n" % (serial_device, serial_baud_rate)
                 elif format == "grub":
-                    metadata["serial"] = "serial --unit=%d --speed=%d --word=8 --parity=no --stop=1\n" % (serial_device, serial_baud_rate)
+                    buffer = "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format (baud=serial_baud_rate, device=serial_device)
 
         # get the template
         if kernel_path is not None:
@@ -490,10 +485,7 @@ class TFTPGen(object):
             template_data = "\n"
 
         # save file and/or return results, depending on how called.
-        buffer = self.templar.render(template_data, metadata, None)
-
-        if "serial" in metadata and metadata["serial"]:
-            buffer = metadata["serial"] + buffer
+        buffer += self.templar.render(template_data, metadata, None)
 
         if filename is not None:
             self.logger.info("generating: %s" % filename)
