@@ -255,6 +255,11 @@ class ERRORPacket(Packet):
         return pack("!HH %dsB" % (len(self.error_str)),
                     TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
 
+    @staticmethod
+    def static_marshall(error_code, error_str):
+        return pack("!HH %dsB" % (len(error_str)),
+                    TFTP_OPCODE_ERROR, error_code, error_str,0)
+
 class OACKPacket(Packet):
     """The Option Acknowledge (rfc2347) packet.  We only send these.
        We make an effort to retain name case and order, to aid clients
@@ -766,7 +771,11 @@ class Request:
         if self.state == TFTP_OPCODE_ERROR:
             # Don't bother waiting.. this was the first request
             # a "resend" would go to the well known port
-            return ERRORPacket(self.error_code,self.error_str)
+            return ERRORPacket(
+                ERRORPacket.static_marshall(self.error_code, self.error_str),
+                self.local_sock,
+                self.remote_addr
+            )
 
         if self.state == TFTP_OPCODE_RRQ and self.req_options:
             # They asked for various rfc2347 options.  Figure out
@@ -779,7 +788,11 @@ class Request:
             if self.state == TFTP_OPCODE_ERROR:
                 # Don't bother waiting.. this was the first request
                 # a "resend" would go to the well known port
-                return ERRORPacket(self.error_code,self.error_str)
+                return ERRORPacket(
+                    ERRORPacket.static_marshall(self.error_code, self.error_str),
+                    self.local_sock,
+                    self.remote_addr
+                )
 
             # make sure we have defaults
             self.options = dict(
@@ -837,7 +850,11 @@ class Request:
 
             self._setup_xfer()
             if self.state == TFTP_OPCODE_ERROR:
-                return ERRORPacket(self.error_code,self.error_str)
+                return ERRORPacket(
+                    ERRORPacket.static_marshall(self.error_code, self.error_str),
+                    self.local_sock,
+                    self.remote_addr
+                )
 
             return self.reply()
 
@@ -865,7 +882,7 @@ def read_packet(data,local_sock,remote_addr):
     opcode, = unpack("!H",data[0:2])
     if opcode < 1 or opcode > 6:
         logging.warn("Unknown request id %d from %s" % (opcode,remote_addr))
-        local_sock.sendto(ERRORPacket(0,"Unknown request").marshall(),
+        local_sock.sendto(ERRORPacket.static_marshall(0,"Unknown request"),
                           remote_addr)
         return None
 
@@ -874,7 +891,7 @@ def read_packet(data,local_sock,remote_addr):
                 logging.warn("Unsupported request %d(%s) from %s"
                         % (opcode,REQUESTS[opcode][REQ_NAME],remote_addr))
         local_sock.sendto(
-            ERRORPacket(2,"Unsupported request").marshall(),remote_addr)
+            ERRORPacket.static_marshall(2,"Unsupported request"),remote_addr)
         return None
 
     try:
@@ -987,7 +1004,7 @@ def new_req(sock, templar, fd, events):
         # request)
         if packet is None or packet.opcode != TFTP_OPCODE_RRQ:
             sock.sendto(
-                ERRORPacket(2,"Unsupported initial request").marshall(),address)
+                ERRORPacket.static_marshall(2,"Unsupported initial request"),address)
             break
 
         # Create the new transient port for this request
@@ -1144,5 +1161,3 @@ def main():
     
 if __name__ == "__main__":
     sys.exit(main())
-
-
