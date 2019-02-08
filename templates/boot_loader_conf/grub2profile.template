@@ -1,4 +1,0 @@
-menuentry "$profile_name" {
-    linuxefi (tftp)$kernel_path $kernel_options
-    initrdefi (tftp)$initrd_path
-}

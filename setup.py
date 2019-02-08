@@ -667,6 +667,13 @@ if __name__ == "__main__":
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
+            ("%sgrub_config" % libpath, glob("config/grub/*")),
+            # ToDo: Find a nice way to copy whole config/grub structure recursively
+            # files
+            ("%sgrub_config/grub" % libpath, glob("config/grub/grub/*")),
+            # dirs
+            ("%sgrub_config/grub/grub" % libpath, ["config/grub/grub/system",
+                                              "config/grub/system_link"]),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers

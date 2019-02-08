@@ -764,12 +764,15 @@ class System(item.Item):
             return None
 
         if self.name == "default":
+            if loader == "grub":
+                return None
             return "default"
+
         mac = self.get_mac_address(interface)
         ip = self.get_ip_address(interface)
         if mac is not None and mac != "":
-            if loader in ("grub2", "grub"):
-                return "grub.cfg-01-" + "-".join(mac.split(":")).lower()
+            if loader == "grub":
+                return mac.lower()
             else:
                 return "01-" + "-".join(mac.split(":")).lower()
         elif ip is not None and ip != "":

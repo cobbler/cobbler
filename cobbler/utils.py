@@ -1635,7 +1635,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
 
 
 def get_supported_system_boot_loaders():
-    return ["<<inherit>>", "grub", "grub2", "pxelinux", "yaboot", "ipxe"]
+    return ["<<inherit>>", "grub", "pxelinux", "yaboot", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):
@@ -1649,9 +1649,9 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub2", "pxelinux", "yaboot"],
-                        "ppc64le": ["grub2"],
-                        "ppc64el": ["grub2"],
+                return {"ppc64": ["grub", "pxelinux", "yaboot"],
+                        "ppc64le": ["grub"],
+                        "ppc64el": ["grub"],
                         "i386": ["grub", "pxelinux"],
                         "x86_64": ["grub", "pxelinux"]}[distro.arch]
             except:
