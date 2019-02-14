@@ -25,7 +25,6 @@ from builtins import object
 import os
 import os.path
 import re
-import shutil
 import socket
 import string
 
