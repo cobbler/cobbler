@@ -55,7 +55,6 @@ class CobblerLiteSync(object):
         self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(collection_mgr, logger)
         self.sync = collection_mgr.api.get_sync(verbose, logger=self.logger)
         self.sync.make_tftpboot()
-        self.tftpbootloc = collection_mgr.settings.tftpboot_location
 
     def add_single_distro(self, name):
         # get the distro record
@@ -97,7 +96,7 @@ class CobblerLiteSync(object):
         self.sync.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, name):
-        bootloc = self.tftpbootloc
+        bootloc = self.settings.tftpboot_location
         # delete contents of images/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "images", name))
         # delete contents of images/$name in tftpboot
@@ -106,7 +105,7 @@ class CobblerLiteSync(object):
         utils.rmfile(os.path.join(self.settings.webdir, "links", name))
 
     def remove_single_image(self, name):
-        bootloc = self.tftpbootloc
+        bootloc = self.settings.tftpboot_location
         utils.rmfile(os.path.join(bootloc, "images2", name))
 
     def add_single_profile(self, name, rebuild_menu=True):
@@ -156,7 +155,7 @@ class CobblerLiteSync(object):
         self.tftpd.add_single_system(system)
 
     def remove_single_system(self, name):
-        bootloc = self.tftpbootloc
+        bootloc = self.settings.tftpboot_location
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)
 

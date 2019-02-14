@@ -1,4 +1,0 @@
-default=0
-timeout=30
-
-$grub_menu_items

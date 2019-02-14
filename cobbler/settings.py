@@ -26,7 +26,6 @@ import glob
 import os.path
 import re
 
-from cexceptions import CX
 from . import utils
 from .utils import _
 
@@ -47,6 +46,8 @@ DEFAULTS = {
     "bind_chroot_path": ["", "str"],
     "bind_master": ["127.0.0.1", "str"],
     "boot_loader_conf_template_dir": ["/etc/cobbler/boot_loader_conf", "str"],
+    "bootloaders_dir": ["/var/lib/cobbler/loaders", "str"],
+    "grubconfig_dir": ["/var/lib/cobbler/grub_config", "str"],
     "build_reporting_enabled": [0, "bool"],
     "build_reporting_ignorelist": ["", "str"],
     "build_reporting_sender": ["", "str"],

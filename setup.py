@@ -641,6 +641,7 @@ if __name__ == "__main__":
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/static/*")),
             ("%s" % webimages, glob("web/static/images/*")),
+            ("share/cobbler/bin", glob("scripts/*.sh")),
             ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%swebui_sessions" % libpath, []),
             ("%sloaders" % libpath, []),
@@ -666,6 +667,13 @@ if __name__ == "__main__":
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
+            ("%sgrub_config" % libpath, glob("config/grub/*")),
+            # ToDo: Find a nice way to copy whole config/grub structure recursively
+            # files
+            ("%sgrub_config/grub" % libpath, glob("config/grub/grub/*")),
+            # dirs
+            ("%sgrub_config/grub/grub/system" % libpath, []),
+            ("%sgrub_config/grub/grub/system_link" % libpath, []),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers
