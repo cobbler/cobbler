@@ -1736,7 +1736,7 @@ class CobblerXMLRPCInterface(object):
         urandom = open("/dev/urandom", 'rb')
         b64 = base64.encodestring(urandom.read(length))
         urandom.close()
-        return b64
+        return b64.decode()
 
     def __make_token(self, user):
         """
