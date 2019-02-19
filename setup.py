@@ -599,7 +599,7 @@ if __name__ == "__main__":
         author_email="cobbler@lists.fedorahosted.org",
         url="https://cobbler.github.io",
         license="GPLv2+",
-        requires=requires("requirements.txt"),
+        install_requires=requires("requirements.txt"),
         tests_require=requires("requirements-test.txt"),
         packages=[
             "cobbler",
