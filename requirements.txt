@@ -9,5 +9,4 @@ coverage
 Django
 pymongo
 distro
-ldap
 dnspython
