@@ -424,7 +424,7 @@ class Request(object):
         # Look for elements starting with ".", and blow up.
         try:
             if len(self.filename) == 0:
-                    raise RuntimeError("Empty Path: ")
+                raise RuntimeError("Empty Path: ")
             for elm in self.filename.split("/"):
                 if elm[0] == ".":
                     raise RuntimeError("Path includes '.': ")
@@ -881,8 +881,7 @@ def read_packet(data, local_sock, remote_addr):
 
     if REQUESTS[opcode][REQ_CLASS] is None:
         if opcode != TFTP_OPCODE_ERROR:
-                logging.warn("Unsupported request %d(%s) from %s" %
-                             (opcode, REQUESTS[opcode][REQ_NAME], remote_addr))
+            logging.warn("Unsupported request %d(%s) from %s" % (opcode, REQUESTS[opcode][REQ_NAME], remote_addr))
         local_sock.sendto(
             ERRORPacket(2, "Unsupported request").marshall(), remote_addr)
         return None

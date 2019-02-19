@@ -232,7 +232,7 @@ class TFTPGen(object):
         template_src.close()
 
         # Write the grub menu:
-        outfile = os.path.join(self.bootloc, "grub", "menu_items.cfg")        
+        outfile = os.path.join(self.bootloc, "grub", "menu_items.cfg")
         fd = open(outfile, "w+")
         fd.write(menu_items['grub'])
         fd.close()
@@ -475,7 +475,7 @@ class TFTPGen(object):
                 if format == "pxe":
                     buffer = "serial %d %d\n" % (serial_device, serial_baud_rate)
                 elif format == "grub":
-                    buffer = "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format (baud=serial_baud_rate, device=serial_device)
+                    buffer = "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(baud=serial_baud_rate, device=serial_device)
 
         # get the template
         if kernel_path is not None:

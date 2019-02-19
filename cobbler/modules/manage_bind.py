@@ -21,19 +21,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import range
-from builtins import object
 import re
+import socket
 import time
+from builtins import object
+from builtins import range
+from builtins import str
 
 import cobbler.clogger as clogger
 import cobbler.templar as templar
 import cobbler.utils as utils
-
-from cobbler.utils import _
 from cobbler.cexceptions import CX
-import socket
+from cobbler.utils import _
 
 
 def register():
@@ -99,7 +98,7 @@ class BindManager(object):
                 fullAddress = fullAddress[:-1]
         groups = fullAddress.split(":")
         for group in groups:
-            while(len(group) < validGroupSize):
+            while (len(group) < validGroupSize):
                 group = "0" + group
             expandedAddress += group + ":"
         if expandedAddress[-1] == ":":
@@ -166,7 +165,7 @@ class BindManager(object):
                         # if the power address is an IP, then add it to the DNS
                         # with the host suffix of "-ipmi"
                         # TODO: Perhpas the suffix can be configurable through settings?
-                        if(power_address_is_ip):
+                        if (power_address_is_ip):
                             ipmi_host = host + "-ipmi"
                             ipmi_ips = []
                             ipmi_ips.append(system.power_address)
@@ -280,13 +279,13 @@ class BindManager(object):
                     'zone_include': ''}
 
         for zone in metadata['forward_zones']:
-                txt = """
+            txt = """
 zone "%(zone)s." {
     type master;
     file "%(zone)s";
 };
 """ % {'zone': zone}
-                metadata['zone_include'] = metadata['zone_include'] + txt
+            metadata['zone_include'] = metadata['zone_include'] + txt
 
         for zone in list(self.__reverse_zones().keys()):
             # IPv6 zones are : delimited
@@ -338,7 +337,7 @@ zone "%(arpa)s." {
                     'zone_include': ''}
 
         for zone in metadata['forward_zones']:
-                txt = """
+            txt = """
 zone "%(zone)s." {
     type slave;
     masters {
@@ -347,7 +346,7 @@ zone "%(zone)s." {
     file "data/%(zone)s";
 };
 """ % {'zone': zone, 'master': self.settings.bind_master}
-                metadata['zone_include'] = metadata['zone_include'] + txt
+            metadata['zone_include'] = metadata['zone_include'] + txt
 
         for zone in list(self.__reverse_zones().keys()):
             # IPv6 zones are : delimited
@@ -426,11 +425,12 @@ zone "%(arpa)s." {
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
                 if interface["dns_name"] == "":
-                    self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
+                    self.logger.info(
+                        ("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
 
         names = [k for k, v in list(hosts.items())]
         if not names:
-            return ''       # zones with no hosts
+            return ''  # zones with no hosts
 
         if rectype == 'PTR':
             names = self.__ip_sort(names)
