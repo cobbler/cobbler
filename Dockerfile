@@ -1,11 +1,11 @@
 # WARNING! This is not in any way production ready. It is just for testing!
 
-FROM opensuse/leap
+FROM opensuse/leap:latest
 
 ENV container docker
 
 WORKDIR /test_dir
-ADD . /test_dir
+COPY . /test_dir
 
 # SystemD stuff (needs insserv additionally)
 RUN zypper -n install systemd insserv; zypper clean ; \
