@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import distro
 from future import standard_library
 standard_library.install_aliases()
 import os
@@ -552,10 +552,8 @@ if __name__ == "__main__":
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
-    os_release = parse_os_release()
-    suse_release = (
-        os.path.exists("/etc/SuSE-release") or os_release.get('ID_LIKE', '').lower() == 'suse'
-    )
+    os_release = distro.linux_distribution()[0].lower().strip()
+    suse_release = ("suse" in os_release)
 
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
