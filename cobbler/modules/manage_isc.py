@@ -135,8 +135,8 @@ class IscManager(object):
                     if ip is None or ip == "":
                         for (nam2, int2) in list(system.interfaces.items()):
                             if (nam2.startswith(interface["interface_master"] + ".") and int2["ip_address"] is not None and int2["ip_address"] != ""):
-                                    ip = int2["ip_address"]
-                                    break
+                                ip = int2["ip_address"]
+                                break
 
                     interface["ip_address"] = ip
                     interface["netmask"] = netmask
