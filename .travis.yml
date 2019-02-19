@@ -1,55 +1,16 @@
 dist: xenial
-language: python
-python:
-  - "3.6"
+language: generic
+sudo: required
+services:
+  - docker
 branches:
   only:
     - master
-addons:
-  apt:
-    sources:
-      - deadsnakes
-    packages:
-      - python3.6
-      - python3.6-dev
-      - apache2
-      - apache2-dev
-      - acl
-      - libapache2-mod-wsgi-py3
-      - ipmitool
-      - rsync
-      - fence-agents
-      - genders
-      # mkisofs is not available on ubuntu
-      - genisoimage
-install:
-  # Disable venv and use root for installation.
-  - deactivate
-  - curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.6
-  - sudo pip3 install --upgrade pip
-  - sudo pip3 install --upgrade --force-reinstall setuptools
-  - sudo pip3 install -r requirements-test.txt --ignore-installed six
-  - sudo make install
-  - sudo cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
-  - sudo cp /etc/cobbler/cobbler.conf /etc/apache2/conf-available/
-  - sudo a2enmod proxy
-  - sudo a2enmod proxy_http
-  - sudo service apache2 reload
-  - sudo a2enconf cobbler.conf
-  - sudo apachectl configtest
-  - sudo service apache2 restart
 before_script:
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
 script:
-  - sudo python3.6 -d /usr/local/bin/cobblerd -F &> log.txt &
-  - ps -ax | grep cobblerd
-  - cat /var/log/cobbler/cobbler.log
-  - sudo cobbler sync
-  - sudo ls -al /var/lib/cobbler
-  - sudo cat /var/lib/cobbler/web.ss
-  # - pytest -s -v
-  - sudo python3.6 /usr/lib/python3.6/site-packages/cobbler/cobblerd.py
-  - cat log.txt
-  - which cobblerd
-  - echo $PATH
+  - docker build -t cobbler .
+  - docker run -dit --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler cobbler
+  - sleep 60
+  - docker logs cobbler
