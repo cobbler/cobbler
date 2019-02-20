@@ -1,7 +1,5 @@
 dist: xenial
-language: python
-python:
-  - "3.6"
+language: generic
 sudo: required
 services:
   - docker
@@ -11,6 +9,7 @@ branches:
 addons:
   apt:
     packages:
+      - python3
       - python3-pip
 before_script:
   - pip3 install pyflakes pycodestyle
