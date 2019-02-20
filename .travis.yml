@@ -21,4 +21,3 @@ script:
   - sleep 30
   - docker logs cobbler
   - docker exec -u 0 -it cobbler bash -c pytest
-  - exit
