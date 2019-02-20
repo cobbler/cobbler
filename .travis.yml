@@ -1,12 +1,19 @@
 dist: xenial
-language: generic
+language: python
+python:
+  - "3.6"
 sudo: required
 services:
   - docker
 branches:
   only:
     - master
+addons:
+  apt:
+    packages:
+      - python3-pip
 before_script:
+  - pip3 install pyflakes pycodestyle
   - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
   - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
 script:
