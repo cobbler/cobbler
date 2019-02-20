@@ -1,7 +1,0 @@
-set timeout=0
-menuentry 'install' {
-	echo "Loading install kernel..."
-	linux $kernel_path $append_line
-	echo "Loading initrd..."
-	initrd $initrd_path
-}

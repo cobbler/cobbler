@@ -299,14 +299,6 @@ class ImportSignatureManager(object):
             for adtl in adtls:
                 distros_added.extend(adtl)
 
-        if "nexenta" == self.breed:
-            # self.logger.warning( "this is nexenta" )
-            initrd = os.path.join(self.path, self.signature["initrd_file"])
-            kernel = os.path.join(self.path, self.signature["kernel_file"])
-            adtls.append(self.add_entry(self.path, kernel, initrd))
-            for adtl in adtls:
-                distros_added.extend(adtl)
-
     def add_entry(self, dirname, kernel, initrd):
         """
         When we find a directory with a valid kernel/initrd in it, create the distribution objects

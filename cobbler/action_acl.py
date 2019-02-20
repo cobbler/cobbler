@@ -67,7 +67,7 @@ class AclConfig(object):
     def modacl(self, isadd, isuser, who):
 
         snipdir = self.settings.autoinstall_snippets_dir
-        tftpboot = utils.tftpboot_location()
+        tftpboot = self.settings.tftpboot_location
 
         PROCESS_DIRS = {
             "/var/log/cobbler": "rwx",

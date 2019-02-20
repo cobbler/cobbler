@@ -1,5 +1,4 @@
 
-from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -980,9 +979,7 @@ def events(request):
         (ttime, name, state, read_by) = events[id]
         events2.append([id, time.asctime(time.localtime(ttime)), name, state])
 
-    def sorter(a, b):
-        return cmp(a[0], b[0])
-    events2.sort(sorter)
+    events2 = sorted(events2)
 
     html = render(request, 'events.tmpl', {
         'results': events2,

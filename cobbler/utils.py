@@ -191,32 +191,6 @@ def _IP(ip):
         return ip_class(ip)
 
 
-def get_config_filename(sys, interface):
-    """
-    The configuration file for each system pxe uses is either
-    a form of the MAC address of the hex version of the IP.  If none
-    of that is available, just use the given name, though the name
-    given will be unsuitable for PXE configuration (For this, check
-    system.is_management_supported()).  This same file is used to store
-    system config information in the Apache tree, so it's still relevant.
-    """
-
-    interface = str(interface)
-    if interface not in sys.interfaces:
-        return None
-
-    if sys.name == "default":
-        return "default"
-    mac = sys.get_mac_address(interface)
-    ip = sys.get_ip_address(interface)
-    if mac is not None and mac != "":
-        return "grub.cfg-01-" + "-".join(mac.split(":")).lower()
-    elif ip is not None and ip != "":
-        return get_host_ip(ip)
-    else:
-        return sys.name
-
-
 def is_ip(strdata):
     """
     Return whether the argument is an IP address.
@@ -977,33 +951,6 @@ def os_release():
         return (make, float(version))
 
 
-def tftpboot_location():
-    """
-    Guesses the location of the tftpboot directory,
-    based on the distro on which cobblerd is running
-    """
-    (make, version) = os_release()
-    str_version = str(version)
-
-    if make in ("fedora", "redhat", "centos", "virtuozzo"):
-        return "/var/lib/tftpboot"
-    elif make == "suse":
-        return "/srv/tftpboot"
-    # As of Ubuntu 12.04, while they seem to have settled on sticking with
-    # /var/lib/tftpboot, they haven't scrubbed all of the packages that came
-    # from Debian that use /srv/tftp by default.
-    elif make == "ubuntu" and os.path.exists("/var/lib/tftpboot"):
-        return "/var/lib/tftpboot"
-    elif make == "ubuntu" and os.path.exists("/srv/tftp"):
-        return "/srv/tftp"
-    elif make == "debian" and int(str_version.split('.')[0]) < 6:
-        return "/var/lib/tftpboot"
-    elif make == "debian" and int(str_version.split('.')[0]) >= 6:
-        return "/srv/tftp"
-    else:
-        return "/tftpboot"
-
-
 def is_safe_to_hardlink(src, dst, api):
     (dev1, path1) = get_file_device_path(src)
     (dev2, path2) = get_file_device_path(dst)
@@ -1688,7 +1635,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
 
 
 def get_supported_system_boot_loaders():
-    return ["<<inherit>>", "grub", "grub2", "pxelinux", "yaboot", "ipxe"]
+    return ["<<inherit>>", "grub", "pxelinux", "yaboot", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):
@@ -1702,9 +1649,9 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub2", "pxelinux", "yaboot"],
-                        "ppc64le": ["grub2"],
-                        "ppc64el": ["grub2"],
+                return {"ppc64": ["grub", "pxelinux", "yaboot"],
+                        "ppc64le": ["grub"],
+                        "ppc64el": ["grub"],
                         "i386": ["grub", "pxelinux"],
                         "x86_64": ["grub", "pxelinux"]}[distro.arch]
             except:

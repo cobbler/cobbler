@@ -742,4 +742,42 @@ class System(item.Item):
     def set_serial_baud_rate(self, baud_rate):
         return utils.set_serial_baud_rate(self, baud_rate)
 
+    def get_config_filename(self, interface, loader=None):
+        """
+        The configuration file for each system pxe uses is either
+        a form of the MAC address of the hex version of the IP.  If none
+        of that is available, just use the given name, though the name
+        given will be unsuitable for PXE configuration (For this, check
+        system.is_management_supported()). This same file is used to store
+        system config information in the Apache tree, so it's still relevant.
+
+        :param loader: Bootloader type.
+        :type loader: str
+        :param interface: Name of the interface.
+        :type interface: str
+        """
+
+        if loader is None:
+            loader = self.boot_loader
+
+        if interface not in self.interfaces:
+            return None
+
+        if self.name == "default":
+            if loader == "grub":
+                return None
+            return "default"
+
+        mac = self.get_mac_address(interface)
+        ip = self.get_ip_address(interface)
+        if mac is not None and mac != "":
+            if loader == "grub":
+                return mac.lower()
+            else:
+                return "01-" + "-".join(mac.split(":")).lower()
+        elif ip is not None and ip != "":
+            return utils.get_host_ip(ip)
+        else:
+            return self.name
+
 # EOF
