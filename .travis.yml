@@ -20,6 +20,5 @@ script:
   - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler cobbler
   - sleep 30
   - docker logs cobbler
-  - docker exec -u 0 -it cobbler bash
-  - pytest
+  - docker exec -u 0 -it cobbler bash -c pytest
   - exit
