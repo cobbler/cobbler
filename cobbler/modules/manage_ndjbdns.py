@@ -85,5 +85,5 @@ class NDjbDnsManager(object):
         p = subprocess.Popen(['/usr/bin/tinydns-data'], cwd=data_dir)
         p.communicate()
 
-        if p.returncode is not 0:
+        if p.returncode != 0:
             raise Exception('Could not regenerate tinydns data file.')
