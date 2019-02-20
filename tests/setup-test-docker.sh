@@ -14,6 +14,8 @@ rm -f /usr/lib/systemd/system/sockets.target.wants/*initctl*
 rm -f /usr/lib/systemd/system/basic.target.wants/*
 rm -f /usr/lib/systemd/system/anaconda.target.wants/*
 
+cd /test_dir
+
 # Packages for running cobbler
 zypper -n update
 zypper -n in python3 python3-devel python3-pip apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders mkisofs python3-ldap tftp
@@ -30,4 +32,4 @@ cp /etc/cobbler/cobblerd.service /usr/lib/systemd/system/cobblerd.service
 cp /etc/cobbler/cobbler.conf /etc/apache2/conf.d/
 
 # Enable the services
-RUN systemctl enable cobblerd apache2 tftp
+systemctl enable cobblerd apache2 tftp
