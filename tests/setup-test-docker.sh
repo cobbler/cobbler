@@ -33,3 +33,6 @@ cp /etc/cobbler/cobbler.conf /etc/apache2/conf.d/
 
 # Enable the services
 systemctl enable cobblerd apache2 tftp
+a2enmod version
+a2enmod proxy
+a2enmod proxy_http
