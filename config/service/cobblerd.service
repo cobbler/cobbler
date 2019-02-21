@@ -1,6 +1,7 @@
 [Unit]
 Description=Cobbler Helper Daemon
 After=syslog.target network.target
+Wants=@@httpd_service@@
 
 [Service]
 ExecStart=@@install_scripts@@/cobblerd -F
