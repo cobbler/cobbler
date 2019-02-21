@@ -1,32 +1,23 @@
-language: python
-python:
- - "3.6"
+dist: xenial
+language: generic
+sudo: required
+services:
+  - docker
 branches:
- only:
-  - master
+  only:
+    - master
 addons:
   apt:
-   packages:
-    - python3-pip
-    - apache2
-    - apache2-dev
-    - acl
-    - libapache2-mod-wsgi-py3
-    - ipmitool
-    - rsync
-    - fence-agents
-    - genders
-    # mkisofs is not available on ubuntu
-    - genisoimage
-install:
- # Disable venv and use root for installation.
- - deactivate
- - sudo pip3 install --upgrade pip
- - sudo pip3 install --upgrade --force-reinstall setuptools
- - sudo pip3 install -r requirements-test.txt --ignore-installed six
- - sudo python3 setup.py build
- - sudo python3 setup.py install
+    packages:
+      - python3
+      - python3-pip
 before_script:
- - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
- - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
-script: pytest
+  - pip3 install pyflakes pycodestyle
+  - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
+  - pycodestyle -r --ignore E501,E402,E722 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
+script:
+  - docker build -t cobbler .
+  - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler cobbler
+  - sleep 30
+  - docker logs cobbler
+  - docker exec -u 0 -it cobbler bash -c pytest
