@@ -7,6 +7,7 @@ import sys
 import time
 import logging
 import glob as _glob
+import distro
 
 from builtins import str
 from setuptools import setup
@@ -507,17 +508,6 @@ class savestate(statebase):
         self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
 
 
-def parse_os_release():
-    out = {}
-    osreleasepath = "/etc/os-release"
-    if os.path.exists(osreleasepath):
-        with open(osreleasepath, 'r') as os_release:
-            out.update(
-                [[it.strip('"\n') for it in line.split('=', 1)] for line in [line for line in os_release if not line.startswith('#') and '=' in line]]
-            )
-    return out
-
-
 def requires(filename):
     """Returns a list of all pip requirements
     Source of this function: https://github.com/tomschr/leo/blob/develop/setup.py
@@ -552,10 +542,8 @@ if __name__ == "__main__":
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
-    os_release = parse_os_release()
-    suse_release = (
-        os.path.exists("/etc/SuSE-release") or os_release.get('ID_LIKE', '').lower() == 'suse'
-    )
+    os_release = distro.linux_distribution()[0].lower().strip()
+    suse_release = ("suse" in os_release)
 
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
