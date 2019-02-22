@@ -99,11 +99,11 @@ def application(environ, start_response):
     # TODO: We could do proper exception handling here and return
     # corresponding HTTP status codes:
 
+    status = "100 OK"
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr(cw, mode)
     try:
         content = func(**form)
-        content = content.encode("uft-8")
 
         if content.find("# *** ERROR ***") != -1:
             status = '500 SERVER ERROR'
@@ -124,4 +124,4 @@ def application(environ, start_response):
                         ('Content-Length', str(len(content)))]
     start_response(status, response_headers)
 
-    return [content]
+    return [content.encode('utf-8')]
