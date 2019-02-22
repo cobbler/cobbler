@@ -369,7 +369,7 @@ class TFTPGen(object):
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
                     if str(self.settings.pxe_just_once).upper() in ["1", "Y", "YES", "TRUE"]:
-                        buffer += 'set local_boot_file=\'(http,{server}:80)/cblr/svc/op/nopxe/system/{system}\n\''.format(\
+                        buffer += 'set local_boot_file=\'(http,{server}:80)/cblr/svc/op/nopxe/system/{system}\'\n'.format(\
                                                                         server=self.settings.server, system=system.name)
                     buffer += 'set system="{system}"\n'.format(system=system.name)
                 else:
