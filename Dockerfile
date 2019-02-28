@@ -9,7 +9,7 @@ COPY . /test_dir
 
 VOLUME [ "/sys/fs/cgroup" ]
 
-RUN tests/setup-test-docker.sh
+RUN ["/bin/bash", "-c", "tests/setup-test-docker.sh"]
 
 # Set this as an entrypoint
 CMD ["/usr/lib/systemd/systemd", "--system"]
