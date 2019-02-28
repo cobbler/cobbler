@@ -63,6 +63,27 @@ EVENT_FAILED = "failed"
 # normal events
 EVENT_INFO = "notification"
 
+def returns(*return_types):
+    """
+    The XMLRPC remote API calls must always return the same object type.
+
+    This is because clients using other languages, e.g. Java, may expect a
+    certain value to be of a specific type and cast it or generate a specific
+    object on it and use its methods.
+    Therefore: Always return the same object types with the remote API
+    """
+    def outer(f):
+        def inner(*args):
+            return_type = return_types[0]
+            return_value = f(*args)
+            # Do not use isinstance, no inherited object types are allowed
+            return_value_type = type(return_value)
+            if return_value_type is not return_type:
+                raise TypeError(("Remote API function {func} must be of type {should_type}, "
+                "but is of type {is_type}").format(func=f.__name__, is_type=return_value_type, \
+                                                 should_type=return_type))
+        return inner
+    return outer
 
 class CobblerThread(Thread):
     """
@@ -1861,6 +1882,7 @@ class CobblerXMLRPCInterface(object):
             raise CX("authorization failure for user %s attempting to access authn module name" % user)
         return self.api.get_module_name_from_file("authentication", "module")
 
+    @returns(str)
     def login(self, login_user, login_password):
         """
         Takes a username and password, validates it, and if successful
