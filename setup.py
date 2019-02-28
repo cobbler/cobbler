@@ -7,6 +7,7 @@ import sys
 import time
 import logging
 import glob as _glob
+import distro
 
 from builtins import str
 from setuptools import setup
@@ -507,17 +508,6 @@ class savestate(statebase):
         self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
 
 
-def parse_os_release():
-    out = {}
-    osreleasepath = "/etc/os-release"
-    if os.path.exists(osreleasepath):
-        with open(osreleasepath, 'r') as os_release:
-            out.update(
-                [[it.strip('"\n') for it in line.split('=', 1)] for line in [line for line in os_release if not line.startswith('#') and '=' in line]]
-            )
-    return out
-
-
 def requires(filename):
     """Returns a list of all pip requirements
     Source of this function: https://github.com/tomschr/leo/blob/develop/setup.py
@@ -553,11 +543,9 @@ if __name__ == "__main__":
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
     httpd_service = "httpd.service"
-    os_release = parse_os_release()
-    suse_release = (
-        os.path.exists("/etc/SuSE-release") or os_release.get('ID_LIKE', '').lower() == 'suse'
-    )
-
+    os_release = distro.linux_distribution()[0].lower().strip()
+    suse_release = ("suse" in os_release)
+    
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
         webroot = "/srv/www/"
@@ -636,10 +624,10 @@ if __name__ == "__main__":
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s" % initpath, ["build/config/service/cobblerd"]),
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
-            ("%s/templates" % libpath, glob("autoinstall_templates/*")),
-            ("%s/templates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
-            ("%s/snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
-            ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
+            ("%stemplates" % libpath, glob("autoinstall_templates/*")),
+            ("%stemplates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
+            ("%ssnippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
+            ("%sscripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/static/*")),
