@@ -368,6 +368,10 @@ class TFTPGen(object):
             if format == "grub":
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
+                    if str(self.settings.pxe_just_once).upper() in ["1", "Y", "YES", "TRUE"]:
+                        buffer += 'set local_boot_file=\'(http,{server}:80)/cblr/svc/op/nopxe/system/{system}\'\n'.format(\
+                                                                        server=self.settings.server, system=system.name)
+                    buffer += 'set system="{system}"\n'.format(system=system.name)
                 else:
                     local = os.path.join(self.settings.boot_loader_conf_template_dir, "grublocal.template")
                     if os.path.exists(local):
@@ -460,7 +464,6 @@ class TFTPGen(object):
             metadata["menu_label"] = "MENU LABEL %s" % image.name
             metadata["profile_name"] = image.name
 
-        buffer = ""
         if system:
             if (system.serial_device is not None) or (system.serial_baud_rate is not None):
                 if system.serial_device:
@@ -473,9 +476,9 @@ class TFTPGen(object):
                     serial_baud_rate = 115200
 
                 if format == "pxe":
-                    buffer = "serial %d %d\n" % (serial_device, serial_baud_rate)
+                    buffer += "serial %d %d\n" % (serial_device, serial_baud_rate)
                 elif format == "grub":
-                    buffer = "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(baud=serial_baud_rate, device=serial_device)
+                    buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(baud=serial_baud_rate, device=serial_device)
 
         # get the template
         if kernel_path is not None:

@@ -542,13 +542,15 @@ if __name__ == "__main__":
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
+    httpd_service = "httpd.service"
     os_release = distro.linux_distribution()[0].lower().strip()
     suse_release = ("suse" in os_release)
-
+    
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
         webroot = "/srv/www/"
         http_user = "wwwrun"
+        httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
     elif os.path.exists("/etc/debian_version"):
         if os.path.exists("/etc/apache2/conf-available"):
@@ -603,6 +605,7 @@ if __name__ == "__main__":
         configure_values={
             'webroot': os.path.normpath(webroot),
             'defaultpath': os.path.normpath(defaultpath),
+            'httpd_service': httpd_service,
         },
         configure_files=[
             "config/cobbler/settings",
