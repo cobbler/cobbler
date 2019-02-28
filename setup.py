@@ -545,7 +545,7 @@ if __name__ == "__main__":
     httpd_service = "httpd.service"
     os_release = distro.linux_distribution()[0].lower().strip()
     suse_release = ("suse" in os_release)
-    
+
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
         webroot = "/srv/www/"
