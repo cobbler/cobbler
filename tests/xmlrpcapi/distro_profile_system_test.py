@@ -198,8 +198,7 @@ def system_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
 @pytest.fixture(scope="class")
 def topdir():
     """
-
-    :return:
+    The path to the directory of the fake test files.
     """
     return "/dev/shm/cobbler_test"
 
@@ -207,8 +206,8 @@ def topdir():
 @pytest.fixture(scope="class")
 def create_tempdir(topdir):
     """
-
-    :param topdir:
+    Creates the top-directory for the tests.
+    :param topdir: See the corresponding fixture.
     """
     # Create temp dir
     try:
@@ -220,7 +219,7 @@ def create_tempdir(topdir):
 @pytest.fixture(scope="class")
 def fk_initrd(topdir):
     """
-    The path to the first fakte initrd.
+    The path to the first fake initrd.
     :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
@@ -230,9 +229,9 @@ def fk_initrd(topdir):
 @pytest.fixture(scope="class")
 def fk_initrd2(topdir):
     """
-
+    The path to the second fake initrd.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, FAKE_INITRD2)
 
@@ -240,9 +239,9 @@ def fk_initrd2(topdir):
 @pytest.fixture(scope="class")
 def fk_initrd3(topdir):
     """
-
+    The path to the third fake initrd.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, FAKE_INITRD3)
 
@@ -250,9 +249,9 @@ def fk_initrd3(topdir):
 @pytest.fixture(scope="class")
 def fk_kernel(topdir):
     """
-
+    The path to the first fake kernel.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, FAKE_KERNEL)
 
@@ -260,9 +259,9 @@ def fk_kernel(topdir):
 @pytest.fixture(scope="class")
 def fk_kernel2(topdir):
     """
-
+    The path to the second fake kernel.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, FAKE_KERNEL2)
 
@@ -270,9 +269,9 @@ def fk_kernel2(topdir):
 @pytest.fixture(scope="class")
 def fk_kernel3(topdir):
     """
-
+    The path to the third fake kernel.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, FAKE_KERNEL3)
 
@@ -280,9 +279,9 @@ def fk_kernel3(topdir):
 @pytest.fixture(scope="class")
 def redhat_kickstart(topdir):
     """
-
+    The path to the test.ks file for redhat kickstarting.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, "test.ks")
 
@@ -290,9 +289,9 @@ def redhat_kickstart(topdir):
 @pytest.fixture(scope="class")
 def suse_autoyast(topdir):
     """
-
+    The path to the suse autoyast xml-file.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, "test.xml")
 
@@ -300,9 +299,9 @@ def suse_autoyast(topdir):
 @pytest.fixture(scope="class")
 def ubuntu_preseed(topdir):
     """
-
+    The path to the ubuntu preseed file.
     :param topdir: See the corresponding fixture.
-    :return:
+    :return: A path as a string.
     """
     return os.path.join(topdir, "test.seed")
 
@@ -342,8 +341,8 @@ def files_create(create_tempdir, fake_files):
 @pytest.fixture(scope="class")
 def init_teardown(files_create, fake_files):
     """
-
-    :param files_create:
+    This represents the init and teardown of the TestDistroProfileSystem class.
+    :param files_create: See the corresponding fixture.
     :param fake_files: See the corresponding fixture.
     """
     yield

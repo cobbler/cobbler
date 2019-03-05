@@ -14,6 +14,11 @@ self._remove_package()
 
 @pytest.fixture()
 def create_package(remote, token):
+    """
+    Adds a "testpackage0" for a test.
+    :param remote: See the correesponding fixture.
+    :param token: See the correesponding fixture.
+    """
     package = remote.new_package(token)
     remote.modify_package(package, "name", "testpackage0", token)
     remote.save_package(package, token)
@@ -21,6 +26,11 @@ def create_package(remote, token):
 
 @pytest.fixture()
 def remove_package(remote, token):
+    """
+    Removes a "testpackage0" for a test.
+    :param remote: See the correesponding fixture.
+    :param token: See the correesponding fixture.
+    """
     yield
     remote.remove_package("testpackage0", token)
 
