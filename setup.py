@@ -20,7 +20,6 @@ from distutils.command.build import build as _build
 from configparser import ConfigParser
 
 import codecs
-import unittest
 from coverage import Coverage
 import pwd
 import shutil
@@ -402,14 +401,13 @@ class test_command(Command):
         pass
 
     def run(self):
-        tests = unittest.TestLoader().discover("tests", pattern="*[t|T]est*.py")
-        runner = unittest.TextTestRunner(verbosity=1)
+        import pytest
 
         cov = Coverage()
         cov.erase()
         cov.start()
 
-        result = runner.run(tests)
+        result = pytest.main()
 
         cov.stop()
         cov.save()
