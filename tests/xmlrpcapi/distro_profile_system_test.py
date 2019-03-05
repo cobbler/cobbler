@@ -351,21 +351,56 @@ def init_teardown(files_create, fake_files):
         os.remove(fn)
 
 
+@pytest.fixture()
+def create_profile(remote, token, create_testdistro):
+    """
+    Create a profile with the name "testprofile0"
+    :param create_testdistro: See the corresponding fixture.
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    profile = remote.new_profile(token)
+    remote.modify_profile(profile, "name", "testprofile0", token)
+    remote.modify_profile(profile, "distro", "testdistro0", token)
+    remote.modify_profile(profile, "kernel_options", "a=1 b=2 c=3 c=4 c=5 d e", token)
+    remote.save_profile(profile, token)
+
+
+@pytest.fixture
+def remove_testdistro(init_teardown, remote, token):
+    """
+    Removes the distro "testdistro0" from the running cobbler after the test.
+    """
+    yield
+    if not remote.get_distro("testdistro0") == "~":
+        remote.remove_distro("testdistro0", token)
+
+
+@pytest.fixture()
+def create_testdistro(remote, token, fk_kernel, fk_initrd):
+    """
+    Creates a distro "testdistro0" with the architecture "x86_64", breed "suse" and the fixtures which are setting the
+    fake kernel and initrd.
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    :param fk_kernel: See the corresponding fixture.
+    :param fk_initrd: See the corresponding fixture.
+    """
+    distro = remote.new_distro(token)
+    remote.modify_distro(distro, "name", "testdistro0", token)
+    remote.modify_distro(distro, "arch", "x86_64", token)
+    remote.modify_distro(distro, "breed", "suse", token)
+    remote.modify_distro(distro, "kernel", fk_kernel, token)
+    remote.modify_distro(distro, "initrd", fk_initrd, token)
+    remote.save_distro(distro, token)
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestDistroProfileSystem:
     """
     Test remote calls related to distros, profiles and systems
     These item types are tested together because they have inter-dependencies
     """
-
-    @pytest.fixture
-    def remove_testdistro(self, init_teardown, remote, token):
-        """
-        Removes the distro "testdistro0" from the running cobbler after the test.
-        """
-        yield
-        if not remote.get_distro("testdistro0") == "~":
-            remote.remove_distro("testdistro0", token)
 
     @pytest.mark.usefixtures("init_teardown")
     def test_get_distros(self, remote, token):
