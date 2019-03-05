@@ -1,8 +1,8 @@
-import unittest
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
+import pytest
 
 
-class TestMiscellaneous(CobblerXmlRpcBaseTest):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestMiscellaneous:
     """
     Class to test remote calls to cobbler which do not belong into a specific category.
     """
@@ -98,7 +98,3 @@ class TestMiscellaneous(CobblerXmlRpcBaseTest):
     def test_xapi_object_edit(self):
         # TODO: test remote.xapi_object_edit()
         raise NotImplementedError()
-
-
-if __name__ == '__main__':
-    unittest.main()

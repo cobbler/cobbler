@@ -1,171 +1,167 @@
-import unittest
+import pytest
 import time
 import re
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
-from cobbler.remote import EVENT_COMPLETE
 
 TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
 
 
-class TestNonObjectCalls(CobblerXmlRpcBaseTest):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestNonObjectCalls:
 
     # TODO: Obsolete this method via a unittest method
-    def _wait_task_end(self, tid):
+    def _wait_task_end(self, tid, remote):
         """
         Wait until a task is finished
         """
 
         timeout = 0
-        while self.remote.get_task_status(tid)[2] != EVENT_COMPLETE:
-            print("task %s status: %s" % (tid, self.remote.get_task_status(tid)))
+        # "complete" is the constant: EVENT_COMPLETE from cobbler.remote
+        while remote.get_task_status(tid)[2] != "complete":
+            print("task %s status: %s" % (tid, remote.get_task_status(tid)))
             time.sleep(5)
             timeout += 5
             if timeout == 60:
                 raise Exception
 
-    def test_token(self):
+    def test_token(self, token):
         """
         Test: authentication token validation
         """
 
-        assert self.token not in ("", None)
+        assert token not in ("", None)
 
-    def test_get_user_from_token(self):
+    def test_get_user_from_token(self, remote, token):
         """
         Test: get user data from authentication token
         """
 
-        self.assertTrue(self.remote.get_user_from_token(self.token))
+        assert remote.get_user_from_token(token)
 
-    def test_check(self):
+    def test_check(self, remote, token):
         """
         Test: check Cobbler status
         """
 
-        self.assertTrue(self.remote.check(self.token))
+        assert remote.check(token)
 
-    def test_last_modified_time(self):
+    def test_last_modified_time(self, remote, token):
         """
         Test: get last modification time
         """
 
-        assert self.remote.last_modified_time(self.token) != 0
+        assert remote.last_modified_time(token) != 0
 
-    def test_power_system(self):
+    def test_power_system(self, remote, token):
         """
         Test: reboot a system
         """
 
         if TEST_SYSTEM and TEST_POWER_MANAGEMENT:
-            tid = self.remote.background_power_system({"systems": [TEST_SYSTEM],
+            tid = remote.background_power_system({"systems": [TEST_SYSTEM],
                                                        "power": "reboot"},
-                                                      self.token)
-            self._wait_task_end(tid)
+                                                      token)
+            self._wait_task_end(tid, remote)
 
-    def test_sync(self):
+    def test_sync(self, remote, token):
         """
         Test: synchronize Cobbler internal data with managed services
         (dhcp, tftp, dns)
         """
 
-        tid = self.remote.background_sync({}, self.token)
-        events = self.remote.get_events(self.token)
+        tid = remote.background_sync({}, token)
+        events = remote.get_events(token)
 
-        self.assertTrue(len(events) > 0)
+        assert len(events) > 0
 
-        self._wait_task_end(tid)
+        self._wait_task_end(tid, remote)
 
-        event_log = self.remote.get_event_log(tid)
+        event_log = remote.get_event_log(tid)
 
-    def test_get_kickstart_templates(self):
+    def test_get_kickstart_templates(self, remote):
         """
         Test: get kickstart templates
         """
 
-        result = self.remote.get_kickstart_templates()
-        self.assertTrue(len(result) > 0)
+        result = remote.get_kickstart_templates()
+        assert len(result) > 0
 
-    def test_get_snippets(self):
+    def test_get_snippets(self, remote, token):
         """
         Test: get snippets
         """
 
-        result = self.remote.get_snippets(self.token)
-        self.assertTrue(len(result) > 0)
+        result = remote.get_snippets(token)
+        assert len(result) > 0
 
-    def test_generate_kickstart(self):
+    def test_generate_kickstart(self, remote):
         """
         Test: generate kickstart content
         """
 
         if TEST_SYSTEM:
-            self.remote.generate_kickstart(None, TEST_SYSTEM)
+            remote.generate_kickstart(None, TEST_SYSTEM)
 
-    def test_generate_gpxe(self):
+    def test_generate_gpxe(self, remote):
         """
         Test: generate GPXE file content
         """
 
         if TEST_SYSTEM:
-            self.remote.generate_gpxe(None, TEST_SYSTEM)
+            remote.generate_gpxe(None, TEST_SYSTEM)
 
-    def test_generate_bootcfg(self):
+    def test_generate_bootcfg(self, remote):
         """
         Test: generate boot loader configuration file content
         """
 
         if TEST_SYSTEM:
-            self.remote.generate_bootcfg(None, TEST_SYSTEM)
+            remote.generate_bootcfg(None, TEST_SYSTEM)
 
-    def test_get_settings(self):
+    def test_get_settings(self, remote, token):
         """
         Test: get settings
         """
 
-        self.remote.get_settings(self.token)
+        remote.get_settings(token)
 
-    def test_get_signatures(self):
+    def test_get_signatures(self, remote, token):
         """
         Test: get distro signatures
         """
 
-        self.remote.get_signatures(self.token)
+        remote.get_signatures(token)
 
-    def test_get_valid_breeds(self):
+    def test_get_valid_breeds(self, remote, token):
         """
         Test: get valid OS breeds
         """
 
-        breeds = self.remote.get_valid_breeds(self.token)
-        self.assertTrue(len(breeds) > 0)
+        breeds = remote.get_valid_breeds(token)
+        assert len(breeds) > 0
 
-    def test_get_valid_os_versions_for_breed(self):
+    def test_get_valid_os_versions_for_breed(self, remote, token):
         """
         Test: get valid OS versions for a OS breed
         """
 
-        versions = self.remote.get_valid_os_versions_for_breed("generic", self.token)
-        self.assertTrue(len(versions) > 0)
+        versions = remote.get_valid_os_versions_for_breed("generic", token)
+        assert len(versions) > 0
 
-    def test_get_valid_os_versions(self):
+    def test_get_valid_os_versions(self, remote, token):
         """
         Test: get valid OS versions
         """
 
-        versions = self.remote.get_valid_os_versions(self.token)
-        self.assertTrue(len(versions) > 0)
+        versions = remote.get_valid_os_versions(token)
+        assert len(versions) > 0
 
-    def test_get_random_mac(self):
+    def test_get_random_mac(self, remote, token):
         """
         Test: get a random mac for a virtual network interface
         """
 
-        mac = self.remote.get_random_mac("xen", self.token)
+        mac = remote.get_random_mac("xen", token)
         hexa = "[0-9A-Fa-f]{2}"
         match_obj = re.match("%s:%s:%s:%s:%s:%s" % (hexa, hexa, hexa, hexa, hexa, hexa), mac)
-        self.assertTrue(match_obj)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert match_obj

@@ -1,5 +1,4 @@
-import unittest
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
+import pytest
 
 
 def tprint(call_name):
@@ -12,12 +11,13 @@ def tprint(call_name):
     print("test remote call: %s()" % call_name)
 
 
-class TestItem(CobblerXmlRpcBaseTest):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestItem:
     """
     Test item
     """
 
-    def _get_item(self, type):
+    def _get_item(self, type, remote):
         """
         Test: get a generic item
 
@@ -25,9 +25,9 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("get_item")
-        item = self.remote.get_item(type, "test%s2" % type)
+        item = remote.get_item(type, "test%s2" % type)
 
-    def _find_item(self, type):
+    def _find_item(self, type, remote):
         """
         Test: find a generic item
 
@@ -35,10 +35,10 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("find_items")
-        result = self.remote.find_items(type, {"name": "test%s2" % type}, None, False)
-        self.assertTrue(len(result) > 0)
+        result = remote.find_items(type, {"name": "test%s2" % type}, None, False)
+        assert len(result) > 0
 
-    def _copy_item(self, type):
+    def _copy_item(self, type, remote, token):
         """
         Test: copy a generic item
 
@@ -46,11 +46,11 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("copy_item")
-        item_id = self.remote.get_item_handle(type, "test%s2" % type, self.token)
-        result = self.remote.copy_item(type, item_id, "test%scopy" % type, self.token)
-        self.assertTrue(result)
+        item_id = remote.get_item_handle(type, "test%s2" % type, token)
+        result = remote.copy_item(type, item_id, "test%scopy" % type, token)
+        assert result
 
-    def _has_item(self, type):
+    def _has_item(self, type, remote, token):
         """
         Test: check if an item is in a item collection
 
@@ -58,10 +58,10 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("has_item")
-        result = self.remote.has_item(type, "test%s2" % type, self.token)
-        self.assertTrue(result)
+        result = remote.has_item(type, "test%s2" % type, token)
+        assert result
 
-    def _rename_item(self, type):
+    def _rename_item(self, type, remote, token):
         """
         Test: rename a generic item
 
@@ -69,11 +69,11 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("rename_item")
-        item_id = self.remote.get_item_handle(type, "test%scopy" % type, self.token)
-        result = self.remote.rename_item(type, item_id, "test%s3" % type, self.token)
-        self.assertTrue(result)
+        item_id = remote.get_item_handle(type, "test%scopy" % type, token)
+        result = remote.rename_item(type, item_id, "test%s3" % type, token)
+        assert result
 
-    def _remove_item(self, type):
+    def _remove_item(self, type, remote, token):
         """
         Test: remove a generic item
 
@@ -81,33 +81,30 @@ class TestItem(CobblerXmlRpcBaseTest):
         """
 
         tprint("remove_item")
-        self.assertTrue(self.remote.remove_item(type, "test%s2" % type, self.token))
-        self.assertTrue(self.remote.remove_item(type, "test%s3" % type, self.token))
+        assert remote.remove_item(type, "test%s2" % type, token)
+        assert remote.remove_item(type, "test%s3" % type, token)
 
-    def test_item(self):
+    def test_item(self, remote, token):
         type = "mgmtclass"
 
         tprint("get_item_names")
-        items_names = self.remote.get_item_names(type)
+        items_names = remote.get_item_names(type)
 
         # create an item of the type defined above
-        item_id = self.remote.new_mgmtclass(self.token)
+        item_id = remote.new_mgmtclass(token)
 
-        self.remote.modify_item(type, item_id, "name", "test%s2" % type, self.token)
-        result = self.remote.save_item(type, item_id, self.token)
-        self.assertTrue(result)
+        remote.modify_item(type, item_id, "name", "test%s2" % type, token)
+        result = remote.save_item(type, item_id, token)
+        assert result
 
-        new_items_names = self.remote.get_item_names(type)
-        self.assertTrue(len(new_items_names) == len(items_names) + 1)
+        new_items_names = remote.get_item_names(type)
+        assert len(new_items_names) == len(items_names) + 1
 
-        self._get_item(type)
-        self._find_item(type)
-        self._copy_item(type)
-        self._rename_item(type)
-        self._remove_item(type)
+        self._get_item(type, remote)
+        self._find_item(type, remote)
+        self._copy_item(type, remote, token)
+        self._rename_item(type, remote, token)
+        self._remove_item(type, remote, token)
 
-        new_items_names = self.remote.get_item_names(type)
-        self.assertTrue(len(new_items_names) == len(items_names))
-
-if __name__ == '__main__':
-    unittest.main()
+        new_items_names = remote.get_item_names(type)
+        assert len(new_items_names) == len(items_names)

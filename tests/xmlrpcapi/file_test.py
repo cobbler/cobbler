@@ -1,5 +1,4 @@
-import unittest
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
+import pytest
 
 
 """
@@ -14,76 +13,73 @@ test_remove_file()
 """
 
 
-class TestFile(CobblerXmlRpcBaseTest):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestFile:
     """
     Test remote calls related to files
     """
 
-    def test_create_file(self):
-        files = self.remote.get_files(self.token)
+    def test_create_file(self, remote, token):
+        files = remote.get_files(token)
 
-        file_id = self.remote.new_file(self.token)
+        file_id = remote.new_file(token)
 
-        self.remote.modify_file(file_id, "name", "testfile0", self.token)
-        self.remote.modify_file(file_id, "is_directory", "False", self.token)
-        self.remote.modify_file(file_id, "action", "create", self.token)
-        self.remote.modify_file(file_id, "group", "root", self.token)
-        self.remote.modify_file(file_id, "mode", "0644", self.token)
-        self.remote.modify_file(file_id, "owner", "root", self.token)
-        self.remote.modify_file(file_id, "path", "/root/testfile0", self.token)
-        self.remote.modify_file(file_id, "template", "testtemplate0", self.token)
+        remote.modify_file(file_id, "name", "testfile0", token)
+        remote.modify_file(file_id, "is_directory", "False", token)
+        remote.modify_file(file_id, "action", "create", token)
+        remote.modify_file(file_id, "group", "root", token)
+        remote.modify_file(file_id, "mode", "0644", token)
+        remote.modify_file(file_id, "owner", "root", token)
+        remote.modify_file(file_id, "path", "/root/testfile0", token)
+        remote.modify_file(file_id, "template", "testtemplate0", token)
 
-        self.remote.save_file(file_id, self.token)
+        remote.save_file(file_id, token)
 
-        new_files = self.remote.get_files(self.token)
-        self.assertTrue(len(new_files) == len(files) + 1)
+        new_files = remote.get_files(token)
+        assert len(new_files) == len(files) + 1
 
-    def test_get_files(self):
+    def test_get_files(self, remote, token):
         """
         Test: get files
         """
 
-        self.remote.get_files(self.token)
+        remote.get_files(token)
 
-    def test_get_file(self):
+    def test_get_file(self, remote):
         """
         Test: Get a file object
         """
 
-        file = self.remote.get_file("testfile0")
+        file = remote.get_file("testfile0")
 
-    def test_find_file(self):
+    def test_find_file(self, remote, token):
         """
         Test: find a file object
         """
 
-        result = self.remote.find_file({"name": "testfile0"}, self.token)
-        self.assertTrue(result)
+        result = remote.find_file({"name": "testfile0"}, token)
+        assert result
 
-    def test_copy_file(self):
+    def test_copy_file(self, remote, token):
         """
         Test: copy a file object
         """
 
-        file = self.remote.get_item_handle("file", "testfile0", self.token)
-        self.assertTrue(self.remote.copy_file(file, "testfilecopy", self.token))
+        file = remote.get_item_handle("file", "testfile0", token)
+        assert remote.copy_file(file, "testfilecopy", token)
 
-    def test_rename_file(self):
+    def test_rename_file(self, remote, token):
         """
         Test: rename a file object
         """
 
-        file = self.remote.get_item_handle("file", "testfilecopy", self.token)
-        self.assertTrue(self.remote.rename_file(file, "testfile1", self.token))
+        file = remote.get_item_handle("file", "testfilecopy", token)
+        assert remote.rename_file(file, "testfile1", token)
 
-    def test_remove_file(self):
+    def test_remove_file(self, remote, token):
         """
         Test: remove a file object
         """
 
-        self.assertTrue(self.remote.remove_file("testfile0", self.token))
-        self.assertTrue(self.remote.remove_file("testfile1", self.token))
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert remote.remove_file("testfile0", token)
+        assert remote.remove_file("testfile1", token)

@@ -1,8 +1,8 @@
-import unittest
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
+import pytest
 
 
-class TestBackground(CobblerXmlRpcBaseTest):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestBackground:
     """
     Class to test various background jobs
     """
@@ -38,7 +38,3 @@ class TestBackground(CobblerXmlRpcBaseTest):
     def test_background_validate_autoinstall_files(self):
         # TODO: test remote.background_validate_autoinstall_files()
         raise NotImplementedError()
-
-
-if __name__ == '__main__':
-    unittest.main()
