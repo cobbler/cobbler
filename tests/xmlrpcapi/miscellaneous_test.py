@@ -83,8 +83,8 @@ class TestMiscellaneous:
         raise NotImplementedError()
 
     @pytest.mark.skip(reason="Not Implemented!")
-    def test_is_kickstart_in_use(self):
-        # TODO: test remote.is_kickstart_in_use()
+    def test_is_autoinstall_in_use(self):
+        # TODO: test remote.is_autoinstall_in_use()
         raise NotImplementedError()
 
     @pytest.mark.skip(reason="Not Implemented!")
@@ -98,8 +98,18 @@ class TestMiscellaneous:
         raise NotImplementedError()
 
     @pytest.mark.skip(reason="Not Implemented!")
-    def test_read_or_write_kickstart_template(self):
-        # TODO: test remote.read_or_write_kickstart_template()
+    def test_read_autoinstall_template(self):
+        # TODO: test remote.read_autoinstall_template()
+        raise NotImplementedError()
+
+    @pytest.mark.skip(reason="Not Implemented!")
+    def test_write_autoinstall_template(self):
+        # TODO: test remote.write_autoinstall_template()
+        raise NotImplementedError()
+
+    @pytest.mark.skip(reason="Not Implemented!")
+    def test_remove_autoinstall_template(self):
+        # TODO: test remote.remove_autoinstall_template()
         raise NotImplementedError()
 
     @pytest.mark.skip(reason="Not Implemented!")

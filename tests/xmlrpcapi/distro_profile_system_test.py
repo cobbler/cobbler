@@ -74,10 +74,10 @@ def distro_fields(fk_initrd, fk_kernel):
 
 
 @pytest.fixture(scope="class")
-def profile_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
+def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
 
-    :param redhat_kickstart:
+    :param redhat_autoinstall:
     :param suse_autoyast:
     :param ubuntu_preseed:
     :return:
@@ -93,8 +93,8 @@ def profile_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
         ["enable_menu", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["kickstart", [redhat_kickstart, suse_autoyast, ubuntu_preseed],
-         ["/path/to/bad/kickstart", ]],
+        ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],
+         ["/path/to/bad/autoinstall", ]],
         ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
         ["mgmt_classes", ["one two three", ], []],
         ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
@@ -116,10 +116,10 @@ def profile_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
 
 
 @pytest.fixture(scope="class")
-def system_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
+def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
 
-    :param redhat_kickstart:
+    :param redhat_autoinstall:
     :param suse_autoyast:
     :param ubuntu_preseed:
     :return:
@@ -132,8 +132,8 @@ def system_fields(redhat_kickstart, suse_autoyast, ubuntu_preseed):
         ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["kickstart", [redhat_kickstart, suse_autoyast, ubuntu_preseed],
-         ["/path/to/bad/kickstart", ]],
+        ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],
+         ["/path/to/bad/autoinstall", ]],
         ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
         ["mgmt_classes", ["one two three", ], []],
         ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
@@ -277,9 +277,9 @@ def fk_kernel3(topdir):
 
 
 @pytest.fixture(scope="class")
-def redhat_kickstart(topdir):
+def redhat_autoinstall(topdir):
     """
-    The path to the test.ks file for redhat kickstarting.
+    The path to the test.ks file for redhat autoinstall.
     :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
@@ -307,7 +307,7 @@ def ubuntu_preseed(topdir):
 
 
 @pytest.fixture(scope="class")
-def fake_files(fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kernel3, redhat_kickstart, suse_autoyast,
+def fake_files(fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kernel3, redhat_autoinstall, suse_autoyast,
                ubuntu_preseed):
     """
     This fixture has an array of all the paths to the generated fake files.
@@ -317,12 +317,12 @@ def fake_files(fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kern
     :param fk_kernel: See the corresponding fixture.
     :param fk_kernel2: See the corresponding fixture.
     :param fk_kernel3: See the corresponding fixture.
-    :param redhat_kickstart: See the corresponding fixture.
+    :param redhat_autoinstall: See the corresponding fixture.
     :param suse_autoyast: See the corresponding fixture.
     :param ubuntu_preseed: See the corresponding fixture.
     :return: An array which contains all paths to the corresponding fake files.
     """
-    return [fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kernel3, redhat_kickstart,
+    return [fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kernel3, redhat_autoinstall,
             suse_autoyast, ubuntu_preseed]
 
 

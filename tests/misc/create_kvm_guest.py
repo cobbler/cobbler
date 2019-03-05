@@ -99,7 +99,7 @@ def create_kvm_guest(guest_name, num_virtual_cpus, virtual_ram, virtual_disk_siz
     @param str os_tree_location path/URL of Linux OS tree
             This parameter and os_iso_path are mutually exclusive.
     @param str autoinstall_file_location path/URL of automatic installation file
-            (autoyast / kickstart / preseed). This parameter and os_tree_location
+            (autoyast / autoinstall / preseed). This parameter and os_tree_location
              must be used together
     @param str kernel_args extra kernel command line arguments
     @raise Exception if unable to create the KVM guest

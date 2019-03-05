@@ -58,9 +58,7 @@ class TestNonObjectCalls:
         """
 
         if TEST_SYSTEM and TEST_POWER_MANAGEMENT:
-            tid = remote.background_power_system({"systems": [TEST_SYSTEM],
-                                                       "power": "reboot"},
-                                                      token)
+            tid = remote.background_power_system({"systems": [TEST_SYSTEM], "power": "reboot"}, token)
             self._wait_task_end(tid, remote)
 
     def test_sync(self, remote, token):
@@ -78,29 +76,29 @@ class TestNonObjectCalls:
 
         event_log = remote.get_event_log(tid)
 
-    def test_get_kickstart_templates(self, remote):
+    def test_get_autoinstall_templates(self, remote, token):
         """
-        Test: get kickstart templates
+        Test: get autoinstall templates
         """
 
-        result = remote.get_kickstart_templates()
+        result = remote.get_autoinstall_templates(token)
         assert len(result) > 0
 
-    def test_get_snippets(self, remote, token):
+    def test_get_autoinstall_snippets(self, remote, token):
         """
-        Test: get snippets
+        Test: get autoinstall snippets
         """
 
-        result = remote.get_snippets(token)
+        result = remote.get_autoinstall_snippets(token)
         assert len(result) > 0
 
-    def test_generate_kickstart(self, remote):
+    def test_generate_autoinstall(self, remote):
         """
-        Test: generate kickstart content
+        Test: generate autoinstall content
         """
 
         if TEST_SYSTEM:
-            remote.generate_kickstart(None, TEST_SYSTEM)
+            remote.generate_autoinstall(None, TEST_SYSTEM)
 
     def test_generate_gpxe(self, remote):
         """
