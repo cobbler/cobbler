@@ -95,6 +95,7 @@ class TestPackage:
 
         package = remote.get_item_handle("package", "testpackage0", token)
         assert remote.rename_package(package, "testpackage1", token)
+        package = remote.get_item_handle("package", "testpackage1", token)
         assert remote.rename_package(package, "testpackage0", token)
 
     @pytest.mark.usefixtures("create_package")

@@ -444,8 +444,7 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("init_teardown")
-    @pytest.mark.usefixtures("remove_testdistro")
+    @pytest.mark.usefixtures("init_teardown", "remove_testdistro")
     def test_create_distro_positive(self, remote, token, distro_fields):
         """
         Test: create/edit a distro with valid values
@@ -481,8 +480,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("init_teardown")
-    @pytest.mark.usefixtures("remove_testdistro")
+    @pytest.mark.usefixtures("init_teardown", "remove_testdistro")
     def test_create_distro_negative(self, remote, token, distro_fields):
         """
         Test: create/edit a distro with invalid values
@@ -551,7 +549,7 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_profile")
     def test_create_subprofile(self, remote, token):
         """
         Test: create/edit a subprofile object
