@@ -1,7 +1,7 @@
 import os
 import re
 import shlex
-import unittest
+import pytest
 from cobbler import utils
 
 dummy_file_path = "/root/dummy"
@@ -32,57 +32,45 @@ def get_last_line(lines):
     return lines[i]
 
 
-class CobblerCliTestDirect(unittest.TestCase):
+class CobblerCliTestDirect:
     """
     Tests Cobbler CLI direct commands
     """
-
-    def setUp(self):
-        """
-        Set up
-        """
-        return
-
-    def tearDown(self):
-        """
-        Cleanup here
-        """
-        return
 
     def test_cobbler_version(self):
         """Runs 'cobbler version'"""
         output = run_cmd("cobbler version")
         line = output.split("\n")[0]
         match_obj = re.match(r"Cobbler \d+\.\d+\.\d+", line)
-        self.assertTrue(match_obj is not None)
+        assert match_obj is not None
 
     def test_cobbler_status(self):
         """Runs 'cobbler status'"""
         output = run_cmd("cobbler status")
         lines = output.split("\n")
         match_obj = re.match(r"ip\s+|target\s+|start\s+|state\s+", lines[0])
-        self.assertTrue(match_obj is not None)
+        assert match_obj is not None
 
     def test_cobbler_sync(self):
         """Runs 'cobbler sync'"""
         output = run_cmd("cobbler sync")
         lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
 
     def test_cobbler_signature_report(self):
         """Runs 'cobbler signature report'"""
         output = run_cmd("cobbler signature report")
         lines = output.split("\n")
-        self.assertTrue("Currently loaded signatures:" == lines[0])
+        assert "Currently loaded signatures:" == lines[0]
         expected_output = r"\d+ breeds with \d+ total signatures loaded"
         match_obj = re.match(expected_output, get_last_line(lines))
-        self.assertTrue(match_obj is not None)
+        assert match_obj is not None
 
     def test_cobbler_signature_update(self):
         """Runs 'cobbler signature update'"""
         output = run_cmd("cobbler signature update")
         lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
 
     def test_cobbler_acl_adduser(self):
         """Runs 'cobbler aclsetup --adduser'"""
@@ -115,13 +103,13 @@ class CobblerCliTestDirect(unittest.TestCase):
 
         output = run_cmd("cobbler buildiso")
         lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
-        self.assertTrue(os.path.isfile("/root/generated.iso"))
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
+        assert os.path.isfile("/root/generated.iso")
 
     def _assert_list_section(self, lines, start_line, section_name):
 
         i = start_line
-        self.assertEqual(lines[i], "%s:" % section_name)
+        assert lines[i] == "%s:" % section_name
         i += 1
         while lines[i] != "":
             i += 1
@@ -146,10 +134,10 @@ class CobblerCliTestDirect(unittest.TestCase):
     def _assert_report_section(self, lines, start_line, section_name):
 
         i = start_line
-        self.assertEqual(lines[i], "%s:" % section_name)
+        assert lines[i] == "%s:" % section_name
         i += 1
         match_obj = re.match(r"=+$", lines[i].strip())
-        self.assertTrue(match_obj is not None)
+        assert match_obj is not None
         i += 1
         while i < len(lines) - 1 and re.match(r"=+$", lines[i + 1]) is None:
             while i < len(lines) and lines[i] != "":
@@ -175,7 +163,7 @@ class CobblerCliTestDirect(unittest.TestCase):
     def test_cobbler_getloaders(self):
         output = run_cmd("cobbler get-loaders")
         lines = output.split("\n")
-        self.assertEqual("*** TASK COMPLETE ***", get_last_line(lines))
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
 
     def test_cobbler_hardlink(self):
         # TODO: test cobbler hardlink
@@ -188,7 +176,3 @@ class CobblerCliTestDirect(unittest.TestCase):
     def test_cobbler_validate_autoinstalls(self):
         # TODO: test cobbler validateks
         raise NotImplementedError()
-
-
-if __name__ == '__main__':
-    unittest.main()
