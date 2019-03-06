@@ -640,19 +640,21 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert 0
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
     def test_get_profile(self, remote):
         """
         Test: get a profile object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture.
 
         # Act
         profile = remote.get_profile("testprofile0")
 
-        # TODO: Assert
-        assert 0
+        # Assert
+        assert profile.name == "testprofile0"
+        assert profile.distro == "testdistro0"
+        assert profile.kernel_options == "a=1 b=2 c=3 c=4 c=5 d e"
 
     @pytest.mark.usefixtures("init_teardown")
     def test_get_system(self, remote):
