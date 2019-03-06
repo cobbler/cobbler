@@ -319,7 +319,7 @@ def files_create(create_tempdir, fake_files, redhat_autoinstall, suse_autoyast, 
 
 
 @pytest.fixture(scope="class")
-def remove_fakefiles(files_create, fake_files):
+def remove_fakefiles(files_create, fake_files, redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
     This represents the init and teardown of the TestDistroProfileSystem class.
     :param files_create: See the corresponding fixture.
@@ -327,6 +327,10 @@ def remove_fakefiles(files_create, fake_files):
     """
     yield
 
+    base = "/var/lib/cobbler/templates/"
+    os.remove(base + redhat_autoinstall)
+    os.remove(base + suse_autoyast)
+    os.remove(base + ubuntu_preseed)
     for fn in fake_files:
         os.remove(fn)
 
