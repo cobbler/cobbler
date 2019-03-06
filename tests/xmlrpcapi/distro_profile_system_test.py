@@ -574,7 +574,7 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testdistro", "remove_testsystem")
     def test_create_system(self, system_fields, remote, token):
         """
         Test: create/edit a system object
@@ -652,7 +652,7 @@ class TestDistroProfileSystem:
         system = remote.get_system("testsystem0")
 
         # Assert
-        assert system.name is None
+        assert system is "~"
 
     @pytest.mark.usefixtures("remove_fakefiles")
     def test_find_distro(self, remote, token):
@@ -689,13 +689,13 @@ class TestDistroProfileSystem:
         Test: find a system object
         """
 
-        # TODO: Arrange
+        # Arrange --> Nothing to arrange
 
         # Act
-        result = remote.find_system({"name": "testsystem0"}, token)
+        result = remote.find_system({"name": "notexisting"}, token)
 
-        # TODO: Assert
-        assert result
+        # Assert --> A not exiting system returns an empty list
+        assert result == []
 
     @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_copy_distro(self, remote, token):
@@ -733,19 +733,23 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofilecopy", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testsystem", "remove_testsystem")
     def test_copy_system(self, remote, token):
         """
         Test: copy a system object
         """
 
-        # TODO: Arrange
-
-        # Act
+        # Arrange
         system = remote.get_item_handle("system", "testsystem0", token)
 
-        # TODO: Assert
-        assert remote.copy_system(system, "testsystemcopy", token)
+        # Act
+        result = remote.copy_system(system, "testsystemcopy", token)
+
+        # Assert
+        assert result
+
+        # Cleanup
+        remote.remove_system("testsytemcopy", token)
 
     @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_rename_distro(self, remote, token):
@@ -765,22 +769,25 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_distro("testdistro1", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
     def test_rename_profile(self, remote, token):
         """
         Test: rename a profile object
         """
 
-        # TODO: Arrange
-        profile = remote.get_item_handle("profile", "testprofilecopy", token)
+        # Arrange
+        profile = remote.get_item_handle("profile", "testprofile0", token)
 
         # Act
         result = remote.rename_profile(profile, "testprofile1", token)
 
-        # TODO: Assert
+        # Assert
         assert result
 
-    @pytest.mark.usefixtures("remove_fakefiles")
+        # Cleanup
+        remote.remove_profile("testprofile1", token)
+
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testsystem", "remove_testsystem")
     def test_rename_system(self, remote, token):
         """
         Test: rename a system object
@@ -788,14 +795,16 @@ class TestDistroProfileSystem:
 
         # TODO: Arrange
         # Create System
-        # Get Object-ID
-        system = remote.get_item_handle("system", "testsystemcopy", token)
+        system = remote.get_item_handle("system", "testsystem0", token)
 
         # Act
         result = remote.rename_system(system, "testsystem1", token)
 
-        # TODO: Assert
+        # Assert
         assert result
+
+        # Cleanup
+        remote.remove_system("testsystem1", token)
 
     @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_distro(self, remote, token):
