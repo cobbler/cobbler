@@ -319,7 +319,7 @@ def files_create(create_tempdir, fake_files, redhat_autoinstall, suse_autoyast, 
 
 
 @pytest.fixture(scope="class")
-def init_teardown(files_create, fake_files):
+def remove_fakefiles(files_create, fake_files):
     """
     This represents the init and teardown of the TestDistroProfileSystem class.
     :param files_create: See the corresponding fixture.
@@ -347,13 +347,13 @@ def create_profile(remote, token, create_testdistro):
 
 
 @pytest.fixture()
-def remove_testprofile(init_teardown, remote, token):
+def remove_testprofile(remove_fakefiles, remote, token):
     yield
     remote.remove_profile("testprofile0", token)
 
 
 @pytest.fixture
-def remove_testdistro(init_teardown, remote, token):
+def remove_testdistro(remove_fakefiles, remote, token):
     """
     Removes the distro "testdistro0" from the running cobbler after the test.
     """
@@ -387,7 +387,7 @@ class TestDistroProfileSystem:
     These item types are tested together because they have inter-dependencies
     """
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_distros(self, remote, token):
         """
         Test: get distros
@@ -401,7 +401,7 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_profiles(self, remote, token):
         """
         Test: get profiles
@@ -415,7 +415,7 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_systems(self, remote, token):
         """
         Test: get systems
@@ -429,7 +429,7 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("init_teardown", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "remove_testdistro")
     def test_create_distro_positive(self, remote, token, distro_fields):
         """
         Test: create/edit a distro with valid values
@@ -465,7 +465,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("init_teardown", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "remove_testdistro")
     def test_create_distro_negative(self, remote, token, distro_fields, fk_kernel, fk_initrd):
         """
         Test: create/edit a distro with invalid values
@@ -504,7 +504,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_create_profile(self, remote, token, profile_fields):
         """
         Test: create/edit a profile object
@@ -536,7 +536,7 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("init_teardown", "create_profile")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile")
     def test_create_subprofile(self, remote, token):
         """
         Test: create/edit a subprofile object
@@ -557,7 +557,7 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testdistro")
     def test_create_system(self, system_fields, remote, token):
         """
         Test: create/edit a system object
@@ -592,7 +592,7 @@ class TestDistroProfileSystem:
         new_systems = remote.get_systems(token)
         assert len(new_systems) == len(systems) + 1
 
-    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_get_distro(self, remote, fk_initrd, fk_kernel):
         """
         Test: get a distro object"""
@@ -607,7 +607,7 @@ class TestDistroProfileSystem:
         assert distro.initrd == fk_initrd
         assert distro.kernel == fk_kernel
 
-    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
     def test_get_profile(self, remote):
         """
         Test: get a profile object
@@ -623,7 +623,7 @@ class TestDistroProfileSystem:
         assert profile.distro == "testdistro0"
         assert profile.kernel_options == "a=1 b=2 c=3 c=4 c=5 d e"
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_system(self, remote):
         """
         Test: get a system object
@@ -637,7 +637,7 @@ class TestDistroProfileSystem:
         # Assert
         assert system.name is None
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_find_distro(self, remote, token):
         """
         Test: find a distro object
@@ -651,7 +651,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
     def test_find_profile(self, remote, token):
         """
         Test: find a profile object
@@ -666,7 +666,7 @@ class TestDistroProfileSystem:
         assert len(result) == 1
         assert result[0].name == "testprofile0"
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_find_system(self, remote, token):
         """
         Test: find a system object
@@ -680,7 +680,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_copy_distro(self, remote, token):
         """
         Test: copy a distro object
@@ -698,7 +698,7 @@ class TestDistroProfileSystem:
         # Cleanup --> Plus fixture
         remote.remove_distro("testdistrocopy", token)
 
-    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
     def test_copy_profile(self, remote, token):
         """
         Test: copy a profile object
@@ -716,7 +716,7 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofilecopy", token)
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_copy_system(self, remote, token):
         """
         Test: copy a system object
@@ -730,7 +730,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert remote.copy_system(system, "testsystemcopy", token)
 
-    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
     def test_rename_distro(self, remote, token):
         """
         Test: rename a distro object
@@ -748,7 +748,7 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_distro("testdistro1", token)
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_rename_profile(self, remote, token):
         """
         Test: rename a profile object
@@ -763,7 +763,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_rename_system(self, remote, token):
         """
         Test: rename a system object
@@ -780,7 +780,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_distro(self, remote, token):
         """
         Test: remove a distro object
@@ -794,7 +794,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_profile(self, remote, token):
         """
         Test: remove a profile object
@@ -810,7 +810,7 @@ class TestDistroProfileSystem:
         assert result_subprofile_remove
         assert result_profile_remove
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_system(self, remote, token):
         """
         Test: remove a system object
@@ -824,7 +824,7 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_repo_config_for_profile(self, remote):
         """
         Test: get repository configuration of a profile
@@ -838,7 +838,7 @@ class TestDistroProfileSystem:
         # Assert --> Let the test pass if the call is okay.
         assert True
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_repo_config_for_system(self, remote):
         """
         Test: get repository configuration of a system
