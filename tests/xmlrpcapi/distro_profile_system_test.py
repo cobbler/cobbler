@@ -573,13 +573,13 @@ class TestDistroProfileSystem:
         Test: create/edit a subprofile object
         """
 
-        # TODO: Arrange
+        # Arrange
         profiles = remote.get_profiles(token)
 
-        # TODO: Act
+        # Act
         subprofile = remote.new_subprofile(token)
 
-        # TODO: Assert
+        # Assert
         assert remote.modify_profile(subprofile, "name", "testsubprofile0", token)
         assert remote.modify_profile(subprofile, "parent", "testprofile0", token)
 
