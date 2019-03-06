@@ -535,7 +535,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
     def test_create_profile(self, remote, token, profile_fields):
         """
         Test: create/edit a profile object
@@ -545,7 +545,7 @@ class TestDistroProfileSystem:
         profiles = remote.get_profiles(token)
         profile = remote.new_profile(token)
 
-        # TODO: Act
+        # Act
         for field in profile_fields:
             (fname, fgood, fbad) = field
             for fb in fbad:
@@ -563,7 +563,7 @@ class TestDistroProfileSystem:
 
         assert remote.save_profile(profile, token)
 
-        # TODO: Assert
+        # Assert
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
