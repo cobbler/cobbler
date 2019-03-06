@@ -588,22 +588,19 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testdistro")
     def test_create_system(self, system_fields, remote, token):
         """
         Test: create/edit a system object
         """
 
-        # TODO: Arrange
-
-        # TODO: Act
-
-        # TODO: Assert
-
+        # Arrange
         systems = remote.get_systems(token)
 
+        # Act
         system = remote.new_system(token)
 
+        # Assert
         assert remote.modify_system(system, "name", "testsystem0", token)
         assert remote.modify_system(system, "profile", "testprofile0", token)
         for field in system_fields:
