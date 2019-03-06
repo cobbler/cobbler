@@ -377,14 +377,19 @@ def create_profile(remote, token, create_testdistro):
     remote.save_profile(profile, token)
 
 
+@pytest.fixture()
+def remove_testprofile(init_teardown, remote, token):
+    yield
+    remote.remove_profile("testprofile0", token)
+
+
 @pytest.fixture
 def remove_testdistro(init_teardown, remote, token):
     """
     Removes the distro "testdistro0" from the running cobbler after the test.
     """
     yield
-    if not remote.get_distro("testdistro0") == "~":
-        remote.remove_distro("testdistro0", token)
+    remote.remove_distro("testdistro0", token)
 
 
 @pytest.fixture()
