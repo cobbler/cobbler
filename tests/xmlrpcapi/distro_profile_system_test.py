@@ -12,37 +12,6 @@ TEST_POWER_MANAGEMENT = True
 TEST_SYSTEM = ""
 cleanup_dirs = []
 
-"""
-Order is currently important:
-self._get_distros()
-self._create_distro()
-self._get_distro()
-self._find_distro()
-self._copy_distro()
-self._rename_distro()
-
-self._get_profiles()
-self._create_profile()
-self._create_subprofile()
-self._get_profile()
-self._find_profile()
-self._copy_profile()
-self._rename_profile()
-self._get_repo_config_for_profile()
-
-self._get_systems()
-self._create_system()
-self._get_system()
-self._find_system()
-self._copy_system()
-self._rename_system()
-self._get_repo_config_for_system()
-
-self._remove_system()
-self._remove_profile()
-self._remove_distro()
-"""
-
 
 @pytest.fixture(scope="class")
 def distro_fields(fk_initrd, fk_kernel):
@@ -622,7 +591,6 @@ class TestDistroProfileSystem:
 
         new_systems = remote.get_systems(token)
         assert len(new_systems) == len(systems) + 1
-        assert 0
 
     @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
     def test_get_distro(self, remote, fk_initrd, fk_kernel):
@@ -661,13 +629,13 @@ class TestDistroProfileSystem:
         Test: get a system object
         """
 
-        # TODO: Arrange
+        # Arrange --> There should be no system present. --> Nothing to Init.
 
         # Act
         system = remote.get_system("testsystem0")
 
-        # TODO: Assert
-        assert 0
+        # Assert
+        assert system.name is None
 
     @pytest.mark.usefixtures("init_teardown")
     def test_find_distro(self, remote, token):
@@ -683,19 +651,20 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
     def test_find_profile(self, remote, token):
         """
         Test: find a profile object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixtures
 
         # Act
         result = remote.find_profile({"name": "testprofile0"}, token)
 
-        # TODO: Assert
-        assert result
+        # Assert
+        assert len(result) == 1
+        assert result[0].name == "testprofile0"
 
     @pytest.mark.usefixtures("init_teardown")
     def test_find_system(self, remote, token):
@@ -711,33 +680,41 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
     def test_copy_distro(self, remote, token):
         """
         Test: copy a distro object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in the fixture
 
         # Act
         distro = remote.get_item_handle("distro", "testdistro0", token)
+        result = remote.copy_distro(distro, "testdistrocopy", token)
 
-        # TODO: Assert
-        assert remote.copy_distro(distro, "testdistrocopy", token)
+        # Assert
+        assert result
 
-    @pytest.mark.usefixtures("init_teardown")
+        # Cleanup --> Plus fixture
+        remote.remove_distro("testdistrocopy", token)
+
+    @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
     def test_copy_profile(self, remote, token):
         """
         Test: copy a profile object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixtures
 
         # Act
         profile = remote.get_item_handle("profile", "testprofile0", token)
+        result = remote.copy_profile(profile, "testprofilecopy", token)
 
-        # TODO: Assert
-        assert remote.copy_profile(profile, "testprofilecopy", token)
+        # Assert
+        assert result
+
+        # Cleanup
+        remote.remove_profile("testprofilecopy", token)
 
     @pytest.mark.usefixtures("init_teardown")
     def test_copy_system(self, remote, token):
@@ -753,20 +730,23 @@ class TestDistroProfileSystem:
         # TODO: Assert
         assert remote.copy_system(system, "testsystemcopy", token)
 
-    @pytest.mark.usefixtures("init_teardown")
+    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
     def test_rename_distro(self, remote, token):
         """
         Test: rename a distro object
         """
 
-        # TODO: Arrange
-        distro = remote.get_item_handle("distro", "testdistrocopy", token)
+        # Arrange
+        distro = remote.get_item_handle("distro", "testdistro0", token)
 
         # Act
         result = remote.rename_distro(distro, "testdistro1", token)
 
-        # TODO: Assert
+        # Assert
         assert result
+
+        # Cleanup
+        remote.remove_distro("testdistro1", token)
 
     @pytest.mark.usefixtures("init_teardown")
     def test_rename_profile(self, remote, token):
