@@ -627,18 +627,20 @@ class TestDistroProfileSystem:
         assert len(new_systems) == len(systems) + 1
         assert 0
 
-    @pytest.mark.usefixtures("init_teardown")
-    def test_get_distro(self, remote):
+    @pytest.mark.usefixtures("init_teardown", "create_testdistro", "remove_testdistro")
+    def test_get_distro(self, remote, fk_initrd, fk_kernel):
         """
         Test: get a distro object"""
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
         distro = remote.get_distro("testdistro0")
 
-        # TODO: Assert
-        assert 0
+        # Assert
+        assert distro.name == "testdistro0"
+        assert distro.initrd == fk_initrd
+        assert distro.kernel == fk_kernel
 
     @pytest.mark.usefixtures("init_teardown", "create_profile", "remove_testprofile")
     def test_get_profile(self, remote):
