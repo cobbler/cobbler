@@ -21,41 +21,47 @@ class TestRepo:
         Test: create/edit a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Nothing to arrange
 
-        # Act
+        # Act & Assert
         repo = remote.new_repo(token)
         assert remote.modify_repo(repo, "name", "testrepo0", token)
         assert remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
         assert remote.modify_repo(repo, "mirror_locally", "0", token)
         assert remote.save_repo(repo, token)
 
-        # TODO: Assert
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
 
     def test_get_repos(self, remote):
         """
         Test: Get repos
         """
 
-        # TODO: Arrange
+        # Arrange --> Nothing to do
 
         # Act
-        remote.get_repos()
+        result = remote.get_repos()
 
-        # TODO: Assert
+        # Assert
+        assert result == []
 
-    def test_get_repo(self, remote):
+    @pytest.mark.usefixtures("create_repo")
+    def test_get_repo(self, remote, token):
         """
         Test: Get a repo object
         """
 
-        # TODO: Arrange --> Place file under "/var/lib/coobler/collections/repos/?"
+        # Arrange --> Done in fixture
 
         # Act
         repo = remote.get_repo("testrepo0")
 
-        # TODO: Assert
-        # TODO: Cleanup
+        # Assert
+        assert repo.name == "testrepo0"
+
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
 
     @pytest.mark.usefixtures("create_repo")
     def test_find_repo(self, remote, token):
@@ -63,14 +69,16 @@ class TestRepo:
         Test: find a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
         result = remote.find_repo({"name": "testrepo0"}, token)
 
         # Assert
         assert result
-        # TODO: Cleanup
+
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
 
     @pytest.mark.usefixtures("create_repo")
     def test_copy_repo(self, remote, token):
@@ -78,14 +86,17 @@ class TestRepo:
         Test: copy a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
         repo = remote.get_item_handle("repo", "testrepo0", token)
 
         # Assert
         assert remote.copy_repo(repo, "testrepocopy", token)
-        # TODO: Cleanup
+
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
+        remote.remove_repo("testrepocopy", token)
 
     @pytest.mark.usefixtures("create_repo")
     def test_rename_repo(self, remote, token):
@@ -93,14 +104,17 @@ class TestRepo:
         Test: rename a repo object
         """
 
-        # TODO: Arrange
+        # Arrange
 
         # Act
         repo = remote.get_item_handle("repo", "testrepo0", token)
+        result = remote.rename_repo(repo, "testrepo1", token)
 
         # Assert
-        assert remote.rename_repo(repo, "testrepo1", token)
-        # TODO: Cleanup
+        assert result
+
+        # Cleanup
+        remote.remove_repo("testrepo1", token)
 
     @pytest.mark.usefixtures("create_repo")
     def test_remove_repo(self, remote, token):
@@ -108,10 +122,10 @@ class TestRepo:
         Test: remove a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
         result = remote.remove_repo("testrepo0", token)
 
-        # TODO: Assert
+        # Assert
         assert result
