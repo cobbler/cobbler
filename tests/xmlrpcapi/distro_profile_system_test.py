@@ -283,7 +283,7 @@ def redhat_autoinstall(topdir):
     :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
-    return os.path.join(topdir, "test.ks")
+    return os.path.join("", "test.ks")
 
 
 @pytest.fixture(scope="class")
@@ -293,7 +293,7 @@ def suse_autoyast(topdir):
     :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
-    return os.path.join(topdir, "test.xml")
+    return os.path.join("", "test.xml")
 
 
 @pytest.fixture(scope="class")
@@ -303,7 +303,7 @@ def ubuntu_preseed(topdir):
     :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
-    return os.path.join(topdir, "test.seed")
+    return os.path.join("", "test.seed")
 
 
 @pytest.fixture(scope="class")
@@ -327,12 +327,23 @@ def fake_files(fk_initrd, fk_initrd2, fk_initrd3, fk_kernel, fk_kernel2, fk_kern
 
 
 @pytest.fixture(scope="class")
-def files_create(create_tempdir, fake_files):
+def files_create(create_tempdir, fake_files, redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
     This creates all the fake files which need to be present for the tests.
+    :param ubuntu_preseed: See the corresponding fixture.
+    :param suse_autoyast: See the corresponding fixture.
+    :param redhat_autoinstall: See the corresponding fixture.
     :param create_tempdir: See the corresponding fixture.
     :param fake_files: See the corresponding fixture.
     """
+    base = "/var/lib/cobbler/templates/"
+    f = open(base + redhat_autoinstall, "w+")
+    f.close()
+    f = open(base + suse_autoyast, "w+")
+    f.close()
+    f = open(base + ubuntu_preseed, "w+")
+    f.close()
+
     for fn in fake_files:
         f = open(fn, "w+")
         f.close()
