@@ -1,31 +1,21 @@
 import pytest
 
-"""
-Order is currently important:
-self._get_repos()
-self._create_repo()
-self._get_repo()
-self._find_repo()
-self._copy_repo()
-self._rename_repo()
-self._remove_repo()
-"""
+
+@pytest.fixture
+def create_repo(remote, token):
+    """
+    Creates a Repository "testrepo0" with a mirror "http://www.sample.com/path/to/some/repo" and the attribute
+    "mirror_locally=0".
+    """
+    repo = remote.new_repo(token)
+    remote.modify_repo(repo, "name", "testrepo0", token)
+    remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
+    remote.modify_repo(repo, "mirror_locally", "0", token)
+    remote.save_repo(repo, token)
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestRepo:
-    @pytest.fixture
-    def create_repo(self, remote, token):
-        """
-        Creates a Repository "testrepo0" with a mirror "http://www.sample.com/path/to/some/repo" and the attribute
-        "mirror_locally=0".
-        """
-        repo = remote.new_repo(token)
-        remote.modify_repo(repo, "name", "testrepo0", token)
-        remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
-        remote.modify_repo(repo, "mirror_locally", "0", token)
-        remote.save_repo(repo, token)
-
     def test_create_repo(self, remote, token):
         """
         Test: create/edit a repo object
