@@ -58,7 +58,7 @@ class TestRepo:
         repo = remote.get_repo("testrepo0")
 
         # Assert
-        assert repo.name == "testrepo0"
+        assert repo.get("name") == "testrepo0"
 
         # Cleanup
         remote.remove_repo("testrepo0", token)
