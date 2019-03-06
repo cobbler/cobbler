@@ -497,7 +497,7 @@ class TestDistroProfileSystem:
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
     @pytest.mark.usefixtures("init_teardown", "remove_testdistro")
-    def test_create_distro_negative(self, remote, token, distro_fields):
+    def test_create_distro_negative(self, remote, token, distro_fields, fk_kernel, fk_initrd):
         """
         Test: create/edit a distro with invalid values
         """
@@ -506,7 +506,7 @@ class TestDistroProfileSystem:
 
         # Act
         distro = remote.new_distro(token)
-        remote.modify_distro(distro, "name", "testdistro", token)
+        remote.modify_distro(distro, "name", "testdistro0", token)
 
         # Assert
         for field in distro_fields:
@@ -519,6 +519,8 @@ class TestDistroProfileSystem:
                 else:
                     pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
 
+        remote.modify_distro(distro, "kernel", fk_kernel, token)
+        remote.modify_distro(distro, "initrd", fk_initrd, token)
         result_save_success = remote.save_distro(distro, token)
         assert result_save_success
 
