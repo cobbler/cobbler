@@ -83,9 +83,17 @@ class TestPackage:
         """
         Test: copy a package object
         """
+        # Arrange --> Done in fixture
 
+        # Act
         package = remote.get_item_handle("package", "testpackage0", token)
-        assert remote.copy_package(package, "testpackagecopy", token)
+        result = remote.copy_package(package, "testpackagecopy", token)
+
+        # Assert
+        assert result
+
+        # Cleanup
+        remote.remove_package("testpackagecopy", token)
 
     @pytest.mark.usefixtures("create_package", "remove_package")
     def test_rename_package(self, remote, token):
