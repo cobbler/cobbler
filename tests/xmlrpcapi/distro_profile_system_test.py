@@ -384,6 +384,19 @@ def create_testdistro(remote, token, fk_kernel, fk_initrd):
     remote.save_distro(distro, token)
 
 
+@pytest.fixture()
+def create_testsystem(remote, token, create_profile, remove_testprofile):
+    system = remote.new_system(token)
+    remote.modify_system(system, "name", "testsystem0", token)
+    remote.modify_system(system, "profile", "testprofile0", token)
+    remote.save_system(token, system)
+
+
+@pytest.fixture()
+def remove_testsystem(remote, token):
+    remote.remove_system(token, "testsystem0")
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestDistroProfileSystem:
     """
