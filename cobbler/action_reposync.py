@@ -692,7 +692,7 @@ class RepoSync(object):
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"
         distribution = distro.linux_distribution()[0]
-        if distribution.lower() in ("sles", "opensuse leap", "opensuse tumbleweed"):
+        if distribution.lower() in ("sles", "opensuse leap", "opensuse tumbleweed", "suse-manager-server"):
             owner = "root:www"
         elif "debian" in distribution.lower():
             owner = "root:www-data"

@@ -895,7 +895,7 @@ def get_family():
             return "redhat"
     if "debian" in dist or "ubuntu" in dist:
         return "debian"
-    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
+    if dist in ("opensuse tumbleweed", "opensuse leap", "sles", "suse-manager-server"):
         return "suse"
     return dist
 
@@ -946,7 +946,7 @@ def os_release():
     elif family == "suse":
         make = "suse"
         distribution, version = distro.linux_distribution()[:2]
-        if distribution.lower() not in ("sles", "opensuse leap", "opensuse tumbleweed"):
+        if distribution.lower() not in ("sles", "opensuse leap", "opensuse tumbleweed", "suse-manager-server"):
             make = "unknown"
         return (make, float(version))
 
