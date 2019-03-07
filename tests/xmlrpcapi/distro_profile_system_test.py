@@ -414,14 +414,13 @@ def remove_testsystem(remote, token):
     remote.remove_system("testsystem0", token, False)
 
 
-@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+@pytest.mark.usefixtures("cobbler_xmlrpc_base", "remove_fakefiles")
 class TestDistroProfileSystem:
     """
     Test remote calls related to distros, profiles and systems
     These item types are tested together because they have inter-dependencies
     """
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_distros(self, remote, token):
         """
         Test: get distros
@@ -435,7 +434,6 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_profiles(self, remote, token):
         """
         Test: get profiles
@@ -449,7 +447,6 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_systems(self, remote, token):
         """
         Test: get systems
@@ -463,7 +460,7 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("remove_fakefiles", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_testdistro")
     def test_create_distro_positive(self, remote, token, distro_fields):
         """
         Test: create/edit a distro with valid values
@@ -499,7 +496,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("remove_fakefiles", "remove_testdistro")
+    @pytest.mark.usefixtures("remove_testdistro")
     def test_create_distro_negative(self, remote, token, distro_fields, fk_kernel, fk_initrd):
         """
         Test: create/edit a distro with invalid values
@@ -538,19 +535,43 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
-    def test_create_profile(self, remote, token, profile_fields):
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro", "remove_testprofile")
+    def test_create_profile_positive(self, remote, token, profile_fields):
         """
         Test: create/edit a profile object
         """
 
         # Arrange
-        profiles = remote.get_profiles(token)
         profile = remote.new_profile(token)
 
         # Act
         for field in profile_fields:
-            (fname, fgood, fbad) = field
+            (fname, fgood, _) = field
+            for fg in fgood:
+                try:
+                    assert remote.modify_profile(profile, fname, fg, token)
+                except Exception as e:
+                    pytest.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
+
+        remote.modify_profile(profile, "name", "testprofile0", token)
+        assert remote.save_profile(profile, token)
+
+        # Assert
+        new_profiles = remote.get_profiles(token)
+        assert len(new_profiles) == 1
+
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro", "remove_testprofile")
+    def test_create_profile_negative(self, remote, token, profile_fields):
+        """
+        Test: create/edit a profile object
+        """
+
+        # Arrange
+        profile = remote.new_profile(token)
+
+        # Act
+        for field in profile_fields:
+            (fname, _, fbad) = field
             for fb in fbad:
                 try:
                     remote.modify_profile(profile, fname, fb, token)
@@ -558,19 +579,16 @@ class TestDistroProfileSystem:
                     pass
                 else:
                     pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
-            for fg in fgood:
-                try:
-                    assert remote.modify_profile(profile, fname, fg, token)
-                except Exception as e:
-                    pytest.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
 
+        remote.modify_profile(profile, "distro", "testdistro0", token)
+        remote.modify_profile(profile, "name", "testprofile0", token)
         assert remote.save_profile(profile, token)
 
         # Assert
         new_profiles = remote.get_profiles(token)
-        assert len(new_profiles) == len(profiles) + 1
+        assert len(new_profiles) == 1
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
     def test_create_subprofile(self, remote, token):
         """
         Test: create/edit a subprofile object
@@ -591,8 +609,9 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testdistro", "remove_testsystem")
-    def test_create_system(self, system_fields, remote, token):
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile",
+                             "remove_testsystem")
+    def test_create_system_positive(self, system_fields, remote, token):
         """
         Test: create/edit a system object
         """
@@ -607,14 +626,7 @@ class TestDistroProfileSystem:
         assert remote.modify_system(system, "name", "testsystem0", token)
         assert remote.modify_system(system, "profile", "testprofile0", token)
         for field in system_fields:
-            (fname, fgood, fbad) = field
-            for fb in fbad:
-                try:
-                    remote.modify_system(system, fname, fb, token)
-                except:
-                    pass
-                else:
-                    pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
+            (fname, fgood, _) = field
             for fg in fgood:
                 try:
                     assert remote.modify_system(system, fname, fg, token)
@@ -626,10 +638,42 @@ class TestDistroProfileSystem:
         new_systems = remote.get_systems(token)
         assert len(new_systems) == len(systems) + 1
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile",
+                             "remove_testsystem")
+    def test_create_system_negative(self, system_fields, remote, token):
+        """
+        Test: create/edit a system object
+        """
+
+        # Arrange
+        systems = remote.get_systems(token)
+
+        # Act
+        system = remote.new_system(token)
+
+        # Assert
+        assert remote.modify_system(system, "name", "testsystem0", token)
+        assert remote.modify_system(system, "profile", "testprofile0", token)
+        for field in system_fields:
+            (fname, _, fbad) = field
+            for fb in fbad:
+                try:
+                    remote.modify_system(system, fname, fb, token)
+                except:
+                    pass
+                else:
+                    pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
+
+        assert remote.save_system(system, token)
+
+        new_systems = remote.get_systems(token)
+        assert len(new_systems) == len(systems) + 1
+
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
     def test_get_distro(self, remote, fk_initrd, fk_kernel):
         """
-        Test: get a distro object"""
+        Test: get a distro object
+        """
 
         # Arrange --> Done in fixture
 
@@ -637,11 +681,11 @@ class TestDistroProfileSystem:
         distro = remote.get_distro("testdistro0")
 
         # Assert
-        assert distro.name == "testdistro0"
-        assert distro.initrd == fk_initrd
-        assert distro.kernel == fk_kernel
+        assert distro.get("name") == "testdistro0"
+        assert distro.get("initrd") == fk_initrd
+        assert distro.get("kernel") == fk_kernel
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
     def test_get_profile(self, remote):
         """
         Test: get a profile object
@@ -653,11 +697,10 @@ class TestDistroProfileSystem:
         profile = remote.get_profile("testprofile0")
 
         # Assert
-        assert profile.name == "testprofile0"
-        assert profile.distro == "testdistro0"
-        assert profile.kernel_options == "a=1 b=2 c=3 c=4 c=5 d e"
+        assert profile.get("name") == "testprofile0"
+        assert profile.get("distro") == "testdistro0"
+        assert profile.get("kernel_options") == {'a': '1', 'b': '2', 'c': ['3', '4', '5'], 'd': '~', 'e': '~'}
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_system(self, remote):
         """
         Test: get a system object
@@ -671,21 +714,20 @@ class TestDistroProfileSystem:
         # Assert
         assert system is "~"
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_find_distro(self, remote, token):
         """
         Test: find a distro object
         """
 
-        # TODO: Arrange
+        # Arrange --> No distros means no setup
 
         # Act
         result = remote.find_distro({"name": "testdistro0"}, token)
 
-        # TODO: Assert
-        assert result
+        # Assert
+        assert result == []
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
     def test_find_profile(self, remote, token):
         """
         Test: find a profile object
@@ -698,9 +740,8 @@ class TestDistroProfileSystem:
 
         # Assert
         assert len(result) == 1
-        assert result[0].name == "testprofile0"
+        assert result[0].get("name") == "testprofile0"
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_find_system(self, remote, token):
         """
         Test: find a system object
@@ -714,7 +755,7 @@ class TestDistroProfileSystem:
         # Assert --> A not exiting system returns an empty list
         assert result == []
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
     def test_copy_distro(self, remote, token):
         """
         Test: copy a distro object
@@ -732,7 +773,7 @@ class TestDistroProfileSystem:
         # Cleanup --> Plus fixture
         remote.remove_distro("testdistrocopy", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
     def test_copy_profile(self, remote, token):
         """
         Test: copy a profile object
@@ -750,7 +791,8 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofilecopy", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testsystem", "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
     def test_copy_system(self, remote, token):
         """
         Test: copy a system object
@@ -768,7 +810,7 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_system("testsytemcopy", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testdistro", "remove_testdistro")
+    @pytest.mark.usefixtures("create_testdistro")
     def test_rename_distro(self, remote, token):
         """
         Test: rename a distro object
@@ -786,7 +828,7 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_distro("testdistro1", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_profile", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testprofile", "remove_testdistro")
     def test_rename_profile(self, remote, token):
         """
         Test: rename a profile object
@@ -804,14 +846,14 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofile1", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles", "create_testsystem", "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
     def test_rename_system(self, remote, token):
         """
         Test: rename a system object
         """
 
-        # TODO: Arrange
-        # Create System
+        # Arrange --> Done in fixtures also.
         system = remote.get_item_handle("system", "testsystem0", token)
 
         # Act
@@ -823,51 +865,51 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_system("testsystem1", token)
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_distro(self, remote, token):
         """
         Test: remove a distro object
         """
 
-        # TODO: Arrange
+        # Arrange
+        # TODO: Verify why the test passes without the fixture for creating the distro!
 
         # Act
         result = remote.remove_distro("testdistro0", token)
 
-        # TODO: Assert
+        # Assert
         assert result
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_profile(self, remote, token):
         """
         Test: remove a profile object
         """
 
-        # TODO: Arrange
+        # Arrange
+        # TODO: Verify why the test passes without the fixture for creating the profile!
 
         # Act
+        # TODO: Why does the subprofile call return true? There shouldn't be one.
         result_subprofile_remove = remote.remove_profile("testsubprofile0", token)
         result_profile_remove = remote.remove_profile("testprofile0", token)
 
-        # TODO: Assert
+        # Assert
         assert result_subprofile_remove
         assert result_profile_remove
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_remove_system(self, remote, token):
         """
         Test: remove a system object
         """
 
-        # TODO: Arrange
+        # Arrange
+        # TODO: Verify why the test passes without the fixture for creating the system!
 
         # Act
         result = remote.remove_system("testsystem0", token)
 
-        # TODO: Assert
+        # Assert
         assert result
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_repo_config_for_profile(self, remote):
         """
         Test: get repository configuration of a profile
@@ -881,7 +923,6 @@ class TestDistroProfileSystem:
         # Assert --> Let the test pass if the call is okay.
         assert True
 
-    @pytest.mark.usefixtures("remove_fakefiles")
     def test_get_repo_config_for_system(self, remote):
         """
         Test: get repository configuration of a system
