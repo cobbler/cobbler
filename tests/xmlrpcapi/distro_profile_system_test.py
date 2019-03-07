@@ -246,30 +246,27 @@ def fk_kernel3(topdir):
 
 
 @pytest.fixture(scope="class")
-def redhat_autoinstall(topdir):
+def redhat_autoinstall():
     """
     The path to the test.ks file for redhat autoinstall.
-    :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
     return os.path.join("", "test.ks")
 
 
 @pytest.fixture(scope="class")
-def suse_autoyast(topdir):
+def suse_autoyast():
     """
     The path to the suse autoyast xml-file.
-    :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
     return os.path.join("", "test.xml")
 
 
 @pytest.fixture(scope="class")
-def ubuntu_preseed(topdir):
+def ubuntu_preseed():
     """
     The path to the ubuntu preseed file.
-    :param topdir: See the corresponding fixture.
     :return: A path as a string.
     """
     return os.path.join("", "test.seed")
@@ -322,6 +319,9 @@ def files_create(create_tempdir, fake_files, redhat_autoinstall, suse_autoyast, 
 def remove_fakefiles(files_create, fake_files, redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
     This represents the init and teardown of the TestDistroProfileSystem class.
+    :param ubuntu_preseed: See the corresponding fixture.
+    :param suse_autoyast: See the corresponding fixture.
+    :param redhat_autoinstall: See the corresponding fixture.
     :param files_create: See the corresponding fixture.
     :param fake_files: See the corresponding fixture.
     """
@@ -336,10 +336,9 @@ def remove_fakefiles(files_create, fake_files, redhat_autoinstall, suse_autoyast
 
 
 @pytest.fixture()
-def create_profile(remote, token, create_testdistro):
+def create_profile(remote, token):
     """
     Create a profile with the name "testprofile0"
-    :param create_testdistro: See the corresponding fixture.
     :param remote: See the corresponding fixture.
     :param token: See the corresponding fixture.
     """
@@ -351,18 +350,25 @@ def create_profile(remote, token, create_testdistro):
 
 
 @pytest.fixture()
-def remove_testprofile(remove_fakefiles, remote, token):
+def remove_testprofile(remote, token):
+    """
+    Removes the profile with the name "testprofile0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
     yield
     remote.remove_profile("testprofile0", token)
 
 
-@pytest.fixture
-def remove_testdistro(remove_fakefiles, remote, token):
+@pytest.fixture()
+def remove_testdistro(remote, token):
     """
     Removes the distro "testdistro0" from the running cobbler after the test.
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
     """
     yield
-    remote.remove_distro("testdistro0", token)
+    remote.remove_distro("testdistro0", token, False)
 
 
 @pytest.fixture()
@@ -385,16 +391,27 @@ def create_testdistro(remote, token, fk_kernel, fk_initrd):
 
 
 @pytest.fixture()
-def create_testsystem(remote, token, create_profile, remove_testprofile):
+def create_testsystem(remote, token):
+    """
+    Add a system with the name "testsystem0", the system is assigend to the profile "testprofile0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
     system = remote.new_system(token)
     remote.modify_system(system, "name", "testsystem0", token)
     remote.modify_system(system, "profile", "testprofile0", token)
-    remote.save_system(token, system)
+    remote.save_system(system, token)
 
 
 @pytest.fixture()
 def remove_testsystem(remote, token):
-    remote.remove_system(token, "testsystem0")
+    """
+    Remove a system "testsystem0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_system("testsystem0", token, False)
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
