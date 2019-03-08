@@ -1845,7 +1845,7 @@ class CobblerXMLRPCInterface(object):
             return False
 
     def check_access(self, token, resource, arg1=None, arg2=None):
-        user = self.get_user_from_token(token.data)
+        user = self.get_user_from_token(token)
         if user == "<DIRECT>":
             self._log("CLI Authorized", debug=True)
             return True
