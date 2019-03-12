@@ -1734,7 +1734,7 @@ class CobblerXMLRPCInterface(object):
 
     def __get_random(self, length):
         urandom = open("/dev/urandom", 'rb')
-        b64 = base64.encodestring(urandom.read(length))
+        b64 = base64.b64encode(urandom.read(length))
         urandom.close()
         return b64.decode()
 
