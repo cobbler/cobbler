@@ -527,7 +527,7 @@ class TFTPGen(object):
         kopts = utils.revert_strip_none(kopts)
 
         # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
-        utils.suse_kopts_textmode_overwrite(distro.breed, kopts)
+        utils.suse_kopts_textmode_overwrite(distro, kopts)
 
         # since network needs to be configured again (it was already in netboot) when kernel boots
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
