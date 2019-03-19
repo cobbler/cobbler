@@ -707,7 +707,7 @@ class CobblerXMLRPCInterface(object):
         self._log("remove_item (%s, recursive=%s)" % (what, recursive), name=name, token=token)
         obj = self.api.get_item(what, name)
         self.check_access(token, "remove_%s" % what, obj)
-        self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
+        self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive, logger=self.logger)
         return True
 
     def remove_distro(self, name, token, recursive=True):
@@ -741,7 +741,7 @@ class CobblerXMLRPCInterface(object):
         self._log("copy_item(%s)" % what, object_id=object_id, token=token)
         self.check_access(token, "copy_%s" % what)
         obj = self.__get_object(object_id)
-        self.api.copy_item(what, obj, newname)
+        self.api.copy_item(what, obj, newname, logger=self.logger)
         return True
 
     def copy_distro(self, object_id, newname, token=None):
@@ -774,7 +774,7 @@ class CobblerXMLRPCInterface(object):
         """
         self._log("rename_item(%s)" % what, object_id=object_id, token=token)
         obj = self.__get_object(object_id)
-        self.api.rename_item(what, obj, newname)
+        self.api.rename_item(what, obj, newname, logger=self.logger)
         return True
 
     def rename_distro(self, object_id, newname, token=None):
@@ -1037,9 +1037,9 @@ class CobblerXMLRPCInterface(object):
         obj = self.__get_object(object_id)
         self.check_access(token, "save_%s" % what, obj)
         if editmode == "new":
-            self.api.add_item(what, obj, check_for_duplicate_names=True)
+            self.api.add_item(what, obj, check_for_duplicate_names=True, logger=self.logger)
         else:
-            self.api.add_item(what, obj)
+            self.api.add_item(what, obj, logger=self.logger)
         return True
 
     def save_distro(self, object_id, token, editmode="bypass"):
@@ -1298,7 +1298,7 @@ class CobblerXMLRPCInterface(object):
                 obj.set_ip_address(ip, iname)
             if netmask != "" and netmask != "?":
                 obj.set_netmask(netmask, iname)
-        self.api.add_system(obj)
+        self.api.add_system(obj, logger=self.logger)
         return 0
 
     def disable_netboot(self, name, token=None, **rest):
@@ -1326,7 +1326,7 @@ class CobblerXMLRPCInterface(object):
         # disabling triggers and sync to make this extremely fast.
         systems.add(obj, save=True, with_triggers=triggers_enabled, with_sync=False, quick_pxe_update=True)
         # re-generate dhcp configuration
-        self.api.sync_dhcp()
+        self.api.sync_dhcp(logger=self.logger)
         return True
 
     def upload_log_data(self, sys_name, file, size, offset, data, token=None, **rest):
@@ -1730,7 +1730,7 @@ class CobblerXMLRPCInterface(object):
         While a read-only operation, this requires a token because it's potentially a fair amount of I/O
         """
         self.check_access(token, "sync")
-        return self.api.status(mode=mode)
+        return self.api.status(mode=mode, logger=self.logger)
 
     def __get_random(self, length):
         urandom = open("/dev/urandom", 'rb')
@@ -1908,7 +1908,7 @@ class CobblerXMLRPCInterface(object):
         """
         self._log("sync_dhcp", token=token)
         self.check_access(token, "sync")
-        self.api.sync_dhcp()
+        self.api.sync_dhcp(logger=self.logger)
         return True
 
     def sync(self, token):
@@ -1920,7 +1920,7 @@ class CobblerXMLRPCInterface(object):
         # FIXME: performance
         self._log("sync", token=token)
         self.check_access(token, "sync")
-        self.api.sync()
+        self.api.sync(logger=self.logger)
         return True
 
     def read_autoinstall_template(self, file_path, token):
