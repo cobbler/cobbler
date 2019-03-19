@@ -2060,7 +2060,7 @@ class ProxiedXMLRPCInterface(object):
             raise CX("forbidden method")
 
         if not hasattr(self.proxied, method):
-            raise CX("unknown remote method")
+            raise CX("unknown remote method '%s'" % method)
 
         method_handle = getattr(self.proxied, method)
 
