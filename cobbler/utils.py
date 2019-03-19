@@ -2304,9 +2304,9 @@ def find_distro_path(settings, distro):
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
 
-def suse_kopts_textmode_overwrite(distro_breed, kopts):
+def suse_kopts_textmode_overwrite(distro, kopts):
     """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
-    if distro_breed == "suse":
+    if distro and distro.breed == "suse":
         if 'textmode' in kopts.keys():
             kopts.pop('text', None)
         elif 'text' in kopts.keys():

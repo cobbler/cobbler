@@ -784,7 +784,7 @@ class PXEGen:
         kopts = blended.get("kernel_options", dict())
 
         # SUSE is not using 'text'. Instead 'textmode' is used as kernel option
-        utils.suse_kopts_textmode_overwrite(distro.breed, kopts)
+        utils.suse_kopts_textmode_overwrite(distro, kopts)
 
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:

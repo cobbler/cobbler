@@ -156,7 +156,7 @@ class BuildIso:
 
              data = utils.blender(self.api, False, profile)
              # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
-             utils.suse_kopts_textmode_overwrite(dist.breed, data['kernel_options'])
+             utils.suse_kopts_textmode_overwrite(dist, data['kernel_options'])
 
              if data["kickstart"].startswith("/"):
                  data["kickstart"] = "http://%s:%s/cblr/svc/op/ks/profile/%s" % (
@@ -460,7 +460,7 @@ class BuildIso:
         for descendant in descendants:
             data = utils.blender(self.api, False, descendant)
             # SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
-            utils.suse_kopts_textmode_overwrite(distro.breed, data['kernel_options'])
+            utils.suse_kopts_textmode_overwrite(distro, data['kernel_options'])
 
             cfg.write("\n")
             cfg.write("LABEL %s\n" % descendant.name)
