@@ -710,28 +710,28 @@ class CobblerXMLRPCInterface(object):
         self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
         return True
 
-    def remove_distro(self, name, token, recursive=1):
+    def remove_distro(self, name, token, recursive=True):
         return self.remove_item("distro", name, token, recursive)
 
-    def remove_profile(self, name, token, recursive=1):
+    def remove_profile(self, name, token, recursive=True):
         return self.remove_item("profile", name, token, recursive)
 
-    def remove_system(self, name, token, recursive=1):
+    def remove_system(self, name, token, recursive=True):
         return self.remove_item("system", name, token, recursive)
 
-    def remove_repo(self, name, token, recursive=1):
+    def remove_repo(self, name, token, recursive=True):
         return self.remove_item("repo", name, token, recursive)
 
-    def remove_image(self, name, token, recursive=1):
+    def remove_image(self, name, token, recursive=True):
         return self.remove_item("image", name, token, recursive)
 
-    def remove_mgmtclass(self, name, token, recursive=1):
+    def remove_mgmtclass(self, name, token, recursive=True):
         return self.remove_item("mgmtclass", name, token, recursive)
 
-    def remove_package(self, name, token, recursive=1):
+    def remove_package(self, name, token, recursive=True):
         return self.remove_item("package", name, token, recursive)
 
-    def remove_file(self, name, token, recursive=1):
+    def remove_file(self, name, token, recursive=True):
         return self.remove_item("file", name, token, recursive)
 
     def copy_item(self, what, object_id, newname, token=None):

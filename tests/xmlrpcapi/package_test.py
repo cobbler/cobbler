@@ -1,6 +1,4 @@
-import unittest
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
-
+import pytest
 
 """
 Order is important currently:
@@ -14,68 +12,104 @@ self._remove_package()
 """
 
 
-class TestPackage(CobblerXmlRpcBaseTest):
+@pytest.fixture()
+def create_package(remote, token):
+    """
+    Adds a "testpackage0" for a test.
+    :param remote: See the correesponding fixture.
+    :param token: See the correesponding fixture.
+    """
+    package = remote.new_package(token)
+    remote.modify_package(package, "name", "testpackage0", token)
+    remote.save_package(package, token)
 
-    def test_create_package(self):
+
+@pytest.fixture()
+def remove_package(remote, token):
+    """
+    Removes a "testpackage0" for a test.
+    :param remote: See the correesponding fixture.
+    :param token: See the correesponding fixture.
+    """
+    yield
+    remote.remove_package("testpackage0", token)
+
+
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestPackage:
+
+    @pytest.mark.usefixtures("remove_package")
+    def test_create_package(self, remote, token):
         """
         Test: create/edit a package object
         """
 
-        packages = self.remote.get_packages(self.token)
-        package = self.remote.new_package(self.token)
+        packages = remote.get_packages(token)
+        package = remote.new_package(token)
 
-        self.assertTrue(self.remote.modify_package(package, "name", "testpackage0", self.token))
-        self.assertTrue(self.remote.save_package(package, self.token))
+        assert remote.modify_package(package, "name", "testpackage0", token)
+        assert remote.save_package(package, token)
 
-        new_packages = self.remote.get_packages(self.token)
-        self.assertTrue(len(new_packages) == len(packages) + 1)
+        new_packages = remote.get_packages(token)
+        assert len(new_packages) == len(packages) + 1
 
-    def test_get_packages(self):
+    @pytest.mark.usefixtures("create_package", "remove_package")
+    def test_get_packages(self, remote, token):
         """
         Test: Get packages
         """
 
-        package = self.remote.get_packages()
+        package = remote.get_packages()
 
-    def test_get_package(self):
+    @pytest.mark.usefixtures("create_package", "remove_package")
+    def test_get_package(self, remote):
         """
         Test: Get a package object
         """
 
-        package = self.remote.get_package("testpackage0")
+        package = remote.get_package("testpackage0")
 
-    def test_find_package(self):
+    @pytest.mark.usefixtures("create_package", "remove_package")
+    def test_find_package(self, remote, token):
         """
         Test: find a package object
         """
 
-        result = self.remote.find_package({"name": "testpackage0"}, self.token)
-        self.assertTrue(result)
+        result = remote.find_package({"name": "testpackage0"}, token)
+        assert result
 
-    def test_copy_package(self):
+    @pytest.mark.usefixtures("create_package", "remove_package")
+    def test_copy_package(self, remote, token):
         """
         Test: copy a package object
         """
+        # Arrange --> Done in fixture
 
-        package = self.remote.get_item_handle("package", "testpackage0", self.token)
-        self.assertTrue(self.remote.copy_package(package, "testpackagecopy", self.token))
+        # Act
+        package = remote.get_item_handle("package", "testpackage0", token)
+        result = remote.copy_package(package, "testpackagecopy", token)
 
-    def test_rename_package(self):
+        # Assert
+        assert result
+
+        # Cleanup
+        remote.remove_package("testpackagecopy", token)
+
+    @pytest.mark.usefixtures("create_package", "remove_package")
+    def test_rename_package(self, remote, token):
         """
         Test: rename a package object
         """
 
-        package = self.remote.get_item_handle("package", "testpackagecopy", self.token)
-        self.assertTrue(self.remote.rename_package(package, "testpackage1", self.token))
+        package = remote.get_item_handle("package", "testpackage0", token)
+        assert remote.rename_package(package, "testpackage1", token)
+        package = remote.get_item_handle("package", "testpackage1", token)
+        assert remote.rename_package(package, "testpackage0", token)
 
-    def test_remove_package(self):
+    @pytest.mark.usefixtures("create_package")
+    def test_remove_package(self, remote, token):
         """
         Test: remove a package object
         """
 
-        self.assertTrue(self.remote.remove_package("testpackage0", self.token))
-        self.assertTrue(self.remote.remove_package("testpackage1", self.token))
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert remote.remove_package("testpackage0", token)

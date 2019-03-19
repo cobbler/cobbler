@@ -1,7 +1,7 @@
 import os
 import re
 import shlex
-import unittest
+import pytest
 
 from cobbler import utils
 
@@ -49,32 +49,38 @@ def get_last_line(lines):
     return lines[i]
 
 
-class CobblerCliTestObject(unittest.TestCase):
+@pytest.fixture(scope="class")
+def setup():
+    """
+    Initializes testcase
+    """
+
+    # create files if necessary
+    if not os.path.exists(dummy_file_path):
+        open(dummy_file_path, 'w').close()
+
+    # TODO: delete objects which will be added if they exist
+    #        currently, if tests fail, tester may have to delete objects
+    #        manually before running tests again
+
+
+@pytest.fixture(scope="class")
+def teardown():
+    """
+    Cleans up testcase
+    """
+
+    yield
+    # remove files
+    if os.path.exists(dummy_file_path):
+        os.remove(dummy_file_path)
+
+
+@pytest.mark.usefixtures("setup", "teardown")
+class CobblerCliTestObject:
     """
     Test CLI commands on objects
     """
-
-    def setUp(self):
-        """
-        Initializes testcase
-        """
-
-        # create files if necessary
-        if not os.path.exists(dummy_file_path):
-            open(dummy_file_path, 'w').close()
-
-        # @TODO: delete objects which will be added if they exist
-        #        currently, if tests fail, tester may have to delete objects
-        #        manually before running tests again
-
-    def tearDown(self):
-        """
-        Cleans up testcase
-        """
-
-        # remove files
-        if os.path.exists(dummy_file_path):
-            os.remove(dummy_file_path)
 
     def list_objects(self, object_type):
         """
@@ -120,7 +126,7 @@ class CobblerCliTestObject(unittest.TestCase):
                 cur_object = match_obj.group(1)
                 self.assertTrue(match_obj.group(1) in objects)
                 found_objects[cur_object] = True
-        self.assertTrue(False not in found_objects.values())
+        assert False not in found_objects.values()
 
         # cobbler <type> report <name>
         output = run_cmd("cobbler %s report --name=%s" % (object_type, name))
@@ -130,7 +136,7 @@ class CobblerCliTestObject(unittest.TestCase):
         for line in lines:
             if re.match(regex, line):
                 found = True
-        self.assertTrue(found)
+        assert found
 
         # cobbler <type> edit
         cmd = "cobbler %s edit --name=%s --%s='%s'" % (object_type, name, attr["name"], attr["value"])
@@ -143,19 +149,19 @@ class CobblerCliTestObject(unittest.TestCase):
         for line in lines:
             if re.match(regex, line):
                 found = True
-        self.assertTrue(found)
+        assert found
 
         # cobbler <type> find
         cmd = "cobbler %s find --%s='%s'" % (object_type, attr["name"], attr["value"])
         output = run_cmd(cmd)
         lines = output.split("\n")
-        self.assertTrue(len(lines) >= 1)
+        assert len(lines) >= 1
 
         # cobbler <type> copy
         run_cmd("cobbler %s copy --name=%s --newname=%s" % (object_type, name, "%s-copy" % name))
 
         new_objects = self.list_objects(object_type)
-        self.assertTrue(len(new_objects) == len(objects) + 1)
+        assert len(new_objects) == len(objects) + 1
 
         # cobbler <type> rename
         cmd = "cobbler %s rename --name=%s --newname=%s" % (object_type, name, new_name)
@@ -167,7 +173,7 @@ class CobblerCliTestObject(unittest.TestCase):
         run_cmd("cobbler %s remove --name=%s-copy" % (object_type, name))
 
         new_objects = self.list_objects(object_type)
-        self.assertTrue(len(new_objects) == len(objects))
+        assert len(new_objects) == len(objects)
 
     def test_distro(self, remove):
 
@@ -186,7 +192,7 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd(cmd)
 
         new_distros = self.list_objects(item_type)
-        self.assertTrue(len(new_distros) == len(distros) + 1)
+        assert len(new_distros) == len(distros) + 1
 
         self.test_generic_commands(item_type, distro_name, attr, new_distros)
 
@@ -210,7 +216,7 @@ class CobblerCliTestObject(unittest.TestCase):
         run_cmd(cmd)
 
         new_profiles = self.list_objects(item_type)
-        self.assertTrue(len(new_profiles) == len(profiles) + 1)
+        assert len(new_profiles) == len(profiles) + 1
 
         self.test_generic_commands(item_type, profile_name, attr, new_profiles)
 
@@ -234,7 +240,7 @@ class CobblerCliTestObject(unittest.TestCase):
         run_cmd(cmd)
 
         new_systems = self.list_objects(item_type)
-        self.assertTrue(len(new_systems) == len(systems) + 1)
+        assert len(new_systems) == len(systems) + 1
 
         self.test_generic_commands(item_type, system_name, attr, new_systems)
 
@@ -257,7 +263,7 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd(cmd)
 
         new_images = self.list_objects(item_type)
-        self.assertTrue(len(new_images) == len(images) + 1)
+        assert len(new_images) == len(images) + 1
 
         self.test_generic_commands(item_type, image_name, attr, new_images)
 
@@ -280,7 +286,7 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd(cmd)
 
         new_repos = self.list_objects(item_type)
-        self.assertTrue(len(new_repos) == len(repos) + 1)
+        assert len(new_repos) == len(repos) + 1
 
         self.test_generic_commands(item_type, repo_name, attr, new_repos)
 
@@ -303,7 +309,7 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd(cmd)
 
         new_mgmt_classes = self.list_objects(item_type)
-        self.assertTrue(len(new_mgmt_classes) == len(mgmt_classes) + 1)
+        assert len(new_mgmt_classes) == len(mgmt_classes) + 1
 
         self.test_generic_commands(item_type, mgmtclass_name, attr, new_mgmt_classes)
 
@@ -326,13 +332,9 @@ class CobblerCliTestObject(unittest.TestCase):
         output = run_cmd(cmd)
 
         new_packages = self.list_objects(item_type)
-        self.assertTrue(len(new_packages) == len(packages) + 1)
+        assert len(new_packages) == len(packages) + 1
 
         self.test_generic_commands(item_type, package_name, attr, new_packages)
 
         # cobbler <type> remove
         run_cmd("cobbler %s remove --name=%s" % (item_type, package_name))
-
-
-if __name__ == '__main__':
-    unittest.main()

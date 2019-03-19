@@ -1,0 +1,13 @@
+# Created by .ignore support plugin (hsz.mobi)
+# Idea settings
+.idea/
+
+# Python venvs
+venv/
+venv3/
+
+# Coverage
+covhtml/
+
+# Python stuff
+**/__pycache__

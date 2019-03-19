@@ -1,127 +1,131 @@
-import unittest
 import pytest
 
-from .cobbler_xmlrpc_base_test import CobblerXmlRpcBaseTest
+
+@pytest.fixture
+def create_repo(remote, token):
+    """
+    Creates a Repository "testrepo0" with a mirror "http://www.sample.com/path/to/some/repo" and the attribute
+    "mirror_locally=0".
+    """
+    repo = remote.new_repo(token)
+    remote.modify_repo(repo, "name", "testrepo0", token)
+    remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
+    remote.modify_repo(repo, "mirror_locally", "0", token)
+    remote.save_repo(repo, token)
 
 
-"""
-Order is currently important:
-self._get_repos()
-self._create_repo()
-self._get_repo()
-self._find_repo()
-self._copy_repo()
-self._rename_repo()
-self._remove_repo()
-"""
-
-
-class TestRepo(CobblerXmlRpcBaseTest):
-
-    @pytest.fixture
-    def createRepo(self):
-        repo = self.remote.new_repo(self.token)
-        self.remote.modify_repo(repo, "name", "testrepo0", self.token)
-        self.remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", self.token)
-        self.remote.modify_repo(repo, "mirror_locally", "0", self.token)
-        self.remote.save_repo(repo, self.token)
-
-    def test_create_repo(self):
+@pytest.mark.usefixtures("cobbler_xmlrpc_base")
+class TestRepo:
+    def test_create_repo(self, remote, token):
         """
         Test: create/edit a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Nothing to arrange
 
-        # Act
-        repo = self.remote.new_repo(self.token)
-        self.assertTrue(self.remote.modify_repo(repo, "name", "testrepo0", self.token))
-        self.assertTrue(self.remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", self.token))
-        self.assertTrue(self.remote.modify_repo(repo, "mirror_locally", "0", self.token))
-        self.assertTrue(self.remote.save_repo(repo, self.token))
+        # Act & Assert
+        repo = remote.new_repo(token)
+        assert remote.modify_repo(repo, "name", "testrepo0", token)
+        assert remote.modify_repo(repo, "mirror", "http://www.sample.com/path/to/some/repo", token)
+        assert remote.modify_repo(repo, "mirror_locally", "0", token)
+        assert remote.save_repo(repo, token)
 
-        # TODO: Assert
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
 
-    def test_get_repos(self):
+    def test_get_repos(self, remote):
         """
         Test: Get repos
         """
 
-        # TODO: Arrange
+        # Arrange --> Nothing to do
 
         # Act
-        self.remote.get_repos()
+        result = remote.get_repos()
 
-        # TODO: Assert
+        # Assert
+        assert result == []
 
-    def test_get_repo(self):
+    @pytest.mark.usefixtures("create_repo")
+    def test_get_repo(self, remote, token):
         """
         Test: Get a repo object
         """
 
-        # TODO: Arrange --> Place file under "/var/lib/coobler/collections/repos/?"
+        # Arrange --> Done in fixture
 
         # Act
-        repo = self.remote.get_repo("testrepo0")
+        repo = remote.get_repo("testrepo0")
 
-        # TODO: Assert
-        # TODO: Cleanup
+        # Assert
+        assert repo.get("name") == "testrepo0"
 
-    def test_find_repo(self, createRepo):
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
+
+    @pytest.mark.usefixtures("create_repo")
+    def test_find_repo(self, remote, token):
         """
         Test: find a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
-        result = self.remote.find_repo({"name": "testrepo0"}, self.token)
+        result = remote.find_repo({"name": "testrepo0"}, token)
 
         # Assert
-        self.assertTrue(result)
-        # TODO: Cleanup
+        assert result
 
-    def test_copy_repo(self, createRepo):
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
+
+    @pytest.mark.usefixtures("create_repo")
+    def test_copy_repo(self, remote, token):
         """
         Test: copy a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
-        repo = self.remote.get_item_handle("repo", "testrepo0", self.token)
+        repo = remote.get_item_handle("repo", "testrepo0", token)
 
         # Assert
-        self.assertTrue(self.remote.copy_repo(repo, "testrepocopy", self.token))
-        # TODO: Cleanup
+        assert remote.copy_repo(repo, "testrepocopy", token)
 
-    def test_rename_repo(self, createRepo):
+        # Cleanup
+        remote.remove_repo("testrepo0", token)
+        remote.remove_repo("testrepocopy", token)
+
+    @pytest.mark.usefixtures("create_repo")
+    def test_rename_repo(self, remote, token):
         """
         Test: rename a repo object
         """
 
-        # TODO: Arrange
+        # Arrange
 
         # Act
-        repo = self.remote.get_item_handle("repo", "testrepo0", self.token)
+        repo = remote.get_item_handle("repo", "testrepo0", token)
+        result = remote.rename_repo(repo, "testrepo1", token)
 
         # Assert
-        self.assertTrue(self.remote.rename_repo(repo, "testrepo1", self.token))
-        # TODO: Cleanup
+        assert result
 
-    def test_remove_repo(self, createRepo):
+        # Cleanup
+        remote.remove_repo("testrepo1", token)
+
+    @pytest.mark.usefixtures("create_repo")
+    def test_remove_repo(self, remote, token):
         """
         Test: remove a repo object
         """
 
-        # TODO: Arrange
+        # Arrange --> Done in fixture
 
         # Act
-        result = self.remote.remove_repo("testrepo0", self.token)
+        result = remote.remove_repo("testrepo0", token)
 
-        # TODO: Assert
-        self.assertTrue(result)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        # Assert
+        assert result
