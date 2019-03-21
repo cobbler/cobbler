@@ -889,66 +889,43 @@ def get_family():
 
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
 
-    dist = check_dist()
+    distro_name = distro.name.lower()
     for item in redhat_list:
-        if item in dist:
+        if item in distro_name:
             return "redhat"
-    if "debian" in dist or "ubuntu" in dist:
+    if "debian" in distro_name or "ubuntu" in distro_name:
         return "debian"
-    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
+    if "suse" in distro.like():
         return "suse"
-    return dist
-
-
-def check_dist():
-    """
-    Determines what distro we're running under.
-    """
-    return distro.linux_distribution()[0].lower().strip()
+    return distro_name
 
 
 def os_release():
     family = get_family()
+    distro_name = distro.name().lower()
+    distro_version = distro.version()
     if family == "redhat":
-        fh = open("/etc/redhat-release")
-        data = fh.read().lower()
-        if data.find("fedora") != -1:
+        if "fedora" in distro_name:
             make = "fedora"
-        elif data.find("centos") != -1:
+        elif "centos" in distro_name:
             make = "centos"
-        elif data.find("virtuozzo") != -1:
+        elif "virtuozzo" in distro_name:
             make = "virtuozzo"
         else:
             make = "redhat"
-        release_index = data.find("release")
-        rest = data[release_index + 7:-1]
-        tokens = rest.split(" ")
-        for t in tokens:
-            try:
-                match = re.match(r'^\d+(?:\.\d+)?', t)
-                if match:
-                    return (make, float(match.group(0)))
-            except ValueError:
-                pass
-        raise CX("failed to detect local OS version from /etc/redhat-release")
+        return make, float(distro_version)
 
     elif family == "debian":
-        distribution = check_dist()
-        if distribution == "debian":
-            import lsb_release
-            release = lsb_release.get_distro_information()['RELEASE']
-            return ("debian", release)
-        elif distribution == "ubuntu":
-            version = subprocess_get(None, "lsb_release --release --short").rstrip()
-            make = "ubuntu"
-            return (make, float(version))
+        if "debian" in distro_name:
+            return "debian", float(distro_version)
+        elif "ubuntu" in distro_name:
+            return "ubuntu", float(distro_version)
 
     elif family == "suse":
         make = "suse"
-        distribution, version = distro.linux_distribution()[:2]
-        if distribution.lower() not in ("sles", "opensuse leap", "opensuse tumbleweed"):
+        if "suse" not in distro.like():
             make = "unknown"
-        return (make, float(version))
+        return make, float(distro_version)
 
 
 def is_safe_to_hardlink(src, dst, api):

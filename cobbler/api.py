@@ -28,6 +28,7 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
+import distro
 
 from cobbler import action_acl
 from cobbler import action_buildiso
@@ -115,7 +116,7 @@ class CobblerAPI(object):
             # FIXME: conslidate into 1 server instance
 
             self.selinux_enabled = utils.is_selinux_enabled()
-            self.dist = utils.check_dist()
+            self.dist = distro.name().lower()
             self.os_version = utils.os_release()
 
             CobblerAPI.__has_loaded = True
@@ -176,11 +177,12 @@ class CobblerAPI(object):
         Returns whether or not the OS is sufficient enough
         to run with SELinux enabled (currently EL 5 or later).
         """
-        self.dist
-        if self.dist == "redhat" and self.os_version < 5:
-            # doesn't support public_content_t
-            return False
-        return True
+        # FIXME: This detection is flawed. There is more than just Rhel with selinux and the original implemenation was
+        #        too broad.
+        if ("red hat" in self.dist or "redhat" in self.dist) and self.os_version[1] >= 5:
+            return True
+        # doesn't support public_content_t
+        return False
 
     # ==========================================================
 
