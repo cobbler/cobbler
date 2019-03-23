@@ -99,7 +99,7 @@ def application(environ, start_response):
     # TODO: We could do proper exception handling here and return
     # corresponding HTTP status codes:
 
-    status = "100 OK"
+    status = "200 OK"
     # Execute corresponding operation on the CobblerSvc object:
     func = getattr(cw, mode)
     try:
