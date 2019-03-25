@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # SystemD stuff (needs insserv additionally)
 zypper -n install systemd insserv; zypper clean
