@@ -661,8 +661,8 @@ if __name__ == "__main__":
             # files
             ("%sgrub_config/grub" % libpath, glob("config/grub/grub/*")),
             # dirs
-            ("%sgrub_config/grub/grub/system" % libpath, []),
-            ("%sgrub_config/grub/grub/system_link" % libpath, []),
+            ("%sgrub_config/grub/system" % libpath, []),
+            ("%sgrub_config/grub/system_link" % libpath, []),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
             ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers
