@@ -66,7 +66,8 @@ def glob(*args, **kwargs):
 #####################################################################
 
 def gen_build_version():
-    builddate = time.asctime()
+    buildepoch = int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
+    builddate = time.asctime(time.gmtime(buildepoch))
 
     gitloc = "/usr/bin/git"
     gitdate = "?"
