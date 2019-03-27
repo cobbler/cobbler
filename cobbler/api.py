@@ -1040,11 +1040,12 @@ class CobblerAPI(object):
         elif power_operation == "off":
             self.power_mgr.power_off(system, user=user, password=password, logger=logger)
         elif power_operation == "status":
-            self.power_mgr.get_power_status(system, user=user, password=password, logger=logger)
+            return self.power_mgr.get_power_status(system, user=user, password=password, logger=logger)
         elif power_operation == "reboot":
             self.power_mgr.reboot(system, user=user, password=password, logger=logger)
         else:
             utils.die(self.logger, "invalid power operation '%s', expected on/off/status/reboot" % power_operation)
+        return None
 
     # ==========================================================================
 

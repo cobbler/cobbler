@@ -165,7 +165,8 @@ class PowerManager(object):
         # Some power switches are flakey
         for x in range(0, 5):
             output, rc = utils.subprocess_sp(logger, power_command, shell=False, input=template_data)
-            if rc == 0:
+            # fencing agent returns 2 if the system is powered off
+            if rc == 0 or (rc == 2 and power_operation == 'status'):
                 # If the desired state is actually a query for the status
                 # return different information than command return code
                 if power_operation == 'status':
