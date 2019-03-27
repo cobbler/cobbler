@@ -271,6 +271,20 @@ class CobblerXMLRPCInterface(object):
         self.check_access(token, "power_system")
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power", ""), options)
 
+    def power_system(self, system_id, power, token):
+        """
+        Execute power task synchronously.
+             system_id      -- system handle
+             power          -- power operation (on/off/status/reboot)
+             token          -- token from login() call, all tasks require tokens
+        Returns true if the operation succeeded or if the system is powered on (in case of status).
+        False otherwise.
+        """
+        system = self.__get_object(system_id)
+        self.check_access(token, "power_system", system)
+        result = self.api.power_system(system, power, logger=self.logger)
+        return True if result is None else result
+
     def background_signature_update(self, options, token):
         def runner(self):
             self.remote.api.signature_update(self.logger)
