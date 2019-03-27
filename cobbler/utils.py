@@ -889,7 +889,7 @@ def get_family():
 
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
 
-    distro_name = distro.name.lower()
+    distro_name = distro.name().lower()
     for item in redhat_list:
         if item in distro_name:
             return "redhat"
