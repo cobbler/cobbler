@@ -917,7 +917,12 @@ def os_release():
 
     elif family == "debian":
         if "debian" in distro_name:
-            return "debian", float(distro_version)
+            try:
+                distro_version = float(distro_version)
+            except ValueError:
+                # Debian testing has the distro_version "testing".
+                pass
+            return "debian", distro_version
         elif "ubuntu" in distro_name:
             return "ubuntu", float(distro_version)
 
