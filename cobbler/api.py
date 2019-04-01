@@ -195,7 +195,7 @@ class CobblerAPI(object):
             fd = open("/var/lib/cobbler/.mtime", 'w')
             fd.write("0")
             fd.close()
-            return 0
+            return float(0)
         fd = open("/var/lib/cobbler/.mtime", 'r')
         data = fd.read().strip()
         return float(data)
