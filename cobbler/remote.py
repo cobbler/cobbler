@@ -1576,7 +1576,7 @@ class CobblerXMLRPCInterface(object):
         if system is None:
             return {}
         else:
-            return self.get_system_for_koan(system.name)
+            return self.get_system_as_rendered(system.name)
 
     def get_distro_as_rendered(self, name, token=None, **rest):
         """
