@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cobbler
+Upstream-Contact: Enno Gotthold <enno@4seul.de>
+Source: https://github.com/cobbler/cobbler
+
+Files: *
+Copyright: 2006-2022 The Cobbler Team
+License: GPL-2+
+
+# TODO: Add individual copyright of all files having explicit spdx headers

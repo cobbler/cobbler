@@ -1,0 +1,12 @@
+usr/bin/cobbler
+usr/bin/cobblerd
+usr/bin/cobbler-ext-nodes
+usr/bin/cobbler-settings
+usr/lib/python*/dist-packages/cobbler/*
+usr/lib/python*/dist-packages/cobbler-*.egg-info/*
+usr/share/cobbler/*
+var/lib/cobbler/*
+etc/cobbler/*
+etc/apache2/conf-available/cobbler.conf
+var/www/cobbler/*
+usr/share/bash-completion/completions/cobbler

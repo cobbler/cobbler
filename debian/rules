@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+export DH_OPTIONS
+
+# Verbose mode
+#export DH_VERBOSE=1
+
+# Use Bash so we can set the required environment variables
+SHELL = /bin/bash
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_build:
+	@source ./distro_build_configs.sh; \
+	python3 setup.py build build_cfg --install-scripts=/usr/bin --install-data=/usr --install-lib=/usr/lib
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf docs/_build
+
+override_dh_auto_install:
+	@source ./distro_build_configs.sh; \
+	python3 setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/

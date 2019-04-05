@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#DEBHELPER#
+
+# This directory is required because per default we log to it.
+mkdir -p "/var/log/cobbler"

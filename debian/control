@@ -1,0 +1,48 @@
+Source: cobbler
+Section: admin
+Priority: optional
+Maintainer: The Cobbler Authors <cobbler.project@gmail.com>
+Build-Depends:
+ git-core,
+ python3,
+ python3-distro,
+ python3-setuptools,
+ python3-netaddr,
+ python3-requests,
+ python3-schema,
+ python3-cheetah,
+ python3-dns,
+ python3-sphinx,
+ dh-python,
+ debhelper (>=12)
+Standards-Version: 4.5.1
+Version: 3.4.0
+Homepage: https://cobbler.github.io/
+
+Package: cobbler
+Architecture: all
+Depends:
+ systemd,
+ apache2 | httpd,
+ tftpd-hpa | atftpd,
+ fence-agents,
+ rsync,
+ xorriso,
+ libapache2-mod-wsgi-py3,
+ python3,
+ python3-yaml,
+ python3-magic,
+ python3-ldap,
+ ${misc:Depends}
+Suggests:
+ createrepo-c,
+ createrepo,
+ logrotate,
+ python3-librepo
+Description: Install server
+ Cobbler is a PXE based network install server.
+ Cobbler's advanced features include importing distributions
+ from DVDs and rsync mirrors, automatic installation templating,
+ integrated yum mirroring, and built-in DHCP/DNS Management.
+ Cobbler has a Python and XMLRPC API for integration with other
+ applications. There is also a web interface available.
