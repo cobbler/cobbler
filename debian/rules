@@ -7,10 +7,10 @@ export DH_OPTIONS
 #export DH_VERBOSE=1
 
 %:
-	dh $@ --with python2
+	dh $@ --with python3
 
 override_dh_auto_build:
-	python setup.py build build_cfg --install-scripts=/usr/bin --install-data=/usr --install-lib=/usr/lib
+	python3 setup.py build build_cfg --install-scripts=/usr/bin --install-data=/usr --install-lib=/usr/lib
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -20,11 +20,8 @@ override_dh_auto_test:
 	nosetests cobbler/*.py || true
 
 override_dh_auto_install:
-	python setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/
+	python3 setup.py install -f --optimize=1 --install-layout=deb --root=$(CURDIR)/debian/tmp --prefix=/usr/
 
 override_dh_install:
-
-	rm $(CURDIR)/debian/tmp/etc/cobbler/settings.d/nsupdate*
-	rm $(CURDIR)/debian/tmp/usr/lib/python*/dist-packages/cobbler/modules/nsupdate*
 	dh_install
 

@@ -380,7 +380,7 @@ class install(_install):
             raise Exception("libpath is not absolute.")
         # libpath is hardcoded in the code everywhere
         # therefor cant relocate using self.root
-        path = os.path.join(libpath, 'webui_sessions')
+        path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except KeyError as e:
