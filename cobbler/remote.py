@@ -1721,6 +1721,31 @@ class CobblerXMLRPCInterface(object):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
+    # provide renamed methods under old name for compatibility
+    def get_distro_for_koan(self, name, token=None, **rest):
+        return self.get_distro_as_rendered(name)
+
+    def get_profile_for_koan(self, name, token=None, **rest):
+        return self.get_profile_as_rendered(name)
+
+    def get_system_for_koan(self, name, token=None, **rest):
+        return self.get_system_as_rendered(name)
+
+    def get_repo_for_koan(self, name, token=None, **rest):
+        return self.get_repo_as_rendered(name)
+
+    def get_image_for_koan(self, name, token=None, **rest):
+        return self.get_image_as_rendered(name)
+
+    def get_mgmtclass_for_koan(self, name, token=None, **rest):
+        return self.get_mgmtclass_as_rendered(name)
+
+    def get_package_for_koan(self, name, token=None, **rest):
+        return self.get_package_as_rendered(name)
+
+    def get_file_for_koan(self, name, token=None, **rest):
+        return self.get_file_as_rendered(name)
+
     def get_random_mac(self, virt_type="xenpv", token=None, **rest):
         """
         Wrapper for utils.get_random_mac
