@@ -96,8 +96,8 @@ class AutoInstallationGen:
         self.api.logger.info(
             "AutoYaST XML file found. Checkpoint: profile=%s system=%s", profile, system
         )
-        runpost = '\ncurl "http://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
-        runpre = '\ncurl "http://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'
+        runpost = '\ncurl "%s://%s/cblr/svc/op/trig/mode/post/%s/%s" > /dev/null'
+        runpre = '\ncurl "%s://%s/cblr/svc/op/trig/mode/pre/%s/%s" > /dev/null'
 
         what = "profile"
         blend_this = profile
@@ -142,9 +142,12 @@ class AutoInstallationGen:
 
         if self.settings.run_install_triggers:
             # notify cobblerd when we start/finished the installation
-            self.addAutoYaSTScript(document, "pre-scripts", runpre % (srv, what, name))
+            protocol = self.api.settings().autoinstall_protocol
             self.addAutoYaSTScript(
-                document, "init-scripts", runpost % (srv, what, name)
+                document, "pre-scripts", runpre % (protocol, srv, what, name)
+            )
+            self.addAutoYaSTScript(
+                document, "init-scripts", runpost % (protocol, srv, what, name)
             )
 
         return document.toxml()
@@ -230,10 +233,11 @@ class AutoInstallationGen:
             return ""
 
         blended = utils.blender(self.api, False, obj)
+        autoinstall_protocol = self.api.settings().autoinstall_protocol
         if is_profile:
-            url = f"http://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
+            url = f"{autoinstall_protocol}://{blended['http_server']}/cblr/svc/op/yum/profile/{obj.name}"
         else:
-            url = f"http://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
+            url = f"{autoinstall_protocol}://{blended['http_server']}/cblr/svc/op/yum/system/{obj.name}"
 
         return f'curl "{url}" --output /etc/yum.repos.d/cobbler-config.repo\n'
 
