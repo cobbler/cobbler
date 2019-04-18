@@ -29,8 +29,7 @@ import os
 import random
 import tempfile
 
-from actions import status, dlcontent, hardlink, \
-    sync, buildiso, replicate, report, log
+from actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from collections import manager
@@ -603,14 +602,14 @@ class CobblerAPI(object):
 
         base = yum.YumBase()
         base.doRepoSetup()
-        repos = base.repos.listEnabled()
-        if len(repos) == 0:
+        repositorys = base.repos.listEnabled()
+        if len(repositorys) == 0:
             raise CX(_("no repos enabled/available -- giving up."))
 
-        for repo in repos:
-            url = repo.urls[0]
+        for repository in repositorys:
+            url = repository.urls[0]
             cobbler_repo = self.new_repo()
-            auto_name = repo.name.replace(" ", "")
+            auto_name = repository.name.replace(" ", "")
             # FIXME: probably doesn't work for yum-rhn-plugin ATM
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
@@ -682,8 +681,8 @@ class CobblerAPI(object):
         their TFTP servers for PXE, etc.
         """
         self.log("check")
-        check = action_check.CobblerCheck(self._collection_mgr, logger=logger)
-        return check.run()
+        action_check = check.CobblerCheck(self._collection_mgr, logger=logger)
+        return action_check.run()
 
     # ==========================================================================
 
@@ -757,8 +756,8 @@ class CobblerAPI(object):
         or create the initial copy if no contents exist yet.
         """
         self.log("reposync", [name])
-        reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
-        reposync.run(name)
+        action_reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
+        action_reposync.run(name)
 
     # ==========================================================================
 
@@ -869,8 +868,8 @@ class CobblerAPI(object):
         Configures users/groups to run the cobbler CLI as non-root.
         Pass in only one option at a time.  Powers "cobbler aclconfig"
         """
-        acl = acl.AclConfig(self._collection_mgr, logger)
-        acl.run(
+        action_acl = acl.AclConfig(self._collection_mgr, logger)
+        action_acl.run(
             adduser=adduser,
             addgroup=addgroup,
             removeuser=removeuser,
