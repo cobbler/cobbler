@@ -237,6 +237,14 @@ class System(item.Item):
             proxy = "<<inherit>>"
         self.proxy = proxy
 
+    def set_redhat_management_key(self, management_key):
+        if management_key is None or management_key == "":
+            self.redhat_management_key = "<<inherit>>"
+        self.redhat_management_key = management_key
+
+    def get_redhat_management_key(self):
+        return self.redhat_management_key
+
     def get_mac_address(self, interface):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.

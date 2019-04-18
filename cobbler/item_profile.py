@@ -267,4 +267,12 @@ class Profile(item.Item):
     def set_repos(self, repos, bypass_check=False):
         utils.set_repos(self, repos, bypass_check)
 
+    def set_redhat_management_key(self, management_key):
+        if management_key is None or management_key == "":
+            self.redhat_management_key = "<<inherit>>"
+        self.redhat_management_key = management_key
+
+    def get_redhat_management_key(self):
+        return self.redhat_management_key
+
 # EOF
