@@ -113,6 +113,7 @@ DEFAULTS = {
     "nopxe_with_triggers": [1, "bool"],
     "redhat_management_permissive": [0, "bool"],
     "redhat_management_server": ["xmlrpc.rhn.redhat.com", "str"],
+    "redhat_management_key": ["", "str"],
     "register_new_installs": [0, "bool"],
     "remove_old_puppet_certs_automatically": [0, "bool"],
     "replicate_repo_rsync_options": ["-avzH", "str"],
