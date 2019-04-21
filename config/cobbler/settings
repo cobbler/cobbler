@@ -304,6 +304,12 @@ redhat_management_server: "xmlrpc.rhn.redhat.com"
 # on and then you can use CobblerWeb alongside a Satellite install.
 redhat_management_permissive: 0
 
+# specify the default Red Hat authorization key to use to register
+# system.  If left blank, no registration will be attempted.  Similarly
+# you can set the --redhat-management-key to blank on any system to
+# keep it from trying to register.
+redhat_management_key: ""
+
 # if set to 1, allows /usr/bin/cobbler-register (part of the koan package)
 # to be used to remotely add new cobbler system records to cobbler.
 # this effectively allows for registration of new hardware from system

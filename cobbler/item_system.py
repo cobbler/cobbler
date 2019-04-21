@@ -66,6 +66,7 @@ FIELDS = [
     ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
     ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
     ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
+    ["redhat_management_key", "<<inherit>>", 0, "Redhat Management Key", True, 0, "str"],
     ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["status", "production", 0, "Status", True, "System status", ["", "development", "testing", "acceptance", "production"], "str"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
@@ -235,6 +236,14 @@ class System(item.Item):
         if proxy is None or proxy == "":
             proxy = "<<inherit>>"
         self.proxy = proxy
+
+    def set_redhat_management_key(self, management_key):
+        if management_key is None or management_key == "":
+            self.redhat_management_key = "<<inherit>>"
+        self.redhat_management_key = management_key
+
+    def get_redhat_management_key(self):
+        return self.redhat_management_key
 
     def get_mac_address(self, interface):
         """

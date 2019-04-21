@@ -25,7 +25,6 @@ from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
-
 # this data structure is described in item.py
 FIELDS = [
     # non-editable in UI (internal)
@@ -52,6 +51,7 @@ FIELDS = [
     ["name", "", 0, "Name", True, "Ex: Fedora-11-i386", 0, "str"],
     ["os_version", "virtio26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
+    ["redhat_management_key", "", "", "Redhat Management Key", True, 0, "str"],
     ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
 ]
 
@@ -205,8 +205,16 @@ class Distro(item.Item):
             self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             supported_distro_boot_loaders = self.supported_boot_loaders
         if name not in supported_distro_boot_loaders:
-            raise CX(_("Invalid boot loader name: %s. Supported boot loaders are: %s" % (name, ' '.join(supported_distro_boot_loaders))))
+            raise CX(_("Invalid boot loader name: %s. Supported boot loaders are: %s" %
+                       (name, ' '.join(supported_distro_boot_loaders))))
         self.boot_loader = name
 
+    def set_redhat_management_key(self, management_key):
+        if management_key is None:
+            self.redhat_management_key = ""
+        self.redhat_management_key = management_key
+
+    def get_redhat_management_key(self):
+        return self.redhat_management_key
 
 # EOF

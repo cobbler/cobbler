@@ -55,6 +55,7 @@ FIELDS = [
     ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["parent", '', '', "Parent Profile", True, "", [], "str"],
     ["proxy", "SETTINGS:proxy_url_int", "<<inherit>>", "Proxy", True, "Proxy URL", 0, "str"],
+    ["redhat_management_key", "<<inherit>>", "<<inherit>>", "Redhat Management Key", True, 0, "str"],
     ["repos", [], '<<inherit>>', "Repos", True, "Repos to auto-assign to this profile", [], "list"],
     ["server", "<<inherit>>", '<<inherit>>', "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
@@ -265,5 +266,13 @@ class Profile(item.Item):
 
     def set_repos(self, repos, bypass_check=False):
         utils.set_repos(self, repos, bypass_check)
+
+    def set_redhat_management_key(self, management_key):
+        if management_key is None or management_key == "":
+            self.redhat_management_key = "<<inherit>>"
+        self.redhat_management_key = management_key
+
+    def get_redhat_management_key(self):
+        return self.redhat_management_key
 
 # EOF
