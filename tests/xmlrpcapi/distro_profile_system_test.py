@@ -714,6 +714,105 @@ class TestDistroProfileSystem:
         # Assert
         assert system is "~"
 
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
+    def test_get_systems_koan(self, remote):
+        # Arrange
+
+        # Act
+        systems = remote.get_systems()
+
+        # Assert
+        for system in systems:
+            assert "ks_meta" in system
+            assert "kickstart" in system
+            assert system.get("kickstart") == system.get("autoinstall")
+            assert system.get("ks_meta") == system.get("autoinstall_meta")
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
+    def test_get_system_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        system = remote.get_system_for_koan("testsystem0")
+
+        # Assert
+        assert "ks_meta" in system
+        assert "kickstart" in system
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    def test_get_profile_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        profile = remote.get_profile_for_koan("testprofile0")
+
+        # Assert
+        assert "ks_meta" in profile
+        assert "kickstart" in profile
+
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
+    def test_get_distro_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        distro = remote.get_distro_for_koan("testdistro0")
+
+        # Assert
+        assert "ks_meta" in distro
+        assert "kickstart" not in distro
+
+    def test_get_repo_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        repo = remote.get_repo_for_koan()
+
+        # Assert
+        assert "ks_meta" in repo
+        assert "kickstart" not in repo
+
+    def test_get_image_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        image = remote.get_image_for_koan()
+
+        # Assert
+        assert "ks_meta" in image
+        assert "kickstart" in image
+
+    def test_get_mgmtclass_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        mgmt_class = remote.get_mgmtclass_for_koan()
+
+        # Assert
+        assert "ks_meta" in mgmt_class
+        assert "kickstart" not in mgmt_class
+
+    def test_get_package_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        package = remote.get_package_for_koan()
+
+        # Assert
+        assert "ks_meta" in package
+        assert "kickstart" not in package
+
+    def test_get_file_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        file = remote.get_file_for_koan()
+
+        # Assert
+        assert "ks_meta" in file
+        assert "kickstart" not in file
+
     def test_find_distro(self, remote, token):
         """
         Test: find a distro object
