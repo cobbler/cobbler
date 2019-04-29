@@ -60,7 +60,7 @@ class PXEGen:
 
         self.protocol    = "http"
 
-        if (self.settings.client_use_https, False):
+        if (self.settings.client_use_https == 1):
             self.protocol = "https"
 
     def copy_bootloaders(self):
