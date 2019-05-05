@@ -58,6 +58,11 @@ class PXEGen:
         # FIXME: not used anymore, can remove?
         self.verbose     = False
 
+        self.protocol    = "http"
+
+        if (self.settings.client_use_https == 1):
+            self.protocol = "https"
+
     def copy_bootloaders(self):
         """
         Copy bootloaders to the configured tftpboot directory
@@ -230,7 +235,7 @@ class PXEGen:
                 ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
             except socket.gaierror:
                 ipaddress = blended["http_server"]
-            kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
+            kickstart_path = "%s://%s/cblr/svc/op/ks/system/%s" % (self.protocol, ipaddress, system.name)
             # gather default kernel_options and default kernel_options_s390x
             kopts = blended.get("kernel_options","")
             hkopts = shlex.split(utils.hash_to_string(kopts))
@@ -347,7 +352,7 @@ class PXEGen:
                     ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
                 except socket.gaierror:
                     ipaddress = blended["http_server"]
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
+                kickstart_path = "%s://%s/cblr/svc/op/ks/profile/%s" % (self.protocol, ipaddress, profile.name)
                 # gather default kernel_options and default kernel_options_s390x
                 kopts = blended.get("kernel_options","")
                 hkopts = shlex.split(utils.hash_to_string(kopts))
@@ -786,9 +791,9 @@ class PXEGen:
             except socket.gaierror:
                 ipaddress = blended["http_server"]
             if system is not None and kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/system/%s" % (ipaddress, system.name)
+                kickstart_path = "%s://%s/cblr/svc/op/ks/system/%s" % (self.protocol,ipaddress, system.name)
             elif kickstart_path.startswith("/"):
-                kickstart_path = "http://%s/cblr/svc/op/ks/profile/%s" % (ipaddress, profile.name)
+                kickstart_path = "%s://%s/cblr/svc/op/ks/profile/%s" % (self.protocol,ipaddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
                 append_line = "%s ks=%s" % (append_line, kickstart_path)
@@ -1114,7 +1119,7 @@ class PXEGen:
        #        blender function to ensure they're consistently
        #        available to templates across the board
        if obj.enable_gpxe:
-           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+           blended['img_path'] = '%s://%s:%s/cobbler/links/%s' % (self.protocol,self.settings.server,self.settings.http_port,distro.name)
        else:
            blended['img_path'] = os.path.join("/images",distro.name)
 
@@ -1154,7 +1159,7 @@ class PXEGen:
        #        blender function to ensure they're consistently
        #        available to templates across the board
        if obj.enable_gpxe:
-           blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server,self.settings.http_port,distro.name)
+           blended['img_path'] = '%s://%s:%s/cobbler/links/%s' % (self.protocol,self.settings.server,self.settings.http_port,distro.name)
        else:
            blended['img_path'] = os.path.join("/images",distro.name)
 
