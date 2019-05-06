@@ -1839,7 +1839,9 @@ class CobblerXMLRPCInterface(object):
         self._log("get_image_for_koan", name=name, token=token)
         obj = self.api.find_image(name=name)
         if obj is not None:
-            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+            _dict = utils.blender(self.api, True, obj)
+            _dict["kickstart"] = _dict["autoinstall"]
+            return self.xmlrpc_hacks(_dict)
         return self.xmlrpc_hacks({})
 
     def get_mgmtclass_for_koan(self, name, token=None, **rest):
