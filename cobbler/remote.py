@@ -575,9 +575,19 @@ class CobblerXMLRPCInterface(object):
         what is the name of a cobbler object type, as described for get_item.
         Individual list elements are the same for get_item.
         """
-        # FIXME: is the xmlrpc_hacks method still required ?
-        item = [x.to_dict() for x in self.api.get_items(what)]
-        return self.xmlrpc_hacks(item)
+        items = [x.to_dict() for x in self.api.get_items(what)]
+
+        for item in items:
+            if "autoinstall" in item:
+                self._log("autoinstall legacy field added as kickstart")
+                kick_dict = {"kickstart": item.get("autoinstall")}
+                item.update(kick_dict)
+            if "autoinstall_meta" in item:
+                self._log("autoinstall_meta legacy field added as ks_meta")
+                kick_meta_dict = {"ks_meta": item.get("autoinstall_meta")}
+                item.update(kick_meta_dict)
+
+        return self.xmlrpc_hacks(items)
 
     def get_item_names(self, what):
         """
@@ -1721,30 +1731,160 @@ class CobblerXMLRPCInterface(object):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    # provide renamed methods under old name for compatibility
     def get_distro_for_koan(self, name, token=None, **rest):
-        return self.get_distro_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: The name of the distro to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired distro or '~'.
+        """
+        self._log("get_distro_for_koan", name=name, token=token)
+        obj = self.api.find_distro(name=name)
+        if obj is not None:
+            _dict = utils.blender(self.api, True, obj)
+            _dict["ks_meta"] = _dict["autoinstall_meta"]
+            return self.xmlrpc_hacks(_dict)
+        return self.xmlrpc_hacks({})
 
     def get_profile_for_koan(self, name, token=None, **rest):
-        return self.get_profile_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: The name of the profile to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired profile or '~'.
+        """
+        self._log("get_profile_for_koan", name=name, token=token)
+        obj = self.api.find_profile(name=name)
+        if obj is not None:
+            _dict = utils.blender(self.api, True, obj)
+            _dict["kickstart"] = _dict["autoinstall"]
+            _dict["ks_meta"] = _dict["autoinstall_meta"]
+            return self.xmlrpc_hacks(_dict)
+        return self.xmlrpc_hacks({})
 
     def get_system_for_koan(self, name, token=None, **rest):
-        return self.get_system_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: The name of the system to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired system or '~'.
+        """
+        self._log("get_system_as_rendered", name=name, token=token)
+        obj = self.api.find_system(name=name)
+        if obj is not None:
+            _dict = utils.blender(self.api, True, obj)
+
+            # Generate a pxelinux.cfg?
+            image_based = False
+            profile = obj.get_conceptual_parent()
+            distro = profile.get_conceptual_parent()
+
+            # the management classes stored in the system are just a list
+            # of names, so we need to turn it into a full list of dictionaries
+            # (right now we just use the params field)
+            mcs = _dict["mgmt_classes"]
+            _dict["mgmt_classes"] = {}
+            for m in mcs:
+                c = self.api.find_mgmtclass(name=m)
+                if c:
+                    _dict["mgmt_classes"][m] = c.to_dict()
+
+            arch = None
+            if distro is None and profile.COLLECTION_TYPE == "image":
+                image_based = True
+                arch = profile.arch
+            else:
+                arch = distro.arch
+
+            if obj.is_management_supported():
+                if not image_based:
+                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                        None, obj, profile, distro, arch)
+                else:
+                    _dict["pxelinux.cfg"] = self.tftpgen.write_pxe_file(
+                        None, obj, None, None, arch, image=profile)
+
+            # Add legacy fields to the system
+            _dict["kickstart"] = _dict["autoinstall"]
+            _dict["ks_meta"] = _dict["autoinstall_meta"]
+
+            return self.xmlrpc_hacks(_dict)
+        return self.xmlrpc_hacks({})
 
     def get_repo_for_koan(self, name, token=None, **rest):
-        return self.get_repo_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: The name of the repo to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired repo or '~'.
+        """
+        self._log("get_repo_for_koan", name=name, token=token)
+        obj = self.api.find_repo(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_image_for_koan(self, name, token=None, **rest):
-        return self.get_image_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: The name of the image to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired image or '~'
+        """
+        self._log("get_image_for_koan", name=name, token=token)
+        obj = self.api.find_image(name=name)
+        if obj is not None:
+            _dict = utils.blender(self.api, True, obj)
+            _dict["kickstart"] = _dict["autoinstall"]
+            return self.xmlrpc_hacks(_dict)
+        return self.xmlrpc_hacks({})
 
     def get_mgmtclass_for_koan(self, name, token=None, **rest):
-        return self.get_mgmtclass_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: Name of the mgmtclass to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired mgmtclass or `~`.
+        """
+        self._log("get_mgmtclass_for_koan", name=name, token=token)
+        obj = self.api.find_mgmtclass(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_package_for_koan(self, name, token=None, **rest):
-        return self.get_package_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: Name of the package to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired package or '~'.
+        """
+        self._log("get_package_for_koan", name=name, token=token)
+        obj = self.api.find_package(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_file_for_koan(self, name, token=None, **rest):
-        return self.get_file_as_rendered(name)
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: Name of the file to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired file or '~'.
+        """
+        self._log("get_file_for_koan", name=name, token=token)
+        obj = self.api.find_file(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
 
     def get_random_mac(self, virt_type="xenpv", token=None, **rest):
         """

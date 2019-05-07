@@ -414,6 +414,136 @@ def remove_testsystem(remote, token):
     remote.remove_system("testsystem0", token, False)
 
 
+@pytest.fixture()
+def create_testrepo(remote, token):
+    """
+    Create a testrepository with the name "testrepo0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    repo = remote.new_repo(token)
+    remote.modify_repo(repo, "name", "testrepo0", token)
+    remote.modify_repo(repo, "arch", "x86_64", token)
+    remote.modify_repo(repo, "mirror", "http://something", token)
+    remote.save_repo(repo, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testrepo(remote, token):
+    """
+    Remove a repo "testrepo0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_repo("testrepo0", token, False)
+
+
+@pytest.fixture()
+def create_testimage(remote, token):
+    """
+    Create a testrepository with the name "testimage0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    image = remote.new_image(token)
+    remote.modify_image(image, "name", "testimage0", token)
+    remote.save_image(image, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testimage(remote, token):
+    """
+    Remove the image "testimage0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_image("testimage0", token, False)
+
+
+@pytest.fixture()
+def create_testpackage(remote, token):
+    """
+    Create a testpackage with the name "testpackage0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    package = remote.new_package(token)
+    remote.modify_package(package, "name", "testpackage0", token)
+    remote.save_package(package, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testpackage(remote, token):
+    """
+    Remove a package "testpackage0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+
+    yield
+    remote.remove_package("testpackage0", token, False)
+
+
+@pytest.fixture()
+def create_testfile(remote, token):
+    """
+    Create a testfile with the name "testfile0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+
+    mfile = remote.new_file(token)
+    remote.modify_file(mfile, "name", "testfile0", token)
+    remote.modify_file(mfile, "path", "/dev/shm/", token)
+    remote.modify_file(mfile, "group", "root", token)
+    remote.modify_file(mfile, "owner", "root", token)
+    remote.modify_file(mfile, "mode", "0600", token)
+    remote.modify_file(mfile, "is_dir", "True", token)
+    remote.save_file(mfile, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testfile(remote, token):
+    """
+    Remove a file "testfile0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_file("testfile0", token, False)
+
+
+@pytest.fixture()
+def create_mgmtclass(remote, token):
+    """
+    Create a mgmtclass with the name "mgmtclass0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+
+    mgmtclass0 = remote.new_mgmtclass(token)
+    remote.modify_mgmtclass(mgmtclass0, "name", "mgmtclass0", token)
+    remote.save_mgmtclass(mgmtclass0, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_mgmtclass(remote, token):
+    """
+    Remove a mgmtclass "mgmtclass0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_mgmtclass("mgmtclass0", token, False)
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base", "remove_fakefiles")
 class TestDistroProfileSystem:
     """
@@ -713,6 +843,110 @@ class TestDistroProfileSystem:
 
         # Assert
         assert system is "~"
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
+    def test_get_systems_koan(self, remote):
+        # Arrange
+
+        # Act
+        systems = remote.get_systems()
+
+        # Assert
+        for system in systems:
+            assert "ks_meta" in system
+            assert "kickstart" in system
+            assert system.get("kickstart") == system.get("autoinstall")
+            assert system.get("ks_meta") == system.get("autoinstall_meta")
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testprofile", "remove_testsystem")
+    def test_get_system_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        system = remote.get_system_for_koan("testsystem0")
+
+        # Assert
+        assert "ks_meta" in system
+        assert "kickstart" in system
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    def test_get_profile_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        profile = remote.get_profile_for_koan("testprofile0")
+
+        # Assert
+        assert "ks_meta" in profile
+        assert "kickstart" in profile
+
+    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
+    def test_get_distro_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        distro = remote.get_distro_for_koan("testdistro0")
+
+        # Assert
+        assert "ks_meta" in distro
+        assert "kickstart" not in distro
+
+    @pytest.mark.usefixtures("create_testrepo", "remove_testrepo")
+    def test_get_repo_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        repo = remote.get_repo_for_koan("testrepo0")
+
+        # Assert
+        assert "ks_meta" not in repo
+        assert "kickstart" not in repo
+
+    @pytest.mark.usefixtures("create_testimage", "remove_testimage")
+    def test_get_image_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        image = remote.get_image_for_koan("testimage0")
+
+        # Assert
+        assert "ks_meta" not in image
+        assert "kickstart" in image
+
+    @pytest.mark.usefixtures("create_mgmtclass", "remove_mgmtclass")
+    def test_get_mgmtclass_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        mgmt_class = remote.get_mgmtclass_for_koan("mgmtclass0")
+
+        # Assert
+        assert "ks_meta" not in mgmt_class
+        assert "kickstart" not in mgmt_class
+
+    @pytest.mark.usefixtures("create_testpackage", "remove_testpackage")
+    def test_get_package_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        package = remote.get_package_for_koan("package0")
+
+        # Assert
+        assert "ks_meta" not in package
+        assert "kickstart" not in package
+
+    @pytest.mark.usefixtures("create_testfile", "remove_testfile")
+    def test_get_file_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        file = remote.get_file_for_koan("file0")
+
+        # Assert
+        assert "ks_meta" not in file
+        assert "kickstart" not in file
 
     def test_find_distro(self, remote, token):
         """

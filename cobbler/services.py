@@ -72,6 +72,21 @@ class CobblerSvc(object):
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
         return "%s" % data
 
+    def ks(self, profile=None, system=None, REMOTE_ADDR=None, REMOTE_MAC=None, **rest):
+        """
+        Generate automatic installation files. This is a legacy function for part backward compability to 2.6.6
+        releases.
+        :param profile:
+        :param system:
+        :param REMOTE_ADDR:
+        :param REMOTE_MAC:
+        :param rest:
+        :return:
+        """
+        self.__xmlrpc_setup()
+        data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
+        return "%s" % data
+
     def gpxe(self, profile=None, system=None, mac=None, **rest):
         """
         Generate a gPXE config
@@ -251,6 +266,36 @@ class CobblerSvc(object):
             return self.dlmgr.urlread(url)
         except:
             return "# automatic installation file retrieval failed (%s)" % url
+
+    def findks(self, system=None, profile=None, **rest):
+        """
+        This is a legacy function which enabled cobbler partly to be backward compatible to 2.6.6 releases.
+
+        It should be only be used if you must. Please use find_autoinstall if possible!
+        :param system: If you wish to find a system please set this parameter to not null. Hand over the name of it.
+        :param profile: If you wish to find a system please set this parameter to not null. Hand over the name of it.
+        :param rest: If you wish you can try to let cobbler autodetect the system with the MAC address.
+        :return: Returns the autoinstall/kickstart profile.
+        """
+        self.__xmlrpc_setup()
+
+        serverseg = "http://%s" % self.collection_mgr._settings.server
+
+        name = "?"
+        if system is not None:
+            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+        elif profile is not None:
+            url = "%s/cblr/svc/op/ks/profile/%s" % (serverseg, name)
+        else:
+            name = self.autodetect(**rest)
+            if name.startswith("FAILED"):
+                return "# autodetection %s" % name
+            url = "%s/cblr/svc/op/ks/system/%s" % (serverseg, name)
+
+        try:
+            return self.dlmgr.urlread(url)
+        except:
+            return "# kickstart retrieval failed (%s)" % url
 
     def puppet(self, hostname=None, **rest):
         self.__xmlrpc_setup()
