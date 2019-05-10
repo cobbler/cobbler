@@ -542,8 +542,7 @@ if __name__ == "__main__":
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
     httpd_service = "httpd.service"
-    os_release = distro.linux_distribution()[0].lower().strip()
-    suse_release = ("suse" in os_release)
+    suse_release = "suse" in distro.like()
 
     if suse_release:
         webconfig = "/etc/apache2/conf.d"
