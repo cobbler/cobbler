@@ -179,7 +179,7 @@ class System(item.Item):
     def __get_interface(self, name):
 
         if not name:
-            raise CX(_("No network interface name provided"))
+            name = "default"
         if name not in self.interfaces:
             self.__create_interface(name)
 
