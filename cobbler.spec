@@ -80,7 +80,7 @@ BuildRequires: systemd-units
 Requires: genisoimage
 Requires: python3-cheetah
 Requires: python3-pyyaml
-Requires: httpd
+Requires: httpd >= 2.4
 Requires: mod_wsgi
 Requires(post): systemd-sysv
 Requires(post): systemd-units
@@ -89,13 +89,13 @@ Requires(postun): systemd-units
 %endif
 
 %if 0%{?suse_version} >= 1230
-BuildRequires: apache2
+BuildRequires: apache2 >= 2.4
 BuildRequires: python-Cheetah
 BuildRequires: distribution-release
 BuildRequires: systemd
 Requires: python-PyYAML
 Requires: python-Cheetah
-Requires: apache2
+Requires: apache2 >= 2.4
 Requires: apache2-mod_wsgi
 Requires: cdrkit-cdrtools-compat
 %{?systemd_requires}
@@ -275,13 +275,13 @@ Requires: cobbler
 Requires(post): openssl
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
-Requires: httpd
+Requires: httpd >= 2.4
 Requires: Django >= 1.8
 Requires: mod_wsgi
 %endif
 
 %if 0%{?suse_version} >= 1230
-Requires: apache2
+Requires: apache2 >= 2.4
 Requires: apache2-mod_wsgi
 Requires: python-django >= 1.7
 %endif
