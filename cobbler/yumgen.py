@@ -26,8 +26,8 @@ from builtins import object
 import os
 import os.path
 
-from . import templar
-from . import utils
+from cobbler import templar
+from cobbler import utils
 
 
 class YumGen(object):

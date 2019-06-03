@@ -39,7 +39,7 @@ import time
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import configgen
-from items import package, system, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX

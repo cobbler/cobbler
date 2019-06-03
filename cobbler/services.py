@@ -29,8 +29,8 @@ import simplejson
 import time
 import xmlrpc.client
 import yaml
-from collections import manager
-from . import download_manager
+from cobbler.collections import manager
+from cobbler import download_manager
 
 
 class CobblerSvc(object):

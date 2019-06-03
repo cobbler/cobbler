@@ -26,10 +26,9 @@ import time
 import weakref
 import uuid
 
-from cexceptions import CX
-from collections import files as files, systems as systems, mgmtclasses as mgmtclasses, \
-    distros as distros, profiles as profiles, repos as repos, \
-    packages as packages, images as images
+from cobbler.cexceptions import CX
+from cobbler.collections import files as files, systems as systems, mgmtclasses as mgmtclasses, \
+    distros as distros, profiles as profiles, repos as repos, packages as packages, images as images
 from cobbler import settings
 from cobbler import serializer
 

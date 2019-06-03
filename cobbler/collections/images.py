@@ -11,9 +11,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-from actions import litesync
-from collections import collection
-from items import image as image
+from cobbler.actions import litesync
+from cobbler.collections import collection
+from cobbler.items import image as image
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _

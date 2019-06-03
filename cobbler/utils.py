@@ -47,7 +47,7 @@ import urllib.parse
 import yaml
 import distro
 
-from .cexceptions import FileNotFoundException, CX
+from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate

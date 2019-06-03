@@ -26,7 +26,7 @@ import re
 
 from cobbler import clogger
 from cobbler import utils
-from utils import _
+from cobbler.utils import _
 
 
 class CobblerCheck(object):

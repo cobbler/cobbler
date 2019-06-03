@@ -36,7 +36,7 @@ try:
 except:
     apt_available = False
 
-from items import profile, distro
+from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 
 import items.repo as item_repo

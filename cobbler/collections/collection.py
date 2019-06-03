@@ -25,9 +25,8 @@ import time
 import os
 from threading import Lock
 
-from actions import litesync
-from items import package, system, item as item_base, image, profile, repo, mgmtclass, \
-    distro, file
+from cobbler.actions import litesync
+from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX, NotImplementedException

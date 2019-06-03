@@ -26,9 +26,9 @@ import pwd
 import sys
 import time
 
-from . import api as cobbler_api
-from . import remote
-from . import utils
+from cobbler import api as cobbler_api
+from cobbler import remote
+from cobbler import utils
 
 
 def core(api):

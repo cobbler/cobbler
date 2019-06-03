@@ -32,9 +32,9 @@ import stat
 import re
 import time
 
-from .cexceptions import CX
-from . import clogger
-from . import utils
+from cobbler.cexceptions import CX
+from cobbler import clogger
+from cobbler import utils
 
 # Try the power command 3 times before giving up.
 # Some power switches are flakey

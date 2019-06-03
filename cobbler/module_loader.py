@@ -29,9 +29,9 @@ from configparser import ConfigParser
 import glob
 import os
 
-from .cexceptions import CX
-from . import clogger
-from .utils import _, log_exc
+from cobbler.cexceptions import CX
+from cobbler import clogger
+from cobbler.utils import _, log_exc
 
 # add cobbler/modules to python path
 import cobbler

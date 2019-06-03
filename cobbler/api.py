@@ -28,12 +28,13 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
+import distro as distribution
 
-from actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
+from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
 from cobbler import clogger
-from collections import manager
-from items import package, system, image, profile, repo, mgmtclass, distro, file
+from cobbler.collections import manager
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import module_loader
 from cobbler import power_manager
 from cobbler import tftpgen
