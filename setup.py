@@ -589,7 +589,7 @@ if __name__ == "__main__":
         license="GPLv2+",
         install_requires=requires("requirements.txt"),
         tests_require=requires("requirements-test.txt"),
-        packages=find_packages(exclude="*tests*"),
+        packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
             "bin/cobblerd",
