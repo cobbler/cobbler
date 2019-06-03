@@ -50,10 +50,15 @@ def load_modules(module_path=mod_path, blacklist=None):
     filenames = glob.glob("%s/*.py" % module_path)
     filenames += glob.glob("%s/*.pyc" % module_path)
     filenames += glob.glob("%s/*.pyo" % module_path)
+    # Allow recursive modules
+    filenames += glob.glob("%s/**/*.py" % module_path)
+    filenames += glob.glob("%s/**/*.pyc" % module_path)
+    filenames += glob.glob("%s/**/*.pyo" % module_path)
 
     mods = set()
 
     for fn in filenames:
+        # TODO: Add nested module-names to allow recursivly stored modules to be loaded.
         basename = os.path.basename(fn)
         if basename == "__init__.py":
             continue
