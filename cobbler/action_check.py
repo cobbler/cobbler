@@ -85,7 +85,6 @@ class CobblerCheck(object):
         self.check_bootloaders(status)
         self.check_for_wget_curl(status)
         self.check_rsync_conf(status)
-        self.check_httpd(status)
         self.check_iptables(status)
         self.check_yum(status)
         self.check_debmirror(status)
@@ -228,19 +227,6 @@ class CobblerCheck(object):
                     need_sync.append(r.name)
         if len(need_sync) > 0:
             status.append(_("One or more repos need to be processed by cobbler reposync for the first time before automating installations using them: %s") % ", ".join(need_sync))
-
-    def check_httpd(self, status):
-        """
-        Check if Apache is installed.
-        """
-        if self.checked_family == "redhat":
-            rc = utils.subprocess_get(self.logger, "httpd -v")
-        elif self.checked_family == "suse":
-            rc = utils.subprocess_get(self.logger, "httpd2 -v")
-        else:
-            rc = utils.subprocess_get(self.logger, "apache2 -v")
-        if rc.find("Server") == -1:
-            status.append("Apache (httpd) is not installed and/or in path")
 
     def check_dhcpd_bin(self, status):
         """
