@@ -27,7 +27,6 @@ import cobbler.templar as templar
 import cobbler.utils as utils
 import cobbler.tftpgen as tftpgen
 
-from cobbler.utils import _
 from cobbler.cexceptions import CX
 
 

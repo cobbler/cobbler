@@ -23,9 +23,6 @@ import cobbler.clogger as clogger
 import cobbler.tftpgen as tftpgen
 import cobbler.templar as templar
 
-from cobbler.cexceptions import CX
-from cobbler.utils import _
-
 
 def register():
     """
