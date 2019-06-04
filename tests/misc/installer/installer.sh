@@ -328,7 +328,6 @@ function configure_cobbler_dependencies()
 {
 
     configure_http_server "localhost"
-    configure_tftp_server
 
 }
 
@@ -344,15 +343,6 @@ function install_cobbler ()
     cd ..
     rm cobbler -rf
     popd
-
-}
-
-# Configure TFTP server
-function configure_tftp_server ()
-{
-
-    # enable TFTP in xinetd
-    sed -i 's/.*disable.*$/        disable = no/' /etc/xinetd.d/tftp
 
 }
 
@@ -447,9 +437,6 @@ function start_services ()
 
     service dhcpd start
     chkconfig --level 23 dhcpd on
-
-    service xinetd start
-    chkconfig --level 23 xinetd on
 
     service httpd start
     chkconfig --level 23 httpd on

@@ -133,8 +133,6 @@ mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd_rotate $RPM_BUILD_ROOT%{_sysco
 
 mkdir -p $RPM_BUILD_ROOT%{tftp_dir}/images
 
-rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd
-rm $RPM_BUILD_ROOT%{_sysconfdir}/init.d/cobblerd
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mv $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobblerd.service $RPM_BUILD_ROOT%{_unitdir}
 
