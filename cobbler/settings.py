@@ -121,7 +121,6 @@ DEFAULTS = {
     "reposync_flags": ["-l -m -d", "str"],
     "restart_dhcp": [1, "bool"],
     "restart_dns": [1, "bool"],
-    "restart_xinetd": [1, "bool"],
     "run_install_triggers": [1, "bool"],
     "scm_track_enabled": [0, "bool"],
     "scm_track_mode": ["git", "str"],

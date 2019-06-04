@@ -121,9 +121,6 @@ class CobblerSync(object):
             self.dns.write_dns_files()
 
         if self.settings.manage_tftpd:
-            # xinetd.d/tftpd, basically
-            self.logger.info("rendering TFTPD files")
-            self.tftpd.write_tftpd_files()
             # copy in boot_files
             self.tftpd.write_boot_files()
 

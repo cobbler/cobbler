@@ -53,7 +53,6 @@ class InTftpdManager(object):
 
         self.collection_mgr = collection_mgr
         self.templar = templar.Templar(collection_mgr)
-        self.settings_file = "/etc/xinetd.d/tftp"
         self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
         self.systems = collection_mgr.systems()
         self.bootloc = collection_mgr.settings().tftpboot_location
@@ -111,29 +110,6 @@ class InTftpdManager(object):
             self.write_boot_files_distro(distro)
 
         return 0
-
-    def write_tftpd_files(self):
-        """
-        xinetd files are written when manage_tftp is set in
-        /var/lib/cobbler/settings.
-        """
-        template_file = "/etc/cobbler/tftpd.template"
-
-        try:
-            f = open(template_file, "r")
-        except:
-            raise CX(_("error reading template %s") % template_file)
-        template_data = ""
-        template_data = f.read()
-        f.close()
-
-        metadata = {
-            "user": "root",
-            "binary": "/usr/sbin/in.tftpd",
-            "args": "%s" % self.bootloc
-        }
-        self.logger.info("generating %s" % self.settings_file)
-        self.templar.render(template_data, metadata, self.settings_file, None)
 
     def update_netboot(self, name):
         """

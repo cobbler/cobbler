@@ -76,13 +76,9 @@ class CobblerCheck(object):
 
         mode = self.collection_mgr.api.get_sync().tftpd.what()
         if mode == "in_tftpd":
-            self.check_tftpd_bin(status)
             self.check_tftpd_dir(status)
-            self.check_tftpd_conf(status)
         elif mode == "tftpd_py":
-            self.check_ctftpd_bin(status)
             self.check_ctftpd_dir(status)
-            self.check_ctftpd_conf(status)
 
         self.check_service(status, "cobblerd")
 
@@ -316,16 +312,6 @@ class CobblerCheck(object):
         if len(not_found) > 0:
             status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.")
 
-    def check_tftpd_bin(self, status):
-        """
-        Check if tftpd is installed
-        """
-        if self.checked_family == "debian":
-            return
-
-        if not os.path.exists("/etc/xinetd.d/tftp"):
-            status.append("missing /etc/xinetd.d/tftp, install tftp-server?")
-
     def check_tftpd_dir(self, status):
         """
         Check if cobbler.conf's tftpboot directory exists
@@ -336,33 +322,6 @@ class CobblerCheck(object):
         bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
             status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
-
-    def check_tftpd_conf(self, status):
-        """
-        Check that configured tftpd boot directory matches with actual
-        Check that tftpd is enabled to autostart
-        """
-        if self.checked_family == "debian":
-            return
-
-        if os.path.exists("/etc/xinetd.d/tftp"):
-            f = open("/etc/xinetd.d/tftp")
-            re_disable = re.compile(r'disable.*=.*yes')
-            for line in f.readlines():
-                if re_disable.search(line) and not line.strip().startswith("#"):
-                    status.append(_("change 'disable' to 'no' in %(file)s") % {"file": "/etc/xinetd.d/tftp"})
-        else:
-            status.append("missing configuration file: /etc/xinetd.d/tftp")
-
-    def check_ctftpd_bin(self, status):
-        """
-        Check if the Cobbler tftp server is installed
-        """
-        if self.checked_family == "debian":
-            return
-
-        if not os.path.exists("/etc/xinetd.d/ctftp"):
-            status.append("missing /etc/xinetd.d/ctftp")
 
     def check_ctftpd_dir(self, status):
         """
@@ -375,29 +334,6 @@ class CobblerCheck(object):
         if not os.path.exists(bootloc):
             status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
 
-    def check_ctftpd_conf(self, status):
-        """
-        Check that configured tftpd boot directory matches with actual
-        Check that tftpd is enabled to autostart
-        """
-        if self.checked_family == "debian":
-            return
-
-        if os.path.exists("/etc/xinetd.d/tftp"):
-            f = open("/etc/xinetd.d/tftp")
-            re_disable = re.compile(r'disable.*=.*no')
-            for line in f.readlines():
-                if re_disable.search(line) and not line.strip().startswith("#"):
-                    status.append(_("change 'disable' to 'yes' in %(file)s") % {"file": "/etc/xinetd.d/tftp"})
-        if os.path.exists("/etc/xinetd.d/ctftp"):
-            f = open("/etc/xinetd.d/ctftp")
-            re_disable = re.compile(r'disable.*=.*yes')
-            for line in f.readlines():
-                if re_disable.search(line) and not line.strip().startswith("#"):
-                    status.append(_("change 'disable' to 'no' in %(file)s") % {"file": "/etc/xinetd.d/ctftp"})
-        else:
-            status.append("missing configuration file: /etc/xinetd.d/ctftp")
-
     def check_rsync_conf(self, status):
         """
         Check that rsync is enabled to autostart
@@ -405,19 +341,9 @@ class CobblerCheck(object):
         if self.checked_family == "debian":
             return
 
-        if os.path.exists("/etc/xinetd.d/rsync"):
-            f = open("/etc/xinetd.d/rsync")
-            re_disable = re.compile(r'disable.*=.*yes')
-            for line in f.readlines():
-                if re_disable.search(line) and not line.strip().startswith("#"):
-                    status.append(_("change 'disable' to 'no' in %(file)s") % {"file": "/etc/xinetd.d/rsync"})
-
         if os.path.exists("/usr/lib/systemd/system/rsyncd.service"):
             if not os.path.exists("/etc/systemd/system/multi-user.target.wants/rsyncd.service"):
                 status.append(_("enable and start rsyncd.service with systemctl"))
-
-        if not os.path.exists("/usr/lib/systemd") and not os.path.exists("/etc/xinetd.d/rsync"):
-            status.append(_("file /etc/xinetd.d/rsync does not exist"))
 
     def check_dhcpd_conf(self, status):
         """

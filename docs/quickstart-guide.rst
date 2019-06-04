@@ -160,8 +160,6 @@ Once you are done reviewing the output of "cobbler check", it is time to synchro
     ...
     rendering DHCP files
     generating /etc/dhcp/dhcpd.conf
-    rendering TFTPD files
-    generating /etc/xinetd.d/tftp
     cleaning link caches
     running: find /var/lib/tftpboot/images/.link_cache -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'
     received on stdout: 
