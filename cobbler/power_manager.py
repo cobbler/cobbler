@@ -86,6 +86,24 @@ def get_power_command(power_type):
                 return power_path
     return None
 
+def get_power_input(system, power_operation):
+    power_input=""
+    if system.power_type == "virsh":
+        try:
+            power_input += "action=" + power_operation + "\n"
+            power_input += "ipaddr=" + system.power_address + "\n"
+            power_input += "login="  + system.power_user + "\n"
+            power_input += "plug=" + system.power_id + "\n"
+            if system.power_pass is not None:
+                power_input += "password" + system.power_pass + "\n"
+            if system.power_options is not None:
+                power_input += system.power_options+"\n"
+            return power_input
+        except TypeError:
+            raise CX("one of power_address, power_user and power_id was not set")
+
+    else:
+        raise CX("powser type %s not yet implemented in template free version" % system.power_type)
 
 class PowerManager(object):
     """
@@ -148,6 +166,7 @@ class PowerManager(object):
         logger.info("      address: %s" % system.power_address)
         logger.info("      user   : %s" % system.power_user)
         logger.info("      id     : %s" % system.power_id)
+        logger.info("      options: %s" % system.power_options)
 
         # if no username/password data, check the environment
         if meta.get("power_user", "") == "":
@@ -155,16 +174,15 @@ class PowerManager(object):
         if meta.get("power_pass", "") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS", "")
 
-        template = self.get_power_template(system.power_type)
-        tmp = templar.Templar(self.collection_mgr)
-        template_data = tmp.render(template, meta, None, system)
+        power_input = get_power_input(system, power_operation)
+
         logger.info("power command: %s" % power_command)
-        logger.info("power command input: %s" % template_data)
+        logger.info("power command input: %s" % power_input)
 
         # Try the power command 5 times before giving up.
         # Some power switches are flakey
         for x in range(0, 5):
-            output, rc = utils.subprocess_sp(logger, power_command, shell=False, input=template_data)
+            output, rc = utils.subprocess_sp(logger, power_command, shell=False, input=power_input)
             # fencing agent returns 2 if the system is powered off
             if rc == 0 or (rc == 2 and power_operation == 'status'):
                 # If the desired state is actually a query for the status
