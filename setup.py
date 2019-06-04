@@ -537,7 +537,6 @@ if __name__ == "__main__":
     # later configuration of relative paths if desired.
     docpath = "share/man/man1"
     etcpath = "/etc/cobbler/"
-    initpath = "/etc/init.d/"
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
     statepath = "/tmp/cobbler_settings/devinstall"
@@ -610,7 +609,6 @@ if __name__ == "__main__":
             "config/apache/cobbler.conf",
             "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
-            "config/service/cobblerd"
         ],
         man_pages=[
             'docs/man/cobbler.1.pod',
@@ -620,7 +618,6 @@ if __name__ == "__main__":
             ("sbin", ["bin/tftpd.py"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
-            ("%s" % initpath, ["build/config/service/cobblerd"]),
             ("%s" % docpath, glob("build/docs/man/*.1.gz")),
             ("%stemplates" % libpath, glob("autoinstall_templates/*")),
             ("%stemplates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
@@ -638,7 +635,6 @@ if __name__ == "__main__":
             # Configuration
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
                               "build/config/apache/cobbler_web.conf",
-                              "build/config/service/cobblerd",
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings"]),
             ("%ssettings.d" % etcpath, glob("config/cobbler/settings.d/*")),
