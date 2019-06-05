@@ -33,7 +33,7 @@ import distro as distribution
 from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
 from cobbler import clogger
-from cobbler.collections import manager
+from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import module_loader
 from cobbler import power_manager
@@ -881,14 +881,14 @@ class CobblerAPI(object):
 
     def serialize(self):
         """
-        Save the collections to disk.
+        Save the cobbler_collections to disk.
         Cobbler internal use only.
         """
         self._collection_mgr.serialize()
 
     def deserialize(self):
         """
-        Load collections from disk.
+        Load cobbler_collections from disk.
         Cobbler internal use only.
         """
         return self._collection_mgr.deserialize()

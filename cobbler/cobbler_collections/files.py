@@ -18,40 +18,39 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler.collections import collection
-from cobbler.items import mgmtclass as mgmtclass
+from cobbler.cobbler_collections import collection
+from cobbler.items import file as file
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-class Mgmtclasses(collection.Collection):
+class Files(collection.Collection):
     """
-    A mgmtclass provides a container for management resources.
+    Files provide a container for file resources.
     """
 
     def collection_type(self):
-        return "mgmtclass"
+        return "file"
 
-    def factory_produce(self, config, item_dict):
+    def factory_produce(self, collection_mgr, item_dict):
         """
-        Return a mgmtclass forged from item_dict
+        Return a File forged from item_dict
         """
-        new_mgmtclass = mgmtclass.Mgmtclass(config)
-        new_mgmtclass.from_dict(item_dict)
-        return new_mgmtclass
+        new_file = file.File(collection_mgr)
+        new_file.from_dict(item_dict)
+        return new_file
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
-
         name = name.lower()
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/file/*", [], logger)
 
             self.lock.acquire()
             try:
@@ -62,7 +61,7 @@ class Mgmtclasses(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/file/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
 
             return

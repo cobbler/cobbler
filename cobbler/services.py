@@ -29,7 +29,7 @@ import simplejson
 import time
 import xmlrpc.client
 import yaml
-from cobbler.collections import manager
+from cobbler.cobbler_collections import manager
 from cobbler import download_manager
 
 

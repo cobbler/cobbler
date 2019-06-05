@@ -1,6 +1,6 @@
 """
-Copyright 2006-2009, Red Hat, Inc and Others
-Michael DeHaan <michael.dehaan AT gmail>
+Copyright 2010, Kelsey Hightower
+Kelsey Hightower <kelsey.hightower@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,45 +18,40 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os.path
-
-from cobbler.collections import collection
-from cobbler.items import repo as repo
+from cobbler.cobbler_collections import collection
+from cobbler.items import mgmtclass as mgmtclass
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
 
 
-class Repos(collection.Collection):
+class Mgmtclasses(collection.Collection):
     """
-    Repositories in cobbler are way to create a local mirror of a yum repository.
-    When used in conjunction with a mirrored distro tree (see "cobbler import"),
-    outside bandwidth needs can be reduced and/or eliminated.
+    A mgmtclass provides a container for management resources.
     """
 
     def collection_type(self):
-        return "repo"
+        return "mgmtclass"
 
     def factory_produce(self, config, item_dict):
         """
-        Return a Distro forged from item_dict
+        Return a mgmtclass forged from item_dict
         """
-        new_repo = repo.Repo(config)
-        new_repo.from_dict(item_dict)
-        return new_repo
+        new_mgmtclass = mgmtclass.Mgmtclass(config)
+        new_mgmtclass.from_dict(item_dict)
+        return new_mgmtclass
 
     def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
         """
         Remove element named 'name' from the collection
         """
-        # NOTE: with_delete isn't currently meaningful for repos
-        # but is left in for consistancy in the API.  Unused.
+
         name = name.lower()
         obj = self.find(name=name)
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [], logger)
 
             self.lock.acquire()
             try:
@@ -67,15 +62,8 @@ class Repos(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [], logger)
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
-
-                # FIXME: better use config.settings() webdir?
-                path = "/var/www/cobbler/repo_mirror/%s" % obj.name
-                if os.path.exists("/srv/www/"):
-                    path = "/srv/www/cobbler/repo_mirror/%s" % obj.name
-                if os.path.exists(path):
-                    utils.rmtree(path)
 
             return
 

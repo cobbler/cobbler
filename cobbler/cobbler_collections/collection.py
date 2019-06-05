@@ -448,7 +448,7 @@ class Collection(object):
         """
         Creates a printable representation of the collection suitable
         for reading by humans or parsing from scripts.  Actually scripts
-        would be better off reading the JSON in the collections files
+        would be better off reading the JSON in the cobbler_collections files
         directly.
         """
         values = list(self.listing.values())[:]   # copy the values

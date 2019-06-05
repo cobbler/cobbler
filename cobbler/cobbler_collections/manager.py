@@ -27,7 +27,7 @@ import weakref
 import uuid
 
 from cobbler.cexceptions import CX
-from cobbler.collections import files as files, systems as systems, mgmtclasses as mgmtclasses, \
+from cobbler.cobbler_collections import files as files, systems as systems, mgmtclasses as mgmtclasses, \
     distros as distros, profiles as profiles, repos as repos, packages as packages, images as images
 from cobbler import settings
 from cobbler import serializer
@@ -40,7 +40,7 @@ class CollectionManager(object):
 
     def __init__(self, api):
         """
-        Constructor.  Manages a definitive copy of all data collections with weakrefs
+        Constructor.  Manages a definitive copy of all data cobbler_collections with weakrefs
         pointing back into the class so they can understand each other's contents
         """
         self.__dict__ = CollectionManager.__shared_state
@@ -131,7 +131,7 @@ class CollectionManager(object):
 
     def serialize(self):
         """
-        Save all collections to disk
+        Save all cobbler_collections to disk
         """
 
         serializer.serialize(self._distros)
@@ -165,7 +165,7 @@ class CollectionManager(object):
 
     def deserialize(self):
         """
-        Load all collections from disk
+        Load all cobbler_collections from disk
 
         @raise CX if there is an error in deserialization
         """

@@ -2,7 +2,7 @@
 Configures acls for various users/groups so they can access the cobbler command
 line as non-root.  Now that CLI is largely remoted (XMLRPC) this is largely just
 useful for not having to log in (access to shared-secret) file but also grants
-access to hand-edit various collections files and other useful things.
+access to hand-edit various cobbler_collections files and other useful things.
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
