@@ -129,6 +129,6 @@ def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
     """
-    return module_loader.get_module_from_file("serializers", collection_type, "serializer_file")
+    return module_loader.get_module_from_file("serializers", collection_type, "serializers.file")
 
 # EOF
