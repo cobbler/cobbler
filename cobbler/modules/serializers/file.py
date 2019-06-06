@@ -1,7 +1,7 @@
 """
 Cobbler's file-based object serializer.
 As of 9/2014, this is Cobbler's default serializer and the most stable one.
-It uses multiple JSON files in /var/lib/cobbler/cobbler_collections/distros, profiles, etc
+It uses multiple JSON files in /var/lib/cobbler/collections/distros, profiles, etc
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -50,19 +50,19 @@ def serialize_item(collection, item):
     """
     Save a collection item to file system
 
-    @param Collection collection collection
-    @param Item item collection item
+    @param collection Collection  collection
+    @param item Item collection item
     """
 
     if not item.name:
         raise CX("name unset for item!")
 
-    # FIXME: Need a better way to support cobbler_collections/items
+    # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
     if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/cobbler_collections/%ses/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/cobbler_collections/%ss/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
 
     _dict = item.to_dict()
 
@@ -86,16 +86,16 @@ def serialize_delete(collection, item):
     """
     Delete a collection item from file system
 
-    @param Collection collection collection
-    @param Item item collection item
+    @param collection Collection collection
+    @param item Item collection item
     """
 
-    # FIXME: Need a better way to support cobbler_collections/items
+    # FIXME: Need a better way to support collections/items
     # appending an 's' does not work in all cases
     if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/cobbler_collections/%ses/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
     else:
-        filename = "/var/lib/cobbler/cobbler_collections/%ss/%s" % (collection.collection_type(), item.name)
+        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
 
     filename += ".json"
     if os.path.exists(filename):
@@ -134,12 +134,12 @@ def deserialize_raw(collection_type):
         return _dict
     else:
         results = []
-        # FIXME: Need a better way to support cobbler_collections/items
+        # FIXME: Need a better way to support collections/items
         # appending an 's' does not work in all cases
         if collection_type in ['mgmtclass']:
-            all_files = glob.glob("/var/lib/cobbler/cobbler_collections/%ses/*" % collection_type)
+            all_files = glob.glob("/var/lib/cobbler/collections/%ses/*" % collection_type)
         else:
-            all_files = glob.glob("/var/lib/cobbler/cobbler_collections/%ss/*" % collection_type)
+            all_files = glob.glob("/var/lib/cobbler/collections/%ss/*" % collection_type)
 
         for f in all_files:
             fd = open(f)
