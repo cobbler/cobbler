@@ -119,21 +119,21 @@ class PowerManager(object):
                 Rebooting is implemented as a set of 2 operations (off and on) in
                 a higher level method.
         """
-        
-        power_input=""
+
+        power_input = ""
         if power_operation == None or power_operation not in ['on', 'off', 'status']:
             raise CX("invalid power operation")
         power_input += "action=" + power_operation + "\n"
         if system.power_address is not None and not system.power_address == "":
             power_input += "ipaddr=" + system.power_address + "\n"
-        if system.power_user is not None and not system.power_user == "":    
-            power_input += "login="  + system.power_user + "\n"
+        if system.power_user is not None and not system.power_user == "":
+            power_input += "login=" + system.power_user + "\n"
         if system.power_id is not None and not system.power_id == "":
             power_input += "plug=" + system.power_id + "\n"
-        if system.power_pass is not None and  not system.power_pass == "":
+        if system.power_pass is not None and not system.power_pass == "":
             power_input += "password" + system.power_pass + "\n"
         if system.power_identity_file is not None and not system.power_identity_file == "":
-            power_input += "identity-file=" + system.power_identity_file                
+            power_input += "identity-file=" + system.power_identity_file
         if system.power_options is not None:
             power_input += system.power_options+"\n"
         return power_input
