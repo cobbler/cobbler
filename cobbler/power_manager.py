@@ -86,24 +86,6 @@ def get_power_command(power_type):
                 return power_path
     return None
 
-def get_power_input(system, power_operation):
-    power_input=""
-    if system.power_type == "virsh":
-        try:
-            power_input += "action=" + power_operation + "\n"
-            power_input += "ipaddr=" + system.power_address + "\n"
-            power_input += "login="  + system.power_user + "\n"
-            power_input += "plug=" + system.power_id + "\n"
-            if system.power_pass is not None:
-                power_input += "password" + system.power_pass + "\n"
-            if system.power_options is not None:
-                power_input += system.power_options+"\n"
-            return power_input
-        except TypeError:
-            raise CX("one of power_address, power_user and power_id was not set")
-
-    else:
-        raise CX("powser type %s not yet implemented in template free version" % system.power_type)
 
 class PowerManager(object):
     """
@@ -125,6 +107,28 @@ class PowerManager(object):
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
+
+    @staticmethod
+    def _get_power_input(system, power_operation):
+        power_input=""
+        if system.power_type == "virsh":
+            try:
+                power_input += "action=" + power_operation + "\n"
+                power_input += "ipaddr=" + system.power_address + "\n"
+                power_input += "login="  + system.power_user + "\n"
+                power_input += "plug=" + system.power_id + "\n"
+                if system.power_pass is not None and  not system.power_pass == "":
+                    power_input += "password" + system.power_pass + "\n"
+                if system.power_identity_file is not None and not system.power_identity_file == "":
+                    power_input += "identity-file=" + system.power_identity_file                
+                if system.power_options is not None:
+                    power_input += system.power_options+"\n"
+                return power_input
+            except TypeError:
+                raise CX("one of power_address, power_user and power_id was not set")
+
+        else:
+            raise CX("powser type %s not yet implemented in template free version" % system.power_type)
 
     def _power(self, system, power_operation, user=None, password=None, logger=None):
         """
@@ -174,7 +178,7 @@ class PowerManager(object):
         if meta.get("power_pass", "") == "":
             meta["power_pass"] = os.environ.get("COBBLER_POWER_PASS", "")
 
-        power_input = get_power_input(system, power_operation)
+        power_input = self._get_power_input(system, power_operation)
 
         logger.info("power command: %s" % power_command)
         logger.info("power command input: %s" % power_input)
