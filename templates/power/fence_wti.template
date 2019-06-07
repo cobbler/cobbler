@@ -1,4 +1,0 @@
-action=$power_mode
-ipaddr=$power_address
-passwd=$power_pass
-port=$power_id
