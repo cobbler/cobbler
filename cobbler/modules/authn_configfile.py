@@ -37,7 +37,7 @@ def __parse_storage():
 
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    fd = open("/etc/cobbler/users.digest")
+    fd = open("/etc/cobbler/users.digest", encoding='utf-8')
     data = fd.read()
     fd.close()
     results = []

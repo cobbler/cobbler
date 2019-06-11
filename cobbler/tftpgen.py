@@ -655,8 +655,8 @@ class TFTPGen(object):
         append_line = self.templar.render(append_line, utils.flatten(blended), None)
 
         # FIXME - the append_line length limit is architecture specific
-        if len(append_line) >= 255:
-            self.logger.warning("warning: kernel option length exceeds 255")
+        if len(append_line) >= 1024:
+            self.logger.warning("warning: kernel option length exceeds 1024")
 
         return append_line
 

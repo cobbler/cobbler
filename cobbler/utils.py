@@ -55,7 +55,7 @@ from cobbler import validate
 
 
 def md5(key):
-    return hashlib.md5(key)
+    return hashlib.md5(key.encode('utf-8'))
 
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -1836,7 +1836,7 @@ def get_shared_secret():
     """
 
     try:
-        fd = open("/var/lib/cobbler/web.ss", 'rb')
+        fd = open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8')
         data = fd.read()
     except:
         return -1
@@ -1948,12 +1948,19 @@ def lod_to_dod(_list, indexkey):
 # -------------------------------------------------------
 
 
+from functools import cmp_to_key
+
+
+def mycmp(x, y):
+    return (x < y)
+
+
 def lod_sort_by_key(_list, indexkey):
     """
     Sorts a list of dictionaries by a given key in the dictionaries
     note: this is a destructive operation
     """
-    _list.sort(lambda a, b: a[indexkey] < b[indexkey])
+    _list.sort(key=cmp_to_key(lambda a, b: mycmp(a[indexkey], b[indexkey])))
     return _list
 
 
@@ -1964,7 +1971,7 @@ def dhcpconf_location(api):
         return "/etc/dhcpd.conf"
     elif version[0] in ["fedora"] and version[1] < 11:
         return "/etc/dhcpd.conf"
-    elif dist == "suse":
+    elif dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
         return "/etc/dhcpd.conf"
     elif dist == "debian" and int(version[1].split('.')[0]) < 6:
         return "/etc/dhcp3/dhcpd.conf"
@@ -1983,9 +1990,11 @@ def namedconf_location(api):
 
 
 def zonefile_base(api):
-    (dist, version) = api.os_version
+    (dist, ver) = api.get_os_details()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/db."
+    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
+        return "/var/lib/named/"
     else:
         return "/var/named/"
 

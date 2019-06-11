@@ -2,8 +2,8 @@
 # Setup Makefile to match your environment
 #
 PYTHON=/usr/bin/python3
-PYFLAKES=/usr/bin/pyflakes-3
-PYCODESTYLE=/usr/bin/pycodestyle-3
+PYFLAKES=/usr/bin/pyflakes
+PYCODESTYLE=/usr/bin/pycodestyle
 
 TOP_DIR:=$(shell pwd)
 DESTDIR=/

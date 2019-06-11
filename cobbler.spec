@@ -11,7 +11,7 @@
 %{!?__python3: %global __python3 /usr/bin/python3}
 %{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print sys.version[:3]" || echo 0)}
+%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print(sys.version[:3])" || echo 0)}
 
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
@@ -40,7 +40,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 Version: 2.9.0
-Release: 1%{?dist}
+Release: 8%{?dist}
 Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 BuildArch: noarch
 Url: https://cobbler.github.io
@@ -90,14 +90,17 @@ Requires(postun): systemd-units
 
 %if 0%{?suse_version} >= 1230
 BuildRequires: apache2 >= 2.4
-BuildRequires: python-Cheetah
+BuildRequires: python3-Cheetah3
 BuildRequires: distribution-release
 BuildRequires: systemd
-Requires: python-PyYAML
-Requires: python-Cheetah
+Requires: python3-PyYAML
+Requires: python3-Cheetah3
 Requires: apache2 >= 2.4
-Requires: apache2-mod_wsgi
-Requires: cdrkit-cdrtools-compat
+Requires: apache2-mod_wsgi-python3
+Requires: cdrtools
+Requires: python3-future
+Requires: python3-distro
+Requires: python3-tornado
 %{?systemd_requires}
 Requires(pre): systemd
 Requires(post): systemd
@@ -237,8 +240,8 @@ fi
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %dir %{apache_etc}
-%dir %{apache_etc}/conf.d
-%config(noreplace) %{apache_etc}/conf.d/cobbler.conf
+%dir %{apache_etc}/vhosts.d
+%config(noreplace) %{apache_etc}/vhosts.d/cobbler.conf
 %{_unitdir}/cobblerd.service
 
 # data
@@ -280,8 +283,8 @@ Requires: mod_wsgi
 
 %if 0%{?suse_version} >= 1230
 Requires: apache2 >= 2.4
-Requires: apache2-mod_wsgi
-Requires: python-django >= 1.7
+Requires: apache2-mod_wsgi-python3
+Requires: python3-Django >= 1.7
 %endif
 
 
@@ -301,9 +304,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %doc AUTHORS COPYING README
 
 %{python3_sitelib}/cobbler/web/
+%exclude %{python3_sitelib}/cobbler/web/settings.py
+%exclude %{python3_sitelib}/cobbler/web/__pycache__
+
 %dir %{apache_etc}
-%dir %{apache_etc}/conf.d
-%config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf
+%dir %{apache_etc}/vhosts.d
+%config(noreplace) %{apache_etc}/vhosts.d/cobbler_web.conf
 %{apache_dir}/cobbler_webui_content/
 
 %if 0%{?fedora} >=18 || 0%{?rhel} >= 7
