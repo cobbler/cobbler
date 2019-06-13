@@ -40,7 +40,7 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 Version: 2.9.0
-Release: 8%{?dist}
+Release: 1%{?dist}
 Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 BuildArch: noarch
 Url: https://cobbler.github.io
@@ -308,8 +308,14 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %exclude %{python3_sitelib}/cobbler/web/__pycache__
 
 %dir %{apache_etc}
+%if 0%{?suse_version} >= 1230
 %dir %{apache_etc}/vhosts.d
 %config(noreplace) %{apache_etc}/vhosts.d/cobbler_web.conf
+%else
+%dir %{apache_etc}/conf.d
+%config(noreplace) %{apache_etc}/conf.d/cobbler_web.conf
+%endif
+
 %{apache_dir}/cobbler_webui_content/
 
 %if 0%{?fedora} >=18 || 0%{?rhel} >= 7
