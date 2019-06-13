@@ -9,6 +9,6 @@ coverage
 Django
 pymongo
 distro
-ldap
+ldap3
 dnspython
 tornado
