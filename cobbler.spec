@@ -240,8 +240,14 @@ fi
 
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %dir %{apache_etc}
+%if 0%{?suse_version} >= 1230
 %dir %{apache_etc}/vhosts.d
 %config(noreplace) %{apache_etc}/vhosts.d/cobbler.conf
+%else
+%dir %{apache_etc}/conf.d
+%config(noreplace) %{apache_etc}/conf.d/cobbler.conf
+%endif
+
 %{_unitdir}/cobblerd.service
 
 # data
