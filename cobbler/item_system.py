@@ -64,6 +64,8 @@ FIELDS = [
     ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
     ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", power_manager.get_power_types(), "str"],
     ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
+    ["power_options", "", 0, "Power Management Options", True, "Additional options, to be passed to the fencing agent", 0, "str"],
+    ["power_identity_file", "", 0, "Power Identity File", True, "Identity file to be passed to the fencing agent (ssh key)", 0, "str"],
     ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
     ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
     ["redhat_management_key", "<<inherit>>", 0, "Redhat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
@@ -639,6 +641,18 @@ class System(item.Item):
             power_type = ""
         power_manager.validate_power_type(power_type)
         self.power_type = power_type
+
+    def set_power_identity_file(self, power_identity_file):
+        if power_identity_file is None:
+            power_identity_file = ""
+        utils.safe_filter(power_identity_file)
+        self.power_identity_file = power_identity_file
+
+    def set_power_options(self, power_options):
+        if power_options is None:
+            power_options = ""
+        utils.safe_filter(power_options)
+        self.power_options = power_options
 
     def set_power_user(self, power_user):
         if power_user is None:
