@@ -330,7 +330,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    ":boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub2"]}
    },
    "fedora30": {
     "signatures":["Packages"],
