@@ -24,8 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import hashlib
 
+
 def md5(key):
     return hashlib.md5(key.encode('utf-8'))
+
 
 def register():
     """
