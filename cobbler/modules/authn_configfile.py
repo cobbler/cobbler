@@ -22,9 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
+import hashlib
 
-from cobbler.utils import md5
-
+def md5(key):
+    return hashlib.md5(key.encode('utf-8'))
 
 def register():
     """
