@@ -55,7 +55,7 @@ from cobbler import validate
 
 
 def md5(key):
-    return hashlib.md5(key)
+    return hashlib.md5(key.encode('utf-8'))
 
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -1836,7 +1836,7 @@ def get_shared_secret():
     """
 
     try:
-        fd = open("/var/lib/cobbler/web.ss", 'rb')
+        fd = open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8')
         data = fd.read()
     except:
         return -1
