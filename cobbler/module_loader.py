@@ -27,7 +27,10 @@ import clogger
 from utils import _, log_exc
 from cexceptions import CX
 import ConfigParser
-from sets import Set as set
+try:
+   set
+except NameError:
+   from sets import Set as set
 
 # add cobbler/modules to python path
 import cobbler
