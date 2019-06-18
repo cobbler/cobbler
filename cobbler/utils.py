@@ -31,7 +31,6 @@ from builtins import object
 import copy
 import errno
 import glob
-import hashlib
 import netaddr
 import os
 import random
@@ -52,10 +51,6 @@ from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate
-
-
-def md5(key):
-    return hashlib.md5(key)
 
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -1836,7 +1831,7 @@ def get_shared_secret():
     """
 
     try:
-        fd = open("/var/lib/cobbler/web.ss", 'rb')
+        fd = open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8')
         data = fd.read()
     except:
         return -1

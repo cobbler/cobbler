@@ -22,8 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
+import hashlib
 
-from cobbler.utils import md5
+
+def md5(key):
+    return hashlib.md5(key.encode('utf-8'))
 
 
 def register():
@@ -37,7 +40,7 @@ def __parse_storage():
 
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    fd = open("/etc/cobbler/users.digest")
+    fd = open("/etc/cobbler/users.digest", encoding='utf-8')
     data = fd.read()
     fd.close()
     results = []
