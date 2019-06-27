@@ -31,7 +31,6 @@ from builtins import object
 import copy
 import errno
 import glob
-import hashlib
 import netaddr
 import os
 import random
@@ -52,10 +51,6 @@ from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate
-
-
-def md5(key):
-    return hashlib.md5(key.encode('utf-8'))
 
 
 CHEETAH_ERROR_DISCLAIMER = """
