@@ -201,7 +201,7 @@ def get_fields(what, is_subobject, seed_item=None):
         # flatten lists for those that aren't using select boxes
         if isinstance(ui_field["value"], list):
             if ui_field["html_element"] != "select":
-                ui_field["value"] = string.join(ui_field["value"], sep=" ")
+                ui_field["value"] = " ".join(ui_field["value"])
 
         ui_fields.append(ui_field)
 
