@@ -16,7 +16,7 @@ CMD := $(shell command -v pycodestyle-3 2> /dev/null)
 ifndef CMD
 	PYCODESTYLE=/usr/bin/pycodestyle
 else
-	PYCODESTYLE=/usr/bin/pycodestyleî-3
+	PYCODESTYLE=/usr/bin/pycodestyle-3
 endif
 
 
@@ -66,7 +66,7 @@ qa:
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
 	@echo "checking: pycodestyle"
-	@${PYCODESTYLE} -r --ignore E501,E402,E722 \
+	@${PYCODESTYLE} -r --ignore E501,E402,E722,W504 \
         *.py \
         cobbler/*.py \
         cobbler/modules/*.py \
