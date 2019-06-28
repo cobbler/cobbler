@@ -9,7 +9,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
 import simplejson
-import string
 import time
 import xmlrpc.client
 
