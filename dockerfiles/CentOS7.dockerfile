@@ -1,3 +1,5 @@
+# vim: ft=dockerfile
+
 FROM centos:7
 
 RUN yum makecache fast && yum install -y epel-release && yum makecache fast
@@ -7,9 +9,6 @@ RUN yum install -y          \
     git                     \
     make                    \
     openssl                 \
-    pyflakes                \
-    python-devel            \
-    python-pep8             \
     python-sphinx           \
     python36-coverage       \
     python36-devel          \
@@ -22,12 +21,11 @@ RUN yum install -y          \
 
 # Runtime dependencies
 RUN yum install -y          \
-    PyYAML                  \
     httpd                   \
     mod_wsgi                \
-    python-cheetah          \
-    python-netaddr          \
-    python-simplejson
+    python36-PyYAML         \
+    python36-netaddr        \
+    python36-simplejson
 
 ADD . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

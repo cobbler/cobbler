@@ -1,3 +1,5 @@
+# vim: ft=dockerfile
+
 FROM fedora:29
 
 RUN dnf makecache
@@ -7,14 +9,12 @@ RUN dnf install -y          \
     git                     \
     make                    \
     openssl                 \
-    pyflakes                \
-    python-devel            \
-    python-pep8             \
     python-sphinx           \
     python3-coverage        \
     python3-devel           \
     python3-distro          \
     python3-future          \
+    python3-pep8            \
     python3-pyflakes        \
     python3-pycodestyle     \
     python3-setuptools      \
@@ -22,12 +22,12 @@ RUN dnf install -y          \
 
 # Runtime dependencies
 RUN yum install -y          \
-    PyYAML                  \
     httpd                   \
-    mod_wsgi                \
-    python-cheetah          \
-    python-netaddr          \
-    python-simplejson
+    python3-mod_wsgi        \
+    python3-PyYAML          \
+    python3-cheetah         \
+    python3-netaddr         \
+    python3-simplejson
 
 ADD . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
