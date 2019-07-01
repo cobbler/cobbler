@@ -31,7 +31,7 @@ Install development dependencies:
 
 .. code-block:: none
 
-    # yum install git python-devel pyflakes python-pep8 python-sphinx rpm-build
+    # yum install git python-devel pyflakes python-pep8 python-sphinx rpm-build python36-future python36-distro python36-setuptools python36-coverage
 
 Install runtime dependencies:
 
