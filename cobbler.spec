@@ -11,7 +11,7 @@
 %{!?__python3: %global __python3 /usr/bin/python3}
 %{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print sys.version[:3]" || echo 0)}
+%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print(sys.version[:3])" || echo 0)}
 
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
@@ -47,7 +47,13 @@ Url: https://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl
+
+%if 0%{?rhel}
+BuildRequires: python36-devel
+%else
 BuildRequires: python3-devel
+%endif
+
 Requires: python >= 3.6
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
@@ -318,7 +324,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
 %endif
 
-# 
+#
 # package: cobbler-nsupdate
 #
 
