@@ -441,7 +441,7 @@ def input_string_or_list(options):
     """
     if options == "<<inherit>>":
         return "<<inherit>>"
-    if options is None or options == "" or options == "delete":
+    if not options or options == "delete":
         return []
     elif isinstance(options, list):
         return options
@@ -1162,7 +1162,7 @@ def path_tail(apath, bpath):
 
 
 def set_arch(self, arch, repo=False):
-    if arch is None or arch == "" or arch == "standard" or arch == "x86":
+    if not arch or arch == "standard" or arch == "x86":
         arch = "i386"
 
     if repo:
@@ -1178,11 +1178,11 @@ def set_arch(self, arch, repo=False):
 
 
 def set_os_version(self, os_version):
-    if os_version == "" or os_version is None:
+    if not os_version:
         self.os_version = ""
         return
     self.os_version = os_version.lower()
-    if self.breed is None or self.breed == "":
+    if not self.breed:
         raise CX(_("cannot set --os-version without setting --breed first"))
     if self.breed not in get_valid_breeds():
         raise CX(_("fix --breed first before applying this setting"))
@@ -1203,11 +1203,11 @@ def set_breed(self, breed):
 
 
 def set_repo_os_version(self, os_version):
-    if os_version == "" or os_version is None:
+    if not os_version:
         self.os_version = ""
         return
     self.os_version = os_version.lower()
-    if self.breed is None or self.breed == "":
+    if not self.breed:
         raise CX(_("cannot set --os-version without setting --breed first"))
     if self.breed not in validate.REPO_BREEDS:
         raise CX(_("fix --breed first before applying this setting"))
@@ -1375,7 +1375,7 @@ def set_virt_bridge(self, vbridge):
     """
     The default bridge for all virtual interfaces under this profile.
     """
-    if vbridge is None or vbridge == "":
+    if not vbridge:
         vbridge = self.settings.default_virt_bridge
     self.virt_bridge = vbridge
 

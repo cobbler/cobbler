@@ -54,7 +54,7 @@ def serialize_item(collection, item):
     @param Item item collection item
     """
 
-    if item.name is None or item.name == "":
+    if not item.name:
         raise CX("name unset for item!")
 
     # FIXME: Need a better way to support collections/items

@@ -101,7 +101,7 @@ class DnsmasqManager(object):
                 host = interface["dns_name"]
                 ipv6 = interface["ipv6_address"]
 
-                if mac is None or mac == "":
+                if not mac:
                     # can't write a DHCP entry for this system
                     continue
 
@@ -163,7 +163,7 @@ class DnsmasqManager(object):
             for (name, interface) in list(system.interfaces.items()):
                 mac = interface["mac_address"]
                 ip = interface["ip_address"]
-                if mac is None or mac == "":
+                if not mac:
                     # can't write this w/o a MAC address
                     continue
                 if ip is not None and ip != "":
@@ -182,7 +182,7 @@ class DnsmasqManager(object):
                 host = interface["dns_name"]
                 ip = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
-                if mac is None or mac == "":
+                if not mac:
                     continue
                 if host is not None and host != "" and ipv6 is not None and ipv6 != "":
                     fh.write(ipv6 + "\t" + host + "\n")

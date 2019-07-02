@@ -107,7 +107,7 @@ class Profile(item.Item):
         """
         Return object next highest up the tree.
         """
-        if self.parent is None or self.parent == '':
+        if not self.parent:
             if self.distro is None:
                 return None
             result = self.collection_mgr.distros().find(name=self.distro)
@@ -117,7 +117,7 @@ class Profile(item.Item):
 
     def check_if_valid(self):
         # name validation
-        if self.name is None or self.name == "":
+        if not self.name:
             raise CX("Name is required")
 
         # distro validation
@@ -143,7 +143,7 @@ class Profile(item.Item):
         old_parent = self.get_parent()
         if isinstance(old_parent, item.Item):
             old_parent.children.pop(self.name, 'pass')
-        if parent_name is None or parent_name == '':
+        if not parent_name:
             self.parent = ''
             return
         if parent_name == self.name:
@@ -268,7 +268,7 @@ class Profile(item.Item):
         utils.set_repos(self, repos, bypass_check)
 
     def set_redhat_management_key(self, management_key):
-        if management_key is None or management_key == "":
+        if not management_key:
             self.redhat_management_key = "<<inherit>>"
         self.redhat_management_key = management_key
 
