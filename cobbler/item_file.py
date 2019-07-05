@@ -74,15 +74,15 @@ class File(resource.Resource):
         Insure name, path, owner, group, and mode are set.
         Templates are only required for files, is_dir = False
         """
-        if self.name is None or self.name == "":
+        if not self.name:
             raise CX("name is required")
-        if self.path is None or self.path == "":
+        if not self.path:
             raise CX("path is required")
-        if self.owner is None or self.owner == "":
+        if not self.owner:
             raise CX("owner is required")
-        if self.group is None or self.group == "":
+        if not self.group:
             raise CX("group is required")
-        if self.mode is None or self.mode == "":
+        if not self.mode:
             raise CX("mode is required")
         if not self.is_dir and self.template == "":
             raise CX("Template is required when not a directory")

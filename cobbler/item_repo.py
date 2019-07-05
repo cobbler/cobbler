@@ -103,7 +103,7 @@ class Repo(item.Item):
 
     def _guess_breed(self):
         # backwards compatibility
-        if (self.breed == "" or self.breed is None):
+        if not self.breed:
             if self.mirror.startswith("http://") or self.mirror.startswith("https://") or self.mirror.startswith("ftp://"):
                 self.set_breed("yum")
             elif self.mirror.startswith("rhn://"):
@@ -117,7 +117,7 @@ class Repo(item.Item):
         reposync/repotrack integration over HTTP might come later.
         """
         self.mirror = mirror
-        if self.arch is None or self.arch == "":
+        if not self.arch:
             if mirror.find("x86_64") != -1:
                 self.set_arch("x86_64")
             elif mirror.find("x86") != -1 or mirror.find("i386") != -1:

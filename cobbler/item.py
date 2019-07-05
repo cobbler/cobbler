@@ -465,7 +465,7 @@ class Item(object):
         """
         Raise exceptions if the object state is inconsistent
         """
-        if self.name is None or self.name == "":
+        if not self.name:
             raise CX("Name is required")
 
 # EOF
