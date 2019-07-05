@@ -67,7 +67,7 @@ class DnsmasqManager(object):
     def write_dhcp_file(self):
         """
         DHCP files are written when manage_dhcp is set in
-        /var/lib/cobbler/settings.
+        /etc/cobbler/settings.
         """
 
         settings_file = "/etc/dnsmasq.conf"
