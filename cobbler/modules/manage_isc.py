@@ -174,7 +174,7 @@ class IscManager:
                         interface["filename"] = yaboot
 
                 if dhcp_tag == "":
-                    dhcp_tag = blended_system["dhcp_tag"]
+                    dhcp_tag = blended_system.get("dhcp_tag", "")
                     if dhcp_tag == "":
                         dhcp_tag = "default"
 
