@@ -37,13 +37,14 @@ def run(api, args, logger):
 
     settings = api.settings()
     scm_track_enabled = str(settings.scm_track_enabled).lower()
-    mode = str(settings.scm_track_mode).lower()
-    author = str(settings.scm_track_author)
-    push_script = str(settings.scm_push_script)
 
     if scm_track_enabled not in ["y", "yes", "1", "true"]:
         # feature disabled
         return 0
+
+    mode = str(settings.scm_track_mode).lower()
+    author = str(settings.scm_track_author)
+    push_script = str(settings.scm_push_script)
 
     if mode == "git":
         old_dir = os.getcwd()
