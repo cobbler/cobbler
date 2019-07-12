@@ -194,7 +194,7 @@ class Settings(object):
         """
         self._clear()
         if (self.manage_tftp or self.manage_tftpd) and not os.path.isdir(self.tftpboot_location):
-            # TODO: Logging of this.
+            print("TFTP directory '{}' not found".format(self.tftpboot_location), file=sys.stderr)
             sys.exit(1)
 
     def _clear(self):

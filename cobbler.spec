@@ -11,7 +11,7 @@
 %{!?__python3: %global __python3 /usr/bin/python3}
 %{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print sys.version[:3]" || echo 0)}
+%{!?pyver: %global pyver %(%{__python3} -c "import sys ; print(sys.version[:3])" || echo 0)}
 
 %if 0%{?suse_version}
 %define apache_dir /srv/www/
@@ -47,16 +47,36 @@ Url: https://cobbler.github.io
 
 BuildRequires: git
 BuildRequires: openssl
+
+%if 0%{?rhel}
+BuildRequires: python36-devel
+%else
 BuildRequires: python3-devel
+%endif
+
+%if 0%{?rhel}
+Requires: python36 >= 3.6
+%else
 Requires: python >= 3.6
+%endif
+
 Requires: python(abi) >= %{pyver}
 Requires: createrepo
-Requires: python3-netaddr
-Requires: python3-simplejson
-Requires: python3-requests
 Requires: rsync
 Requires: syslinux >= 4
 Requires: logrotate
+
+%if 0%{?rhel}
+Requires: python36-distro
+Requires: python36-future
+Requires: python36-netaddr
+Requires: python36-simplejson
+Requires: python36-requests
+%else
+Requires: python3-netaddr
+Requires: python3-simplejson
+Requires: python3-requests
+%endif
 
 # FIXME: check on other distros
 Requires: grub2-efi-ia32-modules
@@ -78,8 +98,15 @@ Requires: dnf-plugins-core
 BuildRequires: redhat-rpm-config
 BuildRequires: systemd-units
 Requires: genisoimage
+
+%if 0%{?rhel}
+Requires: python36-PyYAML
+Requires: python36-pip
+%else
 Requires: python3-cheetah
 Requires: python3-pyyaml
+%endif
+
 Requires: httpd >= 2.4
 Requires: mod_wsgi
 Requires(post): systemd-sysv
@@ -142,6 +169,11 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
 
 %pre
+
+%if 0%{?rhel}
+pip3 install Cheetah3
+%endif
+
 if (( $1 >= 2 )); then
     # package upgrade: backup configuration
     DATE=$(date "+%Y%m%d-%H%M%S")
@@ -318,7 +350,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
 %endif
 
-# 
+#
 # package: cobbler-nsupdate
 #
 
@@ -326,7 +358,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 Summary: module for dynamic dns updates
 Requires: cobbler
-Requires: python-dns
+
+%if 0%{?rhel}
+Requires: python36-dns
+%else
+Requires: python3-dns
+%endif
 
 %description -n cobbler-nsupdate
 Cobbler module providing secure dynamic dns updates

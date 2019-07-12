@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+
+  centos-build:
+    image: local/cobbler-centos
+    container_name: cobbler-centos
+    build:
+      context: .
+      dockerfile: ./dockerfiles/CentOS7.dockerfile
+    volumes:
+      - ./rpm-build:/usr/src/cobbler/rpm-build
+
+  fedora-build:
+    image: local/cobbler-fedora
+    container_name: cobbler-fedora
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Fedora29.dockerfile
+    volumes:
+      - ./rpm-build:/usr/src/cobbler/rpm-build
