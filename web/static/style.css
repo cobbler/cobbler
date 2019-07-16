@@ -173,7 +173,7 @@ span.context-tip:hover {
   font-weight: bold;
 }
 .ui-widget {
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  font-family: "Liberation Sans", "URW Gothic", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   font-size: 0.85em;
   font-weight: normal;
 }
