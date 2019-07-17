@@ -1,8 +1,7 @@
-from django.template.loader import get_template
-from django.template import RequestContext
+
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 
@@ -36,11 +35,10 @@ def index(request):
    """
    if not test_user_authenticated(request): return login(request,next="/cobbler_web", expired=True)
 
-   t = get_template('index.tmpl')
-   html = t.render(RequestContext(request,{
-        'version' : remote.extended_version(request.session['token'])['version'],
+   html = render(request, 'index.tmpl', {
+        'version': remote.extended_version(request.session['token'])['version'],
         'username': username,
-   }))
+   })
    return HttpResponse(html)
 
 #========================================================================
@@ -50,11 +48,11 @@ def task_created(request):
    Let's the user know what to expect for event updates.
    """
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/task_created", expired=True)
-   t = get_template("task_created.tmpl")
-   html = t.render(RequestContext(request,{
+
+   html = render(request, "task_created.tmpl", {
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
-   }))
+   })
    return HttpResponse(html)
 
 #========================================================================
@@ -66,14 +64,13 @@ def error_page(request,message):
    if not test_user_authenticated(request): return login(request,expired=True)
    # FIXME: test and make sure we use this rather than throwing lots of tracebacks for
    # field errors
-   t = get_template('error_page.tmpl')
    message = message.replace("<Fault 1: \"<class 'cobbler.cexceptions.CX'>:'","Remote exception: ")
    message = message.replace("'\">","")
-   html = t.render(RequestContext(request,{
+   html = render(request, 'error_page.tmpl', {
        'version' : remote.extended_version(request.session['token'])['version'],
        'message' : message,
        'username': username
-   }))
+   })
    return HttpResponse(html)
 
 #==================================================================================
@@ -333,8 +330,7 @@ def genlist(request, what, page=None):
         columns = [ "name" ]
 
     # render the list
-    t = get_template('generic_list.tmpl')
-    html = t.render(RequestContext(request,{
+    html = render(request, 'generic_list.tmpl', {
         'what'           : what,
         'columns'        : __format_columns(columns,sort_field),
         'items'          : __format_items(pageditems["items"],columns),
@@ -344,7 +340,7 @@ def genlist(request, what, page=None):
         'username'       : username,
         'limit'          : limit,
         'batchactions'   : batchactions,
-    }))
+    })
     return HttpResponse(html)
 
 @require_POST
@@ -567,11 +563,11 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
 
 def import_prompt(request):
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/import/prompt", expired=True)
-   t = get_template('import.tmpl')
-   html = t.render(RequestContext(request,{
+
+   html = render(request, 'import.tmpl', {
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username,
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -582,12 +578,12 @@ def check(request):
    """
    if not test_user_authenticated(request): return login(request, next="/cobbler_web/check", expired=True)
    results = remote.check(request.session['token'])
-   t = get_template('check.tmpl')
-   html = t.render(RequestContext(request,{
+
+   html = render(request, 'check.tmpl', {
        'version': remote.extended_version(request.session['token'])['version'],
        'username' : username,
        'results'  : results
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -629,14 +625,13 @@ def ksfile_list(request, page=None):
        if ksfile not in ["", "<<inherit>>"]:
            ksfile_list.append((ksfile, ksfile, 'editable'))
 
-   t = get_template('ksfile_list.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'ksfile_list.tmpl', {
        'what':'ksfile',
        'ksfiles': ksfile_list,
        'version': remote.extended_version(request.session['token'])['version'],
        'username': username,
        'item_count': len(ksfile_list[0]),
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -658,8 +653,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
       deleteable = not remote.is_kickstart_in_use(ksfile_name, request.session['token'])
       ksdata = remote.read_or_write_kickstart_template(ksfile_name, True, "", request.session['token'])
 
-   t = get_template('ksfile_edit.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'ksfile_edit.tmpl', {
        'ksfile_name' : ksfile_name,
        'deleteable'  : deleteable,
        'ksdata'      : ksdata,
@@ -667,7 +661,7 @@ def ksfile_edit(request, ksfile_name=None, editmode='edit'):
        'editmode'    : editmode,
        'version'     : remote.extended_version(request.session['token'])['version'],
        'username'    : username
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -717,13 +711,12 @@ def snippet_list(request, page=None):
        else:
            return error_page(request, "Invalid snippet at %s, outside %s" % (snippet, base_dir))
 
-   t = get_template('snippet_list.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'snippet_list.tmpl', {
        'what'     : 'snippet',
        'snippets' : snippet_list,
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -745,8 +738,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
       deleteable = True
       snippetdata = remote.read_or_write_snippet(snippet_name, True, "", request.session['token'])
 
-   t = get_template('snippet_edit.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'snippet_edit.tmpl', {
        'snippet_name' : snippet_name,
        'deleteable'   : deleteable,
        'snippetdata'  : snippetdata,
@@ -754,7 +746,7 @@ def snippet_edit(request, snippet_name=None, editmode='edit'):
        'editmode'     : editmode,
        'version'      : remote.extended_version(request.session['token'])['version'],
        'username'     : username
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -803,12 +795,11 @@ def setting_list(request):
     for k in skeys:
         results.append([k,settings[k]])
 
-    t = get_template('settings.tmpl')
-    html = t.render(RequestContext(request,{
+    html = render(request, 'settings.tmpl', {
          'settings' : results,
          'version'  : remote.extended_version(request.session['token'])['version'],
          'username' : username,
-    }))
+    })
     return HttpResponse(html)
 
 @csrf_protect
@@ -837,8 +828,7 @@ def setting_edit(request, setting_name=None):
             sections[fkey]['fields'] = []
         sections[fkey]['fields'].append(field)
 
-    t = get_template('generic_edit.tmpl')
-    html = t.render(RequestContext(request,{
+    html = render(request, 'generic_edit.tmpl', {
         'what'            : 'setting',
         #'fields'          : fields,
         'sections'        : sections,
@@ -848,7 +838,7 @@ def setting_edit(request, setting_name=None):
         'version'         : remote.extended_version(request.session['token'])['version'],
         'username'        : username,
         'name'            : setting_name,
-    }))
+    })
     return HttpResponse(html)
 
 @csrf_protect
@@ -889,12 +879,11 @@ def events(request):
       return cmp(a[0],b[0])
    events2.sort(sorter)
 
-   t = get_template('events.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'events.tmpl', {
        'results'  : events2,
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -918,12 +907,11 @@ def iplist(request):
       return cmp(ipaddress.ip_address(unicode(a[0])),ipaddress.ip_address(unicode(b[0])))
    iplist.sort(sorter)
 
-   t = get_template('iplist.tmpl')
-   html = t.render(RequestContext(request,{
+   html = render(request, 'iplist.tmpl', {
        'results'  : iplist,
        'version'  : remote.extended_version(request.session['token'])['version'],
        'username' : username
-   }))
+   })
    return HttpResponse(html)
 
 # ======================================================================
@@ -943,8 +931,7 @@ def eventlog(request, event=0):
    eventstate = data[2]
    eventlog   = remote.get_event_log(event)
 
-   t = get_template('eventlog.tmpl')
-   vars = {
+   html = render(request, 'eventlog.tmpl', {
       'eventlog'   : eventlog,
       'eventname'  : eventname,
       'eventstate' : eventstate,
@@ -952,8 +939,8 @@ def eventlog(request, event=0):
       'eventtime'  : eventtime,
       'version'    : remote.extended_version(request.session['token'])['version'],
       'username'  : username
-   }
-   html = t.render(RequestContext(request,vars))
+   })
+
    return HttpResponse(html)
 
 # ======================================================================
@@ -1112,10 +1099,10 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
            sections[fkey]['fields'] = []
        sections[fkey]['fields'].append(field)
 
-   t = get_template('generic_edit.tmpl')
    inames = interfaces.keys()
    inames.sort()
-   html = t.render(RequestContext(request,{
+
+   html = render(request, 'generic_edit.tmpl', {
        'what'            : what,
        #'fields'          : fields,
        'sections'        : sections,
@@ -1128,7 +1115,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
        'version'         : remote.extended_version(request.session['token'])['version'],
        'username'        : username,
        'name'            : obj_name
-   }))
+   })
 
    return HttpResponse(html)
 
@@ -1298,7 +1285,8 @@ def login(request, next=None, message=None, expired=False):
 
     if expired and not message:
         message = "Sorry, either you need to login or your session expired."
-    return render_to_response('login.tmpl', RequestContext(request,{'next':next,'message':message}))
+    return render(request, 'login.tmpl', {'next': next, 'message': message})
+
 
 def accept_remote_user(request, nextsite):
     global username

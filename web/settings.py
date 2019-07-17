@@ -1,12 +1,10 @@
 # Django settings for cobbler-web project.
-import django
 
 # This is the list of http server request names the site is allowed to serve for
 # Added for CVE-2016-9014
 ALLOWED_HOSTS = ['*']
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -35,61 +33,45 @@ SITE_ID = 1
 MEDIA_ROOT = ''
 MEDIA_URL = ''
 
-if django.VERSION[0] == 1 and django.VERSION[1] < 4:
-    ADMIN_MEDIA_PREFIX = '/media/'
-else:
-    STATIC_URL = '/media/'
+STATIC_URL = '/media/'
 
 SECRET_KEY = ''
 
 # code config
 
-if django.VERSION[0] == 1 and django.VERSION[1] < 4:
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.load_template_source',
-        'django.template.loaders.app_directories.load_template_source',
-    )
-else:
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            '/usr/share/cobbler/web/cobbler_web/templates',
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
-if django.VERSION[0] == 1 and django.VERSION[1] < 2:
-    # Legacy django had a different CSRF method, which also had
-    # different middleware. We check the vesion here so we bring in
-    # the correct one.
-    MIDDLEWARE_CLASSES = (
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.csrf.middleware.CsrfMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-    )
-else:
-    MIDDLEWARE_CLASSES = (
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-    )
+MIDDLEWARE = (
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+)
 
 ROOT_URLCONF = 'urls'
 
-TEMPLATE_DIRS = (
-    '/usr/share/cobbler/web/cobbler_web/templates',
-)
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'cobbler_web',
-)
-
-from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
-
-TEMPLATE_CONTEXT_PROCESSORS += (
-     'django.core.context_processors.request',
 )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
