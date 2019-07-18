@@ -256,6 +256,9 @@ bind_master: 127.0.0.1
 # manage_genders - Bool to enable/disable managing an /etc/genders file for use with pdsh and others.
 manage_genders: 0
 
+# bind_manage_ipmi - used to let bind manage IPMI addresses if the power management address is an IP and if manage_bind is set.
+bind_manage_ipmi: 0
+
 # set to 1 to enable Cobbler's TFTP management features.
 # the choice of TFTP mangement engine is in /etc/cobbler/modules.conf
 manage_tftpd: 1
