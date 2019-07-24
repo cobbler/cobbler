@@ -120,6 +120,9 @@ BuildRequires: apache2 >= 2.4
 BuildRequires: python3-Cheetah3
 BuildRequires: distribution-release
 BuildRequires: systemd
+BuildRequires: python3-Sphinx
+BuildRequires: python3-future
+BuildRequires: python3-distro
 Requires: python3-PyYAML
 Requires: python3-Cheetah3
 Requires: apache2 >= 2.4
