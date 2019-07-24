@@ -446,5 +446,9 @@ proxy_url_ext:
 # eg: proxy_url_int: "http://10.0.0.1:8080"
 proxy_url_int: ""
 
+# this is a directory of files that cobbler uses to include
+# files into Jinja2 templates
+#jinja2_includedir: /var/lib/cobbler/jinja2
+
 # include other configuration snippets
 include: [ "/etc/cobbler/settings.d/*.settings" ]

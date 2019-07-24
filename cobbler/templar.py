@@ -226,9 +226,14 @@ class Templar(object):
         """
 
         try:
-            template = jinja2.Template(raw_data)
+            if self.settings and self.settings.jinja2_includedir:
+                template = jinja2.Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)).from_string(raw_data)
+            else:
+                template = jinja2.Template(raw_data)
             data_out = template.render(search_table)
-        except:
+        except Exception as exc:
+            self.logger.warning("errors were encountered rendering the template")
+            self.logger.warning(exc.__str__())
             data_out = "# EXCEPTION OCCURRED DURING JINJA2 TEMPLATE PROCESSING\n"
 
         return data_out

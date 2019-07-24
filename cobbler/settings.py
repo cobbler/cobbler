@@ -125,7 +125,7 @@ DEFAULTS = {
     "scm_track_enabled": [0, "bool"],
     "scm_track_mode": ["git", "str"],
     "scm_track_author": ["cobbler <cobbler@localhost>", "str"],
-    "scm_push_scripts": ["/bin/true", "str"],
+    "scm_push_script": ["/bin/true", "str"],
     "serializer_pretty_json": [0, "bool"],
     "server": ["127.0.0.1", "str"],
     "sign_puppet_certs_automatically": [0, "bool"],
@@ -194,7 +194,7 @@ class Settings(object):
         """
         self._clear()
         if (self.manage_tftp or self.manage_tftpd) and not os.path.isdir(self.tftpboot_location):
-            # TODO: Logging of this.
+            print("TFTP directory '{}' not found".format(self.tftpboot_location), file=sys.stderr)
             sys.exit(1)
 
     def _clear(self):

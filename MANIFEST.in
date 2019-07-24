@@ -1,7 +1,6 @@
 include COPYING AUTHORS README
 include cobbler.spec config/service/cobblerd.service
-include requirements.txt
-include requirements-test.txt
+include requirements.txt requirements-test.txt
 
 recursive-include misc *
 recursive-include bin *

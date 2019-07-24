@@ -69,7 +69,7 @@ class Mgmtclass(item.Item):
         return FIELDS
 
     def check_if_valid(self):
-        if self.name is None or self.name == "":
+        if not self.name:
             raise CX("name is required")
 
     #

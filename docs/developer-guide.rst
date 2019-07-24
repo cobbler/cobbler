@@ -31,13 +31,14 @@ Install development dependencies:
 
 .. code-block:: none
 
-    # yum install git python-devel pyflakes python-pep8 python-sphinx rpm-build
+    # yum install git make openssl python-sphinx python36-coverage python36-devel python36-distro python36-future python36-pyflakes python36-pycodestyle python36-setuptools rpm-build
 
 Install runtime dependencies:
 
 .. code-block:: none
 
-    # yum install git make python-netaddr python-simplejson PyYAML python-cheetah httpd mod_wsgi mod_ssl
+    # yum install httpd mod_wsgi python36-PyYAML python36-netaddr python36-simplejso m
+    # pip3 install Cheetah3
 
 Initially, to run Cobbler without using packages:
 
