@@ -1960,24 +1960,23 @@ def lod_sort_by_key(_list, indexkey):
 
 
 def dhcpconf_location(api):
-    version = api.os_version
     (dist, ver) = api.get_os_details()
-    if version[0] in ["redhat", "centos"] and version[1] < 6:
+    if dist in ["redhat", "centos"] and ver < 6:
         return "/etc/dhcpd.conf"
-    elif version[0] in ["fedora"] and version[1] < 11:
+    elif dist in ["fedora"] and ver < 11:
         return "/etc/dhcpd.conf"
-    elif dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
+    elif dist == "suse":
         return "/etc/dhcpd.conf"
-    elif dist == "debian" and int(version[1].split('.')[0]) < 6:
+    elif dist == "debian" and int(ver.split('.')[0]) < 6:
         return "/etc/dhcp3/dhcpd.conf"
-    elif dist == "ubuntu" and version[1] < 11.10:
+    elif dist == "ubuntu" and ver < 11.10:
         return "/etc/dhcp3/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"
 
 
 def namedconf_location(api):
-    (dist, ver) = api.os_version
+    (dist, ver) = api.get_os_details()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/named.conf"
     else:
@@ -1988,14 +1987,14 @@ def zonefile_base(api):
     (dist, ver) = api.get_os_details()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/db."
-    if dist in ("opensuse tumbleweed", "opensuse leap", "sles"):
+    if dist == "suse":
         return "/var/lib/named/"
     else:
         return "/var/named/"
 
 
 def dhcp_service_name(api):
-    (dist, version) = api.os_version
+    (dist, version) = api.get_os_details()
     if dist == "debian" and int(version.split('.')[0]) < 6:
         return "dhcp3-server"
     elif dist == "debian" and int(version.split('.')[0]) >= 6:
@@ -2009,7 +2008,7 @@ def dhcp_service_name(api):
 
 
 def named_service_name(api, logger=None):
-    (dist, ver) = api.os_version
+    (dist, ver) = api.get_os_details()
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
     else:
