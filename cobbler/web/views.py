@@ -9,7 +9,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
 import simplejson
-import string
 import time
 import xmlrpc.client
 
@@ -201,7 +200,7 @@ def get_fields(what, is_subobject, seed_item=None):
         # flatten lists for those that aren't using select boxes
         if isinstance(ui_field["value"], list):
             if ui_field["html_element"] != "select":
-                ui_field["value"] = string.join(ui_field["value"], sep=" ")
+                ui_field["value"] = " ".join(ui_field["value"])
 
         ui_fields.append(ui_field)
 
@@ -384,7 +383,7 @@ def genlist(request, what, page=None):
     if what == "system":
         # FIXME: also list network, once working
         columns = ["name", "profile", "status", "netboot_enabled"]
-        profiles = sorted(remote.get_profiles())
+        profiles = sorted(remote.get_profiles(), key=lambda x: x['name'])
         batchactions += [
             ["Power on", "power", "on"],
             ["Power off", "power", "off"],

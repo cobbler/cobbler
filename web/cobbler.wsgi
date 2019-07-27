@@ -4,7 +4,7 @@ import inspect
 import os
 import sys
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'cobbler.web.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 os.environ['PYTHON_EGG_CACHE'] = '/var/lib/cobbler/webui_cache'
 
 # chdir resilient solution

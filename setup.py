@@ -544,7 +544,7 @@ if __name__ == "__main__":
     suse_release = "suse" in distro.like()
 
     if suse_release:
-        webconfig = "/etc/apache2/conf.d"
+        webconfig = "/etc/apache2/vhosts.d"
         webroot = "/srv/www/"
         http_user = "wwwrun"
         httpd_service = "apache2.service"
@@ -724,6 +724,8 @@ if __name__ == "__main__":
             ("%scobbler/images" % webroot, []),
             # A script that isn't really data, wsgi script
             ("%scobbler/svc/" % webroot, ["svc/services.py"]),
+            # A script that isn't really data, wsgi script
+            ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
             ("%szone_templates" % etcpath, []),
         ],
