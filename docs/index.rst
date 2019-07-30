@@ -3,22 +3,25 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+***********************************
 Welcome to Cobbler's documentation!
-===================================
+***********************************
 
-Contents:
+Here you should find a comprehensive overview about the usage of cobbler.
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
-   Release Notes <release-notes>
-   Install Guide <installation-guide>
    Quickstart Guide <quickstart-guide>
+   Install Guide <installation-guide>
+   Cobbler CLI <cobbler-cli>
    User Guide <user-guide>
    Developer Guide <developer-guide>
+   Release Notes <release-notes>
 
 Indices and tables
-==================
+##################
 
 * :ref:`genindex`
 * :ref:`modindex`

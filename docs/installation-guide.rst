@@ -1,5 +1,6 @@
+***********************************
 Install Guide
--------------
+***********************************
 
 Setting up and running cobblerd is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts, apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
 

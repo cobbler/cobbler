@@ -1,5 +1,6 @@
+***********************************
 Quickstart
-----------
+***********************************
 
 Cobbler can be a somewhat complex system to get started with, due to the wide variety of technologies it is designed to manage, but it does support a great deal of functionality immediately after installation with little to no customization needed. Before getting started with Cobbler, you should have a good working knowledge of PXE as well as the automated installation methodology of your choosen distribution(s). 
 
@@ -7,7 +8,7 @@ We will assume you have successfully installed Cobbler, please refer to the :doc
 
 
 Preparing your OS
-+++++++++++++++++
+##################
 
 SELinux
 =======
@@ -20,7 +21,7 @@ TBD
 
 
 Changing settings
-+++++++++++++++++
+##################
 
 Before starting the cobblerd service, there are a few things you should modify.
 
@@ -60,7 +61,7 @@ The `next_server` option is used for DHCP/PXE as the IP of the TFTP server from 
 
 
 DHCP management and DHCP server template
-++++++++++++++++++++++++++++++++++++++++
+########################################
 
 In order to PXE boot, you need a DHCP server to hand out addresses and direct the booting system to the TFTP server where it can download the network boot files. Cobbler can manage this for you, via the manage_dhcp setting:
 
@@ -102,7 +103,7 @@ Completely going through the dhcpd.conf configuration syntax is beyond the scope
 
 
 Notes on files and directories
-++++++++++++++++++++++++++++++
+##############################
 
 Cobbler makes heavy use of the `/var` directory. The `/var/www/cobbler/distro_mirror` directory is where all of the distrubtion and repository files are copied, so you will need 5-10GB of free space per distribution you wish to import. 
 
@@ -110,11 +111,11 @@ If you have installed Cobbler onto a system that has very little free space in t
 
 
 Starting and enabling the Cobbler service
-+++++++++++++++++++++++++++++++++++++++++
+#########################################
 
 Once you have updated your settings, you're ready to start the service:
 
-.. code-block:: none
+.. code-block:: shell
 
     $ systemctl start cobblerd.service
     $ systemctl enable cobblerd.service
@@ -122,7 +123,7 @@ Once you have updated your settings, you're ready to start the service:
 
 If everything has gone well, you should see output from the status command like this:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobblerd.service - Cobbler Helper Daemon
         Loaded: loaded (/lib/systemd/system/cobblerd.service; enabled)
@@ -133,7 +134,7 @@ If everything has gone well, you should see output from the status command like 
 
 
 Checking for problems and your first sync
-+++++++++++++++++++++++++++++++++++++++++
+#########################################
 
 Now that the cobblerd service is up and running, it's time to check for problems. Cobbler's check command will make some suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical for basic functionality. If you are running iptables or SELinux, it is important to review any messages concering those that check may report.
 
@@ -183,7 +184,7 @@ Assuming all went well and no errors were reported, you are ready to move on to 
 
 
 Importing your first distribution
-+++++++++++++++++++++++++++++++++
+#################################
 
 Cobbler automates adding distributions and profiles via the "cobbler import" command. This command can (usually) automatically detect the type and version of the distribution your importing and create (one or more) profiles with the correct settings for you.
 
