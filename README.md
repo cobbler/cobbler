@@ -16,3 +16,7 @@ To view the manpages, install the RPM and run `man cobbler` or run `perldoc cobb
 
 To build the RPM, run `make rpms`. Developers, try `make webtest` to do a local `make install` that preserves your
 configuration.
+
+If you want to contribute you may find more information under [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The documentation can be found at [Readthedocs](https://cobbler.readthedocs.io)

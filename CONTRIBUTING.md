@@ -2,11 +2,13 @@
 
 ## Code
 
-There is currently no styleguide for writing code but it would be great if we could reduce the number of issues as far as reasonable and then start to add more features.
+There is currently no styleguide for writing code but it would be great if we could reduce the number of issues as far
+as reasonable and then start to add more features.
 
 ## Docs
 
-We are using Sphinx and are publishing the docs to [Readthedocs](https://cobbler.readthedocs.io). The source can be found in the `docs` folder.
+We are using Sphinx and are publishing the docs to [Readthedocs](https://cobbler.readthedocs.io). The source can be
+found in the `docs` folder.
 
 We want to try to use the following rules:
 
@@ -15,7 +17,8 @@ We want to try to use the following rules:
 
 ## Website
 
-The website should contain promotional material and more complex guides. More information about how to contribute there you can find in the repo for the website: [Github](https://github.com/cobbler/cobbler.github.io)
+The website should contain promotional material and more complex guides. More information about how to contribute there
+you can find in the repo for the website: [Github](https://github.com/cobbler/cobbler.github.io)
 
 ## Issues
 
