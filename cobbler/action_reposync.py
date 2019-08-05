@@ -27,7 +27,6 @@ import os
 import os.path
 import pipes
 import stat
-import distro
 
 HAS_YUM = True
 try:
@@ -38,6 +37,7 @@ except:
 from . import clogger
 from . import utils
 from . import download_manager
+from .utils import os_release
 
 
 def repo_walker(top, func, arg):
@@ -691,10 +691,11 @@ class RepoSync(object):
         """
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"
-        distribution = distro.linux_distribution()[0]
-        if distribution.lower() in ("sles", "opensuse leap", "opensuse tumbleweed"):
+
+        (dist, version) = os_release()
+        if dist == "suse":
             owner = "root:www"
-        elif "debian" in distribution.lower():
+        elif dist in ("debian", "ubuntu"):
             owner = "root:www-data"
 
         cmd1 = "chown -R " + owner + " %s" % repo_path

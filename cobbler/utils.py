@@ -1960,23 +1960,23 @@ def lod_sort_by_key(_list, indexkey):
 
 
 def dhcpconf_location(api):
-    (dist, ver) = api.get_os_details()
-    if dist in ["redhat", "centos"] and ver < 6:
+    (dist, version) = os_release()
+    if dist in ("redhat", "centos") and version < 6:
         return "/etc/dhcpd.conf"
-    elif dist in ["fedora"] and ver < 11:
+    elif dist == "fedora" and version < 11:
         return "/etc/dhcpd.conf"
     elif dist == "suse":
         return "/etc/dhcpd.conf"
-    elif dist == "debian" and int(ver.split('.')[0]) < 6:
+    elif dist == "debian" and int(version) < 6:
         return "/etc/dhcp3/dhcpd.conf"
-    elif dist == "ubuntu" and ver < 11.10:
+    elif dist == "ubuntu" and version < 11.10:
         return "/etc/dhcp3/dhcpd.conf"
     else:
         return "/etc/dhcp/dhcpd.conf"
 
 
 def namedconf_location(api):
-    (dist, ver) = api.get_os_details()
+    (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/named.conf"
     else:
@@ -1984,7 +1984,7 @@ def namedconf_location(api):
 
 
 def zonefile_base(api):
-    (dist, ver) = api.get_os_details()
+    (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/db."
     if dist == "suse":
@@ -1994,10 +1994,10 @@ def zonefile_base(api):
 
 
 def dhcp_service_name(api):
-    (dist, version) = api.get_os_details()
-    if dist == "debian" and int(version.split('.')[0]) < 6:
+    (dist, version) = os_release()
+    if dist == "debian" and int(version) < 6:
         return "dhcp3-server"
-    elif dist == "debian" and int(version.split('.')[0]) >= 6:
+    elif dist == "debian" and int(version) >= 6:
         return "isc-dhcp-server"
     elif dist == "ubuntu" and version < 11.10:
         return "dhcp3-server"
@@ -2008,7 +2008,7 @@ def dhcp_service_name(api):
 
 
 def named_service_name(api, logger=None):
-    (dist, ver) = api.get_os_details()
+    (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
     else:
@@ -2046,6 +2046,7 @@ def find_distro_path(settings, distro):
     # non-standard directory, assume it's the same as the
     # directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
+
 
 
 def compare_versions_gt(ver1, ver2):
