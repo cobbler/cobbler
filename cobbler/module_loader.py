@@ -29,9 +29,9 @@ from configparser import ConfigParser
 import glob
 import os
 
-from .cexceptions import CX
-from . import clogger
-from .utils import _, log_exc
+from cobbler.cexceptions import CX
+from cobbler import clogger
+from cobbler.utils import _, log_exc
 
 # add cobbler/modules to python path
 import cobbler
@@ -50,42 +50,50 @@ def load_modules(module_path=mod_path, blacklist=None):
     filenames = glob.glob("%s/*.py" % module_path)
     filenames += glob.glob("%s/*.pyc" % module_path)
     filenames += glob.glob("%s/*.pyo" % module_path)
-
-    mods = set()
+    # Allow recursive modules
+    filenames += glob.glob("%s/**/*.py" % module_path)
+    filenames += glob.glob("%s/**/*.pyc" % module_path)
+    filenames += glob.glob("%s/**/*.pyo" % module_path)
 
     for fn in filenames:
-        basename = os.path.basename(fn)
-        if basename == "__init__.py":
+        basename = fn.replace(mod_path, '')
+        modname = ""
+
+        if basename.__contains__("__pycache__") or basename.__contains__("__init__.py"):
             continue
+
+        if basename[0] == "/":
+            basename = basename[1:]
+
+        basename = basename.replace("/", ".")
+
         if basename[-3:] == ".py":
             modname = basename[:-3]
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
-        # No need to try importing the same module over and over if
-        # we have a .py, .pyc, and .pyo
-        if modname in mods:
-            continue
-        mods.add(modname)
+        __import_module(mod_path, modname, logger)
 
-        try:
-            blip = __import__("cobbler.modules.%s" % (modname), globals(), locals(), [modname])
-            if not hasattr(blip, "register"):
-                if not modname.startswith("__init__"):
-                    errmsg = _("%(module_path)s/%(modname)s is not a proper module")
-                    print(errmsg % {'module_path': module_path, 'modname': modname})
-                continue
-            category = blip.register()
-            if category:
-                MODULE_CACHE[modname] = blip
-            if category not in MODULES_BY_CATEGORY:
-                MODULES_BY_CATEGORY[category] = {}
-            MODULES_BY_CATEGORY[category][modname] = blip
-        except Exception:
-            logger.info('Exception raised when loading module %s' % modname)
-            log_exc(logger)
+    return MODULE_CACHE, MODULES_BY_CATEGORY
 
-    return (MODULE_CACHE, MODULES_BY_CATEGORY)
+
+def __import_module(module_path, modname, logger):
+    try:
+        blip = __import__("cobbler.modules.%s" % modname, globals(), locals(), [modname])
+        if not hasattr(blip, "register"):
+            if not modname.startswith("__init__"):
+                errmsg = _("%(module_path)s/%(modname)s is not a proper module")
+                print(errmsg % {'module_path': module_path, 'modname': modname})
+            return None
+        category = blip.register()
+        if category:
+            MODULE_CACHE[modname] = blip
+        if category not in MODULES_BY_CATEGORY:
+            MODULES_BY_CATEGORY[category] = {}
+        MODULES_BY_CATEGORY[category][modname] = blip
+    except Exception:
+        logger.info('Exception raised when loading module %s' % modname)
+        log_exc(logger)
 
 
 def get_module_by_name(name):
@@ -96,9 +104,9 @@ def get_module_name(category, field, fallback_module_name=None):
     """
     Get module name from configuration file
 
-    @param str category field category in configuration file
-    @param str field field in configuration file
-    @param str fallback_module_name default value used if category/field is
+    @param category str field category in configuration file
+    @param field str field in configuration file
+    @param fallback_module_name str default value used if category/field is
             not found in configuration file
     @raise CX if unable to find configuration file
     @return str module name
@@ -118,9 +126,9 @@ def get_module_from_file(category, field, fallback_module_name=None):
     """
     Get Python module, based on name defined in configuration file
 
-    @param str category field category in configuration file
-    @param str field field in configuration file
-    @param str fallback_module_name default value used if category/field is
+    @param category str field category in configuration file
+    @param field str field in configuration file
+    @param fallback_module_name str default value used if category/field is
             not found in configuration file
     @raise CX if unable to load Python module
     @return module Python module

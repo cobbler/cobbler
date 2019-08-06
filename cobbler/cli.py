@@ -32,14 +32,7 @@ import traceback
 import xmlrpc.client
 
 from cobbler import field_info
-from cobbler import item_distro
-from cobbler import item_profile
-from cobbler import item_system
-from cobbler import item_repo
-from cobbler import item_image
-from cobbler import item_mgmtclass
-from cobbler import item_package
-from cobbler import item_file
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import settings
 from cobbler import utils
 from cobbler.cexceptions import NotImplementedException
@@ -144,22 +137,22 @@ def report_item(remote, otype, item=None, name=None):
                 sys.exit(1)
 
     if otype == "distro":
-        data = utils.to_string_from_fields(item, item_distro.FIELDS)
+        data = utils.to_string_from_fields(item, distro.FIELDS)
     elif otype == "profile":
-        data = utils.to_string_from_fields(item, item_profile.FIELDS)
+        data = utils.to_string_from_fields(item, profile.FIELDS)
     elif otype == "system":
-        data = utils.to_string_from_fields(item, item_system.FIELDS,
-                                           item_system.NETWORK_INTERFACE_FIELDS)
+        data = utils.to_string_from_fields(item, system.FIELDS,
+                                           system.NETWORK_INTERFACE_FIELDS)
     elif otype == "repo":
-        data = utils.to_string_from_fields(item, item_repo.FIELDS)
+        data = utils.to_string_from_fields(item, repo.FIELDS)
     elif otype == "image":
-        data = utils.to_string_from_fields(item, item_image.FIELDS)
+        data = utils.to_string_from_fields(item, image.FIELDS)
     elif otype == "mgmtclass":
-        data = utils.to_string_from_fields(item, item_mgmtclass.FIELDS)
+        data = utils.to_string_from_fields(item, mgmtclass.FIELDS)
     elif otype == "package":
-        data = utils.to_string_from_fields(item, item_package.FIELDS)
+        data = utils.to_string_from_fields(item, package.FIELDS)
     elif otype == "file":
-        data = utils.to_string_from_fields(item, item_file.FIELDS)
+        data = utils.to_string_from_fields(item, file.FIELDS)
     elif otype == "setting":
         data = "%-40s: %s" % (item['name'], item['value'])
     print(data)
@@ -394,21 +387,21 @@ class CobblerCLI(object):
         """
         # FIXME: this should be in utils, or is it already?
         if object_type == "distro":
-            return item_distro.FIELDS
+            return distro.FIELDS
         elif object_type == "profile":
-            return item_profile.FIELDS
+            return profile.FIELDS
         elif object_type == "system":
-            return item_system.FIELDS
+            return system.FIELDS
         elif object_type == "repo":
-            return item_repo.FIELDS
+            return repo.FIELDS
         elif object_type == "image":
-            return item_image.FIELDS
+            return image.FIELDS
         elif object_type == "mgmtclass":
-            return item_mgmtclass.FIELDS
+            return mgmtclass.FIELDS
         elif object_type == "package":
-            return item_package.FIELDS
+            return package.FIELDS
         elif object_type == "file":
-            return item_file.FIELDS
+            return file.FIELDS
         elif object_type == "setting":
             return settings.FIELDS
 
@@ -422,7 +415,7 @@ class CobblerCLI(object):
         fields = self.get_fields(object_type)
         network_interface_fields = None
         if object_type == "system":
-            network_interface_fields = item_system.NETWORK_INTERFACE_FIELDS
+            network_interface_fields = system.NETWORK_INTERFACE_FIELDS
         if object_action in ["add", "edit", "copy", "rename", "find", "remove"]:
             add_options_from_fields(object_type, self.parser, fields,
                                     network_interface_fields, settings, object_action)

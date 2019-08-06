@@ -18,6 +18,7 @@ from setuptools.command.build_py import build_py as _build_py
 from setuptools import dep_util
 from distutils.command.build import build as _build
 from configparser import ConfigParser
+from setuptools import find_packages
 
 import codecs
 from coverage import Coverage
@@ -464,7 +465,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'collections'), libpath)
+        self._copy(os.path.join(self.statepath, 'cobbler_collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -496,7 +497,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'collections'), self.statepath)
+        self._copy(os.path.join(libpath, 'cobbler_collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -588,12 +589,7 @@ if __name__ == "__main__":
         license="GPLv2+",
         install_requires=requires("requirements.txt"),
         tests_require=requires("requirements-test.txt"),
-        packages=[
-            "cobbler",
-            "cobbler/modules",
-            "cobbler/web",
-            "cobbler/web/templatetags",
-        ],
+        packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
             "bin/cobblerd",

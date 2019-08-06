@@ -59,7 +59,7 @@ def __grab_lock():
 
 def __release_lock(with_changes=False):
     if with_changes:
-        # this file is used to know the time of last modification on collections
+        # this file is used to know the time of last modification on cobbler_collections
         # was made -- allowing the API to work more smoothly without
         # a lot of unneccessary reloads.
         fd = open("/var/lib/cobbler/.mtime", 'w')
@@ -129,6 +129,6 @@ def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
     """
-    return module_loader.get_module_from_file("serializers", collection_type, "serializer_file")
+    return module_loader.get_module_from_file("serializers", collection_type, "serializers.file")
 
 # EOF

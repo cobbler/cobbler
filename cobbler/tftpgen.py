@@ -28,9 +28,9 @@ import re
 import socket
 import string
 
-from .cexceptions import CX
-from . import templar
-from . import utils
+from cobbler.cexceptions import CX
+from cobbler import templar
+from cobbler import utils
 
 
 class TFTPGen(object):

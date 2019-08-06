@@ -26,8 +26,8 @@ import glob
 import os.path
 import re
 
-from . import utils
-from .utils import _
+from cobbler import utils
+from cobbler.utils import _
 
 TESTMODE = False
 

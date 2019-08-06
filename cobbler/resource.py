@@ -13,8 +13,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-from .cexceptions import CX
-from . import item
+from cobbler.cexceptions import CX
+from cobbler.items import item
 
 
 class Resource(item.Item):
