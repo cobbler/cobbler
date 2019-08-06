@@ -28,7 +28,6 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
-import distro as distribution
 
 from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
