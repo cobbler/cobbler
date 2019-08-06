@@ -692,7 +692,7 @@ class RepoSync(object):
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"
 
-        (dist, version) = os_release()
+        (dist, _) = os_release()
         if dist == "suse":
             owner = "root:www"
         elif dist in ("debian", "ubuntu"):
