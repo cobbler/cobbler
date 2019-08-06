@@ -2048,7 +2048,6 @@ def find_distro_path(settings, distro):
     return os.path.dirname(distro.kernel)
 
 
-
 def compare_versions_gt(ver1, ver2):
     def versiontuple(v):
         return tuple(map(int, (v.split("."))))
