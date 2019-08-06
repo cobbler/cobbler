@@ -1052,8 +1052,3 @@ class CobblerAPI(object):
         Clears console and anamon logs for system
         """
         action_log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
-
-    def get_os_details(self):
-        return (self.dist, self.os_version)
-
-# EOF
