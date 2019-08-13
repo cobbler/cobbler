@@ -5,10 +5,13 @@ Cobbler CLI
 This page contains a description for commands which can be used from the CLI. Under this paragraph you can find the
 current output of the CLI help.
 
+Short Usage: ``cobbler command [subcommand] [--arg1=value1] [--arg2=value2]``
+
+Long Usage:
+
 .. code-block:: shell
 
-    cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ...
-            [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
+    cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
     cobbler <aclsetup|buildiso|import|list|replicate|report|reposync|sync|validate-autoinstalls|version|signature|get-loaders|hardlink> [options|--help]
 
 cobbler distro

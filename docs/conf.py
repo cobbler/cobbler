@@ -213,8 +213,9 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'cobbler', u'Cobbler Documentation',
-     [u'Jörgen Maas'], 1)
+    ('cobbler-cli', 'cobbler-cli', u'Cobbler CLI Documentation', [u'Jörgen Maas'], 1),
+    ('cobblerd', 'cobblerd', u'Cobblerd Documentation', [u'Enno Gotthold'], 1),
+    ('cobbler-conf', 'cobbler.conf', u'Cobbler Configuration File Documentation', [u'Enno Gotthold'], 5)
 ]
 
 # If true, show URL addresses after external links.
