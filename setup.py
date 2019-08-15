@@ -264,67 +264,6 @@ build.sub_commands.extend((
     ('build_cfg', has_configure_files)
 ))
 
-#####################################################################
-# # Build man pages ##################################################
-#####################################################################
-
-
-class build_man(Command):
-
-    decription = "build man pages"
-
-    user_options = [
-        ('force', 'f', "forcibly build everything (ignore file timestamps")
-    ]
-
-    boolean_options = ['force']
-
-    def initialize_options(self):
-        self.build_dir = None
-        self.force = None
-
-    def finalize_options(self):
-        self.set_undefined_options(
-            'build',
-            ('build_base', 'build_dir'),
-            ('force', 'force')
-        )
-
-    def run(self):
-        """Generate the man pages... this is currently done through POD,
-        possible future version may do this through some Python mechanism
-        (maybe conversion from ReStructured Text (.rst))...
-        """
-        # On dry-run ignore missing source files.
-        if self.dry_run:
-            mode = 'newer'
-        else:
-            mode = 'error'
-        # Work on all files
-        for infile in self.distribution.man_pages:
-            # We copy the files to build/
-            outfile = os.path.join(self.build_dir, os.path.splitext(infile)[0] + '.gz')
-            # check if the file is out of date
-            if self.force or dep_util.newer_group([infile], outfile, mode):
-                # It is. Configure it
-                self.build_one_file(infile, outfile)
-
-    _COMMAND = 'pod2man --center="%s" --release="%s" %s | gzip -c > %s'
-
-    def build_one_file(self, infile, outfile):
-        man = os.path.splitext(os.path.splitext(os.path.basename(infile))[0])[0]
-        log.info("building %s manpage" % man)
-        if not self.dry_run:
-            # Create the output directory if necessary
-            outdir = os.path.dirname(outfile)
-            if not os.path.exists(outdir):
-                os.makedirs(outdir)
-            # Now create the manpage
-            cmd = build_man._COMMAND % ('man', VERSION, infile, outfile)
-            if os.system(cmd):
-                log.error("Creation of %s manpage failed." % man)
-                exit(1)
-
 
 #####################################################################
 # # Modify Install Stage  ############################################
@@ -576,8 +515,7 @@ if __name__ == "__main__":
             'install': install,
             'savestate': savestate,
             'restorestate': restorestate,
-            'build_cfg': build_cfg,
-            'build_man': build_man
+            'build_cfg': build_cfg
         },
         name="cobbler",
         version=VERSION,
