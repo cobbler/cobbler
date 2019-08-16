@@ -1,6 +1,6 @@
 from builtins import object
 from django import template
-from cobbler_collections import OrderedDict
+from collections import OrderedDict
 
 register = template.Library()
 
