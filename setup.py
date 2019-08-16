@@ -111,7 +111,7 @@ class Distribution(_Distribution):
 #####################################################################
 
 
-class build_py(_build_py):
+class BuildPy(_build_py):
     """Specialized Python source builder."""
 
     def run(self):
@@ -123,7 +123,7 @@ class build_py(_build_py):
 #####################################################################
 
 
-class build(_build):
+class Build(_build):
     """Specialized Python source builder."""
 
     def run(self):
@@ -144,7 +144,7 @@ class build_man(BuildDoc):
 #####################################################################
 
 
-class build_cfg(Command):
+class BuildCfg(Command):
 
     description = "configure files (copy and substitute options)"
 
@@ -270,7 +270,7 @@ def has_man_pages(build):
     return bool(build.distribution.man_pages)
 
 
-build.sub_commands.extend((
+Build.sub_commands.extend((
     ('build_man', has_man_pages),
     ('build_cfg', has_configure_files)
 ))
@@ -281,7 +281,7 @@ build.sub_commands.extend((
 #####################################################################
 
 
-class install(_install):
+class Install(_install):
     """Specialised python package installer.
 
     It does some required chown calls in addition to the usual stuff.
@@ -344,7 +344,7 @@ class install(_install):
 #####################################################################
 
 
-class test_command(Command):
+class TestCommand(Command):
     user_options = []
 
     def initialize_options(self):
@@ -372,7 +372,7 @@ class test_command(Command):
 # # state command base class #########################################
 #####################################################################
 
-class statebase(Command):
+class Statebase(Command):
 
     user_options = [
         ('statepath=', None, 'directory to backup configuration'),
@@ -404,12 +404,12 @@ class statebase(Command):
 #####################################################################
 
 
-class restorestate(statebase):
+class RestoreState(Statebase):
 
     def _copy(self, frm, to):
         if self.root:
             to = self.root + to
-        statebase._copy(self, frm, to)
+        Statebase._copy(self, frm, to)
 
     def run(self):
         log.info("restoring the current configuration from %s" % self.statepath)
@@ -431,14 +431,14 @@ class restorestate(statebase):
 #####################################################################
 
 
-class savestate(statebase):
+class Savestate(Statebase):
 
     description = "Backup the current configuration to /tmp/cobbler_settings."
 
     def _copy(self, frm, to):
         if self.root:
             frm = self.root + frm
-        statebase._copy(self, frm, to)
+        Statebase._copy(self, frm, to)
 
     def run(self):
         log.info("backing up the current configuration to %s" % self.statepath)
@@ -501,19 +501,24 @@ if __name__ == "__main__":
     setup(
         distclass=Distribution,
         cmdclass={
-            'build': build,
-            'build_py': build_py,
-            'test': test_command,
-            'install': install,
-            'savestate': savestate,
-            'restorestate': restorestate,
-            'build_cfg': build_cfg,
+            'build': Build,
+            'build_py': BuildPy,
+            'test': TestCommand,
+            'install': Install,
+            'savestate': Savestate,
+            'restorestate': RestoreState,
+            'build_cfg': BuildCfg,
             'build_man': build_man
         },
         name="cobbler",
         version=VERSION,
         description="Network Boot and Update Server",
-        long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, automatic OS installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
+        long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, "
+                         "and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', "
+                         "that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's "
+                         "advanced features include importing distributions from DVDs and rsync mirrors, automatic OS "
+                         "installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  "
+                         "Cobbler has a XMLRPC API for integration with other applications.",
         author="Team Cobbler",
         author_email="cobbler@lists.fedorahosted.org",
         url="https://cobbler.github.io",
