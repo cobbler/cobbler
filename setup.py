@@ -260,6 +260,7 @@ def has_man_pages(build):
 
 
 build.sub_commands.extend((
+    ('build_man', has_man_pages),
     ('build_cfg', has_configure_files)
 ))
 
@@ -474,7 +475,6 @@ if __name__ == "__main__":
 
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
-    docpath = "share/man/man1"
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
@@ -543,15 +543,11 @@ if __name__ == "__main__":
             "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
         ],
-        man_pages=[
-            'docs/man/cobbler.1.pod',
-        ],
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
-            ("%s" % docpath, glob("build/docs/man/*.1.gz")),
             ("%stemplates" % libpath, glob("autoinstall_templates/*")),
             ("%stemplates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
             ("%ssnippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
