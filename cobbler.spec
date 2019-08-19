@@ -48,8 +48,8 @@ Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
 AutoReq: no
-Version: 2.8.4
-Release: 1%{?dist}
+Version: 2.8.5
+Release: 2%{?dist}
 Source0: http://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -367,7 +367,7 @@ Requires(post): openssl
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 6
 Requires: httpd
-Requires: Django >= 1.4
+Requires: Django >= 1.8
 Requires: mod_wsgi
 %endif
 
@@ -412,6 +412,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 
 
 %changelog
+* Tue Jul 16 2019 Nicolas Chauvet <kwizart@gmail.com>
+- Cobbler 2.8.5 release
 * Sat Nov 17 2018 Jörgen Maas <jorgen.maas@gmail.com>
 - Cobbler 2.8.4 release
 * Fri May 4 2018 Jörgen Maas <jorgen.maas@gmail.com>

@@ -1,4 +1,4 @@
-include COPYING AUTHORS README
+include COPYING AUTHORS README.md
 include cobbler.spec config/cobblerd.service
 
 recursive-include misc *

@@ -35,7 +35,7 @@ table{
 
 /* Lets set the primary styles and feel for the app */
 body {
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  font-family: "Liberation Sans", "URW Gothic", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   color: #333333;
   background-color: #EEEEEE;
   font-size: 1em;
@@ -48,7 +48,7 @@ h1,h2,legend { color: #306CAC; font-weight: bold; }
 h1 { font-size: 1.5em; }
 h2,legend { font-size: 1.2em; margin-bottom: 0px; }
 hr { height: 1px; margin: 0px; }
-input, textarea { background-color: white; padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
+input, textarea { padding: 2px 4px; border: 1px solid #306CAC; border-radius:4px; -moz-border-radius:4px; -webkit-border-radius:4px; }
 input[type=text], input[type=password], select { width: 350px; }
 input[type=submit], input[type=reset], input[type=button] { width: auto; margin-top: 5px; margin-bottom: 5px; }
 input[type=checkbox] { background: none;  border: none; margin-right: 196px; margin-top: 5px; }
@@ -173,7 +173,7 @@ span.context-tip:hover {
   font-weight: bold;
 }
 .ui-widget {
-  font-family: "URW Gothic", "Liberation Sans", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
+  font-family: "Liberation Sans", "URW Gothic", "Helvetica", "Luxi Sans", "Bitstream Vera Sans", arial,helvetica,clean,sans-serif;
   font-size: 0.85em;
   font-weight: normal;
 }
