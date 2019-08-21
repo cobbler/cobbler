@@ -20,11 +20,11 @@ function get_latest_task_info() {
                 var state = record[3];
                 var buf = "";
                 var logmsg = " <a href=\"/cobbler_web/eventlog/" + id + "\">(log)</A>";
-                if (state == "complete") {
+                if (state === "complete") {
                     buf = "Task " + name + " is complete: " + logmsg
-                } else if (state == "running") {
+                } else if (state === "running") {
                     buf = "Task " + name + " is running: " + logmsg
-                } else if (state == "failed") {
+                } else if (state === "failed") {
                     buf = "Task " + name + " has failed: " + logmsg
                 } else {
                     buf = name
@@ -36,7 +36,7 @@ function get_latest_task_info() {
 }
 
 function go_go_gadget() {
-    setInterval(get_latest_task_info, 2000)
+    setInterval(get_latest_task_info, 2000);
     try {
         page_onload()
     } catch (error) {
