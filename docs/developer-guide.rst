@@ -4,7 +4,7 @@ Developer Guide
 
 
 Patch process
-+++++++++++++
+#############
 
 You'd like to contribute features or fixes to Cobbler? Great! We'd love to have them.
 
@@ -12,7 +12,7 @@ It is highly recommended that you have a github.com account if you would like to
 in, and then go to github.com/cobbler/cobbler to "fork" the project.
 
 Create a new branch named after the feature you are working on. Do the work on your local machine, please make sure your
-work passes Cobbler's coding standards by using `make qa`. Only then push to your personal Github branch
+work passes Cobbler's coding standards by using ``make qa``. Only then push to your personal Github branch
 (e.g. github.com/yourname/cobbler).
 
 Then use the "submit pull request" feature of Github to request that the official repo pull in your changes. Be sure to
@@ -27,9 +27,8 @@ to take only some of the work at one time, and to quickly slurp in some changes 
 Once we merge in your pull request, you can remove the branch from your repo if you like. The AUTHORS file is created
 automatically when we release.
 
-
 Setup
-+++++
+#####
 
 The preferred development platform is the latest version of Fedora and/or CentOS. You'll also have to disable SELinux to
 get Cobbler up and running.
@@ -71,7 +70,7 @@ You can now run Cobbler commands and access the web interface.
 
 
 Branches
-++++++++
+########
 
 Cobbler has a development branch called "master" (where the action is), and branches for all releases that are in
 maintaince mode. All work on new features should be done against the master branch. If you want to address bugs then
@@ -85,25 +84,25 @@ please target the latest release branch, the maintainers will then cherry-pick t
 
 
 Standards
-+++++++++
+#########
 
 We're not overly picky, but please follow the python PEP8 standards we want to adhere to (see Makefile).
 
-* Always use under_scores, not camelCase.
-* Always four (4) spaces, not tabs.
-* Avoid one line if statements.
-* Validate your code by using ``make qa``.
-* Keep things simple, keep in mind that this is a tool for sysadmins and not python developers.
-* Use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged
+- Always use under_scores, not camelCase.
+- Always four (4) spaces, not tabs.
+- Avoid one line if statements.
+- Validate your code by using ``make qa``.
+- Keep things simple, keep in mind that this is a tool for sysadmins and not python developers.
+- Use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged
   with the app, which usually runs afoul of distribution packaging guidelines.
-* At least for now we have to support Python 2.7 for Cobbler and ython 2.6 for Koan.
+- At least for now we have to support Python 2.7 for Cobbler and Python 2.6 for Koan.
 
 You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.net, as there are folks around to answer
-questions, etc.
-
+questions, etc. But it isn't that active anymore please drop also in our Cobbler Gitter channel there we will probably
+answer faster.
 
 Contributing to the website
-+++++++++++++++++++++++++++
+###########################
 
 The github-based git repository for the https://cobbler.github.io website itself is at
 https://github.com/cobbler/cobbler.github.io.
@@ -112,22 +111,20 @@ If you want to contribute changes to the website, you will need jekyll (http://j
 
 You will probably want to:
 
-* edit the files in _dynamic
-* run the generate_dynamic.sh script
-* add both the .md and resulting .html files in your git commit
-
+- edit the files as markdown
+- run the docker container
+- check if your changes didn't break anything
 
 Mailing List
-++++++++++++
+############
 
 We have a development mailing list at https://fedorahosted.org/mailman/listinfo/cobbler-devel
 Discuss development related questions, roadmap, and other things there, rather than on the general user list.
 
 It is a very good idea to mention your pull request (copy/paste, etc) to the development mailing list for discussion.
 
-
 Debugging
-+++++++++
+#########
 
 If you need to debug a remote process, epdb provides some very nice capabilities beyond the standard python debugger,
 just insert a "import epdb; epdb.serve()" in your command line, and from the console:

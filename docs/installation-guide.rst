@@ -13,7 +13,7 @@ the definite prerequisites for both a basic installation and when building/insta
 
 
 Prerequisites
-+++++++++++++
+#############
 
 Packages
 ========
@@ -23,45 +23,45 @@ a large number of ancilary packages, which we do not document here. The package 
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
 met prior to installing cobbler or any of its components.
 
-First and foremost, Cobbler requires Python. Any version over 2.7 should work. Cobbler also requires the installation of
-the following packages:
+First and foremost, Cobbler requires Python. Any 2.x version should work for 2.8.x releases. Since 3.0.0 you will need
+Python 3. Cobbler also requires the installation of the following packages:
 
-* createrepo
-* httpd / apache2
-* mkisofs / genisoimage
-* mod_wsgi / libapache2-mod-wsgi
-* mod_ssl / libapache2-mod-ssl
-* python-cheetah
-* python-netaddr
-* python-simplejson
-* PyYAML / python-yaml
-* rsync
-* syslinux
-* tftp-server / atftpd
-* yum-utils
+- createrepo
+- httpd / apache2
+- mkisofs / genisoimage
+- mod_wsgi / libapache2-mod-wsgi
+- mod_ssl / libapache2-mod-ssl
+- python-cheetah
+- python-netaddr
+- python-simplejson
+- PyYAML / python-yaml
+- rsync
+- syslinux
+- tftp-server / atftpd
+- yum-utils
 
 Cobbler-web only has one other requirement besides Cobbler itself:
 
-* Django / python-django
+- Django / python-django
 
 Koan can be installed apart from Cobbler, and has only the following requirement (besides python itself of course):
 
-* python-simplejson
+- python-simplejson
 
 Source
 ======
 
 Installation from source requires the following additional software:
 
-* git
-* make
-* python-devel
-* python-cheetah
-* openssl
+- git
+- make
+- python-devel
+- python-cheetah
+- openssl
 
 
 Installation
-++++++++++++
+############
 
 Cobbler is available for installation for many Linux variants through their native packaging systems. However, the
 Cobbler project also provides packages for all supported distributions which is the preferred method of installation.
@@ -132,9 +132,7 @@ The latest source code is available through git:
 .. code-block:: none
 
     $ git clone https://github.com/cobbler/cobbler.git
-
     $ cd cobbler
-    $ git checkout release30
 
 The release30 branch corresponds to the official release version for the 3.0.x series. The master branch is the
 development series, and always uses an odd number for the minor version (for example, 3.1.0).
@@ -164,8 +162,10 @@ This will do a full install, not just the web GUI. ``make webtest`` is a wrapper
 configuration files will also be saved when running this command.
 
 
+.. _relocating-your-installation:
+
 Relocating your installation
-++++++++++++++++++++++++++++
+############################
 
 Often folks don't have a very large ``/var`` partition, which is what Cobbler uses by default for mirroring install
 trees and the like.

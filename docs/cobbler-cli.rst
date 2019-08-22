@@ -24,55 +24,27 @@ Repositorys
 Management Classes
 ==================
 
-DELETING CONFIGURATION ENTRIES
+Deleting configuration entries
 ==============================
 
 If you want to remove a specific object, use the remove command with the name that was used to add it.
 
 .. code-block:: none
 
-    cobbler distro remove --name=string
+    cobbler distro|profile|system|repo|image|mgmtclass|package|file remove --name=string
 
-.. code-block:: none
-
-    cobbler profile remove --name=string
-
-.. code-block:: none
-
-    cobbler system remove --name=string
-
-.. code-block:: none
-
-    cobbler repo remove --name=string
-
-.. code-block:: none
-
-    cobbler image remove --name=string
-
-.. code-block:: none
-
-    cobbler mgmtclass remove --name=string
-
-.. code-block:: none
-
-    cobbler package remove --name=string
-
-.. code-block:: none
-
-    cobbler file remove --name=string
-
-EDITING
+Editing
 =======
 
-If you want to change a particular setting without doing an "add" again, use the "edit" command, using the same name you
-gave when you added the item. Anything supplied in the parameter list will overwrite the settings in the existing
+If you want to change a particular setting without doing an ``add`` again, use the ``edit`` command, using the same name
+you gave when you added the item. Anything supplied in the parameter list will overwrite the settings in the existing
 object, preserving settings not mentioned.
 
 .. code-block:: none
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file edit --name=string [parameterlist]
 
-COPYING
+Copying
 =======
 
 Objects can also be copied:
@@ -81,7 +53,7 @@ Objects can also be copied:
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file copy --name=oldname --newname=newname
 
-RENAMING
+Renaming
 ========
 
 Objects can also be renamed, as long as other objects don't reference them.
@@ -121,39 +93,40 @@ If you want to be explicit with distribution definition, however, here's how it 
 +----------------+-----------------------------------------------------------------------------------------------------+
 | Name           | Description                                                                                         |
 +================+=====================================================================================================+
-| name           | a string identifying the distribution, this should be something like "rhel6".                       |
+| name           | a string identifying the distribution, this should be something like ``rhel6``.                     |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| kernel         | An absolute filesystem path to a kernel image                                                       |
+| kernel         | An absolute filesystem path to a kernel image.                                                      |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| initrd         | An absolute filesystem path to a initrd image                                                       |
+| initrd         | An absolute filesystem path to a initrd image.                                                      |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| kopts          | Sets kernel command-line arguments that the distro, and profiles/systems dependingon it, will use.  |
-|                | To remove a kernel argument that may be added by a higher cobbler object(or in the global settings),|
-|                | you can prefix it with a "!".                                                                       |
+| kopts          | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will use. |
+|                | To remove a kernel argument that may be added by a higher cobbler object (or in the global          |
+|                | settings), you can prefix it with a ``!``.                                                          |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | Example: --kopts="foo=bar baz=3 asdf !gulp"                                                         |
+|                | Example: ``--kopts="foo=bar baz=3 asdf !gulp"``                                                     |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | This example passes the arguments "foo=bar baz=3 asdf" but will make sure "gulp" is not passed      |
-|                | evenif it was requested at a level higher up in the cobbler configuration.                          |
+|                | This example passes the arguments ``foo=bar baz=3 asdf`` but will make sure ``gulp`` is not passed  |
+|                | even if it was requested at a level higher up in the cobbler configuration.                         |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| kopts-post     | This is just like --kopts, though it governs kernel options on the installed OS, as opposed tokernel|
-|                | options fed to the installer.  The syntax is exactly the same.  This requires somespecial snippets  |
-|                | to be found in your automatic installation template in order for this to work.Automatic installation|
-|                | templating is described later on in this document.                                                  |
+| kopts-post     | This is just like ``--kopts``, though it governs kernel options on the installed OS, as opposed to  |
+|                | kernel options fed to the installer. The syntax is exactly the same. This requires some special     |
+|                | snippets to be found in your automatic installation template in order for this to work. Automatic   |
+|                | installation templating is described later on in this document.                                     |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | Example: "noapic"                                                                                   |
+|                | Example: ``noapic``                                                                                 |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| arch           | Sets the architecture for the PXE bootloader and also controls how koan's --replace-selfoption will |
-|                | operate.                                                                                            |
+| arch           | Sets the architecture for the PXE bootloader and also controls how koan's ``--replace-self`` option |
+|                | will operate.                                                                                       |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | The default setting ('standard') will use pxelinux. Set to 'ppc' and 'ppc64' to use yaboot.         |
+|                | The default setting (``standard``) will use ``pxelinux``. Set to ``ppc`` and ``ppc64`` to use       |
+|                | ``yaboot``.                                                                                         |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | 'x86' and 'x86_64' effectively do the same thing as standard.                                       |
+|                | ``x86`` and ``x86_64`` effectively do the same thing as standard.                                   |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | If you perform a cobbler import, the arch field will be auto-assigned.                              |
+|                | If you perform a ``cobbler import``, the arch field will be auto-assigned.                          |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| ksmeta         | This is an advanced feature that sets automatic installation template variables to substitute,thus  |
-|                | enabling those files to be treated as templates.  Templates are powered using Cheetah andare        |
+| ksmeta         | This is an advanced feature that sets automatic installation template variables to substitute, thus |
+|                | enabling those files to be treated as templates. Templates are powered using Cheetah and are        |
 |                | described further along in this manpage as well as on the Cobbler Wiki.                             |
 +----------------+-----------------------------------------------------------------------------------------------------+
 |                | Example: ``--ksmeta="foo=bar baz=3 asdf"``                                                          |
@@ -161,39 +134,39 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                | See the section on "Kickstart Templating" for further information.                                  |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | breed          | Controls how various physical and virtual parameters, including kernel arguments for automatic      |
-|                | installation, are to betreated. Defaults to "redhat", which is a suitable value for Fedora and      |
-|                | CentOS as well.  It means anything redhat based.                                                    |
+|                | installation, are to be treated. Defaults to ``redhat``, which is a suitable value for Fedora and   |
+|                | CentOS as well. It means anything redhat based.                                                     |
 +----------------+-----------------------------------------------------------------------------------------------------+
 |                | There is limited experimental support for specifying "debian", "ubuntu", or "suse", which treats the|
 |                | automatic installation template file as a preseed/autoyast file format and changes the kernel       |
 |                | arguments appropriately. Support for other types of distributions is possible in the future. See the|
 |                | Wiki for the latest information about support for these distributions.                              |
 +----------------+-----------------------------------------------------------------------------------------------------+
-|                | The file used for the answer file, regardless of the breed setting, is the value used for --autoinst|
-|                | when creating the profile.                                                                          |
+|                | The file used for the answer file, regardless of the breed setting, is the value used for           |
+|                | ``--autoinst`` when creating the profile.                                                           |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | os-version     | Generally this field can be ignored. It is intended to alter some hardware setup for virtualized    |
-|                | instances whenprovisioning guests with koan. The valid options for --os-version vary depending on   |
-|                | what is specified for --breed. Ifyou specify an invalid option, the error message will contain a    |
-|                | list of valid os versions that can be used. If you donot know the os version or it does not appear  |
-|                | in the list, omitting this argument or using "other" should be perfectlyfine. If you do not         |
-|                | encounter any problems with virtualized instances, this option can be safely ignored.               |
+|                | instances when provisioning guests with koan. The valid options for ``--os-version`` vary depending |
+|                | on what is specified for ``--breed``. If you specify an invalid option, the error message will      |
+|                | contain a list of valid os versions that can be used. If you don't know the os version or it does   |
+|                | not appear in the list, omitting this argument or using ``other`` should be perfectly fine. If you  |
+|                | don't encounter any problems with virtualized instances, this option can be safely ignored.         |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | owners         | Users with small sites and a limited number of admins can probably ignore this option.  All cobbler |
-|                | objects (distros,profiles, systems, and repos) can take a --owners parameter to specify what cobbler|
-|                | users can edit particular objects.This only applies to the Cobbler WebUI and XMLRPC interface, not  |
-|                | the "cobbler" command line tool run from the shell.Furthermore, this is only respected by the       |
-|                | "authz_ownership" module which must be enabled in /etc/cobbler/modules.conf.The value for --owners  |
-|                | is a space separated list of users and groups as specified in /etc/cobbler/users.conf. For more     |
-|                | information see the users.conf file as well as the Cobbler Wiki. In the default Cobbler             |
-|                | configuration, this value iscompletely ignored, as is users.conf.                                   |
+|                | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what       |
+|                | cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XMLRPC         |
+|                | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only        |
+|                | respected by the ``authz_ownership`` module which must be enabled in ``/etc/cobbler/modules.conf``. |
+|                | The value for ``--owners`` is a space separated list of users and groups as specified in            |
+|                | ``/etc/cobbler/users.conf``. For more information see the users.conf file as well as the Cobbler    |
+|                | Wiki. In the default Cobbler configuration, this value is completely ignored, as is ``users.conf``. |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | template-files | This feature allows cobbler to be used as a configuration management system. The argument is a space|
-|                | delimited string ofkey=value pairs. Each key is the path to a template file, each value is the path |
-|                | to install the file on the system. Thisis described in further detail on the Cobbler Wiki and is    |
-|                | implemented using special code in the post install. Koan alsocan retrieve these files from a cobbler|
-|                | server on demand, effectively allowing cobbler to function as a lightweighttemplated configuration  |
-|                | management system.                                                                                  |
+|                | delimited string of ``key=value`` pairs. Each key is the path to a template file, each value is the |
+|                | path to install the file on the system. This is described in further detail on the Cobbler Wiki and |
+|                | is implemented using special code in the post install. Koan alsocan retrieve these files from a     |
+|                | cobbler server on demand, effectively allowing cobbler to function as a lightweight templated       |
+|                | configuration management system.                                                                    |
 +----------------+-----------------------------------------------------------------------------------------------------+
 
 cobbler profile
@@ -214,7 +187,7 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | Name                | Description                                                                                    |
 +=====================+================================================================================================+
-| name                | A descriptive name.  This could be something like "rhel5webservers" or "f9desktops".           |
+| name                | A descriptive name. This could be something like ``rhel5webservers`` or ``f9desktops``.        |
 +---------------------+------------------------------------------------------------------------------------------------+
 | distro              | The name of a previously defined cobbler distribution. This value is required.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -222,74 +195,74 @@ listed below:
 |                     | ``/var/lib/cobbler/autoinstall_templates``                                                     |
 +---------------------+------------------------------------------------------------------------------------------------+
 | name-servers        | If your nameservers are not provided by DHCP, you can specify a space separated list of        |
-|                     | addresses here to configure eachof the installed nodes to use them (provided the automatic     |
-|                     | installation files used are installed on a per-system basis).Users with DHCP setups should not |
-|                     | need to use this option. This is available to set in profiles to avoid having to setit         |
+|                     | addresses here to configure each of the installed nodes to use them (provided the automatic    |
+|                     | installation files used are installed on a per-system basis). Users with DHCP setups should not|
+|                     | need to use this option. This is available to set in profiles to avoid having to set it        |
 |                     | repeatedly for each system record.                                                             |
 +---------------------+------------------------------------------------------------------------------------------------+
 | name-servers-search | You can specify a space separated list of domain names to configure each of the installed nodes|
-|                     | to use them as domainsearch path.  This is available to set in profiles to avoid having to set |
+|                     | to use them as domain search path.  This is available to set in profiles to avoid having to set|
 |                     | it repeatedly for each system record.                                                          |
 +---------------------+------------------------------------------------------------------------------------------------+
-| virt-file-size      | (Virt-only) How large the disk image should be in Gigabytes.  The default is "5".This can be a |
-|                     | comma separated list (ex: "5,6,7") to allow for multiple disks of different sizes depending on |
-|                     | what is given to --virt-path.  This should be input as a integer or decimal value without      |
+| virt-file-size      | (Virt-only) How large the disk image should be in Gigabytes. The default is 5. This can be a   |
+|                     | comma separated list (ex: ``5,6,7``) to allow for multiple disks of different sizes depending  |
+|                     | on what is given to ``--virt-path``. This should be input as a integer or decimal value without|
 |                     | units.                                                                                         |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-ram            | (Virt-only) How many megabytes of RAM to consume. The default is 512 MB. This should be input  |
 |                     | as an integer without units.                                                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
-| virt-type           | (Virt-only) Koan can install images using either Xen paravirt ("xenpv") or QEMU/KVM ("qemu").  |
-|                     | Choose one or the other strings to specify, or values will default to attempting to find a     |
-|                     | compatible installation type on the client system("auto").  See the "koan" manpage for more    |
-|                     | documentation. The default virt-type can be configured in the cobblersettings file such that   |
-|                     | this parameter does not have to be provided. Other virtualization types are supported,         |
-|                     | for information on those options (such as VMware), see the Cobbler Wiki.                       |
+| virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
+|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
+|                     | find a compatible installation type on the client system("auto"). See the "koan" manpage for   |
+|                     | more documentation. The default ``--virt-type`` can be configured in the cobbler settings file |
+|                     | such that this parameter does not have to be provided. Other virtualization types are          |
+|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-cpus           | (Virt-only) How many virtual CPUs should koan give the virtual machine? The default is 1. This |
 |                     | is an integer.                                                                                 |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-path           | (Virt-only) Where to store the virtual image on the host system. Except for advanced cases,    |
-|                     | this parameter can usuallybe omitted. For disk images, the value is usually an absolute path to|
-|                     | an existing directory with an optional filename component. There is support for specifying     |
-|                     | partitions "/dev/sda4" or volume groups "VolGroup00", etc.                                     |
+|                     | this parameter can usually be omitted. For disk images, the value is usually an absolute path  |
+|                     | to an existing directory with an optional filename component. There is support for specifying  |
+|                     | partitions ``/dev/sda4`` or volume groups ``VolGroup00``, etc.                                 |
 +---------------------+------------------------------------------------------------------------------------------------+
-|                     | For multiple disks, separate the values with commas such as "VolGroup00,VolGroup00" or         |
-|                     | "/dev/sda4,/dev/sda5". Both those examples would create two disks for the VM.                  |
+|                     | For multiple disks, separate the values with commas such as ``VolGroup00,VolGroup00`` or       |
+|                     | ``/dev/sda4,/dev/sda5``. Both those examples would create two disks for the VM.                |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
 |                     | profile. If not specified, itwill assume the default value in the cobbler settings file, which |
-|                     | as shipped in the RPM is 'xenbr0'. If using KVM, this is most likely not correct. You may want |
-|                     | to override this setting in the system object. Bridge settings are importantas they define how |
-|                     | outside networking will reach the guest. For more information on bridge setup, see the Cobbler |
-|                     | Wiki, where there is a section describing koan usage.                                          |
+|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
+|                     | want to override this setting in the system object. Bridge settings are important as they      |
+|                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
+|                     | the Cobbler Wiki, where there is a section describing koan usage.                              |
 +---------------------+------------------------------------------------------------------------------------------------+
-| repos               | This is a space delimited list of all the repos (created with "cobbler repo add" and updated   |
-|                     | with "cobbler reposync")that this profile can make use of during automated installation. For   |
-|                     | example, an example might be--repos="fc6i386updates fc6i386extras" if the profile wants to     |
-|                     | access these two mirrors that are already mirrored on thecobbler server. Repo management is    |
+| repos               | This is a space delimited list of all the repos (created with ``cobbler repo add`` and updated |
+|                     | with ``cobbler reposync``)that this profile can make use of during automated installation. For |
+|                     | example, an example might be ``--repos="fc6i386updates fc6i386extras"`` if the profile wants to|
+|                     | access these two mirrors that are already mirrored on the cobbler server. Repo management is   |
 |                     | described in greater depth later in the manpage.                                               |
 +---------------------+------------------------------------------------------------------------------------------------+
 | parent              | This is an advanced feature.                                                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
-|                     | Profiles may inherit from other profiles in lieu of specifying --distro. Inherited profiles    |
-|                     | will override any settingsspecified in their parent, with the exception of --ksmeta            |
-|                     | (templating) and --kopts (kernel options), which will beblended together.                      |
+|                     | Profiles may inherit from other profiles in lieu of specifying ``--distro``. Inherited profiles|
+|                     | will override any settings specified in their parent, with the exception of ``--ksmeta``       |
+|                     | (templating) and ``--kopts`` (kernel options), which will be blended together.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
-|                     | Example:  If profile A has --kopts="x=7 y=2", B inherits from A, and B has --kopts="x=9 z=2",  |
-|                     | the actual kernel optionsthat will be used for B are "x=9 y=2 z=2".                            |
+|                     | Example: If profile A has ``--kopts="x=7 y=2"``, B inherits from A, and B has                  |
+|                     | ``--kopts="x=9 z=2"``, the actual kernel options that will be used for B are ``x=9 y=2 z=2``.  |
 +---------------------+------------------------------------------------------------------------------------------------+
-|                     | Example:  If profile B has --virt-ram=256 and A has --virt-ram of 512, profile B will use the  |
-|                     | value 256.                                                                                     |
+|                     | Example: If profile B has ``--virt-ram=256`` and A has ``--virt-ram=512``, profile B will use  |
+|                     | the value 256.                                                                                 |
 +---------------------+------------------------------------------------------------------------------------------------+
-|                     | Example:  If profile A has a --virt-file-size of 5 and B does not specify a size, B will use   |
+|                     | Example: If profile A has a ``--virt-file-size=5`` and B does not specify a size, B will use   |
 |                     | the value from A.                                                                              |
 +---------------------+------------------------------------------------------------------------------------------------+
-| server              | This parameter should be useful only in select circumstances.  If machines are on a subnet that|
-|                     | cannot access thecobbler server using the name/IP as configured in the cobbler settings file,  |
-|                     | use this parameter to override that servername. See also --dhcp-tag for configuring the next   |
-|                     | server and DHCP information of the system if you are also usingCobbler to help manage your DHCP|
-|                     | configuration.                                                                                 |
+| server              | This parameter should be useful only in select circumstances. If machines are on a subnet that |
+|                     | cannot access the cobbler server using the name/IP as configured in the cobbler settings file, |
+|                     | use this parameter to override that servername. See also ``--dhcp-tag`` for configuring the    |
+|                     | next server and DHCP information of the system if you are also usingCobbler to help manage your|
+|                     | DHCP configuration.                                                                            |
 +---------------------+------------------------------------------------------------------------------------------------+
 
 cobbler system
@@ -313,7 +286,7 @@ Read more about networking setup at: https://github.com/cobbler/cobbler/wiki/Adv
 
 Example:
 
-.. code-block:: shell
+.. code-block:: bash
 
     $ cobbler system add --name=string --profile=string [--mac=macaddress] [--ip-address=ipaddress] [--hostname=hostname] [--kopts=string] [--ksmeta=string] [--autoinst=path] [--netboot-enabled=Y/N] [--server=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-pass=string] [--power-id=string]
 
@@ -444,70 +417,71 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 +------------------+---------------------------------------------------------------------------------------------------+
 | Name             | Description                                                                                       |
 +==================+===================================================================================================+
-| mirror           | The address of the yum mirror. This can be an rsync:// URL, an ssh location, or a http:// or      |
-|                  | ftp:// mirror location.Filesystem paths also work.                                                |
+| mirror           | The address of the yum mirror. This can be an ``rsync://``-URL, an ssh location, or a ``http://`` |
+|                  | or ``ftp://`` mirror location. Filesystem paths also work.                                        |
 +------------------+---------------------------------------------------------------------------------------------------+
 |                  | The mirror address should specify an exact repository to mirror -- just one architecture and just |
-|                  | one distribution. Ifyou have a separate repo to mirror for a different arch, add that repo        |
+|                  | one distribution. If you have a separate repo to mirror for a different arch, add that repo       |
 |                  | separately.                                                                                       |
 +------------------+---------------------------------------------------------------------------------------------------+
 |                  | Here's an example of what looks like a good URL:                                                  |
 +------------------+---------------------------------------------------------------------------------------------------+
-|                  | rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386 (for rsync protocol)              |
-|                  | http://mirrors.kernel.org/fedora/extras/6/i386/                                                   |
-|                  | (for http://)user@yourmirror.example.com/fedora-linux-core/updates/6/i386  (for SSH)              |
+|                  | - ``rsync://yourmirror.example.com/fedora-linux-core/updates/6/i386`` (for rsync protocol)        |
+|                  | - ``http://mirrors.kernel.org/fedora/extras/6/i386/`` (for http)                                  |
+|                  | - ``user@yourmirror.example.com/fedora-linux-core/updates/6/i386``  (for SSH)                     |
 +------------------+---------------------------------------------------------------------------------------------------+
-|                  | Experimental support is also provided for mirroring RHN content when you needa fast local mirror. |
-|                  | The mirror syntax for this is --mirror=rhn://channel-name and you musthave entitlements for this  |
-|                  | to work. This requires the cobbler server to be installed on RHEL5or later. You will also need a  |
-|                  | version of yum-utils equal or greater to 1.0.4.                                                   |
+|                  | Experimental support is also provided for mirroring RHN content when you need a fast local mirror.|
+|                  | The mirror syntax for this is ``--mirror=rhn://channel-name`` and you must have entitlements for  |
+|                  | this to work. This requires the cobbler server to be installed on RHEL5 or later. You will also   |
+|                  | need a version of ``yum-utils`` equal or greater to 1.0.4.                                        |
 +------------------+---------------------------------------------------------------------------------------------------+
-| name             | This name is used as the save location for the mirror.  If the mirror represented, say, Fedora    |
-|                  | Core 6 i386 updates, agood name would be "fc6i386updates".  Again, be specific.                   |
+| name             | This name is used as the save location for the mirror. If the mirror represented, say, Fedora     |
+|                  | Core 6 i386 updates, a good name would be ``fc6i386updates``. Again, be specific.                 |
 +------------------+---------------------------------------------------------------------------------------------------+
-|                  | This name corresponds with values given to the --repos parameter of "cobbler profile add". If a   |
-|                  | profile has a --reposvalue that matches the name given here, that repo can be automatically set up|
-|                  | during provisioning (when supported) andinstalled systems will also use the boot server as a      |
-|                  | mirror (unless "yum_post_install_mirror" is disabled in thesettings file). By default the         |
-|                  | provisioning server will act as a mirror to systems it installs, which may not bedesirable for    |
-|                  | laptop configurations, etc.                                                                       |
+|                  | This name corresponds with values given to the ``--repos`` parameter of ``cobbler profile add``.  |
+|                  | If a profile has a ``--repos``-value that matches the name given here, that repo can be           |
+|                  | automatically set up during provisioning (when supported) and installed systems will also use the |
+|                  | boot server as a mirror (unless ``yum_post_install_mirror`` is disabled in the settings file). By |
+|                  | default the provisioning server will act as a mirror to systems it installs, which may not be     |
+|                  | desirable for laptop configurations, etc.                                                         |
 +------------------+---------------------------------------------------------------------------------------------------+
 |                  | Distros that can make use of yum repositories during automatic installation include FC6 and later,|
-|                  | RHEL 5 and later, andderivative distributions.                                                    |
+|                  | RHEL 5 and later, and derivative distributions.                                                   |
 +------------------+---------------------------------------------------------------------------------------------------+
-|                  | See the documentation on "cobbler profile add" for more information.                              |
+|                  | See the documentation on ``cobbler profile add`` for more information.                            |
 +------------------+---------------------------------------------------------------------------------------------------+
-| rpm-list         | By specifying a space-delimited list of package names for --rpm-list, one can decide to mirror    |
-|                  | only a part of a repo(the list of packages given, plus dependencies).  This may be helpful in     |
-|                  | conserving time/space/bandwidth. For instance,when mirroring FC6 Extras, it may be desired to     |
-|                  | mirror just cobbler and koan, and skip all of the game packages. To dothis, use                   |
-|                  | --rpm-list="cobbler koan".                                                                        |
+| rpm-list         | By specifying a space-delimited list of package names for ``--rpm-list``, one can decide to mirror|
+|                  | only a part of a repo (the list of packages given, plus dependencies). This may be helpful in     |
+|                  | conserving time/space/bandwidth. For instance, when mirroring FC6 Extras, it may be desired to    |
+|                  | mirror just cobbler and koan, and skip all of the game packages. To do this, use                  |
+|                  | ``--rpm-list="cobbler koan"``.                                                                    |
 +------------------+---------------------------------------------------------------------------------------------------+
-|                  | This option only works for http:// and ftp:// repositories (as it is powered by yumdownloader).   |
-|                  | It will be ignored forother mirror types, such as local paths and rsync:// mirrors.               |
+|                  | This option only works for ``http://`` and ``ftp://`` repositories (as it is powered by           |
+|                  | yumdownloader). It will be ignored for other mirror types, such as local paths and ``rsync://``   |
+|                  | mirrors.                                                                                          |
 +------------------+---------------------------------------------------------------------------------------------------+
-| createrepo-flags | Specifies optional flags to feed into the createrepo tool, which is called when "cobbler reposync"|
-|                  | is run for the givenrepository. The defaults are '-c cache'.                                      |
+| createrepo-flags | Specifies optional flags to feed into the createrepo tool, which is called when                   |
+|                  | ``cobbler reposync`` is run for the given repository. The defaults are ``-c cache``.              |
 +------------------+---------------------------------------------------------------------------------------------------+
 | keep-updated     | Specifies that the named repository should not be updated during a normal "cobbler reposync". The |
 |                  | repo may still beupdated by name. The repo should be synced at least once before disabling this   |
 |                  | feature. See "cobbler reposync" below.                                                            |
 +------------------+---------------------------------------------------------------------------------------------------+
-| mirror-locally   | When set to "N", specifies that this yum repo is to be referenced directly via automatic          |
-|                  | installation files and notmirrored locally on the cobbler server.  Only http:// and ftp:// mirror |
-|                  | urls are supported when using--mirror-locally=N, you cannot use filesystem URLs.                  |
+| mirror-locally   | When set to ``N``, specifies that this yum repo is to be referenced directly via automatic        |
+|                  | installation files and not mirrored locally on the cobbler server. Only ``http://`` and ``ftp://``|
+|                  | mirror urls are supported when using ``--mirror-locally=N``, you cannot use filesystem URLs.      |
 +------------------+---------------------------------------------------------------------------------------------------+
 | priority         | Specifies the priority of the repository (the lower the number, the higher the priority), which   |
-|                  | applies to installedmachines using the repositories that also have the yum priorities plugin      |
-|                  | installed. The default priority for the pluginis 99, as is that of all cobbler mirrored           |
+|                  | applies to installed machines using the repositories that also have the yum priorities plugin     |
+|                  | installed. The default priority for the plugins 99, as is that of all cobbler mirrored            |
 |                  | repositories.                                                                                     |
 +------------------+---------------------------------------------------------------------------------------------------+
 | arch             | Specifies what architecture the repository should use. By default the current system arch (of the |
 |                  | server) is used,which may not be desirable. Using this to override the default arch allows        |
-|                  | mirroring of source repositories(using --arch=src).                                               |
+|                  | mirroring of source repositories(using ``--arch=src``).                                           |
 +------------------+---------------------------------------------------------------------------------------------------+
 | yumopts          | Sets values for additional yum options that the repo should use on installed systems. For instance|
-|                  | if a yum plugintakes a certain parameter "alpha" and "beta", use something like                   |
+|                  | if a yum plugin takes a certain parameter "alpha" and "beta", use something like                  |
 |                  | ``--yumopts="alpha=2 beta=3"``.                                                                   |
 +------------------+---------------------------------------------------------------------------------------------------+
 | breed            | Ordinarily cobbler's repo system will understand what you mean without supplying this parameter,  |
@@ -660,26 +634,27 @@ cobbler replicate
 =================
 
 Cobbler can replicate configurations from a master cobbler server. Each cobbler server is still expected to have a
-locally relevant /etc/cobbler/cobbler.conf and modules.conf, as these files are not synced.
+locally relevant ``/etc/cobbler/cobbler.conf`` and ``modules.conf``, as these files are not synced.
 
 This feature is intended for load-balancing, disaster-recovery, backup, or multiple geography support.
 
 Cobbler can replicate data from a central server.
 
-Objects that need to be replicated should be specified with a pattern, such as --profiles="webservers* dbservers*" or
---systems="*.example.org". All objects matched by the pattern, and all dependencies of those objects matched by the
-pattern (recursively) will be transferred from the remote server to the central server. This is to say if you intend to
-transfer "*.example.org" and the definition of the systems have not changed, but a profile above them has changed, the
-changes to that profile will also be transferred.
+Objects that need to be replicated should be specified with a pattern, such as ``--profiles="webservers* dbservers*"``
+or ``--systems="*.example.org"``. All objects matched by the pattern, and all dependencies of those objects matched by
+the pattern (recursively) will be transferred from the remote server to the central server. This is to say if you intend
+to transfer ``*.example.org`` and the definition of the systems have not changed, but a profile above them has changed,
+the changes to that profile will also be transferred.
 
 In the case where objects are more recent on the local server, those changes will not be overridden locally.
 
-Common data locations will be rsync'ed from the master server unless --omit-data is specified.
+Common data locations will be rsync'ed from the master server unless ``--omit-data`` is specified.
 
-To delete objects that are no longer present on the master server, use --prune.  Warning:  this will delete all object
-types not present on the remote server from the local server, and is recursive. If you use prune, it is best to manage
-cobbler centrally and not expect changes made on the slave servers to be preserved. It is not currently possible to just
-prune objects of a specific type.
+To delete objects that are no longer present on the master server, use ``--prune``.
+
+**Warning**: This will delete all object types not present on the remote server from the local server, and is recursive.
+If you use prune, it is best to manage cobbler centrally and not expect changes made on the slave servers to be
+preserved. It is not currently possible to just prune objects of a specific type.
 
 Example:
 
@@ -718,13 +693,13 @@ a rewrite of all configuration files, distribution files in the TFTP root, and t
 unnecessary? Because in most common situations (after an object is edited, for example), Cobbler executes what is known
 as a "lite sync" which rewrites most critical files.
 
-When is a full sync required? When you are using manage_dhcpd (Managing DHCP) with systems that use static leases. In
-that case, a full sync is required to rewrite the dhcpd.conf file and to restart the dhcpd service.
+When is a full sync required? When you are using ``manage_dhcpd`` (Managing DHCP) with systems that use static leases.
+In that case, a full sync is required to rewrite the ``dhcpd.conf`` file and to restart the dhcpd service.
 
-Cobbler sync is used to repair or rebuild the contents /tftpboot or /var/www/cobbler when something has changed behind
-the scenes. It brings the filesystem up to date with the configuration as understood by cobbler.
+Cobbler sync is used to repair or rebuild the contents ``/tftpboot`` or ``/var/www/cobbler`` when something has changed
+behind the scenes. It brings the filesystem up to date with the configuration as understood by cobbler.
 
-Sync should be run whenever files in /var/lib/cobbler are manually edited (which is not recommended except for the
+Sync should be run whenever files in ``/var/lib/cobbler`` are manually edited (which is not recommended except for the
 settings file) or when making changes to automatic installation files. In practice, this should not happen often, though
 running sync too many times does not cause any adverse effects.
 
