@@ -32,8 +32,6 @@ class DownloadManager(object):
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
-        if logger is None:
-            logger = clogger.Logger()
         self.logger = logger
         self.cert = ()
         if self.settings.proxy_url_ext:
