@@ -1972,7 +1972,7 @@ def dhcpconf_location(api):
     elif dist == "ubuntu" and version < 11.10:
         return "/etc/dhcp3/dhcpd.conf"
     else:
-        return "/etc/dhcp/dhcpd.conf"
+        return "/etc/dhcpd.conf"
 
 
 def namedconf_location(api):
