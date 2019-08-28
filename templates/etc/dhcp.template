@@ -18,7 +18,7 @@ allow bootp;
 ignore client-updates;
 set vendorclass = option vendor-class-identifier;
 
-option pxe-system-type code 93 = unsigned integer 16;
+option system-arch code 93 = unsigned integer 16;
 
 subnet 192.168.1.0 netmask 255.255.255.0 {
      option routers             192.168.1.5;
@@ -30,17 +30,60 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
      next-server                $next_server;
      class "pxeclients" {
           match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
-          if option pxe-system-type = 00:06 {
-                  filename "grub/grub2-x86.efi";
-          } else if option pxe-system-type = 00:07 {
+
+          # Legacy
+          if option system-arch = 00:00 {
+              filename "grub/grub.0";
+          }
+          # UEFI-32-1
+          if option system-arch = 00:06 {
+               # Not supported, no 32 bit UEFI grub executable
+              filename "";
+          }
+          # UEFI-32-2
+          if option system-arch = 00:02 {
+              # Not supported, no 32 bit UEFI grub executable
+              filename "";
+          }
+          # UEFI-64-1
+          else if option system-arch = 00:07 {
+		      filename "grub/grubx64.efi";
+          }
+          # UEFI-64-2
+          else if option system-arch = 00:08 {
+              filename "grub/grub64.efi";
+          }
+          # UEFI-64-3
+          else if option system-arch = 00:09 {
                   filename "grub/grub2-x86_64.efi";
-          } else if option pxe-system-type = 00:09 {
-                  filename "grub/grub2-x86_64.efi";
-          } else {
+          }
+          # armv7   (aka arm 32 bit)
+          else if option system-arch = 00:10 {
+              filename "grub/armv7/armv7.efi";
+          }
+          # aarch64 (aka arm 64 bit)
+          else if option system-arch = 00:11 {
+              filename "grub/aarch64/grub.efi";
+          }
+          # RiskV 32 bit
+          else if option system-arch = 00:25 {
+	          #ToDo petitboot loader
+              filename "";
+          }
+          #RiskV 32 bit
+          else if option system-arch = 00:27 {
+	          #ToDo petitboot loader
+              filename "";
+          }
+          else if option system-arch = 00:0e {
+              filename "grub.ppc64le";
+          }
+          else
+          {
                   filename "pxelinux.0";
           }
-     }
 
+}
 }
 
 #for dhcp_tag in $dhcp_tags.keys():
