@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import requests
 
-from cobbler import clogger
-
 
 class DownloadManager(object):
 
