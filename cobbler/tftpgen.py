@@ -671,7 +671,6 @@ class TFTPGen(object):
 
                 append_line = "%s console=ttyS%s,%s" % (append_line, serial_device, serial_baud_rate)
 
-
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 1023:
             self.logger.warning("warning: kernel option length exceeds 1023")
