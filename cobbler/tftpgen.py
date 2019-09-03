@@ -654,6 +654,23 @@ class TFTPGen(object):
             blended.update(blended["autoinstall_meta"])
         append_line = self.templar.render(append_line, utils.flatten(blended), None)
 
+        # For now console=ttySx,BAUDRATE are only set for systems
+        # This could get enhanced for profile/distro via utils.blender (inheritance)
+        # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
+        # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
+        if system:
+            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+                if system.serial_device:
+                    serial_device = system.serial_device
+                else:
+                    serial_device = 0
+                if system.serial_baud_rate:
+                    serial_baud_rate = system.serial_baud_rate
+                else:
+                    serial_baud_rate = 115200
+
+                append_line = "%s console=ttyS%s,%s" % (append_line, serial_device, serial_baud_rate)
+
         # FIXME - the append_line length limit is architecture specific
         if len(append_line) >= 1023:
             self.logger.warning("warning: kernel option length exceeds 1023")
