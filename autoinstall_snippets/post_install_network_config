@@ -176,6 +176,11 @@ fi
         ## ===================================================================
         ## Actions based on interface_type
         ## ===================================================================
+        #if $iface_type == "bond_slave" and $iface_master != ""
+echo "SLAVE=yes" >> $devfile
+echo "MASTER=$iface_master" >> $devfile
+echo "HOTPLUG=no" >> $devfile
+        #end if
         #if $iface_type in ("bond","bonded_bridge_slave")
             ## if this is a bonded interface, configure it in modprobe.conf
             #if $osversion == "rhel4"
@@ -196,12 +201,7 @@ cat >> $devfile << EOF
 BONDING_OPTS="$bonding_opts"
 EOF
             #end if
-        #elif $iface_type == "bond_slave" and $iface_master != ""
-echo "SLAVE=yes" >> $devfile
-echo "MASTER=$iface_master" >> $devfile
-echo "HOTPLUG=no" >> $devfile
-        #end if
-        #if $iface_type == "bridge"
+        #elif $iface_type == "bridge"
 echo "TYPE=Bridge" >> $devfile
             #for $bridge_opt in $bridge_opts
                 #if $bridge_opt.strip() != ""
