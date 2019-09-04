@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 """
 Create a KVM guest and install a Linux operating system in it.
 Linux installation may be manual or automated.
