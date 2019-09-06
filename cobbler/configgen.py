@@ -47,7 +47,7 @@ class ConfigGen(object):
         self.handle = capi.CobblerAPI()
         self.system = self.handle.find_system(hostname=self.hostname)
         self.host_vars = self.get_cobbler_resource('autoinstall_meta')
-        self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
+        self.logger = clogger.Logger()
         self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
 
     # ----------------------------------------------------------------------

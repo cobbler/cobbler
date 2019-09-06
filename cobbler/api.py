@@ -89,7 +89,7 @@ class CobblerAPI(object):
             self.is_cobblerd = is_cobblerd
 
             try:
-                self.logger = clogger.Logger("/var/log/cobbler/cobbler.log")
+                self.logger = clogger.Logger()
             except CX:
                 # return to CLI/other but perms are not valid
                 # perms_ok is False
