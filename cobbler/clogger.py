@@ -21,61 +21,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
-import os
-import time
+import logging
+import logging.config
 
-ERROR = "ERROR"
-WARNING = "WARNING"
-DEBUG = "DEBUG"
-INFO = "INFO"
+logging.config.fileConfig('/etc/cobbler/logging_config.conf')
 
 
 class Logger(object):
+    def __init__(self, logfile=None):
+        if not logfile:
+            self.logger = logging.getLogger('root')
+        else:
+            self.logger = logging.getLogger(str(id(self)))
+            self.logger.propagate = False
+            self.logger.addHandler(logging.FileHandler(filename=logfile))
 
-    def __init__(self, logfile="/var/log/cobbler/cobbler.log"):
-        self.logfile = None
-
-        # Main logfile is append mode, other logfiles not.
-        if not os.path.exists(logfile) and os.path.exists(os.path.dirname(logfile)):
-            self.logfile = open(logfile, "a")
-            self.logfile.close()
-
-        try:
-            self.logfile = open(logfile, "a")
-        except IOError:
-            # You likely don't have write access, this logger will just print
-            # things to stdout.
-            pass
-
-    def warning(self, msg):
-        self.__write(WARNING, msg)
+    def critical(self, msg):
+        self.logger.critical(msg)
 
     def error(self, msg):
-        self.__write(ERROR, msg)
+        self.logger.error(msg)
 
-    def debug(self, msg):
-        self.__write(DEBUG, msg)
+    def warning(self, msg):
+        self.logger.warning(msg)
 
     def info(self, msg):
-        self.__write(INFO, msg)
+        self.logger.info(msg)
+
+    def debug(self, msg):
+        self.logger.debug(msg)
 
     def flat(self, msg):
-        self.__write(None, msg)
-
-    def __write(self, level, msg):
-        if level is not None:
-            msg = "%s - %s | %s" % (time.asctime(), level, msg)
-
-        if self.logfile is not None:
-            self.logfile.write(msg)
-            self.logfile.write("\n")
-            self.logfile.flush()
-        else:
-            print(msg)
-
-    def handle(self):
-        return self.logfile
-
-    def close(self):
-        self.logfile.close()
+        print(msg)

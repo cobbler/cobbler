@@ -724,5 +724,6 @@ if __name__ == "__main__":
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
             ("%szone_templates" % etcpath, []),
+            ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
         ],
     )
