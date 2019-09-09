@@ -28,7 +28,7 @@ import subprocess
 
 from builtins import OSError
 
-VERSION = "2.9.0"
+VERSION = "3.0.1"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
