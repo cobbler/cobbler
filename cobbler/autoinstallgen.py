@@ -140,8 +140,6 @@ class AutoInstallationGen(object):
         if system is not None:
             name = system.name
 
-        if str(self.settings.pxe_just_once).upper() in ["1", "Y", "YES", "TRUE"]:
-            self.addAutoYaSTScript(document, "chroot-scripts", nopxe % (srv, name))
         if self.settings.run_install_triggers:
             # notify cobblerd when we start/finished the installation
             self.addAutoYaSTScript(document, "pre-scripts", runpre % (srv, what, name))
