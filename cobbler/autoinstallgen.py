@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 from builtins import object
 import urllib.parse
 import xml.dom.minidom
@@ -85,7 +84,6 @@ class AutoInstallationGen(object):
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None):
         self.api.logger.info("autoyast XML file found. Checkpoint: profile=%s system=%s" % (profile, system))
-        nopxe = "\ncurl \"http://%s/cblr/svc/op/nopxe/system/%s\" > /dev/null"
         runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" > /dev/null"
         runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" > /dev/null"
 

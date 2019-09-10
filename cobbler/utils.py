@@ -2066,5 +2066,6 @@ def kopts_overwrite(system, distro, kopts, settings):
             # only works if pxe_just_once is enabled in global settings
             kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (settings.server, system.name)
 
+
 if __name__ == "__main__":
     print(os_release())  # returns 2, not 3
