@@ -30,7 +30,7 @@ automatically when we release.
 Setup
 #####
 
-The preferred development platform is the latest version of Fedora and/or CentOS. You'll also have to disable SELinux to
+The preferred development platform is the latest openSUSE Leap or Tumbleweed. You'll also have to disable SELinux to
 get Cobbler up and running.
 
 For CentOS you will need the EPEL repository:
@@ -95,7 +95,9 @@ We're not overly picky, but please follow the python PEP8 standards we want to a
 - Keep things simple, keep in mind that this is a tool for sysadmins and not python developers.
 - Use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged
   with the app, which usually runs afoul of distribution packaging guidelines.
-- At least for now we have to support Python 2.7 for Cobbler and Python 2.6 for Koan.
+- Cobbler is since the 3.x.x release Python3 only.
+- Koan has no new release currently but starting with the next we will also only support Pyhton3.
+- Older releases will of course stay with Python2.
 
 You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.net, as there are folks around to answer
 questions, etc. But it isn't that active anymore please drop also in our Cobbler Gitter channel there we will probably
@@ -114,14 +116,6 @@ You will probably want to:
 - edit the files as markdown
 - run the docker container
 - check if your changes didn't break anything
-
-Mailing List
-############
-
-We have a development mailing list at https://fedorahosted.org/mailman/listinfo/cobbler-devel
-Discuss development related questions, roadmap, and other things there, rather than on the general user list.
-
-It is a very good idea to mention your pull request (copy/paste, etc) to the development mailing list for discussion.
 
 Debugging
 #########

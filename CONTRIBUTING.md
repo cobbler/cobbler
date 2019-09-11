@@ -25,3 +25,4 @@ you can find in the repo for the website: [Github](https://github.com/cobbler/co
 - Please include a stacktrace if there is any.
 - Please include the log located under `/var/log/cobbler/cobbler.log`.
 - Please include steps for reproducing the error, the more precise they are the higher are the chances we can help you.
+- Please include the cobbler version you are using!
