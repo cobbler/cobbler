@@ -2054,14 +2054,17 @@ def compare_versions_gt(ver1, ver2):
     return versiontuple(ver1) > versiontuple(ver2)
 
 
-def suse_kopts_textmode_overwrite(distro, kopts):
-    """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
+def kopts_overwrite(system, distro, kopts, settings):
     if distro and distro.breed == "suse":
+        """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
         if 'textmode' in list(kopts.keys()):
             kopts.pop('text', None)
         elif 'text' in list(kopts.keys()):
             kopts.pop('text', None)
             kopts['textmode'] = ['1']
+        if system and settings:
+            # only works if pxe_just_once is enabled in global settings
+            kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (settings.server, system.name)
 
 
 if __name__ == "__main__":
