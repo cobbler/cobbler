@@ -39,7 +39,7 @@
 Summary: Boot server configurator
 Name: cobbler
 License: GPLv2+
-Version: 2.9.0
+Version: 3.0.1
 Release: 1%{?dist}
 Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 BuildArch: noarch
@@ -79,8 +79,13 @@ Requires: python3-requests
 %endif
 
 # FIXME: check on other distros
+%if 0%{?rhel}
 Requires: grub2-efi-ia32-modules
 Requires: grub2-efi-x64-modules
+%else
+Requires: grub2-i386-efi
+Requires: grub2-x86_64-efi
+%endif
 
 %if 0%{?fedora} < 23 || 0%{?rhel} >= 7
 Requires: yum-utils
@@ -262,8 +267,24 @@ fi
 # python
 %{python3_sitelib}/cobbler/*.py*
 %{python3_sitelib}/cobbler/__pycache__/*.py*
+%{python3_sitelib}/cobbler/actions/*.py*
+%{python3_sitelib}/cobbler/actions/__pycache__/*.py*
+%{python3_sitelib}/cobbler/cobbler_collections/*.py*
+%{python3_sitelib}/cobbler/cobbler_collections/__pycache__/*.py*
+%{python3_sitelib}/cobbler/items/*.py*
+%{python3_sitelib}/cobbler/items/__pycache__/*.py*
 %{python3_sitelib}/cobbler/modules/*.py*
 %{python3_sitelib}/cobbler/modules/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/authentication/*.py*
+%{python3_sitelib}/cobbler/modules/authentication/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/authorization/*.py*
+%{python3_sitelib}/cobbler/modules/authorization/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/installation/*.py*
+%{python3_sitelib}/cobbler/modules/installation/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/managers/*.py*
+%{python3_sitelib}/cobbler/modules/managers/__pycache__/*.py*
+%{python3_sitelib}/cobbler/modules/serializers/*.py*
+%{python3_sitelib}/cobbler/modules/serializers/__pycache__/*.py*
 %{python3_sitelib}/cobbler*.egg-info
 %exclude %{python3_sitelib}/cobbler/modules/nsupdate*
 %exclude %{python3_sitelib}/cobbler/web
@@ -362,13 +383,13 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 %if 0%{?fedora} >=18 || 0%{?rhel} >= 7
 %defattr(-,apache,apache,-)
 /usr/share/cobbler/web
-%dir %attr(700,apache,root) /var/lib/cobbler/webui_sessions
+%dir %attr(700,apache,root) %{_var}/lib/cobbler/webui_sessions
 %endif
 
 %if 0%{?suse_version} >= 1230
 %defattr(-,%{apache_user},%{apache_group},-)
 /usr/share/cobbler/web
-%dir %attr(700,%{apache_user},%{apache_group}) /var/lib/cobbler/webui_sessions
+%dir %attr(700,%{apache_user},%{apache_group}) %{_var}/lib/cobbler/webui_sessions
 %endif
 
 #
