@@ -16,6 +16,6 @@ formats: all
 python:
   version: 3.7
   install:
+    - requirements: docs/requirements.rtd.txt
     - method: pip
       path: .
-    - requirements: docs/requirements.rtd.txt
