@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # DISTRO directory overrides. Pass these vars in from outside:
 # export SYSLINUX_DIR=/usr/share/...;./mkgrub.sh
