@@ -43,3 +43,6 @@ venv3/
 
 # Coverage
 covhtml/
+
+# Docs
+docs/_build
