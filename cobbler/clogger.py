@@ -23,8 +23,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import logging
 import logging.config
+import os
 
-logging.config.fileConfig('/etc/cobbler/logging_config.conf')
+# Temporary hack, a clean solution seems to be tricky
+# Defining a variable in our Apache startup code seem not to
+# it is still set later when this code is executed via cobbler
+
+# This is necessary to prevent apache to try to access the file
+if os.access("/var/log/cobbler/cobbler.log", os.W_OK):
+    logging.config.fileConfig('/etc/cobbler/logging_config.conf')
 
 
 class Logger(object):
