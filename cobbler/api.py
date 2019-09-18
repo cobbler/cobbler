@@ -733,17 +733,17 @@ class CobblerAPI(object):
         self.dhcp = self.get_module_from_file(
             "dhcp",
             "module",
-            "manage_isc"
+            "managers.isc"
         ).get_manager(self._collection_mgr, logger)
         self.dns = self.get_module_from_file(
             "dns",
             "module",
-            "manage_bind"
+            "managers.bind"
         ).get_manager(self._collection_mgr, logger)
         self.tftpd = self.get_module_from_file(
             "tftpd",
             "module",
-            "in_tftpd",
+            "managers.in_tftpd",
         ).get_manager(self._collection_mgr, logger)
 
         return sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose, logger=logger)
