@@ -27,7 +27,7 @@ def run(api, args, logger):
 
     rc = 0
     if manage_dhcp != "0":
-        if which_dhcp_module == "manage_isc":
+        if which_dhcp_module == "managers.isc":
             if restart_dhcp != "0":
                 rc = utils.subprocess_call(logger, "dhcpd -t -q", shell=True)
                 if rc != 0:
@@ -36,7 +36,7 @@ def run(api, args, logger):
                 dhcp_service_name = utils.dhcp_service_name(api)
                 dhcp_restart_command = "service %s restart" % dhcp_service_name
                 rc = utils.subprocess_call(logger, dhcp_restart_command, shell=True)
-        elif which_dhcp_module == "manage_dnsmasq":
+        elif which_dhcp_module == "managers.dnsmasq":
             if restart_dhcp != "0":
                 rc = utils.subprocess_call(logger, "service dnsmasq restart")
                 has_restarted_dnsmasq = True
@@ -45,15 +45,15 @@ def run(api, args, logger):
             rc = 411
 
     if manage_dns != "0" and restart_dns != "0":
-        if which_dns_module == "manage_bind":
+        if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name(api)
             dns_restart_command = "service %s restart" % named_service_name
             rc = utils.subprocess_call(logger, dns_restart_command, shell=True)
-        elif which_dns_module == "manage_dnsmasq" and not has_restarted_dnsmasq:
+        elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:
             rc = utils.subprocess_call(logger, "service dnsmasq restart", shell=True)
-        elif which_dns_module == "manage_dnsmasq" and has_restarted_dnsmasq:
+        elif which_dns_module == "managers.dnsmasq" and has_restarted_dnsmasq:
             rc = 0
-        elif which_dns_module == "manage_ndjbdns":
+        elif which_dns_module == "managers.ndjbdns":
             # N-DJBDNS picks up configuration changes automatically and does not need to be restarted.
             pass
         else:
