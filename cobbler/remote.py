@@ -954,14 +954,18 @@ class CobblerXMLRPCInterface(object):
 
         self.check_access(token, "xedit_%s" % object_type, token)
 
-        if edit_type == "add":
+        if edit_type == "add" or edit_type == "rename":
             handle = 0
+            if edit_type == "rename":
+                tmp_name = attributes["newname"]
+            else:
+                tmp_name = object_name
             try:
-                handle = self.get_item_handle(object_type, object_name)
+                handle = self.get_item_handle(object_type, tmp_name)
             except:
                 pass
             if handle != 0:
-                raise CX("it seems unwise to overwrite this object, try 'edit'")
+                raise CX("it seems unwise to overwrite the object %s, try 'edit'", tmp_name)
 
         if edit_type == "add":
             is_subobject = object_type == "profile" and "parent" in attributes
