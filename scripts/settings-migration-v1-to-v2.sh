@@ -105,17 +105,36 @@ print_help() {
   echo "Options:"
   echo "  -h  show this help text"
   echo "  -r  Use the regex replace. I recommend this if you have custom modules and also have rearranged them."
+  echo "      WARNING: This also alters the documentation in the settings file which is wrong to the current point"
+  echo "               in time."
   echo "  -s  Use the static replace. I recomment this if you use the default modules."
   echo "  -n  Make a new start with Cobbler and just replace the whole settings file."
   echo "  -f  Path to the \"modules.conf\""
 }
 
 regex_conversion() {
-  echo "Not Implemented"
+  sed -i -e 's/authn_/authentication\./g' $path_modules_conf
+  sed -i -e 's/authz_/authorization\./g' $path_modules_conf
+  sed -i -e 's/manage_/managers\./g' $path_modules_conf
 }
 
 static_conversion() {
-  echo "Not Implemented"
+  sed -i -e 's/authn_denyall/authentication.denyall/g' $path_modules_conf
+  sed -i -e 's/authn_configfile/authentication.configfile/g' $path_modules_conf
+  sed -i -e 's/authn_passthru/authentication.passthru/g' $path_modules_conf
+  sed -i -e 's/authn_ldap/authentication.ldap/g' $path_modules_conf
+  sed -i -e 's/authn_spacewalk/authentication.spacewalk/g' $path_modules_conf
+  sed -i -e 's/authn_pam/authentication.pam/g' $path_modules_conf
+  sed -i -e 's/authn_testing/authentication.testing/g' $path_modules_conf
+  sed -i -e 's/authz_allowall/authorization.allowall/g' $path_modules_conf
+  sed -i -e 's/authz_ownership/authorization.ownership/g' $path_modules_conf
+  sed -i -e 's/manage_bind/managers.bind/g' $path_modules_conf
+  sed -i -e 's/manage_dnsmasq/managers.dnsmasq/g' $path_modules_conf
+  sed -i -e 's/manage_ndjbdns/managers.ndjbdns/g' $path_modules_conf
+  sed -i -e 's/manage_isc/managers.isc/g' $path_modules_conf
+  sed -i -e 's/manage_dnsmasq/managers.dnsmasq/g' $path_modules_conf
+  sed -i -e 's/manage_in_tftpd/managers.in_tftpd/g' $path_modules_conf
+  sed -i -e 's/manage_tftpd_py/managers.tftpd_py/g' $path_modules_conf
 }
 
 replace_modules_conf() {
