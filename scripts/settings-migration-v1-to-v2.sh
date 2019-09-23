@@ -125,11 +125,11 @@ replace_modules_conf() {
 }
 
 run() {
-  if [ $flag_regex_conversion ]; then
+  if $flag_regex_conversion; then
     regex_conversion
-  elif [ $flag_static_conversion ]; then
+  elif $flag_static_conversion; then
     static_conversion
-  elif [ $flag_replace_conversion ]; then
+  elif $flag_replace_conversion; then
     replace_modules_conf
   fi
 }
@@ -142,12 +142,15 @@ wrong_options() {
 }
 
 validate_options() {
-  if [[ $flag_regex_conversion && $flag_static_conversion && $flag_replace_conversion ]]; then
+  if $flag_regex_conversion && $flag_static_conversion && $flag_replace_conversion; then
     print_help
-  elif [[ $flag_regex_conversion && $flag_static_conversion ]]; then
+    exit 1
+  elif $flag_regex_conversion && $flag_static_conversion; then
     print_help
-  elif [[ $flag_regex_conversion && $flag_replace_conversion ]]; then
+    exit 1
+  elif $flag_regex_conversion && $flag_replace_conversion; then
     print_help
+    exit 1
   fi
 }
 
