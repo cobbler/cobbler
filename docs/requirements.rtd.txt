@@ -1,2 +1,1 @@
-distro
-coverage
+sphinx_rtd_theme
