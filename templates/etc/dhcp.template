@@ -38,16 +38,16 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
           # UEFI-32-1
           if option system-arch = 00:06 {
                # Not supported, no 32 bit UEFI grub executable
-              filename "";
+              filename "unsupported";
           }
           # UEFI-32-2
           if option system-arch = 00:02 {
               # Not supported, no 32 bit UEFI grub executable
-              filename "";
+              filename "unsupported";
           }
           # UEFI-64-1
           else if option system-arch = 00:07 {
-		      filename "grub/grubx64.efi";
+              filename "grub/grubx64.efi";
           }
           # UEFI-64-2
           else if option system-arch = 00:08 {
@@ -55,35 +55,34 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
           }
           # UEFI-64-3
           else if option system-arch = 00:09 {
-                  filename "grub/grub2-x86_64.efi";
+              filename "grub/grub2-x86_64.efi";
           }
           # armv7   (aka arm 32 bit)
-          else if option system-arch = 00:10 {
-              filename "grub/armv7/armv7.efi";
+          else if option system-arch = 00:0a {
+              filename "grub/armv7.efi";
           }
           # aarch64 (aka arm 64 bit)
-          else if option system-arch = 00:11 {
-              filename "grub/aarch64/grub.efi";
+          else if option system-arch = 00:0b {
+              filename "grub/grub.efi";
           }
           # RiskV 32 bit
           else if option system-arch = 00:25 {
-	          #ToDo petitboot loader
-              filename "";
+              #ToDo petitboot loader
+              filename "unsupported";
           }
           #RiskV 32 bit
           else if option system-arch = 00:27 {
-	          #ToDo petitboot loader
-              filename "";
+              #ToDo petitboot loader
+              filename "unsupported";
           }
           else if option system-arch = 00:0e {
-              filename "grub.ppc64le";
+              filename "grub/grub.ppc64le";
           }
           else
           {
-                  filename "pxelinux.0";
+              filename "grub/grub.0";
           }
-
-}
+     }
 }
 
 #for dhcp_tag in $dhcp_tags.keys():
