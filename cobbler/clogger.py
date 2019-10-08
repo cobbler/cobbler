@@ -30,9 +30,14 @@ import os
 # it is still set later when this code is executed via cobbler
 
 # This is necessary to prevent apache to try to access the file
-if os.access("/var/log/cobbler/cobbler.log", os.W_OK):
-    logging.config.fileConfig('/etc/cobbler/logging_config.conf')
-
+LOG_FILE = "/var/log/cobbler/cobbler.log"
+try:
+    if not os.path.isfile(LOG_FILE):
+        open(LOG_FILE, 'a').close()
+    if os.access(LOG_FILE, os.W_OK):
+        logging.config.fileConfig('/etc/cobbler/logging_config.conf')
+except Exception:
+    pass
 
 class Logger(object):
     def __init__(self, logfile=None):
