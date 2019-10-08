@@ -169,7 +169,7 @@ class TFTPGen(object):
                 raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
-            if working_arch in ["i386", "x86", "x86_64", "arm", "armv7", "ppc64le", "ppc64el", "standard"]:
+            if working_arch in ["i386", "x86", "x86_64", "arm", "aarch64", "ppc64le", "ppc64el", "standard"]:
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
 
