@@ -3,6 +3,7 @@
 #
 # Supported/tested build targets:
 # - Fedora: 29
+# - CentOS: 8
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 # https://build.opensuse.org/project/subprojects/home:libertas-ict
@@ -48,16 +49,16 @@ Url: https://cobbler.github.io
 BuildRequires: git
 BuildRequires: openssl
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 BuildRequires: python36-devel
 %else
 BuildRequires: python3-devel
 %endif
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 Requires: python36 >= 3.6
 %else
-Requires: python >= 3.6
+Requires: python3 >= 3.6
 %endif
 
 Requires: python(abi) >= %{pyver}
@@ -66,7 +67,7 @@ Requires: rsync
 Requires: syslinux >= 4
 Requires: logrotate
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 Requires: python36-distro
 Requires: python36-future
 Requires: python36-netaddr
@@ -104,7 +105,7 @@ BuildRequires: redhat-rpm-config
 BuildRequires: systemd-units
 Requires: genisoimage
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 Requires: python36-PyYAML
 Requires: python36-pip
 %else
@@ -181,7 +182,7 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
 %pre
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 pip3 install Cheetah3
 %endif
 
@@ -239,19 +240,25 @@ fi
 %post
 # package install
 if (( $1 == 1 )); then
+    echo "Enabling cobblerd..."
     /usr/bin/systemctl enable cobblerd.service > /dev/null 2>&1
+    echo "Starting cobblerd..."
     /usr/bin/systemctl start cobblerd.service > /dev/null 2>&1
+    echo "Restarting httpd..."
     /usr/bin/systemctl restart httpd.service > /dev/null 2>&1
 fi
 %preun
 # last package removal
 if (( $1 == 0 )); then
+    echo "Disabling cobblerd..."
     /usr/bin/systemctl disable cobblerd.service > /dev/null 2>&1
+    echo "Stopping cobblerd..."
     /usr/bin/systemctl stop cobblerd.service > /dev/null 2>&1
 fi
 %postun
 # last package removal
 if (( $1 == 0 )); then
+    echo "Restarting httpd..."
     /usr/bin/systemctl try-restart httpd.service > /dev/null 2>&1
 fi
 %endif
@@ -315,15 +322,15 @@ fi
 
 # share
 %{_usr}/share/cobbler
-%exclude %{_usr}/share/cobbler/spool
+#%exclude %{_usr}/share/cobbler/spool
 %exclude %{_usr}/share/cobbler/web
 
 # log
 %{_var}/log/cobbler
 
 # documentation
-%doc AUTHORS COPYING README docs/README.suse
-%{_mandir}/man1/cobbler.1.gz
+%doc AUTHORS COPYING README
+#%{_mandir}/man1/cobbler.1.gz
 
 
 #
@@ -339,8 +346,15 @@ Requires(post): openssl
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 Requires: httpd >= 2.4
-Requires: Django >= 1.8
 Requires: mod_wsgi
+%endif
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} < 8
+Requires: Django >= 1.8
+%endif
+
+%if 0%{?rhel} >= 8
+Requires: python3-django >= 1.8
 %endif
 
 %if 0%{?suse_version} >= 1230
@@ -401,7 +415,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 Summary: module for dynamic dns updates
 Requires: cobbler
 
-%if 0%{?rhel}
+%if 0%{?rhel} < 8
 Requires: python36-dns
 %else
 Requires: python3-dns
