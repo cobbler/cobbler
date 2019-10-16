@@ -2,7 +2,11 @@
 
 FROM centos:7
 
-RUN yum makecache fast && yum install -y epel-release && yum makecache fast
+RUN yum makecache fast && \
+    yum install -y epel-release && \
+    yum install -y https://repo.ius.io/ius-release-el7.rpm \
+                   https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum makecache fast
 
 # Dev dependencies
 RUN yum install -y          \
@@ -22,7 +26,7 @@ RUN yum install -y          \
 # Runtime dependencies
 RUN yum install -y          \
     httpd                   \
-    mod_wsgi                \
+    python36-mod_wsgi       \
     python36-PyYAML         \
     python36-netaddr        \
     python36-simplejson
