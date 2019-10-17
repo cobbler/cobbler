@@ -77,7 +77,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinstall":"sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -93,7 +93,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinstall":"sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -426,7 +426,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -442,7 +442,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -709,7 +709,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -725,7 +725,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -741,7 +741,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -757,7 +757,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -775,7 +775,7 @@
     "kernel_file":"",
     "initrd_file":"",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1047,7 +1047,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1063,7 +1063,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1430,7 +1430,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1446,7 +1446,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1462,7 +1462,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1478,7 +1478,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1494,7 +1494,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1510,7 +1510,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1526,7 +1526,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1542,7 +1542,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1558,7 +1558,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1574,7 +1574,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1624,7 +1624,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1640,7 +1640,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1656,7 +1656,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1672,7 +1672,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]

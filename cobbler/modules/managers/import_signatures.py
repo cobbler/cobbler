@@ -331,34 +331,34 @@ class ImportSignatureManager(object):
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
-                distro = distro.Distro(self.collection_mgr)
+                new_distro = distro.Distro(self.collection_mgr)
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
                 continue
 
-            distro.set_name(name)
-            distro.set_kernel(kernel)
-            distro.set_initrd(initrd)
-            distro.set_arch(pxe_arch)
-            distro.set_breed(self.breed)
-            distro.set_os_version(self.os_version)
-            distro.set_kernel_options(self.signature.get("kernel_options", ""))
-            distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
-            distro.set_template_files(self.signature.get("template_files", ""))
-            supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(distro, self.api)
-            distro.set_supported_boot_loaders(supported_distro_boot_loaders)
-            distro.set_boot_loader(supported_distro_boot_loaders[0])
+            new_distro.set_name(name)
+            new_distro.set_kernel(kernel)
+            new_distro.set_initrd(initrd)
+            new_distro.set_arch(pxe_arch)
+            new_distro.set_breed(self.breed)
+            new_distro.set_os_version(self.os_version)
+            new_distro.set_kernel_options(self.signature.get("kernel_options", ""))
+            new_distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
+            new_distro.set_template_files(self.signature.get("template_files", ""))
+            supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(new_distro, self.api)
+            new_distro.set_supported_boot_loaders(supported_distro_boot_loaders)
+            new_distro.set_boot_loader(supported_distro_boot_loaders[0])
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
                 boot_files += '$local_img_path/%s=%s/%s ' % (boot_file, self.path, boot_file)
-            distro.set_boot_files(boot_files.strip())
+            new_distro.set_boot_files(boot_files.strip())
 
-            self.configure_tree_location(distro)
+            self.configure_tree_location(new_distro)
 
-            self.distros.add(distro, save=True)
-            distros_added.append(distro)
+            self.distros.add(new_distro, save=True)
+            distros_added.append(new_distro)
 
             # see if the profile name is already used, if so, skip it and
             # do not modify the existing profile
@@ -367,25 +367,25 @@ class ImportSignatureManager(object):
 
             if existing_profile is None:
                 self.logger.info("creating new profile: %s" % name)
-                profile = profile.Profile(self.collection_mgr)
+                new_profile = profile.Profile(self.collection_mgr)
             else:
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue
 
-            profile.set_name(name)
-            profile.set_distro(name)
-            profile.set_autoinstall(self.autoinstall_file)
+            new_profile.set_name(name)
+            new_profile.set_distro(name)
+            new_profile.set_autoinstall(self.autoinstall_file)
 
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan
             if name.find("-xen") != -1:
-                profile.set_virt_type("xenpv")
+                new_profile.set_virt_type("xenpv")
             elif name.find("vmware") != -1:
-                profile.set_virt_type("vmware")
+                new_profile.set_virt_type("vmware")
             else:
-                profile.set_virt_type("kvm")
+                new_profile.set_virt_type("kvm")
 
-            self.profiles.add(profile, save=True)
+            self.profiles.add(new_profile, save=True)
 
         return distros_added
 
