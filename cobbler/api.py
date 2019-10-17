@@ -858,7 +858,7 @@ class CobblerAPI(object):
                     self.log("Network root given to --available-as is missing a colon, please see the manpage example.")
                     return False
 
-        import_module = self.get_module_by_name("manage_import_signatures").get_import_manager(self._collection_mgr, logger)
+        import_module = self.get_module_by_name("managers.import_signatures").get_import_manager(self._collection_mgr, logger)
         import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
 
     # ==========================================================================
