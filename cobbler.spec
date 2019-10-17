@@ -3,6 +3,8 @@
 #
 # Supported/tested build targets:
 # - Fedora: 29
+# - Fedora: 30
+# - CentOS: 7
 # - CentOS: 8
 #
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
@@ -46,81 +48,53 @@ Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
 BuildArch: noarch
 Url: https://cobbler.github.io
 
+###############################################################################
+# Build Requires
+###############################################################################
+
 BuildRequires: git
 BuildRequires: openssl
 
-%if 0%{?rhel} < 8
-BuildRequires: python36-devel
-%else
+# Fedora 29+ and CentOS 8+
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
 BuildRequires: python3-devel
+BuildRequires: python3-cheetah
+BuildRequires: %{py3_dist coverage}
+BuildRequires: python3-distro
+BuildRequires: python3-future
+BuildRequires: python3-netaddr
+BuildRequires: python3-pyyaml
+BuildRequires: python3-requests
+BuildRequires: python3-setuptools
+BuildRequires: python3-simplejson
+BuildRequires: python3-sphinx
 %endif
 
-%if 0%{?rhel} < 8
-Requires: python36 >= 3.6
-%else
-Requires: python3 >= 3.6
+# CentOS 7
+# Requires python36 from EPEL and python36-mod_wsgi from IUS
+%if 0%{?rhel} == 7
+BuildRequires: python36-devel
+#BuildRequires: python36-cheetah does not exist
+BuildRequires: python36-coverage
+BuildRequires: python36-distro
+BuildRequires: python36-future
+BuildRequires: python36-netaddr
+BuildRequires: python36-PyYAML
+BuildRequires: python36-requests
+BuildRequires: python36-setuptools
+BuildRequires: python36-simplejson
+BuildRequires: python36-pyflakes
+BuildRequires: python36-pycodestyle
+BuildRequires: python36-sphinx
 %endif
 
-Requires: python(abi) >= %{pyver}
-Requires: createrepo
-Requires: rsync
-Requires: syslinux >= 4
-Requires: logrotate
-
-%if 0%{?rhel} < 8
-Requires: python36-distro
-Requires: python36-future
-Requires: python36-netaddr
-Requires: python36-simplejson
-Requires: python36-requests
-%else
-Requires: python3-netaddr
-Requires: python3-simplejson
-Requires: python3-requests
-%endif
-
-# FIXME: check on other distros
-%if 0%{?rhel}
-Requires: grub2-efi-ia32-modules
-Requires: grub2-efi-x64-modules
-%else
-Requires: grub2-i386-efi
-Requires: grub2-x86_64-efi
-%endif
-
-%if 0%{?fedora} < 23 || 0%{?rhel} >= 7
-Requires: yum-utils
-%endif
-
-%if 0%{?fedora} == 23 || 0%{?fedora} == 24
-Requires: dnf-core-plugins
-%endif
-
-%if 0%{?fedora} >= 25
-Requires: dnf-plugins-core
-%endif
-
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+# Common RHEL and Fedora
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 7
 BuildRequires: redhat-rpm-config
 BuildRequires: systemd-units
-Requires: genisoimage
-
-%if 0%{?rhel} < 8
-Requires: python36-PyYAML
-Requires: python36-pip
-%else
-Requires: python3-cheetah
-Requires: python3-pyyaml
 %endif
 
-Requires: httpd >= 2.4
-Requires: mod_wsgi
-Requires(post): systemd-sysv
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
-%endif
-
+# SUSE
 %if 0%{?suse_version} >= 1230
 BuildRequires: apache2 >= 2.4
 BuildRequires: python3-Cheetah3
@@ -129,6 +103,67 @@ BuildRequires: systemd
 BuildRequires: python3-Sphinx
 BuildRequires: python3-future
 BuildRequires: python3-distro
+%endif
+
+
+###############################################################################
+# Requires
+###############################################################################
+
+# Common
+Requires: python(abi) >= %{pyver}
+Requires: createrepo
+Requires: rsync
+Requires: syslinux >= 4
+Requires: logrotate
+
+# CentOS 8+ and Fedora 29+
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+Requires: python3 >= 3.6
+Requires: python3-distro
+Requires: python3-future
+Requires: python3-netaddr
+Requires: python3-simplejson
+Requires: python3-requests
+Requires: python3-cheetah
+Requires: python3-pyyaml
+Requires: python3-tornado
+Requires: python3-mod_wsgi
+Requires: dnf-plugins-core
+%endif
+
+# CentOS 7
+%if 0%{?rhel} == 7
+Requires: python36 >= 3.6
+Requires: python36-distro
+Requires: python36-future
+Requires: python36-netaddr
+Requires: python36-simplejson
+Requires: python36-requests
+#Requires: python36-cheetah does not exist
+Requires: python36-PyYAML
+Requires: python36-tornado
+Requires: python36-pip
+# IUS provides a python36-mod_wsgi package
+Requires: python36-mod_wsgi
+Requires: yum-utils
+%endif
+
+# Common RHEL and Fedora
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 7
+Requires: genisoimage
+Requires: httpd >= 2.4
+Requires: tftp-server
+Requires: grub2-efi-ia32-modules
+Requires: grub2-efi-x64-modules
+Requires(post): systemd-sysv
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
+%endif
+
+# SUSE
+%if 0%{?suse_version} >= 1230
 Requires: python3-PyYAML
 Requires: python3-Cheetah3
 Requires: apache2 >= 2.4
@@ -138,12 +173,13 @@ Requires: python3-future
 Requires: python3-distro
 Requires: python3-tornado
 %{?systemd_requires}
+Requires: grub2-i386-efi
+Requires: grub2-x86_64-efi
 Requires(pre): systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(preun): systemd
 %endif
-
 
 %description
 Cobbler is a PXE and ISO based network install server.
@@ -181,8 +217,8 @@ rm $RPM_BUILD_ROOT%{_sysconfdir}/cobbler/cobbler_web.conf
 
 
 %pre
-
-%if 0%{?rhel} < 8
+# Workaround for missing python36-cheetah package
+%if 0%{?rhel} == 7
 pip3 install Cheetah3
 %endif
 
@@ -344,18 +380,22 @@ Requires: python(abi) >= %{pyver}
 Requires: cobbler
 Requires(post): openssl
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+
+%if 0%{?fedora} || 0%{?rhel}
 Requires: httpd >= 2.4
-Requires: mod_wsgi
 %endif
 
-%if 0%{?fedora} >= 18 || 0%{?rhel} < 8
-Requires: Django >= 1.8
-%endif
-
-%if 0%{?rhel} >= 8
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
+Requires: python3-mod_wsgi
 Requires: python3-django >= 1.8
 %endif
+
+%if 0%{?rhel} == 7
+# IUS provides a python36-mod_wsgi package
+Requires: python36-mod_wsgi
+Requires: python36-django >= 1.8
+%endif
+
 
 %if 0%{?suse_version} >= 1230
 Requires: apache2 >= 2.4
@@ -415,10 +455,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" /usr/share/cobbler/
 Summary: module for dynamic dns updates
 Requires: cobbler
 
-%if 0%{?rhel} < 8
-Requires: python36-dns
-%else
+%if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
 Requires: python3-dns
+%endif
+
+%if 0%{?rhel} == 7
+Requires: python36-dns
 %endif
 
 %description -n cobbler-nsupdate

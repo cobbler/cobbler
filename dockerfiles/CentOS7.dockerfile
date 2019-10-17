@@ -21,6 +21,8 @@ RUN yum install -y          \
     python36-pyflakes       \
     python36-pycodestyle    \
     python36-setuptools     \
+    python36-requests       \
+    python36-sphinx         \
     rpm-build
 
 # Runtime dependencies
@@ -29,7 +31,8 @@ RUN yum install -y          \
     python36-mod_wsgi       \
     python36-PyYAML         \
     python36-netaddr        \
-    python36-simplejson
+    python36-simplejson     \
+    python36-tornado
 
 ADD . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

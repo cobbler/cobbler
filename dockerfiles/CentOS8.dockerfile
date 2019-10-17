@@ -2,13 +2,13 @@
 
 FROM centos:8
 
-RUN yum makecache && \
-    yum install -y epel-release dnf-utils && \
-    yum config-manager --set-enabled PowerTools && \
-    yum makecache
+RUN dnf makecache && \
+    dnf install -y epel-release dnf-utils && \
+    dnf config-manager --set-enabled PowerTools && \
+    dnf makecache
 
 # Dev dependencies
-RUN yum install -y          \
+RUN dnf install -y          \
     git                     \
     make                    \
     openssl                 \
@@ -20,16 +20,18 @@ RUN yum install -y          \
     python3-pyflakes       \
     python3-pycodestyle    \
     python3-setuptools \
+    python3-sphinx         \
     rpm-build
 
 # Runtime dependencies
-RUN yum install -y          \
+RUN dnf install -y          \
     httpd                   \
-    mod_wsgi                \
-    python3-PyYAML         \
+    python3-mod_wsgi        \
+    python3-pyyaml         \
     python3-netaddr        \
     python3-simplejson \
-    python3-cheetah
+    python3-cheetah \
+    python3-tornado
 
 ADD . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
