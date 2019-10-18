@@ -1,6 +1,5 @@
 dist: xenial
 language: generic
-sudo: required
 services:
   - docker
 branches:
@@ -28,7 +27,7 @@ jobs:
     - stage: rpms
       name: "Build CentOS 7 RPMs"
       script:
-       - docker build -t cobbler:elr7 -f dockerfiles/CentOS7.dockerfile .
+       - docker build -t cobbler:el7 -f dockerfiles/CentOS7.dockerfile .
        - docker run -ti cobbler:el7
     - stage: rpms
       name: "Build CentOS 8 RPMs"
