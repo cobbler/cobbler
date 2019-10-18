@@ -8,8 +8,8 @@ RUN yum makecache fast && \
                    https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
     yum makecache fast
 
-# Dev dependencies
 RUN yum install -y          \
+# Dev dependencies
     git                     \
     make                    \
     openssl                 \
@@ -25,8 +25,8 @@ RUN yum install -y          \
     python36-sphinx         \
     rpm-build
 
-# Runtime dependencies
 RUN yum install -y          \
+# Runtime dependencies
     httpd                   \
     python36-mod_wsgi       \
     python36-PyYAML         \
