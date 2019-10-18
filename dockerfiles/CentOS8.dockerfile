@@ -33,7 +33,7 @@ RUN dnf install -y          \
     python3-cheetah \
     python3-tornado
 
-ADD . /usr/src/cobbler
+COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
 
 VOLUME /usr/src/cobbler/rpm-build
