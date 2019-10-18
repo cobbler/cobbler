@@ -21,10 +21,7 @@ RUN dnf install -y          \
     python3-pycodestyle    \
     python3-setuptools \
     python3-sphinx         \
-    rpm-build
-
-# Runtime dependencies
-RUN dnf install -y          \
+    rpm-build  \
     httpd                   \
     python3-mod_wsgi        \
     python3-pyyaml         \
