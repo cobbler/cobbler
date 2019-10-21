@@ -29,7 +29,20 @@ RUN yum install -y          \
     python3-cheetah         \
     python3-netaddr         \
     python3-simplejson      \
-    python3-tornado
+    python3-tornado         \
+    python3-django          \
+    python3-dns             \
+    python3-ldap3           \
+    python3-pymongo         \
+    createrepo              \
+    dnf-plugins-core        \
+    genisoimage             \
+    grub2-efi-ia32-modules  \
+    grub2-efi-x64-modules   \
+    logrotate               \
+    rsync                   \
+    syslinux                \
+    tftp-server
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
