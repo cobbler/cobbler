@@ -173,7 +173,7 @@ class TFTPGen(object):
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
 
-            elif working_arch.startswith("ppc"):
+            elif working_arch == "ppc" or working_arch == "ppc64":
                 # Determine filename for system-specific bootloader config
                 filename = "%s" % system.get_config_filename(interface=name).lower()
                 # to inherit the distro and system's boot_loader values correctly
@@ -377,7 +377,7 @@ class TFTPGen(object):
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
-                    if arch.startswith("ppc"):
+                    if arch == "ppc" or arch == "ppc64":
                         # to inherit the distro and system's boot_loader values correctly
                         blended_system = utils.blender(self.api, False, system)
                         if blended_system["boot_loader"] == "pxelinux":
@@ -394,7 +394,7 @@ class TFTPGen(object):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                    if arch is not None and arch.startswith("ppc"):
+                    if arch is not None and (arch == "ppc" or arch == "ppc64"):
                         # Disable yaboot network booting for all interfaces on the system
                         for (name, interface) in list(system.interfaces.items()):
 
@@ -442,7 +442,7 @@ class TFTPGen(object):
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if arch.startswith("ppc"):
+        if arch == "ppc" or arch == "ppc64":
             # remove the prefix "append"
             # TODO: this looks like it's removing more than append, really
             # not sure what's up here...
