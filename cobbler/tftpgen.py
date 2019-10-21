@@ -144,6 +144,45 @@ class TFTPGen(object):
 
         pxe_metadata = {'pxe_menu_items': menu_items}
 
+        # hack: s390 generates files per system not per interface
+        if not image_based and distro.arch.startswith("s390"):
+            short_name = system.name.split('.')[0]
+            s390_name = 'linux' + short_name[7:10]
+            self.logger.info("Writing s390x pxe config for %s" % short_name)
+            # Always write a system specific _conf and _parm file
+            pxe_f  = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
+            conf_f = "%s_conf" % pxe_f
+            parm_f = "%s_parm" % pxe_f
+
+            c_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_conf.template")
+            p_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_parm.template")
+
+            template_conf_f = open(c_templ)
+            template_parm_f = open(p_templ)
+
+            self.logger.info("Files: (conf,param) - (%s,%s)" % (conf_f, parm_f))
+            self.logger.info("Template Files: (conf,param) - (%s,%s)" % (c_templ, p_templ))
+            blended = utils.blender(self.api, True, system)
+            self.templar.render(template_conf_f, blended, conf_f)
+            # FIXME: profiles also need this data!
+            # FIXME: the _conf and _parm files are limited to 80 characters in length
+            # gather default kernel_options and default kernel_options_s390x
+            kopts = blended.get("kernel_options","")
+#            hkopts = shlex.split(utils.hash_to_string(kopts))
+#            blended["kernel_options"] = hkopts
+            self.templar.render(template_parm_f, blended, parm_f)
+
+            # Write system specific zPXE file
+            if system.is_management_supported():
+                kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+                initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
+                with open(pxe_f, 'w') as out:
+                    out.write(kernel_path + '\n' + initrd_path + '\n')
+            else:
+                # ensure the file doesn't exist
+                utils.rmfile(pxe_f)
+            return
+
         # generate one record for each described NIC ..
         for (name, interface) in list(system.interfaces.items()):
 
