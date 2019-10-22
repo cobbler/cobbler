@@ -27,6 +27,7 @@ import os.path
 import re
 import socket
 import string
+import shlex
 
 from cobbler.cexceptions import CX
 from cobbler import templar
@@ -168,8 +169,8 @@ class TFTPGen(object):
             # FIXME: the _conf and _parm files are limited to 80 characters in length
             # gather default kernel_options and default kernel_options_s390x
             kopts = blended.get("kernel_options","")
-#            hkopts = shlex.split(utils.hash_to_string(kopts))
-#            blended["kernel_options"] = hkopts
+            hkopts = shlex.split(utils.dict_to_string(kopts))
+            blended["kernel_options"] = hkopts
             self.templar.render(template_parm_f, blended, parm_f)
 
             # Write system specific zPXE file
