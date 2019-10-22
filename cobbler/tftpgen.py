@@ -614,7 +614,7 @@ class TFTPGen(object):
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
                 if management_interface:
-                    append_line +="netdevice=%s" % management_interface
+                    append_line += "netdevice=%s" % management_interface
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
                 if management_interface:
