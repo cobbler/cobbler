@@ -43,6 +43,7 @@ RUN yum install -y          \
     grub2-efi-x64-modules   \
     logrotate               \
     syslinux                \
+    systemd-sysv            \
     tftp-server
 
 COPY . /usr/src/cobbler
