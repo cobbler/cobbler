@@ -175,6 +175,7 @@ restartservices:
 rpms: release
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
+	cp rhel/*.patch rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
