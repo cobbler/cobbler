@@ -51,11 +51,11 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
           }
           # UEFI-64-2
           else if option system-arch = 00:08 {
-              filename "grub/grub64.efi";
+              filename "grub/grubx64.efi";
           }
           # UEFI-64-3
           else if option system-arch = 00:09 {
-              filename "grub/grub2-x86_64.efi";
+              filename "grub/grubx64.efi";
           }
           # armv7   (aka arm 32 bit)
           else if option system-arch = 00:0a {
@@ -63,7 +63,7 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
           }
           # aarch64 (aka arm 64 bit)
           else if option system-arch = 00:0b {
-              filename "grub/grub.efi";
+              filename "grub/grubaa64.efi";
           }
           # RiskV 32 bit
           else if option system-arch = 00:25 {
