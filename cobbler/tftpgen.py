@@ -569,7 +569,7 @@ class TFTPGen(object):
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
         # the interfaces' MAC addresses in ppc systems.
         # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
-        if system and arch and "ppc" in arch:
+        if system and arch and (arch == "ppc" or arch == "ppc64"):
             for intf in list(system.interfaces.keys()):
                 # use first interface with defined IP and MAC, since these are required
                 # fields in a DHCP entry
@@ -587,7 +587,7 @@ class TFTPGen(object):
         append_line = "%s %s" % (append_line, hkopts)
 
         # automatic installation file path rewriting (get URLs for local files)
-        if autoinstall_path is not None and autoinstall_path != "":
+        if autoinstall_path:
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
