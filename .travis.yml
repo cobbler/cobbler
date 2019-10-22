@@ -28,19 +28,39 @@ jobs:
       name: "Build CentOS 7 RPMs"
       script:
        - docker build -t cobbler:el7 -f dockerfiles/CentOS7.dockerfile .
-       - docker run -ti cobbler:el7
+       - docker run -ti -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:el7
+       - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:el7 /usr/lib/systemd/systemd --system
+       - docker logs cobbler
+       - docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+       - docker exec -it cobbler bash -c 'cobbler --version'
+       - docker stop cobbler
     - stage: rpms
       name: "Build CentOS 8 RPMs"
       script:
        - docker build -t cobbler:el8 -f dockerfiles/CentOS8.dockerfile .
-       - docker run -ti cobbler:el8
+       - docker run -ti -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:el8
+       - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:el8 /usr/lib/systemd/systemd --system
+       - docker logs cobbler
+       - docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+       - docker exec -it cobbler bash -c 'cobbler --version'
+       - docker stop cobbler
     - stage: rpms
       name: "Build Fedora 29 RPMs"
       script:
        - docker build -t cobbler:f29 -f dockerfiles/Fedora29.dockerfile .
-       - docker run -ti cobbler:f29
+       - docker run -ti -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:f29
+       - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:f29 /usr/lib/systemd/systemd --system
+       - docker logs cobbler
+       - docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+       - docker exec -it cobbler bash -c 'cobbler --version'
+       - docker stop cobbler
     - stage: rpms
       name: "Build Fedora 30 RPMs"
       script:
        - docker build -t cobbler:f30 -f dockerfiles/Fedora30.dockerfile .
-       - docker run -ti cobbler:f30
+       - docker run -ti -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:f30
+       - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v $PWD/rpm-build:/usr/src/cobbler/rpm-build cobbler:f30 /usr/lib/systemd/systemd --system
+       - docker logs cobbler
+       - docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+       - docker exec -it cobbler bash -c 'cobbler --version'
+       - docker stop cobbler
