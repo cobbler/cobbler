@@ -151,7 +151,7 @@ class TFTPGen(object):
             s390_name = 'linux' + short_name[7:10]
             self.logger.info("Writing s390x pxe config for %s" % short_name)
             # Always write a system specific _conf and _parm file
-            pxe_f  = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
+            pxe_f = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
             conf_f = "%s_conf" % pxe_f
             parm_f = "%s_parm" % pxe_f
 
@@ -168,7 +168,7 @@ class TFTPGen(object):
             # FIXME: profiles also need this data!
             # FIXME: the _conf and _parm files are limited to 80 characters in length
             # gather default kernel_options and default kernel_options_s390x
-            kopts = blended.get("kernel_options","")
+            kopts = blended.get("kernel_options", "")
             hkopts = shlex.split(utils.dict_to_string(kopts))
             blended["kernel_options"] = hkopts
             self.templar.render(template_parm_f, blended, parm_f)
