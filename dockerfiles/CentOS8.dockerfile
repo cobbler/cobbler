@@ -18,6 +18,7 @@ RUN dnf makecache && \
 RUN touch /var/lib/rpm/* &&   \
     dnf install -y            \
     git                       \
+    rsync                     \
     make                      \
     openssl                   \
     python3-sphinx            \
@@ -40,7 +41,17 @@ RUN touch /var/lib/rpm/* &&   \
     python3-netaddr           \
     python3-simplejson        \
     python3-cheetah           \
-    python3-tornado
+    python3-tornado           \
+    python3-django            \
+    python3-dns               \
+    createrepo                \
+    dnf-plugins-core          \
+    genisoimage               \
+    grub2-efi-ia32-modules    \
+    grub2-efi-x64-modules     \
+    logrotate                 \
+    syslinux                  \
+    tftp-server
 
 
 COPY . /usr/src/cobbler

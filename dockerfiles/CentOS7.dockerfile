@@ -11,6 +11,7 @@ RUN yum makecache fast && \
 RUN yum install -y          \
 # Dev dependencies
     git                     \
+    rsync                   \
     make                    \
     openssl                 \
     python-sphinx           \
@@ -32,7 +33,17 @@ RUN yum install -y          \
     python36-PyYAML         \
     python36-netaddr        \
     python36-simplejson     \
-    python36-tornado
+    python36-tornado        \
+    python36-django         \
+    python36-dns            \
+    python36-ldap3          \
+    createrepo              \
+    genisoimage             \
+    grub2-efi-ia32-modules  \
+    grub2-efi-x64-modules   \
+    logrotate               \
+    syslinux                \
+    tftp-server
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

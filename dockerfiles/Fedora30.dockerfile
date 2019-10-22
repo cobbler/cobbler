@@ -7,6 +7,7 @@ RUN dnf makecache
 # Dev dependencies
 RUN dnf install -y          \
     git                     \
+    rsync                   \
     make                    \
     openssl                 \
     python-sphinx           \

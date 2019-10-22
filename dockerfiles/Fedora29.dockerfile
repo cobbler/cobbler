@@ -7,6 +7,7 @@ RUN dnf makecache
 # Dev dependencies
 RUN dnf install -y          \
     git                     \
+    rsync                   \
     make                    \
     openssl                 \
     python-sphinx           \
@@ -40,7 +41,6 @@ RUN yum install -y          \
     grub2-efi-ia32-modules  \
     grub2-efi-x64-modules   \
     logrotate               \
-    rsync                   \
     syslinux                \
     tftp-server
 
