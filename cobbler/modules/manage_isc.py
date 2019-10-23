@@ -160,6 +160,7 @@ class IscManager:
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
+                interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
                 if not self.settings.always_write_dhcp_entries:
                     if not interface["netboot_enabled"] and interface['static']:
