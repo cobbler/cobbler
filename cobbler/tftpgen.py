@@ -27,6 +27,7 @@ import os.path
 import re
 import socket
 import string
+import shlex
 
 from cobbler.cexceptions import CX
 from cobbler import templar
@@ -144,6 +145,45 @@ class TFTPGen(object):
 
         pxe_metadata = {'pxe_menu_items': menu_items}
 
+        # hack: s390 generates files per system not per interface
+        if not image_based and distro.arch.startswith("s390"):
+            short_name = system.name.split('.')[0]
+            s390_name = 'linux' + short_name[7:10]
+            self.logger.info("Writing s390x pxe config for %s" % short_name)
+            # Always write a system specific _conf and _parm file
+            pxe_f = os.path.join(self.bootloc, "s390x", "s_%s" % s390_name)
+            conf_f = "%s_conf" % pxe_f
+            parm_f = "%s_parm" % pxe_f
+
+            c_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_conf.template")
+            p_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_parm.template")
+
+            template_conf_f = open(c_templ)
+            template_parm_f = open(p_templ)
+
+            self.logger.info("Files: (conf,param) - (%s,%s)" % (conf_f, parm_f))
+            self.logger.info("Template Files: (conf,param) - (%s,%s)" % (c_templ, p_templ))
+            blended = utils.blender(self.api, True, system)
+            self.templar.render(template_conf_f, blended, conf_f)
+            # FIXME: profiles also need this data!
+            # FIXME: the _conf and _parm files are limited to 80 characters in length
+            # gather default kernel_options and default kernel_options_s390x
+            kopts = blended.get("kernel_options", "")
+            hkopts = shlex.split(utils.dict_to_string(kopts))
+            blended["kernel_options"] = hkopts
+            self.templar.render(template_parm_f, blended, parm_f)
+
+            # Write system specific zPXE file
+            if system.is_management_supported():
+                kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+                initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
+                with open(pxe_f, 'w') as out:
+                    out.write(kernel_path + '\n' + initrd_path + '\n')
+            else:
+                # ensure the file doesn't exist
+                utils.rmfile(pxe_f)
+            return
+
         # generate one record for each described NIC ..
         for (name, interface) in list(system.interfaces.items()):
 
@@ -169,11 +209,11 @@ class TFTPGen(object):
                 raise CX("internal error, invalid arch supplied")
 
             # for tftp only ...
-            if working_arch in ["i386", "x86", "x86_64", "arm", "armv7", "ppc64le", "ppc64el", "standard"]:
+            if working_arch in ["i386", "x86", "x86_64", "arm", "aarch64", "ppc64le", "ppc64el", "standard"]:
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
 
-            elif working_arch.startswith("ppc"):
+            elif working_arch == "ppc" or working_arch == "ppc64":
                 # Determine filename for system-specific bootloader config
                 filename = "%s" % system.get_config_filename(interface=name).lower()
                 # to inherit the distro and system's boot_loader values correctly
@@ -377,7 +417,7 @@ class TFTPGen(object):
                 if system.netboot_enabled:
                     template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
 
-                    if arch.startswith("ppc"):
+                    if arch == "ppc" or arch == "ppc64":
                         # to inherit the distro and system's boot_loader values correctly
                         blended_system = utils.blender(self.api, False, system)
                         if blended_system["boot_loader"] == "pxelinux":
@@ -394,7 +434,7 @@ class TFTPGen(object):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
                 else:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                    if arch is not None and arch.startswith("ppc"):
+                    if arch is not None and (arch == "ppc" or arch == "ppc64"):
                         # Disable yaboot network booting for all interfaces on the system
                         for (name, interface) in list(system.interfaces.items()):
 
@@ -442,7 +482,7 @@ class TFTPGen(object):
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if arch.startswith("ppc"):
+        if arch == "ppc" or arch == "ppc64":
             # remove the prefix "append"
             # TODO: this looks like it's removing more than append, really
             # not sure what's up here...
@@ -530,7 +570,7 @@ class TFTPGen(object):
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
         # the interfaces' MAC addresses in ppc systems.
         # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
-        if system and arch and "ppc" in arch:
+        if system and arch and (arch == "ppc" or arch == "ppc64"):
             for intf in list(system.interfaces.keys()):
                 # use first interface with defined IP and MAC, since these are required
                 # fields in a DHCP entry
@@ -548,7 +588,7 @@ class TFTPGen(object):
         append_line = "%s %s" % (append_line, hkopts)
 
         # automatic installation file path rewriting (get URLs for local files)
-        if autoinstall_path is not None and autoinstall_path != "":
+        if autoinstall_path:
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
@@ -573,6 +613,8 @@ class TFTPGen(object):
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
+                if management_interface:
+                    append_line += "netdevice=%s" % management_interface
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
                 if management_interface:
