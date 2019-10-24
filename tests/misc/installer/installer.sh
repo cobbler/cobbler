@@ -68,7 +68,7 @@ function get_remote_file_wget()
 local url="$1"
 local dest_path="$2"
 
-wget --no-check-certificate -P $dest_path $url
+wget --no-check-certificate -P "$dest_path" "$url"
 
 }
 
@@ -239,41 +239,41 @@ function install_fence_agents()
     local dependencies="autoconf automake gcc git libtool libxslt nss nss-devel python-devel python-setuptools python-suds"
     # runtime dependencies
     dependencies="$dependencies ipmitool telnet"
-    if [ $arch == "x86_64" ]; then
+    if [ "$arch" == "x86_64" ]; then
         dependencies="$dependencies perl-Net-Telnet"
     fi
-    if [ $redhat_version != "6" ]; then
+    if [ "$redhat_version" != "6" ]; then
         dependencies="$dependencies python-requests"
     fi
-    if [ $redhat_version != "6" ] || [ $arch == "x86_64" ]; then
+    if [ "$redhat_version" != "6" ] || [ $arch == "x86_64" ]; then
         dependencies="$dependencies pexpect"
     fi
 
-    yum install -y $dependencies
+    yum install -y "$dependencies"
 
     # perl-Net-Telnet rpm package is not available for ppc64, download it
-    if [ $arch == "ppc64" ]; then
+    if [ "$arch" == "ppc64" ]; then
         local src_url="http://mirror.centos.org/centos/6/os/i386/Packages/perl-Net-Telnet-3.03-11.el6.noarch.rpm"
         local dest_dir="/tmp/"
         local dest_path="$dest_dir${src_url##*/}"
         get_remote_file $src_url $dest_dir
-        yum -y install $dst_path
-        rm -f $dst_path
+        yum -y install "$dest_path"
+        rm -f "$dest_path"
     fi
 
     # python dependencies installed via PIP
     dependencies=""
-    if [ $redhat_version == "6" ]; then
+    if [ "$redhat_version" == "6" ]; then
         # requests rpm package is not available on RHEL 6
         dependencies="$dependencies requests"
-        if [ $arch == "ppc64" ]; then
+        if [ "$arch" == "ppc64" ]; then
             # pexpect rpm package is not available on RHEL 6 ppc64
             dependencies="$dependencies pexpect"
         fi
     fi
     for package in $dependencies;
     do
-        pip install $package
+        pip install "$package"
     done
 
     # fence-agents
@@ -305,14 +305,14 @@ function install_cobbler_dependencies ()
     local dependencies="gcc git python-devel python-setuptools"
     # runtime dependencies
     dependencies="$dependencies createrepo httpd mkisofs mod_ssl mod_wsgi pykickstart python-cheetah python-netaddr python-simplejson rsync tftp-server"
-    if [ $redhat_version == "7" ]; then
+    if [ "$redhat_version" == "7" ]; then
         dependencies="$dependencies PyYAML"
     fi
-    yum -y install $dependencies
+    yum -y install "$dependencies"
 
     # python dependencies installed via PIP
     dependencies="django==1.6.7"
-    if [ $redhat_version == "6" ]; then
+    if [ "$redhat_version" == "6" ]; then
         # PyYAML rpm package is not available on RHEL 6
         dependencies="$dependencies PyYAML"
     fi
@@ -389,7 +389,7 @@ function configure_cobbler ()
     cobbler get-loaders
 
     # dhcp
-    configure_dhcp_in_cobbler $subnets
+    configure_dhcp_in_cobbler "$subnets"
     cobbler sync
 
     service cobblerd stop
@@ -457,7 +457,7 @@ function print_help()
 # Main code ===================================================================
 
 # validate Linux OS version
-linux_version=`uname -r`
+linux_version=$(uname -r)
 if [[ $linux_version =~ 'el6' ]]; then
     redhat_version="6"
     python_version="2.6"
@@ -470,8 +470,8 @@ else
 fi
 
 # validate architecture
-arch_name=`arch`
-if [ $arch_name != "x86_64" ] && [ $arch_name != "ppc64" ]; then
+arch_name=$(arch)
+if [ "$arch_name" != "x86_64" ] && [ "$arch_name" != "ppc64" ]; then
     echo "Unsupported system architecture $arch_name"
     exit 1
 fi
@@ -483,15 +483,15 @@ while [[ $# > 0 ]]; do
     case $key in
         -r|--repositories)
             shift
-            $repositories="$1"
+            repositories="$1"
             ;;
         -i|--ip)
             shift
-            $server_ip="$1"
+            server_ip="$1"
             ;;
         -s|--subnets)
             shift
-            $networks="$1"
+            networks="$1"
             ;;
         -h|--help)
             print_help
@@ -509,7 +509,7 @@ done
 autodetect_ip=false
 if [ -z $ip ]; then
     autodetect_ip=true
-    server_ip=`ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d'/'`
+    server_ip=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d'/')
 fi
 if ! validate_ip_address "${server_ip}"; then
     if [ "${autodetect_ip}" = true ]; then
@@ -522,7 +522,7 @@ fi
 
 if [ -z $networks ]; then
     # automatically add system's subnetwork
-    network_cidr=`ip addr | grep ${server_ip} |  awk '{print $2}'`
+    network_cidr=$(ip addr | grep "${server_ip}" |  awk '{print $2}')
     if [ -z $network_cidr ]; then
         echo "subnetworks were not provided and IP $server_ip is not configured in system, unable to automatically infer subnetwork data"
         exit 1
@@ -545,7 +545,7 @@ sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
 echo "Disable firewall"
 disable_firewall "${redhat_version}"
 
-if [ ! -z "${repositories}" ] ; then
+if [ -n "${repositories}" ] ; then
     echo "Add yum repositories"
     add_yum_repositories "${repositories}"
 fi
@@ -560,7 +560,7 @@ if [ $redhat_version == "7" ]; then
     # minimal installation
     dependencies="$dependencies wget"
 fi
-yum -y install $dependencies
+yum -y install "$dependencies"
 
 echo "Install PIP (Python package manager)"
 install_pip
