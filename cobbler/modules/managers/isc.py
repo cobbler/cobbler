@@ -178,6 +178,7 @@ class IscManager(object):
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
                 interface["name_servers"] = blended_system["name_servers"]
+                interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover
                 # package mostly the architecture cannot be differed due to missing bits...
