@@ -1166,9 +1166,9 @@ def set_arch(self, arch, repo=False):
         arch = "i386"
 
     if repo:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "noarch", "src", "arm"]
+        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "noarch", "src", "arm", "aarch64"]
     else:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "arm"]
+        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "arm", "aarch64"]
 
     if arch in valids:
         self.arch = arch
@@ -1624,6 +1624,7 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
                 return {"ppc64": ["grub", "pxelinux", "yaboot"],
                         "ppc64le": ["grub"],
                         "ppc64el": ["grub"],
+                        "aarch64": ["grub"],
                         "i386": ["grub", "pxelinux"],
                         "x86_64": ["grub", "pxelinux"]}[distro.arch]
             except:

@@ -2,11 +2,16 @@
 
 FROM centos:7
 
-RUN yum makecache fast && yum install -y epel-release && yum makecache fast
+RUN yum makecache fast && \
+    yum install -y epel-release && \
+    yum install -y https://repo.ius.io/ius-release-el7.rpm \
+                   https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum makecache fast
 
-# Dev dependencies
 RUN yum install -y          \
+# Dev dependencies
     git                     \
+    rsync                   \
     make                    \
     openssl                 \
     python-sphinx           \
@@ -17,17 +22,31 @@ RUN yum install -y          \
     python36-pyflakes       \
     python36-pycodestyle    \
     python36-setuptools     \
+    python36-requests       \
+    python36-sphinx         \
     rpm-build
 
-# Runtime dependencies
 RUN yum install -y          \
+# Runtime dependencies
     httpd                   \
-    mod_wsgi                \
+    python36-mod_wsgi       \
     python36-PyYAML         \
     python36-netaddr        \
-    python36-simplejson
+    python36-simplejson     \
+    python36-tornado        \
+    python36-django         \
+    python36-dns            \
+    python36-ldap3          \
+    createrepo              \
+    genisoimage             \
+    grub2-efi-ia32-modules  \
+    grub2-efi-x64-modules   \
+    logrotate               \
+    syslinux                \
+    systemd-sysv            \
+    tftp-server
 
-ADD . /usr/src/cobbler
+COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
 
 VOLUME /usr/src/cobbler/rpm-build

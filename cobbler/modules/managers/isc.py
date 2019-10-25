@@ -178,19 +178,21 @@ class IscManager(object):
                 interface["owner"] = blended_system["name"]
                 interface["enable_gpxe"] = blended_system["enable_gpxe"]
                 interface["name_servers"] = blended_system["name_servers"]
+                interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
+
+                # Explicitly declare filename for other (non x86) archs as in DHCP discover
+                # package mostly the architecture cannot be differed due to missing bits...
+                if distro is not None and not interface.get("filename"):
+                    if distro.arch == "ppc" or  distro.arch == "ppc64":
+                        interface["filename"] = yaboot
+                    elif distro.arch == "ppc64le":
+                        interface["filename"] = "grub/grub.ppc64le"
+                    elif distro.arch == "aarch64":
+                        interface["filename"] = "grub/grubaa64.efi"
 
                 if not self.settings.always_write_dhcp_entries:
                     if not interface["netboot_enabled"] and interface['static']:
                         continue
-
-                if distro is not None:
-                    if distro.arch.startswith("ppc"):
-                        if blended_system["boot_loader"] == "pxelinux":
-                            del interface["filename"]
-                        elif distro.boot_loader == "grub2" or blended_system["boot_loader"] == "grub2":
-                            interface["filename"] = "boot/grub/powerpc-ieee1275/core.elf"
-                        else:
-                            interface["filename"] = yaboot
 
                 if dhcp_tag == "":
                     dhcp_tag = blended_system.get("dhcp_tag", "")

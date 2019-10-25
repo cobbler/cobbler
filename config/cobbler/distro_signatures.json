@@ -64,7 +64,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"], "ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"], "ppc64le":["grub"]}
    },
    "rhel8": {
     "signatures":["BaseOS"],
@@ -77,7 +77,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinstall":"sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -93,7 +93,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.img",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_end.ks",
+    "default_autoinstall":"sample.ks",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -177,7 +177,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora21": {
     "signatures":["Packages"],
@@ -194,7 +194,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora22": {
     "signatures":["Packages"],
@@ -211,7 +211,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora23": {
     "signatures":["Packages"],
@@ -228,7 +228,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora24": {
     "signatures":["Packages"],
@@ -245,7 +245,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora25": {
     "signatures":["Packages"],
@@ -262,7 +262,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora26": {
     "signatures":["Packages"],
@@ -279,7 +279,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora27": {
     "signatures":["Packages"],
@@ -296,7 +296,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora28": {
     "signatures":["Packages"],
@@ -313,7 +313,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora29": {
     "signatures":["Packages"],
@@ -330,7 +330,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "fedora30": {
     "signatures":["Packages"],
@@ -347,7 +347,7 @@
     "kernel_options":"repo=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64":["grub2"]}
+    "boot_loaders":{"ppc64":["grub"]}
    },
    "cloudlinux6": {
     "signatures":["Packages"],
@@ -426,7 +426,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -442,7 +442,7 @@
     "kernel_file":"vmlinuz(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -464,7 +464,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "bionic": {
     "signatures":["dists", ".disk"],
@@ -481,7 +481,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "lucid": {
     "signatures":["dists", ".disk"],
@@ -594,7 +594,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "utopic": {
     "signatures":["dists", ".disk"],
@@ -611,7 +611,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "vivid": {
     "signatures":["dists", ".disk"],
@@ -628,7 +628,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "wily": {
     "signatures":["dists", ".disk"],
@@ -645,7 +645,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "xenial": {
     "signatures":["dists", ".disk"],
@@ -662,7 +662,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "yakkety": {
     "signatures":["dists", ".disk"],
@@ -679,7 +679,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "zesty": {
     "signatures":["dists", ".disk"],
@@ -696,7 +696,7 @@
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64el":["grub2"]}
+    "boot_loaders":{"ppc64el":["grub"]}
    },
    "artful": {
     "signatures":["dists", ".disk"],
@@ -709,7 +709,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -725,7 +725,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -741,7 +741,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -757,7 +757,7 @@
     "kernel_file":"linux(.*)",
     "initrd_file":"initrd(.*)\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample.seed",
+    "default_autoinstall":"sample.seed",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -775,7 +775,7 @@
     "kernel_file":"",
     "initrd_file":"",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1047,7 +1047,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1063,7 +1063,7 @@
     "kernel_file":"linux[64.gz]?",
     "initrd_file":"initrd[64]?",
     "isolinux_ok":false,
-    "default_kickstart":"/var/lib/cobbler/kickstarts/sample_autoyast.xml",
+    "default_autoinstall":"sample_autoyast.xml",
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1083,7 +1083,7 @@
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64le":["grub"]}
    },
    "sles12sp1": {
     "signatures":["suse"],
@@ -1100,7 +1100,7 @@
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64le":["grub"]}
    },
    "sles12sp2": {
     "signatures":["suse"],
@@ -1117,7 +1117,7 @@
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64le":["grub"]}
    },
    "sles12sp3": {
     "signatures":["suse"],
@@ -1134,7 +1134,7 @@
     "kernel_options":"install=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64le":["grub"]}
    },
    "sles12sp4": {
     "signatures":["suse"],
@@ -1151,7 +1151,7 @@
     "kernel_options":"dhcptimeout=120, net.ifnames=1, install=$tree",
     "kernel_options_post":"",
     "boot_files":[],
-    "boot_loaders":{"ppc64le":["grub2"]}
+    "boot_loaders":{"ppc64le":["grub"]}
    },
    "sles15generic": {
     "signatures":["."],
@@ -1430,7 +1430,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1446,7 +1446,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1462,7 +1462,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1478,7 +1478,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1494,7 +1494,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1510,7 +1510,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1526,7 +1526,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1542,7 +1542,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1558,7 +1558,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1574,7 +1574,7 @@
     "kernel_file":"base.txz",
     "initrd_file":"base.txz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":[]
@@ -1624,7 +1624,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1640,7 +1640,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1656,7 +1656,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
@@ -1672,7 +1672,7 @@
     "kernel_file":"mboot\\.c32",
     "initrd_file":"xen\\.gz",
     "isolinux_ok":false,
-    "default_kickstart":"",
+    "default_autoinstall":"",
     "kernel_options":"",
     "kernel_options_post":"",
     "boot_files":["install.img"]
