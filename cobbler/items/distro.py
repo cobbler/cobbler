@@ -185,6 +185,12 @@ class Distro(item.Item):
         """
         return utils.set_arch(self, arch)
 
+    def get_arch(self):
+        """
+        Return the architecture of the distribution
+        """
+        return self.arch
+
     def set_supported_boot_loaders(self, supported_boot_loaders):
         """
         Some distributions, particularly on powerpc, can only be netbooted using
