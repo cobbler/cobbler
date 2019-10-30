@@ -19,6 +19,7 @@ from setuptools import dep_util
 from distutils.command.build import build as _build
 from configparser import ConfigParser
 from setuptools import find_packages
+from sphinx.setup_command import BuildDoc
 
 import codecs
 from coverage import Coverage
@@ -127,6 +128,16 @@ class build(_build):
 
     def run(self):
         _build.run(self)
+
+#####################################################################
+# # Build man pages using Sphinx  ###################################
+#####################################################################
+
+
+class build_man(BuildDoc):
+    def initialize_options(self):
+        BuildDoc.initialize_options(self)
+        self.builder = 'man'
 
 #####################################################################
 # # Configure files ##################################################
@@ -475,6 +486,7 @@ if __name__ == "__main__":
 
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
+    docpath = "share/man/man1"
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
@@ -514,7 +526,8 @@ if __name__ == "__main__":
             'install': install,
             'savestate': savestate,
             'restorestate': restorestate,
-            'build_cfg': build_cfg
+            'build_cfg': build_cfg,
+            'build_man': build_man
         },
         name="cobbler",
         version=VERSION,
@@ -542,6 +555,11 @@ if __name__ == "__main__":
             "config/apache/cobbler.conf",
             "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
+        ],
+        man_pages=[
+            'docs/cobblerd.rst',
+            'docs/cobbler-conf.rst',
+            'docs/cobbler-cli.rst'
         ],
         data_files=[
             # tftpd, hide in /usr/sbin
@@ -658,5 +676,7 @@ if __name__ == "__main__":
             # zone-specific templates directory
             ("%szone_templates" % etcpath, []),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
+            # man pages
+            (docpath, glob("build/sphinx/man/*")),
         ],
     )
