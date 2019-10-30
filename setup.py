@@ -323,7 +323,7 @@ class install(_install):
         path = os.path.join(self.install_data, 'share/cobbler/web')
         try:
             self.change_owner(path, http_user)
-        except KeyError as e:
+        except Exception as e:
             # building RPMs in a mock chroot, user 'apache' won't exist
             log.warning("Error in 'chown apache %s': %s" % (path, e))
         if not os.path.abspath(libpath):
@@ -334,7 +334,8 @@ class install(_install):
         path = os.path.join(libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
-        except KeyError as e:
+        except Exception as e:
+            # building RPMs in a mock chroot, user 'apache' won't exist
             log.warning("Error in 'chown apache %s': %s" % (path, e))
 
 
