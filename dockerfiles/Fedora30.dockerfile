@@ -50,4 +50,4 @@ WORKDIR /usr/src/cobbler
 
 VOLUME /usr/src/cobbler/rpm-build
 
-CMD ["/bin/bash", "-c", "make install && make rpms"]
+CMD ["/bin/bash", "-c", "make rpms"]
