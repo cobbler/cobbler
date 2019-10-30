@@ -18,7 +18,7 @@ cd /test_dir
 
 # Packages for running cobbler
 zypper -n update
-zypper -n in python3 python3-devel python3-pip apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders mkisofs python3-ldap tftp
+zypper -n in python3 python3-devel python3-pip apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders mkisofs python3-ldap tftp python3-Sphinx
 # Packages for building & installing cobbler from source
 zypper -n in make gzip
 
