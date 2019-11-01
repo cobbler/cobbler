@@ -487,7 +487,7 @@ if __name__ == "__main__":
 
     # Trailing slashes on these vars is to allow for easy
     # later configuration of relative paths if desired.
-    docpath = "share/man/man1"
+    docpath = "share/man"
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
@@ -678,6 +678,7 @@ if __name__ == "__main__":
             ("%szone_templates" % etcpath, []),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
-            (docpath, glob("build/sphinx/man/*")),
+            ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),
+            ("%s/man5" % docpath, glob("build/sphinx/man/*.5")),
         ],
     )
