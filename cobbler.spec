@@ -371,7 +371,7 @@ fi
 # documentation
 %doc AUTHORS COPYING README
 %{_mandir}/man1/cobblerd.1.gz
-%{_mandir}/man1/cobbler-cli.1.gz
+%{_mandir}/man1/cobbler.1.gz
 %{_mandir}/man5/cobbler.conf.5.gz
 
 

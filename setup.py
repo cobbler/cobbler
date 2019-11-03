@@ -560,7 +560,7 @@ if __name__ == "__main__":
         man_pages=[
             'docs/cobblerd.rst',
             'docs/cobbler-conf.rst',
-            'docs/cobbler-cli.rst'
+            'docs/cobbler.rst'
         ],
         data_files=[
             # tftpd, hide in /usr/sbin
