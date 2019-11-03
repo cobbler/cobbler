@@ -21,7 +21,7 @@ Here you should find a comprehensive overview about the usage of cobbler.
 
    Quickstart Guide <quickstart-guide>
    Install Guide <installation-guide>
-   Cobbler CLI <cobbler-cli>
+   Cobbler CLI <cobbler>
    Cobbler Server <cobblerd>
    Cobbler Configuration <cobbler-conf>
    User Guide <user-guide>
