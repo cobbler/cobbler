@@ -42,7 +42,8 @@ RUN yum install -y          \
     grub2-efi-x64-modules   \
     logrotate               \
     syslinux                \
-    tftp-server
+    tftp-server             \
+    fence-agents
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

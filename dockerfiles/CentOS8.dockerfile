@@ -51,7 +51,8 @@ RUN touch /var/lib/rpm/* &&   \
     grub2-efi-x64-modules     \
     logrotate                 \
     syslinux                  \
-    tftp-server
+    tftp-server               \
+    fence-agents
 
 
 COPY . /usr/src/cobbler
