@@ -214,7 +214,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('cobbler', 'cobbler', u'Cobbler CLI Documentation', [u'Jörgen Maas'], 1),
-    ('cobblerd', 'cobblerd', u'Cobblerd Documentation', [u'Enno Gotthold'], 1),
+    ('cobblerd', 'cobblerd', u'Cobblerd Documentation', [u'Enno Gotthold'], 8),
     ('cobbler-conf', 'cobbler.conf', u'Cobbler Configuration File Documentation', [u'Enno Gotthold'], 5)
 ]
 

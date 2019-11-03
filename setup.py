@@ -680,5 +680,6 @@ if __name__ == "__main__":
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),
             ("%s/man5" % docpath, glob("build/sphinx/man/*.5")),
+            ("%s/man8" % docpath, glob("build/sphinx/man/*.8")),
         ],
     )
