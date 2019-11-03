@@ -43,7 +43,8 @@ RUN yum install -y          \
     logrotate               \
     rsync                   \
     syslinux                \
-    tftp-server
+    tftp-server             \
+    fence-agents
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
