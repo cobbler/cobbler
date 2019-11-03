@@ -1,6 +1,14 @@
 #!/bin/bash
 # Utility script to build RPMs in a Docker container and then install them
 
+if [ "$1" == "--with-tests" ]
+then
+    RUN_TESTS=true
+    shift
+else
+    RUN_TESTS=false
+fi
+
 TAG=$1
 DOCKERFILE=$2
 
@@ -18,6 +26,12 @@ docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v
 docker logs cobbler
 docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
 docker exec -it cobbler bash -c 'cobbler --version'
+
+if $RUN_TESTS
+then
+    docker exec -it cobbler bash -c 'pip3 install -r requirements-test.txt'
+    docker exec -it cobbler bash -c 'pytest'
+fi
 
 # Clean up
 docker stop cobbler
