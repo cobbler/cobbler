@@ -272,18 +272,23 @@ class TFTPGen(object):
         template_src.close()
 
         # Write the grub menu:
-        outfile = os.path.join(self.bootloc, "grub", "menu_items.cfg")
-        fd = open(outfile, "w+")
-        fd.write(menu_items['grub'])
-        fd.close()
+        for arch in utils.get_valid_archs():
+            arch_menu_items = self.get_menu_items(arch)
+            if(arch_menu_items['grub']):
+                outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch))
+                fd = open(outfile, "w+")
+                fd.write(arch_menu_items['grub'])
+                fd.close()
 
-    def get_menu_items(self):
+    def get_menu_items(self, arch=None):
         """
         Generates menu items for pxe and grub
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
         profile_list = sorted(profile_list, key=lambda profile: profile.name)
+
+        profile_list = [profile for profile in profile_list if profile.get_arch() == arch]
 
         # sort the images
         image_list = [image for image in self.images]

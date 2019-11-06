@@ -275,4 +275,9 @@ class Profile(item.Item):
     def get_redhat_management_key(self):
         return self.redhat_management_key
 
+    def get_arch(self):
+        parent = self.get_parent()
+        if parent:
+            return parent.get_arch()
+        return None
 # EOF
