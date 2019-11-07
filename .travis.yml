@@ -36,3 +36,10 @@ jobs:
     - stage: rpms
       name: "Build Fedora 30 RPMs"
       script: ./tests/build-and-install-rpms.sh fc30 dockerfiles/Fedora30.dockerfile
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/988ae7d365d12a2bf093
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
