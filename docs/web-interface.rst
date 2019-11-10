@@ -2,6 +2,13 @@
 Web Interface
 *************
 
+.. toctree::
+
+   Security Overview<5_web-interface/security_overview>
+   Web Authentication<5_web-interface/web_authentication>
+   Web Authorization<5_web-interface/web_authorization>
+   Locking Down Cobbler<5_web-interface/locking_down_cobbler>
+
 This section of the manual covers the Cobbler Web Interface. With the web user interface (WebUI), you can:
 
   * View all of the cobbler objects and the settings
