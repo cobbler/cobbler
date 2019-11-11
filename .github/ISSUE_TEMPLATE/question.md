@@ -7,6 +7,12 @@ assignees: ''
 
 ---
 
-**Version**: **REPLACEME**
+### Version
+
+<!--- Paste output from `cobbler version` -->
+````paste below
+````
+
+### Question
 
 Be precise!

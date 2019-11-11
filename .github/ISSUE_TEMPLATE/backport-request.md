@@ -7,12 +7,17 @@ assignees: ''
 
 ---
 
-**Original feature issue** (if present): **REPLACEME**
+### Original feature issue
 
-**Target Release Series**:
+<!--- (if present): Describe the fearture --->
+<!--- Is there an PR number for that feature? --->
+
+### Target Release Series
 
 - [ ] release30
 - [ ] release28
 - [ ] release26
 
-**Reason**: Describe briefly why you want to have this backported.
+### Reason
+
+<!--- Describe briefly why you want to have this backported. --->
