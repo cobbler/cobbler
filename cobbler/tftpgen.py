@@ -65,9 +65,9 @@ class TFTPGen(object):
         # unfortunately using shutils copy_tree the dest directory must not exist,
         # but we must not delete an already partly synced /srv/tftp dir here.
         # rsync is very convenient here, being very fast on an already copied folder
-        utils.subprocess_call(self.logger, ["rsync", "-rpt", "--copy-links", "--exclude=.cobbler_postun_cleanup {src}/".format(src=src), dest], shell=False)
+        utils.subprocess_call(self.logger, ["rsync", "-rpt", "--copy-links", "--exclude=.cobbler_postun_cleanup", "{src}/".format(src=src), dest], shell=False)
         src = self.settings.grubconfig_dir
-        utils.subprocess_call(self.logger, ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig {src}/".format(src=src), dest], shell=False)
+        utils.subprocess_call(self.logger, ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig", "{src}/".format(src=src), dest], shell=False)
 
     def copy_images(self):
         """
