@@ -23,7 +23,6 @@ class Test_Suse_Imports():
         {"name": "sles11_sp3-ppc64", "desc": "SLES 11 SP3 ppc64", "path": "/vagrant/distros/sles11_sp3_ppc64"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_suse_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)

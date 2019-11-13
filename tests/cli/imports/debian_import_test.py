@@ -10,7 +10,6 @@ class Test_Debian_Imports():
          "path": "/vagrant/distros/debian_6.0.5_amd64"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_debian_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)

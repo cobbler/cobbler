@@ -14,7 +14,6 @@ class Test_RedHat_Imports():
         {"name": "f18-x86_64", "desc": "Fedora 18 x86_64", "path": "/vagrant/distros/f18_x86_64"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_redhat_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)

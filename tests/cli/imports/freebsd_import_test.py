@@ -12,7 +12,6 @@ class Test_FreeBSD_Imports():
         {"name": "freebsd9.0-x86_64", "desc": "FreeBSD 9.0 amd64", "path": "/vagrant/distros/freebsd9.0_amd64"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_freebsd_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)

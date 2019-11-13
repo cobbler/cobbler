@@ -16,7 +16,6 @@ class Test_Ubuntu_Imports():
          "path": "/vagrant/distros/ubuntu_1210_server_i386"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_ubuntu_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)

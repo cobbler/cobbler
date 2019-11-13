@@ -19,7 +19,6 @@ class Test_VMWare_Imports:
          "path": "/vagrant/distros/vmware_esxi5.1_799733_x86_64"},
     ]
 
-    @pytest.mark.skip(reason="Not fixed!")
     @pytest.mark.parametrize("name, desc, path", distros)
     def test_vmware_import(self, name, desc, path, import_distro, report_distro, report_profile, remove_distro):
         (data, rc) = import_distro(name, path)
