@@ -41,6 +41,7 @@ from cobbler.cexceptions import CX
 
 import cobbler.templar as templar
 import cobbler.utils as utils
+import cobbler.items.repo as item_repo
 
 
 def register():
