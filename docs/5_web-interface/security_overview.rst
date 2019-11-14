@@ -4,6 +4,8 @@ Security Overview
 
 This section provides an overview of Cobbler's security model for the Web UI.
 
+.. _customizable-security:
+
 Why Customizable Security?
 ##########################
 
