@@ -2,6 +2,23 @@
 Advanced
 ********
 
+.. toctree::
+
+   Advanced Networking<4_advanced/advanced networking>
+   SELinux<4_advanced/SELinux>
+   Configuration Management<4_advanced/configuration management>
+   Extending Cobbler<4_advanced/extending cobbler>
+   Power Management<4_advanced/power management>
+   Alternative Template Formats<4_advanced/alternative template formats>
+   Multi Homed Cobbler Servers<4_advanced/multi homed cobbler servers>
+   Auto Registration<4_advanced/auto registration>
+   Batch Editing<4_advanced/batch editing>
+   Moving to a new Server<4_advanced/moving to a new server>
+   PXE boot menu passwords<4_advanced/pxe boot menu passwords>
+   Alternative storage backends<4_advanced/alternative storage backends>
+   Using gPXE<4_advanced/using gPXE>
+   Data Revision Control<4_advanced/data revisision control>
+
 This section of the manual covers the more advanced use cases for Cobbler, including methods for customizing and
 extending cobbler without needing to write code.
 

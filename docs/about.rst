@@ -4,7 +4,6 @@ About
 
 .. toctree::
    :maxdepth: 2
-   :numbered:
 
    Release Notes<1_about/release_notes>
    Distribution Support<1_about/distribution_support>
