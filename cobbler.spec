@@ -107,6 +107,7 @@ BuildRequires: systemd
 BuildRequires: python3-Sphinx
 BuildRequires: python3-future
 BuildRequires: python3-distro
+BuildRequires: python3-setuptools
 %endif
 
 
