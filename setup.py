@@ -459,24 +459,6 @@ class savestate(statebase):
         self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
 
 
-def requires(filename):
-    """Returns a list of all pip requirements
-    Source of this function: https://github.com/tomschr/leo/blob/develop/setup.py
-    :param filename: the Pip requirement file (usually 'requirements.txt')
-    :return: list of modules
-    :rtype: list
-    """
-    modules = []
-    with open(filename, 'r') as pipreq:
-        for line in pipreq:
-            line = line.strip()
-            # Checks if line starts with a comment or referencing
-            # external pip requirements file (with '-e'):
-            if line.startswith('#') or line.startswith('-') or not line:
-                continue
-            modules.append(line)
-    return modules
-
 #####################################################################
 # # Actual Setup.py Script ###########################################
 #####################################################################
@@ -538,8 +520,29 @@ if __name__ == "__main__":
         author_email="cobbler@lists.fedorahosted.org",
         url="https://cobbler.github.io",
         license="GPLv2+",
-        install_requires=requires("requirements.txt"),
-        tests_require=requires("requirements-test.txt"),
+        setup_requires=[
+            "coverage",
+            "distro",
+            "future",
+            "setuptools",
+            "sphinx",
+        ],
+        install_requires=[
+            "mod_wsgi",
+            "requests",
+            "future",
+            "pyyaml",
+            "simplejson",
+            "netaddr",
+            "Cheetah3",
+            "Django",
+            "pymongo",
+            "distro",
+            "ldap3",
+            "dnspython",
+            "tornado",
+        ],
+        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "coverage"]},
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",

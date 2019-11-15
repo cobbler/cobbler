@@ -1,4 +1,0 @@
--r requirements.txt
-pytest
-pyflakes
-pycodestyle
