@@ -1,3 +1,5 @@
+.. _snippets:
+
 ********
 Snippets
 ********

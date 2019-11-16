@@ -10,15 +10,15 @@ you and your site specific policy.
 /etc/cobbler/modules.conf
 #########################
 
-For [Web Authentication](Web Authentication), choose authn\_kerberos or authn\_ldap if you don't have Kerberos. See
-[Kerberos](Kerberos) and [LDAP](Ldap) for details on how to set those up. Failing that, using the authn\_digest is
-perfectly fine, but don't share passwords among the users. Logging goes to `/var/log/cobbler/\*.log` and can be used to
+For :ref:`web-authentication`, choose authn_kerberos or authn_ldap if you don't have Kerberos. See
+:ref:`kerberos` and :ref:`ldap` for details on how to set those up. Failing that, using the authn_digest is
+perfectly fine, but don't share passwords among the users. Logging goes to ``/var/log/cobbler/*.log`` and can be used to
 see what user does what.
 
-For [Customizable Security](Security Overview), choose authz\_ownership, as this will allow users to only edit things
+For [Customizable Security](Security Overview), choose authz_ownership, as this will allow users to only edit things
 that they create unless you declare certain users to be admins. You should then define groups for users in
-`/etc/cobbler/users.conf` following the format of that file, then assign objects in cobbler (like distros, etc)
-ownership as described in [AuthorizationWithOwnership](/cobbler/wiki/AuthorizationWithOwnership).
+``/etc/cobbler/users.conf`` following the format of that file, then assign objects in cobbler (like distros, etc)
+ownership as described in :ref:`ownership`.
 
 Firewall
 ########
@@ -31,24 +31,24 @@ If you want to access read-write XMLRPC from outside the cobbler server, you'll 
 Also, if applicable, unblock DHCP!
 
 While it may be tempting to disable cobblerd, don't... cobbler uses cobblerd to generate dynamic content such as
-[Kickstart Templates](Kickstart Templates) and this will mean nothing will work. Koan additionally communicates with
-cobblerd.
+:ref:`kickstart-templating` and this will mean nothing will work. Koan additionally communicates with cobblerd.
 
 SELinux
 #######
 
 Cobbler works with SELinux -- though you should be using EL 5 or later. EL 4 is not supported since it does not have
-public\_content\_t, meaning files can't be served from Apache and TFTP at the same time.
+public_content_t, meaning files can't be served from Apache and TFTP at the same time.
 
-You should install the semanage rules that "cobbler check" tells you about to ensure everything works according to plan.
+You should install the semanage rules that ``cobbler check`` tells you about to ensure everything works according to
+plan.
 
-Also note, you may run into some problems if you need to relocate your `/var/www elsewhere`, which most users should not
-need to do.
+Also note, you may run into some problems if you need to relocate your ``/var/www_elsewhere``, which most users should
+not need to do.
 
 Default Passwords
 #################
 
-Run "cobbler check" and it will warn you if any of the sample kickstarts still have "cobbler" as the password. If you
+Run ``cobbler check`` and it will warn you if any of the sample kickstarts still have "cobbler" as the password. If you
 are using those templates, that's a problem, if not, don't worry about it, but you may want to comment out the password
 line to prevent them from being used.
 
@@ -63,7 +63,7 @@ Command Line ACLs
 #################
 
 All of the above is about network security, if you want to run the cobbler CLI as non root, you can run
-"cobbler aclsetup" to grant access to non-root users, such as your friendly trusted neighborhood administrators. Be
+``cobbler aclsetup`` to grant access to non-root users, such as your friendly trusted neighborhood administrators. Be
 aware this grants them file access on all of cobbler's configuration. This all uses setfacl, don't chmod yourself if you
 can help it as the RPM takes good steps to get all of this right. Same for running setfacl yourself as there are lots of
 places it must be applied.

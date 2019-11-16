@@ -1,3 +1,5 @@
+.. _extending-cobbler:
+
 *****************
 Extending cobbler
 *****************

@@ -1,3 +1,5 @@
+.. _web-authentication:
+
 ******************
 Web Authentication
 ******************
@@ -42,6 +44,8 @@ You can also choose to delete the "cobbler" user from the file.
 Digest authentication with Apache is no longer supported due to the fact that we have moved to a session/token based
 authentication and form-based login scheme with the new Web UI. Unfortunately, digest authentication does not work with
 this method, so we now recommend using PAM or one of the other authentication schemes.
+
+.. _kerberos:
 
 Defer to Apache / Kerberos
 ##########################
@@ -206,6 +210,8 @@ A note about restarting cobblerd
 Cobblerd regenerates an internal token on restart (for security reasons), so if you restart cobblerd, you'll have to
 close your browser to drop the session token and then try to login again. Generally you won't be restarting cobblerd
 except when restarting machines and on upgrades, so this shouldn't be a problem.
+
+.. _ldap:
 
 LDAP
 ####

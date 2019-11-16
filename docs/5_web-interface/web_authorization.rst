@@ -35,6 +35,8 @@ make any changes requested. Users not in this file do not have access. An exampl
 wanted to [authenticate admins against Kerberos](Kerberos) but kerberos contained other passwords and you wanted to
 allow only users present in your whitelist to be able to make changes.
 
+.. _ownership:
+
 Ownership
 #########
 
