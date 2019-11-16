@@ -1,3 +1,5 @@
+.. _managing-services-with-cobbler:
+
 ******************************
 Managing Services with Cobbler
 ******************************
