@@ -21,4 +21,4 @@ Cobbler also provides a tool (koan) for simplifying virtualization deployments.
 How We Model Things
 ###################
 
-![object tree diagram](/images/how-we-do.png)
+.. image:: img/how-we-do.png

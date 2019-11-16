@@ -1,3 +1,5 @@
+.. _web-interface:
+
 *************
 Web Interface
 *************
@@ -11,15 +13,15 @@ Web Interface
 
 This section of the manual covers the Cobbler Web Interface. With the web user interface (WebUI), you can:
 
-  * View all of the cobbler objects and the settings
-  * Add and delete a system, distro, profile, or system
-  * Run the equivalent of a "cobbler sync"
-  * Edit kickstart files (which must be in `/etc/cobbler` and `/var/lib/cobbler/kickstarts`)
+* View all of the cobbler objects and the settings
+* Add and delete a system, distro, profile, or system
+* Run the equivalent of a "cobbler sync"
+* Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
 
 You cannnot (yet):
 
-  * Auto-Import media
-  * Do a "cobbler validateks"
+* Auto-Import media
+* Do a "cobbler validateks"
 
 The WebUI is intended to be self-explanatory and contains tips and explanations for nearly every field you can edit. It
 also contains links to additional documentation, including the Cobbler manpage documentation in HTML format.
@@ -28,8 +30,9 @@ Basic Setup
 ###########
 
 1.  You must have installed the cobbler-web package
+2.  Your ``/etc/cobbler/modules.conf`` should look something like this:
 
-2.  Your `/etc/cobbler/modules.conf` should look something like this:
+.. code-block:: yaml
 
     [authentication]
     module = authn_configfile
@@ -39,18 +42,26 @@ Basic Setup
 
 3. Change the password for the 'cobbler' username:
 
+.. code-block:: bash
+
       htdigest /etc/cobbler/users.digest "Cobbler" cobbler
 
 4.  If this is not a new install, your Apache configuration for Cobbler might not be current.
+
+.. code-block:: bash
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
 5.  Now restart Apache and Cobblerd
 
+.. code-block:: bash
+
     /sbin/service cobblerd restart
     /sbin/service httpd restart
 
 6.  If you use SELinux, you may also need to set the following, so that the WebUI can connect with the [XMLRPC](XMLRPC):
+
+.. code-block:: bash
 
     setsebool -P httpd_can_network_connect true
 
@@ -58,25 +69,27 @@ Basic Setup
 Basic setup (2.2.x and higher)
 ##############################
 
-In addition to the steps above, cobbler 2.2.x has a requirement for `mod_wsgi` which, when installed via EPEL, will be
+In addition to the steps above, cobbler 2.2.x has a requirement for ``mod_wsgi`` which, when installed via EPEL, will be
 disabled by default. Attempting to start httpd will result in:
+
+.. code-block:: bash
 
     Invalid command 'WSGIScriptAliasMatch', perhaps misspelled \
       or defined by a module not included in the server configuration
 
-You can enable this module by editing `/etc/httpd/conf.d/wsgi.conf` and un-commenting the
-"LoadModule wsgi_module modules/mod_wsgi.so" line.
+You can enable this module by editing ``/etc/httpd/conf.d/wsgi.conf`` and un-commenting the
+``LoadModule wsgi_module modules/mod_wsgi.so`` line.
 
 Next steps
 ==========
 
-It should be ready to go.  From your web browser visit the URL on your bootserver that resembles:
-
-    https://bootserver.example.com/cobbler_web
-
-and log in with the username (usually cobbler) and password that you set earlier.
+It should be ready to go. From your web browser visit the URL on your bootserver that resembles:
+``https://bootserver.example.com/cobbler_web`` and log in with the username (usually cobbler) and password that you
+set earlier.
 
 Should you ever need to debug things, see the following log files:
+
+.. code-block:: bash
 
     /var/log/httpd/error_log
     /var/log/cobbler/cobbler.log
@@ -84,9 +97,11 @@ Should you ever need to debug things, see the following log files:
 Further setup
 =============
 
-Cobbler authenticates all WebUI logins through `cobblerd`, which uses a configurable authentication mechanism. You may
-wish to adjust that for your environment.  For instance, if in `modules.conf` above you choose to stay with the
+Cobbler authenticates all WebUI logins through ``cobblerd``, which uses a configurable authentication mechanism. You may
+wish to adjust that for your environment. For instance, if in ``modules.conf`` above you choose to stay with the
 authn_configfile module, you may want to add your system administrator usernames to the digest file:
+
+.. code-block:: bash
 
     htdigest /etc/cobbler/users.digest "Cobbler" <username>
 
@@ -96,7 +111,9 @@ Rewrite Rule for secure-http
 ============================
 
 To redirect access to the WebUI via https on an Apache webserver, you can use the following rewrite rule, probably at
-the end of Apache's `ssl.conf`:
+the end of Apache's ``ssl.conf``:
+
+.. code-block:: bash
 
     ### Force SSL only on the WebUI
     <VirtualHost *:80>

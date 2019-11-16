@@ -53,10 +53,10 @@ Default boot behavior
 =====================
 
 If cobbler has no record of the system being booted, cobbler will configure PXE to boot to the contents of
-`/etc/cobbler/default.pxe` which, if unmodified, will just fall through to the local boot process.
+``/etc/cobbler/default.pxe`` which, if unmodified, will just fall through to the local boot process.
 
 The recommended way to specify a different default cobbler profile to PXE boot is to create an explicit system named
-"default".  This will cause `/etc/cobbler/default.pxe` to be ignored.
+"default". This will cause ``/etc/cobbler/default.pxe`` to be ignored.
 
 .. code-block:: bash
 

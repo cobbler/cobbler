@@ -131,6 +131,8 @@ post by Ithiriel:
 
 [Writing Install Triggers](http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler)
 
+.. _modules:
+
 Modules
 #######
 

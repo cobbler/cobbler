@@ -6,11 +6,7 @@ Cobbler has many features, many of which are disabled out of the box for simplic
 enable these features and to modify how they work, while other settings are used to provide default functionality to
 base features (for example, the default encrypted password to use).
 
-This section will cover these settings, as well as the new
-[Dynamic Settings]({% link manuals/2.8.0/3/3/1_-_Dynamic_Settings.md %}) feature introduced in Cobbler 2.8.0.
-
-To learn more about the advanced/optional features, consult the
-[Advanced Topics]({% link manuals/2.8.0/4_-_Advanced_Topics.md %}) section.
+.. _dynamic-settings:
 
 Dynamic Settings
 ################
@@ -18,12 +14,14 @@ Dynamic Settings
 Prior to Cobbler 2.4.0, any changes to `/etc/cobbler/settings` required a restart of the cobblerd daemon for those
 changes to take affect. Now, with 2.4.0+, you can easily modify settings on the fly via the "cobbler setting" command.
 
-### Enabling Dynamic Settings
+Enabling Dynamic Settings
+=========================
 
 Dynamic settings are not enabled by default. In order to enable them, you must set "allow_dynamic_settings: 1" in
 `/etc/cobbler/settings` and restart cobblerd.
 
-### Caveats
+Caveats
+=======
 
 Over the years, the Cobbler settings file has grown organically, and as such has not always had consistent spacing
 applied to the YAML entries it contains. In order to ensure that augeas can correctly rewrite the settings, you must run

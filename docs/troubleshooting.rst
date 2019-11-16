@@ -1,3 +1,5 @@
+.. _troubleshooting:
+
 *******************************************
 Frequently Asked Trouble Shooting Questions
 *******************************************
@@ -5,7 +7,7 @@ Frequently Asked Trouble Shooting Questions
 This section covers some questions that frequently come up in IRC, some of which are problems, and some of which are
 things about Cobbler that are not really problems, but are things folks just ask questions about frequently...
 
-See also [Virtualization Troubleshooting](Virtualization Troubleshooting) for virtualization specific questions.
+See also :ref:`virtualization-troubleshooting` for virtualization specific questions.
 
 General
 #######
@@ -15,55 +17,52 @@ Most Common Things To Check
 
 Have you run Cobbler check? What did it say? Is Cobbler and koan at the most recent released stable version? Is
 cobblerd running? Have you tried restarting it if this is a recent upgrade or config change? If something isn't showing
-up, have you restarted cobblerd and run "cobbler sync" after making changes to the config file? If you can't connect or
-retrieve certain files, is Apache running, or have you restarted it after a new install? If there's a koan connectivity
-problem, are there any firewalls blocking port 25150?
+up, have you restarted cobblerd and run ``cobbler sync`` after making changes to the config file? If you can't connect
+or retrieve certain files, is Apache running, or have you restarted it after a new install? If there's a koan
+connectivity problem, are there any firewalls blocking port ``25150``?
 
 I am having a problem with importing repos
 ==========================================
 
-Trick question! one does not run "cobbler import" on repos :) Install trees contain more data than repositories. Install
-trees are for OS installation and are added using "cobbler import" or "cobbler distro add" if you want do something more
-low level. Repositories are for things like updates and additional packages. Use "cobbler repo add" to add these
-sources. If you accidentally import a repo URL (for instance using rsync), clean up
-/var/www/cobbler/ks\_mirror/name\_you\_used to take care of it. Cobbler can't detect what you are importing in advance
-before you copy it. Thankfully "man cobbler" gives plenty of good examples for each command, "cobbler import" and
-"cobbler repo add" and gives example URLs and syntaxes for both.
+Trick question! one does not run ``cobbler import`` on repos :) Install trees contain more data than repositories.
+Install trees are for OS installation and are added using ``cobbler import`` or ``cobbler distro add`` if you want do
+something more low level. Repositories are for things like updates and additional packages. Use ``cobbler repo add`` to
+add these sources. If you accidentally import a repo URL (for instance using rsync), clean up
+``/var/www/cobbler/ks_mirror/name_you_used`` to take care of it. Cobbler can't detect what you are importing in advance
+before you copy it. Thankfully ``man cobbler`` gives plenty of good examples for each command, ``cobbler import`` and
+``cobbler repo add`` and gives example URLs and syntaxes for both.
 
 See also [Using Cobbler Import](Using Cobbler Import) and [Manage Yum Repos](Manage Yum Repos) for further information.
 
 Why do the kickstart files in /etc/cobbler look strange?
 ========================================================
 
-These are not actually kickstart files, they are kickstart file templates. See
-[Kickstart Templating](Kickstart Templating) for more information.
+These are not actually kickstart files, they are kickstart file templates. See :ref:`kickstart-templating` for more
+information.
 
 How can I validate that my kickstarts are right before installing?
 ==================================================================
 
-Try "cobbler validateks"
+Try ``cobbler validateks``.
 
 Can I feed normal kickstart files to --kickstart ?
 ==================================================
 
-You can, but you need to escape any dollar signs ($) with (\\$) so the Cobbler templating engine doesn't eat them. This
-is not too hard, use "cobbler profile getks" and "cobbler system getks" to make sure everything renders correctly. Also
-\#raw ... \#endraw in Cheetah can be useful. More is documented on the [Kickstart Templating](Kickstart Templating)
+You can, but you need to escape any dollar signs (``$``) with (``\\$``) so the Cobbler templating engine doesn't eat
+them. This is not too hard, use ``cobbler profile getks`` and ``cobbler system getks`` to make sure everything renders
+correctly. Also ``\#raw ... \#endraw`` in Cheetah can be useful. More is documented on the :ref:`kickstart-templating`
 page.
 
 My kickstart file has problems
 ==============================
 
-If it's not related to Cobbler's [Kickstart Templating](Kickstart Templating) engine, and it's more of "how do I do this
-in pre/post", kickstart-list is excellent.
+If it's not related to Cobbler's :ref:`kickstart-templating` engine, and it's more of "how do I do this
+in pre/post", ``kickstart-list`` is excellent.
 
-[http://www.redhat.com/mailman/listinfo/kickstart-list](http://www.redhat.com/mailman/listinfo/kickstart-list)
-
-Also be sure to read the archives, I have created a Google custom search engine for this
-[here](http://www.google.com/coop/cse?cx=016811804524159694721:1h7btspnxtu).
+`Redhat Mailman/Kickstart-List  <https://www.redhat.com/mailman/listinfo/kickstart-list>`_
 
 Otherwise, you are likely seeing a Cheetah syntax error. Learn more about Cheetah syntax at
-[http://cheetahtemplate.org/learn](http://cheetahtemplate.org/learn) for further information.
+`Cheetahtemplate/User Guide/Language <https://cheetahtemplate.org/users_guide/language.html>`_ for further information.
 
 I'm running into the 255 character kernel options line limit
 ============================================================
@@ -87,9 +86,13 @@ support, running libvirtd on the cobbler server is also fine.
 Alternatively you can configure your DHCP server not to listen on all interfaces: dnsmasq run by libvirtd is configured
 to listen on internal virbr0/192.168.122.1 only. For ISC dhcpd you can set in /etc/sysconfig/dhcpd:
 
+.. code-block:: bash
+
     DHCPDARGS=eth0
 
-For dnsmasq you can set in `/etc/dnsmasq.conf`:
+For dnsmasq you can set in ``/etc/dnsmasq.conf``:
+
+.. code-block:: bash
 
     interface=eth0
     except-interface=lo
@@ -99,31 +102,34 @@ I'm having DHCP timeouts / DHCP is slow / etc
 =============================================
 
 See the Anaconda network troubleshooting page:
-[http://fedoraproject.org/wiki/Anaconda/NetworkIssues](http://fedoraproject.org/wiki/Anaconda/NetworkIssues)
+`Fedoraproject/Anaconda/Networkissues <https://fedoraproject.org/wiki/Anaconda/NetworkIssues>`_
 
-This URL has "Fedora" in it, but applies equally to Red Hat and
-derivative distributions.
+This URL has "Fedora" in it, but applies equally to Red Hat and derivative distributions.
 
 Cobblerd won't start
 ====================
 
 cobblerd won't start and say:
 
-> Starting cobbler daemon: Traceback (most recent call last):
->   File "/usr/bin/cobblerd", line 76, in main
->     api = cobbler_api.BootAPI(is_cobblerd=True)
->   File "/usr/lib/python2.6/site-packages/cobbler/api.py", line 127, in __init__
->     module_loader.load_modules()
->   File "/usr/lib/python2.6/site-packages/cobbler/module_loader.py", line 62, in load_modules
->     blip =  __import__("modules.%s" % ( modname), globals(), locals(), [modname])
->   File "/usr/lib/python2.6/site-packages/cobbler/modules/authn_pam.py", line 53, in <module>
->     from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
->   File "/usr/lib64/python2.6/ctypes/__init__.py", line 546, in <module>
->     CFUNCTYPE(c_int)(lambda: None)
-> MemoryError
->                                                            [  OK  ]
+.. code-block:: bash
+
+    > Starting cobbler daemon: Traceback (most recent call last):
+    >   File "/usr/bin/cobblerd", line 76, in main
+    >     api = cobbler_api.BootAPI(is_cobblerd=True)
+    >   File "/usr/lib/python2.6/site-packages/cobbler/api.py", line 127, in __init__
+    >     module_loader.load_modules()
+    >   File "/usr/lib/python2.6/site-packages/cobbler/module_loader.py", line 62, in load_modules
+    >     blip =  __import__("modules.%s" % ( modname), globals(), locals(), [modname])
+    >   File "/usr/lib/python2.6/site-packages/cobbler/modules/authn_pam.py", line 53, in <module>
+    >     from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
+    >   File "/usr/lib64/python2.6/ctypes/__init__.py", line 546, in <module>
+    >     CFUNCTYPE(c_int)(lambda: None)
+    > MemoryError
+    >                                                            [  OK  ]
 
 Check your SELinux. Immediate fix is to disable selinux:
+
+.. code-block:: bash
 
     setenforce 0
 
@@ -155,69 +161,77 @@ non-emergency environment._
 
 The example below illustrates RHEL 5.6.  The detail may vary for other Redhat-like flavours.
 
-### Assumptions
+Assumptions
+***********
 
 * Your target machine's Cobbler network deployment is supported by exactly one active DHCP server.
 * Your deployed machines are already present in Cobbler for their earlier deployment purposes.
-* A deployed machine's `kopts` setting field is usually null.
-* A deployed machine's `netboot-enabled` setting is false outside deployment time.
+* A deployed machine's ``kopts`` setting field is usually null.
+* A deployed machine's ``netboot-enabled`` setting is false outside deployment time.
 
-### Procedure
+Procedure
+*********
 
 As stated above: _verify this periodically, outside emergency times, in a non-production environment._
 
 On the Cobbler server:
 
+.. code-block:: bash
+
     cobbler system edit --name=sick-machine --kopts='rescue'
     cobbler system edit --name=sick-machine --netboot-enabled=true
     cobbler sync
 
-As always, don't forget that "cobbler sync".
+As always, don't forget that ``cobbler sync``.
 
 At the client "sick-machine", start a normal deployment-style network boot.  During this you should eventually see:
 
-* Usual blue screen: `Loading SCSI driver`.  There may be a couple of similar screens.
-* Usual blue screen: `Sending request for IP information for eth0...`.  (The exact value of that "eth0" is dependent on
-  your machine.)
-* Usual blue screen: repeat `Sending request for IP...` , but this time the header bar at the top should have
-  `Rescue Mode` appended.
-* Usual back-to-black: `running anaconda` and a couple of related lines.
-* Blue screen with header bar `Rescue` and options "Continue", "Read-Only", "Skip".
+* Usual blue screen: ``Loading SCSI driver``.  There may be a couple of similar screens.
+* Usual blue screen: ``Sending request for IP information for eth0...``.  (The exact value of that "eth0" is dependent
+  on your machine.)
+* Usual blue screen: repeat ``Sending request for IP...`` , but this time the header bar at the top should have
+  ``Rescue Mode`` appended.
+* Usual back-to-black: ``running anaconda`` and a couple of related lines.
+* Blue screen with header bar ``Rescue`` and options "Continue", "Read-Only", "Skip".
 
-In particular, if the second `Sending request for IP...` screen fails to say `Rescue Mode`, it is strongly recommended
-that you immediately abort the process to avoid the risk of overwriting the machine.
+In particular, if the second ``Sending request for IP...`` screen fails to say ``Rescue Mode``, it is strongly
+recommended that you immediately abort the process to avoid the risk of overwriting the machine.
 
 At this point you select whichever option is appropriate for your rescue and follow the Redhat rescue procedures.
 (The detail is independent of, and beyond the scope of, this Cobbler procedure.)
 
 When you have finished, on the Cobbler server nullify the rescue:
 
+.. code-block:: bash
+
     cobbler system edit --name=sick-machine --kopts=''
     cobbler system edit --name=sick-machine --netboot-enabled=false
     cobbler sync
+
+.. _virtualization-troubleshooting:
 
 Frequently Asked Virtualization Trouble Shooting Questions
 ##########################################################
 
 This section covers some questions that frequently come up in IRC, some of which are problems, and some of which are
-things about Cobbler that are not really problems, but are things folks just ask questions about frequently... all
+things about Cobbler that are not really problems, but are things folks just ask questions about frequently... All
 related to virtualization.
 
-See also [TroubleShooting](TroubleShooting) for general items.
+See also :ref:`troubleshooting` for general items.
 
 Why don't I see this Xen distribution in my PXE menu?
 =====================================================
 
 There are two types of installer kernel/initrd pairs. There's a normal one (for all physical installations) and a Xen
-paravirt one. If you "cobbler import" an install tree (say from a DVD image) and get some "xen" distributions, these
+paravirt one. If you ``cobbler import`` an install tree (say from a DVD image) and get some "xen" distributions, these
 distributions will then not show up in your PXE menu -- just because Cobbler knows it's impossible to PXE boot them on
 physical hardware.
 
-If you want to install virtual guests, read "man koan" for details and also
-[Installing Virtual Guests](Installing Virtual Guests)
+If you want to install virtual guests, read ``man koan`` for details and also
+https://koan.readthedocs.io/en/release28/installing-virtual-guests.html
 
 If you want to install a physical host, use the standard distribution, the one without "xen" in the name. Instead, in
-the "%packages" section of the kickstart, add the package named "kernel-xen".
+the ``%packages`` section of the kickstart, add the package named ``kernel-xen``.
 
 This only applies for Xen, of course, if you are using KVM, it's simpler and there is only one installer kernel/initrd
 pair to worry about -- the main one.
@@ -232,18 +246,19 @@ paravirtualized versions of the installer kernel/initrd pair.
 
 Make sure your host arch matches your guest arch.
 
-If installing Xen and using virsh console or xm console, if you don't use --nogfx at one point the installer will appear
-to hang. Most likely it did not, it switched over to using VNC which you can view with virt-manager. If you would like
-to keep using the text console, use --nogfx instead. This does not apply to other virt types, only Xen.
+If installing Xen and using virsh console or xm console, if you don't use ``--nogfx`` at one point the installer will
+appear to hang. Most likely it did not, it switched over to using VNC which you can view with virt-manager. If you would
+like to keep using the text console, use ``--nogfx`` instead. This does not apply to other virt types, only Xen.
 
-There really aren't any KVM gotchas, other than making sure /dev/kvm is present (you need the right kernel module
+There really aren't any KVM gotchas, other than making sure ``/dev/kvm`` is present (you need the right kernel module
 installed on the host) otherwise things will install with qemu and appear to be very slow.
 
-See also
-[Installing Virtual Guests](Installing Virtual Guests)
+See also https://koan.readthedocs.io/en/release28/installing-virtual-guests.html
 
 What Is This Strange Message From Xen?
 ======================================
+
+.. code-block:: bash
 
     libvir: Xen error : Domain not found: xenUnifiedDomainLookupByUUID
     libvir: Xen error : Domain not found: xenUnifiedDomainLookupByName
@@ -257,6 +272,8 @@ VirtualBox version 4+ won't PXE boot, DHCP logs show up nothing
 
 If you setup cobbler all correctly and you are trying to network book with PXE and you receive this error right after
 the VirtualBox POST:
+
+.. code-block:: bash
 
     FATAL: No bootable medium found! System halted.
 

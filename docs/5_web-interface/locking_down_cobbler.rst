@@ -2,10 +2,10 @@
 Locking down cobbler
 ********************
 
-If you want to enable the [Cobbler web interface](Cobbler web interface) for a lot of users, and don't trust all of them
-to know what they are doing all of the time, here are some tips on some good configuration practices to allow for
-configuring a server that is hard for someone to mess with in ways they shouldn't be messing with it -- as defined by
-you and your site specific policy.
+If you want to enable the :ref:`web-interface` for a lot of users, and don't trust all of them to know what they are
+doing all of the time, here are some tips on some good configuration practices to allow for configuring a server that is
+hard for someone to mess with in ways they shouldn't be messing with it -- as defined by you and your site specific
+policy.
 
 /etc/cobbler/modules.conf
 #########################
