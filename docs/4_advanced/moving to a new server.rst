@@ -13,6 +13,6 @@ Suggested Process
 #################
 
 1.  Install Cobbler on the new system.
-2.  on the new box, run "cobbler replicate". See [Replication](Replication) for instructions and make sure you use the
+2.  on the new box, run ``cobbler replicate``. See :ref:`replication` for instructions and make sure you use the
     right flags to transfer scripts and data.
 3.  Try installing some systems to make sure everything works like you would expect.

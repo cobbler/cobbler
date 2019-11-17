@@ -96,6 +96,8 @@ And for the system, bar:
 This is of course very contrived, though you can imagine substituting in things like server locations, configuration
 file settings, timezones, etc.
 
+.. _kickstart-snippets:
+
 Snippets
 ########
 

@@ -634,6 +634,8 @@ All of this functionality is also exposed through the API
 
 You will find uses of ``.find()`` throughout the cobbler code that make use of this behavior.
 
+.. _replication:
+
 Replication
 ###########
 
