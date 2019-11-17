@@ -393,7 +393,7 @@ References
 
 * Additional OpenFirmware information available at LINK-DEAD.
 
-.. _tips-for-thn:
+.. _tips-for-rhn:
 
 Tips for RHN
 ############
@@ -512,8 +512,8 @@ The *syslog=* approach will only capture syslog-style messages. Any command-spec
 Unsupported on older distros
 ****************************
 
-While capturing syslog information is key for remote monitoring of installations, the
-`anaconda <https://fedoraproject.org/wiki/Anaconda>`_ installer only supports sending syslog data for RHEL-5 and newer
+While capturing syslog information is key for remote monitoring of installations,
+`the anaconda <https://fedoraproject.org/wiki/Anaconda>`_ installer only supports sending syslog data for RHEL-5 and newer
 distributions.
 
 What is Anamon?
@@ -817,6 +817,7 @@ Step-by-step (as of 2.2.2)
     cobbler distro add  --name=clonezilla1-2-22-37 --arch=x86_64 --breed=other --os-version=other \
     --boot-files="'$img_path/filesystem.squashfs'='<path_to_your_folder>/live/filesystem.squashfs'" \
     --kernel=<path_to_your_folder>/live/vmlinuz --initrd=<path_to_your_folder>/live/initrd.img``
+
 3. Set up the kickstart kernel options needed for booting to at least:
 
 .. code-block:: bash

@@ -2,6 +2,8 @@
 Cobbler Direct Commands
 ***********************
 
+.. _cobbler-check:
+
 Check
 #####
 
@@ -28,6 +30,8 @@ are having definite problems with functionality.
     4 : Dynamic settings changes are enabled, be sure you run "sed -i 's/^[[:space:]]\+/ /' /etc/cobbler/settings" to ensure the settings file is properly indented
 
     Restart cobblerd and then run 'cobbler sync' to apply changes.
+
+.. _cobbler-sync:
 
 Sync
 ####
@@ -421,6 +425,8 @@ Done.
 You can also use KVM or other virtualization methods. These are covered elsewhere on the Wiki. Some distributions have
 Xen specific profiles you need to use, though this is merged back together starting with Fedora 12.
 
+.. _reposync:
+
 Reposync
 ########
 
@@ -465,6 +471,8 @@ production, or if you are provisioning laptops that will want to acquire updates
 The flags ``--tries=N`` (for example, ``--tries=3``) and ``--no-fail`` should likely be used when putting reposync on a
 crontab. They ensure network glitches in one repo can be retried and also that a failure to synchronize one repo does
 not stop other repositories from being synchronized.
+
+.. _buildiso:
 
 Build ISO
 #########
