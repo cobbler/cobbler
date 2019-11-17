@@ -9,6 +9,8 @@ This section covers methods to extend the functionality of Cobbler through the u
 [Modules]({%link manuals/2.8.0/2/4/2_-_Modules_Configuration.md %}), as well as through extensions to the Cheetah
 templating system.
 
+.. _triggers:
+
 Triggers
 ########
 

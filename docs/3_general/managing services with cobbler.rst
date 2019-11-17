@@ -4,6 +4,8 @@
 Managing Services with Cobbler
 ******************************
 
+.. _manage-dhcp:
+
 DHCP
 ####
 
@@ -13,64 +15,67 @@ You may want cobbler to manage the DHCP entries of its client systems. It curren
 
 To use ISC, your `/etc/cobbler/modules.conf` should contain:
 
-{% highlight ini %}
-[dhcp]
-module = manage_isc
-{% endhighlight %}
+.. code-block:: yaml
+
+    [dhcp]
+    module = manage_isc
 
 To use dnsmasq, it should contain:
 
-{% highlight ini %}
-[dns]
-module = manage_dnsmasq
+.. code-block:: yaml
 
-[dhcp]
-module = manage_dnsmasq
-{% endhighlight %}
+    [dns]
+    module = manage_dnsmasq
 
-<div class="alert alert-info alert-block"><b>Note:</b> Using dnsmasq for DHCP requires that you use it for DNS, even if
-you disable `manage_dns` in your [Cobbler Settings]({% link manuals/2.8.0/3/3_-_Cobbler_Settings.md %}). You should not
-try to mix the ISC module with the dnsmasq module.</div>
+    [dhcp]
+    module = manage_dnsmasq
 
-You also need to enable such management; this is done in
-[Cobbler Settings]({% link manuals/2.8.0/3/3_-_Cobbler_Settings.md %}).
+.. note:: Using dnsmasq for DHCP requires that you use it for DNS, even if you disable ``manage_dns`` in your
+   :ref:`settings`. You should not try to mix the ISC module with the dnsmasq module.
 
-{% highlight yaml %}
-manage_dhcp: 1
-restart_dhcp: 1
-{% endhighlight %}
+You also need to enable such management; this is done in :ref:`settings`.
 
-The relevant software packages also need to be present; [Cobbler Check]({% link manuals/2.8.0/3/2/1_-_Check.md %} will
+.. code-block:: yaml
+
+    manage_dhcp: 1
+    restart_dhcp: 1
+
+The relevant software packages also need to be present; :ref:`cobbler-check` will
 verify this.
 
-### When To Enable DHCP Management
+When To Enable DHCP Management
+==============================
 
-DHCP is closely related to PXE-based installation.  If you are maintaining a database of your systems and what they run,
+DHCP is closely related to PXE-based installation. If you are maintaining a database of your systems and what they run,
 it can make sense also to manage hostnames and IP addresses. Controlling DHCP from Cobbler can coordinate all this. This
 capability is a good fit if you can control DHCP for a lab or datacenter and want to run DHCP from the same server where
 you are running Cobbler. If you have an existing configuration of things that cobbler shouldn't be managing, you can
-copy them into your `/etc/cobbler/dhcp.template`.
+copy them into your ``/etc/cobbler/dhcp.template``.
 
-The default behaviour is for cobbler _not_ to manage your DHCP infrastructure. Make sure that in your existing
-`dhcp.conf` the next-server entry and filename information are correct to serve up pxelinux.0 to the machines that want
-it (for the case of bare metal installations over PXE).
+The default behaviour is for cobbler **not** to manage your DHCP infrastructure. Make sure that in your existing
+``dhcp.conf`` the next-server entry and filename information are correct to serve up ``pxelinux.0`` to the machines that
+want it (for the case of bare metal installations over PXE).
 
-### Setting up
+Setting up
+==========
 
-#### ISC considerations
+ISC considerations
+******************
 
-The master DHCP file when run from cobbler is `/etc/cobbler/dhcp.template`, not the more usual `/etc/dhcpd.conf`. Edit
-this template file to suit your environment; this is mainly just making sure that the DHCP information is correct. You
-can also include anything you may have had from an existing setup.
+The master DHCP file when run from cobbler is ``/etc/cobbler/dhcp.template``, not the more usual ``/etc/dhcpd.conf``.
+Edit this template file to suit your environment; this is mainly just making sure that the DHCP information is correct.
+Youcan also include anything you may have had from an existing setup.
 
-#### DNSMASQ considerations
+DNSMASQ considerations
+**********************
 
-If using dnsmasq, the template file is `/etc/cobbler/dnsmasq.template` but it basically works as for ISC (above).
+If using dnsmasq, the template file is ``/etc/cobbler/dnsmasq.template`` but it basically works as for ISC (above).
 Remember that dnsmasq also provides DNS.
 
-### How It Works
+How It Works
+============
 
-Suppose the following command is given (where &lt;profile name&gt; is an existing profile in cobbler):
+Suppose the following command is given (where ``<profile name>`` is an existing profile in cobbler):
 
 {% highlight bash %}
 $ cobbler system add --name=foo --profile=<profile name>
@@ -221,6 +226,8 @@ You should review and adjust the contents of `/etc/cobbler/dnsmasq.template`.
 
 rsync
 #####
+
+.. _managing-tftp:
 
 TFTP
 ####

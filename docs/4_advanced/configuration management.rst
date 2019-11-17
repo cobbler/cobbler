@@ -1,3 +1,5 @@
+.. _config-management:
+
 ************************
 Configuration Management
 ************************
@@ -86,6 +88,8 @@ Then (illustrating a Redhat/Puppet combination) set up the kickstart file to say
 
 The detail may need to be more substantial, requiring some other associated local packages, files and configuration. You
 may wish to manage this through [Kickstart snippets](Kickstart Snippets).
+
+.. _config-management-built-in:
 
 Built-In Configuration Management
 #################################

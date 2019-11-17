@@ -1,3 +1,5 @@
+.. _relocating-cobbler:
+
 ****************************
 Relocating your installation
 ****************************

@@ -393,6 +393,8 @@ References
 
 * Additional OpenFirmware information available at LINK-DEAD.
 
+.. _tips-for-thn:
+
 Tips for RHN
 ############
 
@@ -478,6 +480,8 @@ to PXE first in the BIOS order, unless you want to reinstall the system!
     cobbler system edit --name=bar --profile=old_profile_name --netboot-enabled=0
 
 Naturally if you **do** want to reinstall it after running memtest, just use ``--netboot-enabled=1``
+
+.. _anaconda:
 
 Anaconda Monitoring
 ###################

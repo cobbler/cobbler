@@ -1,3 +1,5 @@
+.. _power-management:
+
 ****************
 Power Management
 ****************

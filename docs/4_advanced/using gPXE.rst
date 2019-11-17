@@ -1,3 +1,5 @@
+.. _using-gpxe:
+
 **********
 Using gPXE
 **********

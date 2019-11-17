@@ -17,6 +17,7 @@ would like to install the most up to date version of cobbler for Fedora (which m
 environment), enable the -testing repo when installing or updating:
 
 .. code-block:: bash
+
     $ sudo yum install --enablerepo=updates-testing cobbler
     # or
     $ sudo yum update --enablerepo=updates-testing cobbler
