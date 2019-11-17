@@ -1,3 +1,5 @@
+.. _cobbler-primitives:
+
 ******************
 Cobbler Primitives
 ******************

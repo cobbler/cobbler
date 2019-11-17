@@ -6,181 +6,167 @@ Snippets
 
 Snippets are a way of reusing common blocks of code between kickstarts (though this also works on files other than
 kickstart templates, but that's a sidenote). For instance, the default Cobbler installation has a snippet called
-"$SNIPPET('func\_register\_if\_enabled')" that can help set up the application called Func.
+"``$SNIPPET('func_register_if_enabled')``" that can help set up the application called Func.
 
 This means that every time that this SNIPPET text appears in a kickstart file it is replaced by the contents of
-`/var/lib/cobbler/snippets/func_register_if_enabled`. This allows this block of text to be reused in every kickstart
+``/var/lib/cobbler/snippets/func_register_if_enabled``. This allows this block of text to be reused in every kickstart
 template -- you may think of snippets, if you like, as templates for templates!
 
-To review, the syntax looks like:
+To review, the syntax looks like: ``SNIPPET::snippet_name_here``
 
-    SNIPPET::snippet_name_here
+Where the name following snippet corresponds to a file in ``/var/lib/cobbler/snippets`` with the same name.
 
-Where the name following snippet corresponds to a file in
+Snippets are implemented using a Cheetah function. Although the legacy syntax ("``SNIPPET::snippet_name_here``") will
+still work, the preferred syntax is: ``$SNIPPET('snippet_name_here')``
 
-    /var/lib/cobbler/snippets
+You can still use the legacy syntax if you prefer, but a small bit of functionality is lost compared to the new style.
 
-with the same name.
+Advanced Snippets
+#################
 
-Snippets are implemented using a Cheetah function. Although the
-legacy syntax ("SNIPPET::snippet\_name\_here") will still work, the
-preferred syntax is:
+If you want, you can use a snippet name across many templates, but have the snippet be different for specific profiles
+and/or system objects. Basically this means you can override the snippet with different contents in certain cases.
 
-    $SNIPPET('snippet_name_here')
+An example of this is if you want to a snippet called "``partition_select``" slightly for a certain profile (or set of
+profiles) but don't want to change the master template that they all share.
 
-You can still use the legacy syntax if you prefer, but a small bit
-of functionality is lost compared to the new style.
+This could also be used to set up a package list -- for instance, you could store the base package list to install in
+``/var/lib/cobbler/snippets/package_list``, but override it for certain profiles and systems. This would allow you to
+ultimately create less kickstart templates and leverage the kickstart templating engine more by just editing the smaller
+and more easily readable snippet files. These also help keep your kickstarts manageable and keep them from becoming too
+long.
 
-## Advanced Snippets
+The resolution order for kickstart templating evaluation is to use the following paths in order, finding the first one
+if it exists (``per_distro`` was added in cobbler 2.0).
 
-If you want, you can use a snippet name across many templates, but
-have the snippet be /different/ for specific profiles and/or system
-objects. Basically this means you can override the snippet with
-different contents in certain cases.
+* ``/var/lib/cobbler/snippets/per_system/$snippet_name/$system_name``
+* ``/var/lib/cobbler/snippets/per_profile/$snippet_name/$profile_name``
+* ``/var/lib/cobbler/snippets/per_distro/$snippet_name/$distro_name``
+* ``/var/lib/cobbler/snippets/$snippet_name``
 
-An example of this is if you want to a snippet called
-"partition\_select" slightly for a certain profile (or set of
-profiles) but don't want to change the master template that they
-all share.
+As with the rest of cobbler, systems override profiles as they are more specific, though if the system file did not
+exist, it would use the profile file. As a general safeguard, always create the
+``/var/lib/cobbler/snippets/$snippet_name`` file if you create the ``per_system`` and ``per_profile`` ones.
 
-This could also be used to set up a package list -- for instance,
-you could store the base package list to install in
-`/var/lib/cobbler/snippets/package_list`, but override it for
-certain profiles and systems. This would allow you to ultimately
-create less kickstart templates and leverage the kickstart
-templating engine more by just editing the smaller and more easily
-readable snippet files. These also help keep your kickstarts
-manageable and keep them from becoming too long.
+Subdirectories
+##############
 
-The resolution order for kickstart templating evaluation is to use
-the following paths in order, finding the first one if it exists
-(per\_distro was added in cobbler 2.0).
+Snippets can be placed in subdirectories for better organization, and will follow the order of precedence listed above.
+For example: ``/var/lib/cobbler/snippets/$subdirectory/$snippet_name``
 
-    /var/lib/cobbler/snippets/per_system/$snippet_name/$system_name
-    /var/lib/cobbler/snippets/per_profile/$snippet_name/$profile_name
-    /var/lib/cobbler/snippets/per_distro/$snippet_name/$distro_name
-    /var/lib/cobbler/snippets/$snippet_name
+This would be referenced in your kickstart template as ``$SNIPPET('$subdirectory/$snippet_name')``.
 
-As with the rest of cobbler, systems override profiles as they are
-more specific, though if the system file did not exist, it would
-use the profile file. As a general safeguard, always create the
-`/var/lib/cobbler/snippets/$snippet_name` file if you create the
-per\_system and per\_profile ones.
+Replace the dollar sign names with the actual values, such as ... ``$SNIPPET('example.org/dostuff')``
 
-## Subdirectories
+Variable Snippet Names
+######################
 
-Snippets can be placed in subdirectories for better organization,
-and will follow the order of precedence listed above. For example:
-
-    /var/lib/cobbler/snippets/$subdirectory/$snippet_name
-
-This would be referenced in your kickstart template as
-$SNIPPET('$subdirectory/$snippet\_name').
-
-Replace the dollar sign names with the actual values, such as ...
-
-    $SNIPPET('example.org/dostuff')
-
-## Variable Snippet Names
-
-Sometimes it is useful to determine which snippet to include at
-render time. In Cobbler 1.2, this can be done by omitting the
-quotes and using a template variable:
-
-    $SNIPPET($my_snippet)
+Sometimes it is useful to determine which snippet to include at render time. In Cobbler 1.2, this can be done by
+omitting the quotes and using a template variable: ``$SNIPPET($my_snippet)``
 
 Note that this DOES NOT work with the legacy syntax:
+
+.. code-block:: bash
 
     #set my_snippet = 'foo'
     SNIPPET::$my_snippet
 
-This will not behave as expected. We would like it to include a
-snippet named 'foo'; instead, it will search for a snippet named
-'$my\_snippet'.
+This will not behave as expected. We would like it to include a snippet named 'foo'; instead, it will search for a
+snippet named ``$my_snippet``.
 
-## Cobbler SNIPPETs versus Cheetah \#include
+Cobbler SNIPPETs versus Cheetah #include
+########################################
 
-It seems that $SNIPPET and \#include accomplish the same thing. In
-fact, $SNIPPET uses \#include in its implementation! While the two
-perform similar tasks, there are some important differences:
+It seems that ``$SNIPPET`` and ``#include`` accomplish the same thing. In fact, ``$SNIPPET`` uses ``#include`` in its
+implementation! While the two perform similar tasks, there are some important differences:
 
--   $SNIPPET will search for profile and system-specific SNIPPETS
-    (See Advanced Snippets)
--   $SNIPPET will include the namespace of the snippet, so any
-    functions \#def'ed in the snippet will be accessible to the main
-    kickstart file. \#include will not do this.
+* ``$SNIPPET`` will search for profile and system-specific SNIPPETS (See Advanced Snippets)
+* ``$SNIPPET`` will include the namespace of the snippet, so any functions ``#def``'ed in the snippet will be accessible
+  to the main kickstart file. ``#include`` will not do this.
 
 For example:
 
-my\_snippet:
+.. code-block:: bash
 
-    #def myfunc()
-    ...
-    #end def
+    my_snippet:
 
-my\_kickstart:
+        #def myfunc()
+        ...
+        #end def
 
-    #include '/var/lib/cobbler/snippets/my_snippet'  ## UGH!
-    $myfunc()
+    my_kickstart:
+
+        #include '/var/lib/cobbler/snippets/my_snippet'  ## UGH!
+        $myfunc()
 
 Will NOT work. However,
 
-my\_kickstart:
+.. code-block:: bash
 
-    $SNIPPET('my_snippet') ## Much better!
-    $myfunc()
+    my_kickstart:
 
-Will work as expected. It will search for the snippet itself, and
-it will make sure myfunc() is callable from my\_kickstart.
+        $SNIPPET('my_snippet') ## Much better!
+        $myfunc()
 
-## Scoping issues
+Will work as expected. It will search for the snippet itself, and it will make sure ``myfunc()`` is callable from
+``my_kickstart``.
 
-Cobbler uses Cheetah to implement snippets, so variables in these
-snippets are subject to Cheetah's scoping rules (except \#def'ed
-functions). Variables set inside a snippet cannot be accessed in
-the main kickstart file. For example:
+Scoping issues
+##############
 
-my\_snippet:
+Cobbler uses Cheetah to implement snippets, so variables in these snippets are subject to Cheetah's scoping rules
+(except ``#def``'ed functions). Variables set inside a snippet cannot be accessed in the main kickstart file. For
+example:
 
-    #set dns1 = '192.168.0.1'
+.. code-block:: bash
 
-my\_kickstart:
+    my_snippet:
 
-    $SNIPPET('my_snippet')
-    echo 'nameserver $dns1' >> /etc/resolv.conf
+        #set dns1 = '192.168.0.1'
 
-Will not work as expected. The variable $dns1 is destroyed as soon
-as Cheetah finishes processing my\_snippet. To fix this, use the
-'global' modifier:
+    my_kickstart:
 
-my\_snippet:
+        $SNIPPET('my_snippet')
+        echo 'nameserver $dns1' >> /etc/resolv.conf
 
-    #set global dns1 = '192.168.0.1'
+Will not work as expected. The variable ``$dns1`` is destroyed as soon as Cheetah finishes processing ``my_snippet``. To
+fix this, use the 'global' modifier:
 
-Note that the 'global' modifier is not needed on \#def directives.
-In fact, '\#def global' is a syntax error in Cheetah.
+.. code-block:: bash
 
-## Recursive or Nested Snippets
+    my_snippet:
+
+        #set global dns1 = '192.168.0.1'
+
+Note that the 'global' modifier is not needed on ``#def`` directives. In fact, '``#def global``' is a syntax error in
+Cheetah.
+
+Recursive or Nested Snippets
+############################
 
 Cobbler Snippets can allow for nested snippets. For example:
 
-my\_kickstart:
+.. code-block:: bash
 
-    Main content
-    $SNIPPET('my_snippet')
-    More main content
+    my_kickstart:
 
-my\_snippet:
+        Main content
+        $SNIPPET('my_snippet')
+        More main content
 
-    Snippet content
-    $SNIPPET('my_subsnippet')
-    More snippet content
+    my_snippet:
 
-my\_subsnippet:
+        Snippet content
+        $SNIPPET('my_subsnippet')
+        More snippet content
 
-    Subsnippet content
+    my_subsnippet:
+
+        Subsnippet content
 
 Will yield:
+
+.. code-block:: bash
 
     Main content
     Snippet content
@@ -190,27 +176,28 @@ Will yield:
 
 as expected.
 
-## Kickstart Snippet Cookbook
+Kickstart Snippet Cookbook
+##########################
 
-The rest of this page contains Snippets contributed by users of
-Cobbler that provide examples of usage and some quick recipes that
-can be used/extended for your environment.
+The rest of this page contains Snippets contributed by users of Cobbler that provide examples of usage and some quick
+recipes that can be used/extended for your environment.
 
-If you come up with any clever tricks, paste them here to share,
-and also share them with the cobbler mailing list so we can talk
-about them.
+If you come up with any clever tricks, paste them here to share, and also share them with the cobbler mailing list so we
+can talk about them.
 
-Note that some of these rely on cobbler's [Cheetah powered](http://cheetahtemplate.org)
-[KickstartTemplating]({% link manuals/2.8.0/3/5_-_Kickstart_Templating.md %}}) engine pretty heavily so they might be a
-little hard to read at first. Snippets can just be simple reusable blocks of basic copy and paste text and can also be
-simple. Either way works depending on what you want to do.
+Note that some of these rely on cobbler's `Cheetahtemplate <http://cheetahtemplate.org>`_ :ref:`kickstart-templating`
+engine pretty heavily so they might be a little hard to read at first. Snippets can just be simple reusable blocks of
+basic copy and paste text and can also be simple. Either way works depending on what you want to do.
 
-NOTE: Content provided here is not part of Cobbler's "core" code so we may not be able to help you on the mailing list
-or IRC with snippets that aren't yet part of cobbler's core distribution. Cobbler does ship a few in
-`/var/lib/cobbler/snippets` that we can answer questions on, and in general, if you have a good idea, we'd love to work
-with you to get it shipped with Cobbler.
+.. note:: Content provided here is not part of Cobbler's "core" code so we may not be able to help you on the mailing
+   list or IRC with snippets that aren't yet part of cobbler's core distribution. Cobbler does ship a few in
+   ``/var/lib/cobbler/snippets`` that we can answer questions on, and in general, if you have a good idea, we'd love to
+   work with you to get it shipped with Cobbler.
 
-### Adding an SSH key to authorized keys
+Adding an SSH key to authorized keys
+====================================
+
+.. code-block:: bash
 
     # Install Robin's public key for root user
     cd /root
@@ -226,19 +213,24 @@ Instructions for setup:
 2.  Save your code in `/var/lib/cobbler/snippets/<snippet name>`
 3.  Add your new snippet to your kickstart template, e.g.
 
+.. code-block:: bash
+
     %post
     SNIPPET::publickey_root_robin
     $kickstart_done
 
-### Disk Configuration
+Disk Configuration
+==================
 
 Contributed by: Matt Hyclak
 
-This snippet makes use of if/else, getVar, and the `split()` function.
+This snippet makes use of if/else, getVar, and the ``split()`` function.
 
 It provides some additional options for partitioning compared with the example shipped with Cobbler. If the disk you
 want to partition is not sda, then simply set a ksmeta variable for the system (e.g.
-`cobbler system edit --name=oldIDEbox --ksmeta="disk=hda"`)
+``cobbler system edit --name=oldIDEbox --ksmeta="disk=hda"``)
+
+.. code-block:: bash
 
     #set $hostname = $getVar('$hostname', None)
     #set $hostpart = $getVar('$hostpart', None)
@@ -268,12 +260,15 @@ want to partition is not sda, then simply set a ksmeta variable for the system (
     logvol /var/fakedirectory --vgname=$vgname --size=123456789 --name=fake
     #end if
 
-### Another partitioning example
+Another partitioning example
+============================
 
 Use software raid if there are more then one disk present (e.g.
-`cobbler system edit --name=webServer --ksmeta="disks=sda,sdb"`)
+``cobbler system edit --name=webServer --ksmeta="disks=sda,sdb"``)
 
 Contributed by: Harry Hoffman
+
+.. code-block:: bash
 
     #set disks = $getVar('$disks', 'sda')
     #set count = len($disks.split(','))
@@ -300,17 +295,20 @@ Contributed by: Harry Hoffman
     logvol /var --name=var --vgname=internal_hd --fstype ext3 --size=8192
     logvol /usr --name=usr --vgname=internal_hd --fstype ext3 --size=8192
 
-### Package Selection by hostname
+Package Selection by hostname
+=============================
 
 Contributed by: Matt Hyclak
 
-NOTE: Advanced Snippets in all recent versions of Cobbler make this unneccessary (this is an older snippet), but it's
-still a neat trick to learn some Cheetah skills.
+.. note:: Advanced Snippets in all recent versions of Cobbler make this unneccessary (this is an older snippet), but
+   it's still a neat trick to learn some Cheetah skills.
 
-This snippet makes use of if/else, getVar, the split() function, include, and try/except.
+This snippet makes use of if/else, getVar, the ``split()`` function, include, and try/except.
 
 This snippet allows the administrator to create a file containing the package selection based on hostname and includes
 it if possible, otherwise it fallse back to a default.
+
+.. code-block:: bash
 
     #set $hostname = $getVar('$hostname', None)
 
@@ -332,12 +330,15 @@ it if possible, otherwise it fallse back to a default.
     #end try
     #end if
 
-### Package Selection by profile name
+Package Selection by profile name
+=================================
 
 Contributed by: Luc de Louw
 
 This snippet add or removes packages depending on the profile name. Assuming you have profiles named rhel5, rhel5-test,
 rhel4 and rhel4-test. You need to install packages depending if it a test system or not.
+
+.. code-block:: bash
 
     #if 'test' in $profile_name
     #Test System selected, adding some more packages
@@ -355,23 +356,22 @@ rhel4 and rhel4-test. You need to install packages depending if it a test system
 
     #end if
 
-Add $SNIPPET('snippetname') at the %packages section in the kickstart template
+Add ``$SNIPPET('snippetname')`` at the ``%packages`` section in the kickstart template
 
-### Root Password Generation
+Root Password Generation
+========================
 
 Contributed by: Matt Hyclak
 
-This snippet makes use of if/else, getVar, and demonstrates how to
-import and use python modules directly.
+This snippet makes use of if/else, getVar, and demonstrates how to import and use python modules directly.
 
-This snippet generates a password from a pattern of the first 4
-characters of the hostname + "andsomecommonpart", creates an
-appropriate encrypted string with a random salt, and outputs the
-appropriate rootpw line. (mdehaan warns -- this snippet isn't
-secure as the variable 'hostname' can still be easily read from
-Cobbler XMLRPC, if systems have access to it. Credentials are NOT
-required to read metadata variables like the hostname, and in this
-case, the hostname isn't hard to guess either)
+This snippet generates a password from a pattern of the first 4 characters of the hostname + "andsomecommonpart",
+creates an appropriate encrypted string with a random salt, and outputs the appropriate rootpw line. (mdehaan warns --
+this snippet isn't secure as the variable 'hostname' can still be easily read from Cobbler XMLRPC, if systems have
+access to it. Credentials are NOT required to read metadata variables like the hostname, and in this case, the hostname
+isn't hard to guess either)
+
+.. code-block:: bash
 
     #set $hostname = $getVar('$hostname', None)
 
@@ -395,15 +395,16 @@ case, the hostname isn't hard to guess either)
     rootpw --iscrypted $encpass
     #end if
 
-### VMWare Detection
+VMWare Detection
+================
 
 Contributed by: Matt Hyclak
 
-This snippet makes use of if/else, getVar, and demonstrates how to
-make multiple comparisons in an if statement.
+This snippet makes use of if/else, getVar, and demonstrates how to make multiple comparisons in an if statement.
 
-This snippet detects if the host is a VMWare guest, and adds a
-special kernel repository.
+This snippet detects if the host is a VMWare guest, and adds a special kernel repository.
+
+.. code-block:: bash
 
     #set $mac_address = $getVar('$mac_address', None)
     #if $mac_address
@@ -425,17 +426,16 @@ special kernel repository.
     #end if
     #end if
 
-### RHEL Installation Keys
+RHEL Installation Keys
+======================
 
 Contributed by: Wil Cooley
 
-RHEL uses keys (also called *Installation Number*) to determine the
-appropriate packages to install. To fully automate a RHEL
-installation, the kickstart needs a *key* option, either setting
-the key or explicitly skipping it.
+RHEL uses keys (also called *Installation Number*) to determine the appropriate packages to install. To fully automate a
+RHEL installation, the kickstart needs a *key* option, either setting the key or explicitly skipping it.
 
-This is not to be confused with [TipsForRhn]({% link manuals/2.8.0/Appendix/C_-_Tips_for_RHN.md %}), which includes
-registration instructions for RHN Hosted and Satellite. Cobbler actually is happy with "key --skip" in most cases.
+This is not to be confused with :ref:`tips-for-rhn`, which includes registration instructions for RHN Hosted and
+Satellite. Cobbler actually is happy with "``key --skip``" in most cases.
 
 See also:
 
@@ -444,26 +444,29 @@ See also:
 
 Add this to the kickstart template:
 
+.. code-block:: bash
+
     # RHEL Install Key
     key $getVar('rhel_key', '--skip')
 
 Then you can specify the key in the *ksmeta* system definition:
 
+.. code-block:: bash
+
     # cobbler system edit --name=00:02:55:fa:6b:2b --ksmeta="rhel_key=xxx"
 
-If *rhel\_key* is not specified, then it will fall back to
-*--skip*.
+If *rhel\_key* is not specified, then it will fall back to *--skip*.
 
-### Configure Timezone Based on Hostname
+Configure Timezone Based on Hostname
+====================================
 
-Contributed by: [Jeff Schroeder](http://www.digitalprognosis.com)
+Contributed by: `Jeff Schroeder <http://www.digitalprognosis.com>`_
 
-This snipped will print the correct timezone line for your
-kickstart based on the system's hostname. It is highly dependent on
-a consistent naming scheme and will have to be edited for each
-environment. Using multiple lines to set the associative array
-seemed like the sanest way to do this to make adding and removing
-new locations easy.
+This snipped will print the correct timezone line for your kickstart based on the system's hostname. It is highly
+dependent on a consistent naming scheme and will have to be edited for each environment. Using multiple lines to set the
+associative array seemed like the sanest way to do this to make adding and removing new locations easy.
+
+.. code-block:: bash
 
     #if $getVar("system_name","") != ""
         #set foo = {}
@@ -491,14 +494,15 @@ new locations easy.
     #end if
 
 
-### Install HP Proliant Support Pack (PSP)
+Install HP Proliant Support Pack (PSP)
+======================================
 
 Contributed by: Dave Hatton
 
-This snippet automatically installs the HP Proliant Support Pack
-(PSP). You may wish to adjust the location that the tarball is
-downloaded and uncompressed to, and remove the install package
-after installation.
+This snippet automatically installs the HP Proliant Support Pack (PSP). You may wish to adjust the location that the
+tarball is downloaded and uncompressed to, and remove the install package after installation.
+
+.. code-block:: bash
 
      mkdir -p /software
 
