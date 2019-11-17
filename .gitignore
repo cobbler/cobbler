@@ -14,7 +14,6 @@ tags
 .coverage
 .metadata
 venv*/
-.idea/
 
 # setuptools
 cobbler.egg-info
