@@ -3,8 +3,6 @@
 *.tmp
 *~
 *.class
-*~
-*.class
 dist
 rpm-build
 build
@@ -15,6 +13,8 @@ tags
 .pydevproject
 .coverage
 .metadata
+venv*/
+.idea/
 
 # setuptools
 cobbler.egg-info
