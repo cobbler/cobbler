@@ -3,8 +3,6 @@
 *.tmp
 *~
 *.class
-*~
-*.class
 dist
 rpm-build
 build
@@ -15,6 +13,8 @@ tags
 .pydevproject
 .coverage
 .metadata
+venv*/
+.idea/
 
 # setuptools
 cobbler.egg-info
@@ -22,6 +22,7 @@ cobbler.egg-info
 # docs - ignore pod output
 docs/*.gz
 docs/*.html
+docs/_build/*
 
 # Build output
 cobbler/webui/master.py
