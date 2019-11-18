@@ -569,7 +569,7 @@ manage_rsync
 * **Description:** If set, Cobbler will generate the ``rsyncd.conf`` configuration file. This is required if using a
   system running cobblerd as a replica master.
 
-Please refer to the :ref:`replicate` section for more details.
+Please refer to the :ref:`replication` section for more details.
 
 manage_tftpd
 ============
@@ -753,7 +753,7 @@ replicate_rsync_options
 * **Description:** This setting is used to specify additional options that are passed to the rsync command during the
   replicate process.
 
-Please refer to the :ref:`replicate` section for more details.
+Please refer to the :ref:`replication` section for more details.
 
 reposync_flags
 ==============

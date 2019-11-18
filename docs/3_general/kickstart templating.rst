@@ -242,7 +242,7 @@ configured for your site (Cobbler doesn't currently ship with any) and/or add ne
 Raw Escaping
 ############
 
-Cobbler uses `Cheetah <https://cheetahtemplate.org>` for kickstart templating. Since Cheetah sees "$" as "include this
+Cobbler uses `Cheetah <https://cheetahtemplate.org>`_ for kickstart templating. Since Cheetah sees "$" as "include this
 variable", it is usually a good idea to escape dollar signs in kickstart templates with \\$. However, this gets to be
 hard to read over time. It is easier to declare a block "raw", which means it will not be evaluated by Cheetah.
 
@@ -256,7 +256,7 @@ It is possible to cheat by assigning bash variables from the values of Cheetah v
 blocks. This is useful if you want your shell scripts to be able to access templating variables but don't really want
 to make sure escaping is all super-correct.
 
-.. code-block:: bash
+.. code-block:: none
 
     %pre
     foo = $foo
