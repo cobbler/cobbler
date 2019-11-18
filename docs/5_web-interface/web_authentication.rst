@@ -276,8 +276,9 @@ Instructions
     ldap_port       : 389
     ldap_tls        : 1
 
-   With Cobbler 1.3 and higher, you can add additional LDAP servers by separating the server names with a space in the
-   ``ldap_server`` field.
+With Cobbler 1.3 and higher, you can add additional LDAP servers by separating the server names with a space in the
+``ldap_server`` field.
+
 3. Now we have to configure OpenLDAP to know about the cert of the LDAP server. You only have to do this once on the
    cobbler box, not on each client box.
 
@@ -334,6 +335,8 @@ etc.
 Just run the above and look at the output. You should see a traceback if problems are encountered, which may point to
 problems in your configuration if you specified a valid username/password. Restart cobblerd after changing
 ``/etc/cobbler/settings`` (if you're not using :ref:`dynamic-settings`) in order for them to take effect.
+
+.. _web-authentication-spacewalk:
 
 Spacewalk
 #########

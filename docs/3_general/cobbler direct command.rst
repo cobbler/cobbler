@@ -67,6 +67,8 @@ As noted above, this can take quite a bit of time if there are many distribution
 
 **See also:** :ref:`managing-services-with-cobbler`
 
+.. _distro-signatures:
+
 Distro Signatures
 #################
 
@@ -773,6 +775,8 @@ are already being granted fairly broad rights.
 
 It is at least nicer than running "sudo" all of the time if you were going to grant a user "no password" sudo access to
 cobbler.
+
+.. _cobbler-command-setting:
 
 Dynamic Settings
 ################

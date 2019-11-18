@@ -1,3 +1,5 @@
+.. _package-management:
+
 ********************************
 Package Management and Mirroring
 ********************************

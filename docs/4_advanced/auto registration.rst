@@ -1,3 +1,5 @@
+.. _auto-registration:
+
 *****************
 Auto registration
 *****************

@@ -1,3 +1,5 @@
+.. _multi-homed-cobbler-servers:
+
 ***************************
 Multi-Homes cobbler servers
 ***************************

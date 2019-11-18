@@ -1,3 +1,5 @@
+.. _alternative-template-formats:
+
 ****************************
 Alternative template formats
 ****************************
