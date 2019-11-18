@@ -8,746 +8,168 @@ support varies from very good to requiring a lot of manual steps to get things w
 
 Here is the full list of supported distributions.
 
+.. note:: This list does not include support for images, which can be just about any OS.
+
 Key:
 
-<ul>
- <li><i class="icon-ok-sign text-success"></i> Fully supported</li>
- <li><i class="icon-wrench"></i> Some support, not 100%</li>
- <li><i class="icon-ban-circle text-error"></i> Not supported, or significant manual action required</li>
-</ul>
+* ``X``: Fully supported
+* ``/``: Some support, not 100%
+* ``-``: Not supported or siginificant manual action required
 
-<table class="table table-hover">
- <tr>
-  <td class=""></td>
-  <td class=""></td>
-  <td class="center span1">Import</td>
-  <td class="center span1">Import<br/>--available-as</td>
-  <td class="center span1">PXE</td>
-  <td class="center span1">Build ISO</td>
-  <td class="center span1">Snippets</td>
- </tr>
- <tr>
-  <td colspan="7">Red Hat</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 16</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 17</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 18</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 19</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 20</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 21</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 22</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 23</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 24</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 25</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 26</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 27</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Fedora 28</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">RHEL/CentOS 4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">RHEL/CentOS 5</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">RHEL/CentOS 6</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">RHEL/CentOS 7</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
- </tr>
- <tr>
-  <td colspan="7">Ubuntu</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Lucid</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Oneiric</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Precise</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Quantal</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Raring</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Saucy</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Trusty</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Vivid</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Wily</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Xenial</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Yakkety</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Zesty</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Artful</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Bionic</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td colspan="7">Debian</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Squeeze</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Wheezy</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Jessie</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Stretch</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td colspan="7">SuSE</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 11.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 11.3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 11.4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 12.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 12.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 12.3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 13.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">OpenSuSE 13.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 10 sp4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 11</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 11 sp1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 11 sp2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 11 sp3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 11 sp4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 12</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 12 SP1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">SLES 12 SP2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td colspan="7">VMware</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESX 4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 5</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 5.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 5.5</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 6.0</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">ESXi 6.5</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td colspan="7">FreeBSD</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">8.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">8.3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">8.4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">9.0</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">9.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">9.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">9.3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">10.0</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">10.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">10.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">10.3</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">11</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
-
- <tr>
-  <td colspan="7">Xen</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">XCP 1.6</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">XenServer 6.2</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">XenServer 6.5</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">XenServer 7.0</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">XenServer 7.1</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
- <tr>
-  <td colspan="7">Nexenta</td>
- </tr>
- <tr>
-  <td class="span2"></td>
-  <td class="span2">Nexenta 4</td>
-  <td class="center span1"><i class="icon-ok-sign text-success"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-wrench"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
-  <td class="center span1"><i class="icon-ban-circle text-error"></i></td>
- </tr>
-
-
-</table>
-
-<div class="alert alert-info alert-block">
-    <b>Note:</b> This list does not include support for images, which can be just about any OS.
-</div>
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| Family  | Distro        | Import | Import ``--available-as`` | PXE | Build ISO | Snippets |
++=========+===============+========+===========================+=====+===========+==========+
+| Red Hat | Fedora 16     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 17     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 18     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 19     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 20     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 21     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 22     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 23     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 24     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 25     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 26     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 27     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Fedora 28     |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | RHEL/CentOS 4 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | RHEL/CentOS 5 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | RHEL/CentOS 6 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | RHEL/CentOS 7 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``X``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| Ubuntu  | Lucid         |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Oneiric       |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Precise       |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Quantal       |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Raring        |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Saucy         |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Trusty        |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Vivid         |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Wily          |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Xenial        |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Yakkety       |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Zesty         |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Artful        |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Bionic        |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| Debian  | Squeeze       |  ``X`` |           ``-``           |``/``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Wheezy        |  ``X`` |           ``-``           |``/``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Jessie        |  ``X`` |           ``-``           |``/``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | Stretch       |  ``X`` |           ``-``           |``/``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| SUSE    | openSUSE 11.2 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 11.3 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 11.4 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 12.1 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 12.2 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 12.3 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 13.1 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | OpenSuSE 13.2 |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 10 sp4   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 11       |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 11 sp1   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 11 sp2   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 11 sp3   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 11 sp4   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 12       |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 12 SP1   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | SLES 12 SP2   |  ``X`` |           ``X``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| VMware  | ESX 4         |  ``X`` |           ``-``           |``X``|   ``X``   |   ``/``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 4        |  ``X`` |           ``-``           |``X``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 5        |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 5.1      |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 5.5      |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 6.0      |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | ESXi 6.5      |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| FreeBSD | 8.2           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 8.3           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 8.4           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 9.0           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 9.1           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 9.2           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 9.3           |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 10.0          |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 10.1          |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 10.2          |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 10.3          |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | 11            |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| Xen     | XCP 1.6       |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | XenServer 6.2 |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | XenServer 6.5 |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | XenServer 7.0 |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+|         | XenServer 7.1 |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
+| Nexenta | Nexenta 4     |  ``X`` |           ``-``           |``/``|   ``-``   |   ``-``  |
++---------+---------------+--------+---------------------------+-----+-----------+----------+
