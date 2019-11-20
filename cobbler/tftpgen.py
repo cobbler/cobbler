@@ -526,7 +526,7 @@ class TFTPGen(object):
             metadata["profile_name"] = image.name
 
         if system:
-            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+            if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
                     serial_device = system.serial_device
                 else:
