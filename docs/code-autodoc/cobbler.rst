@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     cobbler.actions
     cobbler.cobbler_collections
