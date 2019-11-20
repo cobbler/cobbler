@@ -27,7 +27,6 @@ import os.path
 import re
 import socket
 import string
-import shlex
 
 from cobbler.cexceptions import CX
 from cobbler import templar
@@ -155,33 +154,53 @@ class TFTPGen(object):
             conf_f = "%s_conf" % pxe_f
             parm_f = "%s_parm" % pxe_f
 
-            c_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_conf.template")
-            p_templ = os.path.join(self.settings.boot_loader_conf_template_dir, "s390x_parm.template")
-
-            template_conf_f = open(c_templ)
-            template_parm_f = open(p_templ)
-
             self.logger.info("Files: (conf,param) - (%s,%s)" % (conf_f, parm_f))
-            self.logger.info("Template Files: (conf,param) - (%s,%s)" % (c_templ, p_templ))
             blended = utils.blender(self.api, True, system)
-            self.templar.render(template_conf_f, blended, conf_f)
             # FIXME: profiles also need this data!
-            # FIXME: the _conf and _parm files are limited to 80 characters in length
             # gather default kernel_options and default kernel_options_s390x
-            kopts = blended.get("kernel_options", "")
-            hkopts = shlex.split(utils.dict_to_string(kopts))
-            blended["kernel_options"] = hkopts
-            self.templar.render(template_parm_f, blended, parm_f)
+            kernel_options = self.build_kernel_options(system, profile, distro,
+                                                       image, "s390x", blended.get("autoinstall", ""))
+            kopts_aligned = ""
+            column = 0
+            for option in kernel_options.split():
+                opt_len = len(option)
+                if opt_len > 78:
+                    kopts_aligned += '\n' + option + ' '
+                    column = opt_len + 1
+                    self.logger.error("Kernel paramer [%s] too long %s" % (option, opt_len))
+                    continue
+                if column + opt_len > 78:
+                    kopts_aligned += '\n' + option + ' '
+                    column = opt_len + 1
+                else:
+                    kopts_aligned += option + ' '
+                    column += opt_len + 1
 
             # Write system specific zPXE file
             if system.is_management_supported():
-                kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
-                initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
-                with open(pxe_f, 'w') as out:
-                    out.write(kernel_path + '\n' + initrd_path + '\n')
+                if system.netboot_enabled:
+                    self.logger.info("S390x: netboot_enabled")
+                    kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+                    initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
+                    with open(pxe_f, 'w') as out:
+                        out.write(kernel_path + '\n' + initrd_path + '\n')
+                    with open(parm_f, 'w') as out:
+                        out.write(kopts_aligned)
+                    # Write conf file with one newline in it if netboot is enabled
+                    with open(conf_f, 'w') as out:
+                        out.write('\n')
+                else:
+                    self.logger.info("S390x: netboot_disabled")
+                    # Write empty conf file if netboot is disabled
+                    open(conf_f, 'w').close()
             else:
-                # ensure the file doesn't exist
+                # ensure the files do exist
+                self.logger.info("S390x: management not supported")
                 utils.rmfile(pxe_f)
+                utils.rmfile(conf_f)
+                utils.rmfile(parm_f)
+            self.logger.info("S390x: pxe: [%s], conf: [%s], parm: [%s]" % (pxe_f, conf_f, parm_f))
+
             return
 
         # generate one record for each described NIC ..
@@ -507,7 +526,7 @@ class TFTPGen(object):
             metadata["profile_name"] = image.name
 
         if system:
-            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+            if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
                     serial_device = system.serial_device
                 else:
@@ -702,8 +721,8 @@ class TFTPGen(object):
         # This could get enhanced for profile/distro via utils.blender (inheritance)
         # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
         # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
-        if system:
-            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+        if system and arch == "x86_64":
+            if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
                     serial_device = system.serial_device
                 else:
