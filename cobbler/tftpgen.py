@@ -721,8 +721,8 @@ class TFTPGen(object):
         # This could get enhanced for profile/distro via utils.blender (inheritance)
         # This also is architecture specific. E.g: Some ARM consoles need: console=ttyAMAx,BAUDRATE
         # I guess we need a serial_kernel_dev = param, that can be set to "ttyAMA" if needed.
-        if system:
-            if (system.serial_device is not None) or (system.serial_baud_rate is not None):
+        if system and arch == "x86_64":
+            if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
                     serial_device = system.serial_device
                 else:
