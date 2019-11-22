@@ -8,23 +8,20 @@ FAKE_INITRD3 = "initrd3.img"
 FAKE_KERNEL = "vmlinuz1"
 FAKE_KERNEL2 = "vmlinuz2"
 FAKE_KERNEL3 = "vmlinuz3"
-TEST_POWER_MANAGEMENT = True
-TEST_SYSTEM = ""
-cleanup_dirs = []
 
 
 @pytest.fixture(scope="class")
 def distro_fields(fk_initrd, fk_kernel):
     """
+    Field format: field_name, good value(s), bad value(s)
+    Field order is the order in which they will be set
 
     :param fk_initrd:
     :param fk_kernel:
     :return:
     """
+    # TODO: include fields with dependencies: fetchable files, boot files, etc.
     return [
-        # field format: field_name, good value(s), bad value(s)
-        # field order is the order in which they will be set
-        # TODO: include fields with dependencies: fetchable files, boot files, etc.
         ["arch", ["i386", "x86_64", "ppc", "ppc64"], ["badarch"]],
         # generic must be last breed to be set so os_version test below will work
         ["breed", ["debian", "freebsd", "redhat", "suse", "ubuntu", "unix", "vmware", "windows", "xen", "generic"],
@@ -45,16 +42,15 @@ def distro_fields(fk_initrd, fk_kernel):
 @pytest.fixture(scope="class")
 def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
+    Field format: field_name, good value(s), bad value(s)
 
     :param redhat_autoinstall:
     :param suse_autoyast:
     :param ubuntu_preseed:
     :return:
     """
+    # TODO: include fields with dependencies: fetchable files, boot files, template files, repos
     return [
-        # field format: field_name, good value(s), bad value(s)
-        # TODO: include fields with dependencies: fetchable files, boot files,
-        #         template files, repos
         ["comment", ["test comment"], []],
         ["dhcp_tag", ["", "foo"], []],
         ["distro", ["testdistro0"], ["baddistro", ]],
@@ -87,16 +83,15 @@ def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
 @pytest.fixture(scope="class")
 def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     """
+    Field format: field_name, good value(s), bad value(s)
 
     :param redhat_autoinstall:
     :param suse_autoyast:
     :param ubuntu_preseed:
     :return:
     """
+    # TODO: include fields with dependencies: fetchable files, boot files, template files, images
     return [
-        # field format: field_name, good value(s), bad value(s)
-        # TODO: include fields with dependencies: fetchable files, boot files,
-        #         template files, images
         ["comment", ["test comment"], []],
         ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
@@ -555,7 +550,6 @@ class TestDistroProfileSystem:
         """
         Test: get distros
         """
-
         # Arrange --> Nothing to arrange
 
         # Act
@@ -568,7 +562,6 @@ class TestDistroProfileSystem:
         """
         Test: get profiles
         """
-
         # Arrange --> Nothing to arrange
 
         # Act
@@ -581,7 +574,6 @@ class TestDistroProfileSystem:
         """
         Test: get systems
         """
-
         # Arrange --> Nothing to arrange
 
         # Act
@@ -595,7 +587,6 @@ class TestDistroProfileSystem:
         """
         Test: create/edit a distro with valid values
         """
-
         # Arrange --> Nothing to do.
 
         # Act
@@ -615,8 +606,8 @@ class TestDistroProfileSystem:
         result_save_success = remote.save_distro(distro, token)
         assert result_save_success
 
-        # FIXME: if field in item_<type>.FIELDS defines possible values,
-        # test all of them. This is valid for all item types
+        # FIXME: if field in item_<type>.FIELDS defines possible values, test all of them. This is valid for all item
+        #  types
         # for field in item_system.FIELDS:
         #    (fname,def1,def2,display,editable,tooltip,values,type) = field
         #    if fname not in ["name","distro","parent"] and editable:
@@ -631,7 +622,6 @@ class TestDistroProfileSystem:
         """
         Test: create/edit a distro with invalid values
         """
-
         # Arrange --> Nothing to do.
 
         # Act
@@ -654,8 +644,8 @@ class TestDistroProfileSystem:
         result_save_success = remote.save_distro(distro, token)
         assert result_save_success
 
-        # FIXME: if field in item_<type>.FIELDS defines possible values,
-        # test all of them. This is valid for all item types
+        # FIXME: if field in item_<type>.FIELDS defines possible values, test all of them. This is valid for all item
+        #  types
         # for field in item_system.FIELDS:
         #    (fname,def1,def2,display,editable,tooltip,values,type) = field
         #    if fname not in ["name","distro","parent"] and editable:
@@ -670,7 +660,6 @@ class TestDistroProfileSystem:
         """
         Test: create/edit a profile object
         """
-
         # Arrange
         profile = remote.new_profile(token)
 
@@ -695,7 +684,6 @@ class TestDistroProfileSystem:
         """
         Test: create/edit a profile object
         """
-
         # Arrange
         profile = remote.new_profile(token)
 

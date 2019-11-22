@@ -7,34 +7,74 @@ class TestBackground:
     Class to test various background jobs
     """
 
-    def test_background_acletup(self):
-        # TODO: test remote.background_aclsetup()
-        raise NotImplementedError()
+    def test_background_acletup(self, remote, token):
+        # Arrange
 
-    def test_background_buildiso(self):
-        # TODO: test remote.background_buildiso()
-        raise NotImplementedError()
+        # Act
+        result = remote.background_aclsetup({}, token)
 
-    def test_background_dlccontent(self):
-        # TODO: test remote.background_dlcontent()
-        raise NotImplementedError()
+        # Assert
+        assert result
 
-    def test_background_hardlink(self):
-        # TODO: test remote.background_hardlink()
-        raise NotImplementedError()
+    def test_background_buildiso(self, remote, token):
+        # Arrange
 
-    def test_background_import(self):
-        # TODO: test remote.background_import()
-        raise NotImplementedError()
+        # Act
+        result = remote.background_buildiso({}, token)
 
-    def test_background_replicate(self):
-        # TODO: test remote.background_replicate()
-        raise NotImplementedError()
+        # Assert
+        assert result
 
-    def test_background_reposync(self):
-        # TODO: test remote.background_reposync()
-        raise NotImplementedError()
+    def test_background_dlccontent(self, remote, token):
+        # Arrange
 
-    def test_background_validate_autoinstall_files(self):
-        # TODO: test remote.background_validate_autoinstall_files()
-        raise NotImplementedError()
+        # Act
+        result = remote.background_dlcontent({}, token)
+
+        # Assert
+        assert result
+
+    def test_background_hardlink(self, remote, token):
+        # Arrange
+
+        # Act
+        result = remote.background_hardlink({}, token)
+
+        # Assert
+        assert result
+
+    def test_background_import(self, remote, token):
+        # Arrange
+
+        # Act
+        result = remote.background_import({}, token)
+
+        # Assert
+        assert result
+
+    def test_background_replicate(self, remote, token):
+        # Arrange
+
+        # Act
+        result = remote.background_replicate({}, token)
+
+        # Assert
+        assert result
+
+    def test_background_reposync(self, remote, token):
+        # Arrange
+
+        # Act
+        result = remote.background_reposync({}, token)
+
+        # Assert
+        assert result
+
+    def test_background_validate_autoinstall_files(self, remote, token):
+        # Arrange
+
+        # Act
+        result = remote.background_validate_autoinstall_files({}, token)
+
+        # Assert
+        assert result
