@@ -45,10 +45,6 @@ License: GPLv2+
 Version: 3.0.1
 Release: 1%{?dist}
 Source0: https://github.com/cobbler/cobbler/releases/cobbler-%{version}.tar.gz
-%if 0%{?fedora} || 0%{?rhel}
-# Distro specific patch - tftp default location
-Patch0:  Set-the-default-tftp_boot-location.patch
-%endif
 BuildArch: noarch
 Url: https://cobbler.github.io
 
@@ -198,6 +194,10 @@ Cobbler has a XMLRPC API for integration with other applications.
 %prep
 %autosetup -p1
 
+%if 0%{?suse_version}
+# Set tftpboot location correctly for SUSE distributions
+sed -e "s|/var/lib/tftpboot|/srv/tftpboot|g" -i cobbler/settings.py config/cobbler/settings
+%endif
 
 %build
 %{__python3} setup.py build
