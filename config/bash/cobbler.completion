@@ -20,6 +20,7 @@ _cobbler_completions()
         [mgmtclass]="--name --owners --comment --class-name --is-definition --params --packages --files --depth --clobber --in-place --help"
         [package]="--uid --depth --comment --ctime --mtime --owners --name --action --installer --version --clobber --in-place --help"
         [file]="--uid --depth --comment --ctime --mtime --owners --name --is-dir --action --group --mode --owner --path --template --clobber --in-place --help"
+        [import]="--arch --breed --os-version --path --name --available-as --kickstart --rsync-flags --help"
     )
     
     while :; do
