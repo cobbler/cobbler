@@ -106,8 +106,7 @@ def get_module_name(category, field, fallback_module_name=None):
 
     @param category str field category in configuration file
     @param field str field in configuration file
-    @param fallback_module_name str default value used if category/field is
-            not found in configuration file
+    @param fallback_module_name str default value used if category/field is not found in configuration file
     @raise CX if unable to find configuration file
     @return str module name
     """
@@ -128,8 +127,7 @@ def get_module_from_file(category, field, fallback_module_name=None):
 
     @param category str field category in configuration file
     @param field str field in configuration file
-    @param fallback_module_name str default value used if category/field is
-            not found in configuration file
+    @param fallback_module_name str default value used if category/field is not found in configuration file
     @raise CX if unable to load Python module
     @return module Python module
     """
