@@ -74,7 +74,11 @@ _cobbler_completions()
                 return 0
                 ;;
             *)
-               prev="${COMP_WORDS[2]}"
+               if [[ ${COMP_CWORD} > 2 ]]; then
+                   prev="${COMP_WORDS[2]}"
+               else
+                   return 0
+               fi
                ;;
         esac
     done
