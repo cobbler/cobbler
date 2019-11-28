@@ -57,7 +57,12 @@ _cobbler_completions()
                 return 0
                 ;;
             --name)
-                conf="$(ls /var/lib/cobbler/config/${cobbler_type}s.d)"
+                if [ -d "/var/lib/cobbler/config/${cobbler_type}s.d" ]; then
+                    conf="$(ls /var/lib/cobbler/config/${cobbler_type}s.d)"
+                    : "${conf//.json/}"
+                    COMPREPLY=( $(compgen -W "$(echo $_)" -- ${cur}) )
+                fi
+                return 0
                 : "${conf//.json/}"
                 COMPREPLY=( $(compgen -W "$(echo $_)" -- ${cur}) )
                 return 0
