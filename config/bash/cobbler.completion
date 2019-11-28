@@ -37,6 +37,10 @@ _cobbler_completions()
                 COMPREPLY=($(compgen -W "${ACTION} getks" -- ${cur}))
                 return 0
                 ;;
+            import|buildiso)
+                COMPREPLY=($(compgen -W "${opts[${cobbler_type}]}" -- ${cur}))
+                return 0
+                ;;
             add|edit)
                 COMPREPLY=($(compgen -W "${opts[${cobbler_type}]}" -- ${cur}))
                 return 0
