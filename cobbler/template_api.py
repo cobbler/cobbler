@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from past.builtins import str
-import Cheetah.Template
+import Cheetah.Template as cheetah_template
 import os.path
 import re
 
@@ -37,7 +37,7 @@ CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 # us to define the cheetah builtins.
 
 
-class Template:
+class Template(cheetah_template.Template):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include
@@ -45,9 +45,10 @@ class Template:
     We don't need to override __init__
     """
 
-    def __init__(self):
-        self.MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
-        self.BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
+    def __init__(self, **kwargs):
+        super(Template, self).__init__(**kwargs)
+        self.MacrosTemplate = Template.compile(file=CHEETAH_MACROS_FILE)
+        self.BuiltinTemplate = Template.compile(source="\n".join([
 
             # This part (see 'Template' below
             # for the other part) handles the actual inclusion of the file contents. We
@@ -87,6 +88,7 @@ class Template:
     # points to this class. Now any methods entered here (or in the base class
     # above) will be accessible to all cheetah templates compiled by cobbler.
 
+    @classmethod
     def compile(klass, *args, **kwargs):
         """
         Compile a cheetah template with cobbler modifications. Modifications
@@ -124,8 +126,10 @@ class Template:
             kwargs['baseclass'] = Template
 
         # Now let Cheetah do the actual compilation
-        return Cheetah.Template.Template.compile(*args, **kwargs)
-    compile = classmethod(compile)
+        return super(Template, klass).compile(*args, **kwargs)
+
+    def respond(self, trans=None):
+        super(Template, self).respond(trans)
 
     def read_snippet(self, file):
         """

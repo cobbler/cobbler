@@ -24,12 +24,12 @@ mgmtclasses, resources, and templates for a given system (hostname)
 """
 
 from builtins import object
-from Cheetah.Template import Template
 import simplejson as json
 import string
 
 from cobbler.cexceptions import CX
 from cobbler import clogger
+from cobbler import template_api
 import cobbler.api as capi
 import cobbler.utils
 from cobbler import utils
@@ -129,7 +129,7 @@ class ConfigGen(object):
             if not _file.is_dir:
                 file_data[file]['template'] = self.resolve_resource_var(_file.template)
                 try:
-                    t = Template(file=file_data[file]['template'], searchList=[self.host_vars])
+                    t = template_api.Template(file=file_data[file]['template'], searchList=[self.host_vars])
                     file_data[file]['content'] = t.respond()
                 except:
                     utils.die(self.logger, "Missing template for this file resource %s" % (file_data[file]))
