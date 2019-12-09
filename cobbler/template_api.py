@@ -36,50 +36,49 @@ CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 # we can compile the source directly into a python class. This class will allow
 # us to define the cheetah builtins.
 
-BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
 
-    # This part (see 'Template' below
-    # for the other part) handles the actual inclusion of the file contents. We
-    # still need to make the snippet's namespace (searchList) available to the
-    # template calling SNIPPET (done in the other part).
-
-    # Moved the other functions into /etc/cobbler/cheetah_macros
-    # Left SNIPPET here since it is very important.
-
-    # This function can be used in two ways:
-    # Cheetah syntax:
-    #
-    # $SNIPPET('my_snippet')
-    #
-    # SNIPPET syntax:
-    #
-    # SNIPPET::my_snippet
-    #
-    # This follows all of the rules of snippets and advanced snippets. First it
-    # searches for a per-system snippet, then a per-profile snippet, then a
-    # general snippet. If none is found, a comment explaining the error is
-    # substituted.
-    "#def SNIPPET($file)",
-    "#set $snippet = $read_snippet($file)",
-    "#if $snippet",
-    "#include source=$snippet",
-    "#else",
-    "# Error: no snippet data for $file",
-    "#end if",
-    "#end def",
-]) + "\n")
-
-MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
-
-
-class Template(BuiltinTemplate, MacrosTemplate):
-
+class Template:
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include
     both types (cheetah and pure python) of builtins in the same base template.
     We don't need to override __init__
     """
+
+    def __init__(self):
+        self.MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
+        self.BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
+
+            # This part (see 'Template' below
+            # for the other part) handles the actual inclusion of the file contents. We
+            # still need to make the snippet's namespace (searchList) available to the
+            # template calling SNIPPET (done in the other part).
+
+            # Moved the other functions into /etc/cobbler/cheetah_macros
+            # Left SNIPPET here since it is very important.
+
+            # This function can be used in two ways:
+            # Cheetah syntax:
+            #
+            # $SNIPPET('my_snippet')
+            #
+            # SNIPPET syntax:
+            #
+            # SNIPPET::my_snippet
+            #
+            # This follows all of the rules of snippets and advanced snippets. First it
+            # searches for a per-system snippet, then a per-profile snippet, then a
+            # general snippet. If none is found, a comment explaining the error is
+            # substituted.
+            "#def SNIPPET($file)",
+            "#set $snippet = $read_snippet($file)",
+            "#if $snippet",
+            "#include source=$snippet",
+            "#else",
+            "# Error: no snippet data for $file",
+            "#end if",
+            "#end def",
+        ]) + "\n")
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to
     # compile the template into a class. This is probably a kludge, but it
@@ -169,7 +168,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         """
         # First, do the actual inclusion. Cheetah (when processing #include)
         # will track the inclusion in self._CHEETAH__cheetahIncludes
-        result = BuiltinTemplate.SNIPPET(self, file)
+        result = self.BuiltinTemplate.SNIPPET(self, file)
 
         # Now do our dirty work: locate the new include, and append its
         # searchList to ours.
