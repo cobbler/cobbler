@@ -1,4 +1,8 @@
 netaddr
-Cheetah
+Cheetah3
 django
+simplejson
+dnspython
+pyyaml
+distro
 sphinx_rtd_theme
