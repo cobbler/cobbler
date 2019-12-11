@@ -473,6 +473,7 @@ if __name__ == "__main__":
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
     logpath = "/var/log/"
+    completion_path = "/usr/share/bash-completion/completions"
     statepath = "/tmp/cobbler_settings/devinstall"
     httpd_service = "httpd.service"
     suse_release = "suse" in distro.like()
@@ -589,8 +590,7 @@ if __name__ == "__main__":
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings"]),
             ("%ssettings.d" % etcpath, glob("config/cobbler/settings.d/*")),
-            ("%s" % etcpath, ["config/bash/cobbler_bash",
-                              "config/cobbler/auth.conf",
+            ("%s" % etcpath, ["config/cobbler/auth.conf",
                               "config/cobbler/modules.conf",
                               "config/cobbler/mongodb.conf",
                               "config/cobbler/users.conf",
@@ -603,6 +603,8 @@ if __name__ == "__main__":
             ("%s" % etcpath, glob("templates/etc/*")),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
+            # completion_file
+            ("%s/cobbler" % completion_path, ["config/bash/cobbler.completion"]),
             ("%sgrub_config" % libpath, glob("config/grub/*")),
             # ToDo: Find a nice way to copy whole config/grub structure recursively
             # files
