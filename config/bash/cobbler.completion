@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+_cobbler_completions()
+{
+    local cur prev cobbler_type
+    declare -A opts
+
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    cobbler_type=${COMP_WORDS[1]}
+    COMPREPLY=()
+    TYPE="distro profile system repo image mgmtclass package file aclsetup buildiso import list replicate report reposync sync validateks version signature get-loaders hardlink"
+    ACTION="add edit copy list remove rename report"
+    opts=(
+        [distro]="--name --owners --kernel --initrd --kopts --kopts-post --ksmeta --arch --breed --os-version --source-repos --depth --comment --tree-build-time --mgmt-classes --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --clobber --in-place  --help"
+        [profile]="--name --owners --distro --enable-gpxe --enable-menu --kickstart --kopts --ksmeta --proxy --repos --comment --virt-file-size --virt-ram --virt-type --virt-cpus --virt-path --virt-bridge --depth --dhcp-tag --server --name-servers --name-servers-search --mgmt-classes --mgmt-parameters --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --template-remote-kickstarts --clobber --in-place --parent  --help"
+        [system]="--name --owners --profile --image --status --mac --ip-address --hostname --kopts --kopts-post --ksmeta --kickstart --enable-gpxe --proxy --netboot-enabled --comment --depth --server --virt-path --virt-type --virt-cpus --virt-file-size --virt-disk-driver --virt-ram --virt-auto-boot --virt-pxe-boot --virt-bridge --power-address --power-user --power-pass --power-id --gateway --dns-name --name-servers --name-servers-search --ipv6-default-device --ipv6-autoconfiguration --mgmt-classes --mgmt-parameters --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --template-remote-kickstarts --repos-enabled --ldap-enabled --ldap-type --monit-enabled --cnames --interface --delete-interface --rename-interface --interface-type --interface-master --bonding-opts --static-routes --static --netmask --clobber --in-place  --help"
+        [repo]="--mirror --name --owners --comment --parent --rpmlist --creatrepo-flags --yumopts --proxy --keep-updated --environment --priority --arch --mirror-locally --breed --apt-components --apt-dists --depth --clobber --in-place --help"
+        [image]="--name --arch --breed --comment --ctime --mtime --file --depth --image-type --network-count --os-version --owners --parent --kickstart --virt-auto-boot --virt-bridge --virt-cpus --virt-file-size --virt-disk-driver --virt-path --virt-ram --virt-type --clobber --in-place --help"
+        [mgmtclass]="--name --owners --comment --class-name --is-definition --params --packages --files --depth --clobber --in-place --help"
+        [package]="--uid --depth --comment --ctime --mtime --owners --name --action --installer --version --clobber --in-place --help"
+        [file]="--uid --depth --comment --ctime --mtime --owners --name --is-dir --action --group --mode --owner --path --template --clobber --in-place --help"
+        [import]="--arch --breed --os-version --path --name --available-as --kickstart --rsync-flags --help"
+        [buildiso]="--iso --profiles --systems --tempdir --distro --standalone --source --exclude-dns --mkisofs-opts --help"
+    )
+    
+    while :; do
+        case "${prev}" in
+            cobbler)
+                COMPREPLY=($(compgen -W "${TYPE}" -- ${cur}))
+                return 0
+                ;;
+            distro|repo|image|mgmtclass|package|file)
+                COMPREPLY=($(compgen -W "${ACTION}" -- ${cur}))
+                return 0
+                ;;
+            profile|system)
+                COMPREPLY=($(compgen -W "${ACTION} getks" -- ${cur}))
+                return 0
+                ;;
+            import|buildiso)
+                COMPREPLY=($(compgen -W "${opts[${cobbler_type}]}" -- ${cur}))
+                return 0
+                ;;
+            add|edit)
+                COMPREPLY=($(compgen -W "${opts[${cobbler_type}]}" -- ${cur}))
+                return 0
+                ;;
+            list)
+                return 0
+                ;;
+            copy|rename)
+                COMPREPLY=($(compgen -W "${opts[${cobbler_type}]} --newname" -- ${cur}))
+                return 0
+                ;;
+            getks|remove|report)
+                COMPREPLY=($(compgen -W "--name" -- ${cur}))
+                return 0
+                ;;
+            --name)
+                if [ -d "/var/lib/cobbler/config/${cobbler_type}s.d" ]; then
+                    conf="$(ls /var/lib/cobbler/config/${cobbler_type}s.d)"
+                    : "${conf//.json/}"
+                    COMPREPLY=( $(compgen -W "$(echo $_)" -- ${cur}) )
+                fi
+                return 0
+                : "${conf//.json/}"
+                COMPREPLY=( $(compgen -W "$(echo $_)" -- ${cur}) )
+                return 0
+                ;;
+            --profile)
+                conf="$(ls /var/lib/cobbler/config/profiles.d)"
+                : "${conf//.json/}"
+                COMPREPLY=( $(compgen -W "$(echo $_)" -- ${cur}) )
+                return 0
+                ;;
+            *)
+               if [[ ${COMP_CWORD} > 2 ]]; then
+                   prev="${COMP_WORDS[2]}"
+               else
+                   return 0
+               fi
+               ;;
+        esac
+    done
+}
+
+complete -F _cobbler_completions cobbler
