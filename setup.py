@@ -489,7 +489,7 @@ if __name__ == "__main__":
             webconfig = "/etc/apache2/conf-available"
         else:
             webconfig = "/etc/apache2/conf.d"
-        webroot = "/srv/www/"
+        webroot = "/var/www/"
         http_user = "www-data"
         defaultpath = "/etc/default/"
     else:
