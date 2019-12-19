@@ -28,7 +28,7 @@ Python 3. Cobbler also requires the installation of the following packages:
 
 - createrepo
 - httpd / apache2
-- mkisofs / genisoimage
+- xorriso
 - mod_wsgi / libapache2-mod-wsgi
 - mod_ssl / libapache2-mod-ssl
 - python-cheetah

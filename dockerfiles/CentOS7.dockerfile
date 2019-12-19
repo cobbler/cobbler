@@ -38,7 +38,7 @@ RUN yum install -y          \
     python36-dns            \
     python36-ldap3          \
     createrepo              \
-    genisoimage             \
+    xorriso                 \
     grub2-efi-ia32-modules  \
     grub2-efi-x64-modules   \
     logrotate               \

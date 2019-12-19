@@ -117,6 +117,7 @@ Requires: createrepo
 Requires: rsync
 Requires: syslinux >= 4
 Requires: logrotate
+Requires: xorriso
 
 # CentOS 8+ and Fedora 29+
 %if 0%{?fedora} >= 29 || 0%{?rhel} >= 8
@@ -152,7 +153,6 @@ Requires: yum-utils
 
 # Common RHEL and Fedora
 %if 0%{?fedora} >= 29 || 0%{?rhel} >= 7
-Requires: genisoimage
 Requires: httpd >= 2.4
 Requires: tftp-server
 Requires: grub2-efi-ia32-modules
@@ -169,7 +169,6 @@ Requires: python3-PyYAML
 Requires: python3-Cheetah3
 Requires: apache2 >= 2.4
 Requires: apache2-mod_wsgi-python3
-Requires: cdrtools
 Requires: python3-future
 Requires: python3-distro
 Requires: python3-tornado

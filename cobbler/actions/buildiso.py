@@ -682,8 +682,8 @@ class BuildIso(object):
         else:
             mkisofs_opts = mkisofs_opts.strip()
 
-        # removed --quiet
-        cmd = "mkisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso, mkisofs_opts)
+        # using xorrisofs as it accepts mkisofs parameters as-is and is available everywhere...
+        cmd = "xorrisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso, mkisofs_opts)
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
         cmd = cmd + r" -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
 

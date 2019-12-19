@@ -46,7 +46,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-dns               \
     createrepo                \
     dnf-plugins-core          \
-    genisoimage               \
+    xorriso                   \
     grub2-efi-ia32-modules    \
     grub2-efi-x64-modules     \
     logrotate                 \
