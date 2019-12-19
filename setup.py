@@ -604,7 +604,7 @@ if __name__ == "__main__":
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             # completion_file
-            ("%s/cobbler" % completion_path, ["config/bash/cobbler.completion"]),
+            ("%s" % completion_path, ["config/bash/completion/cobbler"]),
             ("%sgrub_config" % libpath, glob("config/grub/*")),
             # ToDo: Find a nice way to copy whole config/grub structure recursively
             # files
