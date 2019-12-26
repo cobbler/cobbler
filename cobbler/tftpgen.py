@@ -302,6 +302,7 @@ class TFTPGen(object):
     def get_menu_items(self, arch=None):
         """
         Generates menu items for pxe and grub
+        grub menu items are grouped into submenues by profie
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
@@ -318,12 +319,16 @@ class TFTPGen(object):
         pxe_menu_items = ""
         grub_menu_items = ""
 
-        # For now, profiles are the only items we want grub EFI boot menu entries for:
+        # create a dict of menuentries : submenuentries for grub during the creation of the pxe menu
+        submenus = {}
         for profile in profile_list:
             if not profile.enable_menu:
                 # This profile has been excluded from the menu
                 continue
             distro = profile.get_conceptual_parent()
+            if distro not in submenus:
+                submenus[distro] = []
+            submenus[distro].append(profile)
 
             contents = self.write_pxe_file(
                 filename=None,
@@ -332,12 +337,16 @@ class TFTPGen(object):
             if contents is not None:
                 pxe_menu_items += contents + "\n"
 
-            grub_contents = self.write_pxe_file(
-                filename=None,
-                system=None, profile=profile, distro=distro, arch=distro.arch,
-                include_header=False, format="grub")
-            if grub_contents is not None:
-                grub_menu_items += grub_contents + "\n"
+        for distro in submenus:
+            grub_menu_items += "submenu '{0}' --class gnu-linux --class gnu --class os {{\n".format(distro.name)
+            for profile in submenus[distro]:
+                grub_contents = self.write_pxe_file(
+                    filename=None,
+                    system=None, profile=profile, distro=distro, arch=distro.arch,
+                    include_header=False, format="grub")
+                if grub_contents is not None:
+                    grub_menu_items += grub_contents + "\n"
+            grub_menu_items += "}\n"
 
         # image names towards the bottom
         for image in image_list:
