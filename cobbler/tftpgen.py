@@ -306,8 +306,8 @@ class TFTPGen(object):
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
         profile_list = sorted(profile_list, key=lambda profile: profile.name)
-
-        profile_list = [profile for profile in profile_list if profile.get_arch() == arch]
+        if arch:
+            profile_list = [profile for profile in profile_list if profile.get_arch() == arch]
 
         # sort the images
         image_list = [image for image in self.images]
