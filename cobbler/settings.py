@@ -131,7 +131,7 @@ DEFAULTS = {
     "sign_puppet_certs_automatically": [0, "bool"],
     "signature_path": ["/var/lib/cobbler/distro_signatures.json", "str"],
     "signature_url": ["https://cobbler.github.io/signatures/3.0.x/latest.json", "str"],
-    "tftpboot_location": ["/srv/tftpboot", "str"],
+    "tftpboot_location": ["/var/lib/tftpboot", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
     "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],

@@ -246,8 +246,8 @@ manage_tftpd: 1
 
 # This variable contains the location of the tftpboot directory. If this directory is not present cobbler does not
 # start.
-# Default: /srv/tftpboot
-tftpboot_location: "/srv/tftpboot"
+# Default: /var/lib/tftpboot
+tftpboot_location: "/var/lib/tftpboot"
 
 # set to 1 to enable Cobbler's RSYNC management features.
 manage_rsync: 0

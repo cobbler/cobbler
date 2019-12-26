@@ -1,2 +1,0 @@
-config/settings.d/nsupdate.settings etc/cobbler/settings.d
-cobbler/modules/nsupdate* usr/share/pyshared/cobbler/modules
