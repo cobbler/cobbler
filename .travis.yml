@@ -9,4 +9,6 @@ before_install:
  - sudo apt-get install -y python-all python-cheetah python-yaml git-core python-setuptools python-netaddr python-nose python-simplejson pyflakes pep8
 install:
  - "/bin/true"
-script: make qa
+script:
+ - make qa
+ - make all
