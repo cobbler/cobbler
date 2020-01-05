@@ -46,7 +46,6 @@ class Template(cheetah_template.Template):
     """
 
     def __init__(self, **kwargs):
-        super(Template, self).__init__(**kwargs)
         self.MacrosTemplate = Template.compile(file=CHEETAH_MACROS_FILE)
         self.BuiltinTemplate = Template.compile(source="\n".join([
 
@@ -80,6 +79,7 @@ class Template(cheetah_template.Template):
             "#end if",
             "#end def",
         ]) + "\n")
+        super(Template, self).__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to
     # compile the template into a class. This is probably a kludge, but it
@@ -89,7 +89,7 @@ class Template(cheetah_template.Template):
     # above) will be accessible to all cheetah templates compiled by cobbler.
 
     @classmethod
-    def compile(klass, *args, **kwargs):
+    def compile(cls, *args, **kwargs):
         """
         Compile a cheetah template with cobbler modifications. Modifications
         include SNIPPET:: syntax replacement and inclusion of cobbler builtin
@@ -102,20 +102,20 @@ class Template(cheetah_template.Template):
             # Normally, the cheetah compiler worries about this, but we need to
             # preprocess the actual source
             if source is None:
-                if isinstance(file, str):
+                if hasattr(file, 'read'):
+                    source = file.read()
+                else:
                     if os.path.exists(file):
                         f = open(file)
                         source = "#errorCatcher Echo\n" + f.read()
                         f.close()
                     else:
                         source = "# Unable to read %s\n" % file
-                elif hasattr(file, 'read'):
-                    source = file.read()
                 file = None     # Stop Cheetah from throwing a fit.
 
             rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
             results = rx.sub(replacer, source)
-            return (results, file)
+            return results, file
         preprocessors = [preprocess]
         if 'preprocessors' in kwargs:
             preprocessors.extend(kwargs['preprocessors'])
@@ -126,7 +126,7 @@ class Template(cheetah_template.Template):
             kwargs['baseclass'] = Template
 
         # Now let Cheetah do the actual compilation
-        return super(Template, klass).compile(*args, **kwargs)
+        return super(Template, cls).compile(*args, **kwargs)
 
     def respond(self, trans=None):
         super(Template, self).respond(trans)
