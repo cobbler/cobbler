@@ -265,13 +265,14 @@ class CobblerXMLRPCInterface(object):
         return self.__start_task(runner, token, "power", "Power management (%s)" % options.get("power", ""), options)
 
     def power_system(self, system_id, power, token):
-        """
-        Execute power task synchronously.
-             system_id      -- system handle
-             power          -- power operation (on/off/status/reboot)
-             token          -- token from login() call, all tasks require tokens
+        """Execute power task synchronously.
+
         Returns true if the operation succeeded or if the system is powered on (in case of status).
         False otherwise.
+
+        :param token: token from login() call, all tasks require tokens
+        :param system_id: system handle
+        :param power: power operation (on/off/status/reboot)
         """
         system = self.__get_object(system_id)
         self.check_access(token, "power_system", system)
@@ -614,11 +615,13 @@ class CobblerXMLRPCInterface(object):
         return self.get_items("file")
 
     def find_items(self, what, criteria=None, sort_field=None, expand=True):
-        """
-        Returns a list of dicts.
-        Works like get_items but also accepts criteria as a dict to search on.
-        Example:  { "name" : "*.example.org" }
+        """Works like get_items but also accepts criteria as a dict to search on.
+
+        Example: ``{ "name" : "*.example.org" }``
+
         Wildcards work as described by 'pydoc fnmatch'.
+
+        :returns A list of dicts.
         """
         self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
         items = self.api.find_items(what, criteria=criteria)
@@ -654,10 +657,8 @@ class CobblerXMLRPCInterface(object):
         return self.find_items("file", criteria, expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
-        """
-        Returns a list of dicts as with find_items but additionally supports
-        returning just a portion of the total list, for instance in supporting
-        a web app that wants to show a limited amount of items per page.
+        """Returns a list of dicts as with find_items but additionally supports returning just a portion of the total
+        list, for instance in supporting a web app that wants to show a limited amount of items per page.
         """
         self._log("find_items_paged(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field), token=token)
         items = self.api.find_items(what, criteria=criteria)
@@ -819,12 +820,12 @@ class CobblerXMLRPCInterface(object):
         return self.rename_item("file", object_id, newname, token)
 
     def new_item(self, what, token, is_subobject=False):
-        """
-        Creates a new (unconfigured) object, returning an object
-        handle that can be used with modify_* methods and then finally
-        save_* methods.  The handle only exists in memory until saved.
-        "what" specifies the type of object:
-            distro, profile, system, repo, or image
+        """Creates a new (unconfigured) object, returning an object handle that can be used.
+
+        Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
+        then finally ``save_*`` methods. The handle only exists in memory until saved.
+
+        "what" specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, or ``image``
         """
         self._log("new_item(%s)" % what, token=token)
         self.check_access(token, "new_%s" % what)
@@ -939,11 +940,11 @@ class CobblerXMLRPCInterface(object):
         return False
 
     def xapi_object_edit(self, object_type, object_name, edit_type, attributes, token):
-        """
-        Extended API:  New style object manipulations, 2.0 and later
-        Prefered over using new_, modify_, save_ directly.
-        Though we must preserve the old ways for backwards compatibility these
-        cause much less XMLRPC traffic.
+        """Extended API: New style object manipulations, 2.0 and later.
+
+        Extended API: New style object manipulations, 2.0 and later preferred over using ``new_*``, ``modify_*```,
+        ``save_*`` directly. Though we must preserve the old ways for backwards compatibility these cause much less
+        XMLRPC traffic.
 
         edit_type - One of 'add', 'rename', 'copy', 'remove'
 

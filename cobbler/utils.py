@@ -810,12 +810,12 @@ def run_this(cmd, args, logger):
 
 
 def run_triggers(api, ref, globber, additional=[], logger=None):
-    """
-    Runs all the trigger scripts in a given directory.
-    ref can be a cobbler object, if not None, the name will be passed
-    to the script.  If ref is None, the script will be called with
-    no argumenets.  Globber is a wildcard expression indicating which
-    triggers to run.  Example:  "/var/lib/cobbler/triggers/blah/*"
+    """Runs all the trigger scripts in a given directory.
+
+    ``ref`` can be a cobbler object, if not None, the name will be passed to the script. If ref is None, the script will
+    be called with no argumenets. Globber is a wildcard expression indicating which triggers to run.
+
+    Example: ``/var/lib/cobbler/triggers/blah/*``
 
     As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
     """

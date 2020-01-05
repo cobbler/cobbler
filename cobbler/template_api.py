@@ -22,8 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import str
-import Cheetah.Template
+import Cheetah.Template as cheetah_template
 import os.path
 import re
 
@@ -36,50 +35,50 @@ CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 # we can compile the source directly into a python class. This class will allow
 # us to define the cheetah builtins.
 
-BuiltinTemplate = Cheetah.Template.Template.compile(source="\n".join([
 
-    # This part (see 'Template' below
-    # for the other part) handles the actual inclusion of the file contents. We
-    # still need to make the snippet's namespace (searchList) available to the
-    # template calling SNIPPET (done in the other part).
-
-    # Moved the other functions into /etc/cobbler/cheetah_macros
-    # Left SNIPPET here since it is very important.
-
-    # This function can be used in two ways:
-    # Cheetah syntax:
-    #
-    # $SNIPPET('my_snippet')
-    #
-    # SNIPPET syntax:
-    #
-    # SNIPPET::my_snippet
-    #
-    # This follows all of the rules of snippets and advanced snippets. First it
-    # searches for a per-system snippet, then a per-profile snippet, then a
-    # general snippet. If none is found, a comment explaining the error is
-    # substituted.
-    "#def SNIPPET($file)",
-    "#set $snippet = $read_snippet($file)",
-    "#if $snippet",
-    "#include source=$snippet",
-    "#else",
-    "# Error: no snippet data for $file",
-    "#end if",
-    "#end def",
-]) + "\n")
-
-MacrosTemplate = Cheetah.Template.Template.compile(file=CHEETAH_MACROS_FILE)
-
-
-class Template(BuiltinTemplate, MacrosTemplate):
-
+class Template(cheetah_template.Template):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include
     both types (cheetah and pure python) of builtins in the same base template.
     We don't need to override __init__
     """
+
+    def __init__(self, **kwargs):
+        self.MacrosTemplate = Template.compile(file=CHEETAH_MACROS_FILE)
+        self.BuiltinTemplate = Template.compile(source="\n".join([
+
+            # This part (see 'Template' below
+            # for the other part) handles the actual inclusion of the file contents. We
+            # still need to make the snippet's namespace (searchList) available to the
+            # template calling SNIPPET (done in the other part).
+
+            # Moved the other functions into /etc/cobbler/cheetah_macros
+            # Left SNIPPET here since it is very important.
+
+            # This function can be used in two ways:
+            # Cheetah syntax:
+            #
+            # $SNIPPET('my_snippet')
+            #
+            # SNIPPET syntax:
+            #
+            # SNIPPET::my_snippet
+            #
+            # This follows all of the rules of snippets and advanced snippets. First it
+            # searches for a per-system snippet, then a per-profile snippet, then a
+            # general snippet. If none is found, a comment explaining the error is
+            # substituted.
+            "#def SNIPPET($file)",
+            "#set $snippet = $read_snippet($file)",
+            "#if $snippet",
+            "#include source=$snippet",
+            "#else",
+            "# Error: no snippet data for $file",
+            "#end if",
+            "#end def",
+        ]) + "\n")
+        super(Template, self).__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to
     # compile the template into a class. This is probably a kludge, but it
@@ -88,7 +87,8 @@ class Template(BuiltinTemplate, MacrosTemplate):
     # points to this class. Now any methods entered here (or in the base class
     # above) will be accessible to all cheetah templates compiled by cobbler.
 
-    def compile(klass, *args, **kwargs):
+    @classmethod
+    def compile(cls, *args, **kwargs):
         """
         Compile a cheetah template with cobbler modifications. Modifications
         include SNIPPET:: syntax replacement and inclusion of cobbler builtin
@@ -101,20 +101,19 @@ class Template(BuiltinTemplate, MacrosTemplate):
             # Normally, the cheetah compiler worries about this, but we need to
             # preprocess the actual source
             if source is None:
-                if isinstance(file, str):
+                if hasattr(file, 'read'):
+                    source = file.read()
+                else:
                     if os.path.exists(file):
-                        f = open(file)
-                        source = "#errorCatcher Echo\n" + f.read()
-                        f.close()
+                        with open(file, "r") as f:
+                            source = "#errorCatcher Echo\n" + f.read()
                     else:
                         source = "# Unable to read %s\n" % file
-                elif hasattr(file, 'read'):
-                    source = file.read()
                 file = None     # Stop Cheetah from throwing a fit.
 
             rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
             results = rx.sub(replacer, source)
-            return (results, file)
+            return results, file
         preprocessors = [preprocess]
         if 'preprocessors' in kwargs:
             preprocessors.extend(kwargs['preprocessors'])
@@ -125,8 +124,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
             kwargs['baseclass'] = Template
 
         # Now let Cheetah do the actual compilation
-        return Cheetah.Template.Template.compile(*args, **kwargs)
-    compile = classmethod(compile)
+        return super(Template, cls).compile(*args, **kwargs)
 
     def read_snippet(self, file):
         """
@@ -169,7 +167,7 @@ class Template(BuiltinTemplate, MacrosTemplate):
         """
         # First, do the actual inclusion. Cheetah (when processing #include)
         # will track the inclusion in self._CHEETAH__cheetahIncludes
-        result = BuiltinTemplate.SNIPPET(self, file)
+        result = self.BuiltinTemplate.SNIPPET(self, file)
 
         # Now do our dirty work: locate the new include, and append its
         # searchList to ours.

@@ -39,19 +39,19 @@ import yaml
 
 from cobbler.cexceptions import CX
 
-cp = ConfigParser()
-cp.read("/etc/cobbler/mongodb.conf")
-
-host = cp.get("connection", "host")
-port = int(cp.get("connection", "port"))
 mongodb = None
 
 
 def __connect():
+    cp = ConfigParser()
+    cp.read("/etc/cobbler/mongodb.conf")
+
+    host = cp.get("connection", "host")
+    port = int(cp.get("connection", "port"))
     # TODO: detect connection error
     global mongodb
     try:
-        mongodb = Connection('localhost', 27017)['cobbler']
+        mongodb = Connection(host, port)['cobbler']
     except:
         # FIXME: log error
         raise CX("Unable to connect to Mongo database")

@@ -26,6 +26,7 @@ Here you should find a comprehensive overview about the usage of cobbler.
    Cobbler Configuration <cobbler-conf>
    User Guide <user-guide>
    Developer Guide <developer-guide>
+   Cobbler-Code Documentation<code-autodoc/cobbler>
    Release Notes <release-notes>
 
 Indices and tables
