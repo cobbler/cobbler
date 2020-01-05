@@ -830,7 +830,6 @@ class TFTPGen(object):
             if os.path.isabs(dest_dir) and write_file:
                 if dest_dir.find(self.bootloc) != 0:
                     raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir, self.bootloc))
-                    continue
             elif write_file:
                 dest_dir = os.path.join(self.settings.webdir, "rendered", dest_dir)
                 dest = os.path.join(dest_dir, os.path.basename(dest))
@@ -840,19 +839,14 @@ class TFTPGen(object):
             # Check for problems
             if not os.path.exists(template):
                 raise CX("template source %s does not exist" % template)
-                continue
             elif write_file and not os.path.isdir(dest_dir):
                 raise CX("template destination (%s) is invalid" % dest_dir)
-                continue
             elif write_file and os.path.exists(dest):
                 raise CX("template destination (%s) already exists" % dest)
-                continue
             elif write_file and os.path.isdir(dest):
                 raise CX("template destination (%s) is a directory" % dest)
-                continue
             elif template == "" or dest == "":
                 raise CX("either the template source or destination was blank (unknown variable used?)" % dest)
-                continue
 
             template_fh = open(template)
             template_data = template_fh.read()

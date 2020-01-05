@@ -252,7 +252,6 @@ class ACKPacket(Packet):
 
     def marshall(self):
         raise NotImplementedError("We don't send these, we read them")
-        return pack("!HH", TFTP_OPCODE_ACK, self.block_number)
 
 
 class ERRORPacket(Packet):
