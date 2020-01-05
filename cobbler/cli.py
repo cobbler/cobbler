@@ -603,10 +603,6 @@ class CobblerCLI(object):
             self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs", action="store_true")
             (options, args) = self.parser.parse_args()
             task_id = self.start_task("reposync", options)
-        elif action_name == "aclsetup":
-            (options, args) = self.parser.parse_args()
-            # FIXME: missing options, add them here
-            task_id = self.start_task("aclsetup", options)
         elif action_name == "check":
             results = self.remote.check(self.token)
             ct = 0
