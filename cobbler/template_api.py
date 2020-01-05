@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import str
 import Cheetah.Template as cheetah_template
 import os.path
 import re
@@ -106,9 +105,8 @@ class Template(cheetah_template.Template):
                     source = file.read()
                 else:
                     if os.path.exists(file):
-                        f = open(file)
-                        source = "#errorCatcher Echo\n" + f.read()
-                        f.close()
+                        with open(file, "r") as f:
+                            source = "#errorCatcher Echo\n" + f.read()
                     else:
                         source = "# Unable to read %s\n" % file
                 file = None     # Stop Cheetah from throwing a fit.
@@ -127,9 +125,6 @@ class Template(cheetah_template.Template):
 
         # Now let Cheetah do the actual compilation
         return super(Template, cls).compile(*args, **kwargs)
-
-    def respond(self, trans=None):
-        super(Template, self).respond(trans)
 
     def read_snippet(self, file):
         """
