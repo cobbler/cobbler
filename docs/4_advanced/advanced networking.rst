@@ -28,8 +28,8 @@ You can give your network interface (almost) any name you like.
 
 .. code-block:: bash
 
-$ cobbler system edit --name=foo1.bar.local --interface=mgmt --mac=AA:BB:CC:DD:EE:F0
-$ cobbler system edit --name=foo1.bar.local --interface=dmz --mac=AA:BB:CC:DD:EE:F1
+    $ cobbler system edit --name=foo1.bar.local --interface=mgmt --mac=AA:BB:CC:DD:EE:F0
+    $ cobbler system edit --name=foo1.bar.local --interface=dmz --mac=AA:BB:CC:DD:EE:F1
 
 The default interface is named eth0, but you don't have to call it that.
 
