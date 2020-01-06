@@ -543,7 +543,7 @@ if __name__ == "__main__":
             "dnspython",
             "tornado",
         ],
-        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "coverage"]},
+        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "pytest-cov", "codecov"]},
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
