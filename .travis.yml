@@ -20,10 +20,11 @@ jobs:
         - pycodestyle -r --ignore E501,E402,E722,W504 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
       script:
         - docker build -t cobbler .
-        - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler cobbler
+        - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /test_dir:${PWD} --name cobbler cobbler
         - sleep 30
         - docker logs cobbler
-        - docker exec -u 0 -it cobbler bash -c pytest
+        - COMMIT_SHA=`git rev-parse HEAD`
+        - docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler; codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${COMMIT_SHA}"
     - stage: rpms
       name: "Build CentOS 7 RPMs"
       script: ./tests/build-and-install-rpms.sh el7 dockerfiles/CentOS7.dockerfile
