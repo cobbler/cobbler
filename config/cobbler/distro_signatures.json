@@ -1137,6 +1137,23 @@
     "boot_files":[],
     "boot_loaders":{"ppc64le":["grub"]}
    },
+   "sles12sp5": {
+    "signatures":["suse"],
+    "version_file":"(sles|SLES-for-VMware|SLES_SAP)-release-12.5-(.*).rpm",
+    "version_file_regex":null,
+    "kernel_arch":"kernel-(.*)\\.rpm",
+    "kernel_arch_regex":null,
+    "supported_arches":["i386","i586","x86_64","ppc64le"],
+    "supported_repo_breeds":["yum"],
+    "kernel_file":"linux[64.gz]?",
+    "initrd_file":"initrd[64]?",
+    "isolinux_ok":false,
+    "default_autoinstall":"sample_autoyast.xml",
+    "kernel_options":"dhcptimeout=120, net.ifnames=1, install=$tree",
+    "kernel_options_post":"",
+    "boot_files":[],
+    "boot_loaders":{"ppc64le":["grub"]}
+   },
    "sles15generic": {
     "signatures":["."],
     "version_file":"sles-release-15(.*).rpm",
