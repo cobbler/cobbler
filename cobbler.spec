@@ -108,7 +108,7 @@
 %global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
 
 Name:           cobbler
-Version:        3.0.99
+Version:        3.1.1
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
@@ -241,7 +241,7 @@ http://server/cobbler_web to configure the install server.
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
-sed -e "s|/var/lib/tftpboot|%{_tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
+sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
 %endif
 
 
