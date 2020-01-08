@@ -88,10 +88,6 @@ release: clean qa readme authors sdist doc
 	@mkdir release
 	@cp dist/*.gz release/
 	@cp cobbler.spec release/
-	@cp debian/cobbler.dsc release/
-	@cp debian/changelog release/debian.changelog
-	@cp debian/control release/debian.control
-	@cp debian/rules release/debian.rules
 
 test:
 	make savestate prefix=test
@@ -187,7 +183,6 @@ restartservices:
 rpms: release
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
-	cp patches/*.patch rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
