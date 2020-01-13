@@ -197,6 +197,7 @@ Recommends:     syslinux
 # grub2 efi stuff is only available on x86
 Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
+Recommends:     logrotate
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if %{_vendor} == "debbuild"
