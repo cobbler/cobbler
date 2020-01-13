@@ -108,7 +108,7 @@
 %global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
 
 Name:           cobbler
-Version:        3.1.1
+Version:        3.1.2
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
