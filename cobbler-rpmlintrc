@@ -1,0 +1,5 @@
+# We don't want this warning because cobblerd is the server and cobbler would be the cli client.
+addFilter("W: incoherent-logrotate-file")
+
+# In our case okay because we do this as a community
+addFilter("W: hardcoded-packager-tag")
