@@ -272,6 +272,9 @@ mkdir %{buildroot}%{tftpboot_dir}/s390x
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
+%if 0%{?suse_version}
+ln -sf service %{buildroot}%{_sbindir}/rccobblerd
+%endif
 
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
@@ -349,6 +352,9 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{python3_sitelib}/cobbler/
 %{python3_sitelib}/cobbler-*
 %{_unitdir}/cobblerd.service
+%if 0%{?suse_version}
+%{_sbindir}/rccobblerd
+%endif
 %{tftpboot_dir}/*
 %{apache_dir}/cobbler
 %config(noreplace) %{_sharedstatedir}/cobbler
