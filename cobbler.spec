@@ -36,7 +36,7 @@
 %define apache_user www-data
 %define apache_group www-data
 %define apache_log /var/log/apache2
-%define apache_webconfigdir /etc/apache2/conf.d
+%define apache_webconfigdir /etc/apache2/conf-available
 %define apache_mod_wsgi libapache2-mod-wsgi-py%{python3_pkgversion}
 %define tftpboot_dir /var/lib/tftpboot
 %define tftpsrv_pkg tftpd-hpa
