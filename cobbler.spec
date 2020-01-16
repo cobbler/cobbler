@@ -137,6 +137,8 @@ BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-future
 BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-netaddr
+BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_sphinx}
 %if 0%{?suse_version}
 # Make post-build-checks happy by including these in the buildroot
@@ -238,13 +240,12 @@ http://server/cobbler_web to configure the install server.
 
 
 %prep
-%autosetup -p1
+%setup
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
 %endif
-
 
 %build
 %py3_build
