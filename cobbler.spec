@@ -12,6 +12,13 @@
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 #
 
+# Work around quirk in OBS about handling defines...
+%if 0%{?el7}
+%{!?python3_pkgversion: %global python3_pkgversion 36}
+%else
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%endif
+
 %if 0%{?suse_version}
 %define apache_pkg apache2
 %define apache_dir /srv/www
@@ -91,13 +98,6 @@
 
 # To ensure correct byte compilation
 %global __python %{__python3}
-
-# Work around quirk in OBS about handling defines...
-%if 0%{?el7}
-%{!?python3_pkgversion: %global python3_pkgversion 36}
-%else
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-%endif
 
 %if %{_vendor} == "debbuild"
 %global devsuffix dev
