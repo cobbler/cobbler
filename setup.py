@@ -484,7 +484,7 @@ if __name__ == "__main__":
         http_user = "wwwrun"
         httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
-    elif os.path.exists("/etc/debian_version"):
+    elif distro.id() in ("debian", "ubuntu"):
         if os.path.exists("/etc/apache2/conf-available"):
             webconfig = "/etc/apache2/conf-available"
         else:
