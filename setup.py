@@ -485,10 +485,7 @@ if __name__ == "__main__":
         httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
     elif distro.id() in ("debian", "ubuntu"):
-        if os.path.exists("/etc/apache2/conf-available"):
-            webconfig = "/etc/apache2/conf-available"
-        else:
-            webconfig = "/etc/apache2/conf.d"
+        webconfig = "/etc/apache2/conf-available"
         webroot = "/var/www/"
         http_user = "www-data"
         defaultpath = "/etc/default/"
