@@ -259,7 +259,14 @@ mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
 
 # Create data directories in tftpboot_dir
-mkdir -p %{buildroot}%{tftpboot_dir}/{boot,etc,grub,images{,2},ppc,pxelinux.cfg,s390x}
+mkdir -p %{buildroot}%{tftpboot_dir}/boot
+mkdir %{buildroot}%{tftpboot_dir}/etc
+mkdir %{buildroot}%{tftpboot_dir}/grub
+mkdir %{buildroot}%{tftpboot_dir}/images
+mkdir %{buildroot}%{tftpboot_dir}/images2
+mkdir %{buildroot}%{tftpboot_dir}/ppc
+mkdir %{buildroot}%{tftpboot_dir}/pxelinux.cfg
+mkdir %{buildroot}%{tftpboot_dir}/s390x
 
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
@@ -316,7 +323,8 @@ fi
 %post web
 # Change the SECRET_KEY option in the Django settings.py file
 # required for security reasons, should be unique on all systems
-RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
+# Choose from multiple characters, but without an ampersand (&).
+RAND_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9!"#$%'\''()*+,-./:;<=>?@[\]^_`{|}~' | head -c 57 ; echo '')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler/web/settings.py
 
 
