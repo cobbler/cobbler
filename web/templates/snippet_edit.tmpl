@@ -20,7 +20,7 @@ if you need to resolve this.
       <label for="snippetdata">{% if snippet_name %}Snippet: {{ snippet_name }}{% else %}Filename:{% endif %}</label>
 {% ifnotequal editmode 'edit' %}
       <input type="text" name="snippet_name" id="snippet_name" />
-      <span class="context-tip">Example:  foo.ks (to be saved in /var/lib/cobbler/snippets/)</span>
+      <span class="context-tip">Example:  some-snippet (to be saved in /var/lib/cobbler/snippets/)</span>
 {% else %}
       <input type="hidden" name="snippet_name" value="{{ snippet_name }}" />
 {% endifnotequal %}
