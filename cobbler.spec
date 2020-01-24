@@ -362,7 +362,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %endif
 %{tftpboot_dir}/*
 %{apache_dir}/cobbler
-%config(noreplace) %{_sharedstatedir}/cobbler
+%{_sharedstatedir}/cobbler
 %exclude %{_sharedstatedir}/cobbler/webui_sessions
 %{_localstatedir}/log/cobbler
 
