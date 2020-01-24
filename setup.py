@@ -29,7 +29,7 @@ import subprocess
 
 from builtins import OSError
 
-VERSION = "3.1.1"
+VERSION = "3.1.2"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
@@ -484,11 +484,8 @@ if __name__ == "__main__":
         http_user = "wwwrun"
         httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
-    elif os.path.exists("/etc/debian_version"):
-        if os.path.exists("/etc/apache2/conf-available"):
-            webconfig = "/etc/apache2/conf-available"
-        else:
-            webconfig = "/etc/apache2/conf.d"
+    elif distro.id() in ("debian", "ubuntu"):
+        webconfig = "/etc/apache2/conf-available"
         webroot = "/var/www/"
         http_user = "www-data"
         defaultpath = "/etc/default/"

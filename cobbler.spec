@@ -12,6 +12,13 @@
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 #
 
+# Work around quirk in OBS about handling defines...
+%if 0%{?el7}
+%{!?python3_pkgversion: %global python3_pkgversion 36}
+%else
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%endif
+
 %if 0%{?suse_version}
 %define apache_pkg apache2
 %define apache_dir /srv/www
@@ -36,7 +43,7 @@
 %define apache_user www-data
 %define apache_group www-data
 %define apache_log /var/log/apache2
-%define apache_webconfigdir /etc/apache2/conf.d
+%define apache_webconfigdir /etc/apache2/conf-available
 %define apache_mod_wsgi libapache2-mod-wsgi-py%{python3_pkgversion}
 %define tftpboot_dir /var/lib/tftpboot
 %define tftpsrv_pkg tftpd-hpa
@@ -92,13 +99,6 @@
 # To ensure correct byte compilation
 %global __python %{__python3}
 
-# Work around quirk in OBS about handling defines...
-%if 0%{?el7}
-%{!?python3_pkgversion: %global python3_pkgversion 36}
-%else
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-%endif
-
 %if %{_vendor} == "debbuild"
 %global devsuffix dev
 %else
@@ -108,7 +108,7 @@
 %global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
 
 Name:           cobbler
-Version:        3.1.1
+Version:        3.1.2
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
@@ -137,6 +137,8 @@ BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-future
 BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-netaddr
+BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_sphinx}
 %if 0%{?suse_version}
 # Make post-build-checks happy by including these in the buildroot
@@ -197,6 +199,7 @@ Recommends:     syslinux
 # grub2 efi stuff is only available on x86
 Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
+Recommends:     logrotate
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if %{_vendor} == "debbuild"
@@ -237,13 +240,12 @@ http://server/cobbler_web to configure the install server.
 
 
 %prep
-%autosetup -p1
+%setup
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
 %endif
-
 
 %build
 %py3_build
@@ -271,6 +273,9 @@ mkdir %{buildroot}%{tftpboot_dir}/s390x
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
+%if 0%{?suse_version}
+ln -sf service %{buildroot}%{_sbindir}/rccobblerd
+%endif
 
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
@@ -332,7 +337,11 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %license COPYING
 %doc AUTHORS.in README.md
 %doc docs/developer-guide.rst docs/quickstart-guide.rst docs/installation-guide.rst
+%if %{_vendor} == "debbuild"
+%config(noreplace) %{_sysconfdir}/cobbler/*
+%else
 %config(noreplace) %{_sysconfdir}/cobbler
+%endif
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobbler
@@ -348,9 +357,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{python3_sitelib}/cobbler/
 %{python3_sitelib}/cobbler-*
 %{_unitdir}/cobblerd.service
+%if 0%{?suse_version}
+%{_sbindir}/rccobblerd
+%endif
 %{tftpboot_dir}/*
 %{apache_dir}/cobbler
-%config(noreplace) %{_sharedstatedir}/cobbler
+%{_sharedstatedir}/cobbler
 %exclude %{_sharedstatedir}/cobbler/webui_sessions
 %{_localstatedir}/log/cobbler
 
