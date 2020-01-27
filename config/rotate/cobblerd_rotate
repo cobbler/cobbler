@@ -1,8 +1,14 @@
 /var/log/cobbler/cobbler.log {
+   compress
+   dateext
+   maxage 14
+   rotate 99
+   size=+4096k
    missingok
    notifempty
    rotate 4
    weekly
+   create 644 root root
    postrotate
       /sbin/service cobblerd condrestart > /dev/null 2>&1
    endscript
