@@ -13,7 +13,10 @@ RUN yum install -y          \
     git                     \
     rsync                   \
     make                    \
+    dnf-plugins-core        \
+    epel-rpm-macros         \
     openssl                 \
+    mod_ssl                 \
     python-sphinx           \
     python36-coverage       \
     python36-devel          \
@@ -26,10 +29,15 @@ RUN yum install -y          \
     python36-sphinx         \
     rpm-build
 
+# !! TEMPORARY !!
+# This package is still in EPEL test / acceptance as of 20200127
+RUN rpm -ihv https://kojipkgs.fedoraproject.org/packages/python3-cheetah/3.2.4/1.el7/x86_64/python36-cheetah-3.2.4-1.el7.x86_64.rpm
+
 RUN yum install -y          \
 # Runtime dependencies
     httpd                   \
     python36-mod_wsgi       \
+    python36-pymongo        \
     python36-PyYAML         \
     python36-netaddr        \
     python36-simplejson     \
