@@ -26,10 +26,11 @@ RUN touch /var/lib/rpm/* &&   \
     python3-devel             \
     python3-distro            \
     python3-future            \
-    python3-pyflakes          \
+    python3-pyflakes           \
     python3-pycodestyle       \
     python3-setuptools        \
     python3-sphinx            \
+    epel-rpm-macros           \
     rpm-build
 
 # Runtime dependencies
