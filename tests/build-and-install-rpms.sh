@@ -1,6 +1,8 @@
 #!/bin/bash
 # Utility script to build RPMs in a Docker container and then install them
 
+set -eo pipefail
+
 if [ "$1" == "--with-tests" ]
 then
     RUN_TESTS=true
