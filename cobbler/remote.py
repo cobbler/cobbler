@@ -2189,7 +2189,7 @@ class CobblerXMLRPCInterface(object):
         @return bool if operation was successful
         """
 
-        what = "write_autoinstall_snippet"
+        what = "remove_autoinstall_snippet"
         self._log(what, name=file_path, token=token)
         self.check_access(token, what, file_path, True)
 

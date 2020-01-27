@@ -208,7 +208,9 @@ class AutoInstallationManager(object):
     def remove_autoinstall_snippet(self, file_path):
 
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
-        os.remove(file_path)
+
+        file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
+        os.remove(file_full_path)
 
         return True
 
