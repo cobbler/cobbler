@@ -12,6 +12,9 @@
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 #
 
+# Force bash instead of Debian dash
+%global _buildshell /bin/bash
+
 # Work around quirk in OBS about handling defines...
 %if 0%{?el7}
 %{!?python3_pkgversion: %global python3_pkgversion 36}
@@ -132,6 +135,8 @@ BuildRequires:  python-rpm-macros
 %endif
 %if %{_vendor} == "debbuild"
 BuildRequires:  python3-deb-macros
+BuildRequires:  apache2-deb-macros
+
 %endif
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
@@ -261,14 +266,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
 
 # Create data directories in tftpboot_dir
-mkdir -p %{buildroot}%{tftpboot_dir}/boot
-mkdir %{buildroot}%{tftpboot_dir}/etc
-mkdir %{buildroot}%{tftpboot_dir}/grub
-mkdir %{buildroot}%{tftpboot_dir}/images
-mkdir %{buildroot}%{tftpboot_dir}/images2
-mkdir %{buildroot}%{tftpboot_dir}/ppc
-mkdir %{buildroot}%{tftpboot_dir}/pxelinux.cfg
-mkdir %{buildroot}%{tftpboot_dir}/s390x
+mkdir -p %{buildroot}%{tftpboot_dir}/{boot,etc,grub,images{,2},ppc,pxelinux.cfg,s390x}
 
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
@@ -306,6 +304,7 @@ fi
 %post
 %{py3_bytecompile_post %{name}}
 %{systemd_post cobblerd.service}
+%{apache2_module_post proxy_http}
 
 %preun
 %{py3_bytecompile_preun %{name}}
@@ -403,6 +402,17 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
 %config(noreplace) %{_sysconfdir}/cobbler/named.template
 %config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
+%dir %{_sysconfdir}/cobbler/power
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_apc_snmp.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_bladecenter.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_bullpap.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_drac.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_ilo.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_ipmilan.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_lpar.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_rsa.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_virsh.template
+%config(noreplace) %{_sysconfdir}/cobbler/power/fence_wti.template
 %dir %{_sysconfdir}/cobbler/reporting
 %config(noreplace) %{_sysconfdir}/cobbler/reporting/build_report_email.template
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
@@ -417,6 +427,8 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
 %config(noreplace) %{_sysconfdir}/cobbler/zone.template
+%dir %{_sysconfdir}/cobbler/zone_templates
+%config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobbler

@@ -331,7 +331,7 @@ class install(_install):
             raise Exception("libpath is not absolute.")
         # libpath is hardcoded in the code everywhere
         # therefor cant relocate using self.root
-        path = os.path.join(libpath, 'webui_sessions')
+        path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except Exception as e:
@@ -488,6 +488,7 @@ if __name__ == "__main__":
         webconfig = "/etc/apache2/conf-available"
         webroot = "/var/www/"
         http_user = "www-data"
+        httpd_service = "apache2.service"
         defaultpath = "/etc/default/"
     else:
         webconfig = "/etc/httpd/conf.d"
@@ -598,7 +599,15 @@ if __name__ == "__main__":
                               "config/rsync/import_rsync_whitelist",
                               "config/rsync/rsync.exclude",
                               "config/version"]),
-            ("%s" % etcpath, glob("templates/etc/*")),
+            ("%s" % etcpath, glob("cobbler/etc/*")),
+            ("%s" % etcpath, ["templates/etc/named.template",
+                              "templates/etc/genders.template",
+                              "templates/etc/secondary.template",
+                              "templates/etc/zone.template",
+                              "templates/etc/dnsmasq.template",
+                              "templates/etc/rsync.template",
+                              "templates/etc/dhcp.template",
+                              "templates/etc/ndjbdns.template"]),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             # completion_file
@@ -692,7 +701,7 @@ if __name__ == "__main__":
             # A script that isn't really data, wsgi script
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
-            ("%szone_templates" % etcpath, []),
+            ("%szone_templates" % etcpath, glob("templates/zone_templates/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

@@ -7,7 +7,7 @@ PYTHON=/usr/bin/python3
 
 CMD := $(shell command -v pyflakes-3 2> /dev/null)
 ifndef CMD
-	PYFLAKES=/usr/bin/pyflakes
+	PYFLAKES=/usr/bin/pyflakes3
 else
 	PYFLAKES=/usr/bin/pyflakes-3
 endif
@@ -19,6 +19,8 @@ else
 	PYCODESTYLE=/usr/bin/pycodestyle-3
 endif
 
+# Debian / Ubuntu have /bin/sh -> dash
+SHELL = /bin/bash
 
 TOP_DIR:=$(shell pwd)
 DESTDIR=/
@@ -39,6 +41,7 @@ clean:
 	@echo "cleaning: build artifacts"
 	@rm -rf build release dist cobbler.egg-info
 	@rm -rf rpm-build/*
+	@rm -rf deb-build/*
 	@rm -f MANIFEST AUTHORS README
 	@rm -f config/version
 	@rm -f docs/*.1.gz
@@ -109,6 +112,9 @@ test-centos8:
 
 test-fedora31:
 	./tests/build-and-install-rpms.sh --with-tests f31 dockerfiles/Fedora31.dockerfile
+
+test-debian10:
+	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
 
 nosetests:
 	PYTHONPATH=./cobbler/ nosetests -v -w tests/cli/ 2>&1 | tee test.log
@@ -190,6 +196,17 @@ rpms: release
 	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
 	--define "_sourcedir  %{_topdir}" \
 	-ba cobbler.spec
+
+# Only build a binary package
+debs: release
+	mkdir -p deb-build
+	mkdir -p deb-build/{BUILD,BUILDROOT,DEBS,SDEBS,SOURCES}
+	cp dist/*.gz deb-build/
+	debbuild --define "_topdir %(pwd)/deb-build" \
+	--define "_builddir %{_topdir}" \
+	--define "_specdir %{_topdir}" \
+	--define "_sourcedir  %{_topdir}" \
+	-vv -bb cobbler.spec
 
 eraseconfig:
 	-rm /var/lib/cobbler/collections/distros/*

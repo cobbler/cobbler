@@ -1,0 +1,9 @@
+#set ($power_sys, $power_lpar) = $power_id.split(':')
+
+action=$power_mode
+ipaddr=$power_address
+login=$power_user
+managed=$power_sys
+port=$power_lpar
+passwd=$power_pass
+secure
