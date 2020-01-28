@@ -10,6 +10,8 @@ RUN dnf install -y          \
     rsync                   \
     make                    \
     openssl                 \
+    mod_ssl                 \
+    initscripts             \
     python-sphinx           \
     python3-coverage        \
     python3-devel           \
@@ -19,7 +21,7 @@ RUN dnf install -y          \
     python3-pyflakes        \
     python3-pycodestyle     \
     python3-setuptools      \
-    python3-sphinx         \
+    python3-sphinx          \
     rpm-build
 
 # Runtime dependencies

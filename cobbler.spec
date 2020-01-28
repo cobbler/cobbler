@@ -328,8 +328,8 @@ fi
 %post web
 # Change the SECRET_KEY option in the Django settings.py file
 # required for security reasons, should be unique on all systems
-# Choose from multiple characters, but without an ampersand (&).
-RAND_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9!"#$%'\''()*+,-./:;<=>?@[\]^_`{|}~' | head -c 57 ; echo '')
+# Choose from letters and numbers only, so no special chars like ampersand (&).
+RAND_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9!' | head -c 50 ; echo '')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler/web/settings.py
 
 
