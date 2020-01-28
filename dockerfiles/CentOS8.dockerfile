@@ -21,6 +21,8 @@ RUN touch /var/lib/rpm/* &&   \
     rsync                     \
     make                      \
     openssl                   \
+    mod_ssl                   \
+    initscripts               \
     python3-sphinx            \
     platform-python-coverage  \
     python3-devel             \
@@ -45,16 +47,17 @@ RUN touch /var/lib/rpm/* &&   \
     python3-tornado           \
     python3-django            \
     python3-dns               \
+    python3-ldap3             \
+    python3-pymongo           \
     createrepo                \
     dnf-plugins-core          \
     xorriso                   \
-    grub2-efi-ia32-modules    \
-    grub2-efi-x64-modules     \
+    grub2-efi-ia32-modules     \
+    grub2-efi-x64-modules      \
     logrotate                 \
     syslinux                  \
     tftp-server               \
     fence-agents
-
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

@@ -22,7 +22,7 @@ RUN yum install -y          \
     python36-devel          \
     python36-distro         \
     python36-future         \
-    python36-pyflakes       \
+    python36-pyflakes        \
     python36-pycodestyle    \
     python36-setuptools     \
     python36-requests       \
@@ -30,7 +30,7 @@ RUN yum install -y          \
     rpm-build
 
 # !! TEMPORARY !!
-# This package is still in EPEL test / acceptance as of 20200127
+# This package is in EPEL testing since 20200127
 RUN rpm -ihv https://kojipkgs.fedoraproject.org/packages/python3-cheetah/3.2.4/1.el7/x86_64/python36-cheetah-3.2.4-1.el7.x86_64.rpm
 
 RUN yum install -y          \
@@ -47,8 +47,8 @@ RUN yum install -y          \
     python36-ldap3          \
     createrepo              \
     xorriso                 \
-    grub2-efi-ia32-modules  \
-    grub2-efi-x64-modules   \
+    grub2-efi-ia32-modules   \
+    grub2-efi-x64-modules    \
     logrotate               \
     syslinux                \
     systemd-sysv            \

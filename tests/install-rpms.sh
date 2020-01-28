@@ -1,6 +1,6 @@
 #!/bin/bash
 # Utility script to run Docker container without building the RPMs,
-# just install a them. So make sure they are in rpm-build dir!
+# just install them. So make sure they are in rpm-build dir!
 
 if [ "$1" == "--with-tests" ]
 then

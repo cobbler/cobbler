@@ -22,7 +22,7 @@ docker build -t "$IMAGE" -f "$DOCKERFILE" .
 
 # Build RPMs
 echo "==> Build RPMs ..."
-mkdir rpm-build
+mkdir -p rpm-build
 docker run -ti -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
