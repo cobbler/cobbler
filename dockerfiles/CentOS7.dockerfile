@@ -29,10 +29,6 @@ RUN yum install -y          \
     python36-sphinx         \
     rpm-build
 
-# TEMPORARY !! This package is in EPEL testing since 20200127
-# These lines can be deleted once the package has passed.
-RUN rpm -ihv https://kojipkgs.fedoraproject.org/packages/python3-cheetah/3.2.4/1.el7/x86_64/python36-cheetah-3.2.4-1.el7.x86_64.rpm
-
 RUN yum install -y          \
 # Runtime dependencies
     httpd                   \
