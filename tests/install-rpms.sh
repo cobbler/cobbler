@@ -1,7 +1,6 @@
 #!/bin/bash
-# Utility script to build RPMs in a Docker container and then install them
-
-set -eo pipefail
+# Utility script to run Docker container without building the RPMs,
+# just install them. So make sure they are in rpm-build dir!
 
 if [ "$1" == "--with-tests" ]
 then
@@ -12,24 +11,11 @@ else
 fi
 
 TAG=$1
-DOCKERFILE=$2
-
 IMAGE=cobbler:$TAG
-
-# Build container
-echo "==> Build container ..."
-docker build -t "$IMAGE" -f "$DOCKERFILE" .
-
-# Build RPMs
-echo "==> Build RPMs ..."
-mkdir -p rpm-build
-docker run -ti -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
 echo "==> Start privileged container with systemd ..."
 docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE" /usr/lib/systemd/systemd --system
-echo "==> Docker logs ..."
-docker logs cobbler
 echo "==> Install fresh RPMs ..."
 docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
 # === HACK === HACK === HACK

@@ -13,7 +13,10 @@ RUN yum install -y          \
     git                     \
     rsync                   \
     make                    \
+    dnf-plugins-core        \
+    epel-rpm-macros         \
     openssl                 \
+    mod_ssl                 \
     python-sphinx           \
     python36-coverage       \
     python36-devel          \
@@ -30,6 +33,7 @@ RUN yum install -y          \
 # Runtime dependencies
     httpd                   \
     python36-mod_wsgi       \
+    python36-pymongo        \
     python36-PyYAML         \
     python36-netaddr        \
     python36-simplejson     \
@@ -37,6 +41,7 @@ RUN yum install -y          \
     python36-django         \
     python36-dns            \
     python36-ldap3          \
+    python36-cheetah        \
     createrepo              \
     xorriso                 \
     grub2-efi-ia32-modules  \

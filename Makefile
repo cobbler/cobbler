@@ -47,6 +47,8 @@ clean:
 	@rm -rf buildiso
 	@rm -f *.tmp
 	@rm -f *.log
+
+cleandoc:
 	@echo "cleaning: documentation"
 	@cd docs; make clean > /dev/null 2>&1
 
@@ -83,7 +85,7 @@ sdist: readme authors
 	@echo "creating: sdist"
 	@${PYTHON} setup.py sdist > /dev/null
 
-release: clean qa readme authors sdist doc
+release: clean qa readme authors sdist
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
@@ -203,5 +205,5 @@ eraseconfig:
 	-rm /var/lib/cobbler/collections/packages/*
 
 .PHONY: tags
-tags: 
+tags:
 	find . \( -name build -o -name .git \) -prune -o -type f -name '*.py' -print | xargs etags -o TAGS --
