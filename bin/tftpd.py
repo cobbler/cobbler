@@ -58,7 +58,7 @@ import logging
 import logging.handlers
 import xmlrpc.client
 
-from cobbler_collections import deque
+from collections import deque
 from fnmatch import fnmatch
 from cobbler.utils import local_get_cobbler_api_url
 from cobbler import settings
