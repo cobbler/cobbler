@@ -37,106 +37,118 @@ TODO
 
 """
 
-VERSION=0.5
-
-import sys, os, stat, errno, time, optparse, re, socket, pwd, traceback
-import logging, logging.handlers
+import errno
+import logging
+import logging.handlers
+import optparse
+import os
+import pwd
+import re
+import socket
+import stat
+import sys
+import time
+import traceback
 import xmlrpclib
 from collections import deque
-
 from fnmatch import fnmatch
-
-from cobbler.utils import local_get_cobbler_api_url, tftpboot_location
-
-import tornado.ioloop as ioloop
-import cobbler.templar
-import Cheetah # need exception types
-
 from struct import unpack, pack
 from subprocess import Popen, PIPE, STDOUT
-#import functools
+
+import Cheetah  # need exception types
+import tornado.ioloop as ioloop
+
+import cobbler.templar
+from cobbler.utils import local_get_cobbler_api_url, tftpboot_location
+
+# import functools
+
+VERSION = 0.5
 
 # Data/Defines
-TFTP_OPCODE_RRQ   = 1
-TFTP_OPCODE_DATA  = 3
-TFTP_OPCODE_ACK   = 4
+TFTP_OPCODE_RRQ = 1
+TFTP_OPCODE_DATA = 3
+TFTP_OPCODE_ACK = 4
 TFTP_OPCODE_ERROR = 5
-TFTP_OPCODE_OACK  = 6
+TFTP_OPCODE_OACK = 6
 
 COBBLER_HANDLE = xmlrpclib.Server(local_get_cobbler_api_url())
 
 OPTIONS = {
-    "port"       : "69",
+    "port": "69",
 
-    "timeout"    :   10,
-    "min_timeout":    1,
-    "max_timeout":  255,
+    "timeout": 10,
+    "min_timeout": 1,
+    "max_timeout": 255,
 
-    "blksize"    :  512, # that's the default, required
-    "max_blksize": 1428, # MTU - overhead
-    "min_blksize":  512, # the default is small enough already
+    "blksize": 512,  # that's the default, required
+    "max_blksize": 1428,  # MTU - overhead
+    "min_blksize": 512,  # the default is small enough already
 
-    "retries"    :    4,
+    "retries": 4,
 
-    "verbose"    : False,
-    "debug"      : False,
+    "verbose": False,
+    "debug": False,
 
-    "idle"       : 0, # how long to stick around: 0: unlimited
-    "idle_timer" : None,
+    "idle": 0,  # how long to stick around: 0: unlimited
+    "idle_timer": None,
 
-    "cache"          : True, # 'cache-time' = 300
-    "cache-time"     : 5 * 300,
-    "neg-cache-time" : 10,
+    "cache": True,  # 'cache-time' = 300
+    "cache-time": 5 * 300,
+    "neg-cache-time": 10,
 
-    "active"     : 0,
+    "active": 0,
 
-    "prefix"     : tftpboot_location(),
+    "prefix": tftpboot_location(),
 
-    "logger"     : "stream",
+    "logger": "stream",
 
-    "file_cmd"   : "/usr/bin/file",
-    "user"       : "nobody",
+    "file_cmd": "/usr/bin/file",
+    "user": "nobody",
 
     # the well known socket.  needs to be global for timeout
     # Using the options hash as a hackaround for python's
     # "create a new object at local scope by default" design.
-    "sock"       : None
+    "sock": None
 }
 
 ERRORS = [
     'Not defined, see error message (if any)',  # 0
-    'File not found',                           # 1
-    'Access violation',                         # 2
-    'Disk full or allocation exceeded',         # 3
-    'Illegal TFTP operation',                   # 4
-    'Unknown transfer ID',                      # 5
-    'File already exists',                      # 6
-    'No such user',                             # 7
-    'Option negotiation'                        # 8
+    'File not found',  # 1
+    'Access violation',  # 2
+    'Disk full or allocation exceeded',  # 3
+    'Illegal TFTP operation',  # 4
+    'Unknown transfer ID',  # 5
+    'File already exists',  # 6
+    'No such user',  # 7
+    'Option negotiation'  # 8
 ]
 
 REQUESTS = None
+
 
 class RenderedFile:
     """A class to manage rendered files, without changing the logic
        of the rest of the TFTP server.  It replaces the file object
        via duck typing, and feeds out sections of the saved string
        as required"""
+
     def __init__(self, data=""):
         """Provide the string to be served out as an argument to the
            constructor.  The data object needs to support slices."""
         self.data = data
         self.offset = 0
 
-    def seek(self,bytes):
+    def seek(self, bytes):
         """Only the two-argument version of seek (SEEK_SET) is currently
         supported"""
         self.offset = bytes
 
-    def read(self,size):
+    def read(self, size):
         """Returns <size> bytes relative to the current offset."""
         end = self.offset + size
         return self.data[self.offset:end]
+
 
 class Packet:
     """Represents a packet received (or sent?) from a tftp client.
@@ -149,17 +161,19 @@ class Packet:
        Any strings that control behavior (mode, rfc2347 options) are
        case-INsensitive.  Filename is allowed to be case sensitive
     """
+
     def __init__(self, data, local_sock, remote_addr):
-        self.data        = data
-        self.local_sock  = local_sock
+        self.data = data
+        self.local_sock = local_sock
         self.remote_addr = remote_addr
-        self.opcode,  = unpack("!H",data[0:2])
+        self.opcode, = unpack("!H", data[0:2])
 
     def marshall(self):
         raise NotImplementedError("%s: Write marshall method" % repr(self))
 
     def is_error(self):
         return False
+
 
 class RRQPacket(Packet):
     """The RRQ Packet.  We only receive those, so this object only
@@ -173,28 +187,30 @@ class RRQPacket(Packet):
      rfc2347 | name |   \0   | value | \0 | [*]
               ----------------------------
     """
+
     def __init__(self, data, local_sock, remote_addr):
-        Packet.__init__(self,data,local_sock,remote_addr)
+        Packet.__init__(self, data, local_sock, remote_addr)
 
         # opcode already extracted, and unpack is awkward for this
         # so pulling out strings by hand
-        (file,mode,rfc2347str) = data[2:].split('\0',2)
+        (file, mode, rfc2347str) = data[2:].split('\0', 2)
 
-        logging.debug("RRQ for file %s(%s) from %s"%(file,mode,remote_addr))
+        logging.debug("RRQ for file %s(%s) from %s" % (file, mode, remote_addr))
         # Ug.  Can't come up with a simplier way of doing this
         if rfc2347str:
             # the "-1" is to trim off the trailing \0
             self.req_options = deque(rfc2347str[:-1].split('\0'))
             logging.debug("client %s requested options: %s" % (
-                str(remote_addr),str(rfc2347str.replace('\0',','))))
+                str(remote_addr), str(rfc2347str.replace('\0', ','))))
         else:
             self.req_options = deque()
 
-        self.filename    = file
-        self.mode        = mode
- 
-    def get_request(self,templar):
-        return Request(file,self.remote_addr,templar)
+        self.filename = file
+        self.mode = mode
+
+    def get_request(self, templar):
+        return Request(file, self.remote_addr, templar)
+
 
 class DATAPacket(Packet):
     """The DATA packet.  We only send these, so this object only
@@ -204,12 +220,15 @@ class DATAPacket(Packet):
        DATA  | 03    |   Block #  |    Data    |
              -----------------------------------
     """
+
     def __init__(self, data, blk_num):
-        self.data    = data;
-        self.blk_num = blk_num;
+        self.data = data
+        self.blk_num = blk_num
+
     def marshall(self):
         return pack("!HH %ds" % (len(self.data)),
-                    TFTP_OPCODE_DATA, self.blk_num & 0xFFFF ,str(self.data))
+                    TFTP_OPCODE_DATA, self.blk_num & 0xFFFF, str(self.data))
+
 
 class ACKPacket(Packet):
     """The ACK packet.  We only receive these.
@@ -220,14 +239,15 @@ class ACKPacket(Packet):
     """
 
     def __init__(self, data, local_sock, remote_addr):
-        Packet.__init__(self,data,local_sock,remote_addr)
-        block_number, = unpack("!H",data[2:4])
-        logging.log(9,"ACK for packet %d from %s"%(block_number,remote_addr))
+        Packet.__init__(self, data, local_sock, remote_addr)
+        block_number, = unpack("!H", data[2:4])
+        logging.log(9, "ACK for packet %d from %s" % (block_number, remote_addr))
         self.block_number = block_number
 
     def marshall(self):
         raise NotImplementedError("We don't send these, we read them")
         return pack("!HH", TFTP_OPCODE_ACK, self.block_number)
+
 
 class ERRORPacket(Packet):
     """The error packet.  We could send or receive these.
@@ -237,28 +257,30 @@ class ERRORPacket(Packet):
         ERROR | 05    |  ErrorCode |   ErrMsg   |   0  |
               ------------------------------------------
     """
-    def __init__(self, data, local_sock, remote_addr):
-        Packet.__init__(self,data,local_sock,remote_addr)
-        self.error_code, = unpack("!h",data[2:4])
-        self.error_str   = data[4:-1]
-        logging.debug("ERROR %d: %s from %s"%
-                (self.error_code,self.error_str,remote_addr))
 
-#    def __init__(self, error_code, error_str):
-#        self.error_code = error_code
-#        self.error_str  = error_str
+    def __init__(self, data, local_sock, remote_addr):
+        Packet.__init__(self, data, local_sock, remote_addr)
+        self.error_code, = unpack("!h", data[2:4])
+        self.error_str = data[4:-1]
+        logging.debug("ERROR %d: %s from %s" %
+                      (self.error_code, self.error_str, remote_addr))
+
+    #    def __init__(self, error_code, error_str):
+    #        self.error_code = error_code
+    #        self.error_str  = error_str
 
     def is_error(self):
         return True
 
     def marshall(self):
         return pack("!HH %dsB" % (len(self.error_str)),
-                    TFTP_OPCODE_ERROR, self.error_code, self.error_str,0)
+                    TFTP_OPCODE_ERROR, self.error_code, self.error_str, 0)
 
     @staticmethod
     def static_marshall(error_code, error_str):
         return pack("!HH %dsB" % (len(error_str)),
-                    TFTP_OPCODE_ERROR, error_code, error_str,0)
+                    TFTP_OPCODE_ERROR, error_code, error_str, 0)
+
 
 class OACKPacket(Packet):
     """The Option Acknowledge (rfc2347) packet.  We only send these.
@@ -272,13 +294,14 @@ class OACKPacket(Packet):
     """
 
     def __init__(self, rfc2347):
-        self.opcode  = TFTP_OPCODE_OACK
+        self.opcode = TFTP_OPCODE_OACK
         self.options = rfc2347
 
     def marshall(self):
         optstr = "\0".join(map(lambda x: str(x), self.options))
 
-        return pack("!H %ds c" % (len(optstr)),self.opcode, optstr, '\0')
+        return pack("!H %ds c" % (len(optstr)), self.opcode, optstr, '\0')
+
 
 class XMLRPCSystem:
     """Use XMLRPC to look up system attributes.  This is the recommended
@@ -288,6 +311,7 @@ class XMLRPCSystem:
        option
     """
     cache = {}
+
     def __init__(self, ip_address=None, mac_address=None):
         name = None
         resolve = True
@@ -304,17 +328,17 @@ class XMLRPCSystem:
 
                 if name is not None:
                     logging.debug("Using cache name for system %s,%s"
-                              % (cache_ent["name"],ip_address))
+                                  % (cache_ent["name"], ip_address))
                     resolve = False
                 elif (name is None and mac_address is None and
-                        cache_ent["time"] + neg_cache_time > now):
+                      cache_ent["time"] + neg_cache_time > now):
                     age = (cache_ent["time"] + neg_cache_time) - now
                     logging.debug("Using neg-cache for system %s:%f"
-                                  %(ip_address,age))
+                                  % (ip_address, age))
                     resolve = False
                 else:
                     age = (cache_ent["time"] + neg_cache_time) - now
-                    logging.debug("ignoring cache for %s:%d"%(ip_address,age))
+                    logging.debug("ignoring cache for %s:%d" % (ip_address, age))
 
                 # Don't bother trying to find it.. until the neg-cache-time
                 # expires anyway
@@ -325,7 +349,7 @@ class XMLRPCSystem:
         if resolve:
             query = {}
             if mac_address is not None:
-                query["mac_address"] = mac_address.replace("-",":").upper()
+                query["mac_address"] = mac_address.replace("-", ":").upper()
             elif ip_address is not None:
                 query["ip_address"] = ip_address
 
@@ -336,71 +360,73 @@ class XMLRPCSystem:
                     raise RuntimeError("Args mapped to multiple systems")
                 elif len(systems) == 0:
                     raise RuntimeError("%s,%s not found in cobbler"
-                                % (ip_address,mac_address))
+                                       % (ip_address, mac_address))
                 name = systems[0]
 
             except RuntimeError, e:
                 logging.info(str(e))
                 name = None
             except:
-                (etype,eval,) = sys.exc_info()[:2]
+                (etype, eval,) = sys.exc_info()[:2]
                 logging.warn("Exception retrieving rendered system: %s (%s):%s"
-                                % (name,eval,traceback.format_exc()))
+                             % (name, eval, traceback.format_exc()))
                 name = None
 
         if name is not None:
             logging.debug("Materializing system %s" % name)
             try:
                 self.system = COBBLER_HANDLE.get_system_for_koan(name)
-                self.attrs  = self.system
-                self.name   = self.attrs["name"]
+                self.attrs = self.system
+                self.name = self.attrs["name"]
             except:
-                (etype,eval,) = sys.exc_info()[:2]
-                logging.warn ("Exception Materializing system %s (%s):%s"
-                                % (name,eval,traceback.format_exc()))
+                (etype, eval,) = sys.exc_info()[:2]
+                logging.warn("Exception Materializing system %s (%s):%s"
+                             % (name, eval, traceback.format_exc()))
                 if XMLRPCSystem.cache.has_key(ip_address):
                     del XMLRPCSystem.cache[ip_address]
                 self.system = None
-                self.attrs  = dict()
-                self.name   = str(ip_address)
+                self.attrs = dict()
+                self.name = str(ip_address)
         else:
             self.system = None
-            self.attrs  = dict()
-            self.name   = str(ip_address)
+            self.attrs = dict()
+            self.name = str(ip_address)
 
         # fill the cache, negative entries too
         if OPTIONS["cache"] and resolve:
-            logging.debug("Putting %s,%s into cache"%(name,ip_address))
+            logging.debug("Putting %s,%s into cache" % (name, ip_address))
             XMLRPCSystem.cache[ip_address] = {
-                "name" : name,
-                "time" : time.time(),
+                "name": name,
+                "time": time.time(),
             }
+
 
 class Request:
     """Handles the "business logic" of the TFTP server.  One instance
     is spawned per client request (RRQ packet received on well-known port)
     and it is responsible for keeping track of where the file transfer
     is..."""
-    def __init__(self,rrq_packet,local_sock,templar):
+
+    def __init__(self, rrq_packet, local_sock, templar):
         # Trim leading /s, since that's kinda implicit
-        self.filename    = rrq_packet.filename.lstrip('/') # assumed
-        self.type        = "chroot"
+        self.filename = rrq_packet.filename.lstrip('/')  # assumed
+        self.type = "chroot"
         self.remote_addr = rrq_packet.remote_addr
         self.req_options = rrq_packet.req_options
-        self.options     = dict()
-        self.offset      = 0
-        self.local_sock  = local_sock
-        self.state       = TFTP_OPCODE_RRQ
-        self.expand      = False
-        self.templar     = templar
+        self.options = dict()
+        self.offset = 0
+        self.local_sock = local_sock
+        self.state = TFTP_OPCODE_RRQ
+        self.expand = False
+        self.templar = templar
 
         # Sanitize input more
         # Strip out \s
-        self.filename = self.filename.replace('\\','')
+        self.filename = self.filename.replace('\\', '')
         # Look for elements starting with ".", and blow up.
         try:
             if len(self.filename) == 0:
-                    raise RuntimeError("Empty Path: ")
+                raise RuntimeError("Empty Path: ")
             for elm in self.filename.split("/"):
                 if elm[0] == ".":
                     raise RuntimeError("Path includes '.': ")
@@ -414,7 +440,7 @@ class Request:
         OPTIONS["active"] += 1
         self.system = XMLRPCSystem(self.remote_addr[0])
 
-    def _remap_strip_ip(self,filename):
+    def _remap_strip_ip(self, filename):
         # remove per-host IP or Mac prefixes, so that earlier pxelinux requests
         # can be templated.  We are already doing per-host stuff, so we don't
         # need the IP addresses/mac addresses tacked on
@@ -428,61 +454,61 @@ class Request:
             m = re.compile("01((-[0-9a-f]{2}){6})$").search(filename)
             if m:
                 # Found a mac address.  try and look up a system
-                self.system = XMLRPCSystem(self.system.name,m.group(1)[1:])
+                self.system = XMLRPCSystem(self.system.name, m.group(1)[1:])
                 if self.system.system is not None:
                     logging.info("Looked up host late: '%s'" % self.system.name)
                     return self._remap_strip_ip(filename)
 
             # We can still trim off an ip address... system.name is the
             # incoming ip
-            suffix = "/%08X" %unpack('!L',socket.inet_aton(self.system.name))[0]
-            if suffix and trimmed[len(trimmed)-len(suffix):] == suffix:
-                trimmed = trimmed.replace(suffix,"")
+            suffix = "/%08X" % unpack('!L', socket.inet_aton(self.system.name))[0]
+            if suffix and trimmed[len(trimmed) - len(suffix):] == suffix:
+                trimmed = trimmed.replace(suffix, "")
                 logging.debug('_remap_strip_ip: converted %s to %s'
                               % (filename, trimmed))
                 return trimmed
         else:
             # looking over all keys, because I have to search for keys I want
-            for (k,v) in self.system.system.iteritems():
+            for (k, v) in self.system.system.iteritems():
                 suffix = False
                 # if I find a mac_address key or ip_address key, then see if
                 # that matches the file I'm looking at
                 if k.find("mac_address") >= 0 and v != '':
                     # the "01" is the ARP type of the interface.  01 is
                     # ethernet.  This won't work for token ring, for example
-                    suffix = "/01-" + v.replace(":","-").lower()
+                    suffix = "/01-" + v.replace(":", "-").lower()
                 elif k.find("ip_address") >= 0 and v != '':
                     # IPv4 hardcoded here.
-                    suffix = "/%08X" % unpack('!L',socket.inet_aton(v))[0]
+                    suffix = "/%08X" % unpack('!L', socket.inet_aton(v))[0]
 
-                if suffix and trimmed[len(trimmed)-len(suffix):] == suffix:
-                    trimmed = trimmed.replace(suffix,"")
+                if suffix and trimmed[len(trimmed) - len(suffix):] == suffix:
+                    trimmed = trimmed.replace(suffix, "")
                     logging.debug('_remap_strip_ip: converted %s to %s'
                                   % (filename, trimmed))
                     return trimmed
         return filename
 
-    def _remap_via_profiles(self,filename):
+    def _remap_via_profiles(self, filename):
         pattern = re.compile("images/([^/]*)/(.*)")
         m = pattern.match(filename)
         if m:
             logging.debug("client requesting distro?")
             p = COBBLER_HANDLE.get_distro_for_koan(m.group(1))
             if p:
-                logging.debug("%s matched distro %s" % (filename,p["name"]))
+                logging.debug("%s matched distro %s" % (filename, p["name"]))
                 if m.group(2) == os.path.basename(p["kernel"]):
-                    return p["kernel"],"template"
+                    return p["kernel"], "template"
                 elif m.group(2) == os.path.basename(p["initrd"]):
-                    return p["initrd"],"template"
+                    return p["initrd"], "template"
                 logging.debug("but unknown file requested.")
             else:
                 logging.debug("Couldn't load profile %s" % m.group(1))
-        return filename,"chroot"
+        return filename, "chroot"
 
-    def _remap_name_via_fetchable(self,filename):
+    def _remap_name_via_fetchable(self, filename):
         fetchable_files = self.system.attrs["fetchable_files"].strip()
         if not fetchable_files:
-            return filename,None
+            return filename, None
 
         # We support two types of matches in fetchable_files
         # * Direct match ("/foo=/bar")
@@ -492,82 +518,82 @@ class Request:
 
         # Look for the file in the fetchable_files hash
         # XXX: Template name
-        for (k,v) in map(lambda x: x.split("="),fetchable_files.split(" ")):
-            k = k.lstrip('/') # Allow some slop w/ starting /s
+        for (k, v) in map(lambda x: x.split("="), fetchable_files.split(" ")):
+            k = k.lstrip('/')  # Allow some slop w/ starting /s
             # Full Path: "/foo=/bar"
             result = None
 
             if k == filename:
-                logging.debug('_remap_name: %s => %s' % (k,v))
+                logging.debug('_remap_name: %s => %s' % (k, v))
                 result = v
             # Glob Path: "/foo/*=/bar/"
             else:
                 match = glob_pattern.search(k)
-                if match and fnmatch("/"+filename,"/"+k):
-                    logging.debug('_remap_name (glob): %s => %s' % (k,v))
+                if match and fnmatch("/" + filename, "/" + k):
+                    logging.debug('_remap_name (glob): %s => %s' % (k, v))
                     # Erase the trailing '/?[*]' in key
                     # Replace the matching leading portion in filename
                     # with the value 
                     # Expand the result
                     if match.group(1):
-                        lead_dir = glob_pattern.sub(match.group(1),k)
+                        lead_dir = glob_pattern.sub(match.group(1), k)
                     else:
-                        lead_dir = glob_pattern.sub("",k)
-                    result = filename.replace(lead_dir,v,1)
-            
+                        lead_dir = glob_pattern.sub("", k)
+                    result = filename.replace(lead_dir, v, 1)
+
             # Render the target, to expand things like "$kernel"
             if result is not None:
                 try:
                     return self.templar.render(
-                        result, self.system.attrs, None).strip(),"template"
+                        result, self.system.attrs, None).strip(), "template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
-                                 % (filename,result,e))
+                                 % (filename, result, e))
 
-        return filename,None
+        return filename, None
 
-    def _remap_name_via_boot_files(self,filename):
+    def _remap_name_via_boot_files(self, filename):
 
         boot_files = self.system.attrs["boot_files"].strip()
         if not boot_files:
             logging.debug('_remap_name: no boot_files for %s/%s'
-                          % (self.system,filename))
-            return filename,None
+                          % (self.system, filename))
+            return filename, None
 
-        filename = filename.lstrip('/') # assumed
+        filename = filename.lstrip('/')  # assumed
 
         # Override "img_path", as that's the only variable used by 
         # the VMWare boot_files support, and they use a slightly different
         # definition: one that's relative to tftpboot
         attrs = self.system.attrs.copy()
-        attrs["img_path"] = os.path.join("images",attrs["distro_name"])
+        attrs["img_path"] = os.path.join("images", attrs["distro_name"])
 
         # Look for the file in the boot_files hash
-        for (k,v) in map(lambda x: x.split("="),boot_files.split(" ")):
-            k = k.lstrip('/') # Allow some slop w/ starting /s
+        for (k, v) in map(lambda x: x.split("="), boot_files.split(" ")):
+            k = k.lstrip('/')  # Allow some slop w/ starting /s
 
             # Render the key, to expand things like "$img_path"
             try:
                 expanded_k = self.templar.render(k, attrs, None)
             except Cheetah.Parser.ParseError, e:
                 logging.warn('Unable to expand name: %s(%s): %s'
-                             % (filename,k,e))
+                             % (filename, k, e))
                 continue
 
             if expanded_k == filename:
                 # Render the target, to expand things like "$kernel"
-                logging.debug('_remap_name: %s => %s' % (expanded_k,v))
+                logging.debug('_remap_name: %s => %s' % (expanded_k, v))
 
                 try:
-                    return self.templar.render(v, attrs,None).strip(),"template"
+                    return self.templar.render(v, attrs, None).strip(), "template"
                 except Cheetah.Parser.ParseError, e:
                     logging.warn('Unable to expand name: %s(%s): %s'
-                                 % (filename,v,e))
+                                 % (filename, v, e))
 
-        return filename,None
+        return filename, None
 
-    def _remap_name(self,filename):
-        filename = filename.lstrip('/') # assumed
+    def _remap_name(self, filename):
+        filename = filename.lstrip('/')  # assumed
         # If possible, ignore pxelinux.0 added things we already know
         trimmed = self._remap_strip_ip(filename)
 
@@ -578,39 +604,39 @@ class Request:
         # Specific hacks to handle the PXE/initrd case without any configuration
         if self.system.attrs.has_key(trimmed):
             if trimmed in ["pxelinux.cfg"]:
-                return trimmed,"hash_value"
+                return trimmed, "hash_value"
             elif trimmed in ["initrd"]:
-                return self.system.attrs[trimmed],"template"
+                return self.system.attrs[trimmed], "template"
 
         # for the two tests below, I want to ignore "pytftp.*" in the string,
         # which allows for some minimal control over extensions, which matters
         # to pxelinux.0
-        noext = re.sub("pytftpd.*","",filename)
+        noext = re.sub("pytftpd.*", "", filename)
         if self.system.attrs.has_key(noext) and noext in ["kernel"]:
-            return self.system.attrs[noext],"template"
+            return self.system.attrs[noext], "template"
 
-        (new_name,find_type) = self._remap_name_via_fetchable(trimmed)
+        (new_name, find_type) = self._remap_name_via_fetchable(trimmed)
         if find_type is not None:
-            return new_name,find_type
+            return new_name, find_type
 
-        (new_name,find_type) = self._remap_name_via_boot_files(trimmed)
+        (new_name, find_type) = self._remap_name_via_boot_files(trimmed)
         if find_type is not None:
-            return new_name,find_type
+            return new_name, find_type
 
         # last try: try profiles
         return self._remap_via_profiles(trimmed)
 
     def _render_template(self):
         try:
-            return RenderedFile(self.templar.render(open(self.filename,"r"),
-                                self.system.attrs,None))
+            return RenderedFile(self.templar.render(open(self.filename, "r"),
+                                                    self.system.attrs, None))
         except Cheetah.Parser.ParseError, e:
             logging.warn('Unable to expand template: %s: %s'
-                         % (self.filename,e))
+                         % (self.filename, e))
             return None
         except IOError, e:
             logging.warn('Unable to expand template: %s: %s'
-                         % (self.filename,e))
+                         % (self.filename, e))
             return None
 
     def _setup_xfer(self):
@@ -619,15 +645,15 @@ class Request:
            avoid setting state after calling this method.
         """
         logging.info('host %s requesting %s' %
-            (self.system.name, self.filename))
+                     (self.system.name, self.filename))
 
-        self.filename,self.type = self._remap_name(self.filename)
+        self.filename, self.type = self._remap_name(self.filename)
         logging.debug('host %s getting %s: %s' %
-                        (self.system.name,self.filename,self.type))
+                      (self.system.name, self.filename, self.type))
         if self.type == "template":
             # TODO: Add file magic here
-            output = Popen([OPTIONS["file_cmd"],self.filename],
-                           stdout=PIPE,stderr=STDOUT,
+            output = Popen([OPTIONS["file_cmd"], self.filename],
+                           stdout=PIPE, stderr=STDOUT,
                            close_fds=True).communicate()[0]
             if output.find(" text") >= 0:
                 self.file = self._render_template()
@@ -639,7 +665,7 @@ class Request:
                     logging.debug('Template failed to render.')
             else:
                 logging.debug('Not rendering binary file %s (%s).'
-                              % (self.filename,output))
+                              % (self.filename, output))
         elif self.type == "hash_value":
             self.file = RenderedFile(self.system.attrs[self.filename])
             self.block_count = 0
@@ -653,29 +679,29 @@ class Request:
         #       add: for pxeboot, or other non pxelinux
         try:
             logging.debug('starting xfer of %s to %s' %
-                          (self.filename,self.remote_addr));
+                          (self.filename, self.remote_addr));
             # Templates are specified by an absolute path
             if self.type == "template":
-                self.file = open(self.filename,'rb',0)
+                self.file = open(self.filename, 'rb', 0)
             else:
                 # TODO! restrict.  Chroot?
                 # We are sanitizing in the input, but a second line of defense
                 # wouldn't be a bad idea
-                self.file = open(OPTIONS["prefix"] + "/" + self.filename,'rb',0)
+                self.file = open(OPTIONS["prefix"] + "/" + self.filename, 'rb', 0)
             self.block_count = 0
             self.file_size = os.fstat(self.file.fileno()).st_size
         except IOError:
             logging.debug('%s requested %s: file not found.' %
                           (self.remote_addr, self.filename))
-            self.state      = TFTP_OPCODE_ERROR
+            self.state = TFTP_OPCODE_ERROR
             self.error_code = 1
-            self.error_str  = "No such file"
+            self.error_str = "No such file"
         return
 
     def finish(self):
         io_loop = ioloop.IOLoop.instance()
         logging.debug("finishing req from %s for %s" %
-                      (self.filename,self.remote_addr))
+                      (self.filename, self.remote_addr))
 
         self.state = 0
         try:
@@ -691,7 +717,7 @@ class Request:
 
         OPTIONS["active"] -= 1
         if (OPTIONS["idle"] > 0
-            and OPTIONS["active"] == 0 and OPTIONS["idle_timer"] is None):
+                and OPTIONS["active"] == 0 and OPTIONS["idle_timer"] is None):
             io_loop.stop()
 
     def handle_timeout(self):
@@ -700,15 +726,15 @@ class Request:
         self.timeout = None
         self.finish()
 
-    def handle_input(self,packet):
+    def handle_input(self, packet):
         """The client sent us a new packet.  Respond to it.
            RRQ is handled in the constructor sequence, basically.
            This should handle everything else"""
         # We got input, so didn't time out.  Refresh the timeout
         io_loop = ioloop.IOLoop.instance()
         io_loop.remove_timeout(self.timeout)
-        self.timeout = io_loop.add_timeout(time.time()+self.options["timeout"],
-                                           lambda : self.handle_timeout())
+        self.timeout = io_loop.add_timeout(time.time() + self.options["timeout"],
+                                           lambda: self.handle_timeout())
 
         if packet.opcode == TFTP_OPCODE_ACK:
             if self.state == TFTP_OPCODE_DATA:
@@ -716,8 +742,8 @@ class Request:
                 # the FFFF are to permit wrap.  It's OK for the block
                 # number to wrap, since it's one client (and not unicast),
                 # so the client can figure that out.
-                if ( (packet.block_number & 0xFFFF) ==
-                    ((self.block_count + 1) & 0xFFFF)):
+                if ((packet.block_number & 0xFFFF) ==
+                        ((self.block_count + 1) & 0xFFFF)):
                     # Only update if they actually ack the packet we
                     # sent, but we'll still resend the last packet either way
                     self.block_count += 1
@@ -751,7 +777,7 @@ class Request:
             if self.file_size < offset:
                 # We're done.
                 logging.info('Transfer of %s to %s done'
-                             % (self.filename,self.remote_addr))
+                             % (self.filename, self.remote_addr))
                 return None
 
             self.file.seek(self.block_count * self.options["blksize"])
@@ -759,10 +785,10 @@ class Request:
 
             self.state = TFTP_OPCODE_DATA
             # Block Count starts at 1, so offset
-            logging.log(9,"DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
-                self.remote_addr[0],self.remote_addr[1],
-                self.block_count + 1, (self.block_count+1)&0xFFFF,
-                len(data),offset+len(data),self.file_size))
+            logging.log(9, "DATA to %s/%d, block_count %d/%d, size %d(%d/%d)" % (
+                self.remote_addr[0], self.remote_addr[1],
+                self.block_count + 1, (self.block_count + 1) & 0xFFFF,
+                len(data), offset + len(data), self.file_size))
             return DATAPacket(data, self.block_count + 1)
 
         if self.state == 0:
@@ -796,31 +822,31 @@ class Request:
 
             # make sure we have defaults
             self.options = dict(
-                blksize = OPTIONS["blksize"],
-                timeout = OPTIONS["timeout"]);
+                blksize=OPTIONS["blksize"],
+                timeout=OPTIONS["timeout"]);
 
             accepted_opts = []
             # Sorry for the excessive complexity here.
             # I'm trying to maintain client's case and order, to protect
             # against braindamaged clients.  Given clients are frequently
             # written in assembly, they can be excused some braindamage
-            logging.debug("Requested options: %s"%(repr(self.req_options)))
-            for i in range(0,len(self.req_options),2):
-                key   = self.req_options[i]
-                value = self.req_options[i+1]
+            logging.debug("Requested options: %s" % (repr(self.req_options)))
+            for i in range(0, len(self.req_options), 2):
+                key = self.req_options[i]
+                value = self.req_options[i + 1]
 
                 logging.debug("looking at key %s" % (key))
                 if key.lower() == "tsize":
                     accepted_opts.append(key)
                     accepted_opts.append(self.file_size)
-                elif ("min_"+key).lower() in OPTIONS:
-                    value = int(value) # string
+                elif ("min_" + key).lower() in OPTIONS:
+                    value = int(value)  # string
                     # if it's an option we know about/can bound
-                    upper_bound = OPTIONS[("max_"+key).lower()]
-                    lower_bound = OPTIONS[("min_"+key).lower()]
+                    upper_bound = OPTIONS[("max_" + key).lower()]
+                    lower_bound = OPTIONS[("min_" + key).lower()]
 
                     logging.debug("%s: req: %d (%d - %d)"
-                                 % (key,value,lower_bound,upper_bound))
+                                  % (key, value, lower_bound, upper_bound))
                     if value < lower_bound:
                         value = lower_bound
                     if value > upper_bound:
@@ -833,7 +859,7 @@ class Request:
                     # ignore it, do not include in the OACK
                     logging.info("Unknown option requested %s" % (key))
 
-            logging.debug("Using Options: %s"%(repr(self.options)))
+            logging.debug("Using Options: %s" % (repr(self.options)))
 
             return OACKPacket(accepted_opts)
 
@@ -841,10 +867,10 @@ class Request:
             # No options.  Fill in the defaults
             # and then recurse, pretending we just got the ACK to our OACK
             self.options = dict(
-                blksize = OPTIONS["blksize"],
-                timeout = OPTIONS["timeout"]);
+                blksize=OPTIONS["blksize"],
+                timeout=OPTIONS["timeout"])
 
-            logging.debug("Using Options: %s"%(repr(self.options)))
+            logging.debug("Using Options: %s" % (repr(self.options)))
 
             self.state = TFTP_OPCODE_ACK
 
@@ -860,44 +886,46 @@ class Request:
 
         raise NotImplementedError("Unknown state %d" % (self.state))
 
-REQ_NAME   = 0
-REQ_CLASS  = 1
+
+REQ_NAME = 0
+REQ_CLASS = 1
 REQUESTS = [
-    [ "INVALID", None           ],  # 0
-    [ "RRQ",     RRQPacket      ],  # 1
-    [ "WRQ",     None           ],  # 2
-    [ "DATA",    None           ],  # 3
-    [ "ACK",     ACKPacket      ],  # 4
-    [ "ERROR",   None           ],  # 5
-    [ "OACK",    OACKPacket     ]   # 6
+    ["INVALID", None],  # 0
+    ["RRQ", RRQPacket],  # 1
+    ["WRQ", None],  # 2
+    ["DATA", None],  # 3
+    ["ACK", ACKPacket],  # 4
+    ["ERROR", None],  # 5
+    ["OACK", OACKPacket]  # 6
 ]
 
 
-def read_packet(data,local_sock,remote_addr):
+def read_packet(data, local_sock, remote_addr):
     """Object factory.  Reads the first tiny bit of the packet to get the
        opcode, and returns a Packet object of the relevant type
        
        Returns None on failure
     """
-    opcode, = unpack("!H",data[0:2])
+    opcode, = unpack("!H", data[0:2])
     if opcode < 1 or opcode > 6:
-        logging.warn("Unknown request id %d from %s" % (opcode,remote_addr))
-        local_sock.sendto(ERRORPacket.static_marshall(0,"Unknown request"),
+        logging.warn("Unknown request id %d from %s" % (opcode, remote_addr))
+        local_sock.sendto(ERRORPacket.static_marshall(0, "Unknown request"),
                           remote_addr)
         return None
 
     if REQUESTS[opcode][REQ_CLASS] == None:
         if opcode != TFTP_OPCODE_ERROR:
-                logging.warn("Unsupported request %d(%s) from %s"
-                        % (opcode,REQUESTS[opcode][REQ_NAME],remote_addr))
+            logging.warn("Unsupported request %d(%s) from %s"
+                         % (opcode, REQUESTS[opcode][REQ_NAME], remote_addr))
         local_sock.sendto(
-            ERRORPacket.static_marshall(2,"Unsupported request"),remote_addr)
+            ERRORPacket.static_marshall(2, "Unsupported request"), remote_addr)
         return None
 
     try:
-        return (REQUESTS[opcode][REQ_CLASS])(data,local_sock,remote_addr)
+        return (REQUESTS[opcode][REQ_CLASS])(data, local_sock, remote_addr)
     except:
         return None
+
 
 def partial(func, *args, **keywords):
     """Method factory.  Returns a semi-anonymous method that provides
@@ -910,16 +938,19 @@ def partial(func, *args, **keywords):
             fn = partial(add,1) # always pass 1 as the first arg to add
             fn(2) # returns 1+2
     """
+
     def newfunc(*fargs, **fkeywords):
         newkeywords = keywords.copy()
         newkeywords.update(fkeywords)
         return func(*(args + fargs), **newkeywords)
+
     newfunc.func = func
     newfunc.args = args
     newfunc.keywords = keywords
     return newfunc
 
-def handle_request(request,fd,events):
+
+def handle_request(request, fd, events):
     """Used as the IO handler for subsequent requests.  Followup
        packets for a given request are sent to a different port, because
        UDP doesn't have it's own connection concept.  Also packets
@@ -931,9 +962,9 @@ def handle_request(request,fd,events):
        with the port.
     """
     try:
-        while request.state != 0: # 0 is the "done" state
+        while request.state != 0:  # 0 is the "done" state
             try:
-                data,address = request.local_sock.recvfrom(
+                data, address = request.local_sock.recvfrom(
                     request.options["blksize"]);
             except socket.error, e:
                 if e[0] in (errno.EWOULDBLOCK, errno.EAGAIN):
@@ -942,7 +973,7 @@ def handle_request(request,fd,events):
                     raise
 
             if address == request.remote_addr:
-                packet = read_packet(data,request.local_sock,address)
+                packet = read_packet(data, request.local_sock, address)
                 if (packet is None):
                     request.finish()
                     continue
@@ -951,7 +982,7 @@ def handle_request(request,fd,events):
                 reply = request.reply()
 
                 if reply:
-                    request.local_sock.sendto(reply.marshall(),address)
+                    request.local_sock.sendto(reply.marshall(), address)
 
                 if not reply or reply is ERRORPacket:
                     request.finish()
@@ -966,8 +997,9 @@ def handle_request(request,fd,events):
             except:
                 pass
             OPTIONS["idle_timer"] = io_loop.add_timeout(
-                time.time()+OPTIONS["idle"],
-                lambda : idle_out())
+                time.time() + OPTIONS["idle"],
+                lambda: idle_out())
+
 
 def idle_out():
     logging.info("Idling out")
@@ -977,6 +1009,7 @@ def idle_out():
     if OPTIONS["active"] == 0:
         OPTIONS["idle_timer"] = None
         io_loop.stop()
+
 
 # called from ioloop.py:245
 def new_req(sock, templar, fd, events):
@@ -993,23 +1026,23 @@ def new_req(sock, templar, fd, events):
 
     while True:
         try:
-            data,address = sock.recvfrom(OPTIONS["blksize"]);
+            data, address = sock.recvfrom(OPTIONS["blksize"]);
         except socket.error, e:
             if e[0] not in (errno.EWOULDBLOCK, errno.EAGAIN):
                 raise
             break
 
-        packet = read_packet(data,sock,address)
+        packet = read_packet(data, sock, address)
         # this is the new_request handler.  (packet had better be an RRQ
         # request)
         if packet is None or packet.opcode != TFTP_OPCODE_RRQ:
             sock.sendto(
-                ERRORPacket.static_marshall(2,"Unsupported initial request"),address)
+                ERRORPacket.static_marshall(2, "Unsupported initial request"), address)
             break
 
         # Create the new transient port for this request
-        new_address = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
-        new_address.bind(("",0)) # random port: XXX control?
+        new_address = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
+        new_address.bind(("", 0))  # random port: XXX control?
         logging.debug("Bound to transient socket %d" %
                       new_address.getsockname()[1])
         new_address.setblocking(0)
@@ -1017,82 +1050,83 @@ def new_req(sock, templar, fd, events):
 
         # Create the request object to handle this request, and bind it
         # to IO from the transient port
-        request = Request(packet,new_address,templar)
+        request = Request(packet, new_address, templar)
         io_loop.add_handler(
             new_address.fileno(),
-            partial(handle_request,request),
+            partial(handle_request, request),
             io_loop.READ)
         request.timeout = io_loop.add_timeout(time.time() + OPTIONS["timeout"],
-                                              lambda : request.handle_timeout())
+                                              lambda: request.handle_timeout())
 
         # Ask the request what to do now..
         reply = request.reply()
         if reply:
-            new_address.sendto(reply.marshall(),address)
+            new_address.sendto(reply.marshall(), address)
 
         if not reply or reply.is_error():
             request.finish()
 
     # After the while loop.  Re-add the idle timer
     if OPTIONS["idle"] > 0:
-        OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out())
+        OPTIONS["idle_timer"] = io_loop.add_timeout(time.time() + OPTIONS["idle"],
+                                                    lambda: idle_out())
+
 
 def main():
     # If we're called from xinetd, set idle to non-zero
     mode = os.fstat(sys.stdin.fileno()).st_mode
     if stat.S_ISSOCK(mode):
-        OPTIONS["idle"]   = 30
-        OPTIONS["logger"] = "syslog"
+        OPTIONS["idle"] = 30
+        OPTIONS["logger"] = ","
 
     # setup option parsing
     opt_help = dict(
-        port   = dict(type="int",help="The port to bind to for new requests"),
-        idle   = dict(type="int",help="How long to wait for input"),
-        timeout= dict(type="int",help="How long to wait for a given request"),
-        max_blksize=dict(type="int", help="The maximum block size to permit" ),
-        prefix = dict(type="string",
-                      help="Where files are stored by default ["
-                                                       +OPTIONS["prefix"]+"]"),
-        logger = dict(type="string",help="How to log"),
-        file_cmd= dict(type="string",help="The location of the 'file' command"),
-        user  = dict(type="string",help="The user to run as [nobody]"),
+        port=dict(type="int", help="The port to bind to for new requests"),
+        idle=dict(type="int", help="How long to wait for input"),
+        timeout=dict(type="int", help="How long to wait for a given request"),
+        max_blksize=dict(type="int", help="The maximum block size to permit"),
+        prefix=dict(type="string",
+                    help="Where files are stored by default ["
+                         + OPTIONS["prefix"] + "]"),
+        logger=dict(type="string", help="How to log"),
+        file_cmd=dict(type="string", help="The location of the 'file' command"),
+        user=dict(type="string", help="The user to run as [nobody]"),
     )
 
     parser = optparse.OptionParser(
         formatter=optparse.IndentedHelpFormatter(),
         usage=globals()['__doc__'],
         version=VERSION)
-    parser.add_option('-v','--verbose',action='store_true',default=False,
-                        help="Increase output verbosity")
-    parser.add_option('-d','--debug',action='store_true',default=False,
-                        help="Debug (vastly increases output verbosity)")
-    parser.add_option('-c','--cache',action='store_true',default=True,
-                        help="Use a cache to help find hosts w/o IP address")
-    parser.add_option('--cache-time',action='store',type="int",default=5*60,
-                        help="How long an ip->name mapping is valid")
-    parser.add_option('--neg-cache-time',action='store',type="int",default=10,
-                        help="How long an ip->name mapping is valid")
+    parser.add_option('-v', '--verbose', action='store_true', default=False,
+                      help="Increase output verbosity")
+    parser.add_option('-d', '--debug', action='store_true', default=False,
+                      help="Debug (vastly increases output verbosity)")
+    parser.add_option('-c', '--cache', action='store_true', default=True,
+                      help="Use a cache to help find hosts w/o IP address")
+    parser.add_option('--cache-time', action='store', type="int", default=5 * 60,
+                      help="How long an ip->name mapping is valid")
+    parser.add_option('--neg-cache-time', action='store', type="int", default=10,
+                      help="How long an ip->name mapping is valid")
 
     opts = opt_help.keys()
     opts.sort()
     for k in opts:
         v = opt_help[k]
-        parser.add_option("--"+k,default=OPTIONS[k],
-                            type=v["type"],help=v["help"])
-    parser.add_option('-B',dest="max_blksize",type="int",default=1428,
-                        help="alias for --max-blksize, for in.tftpd compatibility")
+        parser.add_option("--" + k, default=OPTIONS[k],
+                          type=v["type"], help=v["help"])
+    parser.add_option('-B', dest="max_blksize", type="int", default=1428,
+                      help="alias for --max-blksize, for in.tftpd compatibility")
 
     # Actually read the args
-    (options,args) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
     for attr in dir(options):
         if attr in OPTIONS:
-            OPTIONS[attr] = getattr(options,attr)
+            OPTIONS[attr] = getattr(options, attr)
 
     if stat.S_ISSOCK(mode) or OPTIONS["logger"] == "syslog":
         # log to syslog.  Facility 11 isn't in the class, but it's FTP on linux
-        logger = logging.handlers.SysLogHandler("/dev/log", 11) 
+        logger = logging.handlers.SysLogHandler("/dev/log", 11)
         logger.setFormatter(
             logging.Formatter('%(filename)s: %(levelname)s: %(message)s'))
     elif OPTIONS["logger"] == "stream":
@@ -1112,17 +1146,17 @@ def main():
         logging.getLogger().setLevel(logging.INFO)
     else:
         logging.getLogger().setLevel(logging.WARN)
-  
+
     if stat.S_ISSOCK(mode):
         OPTIONS["sock"] = socket.fromfd(sys.stdin.fileno(),
-                             socket.AF_INET,
-                             socket.SOCK_DGRAM,
-                             0)
+                                        socket.AF_INET,
+                                        socket.SOCK_DGRAM,
+                                        0)
     else:
-        OPTIONS["sock"] = socket.socket(socket.AF_INET,socket.SOCK_DGRAM, 0)
+        OPTIONS["sock"] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, 0)
         OPTIONS["sock"].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            OPTIONS["sock"].bind(("",OPTIONS["port"]))
+            OPTIONS["sock"].bind(("", OPTIONS["port"]))
         except socket.error, e:
             if e[0] in (errno.EPERM, errno.EACCES):
                 print "Unable to bind to port %d" % OPTIONS["port"]
@@ -1134,7 +1168,7 @@ def main():
 
     if os.getuid() == 0:
         uid = pwd.getpwnam(OPTIONS["user"])[2]
-        os.setreuid(uid,uid)
+        os.setreuid(uid, uid)
 
     # This takes a while, so do it after we open the port, so we
     # don't drop the packet that spawned us
@@ -1142,11 +1176,11 @@ def main():
 
     io_loop = ioloop.IOLoop.instance()
     io_loop.add_handler(OPTIONS["sock"].fileno(),
-                        partial(new_req,OPTIONS["sock"],templar),io_loop.READ)
+                        partial(new_req, OPTIONS["sock"], templar), io_loop.READ)
     # Shove the timeout into OPTIONS, because it's there
     if OPTIONS["idle"] > 0:
-        OPTIONS["idle_timer"] = io_loop.add_timeout(time.time()+OPTIONS["idle"],
-                                                    lambda : idle_out())
+        OPTIONS["idle_timer"] = io_loop.add_timeout(time.time() + OPTIONS["idle"],
+                                                    lambda: idle_out())
 
     logging.info('Starting Eventloop')
     try:
@@ -1158,6 +1192,7 @@ def main():
     finally:
         OPTIONS["sock"].close()
     return 0
-    
+
+
 if __name__ == "__main__":
     sys.exit(main())
