@@ -576,6 +576,7 @@ class TFTPGen(object):
         """
 
         management_interface = None
+        management_mac = None
         if system is not None:
             blended = utils.blender(self.api, False, system)
             # find the first management interface
@@ -583,6 +584,8 @@ class TFTPGen(object):
                 for intf in list(system.interfaces.keys()):
                     if system.interfaces[intf]["management"]:
                         management_interface = intf
+                        if system.interfaces[intf]["mac_address"]:
+                            management_mac = system.interfaces[intf]["mac_address"]
                         break
             except:
                 # just skip this then
@@ -646,8 +649,8 @@ class TFTPGen(object):
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_interface:
-                    append_line += "netdevice=%s" % management_interface
+                if management_mac:
+                    append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
                 if management_interface:
