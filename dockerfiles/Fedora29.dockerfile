@@ -37,7 +37,7 @@ RUN yum install -y          \
     python3-dns             \
     python3-ldap3           \
     python3-pymongo         \
-    createrepo              \
+    createrepo_c            \
     dnf-plugins-core        \
     xorriso                 \
     grub2-efi-ia32-modules  \
