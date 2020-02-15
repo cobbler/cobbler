@@ -64,7 +64,7 @@
 %define apache_mod_wsgi python%{python3_pkgversion}-mod_wsgi
 %define tftpboot_dir /var/lib/tftpboot
 %define tftpsrv_pkg tftp-server
-%define createrepo_pkg %{?el7:createrepo}%{!?el7:createrepo_c}
+%define createrepo_pkg createrepo_c
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
 %define system_release_pkg system-release
