@@ -2,13 +2,12 @@
 User Guide
 ***********************************
 
-Web User Interface
-##################
+.. toctree::
+   :maxdepth: 2
 
-Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI. To enable and access the
-WebUI, see the following documentation:
+   Web User Interface <user-guide/web-interface>
+   Configuration Management Integrations <user-guide/configuration-management-integrations>
 
-https://github.com/cobbler/cobbler/wiki/Cobbler-web-interface
 
 API
 ###
@@ -42,7 +41,7 @@ management configuration attached to them.  This can ease installation by making
 operating systems and then reboot those systems. Read more about this feature at
 https://github.com/cobbler/cobbler/wiki/Power-management
 
-NON-IMPORT (MANUAL) WORKFLOW
+Non-import (manual) workflow
 ############################
 
 The following example uses a local kernel and initrd file (already downloaded), and shows how profiles would be created
@@ -165,7 +164,7 @@ install those repository configurations on provisioned systems using that profil
     cobbler reposync
     cobbler profile add --name=p1 --distro=existing_distro_name --autoinst=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
 
-IMPORT WORKFLOW
+Import Workflow
 ===============
 
 Import is a very useful command that makes starting out with cobbler very quick and easy.
@@ -246,10 +245,12 @@ integration with legacy infrastructure, possibly including web apps that already
 Templated automatic files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah
 template can be done to an automatic installation template.  Learn more at http://www.cheetahtemplate.org/learn.html
 
-When working with Cheetah, be sure to escape any shell macros that look like ``$(this)`` with something like ``\$(this)`` or
-errors may show up during the sync process.
+When working with Cheetah, be sure to escape any shell macros that look like ``$(this)`` with something like
+``\$(this)`` or errors may show up during the sync process.
 
 The Cobbler Wiki also contains numerous Cheetah examples that should prove useful in using this feature.
+
+Also usefull ist the following repo: https://github.com/FlossWare/cobbler
 
 Automatic installation snippets
 ===============================
@@ -272,6 +273,8 @@ kickstart templates themselves.
 
 Network Topics
 ##############
+
+.. Z-PXE: https://github.com/beaker-project/zpxe
 
 PXE Menus
 =========
@@ -396,18 +399,12 @@ user's particular networking environment.  Read the file and understand how BIND
 If using dnsmasq, the template is ``/etc/cobbler/dnsmasq.template``. Read this file and understand how dnsmasq works
 before proceeding.
 
-All managed files (whether zone files and ``named.conf`` for BIND, or ``dnsmasq.conf`` for dnsmasq) will be updated each time
-``cobbler sync`` is run, and not until then, so it is important to remember to use ``cobbler sync`` when using this
+All managed files (whether zone files and ``named.conf`` for BIND, or ``dnsmasq.conf`` for dnsmasq) will be updated each
+time ``cobbler sync`` is run, and not until then, so it is important to remember to use ``cobbler sync`` when using this
 feature.
 
-Configuration Management Integration
-####################################
+Containerization
+################
 
-Cobbler contains features for integrating an installation environment with a configuration management system, which
-handles the configuration of the system after it is installed by allowing changes to configuration files and settings.
-You can read more about this feature at https://github.com/cobbler/cobbler/wiki/Built-in-configuration-management and
-https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system. Both features may be
-considered experimental as of time of the 1.4 release.
-
-Resources are the lego blocks of configuration management. Resources are grouped together via Management Classes, which
-are then linked to a system. Cobbler supports two (2) resource types. Resources are configured in the order listed below.
+We have a test-image which you can find in the cobbler repository and an old image made by the community:
+https://github.com/osism/docker-cobbler
