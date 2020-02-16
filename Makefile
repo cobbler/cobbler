@@ -107,11 +107,8 @@ test-centos7:
 test-centos8:
 	./tests/build-and-install-rpms.sh --with-tests el8 dockerfiles/CentOS8.dockerfile
 
-test-fedora29:
-	./tests/build-and-install-rpms.sh --with-tests f29 dockerfiles/Fedora29.dockerfile
-
-test-fedora30:
-	./tests/build-and-install-rpms.sh --with-tests f30 dockerfiles/Fedora30.dockerfile
+test-fedora31:
+	./tests/build-and-install-rpms.sh --with-tests f31 dockerfiles/Fedora31.dockerfile
 
 nosetests:
 	PYTHONPATH=./cobbler/ nosetests -v -w tests/cli/ 2>&1 | tee test.log
