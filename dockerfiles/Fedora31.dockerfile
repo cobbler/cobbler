@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:29
+FROM fedora:31
 
 RUN dnf makecache
 
