@@ -16,7 +16,7 @@ import shlex
 import socket
 import subprocess
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 DEBUG = True
 # default number of CPUs
@@ -79,7 +79,7 @@ def download_file(file_url):
     if not file_url.startswith("http") and not file_url.startswith("ftp"):
         raise Exception("only HTTP and FTP are supported in file URL")
 
-    req = urllib2.urlopen(file_url)
+    req = urllib.request.urlopen(file_url)
     return req.read()
 
 
@@ -129,7 +129,7 @@ def create_kvm_guest(guest_name, num_virtual_cpus, virtual_ram, virtual_disk_siz
         cmd += " --extra-args=\"%s\"" % kernel_args
 
     if DEBUG:
-        print("virt-install command: %s" % cmd)
+        print(("virt-install command: %s" % cmd))
     print("creating KVM guest")
     run_cmd(cmd)
 
