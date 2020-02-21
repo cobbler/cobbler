@@ -1393,7 +1393,7 @@ def login(request, next=None, message=None, expired=False):
     if use_passthru < 0:
         token = remote.login("", utils.get_shared_secret())
         auth_module = remote.get_authn_module_name(token)
-        use_passthru = auth_module == 'authn_passthru'
+        use_passthru = auth_module == 'authentication.passthru'
 
     if use_passthru:
         return accept_remote_user(request, next)
