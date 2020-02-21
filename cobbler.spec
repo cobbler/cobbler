@@ -292,7 +292,7 @@ if [ $1 -ge 2 ]; then
     if [ ! -d "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}" ]; then
         mkdir -p "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
     fi
-    for i in "config" "snippets" "kickstarts" "triggers" "scripts"; do
+    for i in "config" "snippets" "templates" "triggers" "scripts"; do
         if [ -d "%{_sharedstatedir}/cobbler/${i}" ]; then
             cp -r "%{_sharedstatedir}/cobbler/${i}" "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
         fi

@@ -28,7 +28,7 @@ allow_dynamic_settings: 0
 # by default, installs are *not* set to send installation logs to the cobbler
 # server.  With 'anamon_enabled', automatic installation templates may use
 # the pre_anamon snippet to allow remote live monitoring of their installations
-# from the cobbler server.  Installation logs will be stored under 
+# from the cobbler server.  Installation logs will be stored under
 # /var/log/cobbler/anamon/.  NOTE: This does allow an xmlrpc call to send logs
 # to this directory, without authentication, so enable only if you are
 # ok with this limitation.
@@ -65,8 +65,8 @@ build_reporting_subject: ""
 build_reporting_ignorelist: [ "" ]
 
 # Cheetah-language autoinstall templates can import Python modules.
-# while this is a useful feature, it is not safe to allow them to 
-# import anything they want. This whitelists which modules can be 
+# while this is a useful feature, it is not safe to allow them to
+# import anything they want. This whitelists which modules can be
 # imported through Cheetah.  Users can expand this as needed but
 # should never allow modules such as subprocess or those that
 # allow access to the filesystem as Cheetah templates are evaluated
@@ -106,13 +106,13 @@ default_ownership:
 # systems that reference this variable.  The factory
 # default is "cobbler" and cobbler check will warn if
 # this is not changed.
-# The simplest way to change the password is to run 
+# The simplest way to change the password is to run
 # openssl passwd -1
 # and put the output between the "" below.
 default_password_crypted: "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."
 
 # the default template type to use in the absence of any
-# other detected template. If you do not specify the template 
+# other detected template. If you do not specify the template
 # with '#template=<template_type>' on the first line of your
 # templates/snippets, cobbler will assume try to use the
 # following template engine to parse the templates.
@@ -141,8 +141,8 @@ default_virt_ram: 512
 default_virt_type: xenpv
 
 # enable gPXE booting? Enabling this option will cause cobbler
-# to copy the undionly.kpxe file to the tftp root directory, 
-# and if a profile/system is configured to boot via gpxe it will 
+# to copy the undionly.kpxe file to the tftp root directory,
+# and if a profile/system is configured to boot via gpxe it will
 # chain load off pxelinux.0.
 # Default: 0
 enable_gpxe: 0
@@ -152,7 +152,7 @@ enable_gpxe: 0
 # basis when adding/editing profiles with --enable-menu=0/1.  Users
 # should ordinarily leave this setting enabled unless they are concerned
 # with accidental reinstalls from users who select an entry at the PXE
-# boot menu.  Adding a password to the boot menus templates 
+# boot menu.  Adding a password to the boot menus templates
 # may also be a good solution to prevent unwanted reinstallations
 enable_menu: 1
 
@@ -181,7 +181,7 @@ ldap_tls_keyfile: ''
 ldap_tls_certfile: ''
 
 # cobbler has a feature that allows for integration with config management
-# systems such as Puppet.  The following parameters work in conjunction with 
+# systems such as Puppet.  The following parameters work in conjunction with
 # --mgmt-classes  and are described in furhter detail at:
 # https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system
 mgmt_classes: []
@@ -275,7 +275,7 @@ power_management_default_type: 'ipmitool'
 power_template_dir: "/etc/cobbler/power"
 
 # if this setting is set to 1, cobbler systems that pxe boot
-# will request at the end of their installation to toggle the 
+# will request at the end of their installation to toggle the
 # --netboot-enabled record in the cobbler system record.  This eliminates
 # the potential for a PXE boot loop if the system is set to PXE
 # first in it's BIOS order.  Enable this if PXE is first in your BIOS
@@ -346,7 +346,7 @@ run_install_triggers: 1
 # enables a trigger which version controls all changes to /var/lib/cobbler
 # when add, edit, or sync events are performed.  This can be used
 # to revert to previous database versions, generate RSS feeds, or for
-# other auditing or backup purposes. "git" and "hg" are currently suported, 
+# other auditing or backup purposes. "git" and "hg" are currently suported,
 # but git is the recommend SCM for use with this feature.
 scm_track_enabled: 0
 scm_track_mode: "git"
@@ -421,7 +421,7 @@ yum_post_install_mirror: 1
 # if yum-priorities plugin is used.  1=maximum.  Tweak with caution.
 yum_distro_priority: 1
 
-# Flags to use for yumdownloader.  Not all versions may support 
+# Flags to use for yumdownloader.  Not all versions may support
 # --resolve.
 yumdownloader_flags: "--resolve"
 
@@ -442,7 +442,7 @@ always_write_dhcp_entries: 0
 # or: proxy_url_ext: "https://192.168.1.1:8443" (HTTPS)
 proxy_url_ext: ""
 
-# internal proxy - used by systems to reach cobbler for kickstarts
+# internal proxy - used by systems to reach cobbler for templates
 # eg: proxy_url_int: "http://10.0.0.1:8080"
 proxy_url_int: ""
 
