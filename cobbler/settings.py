@@ -185,7 +185,16 @@ if bind_config_filename:
 
 class Settings(object):
 
-    def collection_type(self):
+    def collection_type(self) -> str:
+        """
+        return the collection name
+        """
+        return "settings"
+
+    def collection_types(self) -> str:
+        """
+        return the collection plural name
+        """
         return "settings"
 
     def __init__(self):

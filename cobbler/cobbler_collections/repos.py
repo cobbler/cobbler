@@ -37,6 +37,9 @@ class Repos(collection.Collection):
     def collection_type(self):
         return "repo"
 
+    def collection_types(self):
+        return "repos"
+
     def factory_produce(self, config, item_dict):
         """
         Return a Distro forged from item_dict

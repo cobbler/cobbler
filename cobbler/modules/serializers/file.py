@@ -57,11 +57,8 @@ def serialize_item(collection, item):
     if not item.name:
         raise CX("name unset for item!")
 
-    collection_type = collection.collection_type()
-    if collection_type[-1].lower() in ['h', 's', 'x', 'z']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection_type, item.name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection_type, item.name)
+    collection_types = collection.collection_types()
+    filename = "/var/lib/cobbler/collections/%s/%s" % (collection_types, item.name)
 
     _dict = item.to_dict()
 
@@ -89,11 +86,8 @@ def serialize_delete(collection, item):
     @param item Item collection item
     """
 
-    collection_type = collection.collection_type()
-    if collection_type[-1].lower() in ['h', 's', 'x', 'z']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection_type, item.name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection_type, item.name)
+    collection_types = collection.collection_types()
+    filename = "/var/lib/cobbler/collections/%s/%s" % (collection_types, item.name)
 
     filename += ".json"
     if os.path.exists(filename):
@@ -114,11 +108,11 @@ def serialize(collection):
             serialize_item(collection, x)
 
 
-def deserialize_raw(collection_type):
+def deserialize_raw(collection_types):
 
     # FIXME: code to load settings file should not be replicated in all
     #   serializer subclasses
-    if collection_type == "settings":
+    if collection_types == "settings":
         fd = open("/etc/cobbler/settings")
         _dict = yaml.safe_load(fd.read())
         fd.close()
@@ -133,10 +127,7 @@ def deserialize_raw(collection_type):
     else:
         results = []
 
-        if collection_type[-1].lower() in ['h', 's', 'x', 'z']:
-            all_files = glob.glob("/var/lib/cobbler/collections/%ses/*" % collection_type)
-        else:
-            all_files = glob.glob("/var/lib/cobbler/collections/%ss/*" % collection_type)
+            all_files = glob.glob("/var/lib/cobbler/collections/%s/*" % collection_types)
 
         for f in all_files:
             fd = open(f)
@@ -173,7 +164,7 @@ def deserialize(collection, topological=True):
     @param bool topological
     """
 
-    datastruct = deserialize_raw(collection.collection_type())
+    datastruct = deserialize_raw(collection.collection_types())
     if topological and type(datastruct) == list:
         # FIXME
         # datastruct.sort(key=__depth_cmp)

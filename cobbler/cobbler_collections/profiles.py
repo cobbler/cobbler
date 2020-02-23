@@ -35,6 +35,10 @@ class Profiles(collection.Collection):
     def collection_type(self):
         return "profile"
 
+    def collection_types(self):
+        return "profiles"
+
+
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a Distro forged from item_dict

@@ -33,6 +33,9 @@ class Files(collection.Collection):
     def collection_type(self):
         return "file"
 
+    def collection_types(self):
+        return "files"
+
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a File forged from item_dict

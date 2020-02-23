@@ -35,6 +35,9 @@ class Systems(collection.Collection):
     def collection_type(self):
         return "system"
 
+    def collection_types(self):
+        return "systems"
+
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a Distro forged from item_dict

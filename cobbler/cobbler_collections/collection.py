@@ -463,7 +463,13 @@ class Collection(object):
 
     def collection_type(self):
         """
-        Returns the string key for the name of the collection (for use in messages for humans)
+        Returns the string key for the name of the collection (used by serializer etc)
+        """
+        return NotImplementedException()
+
+    def collection_types(self):
+        """
+        Returns the string key for the plural name of the collection (used by serializer)
         """
         return NotImplementedException()
 

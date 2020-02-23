@@ -33,6 +33,9 @@ class Packages(collection.Collection):
     def collection_type(self):
         return "package"
 
+    def collection_types(self):
+        return "packages"
+
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a Package forged from item_dict
