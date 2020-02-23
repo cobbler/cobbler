@@ -46,6 +46,8 @@ def __parse_config():
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
+    # Make users case sensitive to handle kerberos
+    config.optionxform = str
     config = ConfigParser()
     config.read(etcfile)
     alldata = {}
