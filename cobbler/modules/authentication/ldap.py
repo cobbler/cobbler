@@ -65,6 +65,9 @@ def authenticate(api_handle, username, password):
     else:
         servers = [server]
 
+    # to get ldap working with Active Directory
+    ldap.set_option(ldap.OPT_REFERRALS, 0)
+    
     if tls_cacertfile:
         ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
     if tls_keyfile:
