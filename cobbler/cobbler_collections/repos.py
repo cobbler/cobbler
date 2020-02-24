@@ -34,10 +34,12 @@ class Repos(collection.Collection):
     outside bandwidth needs can be reduced and/or eliminated.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "repo"
 
-    def collection_types(self):
+    @staticmethod
+    def collection_types() -> str:
         return "repos"
 
     def factory_produce(self, config, item_dict):

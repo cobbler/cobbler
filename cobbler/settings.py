@@ -185,13 +185,15 @@ if bind_config_filename:
 
 class Settings(object):
 
-    def collection_type(self) -> str:
+    @staticmethod
+    def collection_type() -> str:
         """
         return the collection name
         """
         return "settings"
 
-    def collection_types(self) -> str:
+    @staticmethod
+    def collection_types() -> str:
         """
         return the collection plural name
         """

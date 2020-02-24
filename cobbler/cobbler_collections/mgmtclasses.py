@@ -30,10 +30,12 @@ class Mgmtclasses(collection.Collection):
     A mgmtclass provides a container for management resources.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "mgmtclass"
 
-    def collection_types(self):
+    @staticmethod
+    def collection_types() -> str:
         return "mgmtclasses"
 
     def factory_produce(self, config, item_dict):

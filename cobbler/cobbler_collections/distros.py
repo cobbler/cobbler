@@ -34,10 +34,12 @@ class Distros(collection.Collection):
     A distro represents a network bootable matched set of kernels and initrd files.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "distro"
 
-    def collection_types(self):
+    @staticmethod
+    def collection_types() -> str:
         return "distros"
 
     def factory_produce(self, collection_mgr, item_dict):

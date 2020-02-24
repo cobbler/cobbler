@@ -32,10 +32,12 @@ class Profiles(collection.Collection):
     template file.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "profile"
 
-    def collection_types(self):
+    @staticmethod
+    def collection_types() -> str:
         return "profiles"
 
 

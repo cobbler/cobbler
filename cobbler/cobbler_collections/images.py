@@ -25,10 +25,12 @@ class Images(collection.Collection):
     and repeatedly install.  It differs from a answer-file based installation.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "image"
 
-    def collection_types(self):
+    @staticmethod
+    def collection_types() -> str:
         return "images"
 
     def factory_produce(self, collection_mgr, item_dict):
