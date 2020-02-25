@@ -127,7 +127,7 @@ def deserialize_raw(collection_types):
     else:
         results = []
 
-            all_files = glob.glob("/var/lib/cobbler/collections/%s/*" % collection_types)
+        all_files = glob.glob("/var/lib/cobbler/collections/%s/*" % collection_types)
 
         for f in all_files:
             fd = open(f)
