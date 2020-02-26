@@ -461,9 +461,17 @@ class Collection(object):
         else:
             return _("No objects found")
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         """
-        Returns the string key for the name of the collection (for use in messages for humans)
+        Returns the string key for the name of the collection (used by serializer etc)
+        """
+        return NotImplementedException()
+
+    @staticmethod
+    def collection_types() -> str:
+        """
+        Returns the string key for the plural name of the collection (used by serializer)
         """
         return NotImplementedException()
 
