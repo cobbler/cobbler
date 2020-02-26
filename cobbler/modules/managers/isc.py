@@ -173,6 +173,7 @@ class IscManager(object):
                     blender_cache[system.name] = blended_system
 
                 interface["next_server"] = blended_system["next_server"]
+                interface["filename"] = blended_system["filename"]
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
@@ -218,6 +219,7 @@ class IscManager(object):
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
             "next_server": self.settings.next_server,
+            "filename": self.settings.filename,
             "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }

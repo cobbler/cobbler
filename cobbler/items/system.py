@@ -58,6 +58,7 @@ FIELDS = [
     ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
     ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
     ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "<<inherit>>", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
     ["power_id", "", 0, "Power Management ID", True, "Usually a plug number or blade name, if power type requires it", 0, "str"],
@@ -233,6 +234,12 @@ class System(item.Item):
         else:
             server = server.strip()
             self.next_server = validate.ipv4_address(server)
+
+    def set_filename(self, filename):
+        if not filename:
+            self.filename = "<<inherit>>"
+        else:
+            self.filename = filename.strip()
 
     def set_proxy(self, proxy):
         if proxy is None or proxy == "":
