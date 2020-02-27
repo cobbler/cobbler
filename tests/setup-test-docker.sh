@@ -20,7 +20,7 @@ cd /test_dir
 zypper -n update
 zypper -n in python3 python3-devel python3-pip python3-setuptools python3-distro python3-future python3-coverage apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders xorriso python3-ldap tftp python3-Sphinx
 # Packages for building & installing cobbler from source
-zypper -n in make gzip sed
+zypper -n in make gzip sed git hg
 
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|/srv/tftpboot|g" -i cobbler/settings.py config/cobbler/settings
