@@ -7,7 +7,7 @@ User Guide
 
    Web User Interface <user-guide/web-interface>
    Configuration Management Integrations <user-guide/configuration-management-integrations>
-
+   Terraform Provider for Cobbler <user-guide/terraform-provider>
 
 API
 ###
