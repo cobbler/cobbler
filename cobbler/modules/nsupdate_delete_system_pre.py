@@ -100,6 +100,11 @@ def run(api, args, logger):
             if rrset.name == soa_mname:
                 soa_mname_ip = str(rrset.items[0].address)
 
+        if soa_mname_ip == None:
+            ip = dns.resolver.query(soa_mname,"A")
+            for answer in ip:
+                soa_mname_ip = answer.to_text()
+
         nslog("%s [%s]\n" % (soa_mname, soa_mname_ip))
         nslog("%s dns record for %s.%s [%s] .. " % (action, host, domain, host_ip))
 
