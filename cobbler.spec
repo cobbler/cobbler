@@ -352,11 +352,62 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %license COPYING
 %doc AUTHORS.in README.md
 %doc docs/developer-guide.rst docs/quickstart-guide.rst docs/installation-guide.rst
-%if %{_vendor} == "debbuild"
-%config(noreplace) %{_sysconfdir}/cobbler/*
-%else
-%config(noreplace) %{_sysconfdir}/cobbler
-%endif
+%dir %{_sysconfdir}/cobbler
+%config(noreplace) %{_sysconfdir}/cobbler/auth.conf
+%dir %{_sysconfdir}/cobbler/boot_loader_conf
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi5.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi51.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi55.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi60.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi65.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi67.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi5.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi6.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_freebsd.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_linux.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_windows.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grublocal.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubsystem.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxedefault.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal_ia64.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_arm.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_esxi.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_arm.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_esxi.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ia64.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ppc.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot_ppc.template
+%config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
+%config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
+%config(noreplace) %{_sysconfdir}/cobbler/dnsmasq.template
+%config(noreplace) %{_sysconfdir}/cobbler/genders.template
+%config(noreplace) %{_sysconfdir}/cobbler/import_rsync_whitelist
+%dir %{_sysconfdir}/cobbler/iso
+%config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
+%config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
+%config(noreplace) %{_sysconfdir}/cobbler/modules.conf
+%config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
+%config(noreplace) %{_sysconfdir}/cobbler/named.template
+%config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
+%dir %{_sysconfdir}/cobbler/reporting
+%config(noreplace) %{_sysconfdir}/cobbler/reporting/build_report_email.template
+%config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
+%config(noreplace) %{_sysconfdir}/cobbler/rsync.template
+%config(noreplace) %{_sysconfdir}/cobbler/secondary.template
+%config(noreplace) %{_sysconfdir}/cobbler/settings
+%dir %{_sysconfdir}/cobbler/settings.d
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%config(noreplace) %{_sysconfdir}/cobbler/users.conf
+%config(noreplace) %{_sysconfdir}/cobbler/users.digest
+%config(noreplace) %{_sysconfdir}/cobbler/version
+%config(noreplace) %{_sysconfdir}/cobbler/zone.template
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobbler
