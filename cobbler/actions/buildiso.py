@@ -134,6 +134,10 @@ class BuildIso(object):
         for obj in all_objs:
             if obj.name in selected_list:
                 which_objs.append(obj)
+                selected_list.remove(obj.name)
+
+        for bad_name in selected_list:
+            self.logger.warning("WARNING: %s is not a valid %s" % (bad_name, list_type))
 
         if not which_objs:
             utils.die(self.logger, "No valid systems or profiles were specified.")
