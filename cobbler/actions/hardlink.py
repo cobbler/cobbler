@@ -36,6 +36,7 @@ class HardLinker(object):
         # self.collection_mgr   = collection_mgr
         # self.api      = collection_mgr.api
         # self.settings = collection_mgr.settings()
+        self.hardlink = None
         if logger is None:
             logger = clogger.Logger()
         self.logger = logger
