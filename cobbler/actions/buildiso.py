@@ -589,7 +589,7 @@ class BuildIso(object):
         if rc:
             utils.die(self.logger, "rsync of distro files failed")
 
-    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, mkisofs_opts=None):
+    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, xorrisofs_opts=None):
 
         # the airgapped option implies standalone
         if airgapped is True:
@@ -681,19 +681,19 @@ class BuildIso(object):
         else:
             self.generate_netboot_iso(imagesdir, isolinuxdir, profiles, systems, exclude_dns)
 
-        if mkisofs_opts is None:
-            mkisofs_opts = ""
+        if xorrisofs_opts is None:
+            xorrisofs_opts = ""
         else:
-            mkisofs_opts = mkisofs_opts.strip()
+            xorrisofs_opts = xorrisofs_opts.strip()
 
-        # using xorrisofs as it accepts mkisofs parameters as-is and is available everywhere...
-        cmd = "xorrisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso, mkisofs_opts)
+        # using xorrisofs instead of mkisofs nowadays, it is available everywhere...
+        cmd = "xorrisofs -o %s %s -r -b isolinux/isolinux.bin -c isolinux/boot.cat" % (iso, xorrisofs_opts)
         cmd = cmd + " -no-emul-boot -boot-load-size 4"
-        cmd = cmd + r" -boot-info-table -V Cobbler\ Install -R -J -T %s" % buildisodir
+        cmd = cmd + r" -boot-info-table -V Cobbler\ Install -R -J %s" % buildisodir
 
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc != 0:
-            utils.die(self.logger, "mkisofs failed")
+            utils.die(self.logger, "xorrisofs failed")
 
         self.logger.info("ISO build complete")
         self.logger.info("You may wish to delete: %s" % buildisodir)
