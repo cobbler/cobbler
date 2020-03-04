@@ -40,14 +40,20 @@ class HardLinker(object):
             logger = clogger.Logger()
         self.logger = logger
         self.family = utils.get_family()
+
+        # Getting the path to hardlink
+        for possible_location in ["/usr/bin/hardlink", "/usr/sbin/hardlink"]:
+            if os.path.exists(possible_location):
+                self.hardlink = possible_location
+        if not self.hardlink:
+            utils.die(self.logger, "please install 'hardlink' to use this feature")
+
+        # Setting the args for hardlink accodring to the distribution
         if self.family == "debian":
-            self.hardlink = "/usr/bin/hardlink"
             self.hardlink_args = "-f -p -o -t -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         elif self.family == "suse":
-            self.hardlink = "/usr/bin/hardlink"
             self.hardlink_args = "-f -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         else:
-            self.hardlink = "/usr/sbin/hardlink"
             self.hardlink_args = "-c -v /var/www/cobbler/distro_mirror /var/www/cobbler/repo_mirror"
         self.hardlink_cmd = "%s %s" % (self.hardlink, self.hardlink_args)
 
@@ -60,9 +66,6 @@ class HardLinker(object):
 
         # FIXME: if these directories become configurable some
         # changes will be required here.
-
-        if not os.path.exists(self.hardlink):
-            utils.die(self.logger, "please install 'hardlink' (%s) to use this feature" % self.hardlink)
 
         self.logger.info("now hardlinking to save space, this may take some time.")
 
