@@ -231,7 +231,6 @@ class Profile(item.Item):
                 self.next_server = server
 
     def set_filename(self, filename):
-       def set_filename(self, filename):
         if not filename:
             self.filename = "<<inherit>>"
         else:
