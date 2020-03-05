@@ -21,12 +21,42 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import os
 import hashlib
+import os
+
+from cobbler.module_loader import get_module_name
 
 
-def md5(key):
-    return hashlib.md5(key.encode('utf-8'))
+def hashfun(text):
+    """
+    Converts a str object to a hash which was configured in modules.conf of the cobbler settings.
+
+    :param text: The text to hash.
+    :type text: str
+    :return: The hash of the text. This should output the same hash when entered the same text.
+    """
+    hashfunction = get_module_name("authentication", "hash_algorithm", "sha3_512")
+    if hashfunction == "sha3_224":
+        hashalgorithm = hashlib.sha3_224(text.encode('utf-8'))
+    elif hashfunction == "sha3_384":
+        hashalgorithm = hashlib.sha3_384(text.encode('utf-8'))
+    elif hashfunction == "sha3_256":
+        hashalgorithm = hashlib.sha3_256(text.encode('utf-8'))
+    elif hashfunction == "sha3_512":
+        hashalgorithm = hashlib.sha3_512(text.encode('utf-8'))
+    elif hashfunction == "blake2b":
+        hashalgorithm = hashlib.blake2b(text.encode('utf-8'))
+    elif hashfunction == "blake2s":
+        hashalgorithm = hashlib.blake2s(text.encode('utf-8'))
+    elif hashfunction == "shake_128":
+        hashalgorithm = hashlib.shake_128(text.encode('utf-8'))
+    elif hashfunction == "shake_256":
+        hashalgorithm = hashlib.shake_256(text.encode('utf-8'))
+    else:
+        errortext = "The hashfunction (Currently: %s) must be one of the defined in /etc/cobbler/modules.conf!" \
+                    % hashfunction
+        raise ValueError(errortext)
+    return hashalgorithm.hexdigest()
 
 
 def register():
@@ -37,12 +67,10 @@ def register():
 
 
 def __parse_storage():
-
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
-    fd = open("/etc/cobbler/users.digest", encoding='utf-8')
-    data = fd.read()
-    fd.close()
+    with open("/etc/cobbler/users.digest", encoding='utf-8') as fd:
+        data = fd.read()
     results = []
     lines = data.split("\n")
     for line in lines:
@@ -57,20 +85,24 @@ def __parse_storage():
 
 def authenticate(api_handle, username, password):
     """
-    Validate a username/password combo, returning True/False
+    Validate a username/password combo.
 
-    Thanks to http://trac.edgewall.org/ticket/845 for supplying
-    the algorithm info.
+    Thanks to http://trac.edgewall.org/ticket/845 for supplying the algorithm info.
+    :param api_handle: Unused in this implementation.
+    :param username: The username to log in with. Must be contained in /etc/cobbler/users.digest
+    :type username: str
+    :param password: The password to log in with. Must be contained hashed in /etc/cobbler/users.digest
+    :type password: str
+    :return: A boolean which contains the information if the username/password combination is correct.
+    :rtype: bool
     """
-    # debugging only (not safe to enable)
-    # api_handle.logger.debug("backend authenticate (%s,%s)" % (username,password))
 
     userlist = __parse_storage()
-    for (user, realm, actual_blob) in userlist:
+    for (user, realm, passwordhash) in userlist:
         if user == username and realm == "Cobbler":
-            input = ":".join([user, realm, password])
-            input_blob = md5(input).hexdigest()
-            if input_blob.lower() == actual_blob.lower():
+            calculated_passwordhash = hashfun(password)
+            print("Passwordhash: %s" % passwordhash)
+            print("Calculated Passwordhash: %s" % calculated_passwordhash)
+            if calculated_passwordhash == passwordhash:
                 return True
-
     return False
