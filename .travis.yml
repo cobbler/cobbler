@@ -24,7 +24,7 @@ jobs:
         - sleep 30
         - docker logs cobbler
         - COMMIT_SHA=`git rev-parse HEAD`
-        - docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler; codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${COMMIT_SHA}"
+        - docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${COMMIT_SHA}"
     - stage: rpms
       name: "Build CentOS 7 RPMs"
       script: ./tests/build-and-install-rpms.sh el7 dockerfiles/CentOS7.dockerfile
