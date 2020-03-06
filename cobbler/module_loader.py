@@ -40,9 +40,6 @@ mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'mod
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
 
-cp = ConfigParser()
-cp.read("/etc/cobbler/modules.conf")
-
 
 def load_modules(module_path=mod_path, blacklist=None):
     logger = clogger.Logger()
@@ -110,6 +107,8 @@ def get_module_name(category, field, fallback_module_name=None):
     @raise CX if unable to find configuration file
     @return str module name
     """
+    cp = ConfigParser()
+    cp.read("/etc/cobbler/modules.conf")
 
     try:
         value = cp.get(category, field)
