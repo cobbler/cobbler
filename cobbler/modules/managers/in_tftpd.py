@@ -142,7 +142,7 @@ class InTftpdManager(object):
         """
         self.tftpgen.verbose = verbose
         self.logger.info("copying bootloaders")
-        self.tftpgen.copy_bootloaders()
+        self.tftpgen.copy_bootloaders(self.bootloc)
 
         self.logger.info("copying distros to tftpboot")
 

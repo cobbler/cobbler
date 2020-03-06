@@ -53,7 +53,7 @@ class TFTPGen(object):
         self.templar = templar.Templar(collection_mgr)
         self.bootloc = self.settings.tftpboot_location
 
-    def copy_bootloaders(self):
+    def copy_bootloaders(self, dest):
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in
