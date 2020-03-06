@@ -45,6 +45,7 @@ class TftpdPyManager(object):
             self.logger = clogger.Logger()
 
         self.collection_mgr = collection_mgr
+        self.bootloc = collection_mgr.settings().tftpboot_location
         self.templar = templar.Templar(collection_mgr)
 
     def regen_hosts(self):
@@ -75,7 +76,7 @@ class TftpdPyManager(object):
         Write out files to /tftpdboot.  Mostly unused for the python server
         """
         self.logger.info("copying bootloaders")
-        tftpgen.TFTPGen(self.collection_mgr, self.logger).copy_bootloaders()
+        tftpgen.TFTPGen(self.collection_mgr, self.logger).copy_bootloaders(self.bootloc)
 
     def update_netboot(self, name):
         """
