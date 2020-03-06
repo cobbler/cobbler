@@ -133,6 +133,8 @@ group {
         #if $iface.next_server:
         next-server $iface.next_server;
         #end if
+        #if $iface.filename:
+        filename $filename
         #if $iface.name_servers:
         #set $mynameservers = ','.join($iface.name_servers)
         option domain-name-servers $mynameservers;
