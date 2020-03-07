@@ -341,6 +341,15 @@ fi
 %endif
 
 %post web
+%if %{_vendor} == "debbuild"
+# Work around broken attr support
+# Cf. https://github.com/debbuild/debbuild/issues/160
+chown %{apache_user}:%{apache_group} %{_datadir}/cobbler/web
+mkdir -p %{_sharedstatedir}/cobbler/webui_sessions
+chown %{apache_user}:root %{_sharedstatedir}/cobbler/webui_sessions
+chmod 700 %{_sharedstatedir}/cobbler/webui_sessions
+chown %{apache_user}:%{apache_group} %{apache_dir}/cobbler_webui_content/
+%endif
 # Change the SECRET_KEY option in the Django settings.py file
 # required for security reasons, should be unique on all systems
 # Choose from letters and numbers only, so no special chars like ampersand (&).
@@ -437,9 +446,17 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %license COPYING
 %doc AUTHORS.in README.md
 %config(noreplace) %{apache_webconfigdir}/cobbler_web.conf
+%if %{_vendor} == "debbuild"
+# Work around broken attr support
+# Cf. https://github.com/debbuild/debbuild/issues/160
+%{_datadir}/cobbler/web
+%dir %{_sharedstatedir}/cobbler/webui_sessions
+%{apache_dir}/cobbler_webui_content/
+%else
 %attr(-,%{apache_user},%{apache_group}) %{_datadir}/cobbler/web
 %dir %attr(700,%{apache_user},root) %{_sharedstatedir}/cobbler/webui_sessions
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
+%endif
 
 
 %changelog
