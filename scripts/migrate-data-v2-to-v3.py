@@ -73,7 +73,7 @@ add = {
   "profiles": {
     "next_server": "<<inherit>>",
   },
-  "systemd": {
+  "systems": {
     "boot_loader": "<<inherit>>",
     "next_server": "<<inherit>>",
     "power_identity_file": "",
