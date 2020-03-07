@@ -1,0 +1,4 @@
+action=$power_mode
+ipaddr=$power_address
+login=$power_user
+passwd=$power_pass
