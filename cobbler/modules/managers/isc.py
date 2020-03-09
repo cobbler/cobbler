@@ -219,7 +219,6 @@ class IscManager(object):
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
             "next_server": self.settings.next_server,
-            "filename": self.settings.filename,
             "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }

@@ -181,7 +181,7 @@ performed.
 
 .. code-block:: shell
 
-    $ cobbler profile add --name=string --distro=string [--autoinst=path] [--kopts=string] [--ksmeta=string] [--name-servers=string] [--name-servers-search=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile]
+    $ cobbler profile add --name=string --distro=string [--autoinst=path] [--kopts=string] [--ksmeta=string] [--name-servers=string] [--name-servers-search=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile] [--filename=string]
 
 Arguments are the same as listed for distributions, save for the removal of "arch" and "breed", and with the additions
 listed below:
@@ -266,6 +266,10 @@ listed below:
 |                     | next server and DHCP information of the system if you are also usingCobbler to help manage your|
 |                     | DHCP configuration.                                                                            |
 +---------------------+------------------------------------------------------------------------------------------------+
+| filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
+|                     | be a path relative to the tftp servers root directory. (e. g. grub/grubx64.efi)                |
+                      | For most use cases the default bootloader is correct and this can be omitted                   |
++----------------------------------------------------------------------------------------------------------------------+
 
 cobbler system
 ==============
