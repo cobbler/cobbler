@@ -173,7 +173,7 @@ class IscManager(object):
                     blender_cache[system.name] = blended_system
 
                 interface["next_server"] = blended_system["next_server"]
-                interface["filename"] = blended_system["filename"]
+                interface["filename"] = blended_system.get("filename")
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
