@@ -399,12 +399,6 @@ Choices (refer to codes.py):
 
 default: ``ipmitool``
 
-power_template_dir
-==================
-The commands used by the power management module are sourced from what directory?
-
-default: ``"/etc/cobbler/power"``
-
 pxe_just_once
 =============
 If this setting is set to 1, cobbler systems that pxe boot will request at the end of their installation to toggle the
