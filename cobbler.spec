@@ -402,17 +402,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
 %config(noreplace) %{_sysconfdir}/cobbler/named.template
 %config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
-%dir %{_sysconfdir}/cobbler/power
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_apc_snmp.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_bladecenter.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_bullpap.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_drac.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_ilo.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_ipmilan.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_lpar.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_rsa.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_virsh.template
-%config(noreplace) %{_sysconfdir}/cobbler/power/fence_wti.template
 %dir %{_sysconfdir}/cobbler/reporting
 %config(noreplace) %{_sysconfdir}/cobbler/reporting/build_report_email.template
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
