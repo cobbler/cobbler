@@ -5,19 +5,9 @@ PYTHON=/usr/bin/python3
 
 # check for executables
 
-CMD := $(shell command -v pyflakes-3 2> /dev/null)
-ifndef CMD
-	PYFLAKES=/usr/bin/pyflakes3
-else
-	PYFLAKES=/usr/bin/pyflakes-3
-endif
+PYFLAKES = $(shell { command -v pyflakes-3 || command -v pyflakes3 || command -v pyflakes; }  2> /dev/null)
 
-CMD := $(shell command -v pycodestyle-3 2> /dev/null)
-ifndef CMD
-	PYCODESTYLE=/usr/bin/pycodestyle
-else
-	PYCODESTYLE=/usr/bin/pycodestyle-3
-endif
+PYCODESTYLE := $(shell { command -v pycodestyle-3 || command -v pycodestyle3 || command -v pycodestyle; } 2> /dev/null)
 
 # Debian / Ubuntu have /bin/sh -> dash
 SHELL = /bin/bash
@@ -64,20 +54,28 @@ doc:
 	@cd docs; make html > /dev/null 2>&1
 
 qa:
-	@echo "checking: pyflakes"
+ifdef PYFLAKES
+	@echo "checking: pyflakes ${PYFLAKES}"
 	@${PYFLAKES} \
 		*.py \
 		cobbler/*.py \
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
+else
+	@echo "No pyflakes found"
+endif
+ifdef PYCODESTYLE
 	@echo "checking: pycodestyle"
 	@${PYCODESTYLE} -r --ignore E501,E402,E722,W504 \
-        *.py \
-        cobbler/*.py \
-        cobbler/modules/*.py \
-        cobbler/web/*.py cobbler/web/templatetags/*.py \
-        bin/cobbler* bin/*.py web/cobbler.wsgi
+	        *.py \
+		cobbler/*.py \
+		cobbler/modules/*.py \
+		cobbler/web/*.py cobbler/web/templatetags/*.py \
+		bin/cobbler* bin/*.py web/cobbler.wsgi
+else
+	@echo "No pycodestyle found"
+endif
 
 authors:
 	@echo "creating: AUTHORS"
