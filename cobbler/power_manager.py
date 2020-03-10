@@ -50,12 +50,11 @@ def get_power_types():
     """
 
     power_types = []
-    power_template = re.compile(r'fence_(.*)')
     fence_files = glob.glob("/usr/sbin/fence_*") + glob.glob("/sbin/fence_*")
     for x in fence_files:
-        templated_x = power_template.search(x).group(1)
-        if templated_x not in power_types:
-            power_types.append(templated_x)
+        fence_name = os.path.basename(x).replace("fence_", "")
+        if fence_name not in power_types:
+            power_types.append(fence_name)
     power_types.sort()
     return power_types
 
