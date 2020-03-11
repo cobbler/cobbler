@@ -1,7 +1,7 @@
 # ******************************************************************
 # Cobbler managed rsyncd.conf file
 #
-# Do NOT make changes to /etc/rsyncd.conf directly. 
+# Do NOT make changes to /etc/rsyncd.conf directly.
 # Instead, make your changes to /etc/cobbler/rsync.template.
 #
 # ******************************************************************
@@ -14,9 +14,9 @@
     path    = $webdir/repo_mirror
     comment = All Cobbler Distros
 
-[cobbler-kickstarts]
-    path    = /var/lib/cobbler/kickstarts
-    comment = Cobbler Kickstarts
+[cobbler-templates]
+    path    = /var/lib/cobbler/templates
+    comment = Cobbler Templates
 
 [cobbler-snippets]
     path    = /var/lib/cobbler/snippets
