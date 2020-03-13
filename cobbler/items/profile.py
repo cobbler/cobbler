@@ -52,6 +52,7 @@ FIELDS = [
     ["name_servers", "SETTINGS:default_name_servers", [], "Name Servers", True, "space delimited", 0, "list"],
     ["name_servers_search", "SETTINGS:default_name_servers_search", [], "Name Servers Search Path", True, "space delimited", 0, "list"],
     ["next_server", "<<inherit>>", '<<inherit>>', "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["parent", '', '', "Parent Profile", True, "", [], "str"],
     ["proxy", "SETTINGS:proxy_url_int", "<<inherit>>", "Proxy", True, "Proxy URL", 0, "str"],
@@ -228,6 +229,12 @@ class Profile(item.Item):
                 self.next_server = validate.ipv4_address(server)
             else:
                 self.next_server = server
+
+    def set_filename(self, filename):
+        if not filename:
+            self.filename = "<<inherit>>"
+        else:
+            self.filename = filename.strip()
 
     def set_autoinstall(self, autoinstall):
         """
