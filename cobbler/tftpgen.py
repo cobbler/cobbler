@@ -26,7 +26,6 @@ import os
 import os.path
 import re
 import socket
-#import string
 
 from cobbler.cexceptions import CX
 from cobbler import templar
