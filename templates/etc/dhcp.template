@@ -135,6 +135,7 @@ group {
         #end if
         #if $iface.filename:
         filename $filename
+	#end if
         #if $iface.name_servers:
         #set $mynameservers = ','.join($iface.name_servers)
         option domain-name-servers $mynameservers;
