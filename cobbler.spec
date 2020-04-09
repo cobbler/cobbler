@@ -37,6 +37,8 @@
 %define grub2_x64_efi_pkg grub2-x86_64-efi
 %define grub2_ia32_efi_pkg grub2-i386-efi
 %define system_release_pkg distribution-release
+%undefine python_enable_dependency_generator
+%undefine python_disable_dependency_generator
 %endif
 
 %if 0%{?debian} || 0%{?ubuntu}
@@ -119,6 +121,9 @@ URL:            https://cobbler.github.io/
 %if %{_vendor} == "debbuild"
 Packager:       Cobbler Developers <cobbler@lists.fedorahosted.org>
 Group:          admin
+%endif
+%if 0%{?suse_version}
+Group:          Productivity/Networking/Boot/Servers
 %else
 Group:          Development/System
 %endif
