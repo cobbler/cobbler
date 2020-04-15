@@ -1087,7 +1087,7 @@ def copyremotefile(src, dst1, api=None, logger=None):
         output.write(srcfile.read())
         output.close()
     except Exception as e:
-        raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e.message)))
+        raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e)))
 
 
 def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None, logger=None):
