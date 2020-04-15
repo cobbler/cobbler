@@ -649,7 +649,7 @@ class TFTPGen(object):
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_mac:
+                if management_mac and not distro.arch.startswith("s390"):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
