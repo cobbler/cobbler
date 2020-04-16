@@ -80,40 +80,40 @@ class TFTPGen(object):
                 errors.append(e)
                 self.logger.error(e.value)
 
-        # FIXME: using logging module so this ends up in cobbler.log?
+    def copy_single_distro_file(self, d_file, distro_dir, symlink_ok):
+        """
+        Copy a single file (kernel/initrd) to distro's images directory
+        @type:  d_file:     str
+        @param: d_file:     distro's kernel/initrd value
+        @type:  distro_dir:     str
+        @param: distro_dir:     directory (typically in {www,tftp}/images) where to copy the file
+        @type:  symlink_ok: bool
+        @param: symlink_ok: whethere it is ok to symlink the file. Typically false in case the file
+                           is used by daemons run in chroot environments (tftpd,..)
+        @returns: None
+        """
+        full_path = utils.find_kernel(d_file)
+
+        if full_path is None:
+            raise CX("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
+
+        # Koan manages remote kernel/initrd itself, but for consistent PXE
+        # configurations the synchronization is still necessary
+        if not utils.file_is_remote(full_path):
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+        else:
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.copyremotefile(full_path, dst, api=None, logger=self.logger)
 
     def copy_single_distro_files(self, d, dirtree, symlink_ok):
         distros = os.path.join(dirtree, "images")
         distro_dir = os.path.join(distros, d.name)
         utils.mkdir(distro_dir)
-        kernel = utils.find_kernel(d.kernel)    # full path
-        initrd = utils.find_initrd(d.initrd)    # full path
-
-        if kernel is None:
-            raise CX("kernel not found: %(file)s, distro: %(distro)s" % {"file": d.kernel, "distro": d.name})
-
-        if initrd is None:
-            raise CX("initrd not found: %(file)s, distro: %(distro)s" % {"file": d.initrd, "distro": d.name})
-
-        # Koan manages remote kernel itself, but for consistent PXE
-        # configurations the synchronization is still necessary
-        if not utils.file_is_remote(kernel):
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.linkfile(kernel, dst1, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.copyremotefile(kernel, dst1, api=None, logger=self.logger)
-
-        if not utils.file_is_remote(initrd):
-            b_initrd = os.path.basename(initrd)
-            dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_initrd = os.path.basename(initrd)
-            dst1 = os.path.join(distro_dir, b_initrd)
-            utils.copyremotefile(initrd, dst1, api=None, logger=self.logger)
+        self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
+        self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
 
     def copy_single_image_files(self, img):
         images_dir = os.path.join(self.bootloc, "images2")
@@ -395,14 +395,22 @@ class TFTPGen(object):
 
         if image is None:
             # not image based, it's something normalish
-
             img_path = os.path.join("/images", distro.name)
+            if format == "grub":
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_grub_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_grub_initrd
 
             if 'http' in distro.kernel and 'http' in distro.initrd:
-                kernel_path = distro.kernel
-                initrd_path = distro.initrd
-            else:
+                if not kernel_path:
+                    kernel_path = distro.kernel
+                if not initrd_path:
+                    initrd_path = distro.initrd
+
+            if not kernel_path:
                 kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+            if not initrd_path:
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
             # Find the automatic installation file if we inherit from another profile

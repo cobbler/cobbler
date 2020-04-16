@@ -101,6 +101,18 @@ If you want to be explicit with distribution definition, however, here's how it 
 +----------------+-----------------------------------------------------------------------------------------------------+
 | initrd         | An absolute filesystem path to a initrd image.                                                      |
 +----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-   | A URL pointing to the installation initrd of a distribution. If the bootloader has this support,    |
+| kernel         | it will directly download the kernel from this URL, instead of the directory of the tftp client.    |
+|                | Note: The kernel (or initrd below) will still be copied into the image directory of the tftp server.|
+|                | The above kernel parameter is still needed (e.g. to build iso images, etc.).                        |
+|                | The advantage of letting the boot loader retrieve the kernel/initrd directly is the support of      |
+|                | changing/updated distibutions. E.g. openSUSE Tumbleweed is updated on the fly and if cobbler would  |
+|                | copy/cache the kernel/initrd in the tftp directory, you would get a "kernel does not match          |
+|                | distribution" (or similar) error when trying to install.                                            |
++----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-   | See remote-boot-kernel above.                                                                       |
+| initrd         |                                                                                                     |
++----------------+-----------------------------------------------------------------------------------------------------+
 | kopts          | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will use. |
 |                | To remove a kernel argument that may be added by a higher cobbler object (or in the global          |
 |                | settings), you can prefix it with a ``!``.                                                          |
