@@ -83,14 +83,18 @@ class TFTPGen(object):
     def copy_single_distro_file(self, d_file, distro_dir, symlink_ok):
         """
         Copy a single file (kernel/initrd) to distro's images directory
-        @type:  d_file:     str
-        @param: d_file:     distro's kernel/initrd value
-        @type:  distro_dir:     str
-        @param: distro_dir:     directory (typically in {www,tftp}/images) where to copy the file
-        @type:  symlink_ok: bool
-        @param: symlink_ok: whethere it is ok to symlink the file. Typically false in case the file
-                           is used by daemons run in chroot environments (tftpd,..)
-        @returns: None
+
+        :param: d_file:     distro's kernel/initrd absolut or remote file path value
+        :type:  d_file:     str
+        :param: distro_dir: directory (typically in {www,tftp}/images) where to copy the file
+        :type:  distro_dir: str
+        :param: symlink_ok: whethere it is ok to symlink the file. Typically false in case the file
+                            is used by daemons run in chroot environments (tftpd,..)
+        :type:  symlink_ok: bool
+
+        :raises CX:         Cobbler Exception is raised in case file IO errors or of the remote file
+                            could not be retrieved
+        :return:            None
         """
         full_path = utils.find_kernel(d_file)
 
