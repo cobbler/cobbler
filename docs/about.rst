@@ -12,7 +12,7 @@ About
    Distribution Notes<1_about/distribution_notes>
 
 Cobbler is a build and deployment system. The primary functionality of cobbler is to simplify the lives of
-administrators by automating repetive actions, and to encourage reuse of existing work through the use of templating.
+administrators by automating repetitive actions, and to encourage reuse of existing work through the use of templating.
 
 One of the primary tenets we follow is to provide options and flexibility rather than locking administrators into a
 single way of doing things. As such, cobbler can be integrated with a growing number of configuration management systems
