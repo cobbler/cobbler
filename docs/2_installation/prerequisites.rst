@@ -57,7 +57,7 @@ Installation from source requires the following additional packages:
 
 * git
 * make
-* python-devel
+* python-dev
 * python-setuptools
 * python-cheetah
 * openssl
