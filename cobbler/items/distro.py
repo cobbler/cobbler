@@ -24,6 +24,7 @@ from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.utils import _
+from cobbler import grub
 
 # this data structure is described in item.py
 FIELDS = [
@@ -45,6 +46,8 @@ FIELDS = [
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "list"],
     ["initrd", None, 0, "Initrd", True, "Absolute path to kernel on filesystem", 0, "str"],
     ["kernel", None, 0, "Kernel", True, "Absolute path to kernel on filesystem", 0, "str"],
+    ["remote_boot_initrd", None, 0, "Remote Boot Initrd", True, "URL the bootloader directly retrieves and boots from", 0, "str"],
+    ["remote_boot_kernel", None, 0, "Remote Boot Kernel", True, "URL the bootloader directly retrieves and boots from", 0, "str"],
     ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
     ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
     ["mgmt_classes", [], 0, "Management Classes", True, "Management classes for external config management", 0, "list"],
@@ -73,6 +76,8 @@ class Distro(item.Item):
         self.fetchable_files = {}
         self.boot_files = {}
         self.template_files = {}
+        self.remote_grub_kernel = ""
+        self.remote_grub_initrd = ""
 
     #
     # override some base class methods first (item.Item)
@@ -105,6 +110,17 @@ class Distro(item.Item):
         if self.initrd is None:
             raise CX("Error with distro %s - initrd is required" % (self.name))
 
+        # self.remote_grub_kernel has to be set in set_remote_boot_kernel and here
+        # in case the distro is read from json file (setters are not called).
+        if self.remote_boot_kernel:
+            self.remote_grub_kernel = grub.parse_grub_remote_file(self.remote_boot_kernel)
+            if not self.remote_grub_kernel:
+                raise CX("Invalid URL for remote boot kernel: %s" % self.remote_boot_kernel)
+        if self.remote_boot_initrd:
+            self.remote_grub_initrd = grub.parse_grub_remote_file(self.remote_boot_initrd)
+            if not self.remote_grub_initrd:
+                raise CX("Invalid URL for remote boot initrd: %s" % self.remote_boot_initrd)
+
         if utils.file_is_remote(self.kernel):
             if not utils.remote_file_exists(self.kernel):
                 raise CX("Error with distro %s - kernel '%s' not found" % (self.name, self.kernel))
@@ -136,6 +152,21 @@ class Distro(item.Item):
             return
         raise CX("kernel not found: %s" % kernel)
 
+    def set_remote_boot_kernel(self, remote_boot_kernel):
+        """
+        URL to a remote kernel. If the bootloader supports this feature,
+        it directly tries to retrieve the kernel and boot it.
+        (grub supports tftp and http protocol and server must be an IP).
+        """
+        if remote_boot_kernel:
+            self.remote_grub_kernel = grub.parse_grub_remote_file(remote_boot_kernel)
+            if not self.remote_grub_kernel:
+                raise CX("Invalid URL for remote boot kernel: %s" % remote_boot_kernel)
+            self.remote_boot_kernel = remote_boot_kernel
+            return
+        # Set to None or ""
+        self.remote_grub_kernel = self.remote_boot_kernel = remote_boot_kernel
+
     def set_tree_build_time(self, datestamp):
         """
         Sets the import time of the distro.
@@ -160,6 +191,21 @@ class Distro(item.Item):
             self.initrd = initrd
             return
         raise CX(_("initrd not found"))
+
+    def set_remote_boot_initrd(self, remote_boot_initrd):
+        """
+        URL to a remote initrd. If the bootloader supports this feature,
+        it directly tries to retrieve the initrd and boot it.
+        (grub supports tftp and http protocol and server must be an IP).
+        """
+        if remote_boot_initrd:
+            self.remote_grub_initrd = grub.parse_grub_remote_file(remote_boot_initrd)
+            if not self.remote_grub_initrd:
+                raise CX("Invalid URL for remote boot initrd: %s" % remote_boot_initrd)
+            self.remote_boot_initrd = remote_boot_initrd
+            return
+        # Set to None or ""
+        self.remote_grub_initrd = self.remote_boot_initrd = remote_boot_initrd
 
     def set_source_repos(self, repos):
         """
