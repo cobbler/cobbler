@@ -26,7 +26,6 @@ import os
 import os.path
 import re
 import socket
-import string
 
 from cobbler.cexceptions import CX
 from cobbler import templar
@@ -898,7 +897,7 @@ class TFTPGen(object):
         # URL passed in, so all of the files need to be at this location
         # (which is why we can't use the images link, which just contains
         # the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = str.join('', distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
@@ -974,7 +973,7 @@ class TFTPGen(object):
         # URL passed in, so all of the files need to be at this location
         # (which is why we can't use the images link, which just contains
         # the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = str.join('', distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
