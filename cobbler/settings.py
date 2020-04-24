@@ -185,7 +185,7 @@ if bind_config_filename:
 class Settings(object):
 
     @staticmethod
-    def collection_type(self):
+    def collection_type():
         """
         This is a hardcoded string which represents the collection type.
 
