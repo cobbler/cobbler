@@ -109,7 +109,7 @@ class Templar(object):
             # it and rejoin them to pass to the template language
             template_type = lines[0].split("=")[1].strip().lower()
             del lines[0]
-            raw_data = string.join(lines, "\n")
+            raw_data = "\n".join(lines)
 
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table, subject)
