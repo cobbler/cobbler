@@ -156,7 +156,7 @@ class CobblerCheck(object):
 
     def check_iptables(self, status):
         """
-        Check if iptables is running. If yes print the needed ports.
+        Check if iptables is running. If yes print the needed ports. This is unavailable on both Debian and CentOS7.
 
         :param status: The status list with possible problems.
         """
