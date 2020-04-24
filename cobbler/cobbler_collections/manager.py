@@ -49,9 +49,9 @@ class CollectionManager(object):
 
     def __load(self, api):
         """
-        A
+        Load all collections from the disk into cobbler.
 
-        :param api:
+        :param api: The api to resolve information with.
         """
         CollectionManager.has_loaded = True
 
@@ -79,11 +79,11 @@ class CollectionManager(object):
 
     def __cmp(self, a, b):
         """
-        A
+        Compoare object a to object b and determine which is greater. Comparing is done via the object names.
 
-        :param a:
-        :param b:
-        :return:
+        :param a: The first object to compare.
+        :param b: The second object to compoare.
+        :return: Whether the first or second object is greater.
         """
         return cmp(a.name, b.name)
 
@@ -200,10 +200,14 @@ class CollectionManager(object):
 
     def get_items(self, collection_type):
         """
-        A
+        Get a full collection of a single type.
 
-        :param collection_type:
-        :return:
+        Valid Values vor ``collection_type`` are: "distro", "profile", "repo", "image", "mgmtclass", "package", "file"
+        and "settings".
+
+        :param collection_type: The type of collection to return.
+        :return: The collection if ``collection_type`` is valid.
+        :raises CX: If the ``collection_type`` is invalid.
         """
         if collection_type == "distro":
             result = self._distros

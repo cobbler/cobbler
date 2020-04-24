@@ -93,20 +93,20 @@ class Item(object):
     @classmethod
     def get_from_cache(cls, ref):
         """
-        A
+        Get an object from the cache. This is may potentially contain not persisted changes.
 
-        :param ref:
-        :return:
+        :param ref: The id of the object which is in the cache.
+        :return: The object if present or an empty dict.
         """
         return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.name)
 
     @classmethod
     def set_cache(cls, ref, value):
         """
-        A
+        Add an object to the cache.
 
-        :param ref:
-        :param value:
+        :param ref: An object to identify where to add the item to the cache.
+        :param value: The object to add to the cache.
         """
         if ref.COLLECTION_TYPE not in cls.converted_cache:
             cls.converted_cache[ref.COLLECTION_TYPE] = {}
@@ -115,9 +115,9 @@ class Item(object):
     @classmethod
     def remove_from_cache(cls, ref):
         """
-        A
+        Remove an item from the cache.
 
-        :param ref:
+        :param ref: The object reference id to identify the object.
         """
         cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.name, None)
 
@@ -167,18 +167,18 @@ class Item(object):
 
     def __find_compare(self, from_search, from_obj):
         """
-        A
+        Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
-        :param from_search:
-        :param from_obj:
-        :return:
+        :param from_search: Tries to parse this str in the format as a search result string.
+        :param from_obj: Tries to parse this str in the format of an obj str.
+        :return: True if the comparison succeeded, False otherwise.
         """
         if isinstance(from_obj, str):
-            # FIXME: fnmatch is only used for string to string comparisions
-            # which should cover most major usage, if not, this deserves fixing
+            # FIXME: fnmatch is only used for string to string comparisions which should cover most major usage, if
+            #        not, this deserves fixing
             from_obj_lower = from_obj.lower()
             from_search_lower = from_search.lower()
-            # it's much faster to not use fnmatch if it's not needed
+            # It's much faster to not use fnmatch if it's not needed
             if '?' not in from_search_lower and '*' not in from_search_lower and '[' not in from_search_lower:
                 match = from_obj_lower == from_search_lower
             else:

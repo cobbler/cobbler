@@ -3453,12 +3453,12 @@ class ProxiedXMLRPCInterface(object):
 
     def _dispatch(self, method, params, **rest):
         """
-        A
+        This method magically registers the methods at the xmlrpc interface.
 
-        :param method:
-        :param params:
-        :param rest:
-        :return:
+        :param method: The method to register.
+        :param params: The params for the method.
+        :param rest: This gets dropped curently.
+        :return: The result of the method.
         """
         if method.startswith('_'):
             raise CX("forbidden method")

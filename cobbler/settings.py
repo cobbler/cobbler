@@ -192,7 +192,7 @@ class Settings(object):
         :return: "settings"
         :rtype: str
         """
-        return "setting"
+        return "settings"
 
     @staticmethod
     def collection_types() -> str:

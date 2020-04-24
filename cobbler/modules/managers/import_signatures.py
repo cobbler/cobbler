@@ -778,7 +778,8 @@ class ImportSignatureManager(object):
     # rhn-specific
 
     def rhn_repo_adder(self, distro):
-        """Not currently used.
+        """
+        Not currently used.
 
         :param distro: Not used currently.
         """
@@ -788,7 +789,8 @@ class ImportSignatureManager(object):
     # rsync-specific
 
     def rsync_repo_adder(self, distro):
-        """Not currently used.
+        """
+        Not currently used.
 
         :param distro: Not used currently.
         """
