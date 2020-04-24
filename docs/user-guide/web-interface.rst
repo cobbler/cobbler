@@ -149,13 +149,42 @@ Further setup
 
 Cobbler authenticates all WebUI logins through ``cobblerd``, which uses a configurable authentication mechanism. You may
 wish to adjust that for your environment. For instance, if in ``modules.conf`` above you choose to stay with the
-authn_configfile module, you may want to add your system administrator usernames to the digest file:
+``authentication.configfile`` module, you may want to add your system administrator usernames to the digest file. To do
+this it is recommended to use either ``openssl`` or Python directly.
+
+Example using ``openssl 1.1.1`` or later:
+
+.. code-block:: none
+
+    printf "foobar" | openssl dgst -sha3-512
+
+It is possible with ``openssl`` to generate hashes for the following hash algorithms which are configurable: blake2b512,
+blake2s256, shake128, shake256, sha3-224m sha3-256, sha3-384, sha3-512
+
+Example using Python (using the python interactive shell):
+
+.. code-block:: python
+
+    import hashlib
+    hashlib.sha3_512("<PASSWORD>".encode('utf-8')).hexdigest()
+
+Python of course will always have all possible hash algorithms available which are valid in the context of Cobbler.
+
+Both examples return the same result when executed with the same password. The file itself is structured according to
+the following: ``<USERNAME>:<REALM>:<PASSWORDHASH>``. Normally ``<REALM>`` will be ``Cobbler``. Other values are
+currently not valid. Please add the user, realm and passwordhash with your preferred editor. Normally there should be
+no need to restart cobbler when a new user is added, removed or the password is changed. The authentication process
+reads the file every time a user is authenticated.
+
+You may also want to refine for authorization settings.
+
+Before Cobbler 3.1.2 it was recommended to do edit the file ``users.digest`` with the following command. Since ``md5``
+is not FIPS compatible from Cobbler 3.1.3 and onwards this is not possible anymore. The file was also just read once per
+Cobbler start and thus a change of the data requires that Cobbler is restarted that it picks up these changes.
 
 .. code-block:: none
 
     htdigest /etc/cobbler/users.digest "Cobbler" <username>
-
-You may also want to refine for authorization settings.
 
 Rewrite Rule for secure-http
 ============================

@@ -25,8 +25,6 @@ import os
 import os.path
 import re
 import socket
-import string
-from builtins import object
 
 from cobbler import templar
 from cobbler import utils
@@ -53,7 +51,7 @@ class TFTPGen(object):
         self.templar = templar.Templar(collection_mgr)
         self.bootloc = self.settings.tftpboot_location
 
-    def copy_bootloaders(self):
+    def copy_bootloaders(self, dest):
         """
         Copy bootloaders to the configured tftpboot directory
         NOTE: we support different arch's if defined in /etc/cobbler/settings.
@@ -79,7 +77,37 @@ class TFTPGen(object):
                 errors.append(e)
                 self.logger.error(e.value)
 
-        # FIXME: using logging module so this ends up in cobbler.log?
+    def copy_single_distro_file(self, d_file, distro_dir, symlink_ok):
+        """
+        Copy a single file (kernel/initrd) to distro's images directory
+
+        :param  d_file:     distro's kernel/initrd absolut or remote file path value
+        :type   d_file:     str
+        :param  distro_dir: directory (typically in {www,tftp}/images) where to copy the file
+        :type   distro_dir: str
+        :param  symlink_ok: whethere it is ok to symlink the file. Typically false in case the file
+                            is used by daemons run in chroot environments (tftpd,..)
+        :type   symlink_ok: bool
+
+        :raises CX:         Cobbler Exception is raised in case file IO errors or of the remote file
+                            could not be retrieved
+        :return:            None
+        """
+        full_path = utils.find_kernel(d_file)
+
+        if full_path is None:
+            raise CX("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
+
+        # Koan manages remote kernel/initrd itself, but for consistent PXE
+        # configurations the synchronization is still necessary
+        if not utils.file_is_remote(full_path):
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+        else:
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.copyremotefile(full_path, dst, api=None, logger=self.logger)
 
     def copy_single_distro_files(self, d, dirtree, symlink_ok):
         """
@@ -94,34 +122,8 @@ class TFTPGen(object):
         distros = os.path.join(dirtree, "images")
         distro_dir = os.path.join(distros, d.name)
         utils.mkdir(distro_dir)
-        kernel = utils.find_kernel(d.kernel)    # full path
-        initrd = utils.find_initrd(d.initrd)    # full path
-
-        if kernel is None:
-            raise CX("kernel not found: %(file)s, distro: %(distro)s" % {"file": d.kernel, "distro": d.name})
-
-        if initrd is None:
-            raise CX("initrd not found: %(file)s, distro: %(distro)s" % {"file": d.initrd, "distro": d.name})
-
-        # Koan manages remote kernel itself, but for consistent PXE configurations the synchronization is still
-        # necessary
-        if not utils.file_is_remote(kernel):
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.linkfile(kernel, dst1, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.copyremotefile(kernel, dst1, api=None, logger=self.logger)
-
-        if not utils.file_is_remote(initrd):
-            b_initrd = os.path.basename(initrd)
-            dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_initrd = os.path.basename(initrd)
-            dst1 = os.path.join(distro_dir, b_initrd)
-            utils.copyremotefile(initrd, dst1, api=None, logger=self.logger)
+        self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
+        self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
 
     def copy_single_image_files(self, img):
         """
@@ -437,14 +439,22 @@ class TFTPGen(object):
 
         if image is None:
             # not image based, it's something normalish
-
             img_path = os.path.join("/images", distro.name)
+            if format == "grub":
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_grub_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_grub_initrd
 
             if 'http' in distro.kernel and 'http' in distro.initrd:
-                kernel_path = distro.kernel
-                initrd_path = distro.initrd
-            else:
+                if not kernel_path:
+                    kernel_path = distro.kernel
+                if not initrd_path:
+                    initrd_path = distro.initrd
+
+            if not kernel_path:
                 kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+            if not initrd_path:
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
             # Find the automatic installation file if we inherit from another profile
@@ -698,7 +708,7 @@ class TFTPGen(object):
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_mac:
+                if management_mac and not distro.arch.startswith("s390"):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
@@ -937,7 +947,7 @@ class TFTPGen(object):
         # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
         # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
         # link, which just contains the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = str.join(distro.kernel.split('/')[-2:-1], '')
 
         blended = utils.blender(self.api, False, obj)
 
@@ -1019,7 +1029,7 @@ class TFTPGen(object):
         # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
         # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
         # link, which just contains the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = str.join('', distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 

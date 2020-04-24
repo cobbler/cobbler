@@ -101,6 +101,18 @@ If you want to be explicit with distribution definition, however, here's how it 
 +----------------+-----------------------------------------------------------------------------------------------------+
 | initrd         | An absolute filesystem path to a initrd image.                                                      |
 +----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-   | A URL pointing to the installation initrd of a distribution. If the bootloader has this support,    |
+| kernel         | it will directly download the kernel from this URL, instead of the directory of the tftp client.    |
+|                | Note: The kernel (or initrd below) will still be copied into the image directory of the tftp server.|
+|                | The above kernel parameter is still needed (e.g. to build iso images, etc.).                        |
+|                | The advantage of letting the boot loader retrieve the kernel/initrd directly is the support of      |
+|                | changing/updated distibutions. E.g. openSUSE Tumbleweed is updated on the fly and if cobbler would  |
+|                | copy/cache the kernel/initrd in the tftp directory, you would get a "kernel does not match          |
+|                | distribution" (or similar) error when trying to install.                                            |
++----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-   | See remote-boot-kernel above.                                                                       |
+| initrd         |                                                                                                     |
++----------------+-----------------------------------------------------------------------------------------------------+
 | kopts          | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will use. |
 |                | To remove a kernel argument that may be added by a higher cobbler object (or in the global          |
 |                | settings), you can prefix it with a ``!``.                                                          |
@@ -181,7 +193,7 @@ performed.
 
 .. code-block:: shell
 
-    $ cobbler profile add --name=string --distro=string [--autoinst=path] [--kopts=string] [--ksmeta=string] [--name-servers=string] [--name-servers-search=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile]
+    $ cobbler profile add --name=string --distro=string [--autoinst=path] [--kopts=string] [--ksmeta=string] [--name-servers=string] [--name-servers-search=string] [--virt-file-size=gigabytes] [--virt-ram=megabytes] [--virt-type=string] [--virt-cpus=integer] [--virt-path=string] [--virt-bridge=string] [--server] [--parent=profile] [--filename=string]
 
 Arguments are the same as listed for distributions, save for the removal of "arch" and "breed", and with the additions
 listed below:
@@ -266,6 +278,10 @@ listed below:
 |                     | next server and DHCP information of the system if you are also usingCobbler to help manage your|
 |                     | DHCP configuration.                                                                            |
 +---------------------+------------------------------------------------------------------------------------------------+
+| filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
+|                     | be a path relative to the tftp servers root directory. (e. g. grub/grubx64.efi)                |
+|                     | For most use cases the default bootloader is correct and this can be omitted                   |
++----------------------------------------------------------------------------------------------------------------------+
 
 cobbler system
 ==============
