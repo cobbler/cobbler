@@ -131,7 +131,6 @@ class TFTPGen(object):
 
         :param img: The image to copy.
         """
-
         images_dir = os.path.join(self.bootloc, "images2")
         filename = img.file
         if not os.path.exists(filename):
