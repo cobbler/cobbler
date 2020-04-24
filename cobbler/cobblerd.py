@@ -32,6 +32,11 @@ from cobbler import utils
 
 
 def core(api):
+    """
+    Starts cobbler.
+
+    :param api: The cobbler_api instance which is used for this method.
+    """
     cobbler_api = api
     settings = cobbler_api.settings()
     xmlrpc_port = settings.xmlrpc_port
@@ -41,9 +46,12 @@ def core(api):
 
 
 def regen_ss_file():
-    # this is only used for Kerberos auth at the moment.
-    # it identifies XMLRPC requests from Apache that have already
-    # been cleared by Kerberos.
+    """
+    This is only used for Kerberos auth at the moment. It identifies XMLRPC requests from Apache that have already been
+    cleared by Kerberos.
+
+    :return: 1 if this was successful.
+    """
     ssfile = "/var/lib/cobbler/web.ss"
     fd = open("/dev/urandom", 'rb')
     data = fd.read(512)
@@ -65,10 +73,25 @@ def regen_ss_file():
 
 
 def do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port):
+    """
+    This trys to bring up the cobbler xmlrpc_api and restart it if it fails. Tailcall to ``do_xmlrpc_rw``.
+
+    :param cobbler_api: The cobbler_api instance which is used for this method.
+    :param settings: The cobbler settings instance which is used for this method.
+    :param xmlrpc_port: The port where xmlrpc should run on.
+    """
     do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
 
 
 def log(logger, msg):
+    """
+    This logs something with the Cobbler Logger.
+
+    :param logger: If this is not none then an info message is printed to the log target. In any other case stderr is
+                   used.
+    :param msg: The message to be logged.
+    :type msg: str
+    """
     if logger is not None:
         logger.info(msg)
     else:
@@ -76,7 +99,13 @@ def log(logger, msg):
 
 
 def do_xmlrpc_rw(cobbler_api, settings, port):
+    """
+    This trys to bring up the cobbler xmlrpc_api and restart it if it fails.
 
+    :param cobbler_api: The cobbler_api instance which is used for this method.
+    :param settings: The cobbler settings instance which is used for this method.
+    :param port: The port where the xmlrpc api should run on.
+    """
     xinterface = remote.ProxiedXMLRPCInterface(cobbler_api, remote.CobblerXMLRPCInterface)
     server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0      # don't print stuff

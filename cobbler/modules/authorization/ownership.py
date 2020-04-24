@@ -38,11 +38,20 @@ from cobbler.utils import _
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authz"
+    :rtype: str
     """
     return "authz"
 
 
 def __parse_config():
+    """
+    Parse the "users.conf" of cobbler and return all data in a dictionary.
+
+    :return: The data seperated by sections. Each section has a subdictionary with the key-value pairs.
+    :rtype: dict
+    """
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
@@ -61,23 +70,29 @@ def __parse_config():
 
 
 def __authorize_autoinst(api_handle, groups, user, autoinst):
-    # the authorization rules for automatic installation file editing are a bit
-    # of a special case.  Non-admin users can edit a automatic installation file
-    # only if all objects that depend on that automatic installation file are
-    # editable by the user in question.
-    #
-    # Example:
-    #   if Pinky owns ProfileA
-    #   and the Brain owns ProfileB
-    #   and both profiles use the same automatic installation template
-    #   and neither Pinky nor the Brain is an admin
-    #   neither is allowed to edit the automatic installation template
-    #   because they would make unwanted changes to each other
-    #
-    # In the above scenario the UI will explain the problem
-    # and ask that the user asks the admin to resolve it if required.
-    # NOTE: this function is only called by authorize so admin users are
-    # cleared before this function is called.
+    """
+    The authorization rules for automatic installation file editing are a bit of a special case. Non-admin users can
+    edit a automatic installation file only if all objects that depend on that automatic installation file are editable
+    by the user in question.
+
+    Example:
+      if Pinky owns ProfileA
+      and the Brain owns ProfileB
+      and both profiles use the same automatic installation template
+      and neither Pinky nor the Brain is an admin
+      neither is allowed to edit the automatic installation template
+      because they would make unwanted changes to each other
+
+    In the above scenario the UI will explain the problem and ask that the user asks the admin to resolve it if
+    required.
+    NOTE: this function is only called by authorize so admin users are cleared before this function is called.
+
+    :param api_handle: The api to resolve required information.
+    :param groups: The groups a user is in.
+    :param user: The user which is asking for access.
+    :param autoinst: The automatic installation in question.
+    :return: ``1`` if the user is allowed and otherwise ``0``.
+    """
 
     lst = api_handle.find_profile(autoinst=autoinst, return_list=True)
     lst.extend(api_handle.find_system(autoinst=autoinst, return_list=True))
@@ -88,8 +103,16 @@ def __authorize_autoinst(api_handle, groups, user, autoinst):
 
 
 def __authorize_snippet(api_handle, groups, user, autoinst):
-    # only allow admins to edit snippets -- since we don't have detection to see
-    # where each snippet is in use
+    """
+    Only allow admins to edit snippets -- since we don't have detection to see where each snippet is in use.
+
+    :param api_handle: Unused parameter.
+    :param groups: The group which is asking for access.
+    :param user: Unused parameter.
+    :param autoinst: Unused parameter.
+    :return: ``True`` if the group is allowed, otherwise ``False``.
+    """
+
     for group in groups:
         if group not in ["admins", "admin"]:
             return False
@@ -97,6 +120,18 @@ def __authorize_snippet(api_handle, groups, user, autoinst):
 
 
 def __is_user_allowed(obj, groups, user, resource, arg1, arg2):
+    """
+    Check if a user is allowed to access the resource in question.
+
+    :param obj: The object which is in question.
+    :param groups: The groups a user is belonging to.
+    :param user: The user which is demanding access to the ``obj``.
+    :param resource: Unused parameter.
+    :param arg1: Unused parameter.
+    :param arg2: Unused parameter.
+    :return: ``True`` if user is allowed, otherwise ``0``.
+    """
+
     if user == "<DIRECT>":
         # system user, logged in via web.ss
         return True
@@ -118,15 +153,20 @@ def __is_user_allowed(obj, groups, user, resource, arg1, arg2):
 
 def authorize(api_handle, user, resource, arg1=None, arg2=None):
     """
-    Validate a user against a resource.
-    All users in the file are permitted by this module.
+    Validate a user against a resource. All users in the file are permitted by this module.
+
+    :param api_handle: The api to resolve required information.
+    :param user: The user to authorize to the resource.
+    :param resource: The resource the user is asking for access. This is something abstract like a remove operation.
+    :param arg1: This is normally the name of the specific object in question.
+    :param arg2: This parameter is pointless currently. Reserved for future code.
+    :return: ``True`` or ``1`` if okay, otherwise ``False``.
     """
     if user == "<DIRECT>":
         # CLI should always be permitted
         return True
 
-    # everybody can get read-only access to everything
-    # if they pass authorization, they don't have to be in users.conf
+    # Everybody can get read-only access to everything if they pass authorization, they don't have to be in users.conf
     if resource is not None:
         # FIXME: /cobbler/web should not be subject to user check in any case
         for x in ["get", "read", "/cobbler/web"]:
@@ -166,21 +206,17 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
         # users for now, may want to refine later.
         return True
 
-    # now we have a modify_operation op, so we must check ownership
-    # of the object.  remove ops pass in arg1 as a string name,
-    # saves pass in actual objects, so we must treat them differently.
-    # automatic installaton files are even more special so we call those
-    # out to another function, rather than going through the rest of the
-    # code here.
+    # Now we have a modify_operation op, so we must check ownership of the object. Remove ops pass in arg1 as a string
+    # name, saves pass in actual objects, so we must treat them differently. Automatic installaton files are even more
+    # special so we call those out to another function, rather than going through the rest of the code here.
 
     if resource.find("write_autoinstall_template") != -1:
         return __authorize_autoinst(api_handle, found_groups, user, arg1)
     elif resource.find("read_autoinstall_template") != -1:
         return True
 
-    # the API for editing snippets also needs to do something similar.
-    # as with automatic installation files, though since they are more
-    # widely used it's more restrictive
+    # The API for editing snippets also needs to do something similar. As with automatic installation files, though
+    # since they are more widely used it's more restrictive.
 
     if resource.find("write_autoinstall_snippet") != -1:
         return __authorize_snippet(api_handle, found_groups, user, arg1)

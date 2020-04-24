@@ -23,8 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from builtins import str
 import traceback
 
-# we'll import this just a bit later
-# to keep it from being a requirement
+# We'll import this just a bit later to keep it from being a requirement
 # import ldap
 
 import cobbler.api as cobbler_api
@@ -34,6 +33,9 @@ from cobbler.cexceptions import CX
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authn"
+    :rtype: str
     """
 
     return "authn"
@@ -41,9 +43,15 @@ def register():
 
 def authenticate(api_handle, username, password):
     """
-    Validate an ldap bind, returning True/False
+    Validate an ldap bind, returning whether the authentication was successful or not.
+
+    :param api_handle: The api instance to resolve settings.
+    :param username: The username to authenticate.
+    :param password: The password to authenticate.
+    :return: True if the ldap server authentication was a success, otherwise false.
     """
-    if (not password):
+
+    if not password:
         return False
     import ldap
 
@@ -91,8 +99,7 @@ def authenticate(api_handle, username, password):
     # connect to LDAP host
     dir = ldap.initialize(uri)
 
-    # start_tls if tls is 'on', 'true' or 'yes'
-    # and we're not already using old-SSL
+    # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
     tls = str(tls).lower()
     if port != '636':
         if tls in ["on", "true", "yes", "1"]:
@@ -102,8 +109,7 @@ def authenticate(api_handle, username, password):
                 traceback.print_exc()
                 return False
 
-    # if we're not allowed to search anonymously,
-    # grok the search bind settings and attempt to bind
+    # if we're not allowed to search anonymously, grok the search bind settings and attempt to bind
     anon_bind = str(anon_bind).lower()
     if anon_bind not in ["on", "true", "yes", "1"]:
         searchdn = api_handle.settings().ldap_search_bind_dn
@@ -124,8 +130,7 @@ def authenticate(api_handle, username, password):
     result = dir.search_s(basedn, ldap.SCOPE_SUBTREE, filter, [])
     if result:
         for dn, entry in result:
-            # username _should_ be unique so we should only have one result
-            # ignore entry; we don't need it
+            # username _should_ be unique so we should only have one result ignore entry; we don't need it
             pass
     else:
         return False

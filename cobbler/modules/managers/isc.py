@@ -43,11 +43,19 @@ def register():
 class IscManager(object):
 
     def what(self):
+        """
+        Static method to identify the manager.
+
+        :return: Always "isc".
+        """
         return "isc"
 
     def __init__(self, collection_mgr, logger):
         """
         Constructor
+
+        :param collection_mgr: The collection manager to resolve all information with.
+        :param logger: The logger to audit all actions with.
         """
         self.logger = logger
         self.collection_mgr = collection_mgr
@@ -62,8 +70,7 @@ class IscManager(object):
 
     def write_dhcp_file(self):
         """
-        DHCP files are written when manage_dhcp is set in
-        /etc/cobbler/settings.
+        DHCP files are written when ``manage_dhcp`` is set in ``/etc/cobbler/settings``.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -77,12 +84,10 @@ class IscManager(object):
         template_data = f2.read()
         f2.close()
 
-        # use a simple counter for generating generic names where a hostname
-        # is not available
+        # Use a simple counter for generating generic names where a hostname is not available.
         counter = 0
 
-        # we used to just loop through each system, but now we must loop
-        # through each network interface of each system.
+        # We used to just loop through each system, but now we must loop through each network interface of each system.
         dhcp_tags = {"default": {}}
         yaboot = "/yaboot"
 
@@ -100,8 +105,8 @@ class IscManager(object):
             # if distro is None then the profile is really an image record
             for (name, system_interface) in list(system.interfaces.items()):
 
-                # We make a copy because we may modify it before adding it to the dhcp_tags
-                # and we don't want to affect the master copy.
+                # We make a copy because we may modify it before adding it to the dhcp_tags and we don't want to affect
+                # the master copy.
                 interface = copy.deepcopy(system_interface)
 
                 if interface["if_gateway"]:
@@ -180,8 +185,8 @@ class IscManager(object):
                 interface["name_servers"] = blended_system["name_servers"]
                 interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 
-                # Explicitly declare filename for other (non x86) archs as in DHCP discover
-                # package mostly the architecture cannot be differed due to missing bits...
+                # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
+                # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
                     if distro.arch == "ppc" or  distro.arch == "ppc64":
                         interface["filename"] = yaboot
@@ -206,8 +211,7 @@ class IscManager(object):
                 else:
                     dhcp_tags[dhcp_tag][mac] = interface
 
-        # remove macs from redundant slave interfaces from dhcp_tags
-        # otherwise you get duplicate ip's in the installer
+        # Remove macs from redundant slave interfaces from dhcp_tags otherwise you get duplicate ip's in the installer.
         for dt in list(dhcp_tags.keys()):
             for m in list(dhcp_tags[dt].keys()):
                 if m in ignore_macs:
@@ -227,9 +231,15 @@ class IscManager(object):
         self.templar.render(template_data, metadata, self.settings_file, None)
 
     def regen_ethers(self):
-        pass            # ISC/BIND do not use this
+        """
+        ISC/BIND doesn't use this. It is there for compability reasons with other managers.
+        """
+        pass
 
     def sync_dhcp(self):
+        """
+        This syncs the dhcp server with it's new config files. Basically this restarts the service to apply the changes.
+        """
         restart_dhcp = str(self.settings.restart_dhcp).lower()
         service_name = utils.dhcp_service_name(self.api)
         if restart_dhcp != "0":
@@ -247,4 +257,11 @@ class IscManager(object):
 
 
 def get_manager(collection_mgr, logger):
+    """
+    Creates a manager object to manage an isc dhcp server.
+
+    :param collection_mgr: The collection manager which holds all information in the current cobbler instance.
+    :param logger: The logger to audit all actions with.
+    :return: The object to manage the server with.
+    """
     return IscManager(collection_mgr, logger)

@@ -14,14 +14,22 @@ settings_file = "/etc/genders"
 
 
 def register():
-    # we should run anytime something inside of cobbler changes.
+    """
+    We should run anytime something inside of cobbler changes.
+
+    :return: Always ``/var/lib/cobbler/triggers/change/*``
+    """
     return "/var/lib/cobbler/triggers/change/*"
 
 
 def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_genders):
     """
-    genders file is over-written when manage_genders is set in
-    /var/lib/cobbler/settings.
+    Genders file is over-written when manage_genders is set in /var/lib/cobbler/settings.
+
+    :param config: The config file to template with the data.
+    :param profiles_genders: The profiles which should be included.
+    :param distros_genders: The distros which should be included.
+    :param mgmtcls_genders: The management classes which should be included.
     """
 
     templar_inst = cobbler.templar.Templar(config)
@@ -44,7 +52,14 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
 
 
 def run(api, args, logger):
+    """
+    Mandatory cobbler trigger hook.
 
+    :param api: The api to resolve information with.
+    :param args: For this implementation unused.
+    :param logger: The logger to audit all actions with.
+    :return: ``0`` or ``1``, depending on the outcome of the operation.
+    """
     # do not run if we are not enabled.
     if(not api.settings().manage_genders):
         return 0
@@ -56,9 +71,8 @@ def run(api, args, logger):
     # let's populate our dicts
 
     # TODO: the lists that are created here are strictly comma separated.
-    # /etc/genders allows for host lists that are in the notation
-    # similar to: node00[01-07,08,09,70-71]
-    # at some point, need to come up with code to generate these types of lists.
+    # /etc/genders allows for host lists that are in the notation similar to: node00[01-07,08,09,70-71] at some point,
+    # need to come up with code to generate these types of lists.
 
     # profiles
     for prof in api.profiles():
@@ -92,8 +106,8 @@ def run(api, args, logger):
         mgmtcls_genders[mgmtcls.name] = mgmtcls_genders[mgmtcls.name][:-1]
         if(mgmtcls_genders[mgmtcls.name] == ""):
             mgmtcls_genders.pop(mgmtcls.name, None)
-    # the file doesn't exist and for some reason the template engine
-    # won't create it, so spit out an error and tell the user what to do.
+    # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
+    # user what to do.
     if(not os.path.isfile(settings_file)):
         logger.info("Error: " + settings_file + " does not exist.")
         logger.info("Please run: touch " + settings_file + " as root and try again.")

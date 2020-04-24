@@ -20,14 +20,22 @@ from cobbler import utils
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authn"
+    :rtype: str
     """
     return "authn"
 
 
 def authenticate(api_handle, username, password):
     """
-    Validate a username/password combo, returning True/False
-    Uses cobbler_auth_helper
+    Validate a username/password combo. Uses cobbler_auth_helper
+
+    :param api_handle: This parameter is not used currently.
+    :param username: This parameter is not used currently.
+    :param password: This should be the internal cobbler secret.
+    :return: True if the password is the secret, otherwise false.
+    :rtype: bool
     """
     ss = utils.get_shared_secret()
     if password == ss:

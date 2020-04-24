@@ -23,12 +23,22 @@ import time
 
 
 def register():
+    """
+    The mandatory cobbler module registration hook.
+    """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
 def run(api, args, logger):
+    """
+
+    :param api: This parameter is unused currently.
+    :param args: An array of three elements. Type (system/profile), name and ip. If no ip is present use a ``?``.
+    :param logger: This parameter is unused currently.
+    :return: Always 0
+    """
     # FIXME: make everything use the logger, no prints, use util.subprocess_call, etc
 
     objtype = args[0]   # "system" or "profile"

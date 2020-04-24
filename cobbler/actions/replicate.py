@@ -40,6 +40,9 @@ class Replicate(object):
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager which holds all information available in cobbler.
+        :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -51,6 +54,13 @@ class Replicate(object):
         self.logger = logger
 
     def rsync_it(self, from_path, to_path, type=None):
+        """
+        Rsync from a source to a destination with the rsync options cobbler was configured with.
+
+        :param from_path: The source to rsync from.
+        :param to_path: The destination to rsync to.
+        :param type: If set to "repo" this will take the repo rsync options instead of the global ones.
+        """
         from_path = "%s::%s" % (self.master, from_path)
         if type == 'repo':
             cmd = "rsync %s %s %s" % (self.settings.replicate_repo_rsync_options, from_path, to_path)
@@ -64,6 +74,11 @@ class Replicate(object):
     # -------------------------------------------------------
 
     def remove_objects_not_on_master(self, obj_type):
+        """
+        Remove objects on this slave which are not on the master.
+
+        :param obj_type: The type of object which should be synchronized.
+        """
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
@@ -78,6 +93,11 @@ class Replicate(object):
     # -------------------------------------------------------
 
     def add_objects_not_on_local(self, obj_type):
+        """
+        Add objects locally which are not present on the slave but on the master.
+
+        :param obj_type:
+        """
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_sort_by_key(self.remote_data[obj_type], "depth")
 
@@ -101,6 +121,11 @@ class Replicate(object):
     # -------------------------------------------------------
 
     def replace_objects_newer_on_remote(self, obj_type):
+        """
+        Replace objects which are newer on the local slave then on the remote slave
+
+        :param obj_type: The type of object to synchronize.
+        """
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
@@ -129,7 +154,10 @@ class Replicate(object):
     # -------------------------------------------------------
 
     def replicate_data(self):
+        """
+        Replicate the local and remote data to each another.
 
+        """
         self.local_data = {}
         self.remote_data = {}
         self.remote_settings = self.remote.get_settings()
@@ -199,13 +227,17 @@ class Replicate(object):
             self.replace_objects_newer_on_remote(what)
 
     def link_distros(self):
-
+        """
+        Link a distro from its location into the web directory to make it available for usage.
+        """
         for distro in self.api.distros():
             self.logger.debug("Linking Distro %s" % distro.name)
             utils.link_distro(self.settings, distro)
 
     def generate_include_map(self):
-
+        """
+        Not known what this exactly does.
+        """
         self.remote_names = {}
         self.remote_dict = {}
         self.must_include = {
@@ -240,8 +272,7 @@ class Replicate(object):
                             self.logger.debug("Adding %s for pattern match %s." % (remote, pat))
                             self.must_include[obj_type][remote] = 1
 
-            # include all profiles that systems require
-            # whether they are explicitly included or not
+            # include all profiles that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Profiles Required By Systems")
             for sys in list(self.must_include["system"].keys()):
                 pro = self.remote_dict["system"][sys].get("profile", "")
@@ -250,9 +281,8 @@ class Replicate(object):
                     self.logger.debug("Adding profile %s for system %s." % (pro, sys))
                     self.must_include["profile"][pro] = 1
 
-            # include all profiles that subprofiles require
-            # whether they are explicitly included or not
-            # very deep nesting is possible
+            # include all profiles that subprofiles require whether they are explicitly included or not very deep
+            # nesting is possible
             self.logger.debug("* Adding Profiles Required By SubProfiles")
             while True:
                 loop_exit = True
@@ -266,8 +296,8 @@ class Replicate(object):
                 if loop_exit:
                     break
 
-            # require all distros that any profiles in the generated list requires
-            # whether they are explicitly included or not
+            # require all distros that any profiles in the generated list requires whether they are explicitly included
+            # or not
             self.logger.debug("* Adding Distros Required By Profiles")
             for p in list(self.must_include["profile"].keys()):
                 distro = self.remote_dict["profile"][p].get("distro", "")
@@ -275,8 +305,8 @@ class Replicate(object):
                     self.logger.debug("Adding distro %s for profile %s." % (distro, p))
                     self.must_include["distro"][distro] = 1
 
-            # require any repos that any profiles in the generated list requires
-            # whether they are explicitly included or not
+            # require any repos that any profiles in the generated list requires whether they are explicitly included
+            # or not
             self.logger.debug("* Adding Repos Required By Profiles")
             for p in list(self.must_include["profile"].keys()):
                 repos = self.remote_dict["profile"][p].get("repos", [])
@@ -285,8 +315,7 @@ class Replicate(object):
                         self.logger.debug("Adding repo %s for profile %s." % (r, p))
                         self.must_include["repo"][r] = 1
 
-            # include all images that systems require
-            # whether they are explicitly included or not
+            # include all images that systems require whether they are explicitly included or not
             self.logger.debug("* Adding Images Required By Systems")
             for sys in list(self.must_include["system"].keys()):
                 img = self.remote_dict["system"][sys].get("image", "")
@@ -301,10 +330,26 @@ class Replicate(object):
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, port="80", distro_patterns=None, profile_patterns=None, system_patterns=None, repo_patterns=None, image_patterns=None,
-            mgmtclass_patterns=None, package_patterns=None, file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False):
+    def run(self, cobbler_master=None, port="80", distro_patterns=None, profile_patterns=None, system_patterns=None,
+            repo_patterns=None, image_patterns=None, mgmtclass_patterns=None, package_patterns=None, file_patterns=None,
+            prune=False, omit_data=False, sync_all=False, use_ssl=False):
         """
         Get remote profiles and distros and sync them locally
+
+        :param cobbler_master: The remote url of the master server.
+        :param port: The remote port of the master server.
+        :param distro_patterns: The pattern of distros to sync.
+        :param profile_patterns: The pattern of profiles to sync.
+        :param system_patterns: The pattern of systems to sync.
+        :param repo_patterns: The pattern of repositories to sync.
+        :param image_patterns: The pattern of images to sync.
+        :param mgmtclass_patterns: The pattern of management classes to sync.
+        :param package_patterns: The pattern of packages to sync.
+        :param file_patterns: The pattern of files to sync.
+        :param prune: If the local server should be pruned before coping stuff.
+        :param omit_data: If the data behind images etc should be omitted or not.
+        :param sync_all: If everything should be synced (then the patterns are useless) or not.
+        :param use_ssl: If HTTPS or HTTP should be used.
         """
 
         self.port = str(port)

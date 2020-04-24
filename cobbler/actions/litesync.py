@@ -40,6 +40,11 @@ class CobblerLiteSync(object):
     def __init__(self, collection_mgr, verbose=False, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager which has all information.
+        :param verbose: Weather the action should be logged verbose.
+        :type verbose: bool
+        :param logger: The logger to audit all action with.
         """
         self.verbose = verbose
         self.collection_mgr = collection_mgr
@@ -57,6 +62,11 @@ class CobblerLiteSync(object):
         self.sync.make_tftpboot()
 
     def add_single_distro(self, name):
+        """
+        Sync adding a single distro.
+
+        :param name: The name of the distribution.
+        """
         # get the distro record
         distro = self.distros.find(name=name)
         if distro is None:
@@ -88,6 +98,11 @@ class CobblerLiteSync(object):
         self.sync.tftpgen.make_pxe_menu()
 
     def add_single_image(self, name):
+        """
+        Sync adding a single image.
+
+        :param name: The name of the image.
+        """
         image = self.images.find(name=name)
         self.sync.tftpgen.copy_single_image_files(image)
         kids = image.get_children()
@@ -96,6 +111,11 @@ class CobblerLiteSync(object):
         self.sync.tftpgen.make_pxe_menu()
 
     def remove_single_distro(self, name):
+        """
+        Sync removing a singel distro.
+
+        :param name: The name of the distribution.
+        """
         bootloc = self.settings.tftpboot_location
         # delete contents of images/$name directory in webdir
         utils.rmtree(os.path.join(self.settings.webdir, "images", name))
@@ -105,21 +125,33 @@ class CobblerLiteSync(object):
         utils.rmfile(os.path.join(self.settings.webdir, "links", name))
 
     def remove_single_image(self, name):
+        """
+        Sync removing a single image.
+
+        :param name: The name of the image.
+        """
         bootloc = self.settings.tftpboot_location
         utils.rmfile(os.path.join(bootloc, "images2", name))
 
     def add_single_profile(self, name, rebuild_menu=True):
+        """
+        Sync adding a single profile.
+
+        :param name: The name of the profile.
+        :type name: str
+        :param rebuild_menu: Whether to rebuild the grub/... menu or not.
+        :type rebuild_menu: bool
+        :return: ``True`` if this succeeded.
+        """
         # get the profile object:
         profile = self.profiles.find(name=name)
         if profile is None:
-            # most likely a subprofile's kid has been
-            # removed already, though the object tree has
-            # not been reloaded ... and this is just noise.
+            # Most likely a subprofile's kid has been removed already, though the object tree has not been reloaded and
+            # this is just noise.
             return
-        # rebuild the yum configuration files for any attached repos
-        # generate any templates listed in the distro
+        # Rebuild the yum configuration files for any attached repos generate any templates listed in the distro.
         self.sync.tftpgen.write_templates(profile)
-        # cascade sync
+        # Cascade sync
         kids = profile.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "profile":
@@ -131,6 +163,14 @@ class CobblerLiteSync(object):
         return True
 
     def remove_single_profile(self, name, rebuild_menu=True):
+        """
+        Sync removing a single profile.
+
+        :param name: The name of the profile.
+        :type name: str
+        :param rebuild_menu: Whether to rebuild the grub/... menu or not.
+        :type rebuild_menu: bool
+        """
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
         # delete contents on autoinstalls/$name directory in webdir
@@ -139,9 +179,21 @@ class CobblerLiteSync(object):
             self.sync.tftpgen.make_pxe_menu()
 
     def update_system_netboot_status(self, name):
+        """
+        Update the netboot status of a system.
+
+        :param name: The name of the system.
+        :type name: str
+        """
         self.tftpd.update_netboot(name)
 
     def add_single_system(self, name):
+        """
+        Sync adding a single system.
+
+        :param name: The name of the system.
+        :type name: str
+        """
         # get the system object:
         system = self.systems.find(name=name)
         if system is None:
@@ -155,6 +207,12 @@ class CobblerLiteSync(object):
         self.tftpd.add_single_system(system)
 
     def remove_single_system(self, name):
+        """
+        Sync removing a single system.
+
+        :param name: The name of the system.
+        :type name: str
+        """
         bootloc = self.settings.tftpboot_location
         # delete contents of autoinsts_sys/$name in webdir
         system_record = self.systems.find(name=name)

@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authn"
+    :rtype: str
     """
     return "authn"
 
@@ -33,8 +36,13 @@ def authenticate(api_handle, username, password):
     """
     Validate a username/password combo, returning True/False
 
-    Thanks to http://trac.edgewall.org/ticket/845 for supplying
-    the algorithm info.
+    Thanks to http://trac.edgewall.org/ticket/845 for supplying the algorithm info.
+
+    :param api_handle: This parameter is not used currently.
+    :param username: The username which should be checked.
+    :param password: The password which should be checked.
+    :return: True if username is "testing" and password is "testing". Otherwise False.
+    :rtype: bool
     """
 
     if username == "testing" and password == "testing":

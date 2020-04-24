@@ -25,9 +25,9 @@ import logging
 import logging.config
 import os
 
-# Temporary hack, a clean solution seems to be tricky
-# Defining a variable in our Apache startup code seem not to
-# it is still set later when this code is executed via cobbler
+# Temporary hack, a clean solution seems to be tricky.
+# Defining a variable in our Apache startup code seem not to it is still set later when this code is executed via
+# cobbler.
 
 # This is necessary to prevent apache to try to access the file
 LOG_FILE = "/var/log/cobbler/cobbler.log"
@@ -41,7 +41,16 @@ except Exception:
 
 
 class Logger(object):
+    """
+    Logger class for Cobbler which is wrapped around the Python3 standard logger.
+    """
     def __init__(self, logfile=None):
+        """
+        The default constructor.
+
+        :param logfile: If this argument is passed, then the log will not be written to the default location.
+        :type logfile: str
+        """
         if not logfile:
             self.logger = logging.getLogger('root')
         else:
@@ -50,19 +59,56 @@ class Logger(object):
             self.logger.addHandler(logging.FileHandler(filename=logfile))
 
     def critical(self, msg):
+        """
+        A critical message which is related to a porblem which will halt cobbler.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         self.logger.critical(msg)
 
     def error(self, msg):
+        """
+        An error message which means that cobbler will not halt but the future actions may not be executed correctly.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         self.logger.error(msg)
 
     def warning(self, msg):
+        """
+        A warning message which could possibly indicate performance or functional problems.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         self.logger.warning(msg)
 
     def info(self, msg):
+        """
+        An informational message which should be written to the target log.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         self.logger.info(msg)
 
     def debug(self, msg):
+        """
+        A message which is useful for finding errors or performance problems. Should not be visible in the production
+        usage of cobbler.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         self.logger.debug(msg)
 
     def flat(self, msg):
+        """
+        This uses the print function from the std library.
+
+        :param msg: The message to be logged.
+        :type msg: str
+        """
         print(msg)

@@ -185,11 +185,14 @@ if bind_config_filename:
 class Settings(object):
 
     @staticmethod
-    def collection_type() -> str:
+    def collection_type(self):
         """
-        return the collection name
+        This is a hardcoded string which represents the collection type.
+
+        :return: "settings"
+        :rtype: str
         """
-        return "settings"
+        return "setting"
 
     @staticmethod
     def collection_types() -> str:
@@ -208,14 +211,30 @@ class Settings(object):
             sys.exit(1)
 
     def _clear(self):
+        """
+        This resets all settings to the defaults which are built into cobbler.
+        """
         self.__dict__ = {}
         for key in list(DEFAULTS.keys()):
             self.__dict__[key] = DEFAULTS[key][0]
 
     def set(self, name, value):
+        """
+        Alias for setting an option "name" to the new value "value". (See __settattr__)
+
+        :param name: The name of the setting to set.
+        :param value: The value of the setting to set.
+        :return: 0 if the action was completed successfully. No return if there is an error.
+        """
         return self.__setattr__(name, value)
 
     def to_string(self):
+        """
+        Returns the kernel options as a string.
+
+        :return: The multiline string with the kernel options.
+        :rtype: str
+        """
         buf = ""
         buf += _("defaults\n")
         buf += _("kernel options  : %s\n") % self.__dict__['kernel_options']
@@ -224,12 +243,20 @@ class Settings(object):
     def to_dict(self):
         """
         Return an easily serializable representation of the config.
+
+        :return: The dict with all user settings combined with settings which are left to the default.
+        :rtype: dict
         """
         return self.__dict__
 
     def from_dict(self, _dict):
         """
         Modify this object to load values in dictionary.
+
+        WARNING: If the dict from the args has not all settings included cobbler may behave unexpectedly.
+
+        :param _dict: The dictionary with settings to replace.
+        :return: Returns the settings instance this method was called from.
         """
         if _dict is None:
             print(_("warning: not loading empty structure for %s") % self.filename())
@@ -241,6 +268,14 @@ class Settings(object):
         return self
 
     def __setattr__(self, name, value):
+        """
+        This sets the value of the settings named in the args.
+
+        :param name: The setting to set its value.
+        :param value: The value of the setting "name". Must be the correct the type.
+        :return: 0 if the action was completed successfully. No return if there is an error.
+        :raises AttributeError: Raised if the setting with "name" has the wrong type.
+        """
         if name in DEFAULTS:
             try:
                 if DEFAULTS[name][1] == "str":
@@ -273,6 +308,12 @@ class Settings(object):
             pass
 
     def __getattr__(self, name):
+        """
+        This returns the current value of the setting named in the args.
+
+        :param name: The setting to return the value of.
+        :return: The value of the setting "name".
+        """
         try:
             if name == "kernel_options":
                 # backwards compatibility -- convert possible string value to dict

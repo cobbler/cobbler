@@ -72,13 +72,22 @@ class Image(item.Item):
     #
 
     def make_clone(self):
+        """
+        Clone this image object. Please manually adjust all value yourself to make the cloned object unique.
 
+        :return: The cloned instance of this object.
+        """
         _dict = self.to_dict()
         cloned = Image(self.collection_mgr)
         cloned.from_dict(_dict)
         return cloned
 
     def get_fields(self):
+        """
+        Return all fields which this class has with it's current values.
+
+        :return: This is a list with lists.
+        """
         return FIELDS
 
     def get_parent(self):
@@ -94,7 +103,9 @@ class Image(item.Item):
     def set_arch(self, arch):
         """
         The field is mainly relevant to PXE provisioning.
-        see comments for set_arch in item_distro.py, this works the same.
+        See comments for set_arch in item_distro.py, this works the same.
+
+        :param arch: The new architecture to set.
         """
         return utils.set_arch(self, arch)
 
@@ -108,7 +119,8 @@ class Image(item.Item):
         not be a automatic installation template per se, it might be a Windows answer
         file (SIF) etc.
 
-        @param str local automatic installation template file path
+        :param autoinstall: local automatic installation template file path
+        :type autoinstall: str
         """
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
@@ -116,12 +128,15 @@ class Image(item.Item):
 
     def set_file(self, filename):
         """
-        Stores the image location.  This should be accessible on all nodes
-        that need to access it.  Format: can be one of the following:
+        Stores the image location. This should be accessible on all nodes that need to access it.
+
+        Format: can be one of the following:
         * username:password@hostname:/path/to/the/filename.ext
         * username@hostname:/path/to/the/filename.ext
         * hostname:/path/to/the/filename.ext
         * /path/to/the/filename.ext
+
+        :param filename: The location where the image is stored.
         """
         uri = ""
         auth = hostname = path = ""
@@ -153,9 +168,19 @@ class Image(item.Item):
         self.file = uri
 
     def set_os_version(self, os_version):
+        """
+        Set the operating system version with this setter.
+
+        :param os_version: This must be a valid OS-Version.
+        """
         return utils.set_os_version(self, os_version)
 
     def set_breed(self, breed):
+        """
+        Set the operating system breed with this setter.
+
+        :param breed: The breed of the operating system which is available in the image.
+        """
         return utils.set_breed(self, breed)
 
     def set_image_type(self, image_type):
@@ -165,15 +190,28 @@ class Image(item.Item):
         iso        = a bootable ISO that pxe's or can be used for virt installs, virtual only
         virt-clone = a cloned virtual disk (FIXME: not yet supported), virtual only
         memdisk    = hdd image (physical only)
+
+        :param image_type: One of the four options from above.
         """
         if image_type not in self.get_valid_image_types():
             raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(), ", "))
         self.image_type = image_type
 
     def set_virt_cpus(self, num):
+        """
+        Setter for the number of virtual cpus.
+
+        :param num: The number of virtual cpu cores.
+        """
         return utils.set_virt_cpus(self, num)
 
     def set_network_count(self, num):
+        """
+        Setter for the number of networks.
+
+        :param num: If None or emtpy will be set to one. Otherwise will be cast to int and then set.
+        :type num: int
+        """
         if num is None or num == "":
             num = 1
         try:
@@ -182,27 +220,68 @@ class Image(item.Item):
             raise CX("invalid network count (%s)" % num)
 
     def set_virt_auto_boot(self, num):
+        """
+        Setter for the virtual automatic boot option.
+
+        :param num: May be "0" (disabled) or "1" (enabled)
+        """
         return utils.set_virt_auto_boot(self, num)
 
     def set_virt_file_size(self, num):
+        """
+        Setter for the virtual file size of the image.
+
+        :param num: Is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
+                    multiple disks
+        """
         return utils.set_virt_file_size(self, num)
 
     def set_virt_disk_driver(self, driver):
+        """
+        Setter for the virtual disk driver.
+
+        :param driver: The virtual disk driver which will be set.
+        """
         return utils.set_virt_disk_driver(self, driver)
 
     def set_virt_ram(self, num):
+        """
+        Setter for the amount of virtual RAM the machine will have.
+
+        :param num: 0 tells Koan to just choose a reasonable default.
+        """
         return utils.set_virt_ram(self, num)
 
     def set_virt_type(self, vtype):
+        """
+        Setter for the virtual type
+
+        :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto".
+        """
         return utils.set_virt_type(self, vtype)
 
     def set_virt_bridge(self, vbridge):
+        """
+        Setter for the virtual bridge which is used.
+
+        :param vbridge: The name of the virtual bridge to use.
+        """
         return utils.set_virt_bridge(self, vbridge)
 
     def set_virt_path(self, path):
+        """
+        Setter for the virtual path which is used.
+
+        :param path: The path to where the virtual image is stored.
+        """
         return utils.set_virt_path(self, path)
 
     def get_valid_image_types(self):
+        """
+        Get all valid image types.
+
+        :return: A list currently with the values: "direct", "iso", "memdisk", "virt-clone"
+        """
         return ["direct", "iso", "memdisk", "virt-clone"]
 
 # EOF

@@ -25,6 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authz"
+    :rtype: str
     """
     return "authz"
 
@@ -33,5 +36,13 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
     """
     Validate a user against a resource.
     NOTE: acls are not enforced as there is no group support in this module
+
+    :param api_handle: This parameter is not used currently.
+    :param user: This parameter is not used currently.
+    :param resource: This parameter is not used currently.
+    :param arg1: This parameter is not used currently.
+    :param arg2: This parameter is not used currently.
+    :return: Alwys True
+    :rtype: bool
     """
     return True

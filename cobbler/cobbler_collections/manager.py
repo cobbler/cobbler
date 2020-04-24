@@ -40,7 +40,7 @@ class CollectionManager(object):
 
     def __init__(self, api):
         """
-        Constructor.  Manages a definitive copy of all data cobbler_collections with weakrefs
+        Constructor. Manages a definitive copy of all data cobbler_collections with weakrefs
         pointing back into the class so they can understand each other's contents
         """
         self.__dict__ = CollectionManager.__shared_state
@@ -48,6 +48,11 @@ class CollectionManager(object):
             self.__load(api)
 
     def __load(self, api):
+        """
+        A
+
+        :param api:
+        """
         CollectionManager.has_loaded = True
 
         self.init_time = time.time()
@@ -65,14 +70,21 @@ class CollectionManager(object):
 
     def generate_uid(self):
         """
-        Cobbler itself does not use this GUID's though they are provided
-        to allow for easier API linkage with other applications.
-        Cobbler uses unique names in each collection as the object id
-        aka primary key
+        Cobbler itself does not use this GUID's though they are provided to allow for easier API linkage with other
+        applications. Cobbler uses unique names in each collection as the object id aka primary key.
+
+        :return:
         """
         return uuid.uuid4().hex
 
     def __cmp(self, a, b):
+        """
+        A
+
+        :param a:
+        :param b:
+        :return:
+        """
         return cmp(a.name, b.name)
 
     def distros(self):
@@ -147,8 +159,8 @@ class CollectionManager(object):
         """
         Save a collection item to disk
 
-        @param Collection collection Collection
-        @param Item item collection item
+        :param collection: Collection
+        :param item: collection item
         """
 
         return serializer.serialize_item(collection, item)
@@ -157,8 +169,8 @@ class CollectionManager(object):
         """
         Delete a collection item from disk
 
-        @param Collection collection collection
-        @param Item item collection item
+        :param collection: collection
+        :param item: collection item
         """
 
         return serializer.serialize_delete(collection, item)
@@ -167,7 +179,7 @@ class CollectionManager(object):
         """
         Load all cobbler_collections from disk
 
-        @raise CX if there is an error in deserialization
+        :raises CX: if there is an error in deserialization
         """
 
         for collection in (
@@ -187,6 +199,12 @@ class CollectionManager(object):
                 raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf" % (collection.collection_type(), e))
 
     def get_items(self, collection_type):
+        """
+        A
+
+        :param collection_type:
+        :return:
+        """
         if collection_type == "distro":
             result = self._distros
         elif collection_type == "profile":

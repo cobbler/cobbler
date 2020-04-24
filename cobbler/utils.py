@@ -91,12 +91,17 @@ main_logger = None  # the logger will be lazy loaded later
 
 
 def die(logger, msg):
+    """
+    A
+
+    :param logger:
+    :param msg:
+    """
     global main_logger
     if main_logger is None:
         main_logger = clogger.Logger()
 
-    # log the exception once in the per-task log or the main
-    # log if this is not a background op.
+    # log the exception once in the per-task log or the main log if this is not a background op.
     try:
         raise CX(msg)
     except:
@@ -112,6 +117,8 @@ def die(logger, msg):
 def log_exc(logger):
     """
     Log an exception.
+
+    :param logger:
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occured: %s" % t)
@@ -120,6 +127,13 @@ def log_exc(logger):
 
 
 def get_exc(exc, full=True):
+    """
+    A
+
+    :param exc:
+    :param full:
+    :return:
+    """
     (t, v, tb) = sys.exc_info()
     buf = ""
     try:
@@ -135,6 +149,14 @@ def get_exc(exc, full=True):
 
 
 def cheetah_exc(exc, full=False):
+    """
+    Converts an exception thrown by Cheetah3 into a custom error message.
+
+    :param exc: The exception to convert.
+    :param full: Unused parameter. May be removed in the future.
+    :return: The string representation of the Cheetah3 exception.
+    :rtype: str
+    """
     lines = get_exc(exc).split("\n")
     buf = ""
     for l in lines:
@@ -144,8 +166,12 @@ def cheetah_exc(exc, full=False):
 
 def pretty_hex(ip, length=8):
     """
-    Pads an IP object with leading zeroes so that the result is
-    _length_ hex digits.  Also do an upper().
+    Pads an IP object with leading zeroes so that the result is _length_ hex digits.  Also do an upper().
+
+    :param ip: The IP address to pretty print.
+    :param length: The length of the resulting hexstring. If the number is smaller than the resulting hex-string
+                   then no front-padding is done.
+    :rtype: str
     """
     hexval = "%x" % ip.value
     if len(hexval) < length:
@@ -156,6 +182,10 @@ def pretty_hex(ip, length=8):
 def get_host_ip(ip, shorten=True):
     """
     Return the IP encoding needed for the TFTP boot tree.
+
+    :param ip: The IP address to pretty print.
+    :param shorten: Wheather the IP-Address should be shortened or not.
+    :rtype: str
     """
 
     ip = netaddr.ip.IPAddress(ip)
@@ -175,7 +205,7 @@ def get_host_ip(ip, shorten=True):
 
 def _IP(ip):
     """
-    Returns a netaddr.IP object representing ip.
+    Returns a netaddr.IP object representing an ip.
     If ip is already an netaddr.IP instance just return it.
     Else return a new instance
     """
@@ -189,6 +219,9 @@ def _IP(ip):
 def is_ip(strdata):
     """
     Return whether the argument is an IP address.
+
+    :param strdata: str
+    :rtype: bool
     """
     try:
         _IP(strdata)
@@ -200,6 +233,8 @@ def is_ip(strdata):
 def is_mac(strdata):
     """
     Return whether the argument is a mac address.
+
+    :rtype: bool
     """
     if strdata is None:
         return False
@@ -208,7 +243,11 @@ def is_mac(strdata):
 
 def is_systemd():
     """
-    Return whether or not this system uses systemd
+    Return whether or not this system uses systemd.
+
+    This method currently checks if the path /usr/lib/systemd/systemd exists.
+
+    :rtype: bool
     """
     if os.path.exists("/usr/lib/systemd/systemd"):
         return True
@@ -218,8 +257,13 @@ def is_systemd():
 def get_random_mac(api_handle, virt_type="xenpv"):
     """
     Generate a random MAC address.
-    from xend/server/netif.py
-    return: MAC address string
+
+    The code of this method was taken from xend/server/netif.py
+
+    :param api_handle: The main cobbler api instance.
+    :param virt_type: The virtualization provider. Currently possible is 'vmware', 'xen', 'qemu', 'kvm'.
+    :returns: MAC address string
+    :rtype: str
     """
     if virt_type.startswith("vmware"):
         mac = [
@@ -248,8 +292,13 @@ def get_random_mac(api_handle, virt_type="xenpv"):
 
 def find_matching_files(directory, regex):
     """
-    Find all files in a given directory that match a given regex.
-    Can't use glob directly as glob doesn't take regexen.
+    Find all files in a given directory that match a given regex. Can't use glob directly as glob doesn't take regexen.
+    The search does not include subdirectories.
+
+    :param directory: The directory to search in.
+    :param regex: The regex to apply to the found files.
+    :return: An array of files which apply to the regex.
+    :rtype: list
     """
     files = glob.glob(os.path.join(directory, "*"))
     results = []
@@ -261,9 +310,13 @@ def find_matching_files(directory, regex):
 
 def find_highest_files(directory, unversioned, regex):
     """
-    Find the highest numbered file (kernel or initrd numbering scheme)
-    in a given directory that matches a given pattern.  Used for
-    auto-booting the latest kernel in a directory.
+    Find the highest numbered file (kernel or initrd numbering scheme) in a given directory that matches a given
+    pattern. Used for auto-booting the latest kernel in a directory.
+
+    :param directory: The directory to search in.
+    :param unversioned: The base filename which also acts as a last resort if no numbered files are found.
+    :param regex: The regex to search for.
+    :return: None or the file with the highest number.
     """
     files = find_matching_files(directory, regex)
     get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
@@ -281,8 +334,7 @@ def find_highest_files(directory, unversioned, regex):
     if len(files) > 0:
         return reduce(max2, files)
 
-    # couldn't find a highest numbered file, but maybe there
-    # is just a 'vmlinuz' or an 'initrd.img' in this directory?
+    # Couldn't find a highest numbered file, but maybe there is just a 'vmlinuz' or an 'initrd.img' in this directory?
     last_chance = os.path.join(directory, unversioned)
     if os.path.exists(last_chance):
         return last_chance
@@ -291,8 +343,11 @@ def find_highest_files(directory, unversioned, regex):
 
 def find_kernel(path):
     """
-    Given a directory or a filename, find if the path can be made
-    to resolve into a kernel, and return that full path if possible.
+    Given a directory or a filename, find if the path can be made to resolve into a kernel, and return that full path if
+    possible.
+
+    :param path: The path to check for a kernel.
+    :return: None or the path with the kernel.
     """
     if path is None:
         return None
@@ -308,8 +363,7 @@ def find_kernel(path):
     elif os.path.isdir(path):
         return find_highest_files(path, "vmlinuz", _re_kernel)
 
-    # For remote URLs we expect an absolute path, and will not
-    # do any searching for the latest:
+    # For remote URLs we expect an absolute path, and will not do any searching for the latest:
     elif file_is_remote(path) and remote_file_exists(path):
         return path
 
@@ -318,9 +372,11 @@ def find_kernel(path):
 
 def remove_yum_olddata(path, logger=None):
     """
-    Delete .olddata files that might be present from a failed run
-    of createrepo.
+    Delete .olddata files that might be present from a failed run of createrepo.
     # FIXME: verify this is still being used
+
+    :param path: The path to check for .olddata files.
+    :param logger: The logger to autdit this action with.
     """
     trythese = [
         ".olddata",
@@ -338,8 +394,11 @@ def remove_yum_olddata(path, logger=None):
 
 def find_initrd(path):
     """
-    Given a directory or a filename, see if the path can be made
-    to resolve into an intird, return that full path if possible.
+    Given a directory or a filename, see if the path can be made to resolve into an intird, return that full path if
+    possible.
+
+    :param path: The path to check for initrd files.
+    :return: None or the path to the found initrd.
     """
     # FUTURE: try to match kernel/initrd pairs?
     if path is None:
@@ -366,14 +425,15 @@ def find_initrd(path):
 
 def read_file_contents(file_location, logger=None, fetch_if_remote=False):
     """
-    Reads the contents of a file, which could be referenced locally
-    or as a URI.
+    Reads the contents of a file, which could be referenced locally or as a URI.
 
-    Returns None if file is remote and templating of remote files is
-    disabled.
-
-    Throws a FileNotFoundException if the file does not exist at the
-    specified location.
+    :param file_location: The location of the file to read.
+    :param logger: The logger to autdit this action with.
+    :param fetch_if_remote: If True a remote file will be tried to read, otherwise remote files are skipped and None is
+                            returned.
+    :return: Returns None if file is remote and templating of remote files is disabled.
+    :rtype: str or None
+    :raises FileNotFoundException: if the file does not exist at the specified location.
     """
 
     # Local files:
@@ -412,7 +472,13 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
 
 
 def remote_file_exists(file_url):
-    """ Return True if the remote file exists. """
+    """
+    Return True if the remote file exists.
+
+    :param file_url: The URL to check.
+    :return: True if cobbler can reach the specified URL, otherwise false.
+    :rtype: bool
+    """
     try:
         handler = urllib.request.urlopen(file_url)
         handler.close()
@@ -424,8 +490,11 @@ def remote_file_exists(file_url):
 
 def file_is_remote(file_location):
     """
-    Returns true if the file is remote and referenced via a protocol
-    we support.
+    Returns true if the file is remote and referenced via a protocol we support.
+
+    :param file_location: The URI to check.
+    :return: True if the URI is http, https or ftp. Otherwise false.
+    :rtype: bool
     """
     file_loc_lc = file_location.lower()
     # Check for urllib2 supported protocols
@@ -438,6 +507,11 @@ def file_is_remote(file_location):
 def input_string_or_list(options):
     """
     Accepts a delimited list of stuff or a list, but always returns a list.
+
+    :param options: The object to split into a list.
+    :return: str when this functions get's passed <<inherit>>. if option is delete then an empty list is returned.
+             Otherwise this function tries to return the arg option or tries to split it into a list.
+    :rtype: list or str
     """
     if options == "<<inherit>>":
         return "<<inherit>>"
@@ -454,9 +528,13 @@ def input_string_or_list(options):
 
 def input_string_or_dict(options, allow_multiples=True):
     """
-    Older cobbler files stored configurations in a flat way, such that all values for strings.
-    Newer versions of cobbler allow dictionaries.  This function is used to allow loading
-    of older value formats so new users of cobbler aren't broken in an upgrade.
+    Older cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of cobbler
+    allow dictionaries. This function is used to allow loading of older value formats so new users of cobbler aren't
+    broken in an upgrade.
+
+    :param options: The str or dict to convert.
+    :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
+    :return: A tuple of True and a dict.
     """
 
     if options == "<<inherit>>":
@@ -479,14 +557,12 @@ def input_string_or_dict(options, allow_multiples=True):
                 key = tokens2[0]
                 value = tokens2[1]
 
-            # if we're allowing multiple values for the same key,
-            # check to see if this token has already been
-            # inserted into the dictionary of values already
+            # If we're allowing multiple values for the same key, check to see if this token has already been inserted
+            # into the dictionary of values already.
 
             if key in list(new_dict.keys()) and allow_multiples:
-                # if so, check to see if there is already a list of values
-                # otherwise convert the dictionary value to an array, and add
-                # the new value to the end of the list
+                # If so, check to see if there is already a list of values otherwise convert the dictionary value to an
+                # array, and add the new value to the end of the list.
                 if isinstance(new_dict[key], list):
                     new_dict[key].append(value)
                 else:
@@ -504,6 +580,14 @@ def input_string_or_dict(options, allow_multiples=True):
 
 
 def input_boolean(value):
+    """
+    Convert a str to a boolean. If this is not possible or the value is false return false.
+
+    :param value: The value to convet to boolean.
+    :type value: str
+    :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
+    :rtype: bool
+    """
     value = str(value)
     if value.lower() in ["true", "1", "on", "yes", "y"]:
         return True
@@ -512,6 +596,13 @@ def input_boolean(value):
 
 
 def update_settings_file(data):
+    """
+    Write data handed to this function into the settings file of cobbler. This function overwrites the existing content.
+
+    :param data: The data to put into the settings file.
+    :return: True if the action succeded. Otherwise return nothing.
+    :rtype: bool
+    """
     if 1:
         # clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
         settings_file = open("/etc/cobbler/settings", "w")
@@ -525,6 +616,11 @@ def update_settings_file(data):
 def grab_tree(api_handle, item):
     """
     Climb the tree and get every node.
+
+    :param api_handle: The api to use for checking the tree.
+    :param item: The item to check for parents
+    :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
+    :rtype: list
     """
     settings = api_handle.settings()
     results = [item]
@@ -538,9 +634,13 @@ def grab_tree(api_handle, item):
 
 def blender(api_handle, remove_dicts, root_obj):
     """
-    Combine all of the data in an object tree from the perspective
-    of that point on the tree, and produce a merged dictionary containing
-    consolidated data.
+    Combine all of the data in an object tree from the perspective of that point on the tree, and produce a merged
+    dictionary containing consolidated data.
+
+    :param api_handle: The api to use for collecting the information to blender the item.
+    :param remove_dicts: Boolean to decide whether dicts should be converted.
+    :param root_obj: The object which should act as the root-node object.
+    :return: A dictionary with all the information from the root node downwards.
     """
 
     tree = grab_tree(api_handle, root_obj)
@@ -549,25 +649,23 @@ def blender(api_handle, remove_dicts, root_obj):
     for node in tree:
         __consolidate(node, results)
 
-    # make interfaces accessible without Cheetah-voodoo in the templates
-    # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
+    # Make interfaces accessible without Cheetah-voodoo in the templates
+    # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":
         for (name, interface) in list(root_obj.interfaces.items()):
             for key in list(interface.keys()):
                 results["%s_%s" % (key, name)] = interface[key]
 
-    # if the root object is a profile or system, add in all
-    # repo data for repos that belong to the object chain
+    # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):
         repo_data = []
         for r in results.get("repos", []):
             repo = api_handle.find_repo(name=r)
             if repo:
                 repo_data.append(repo.to_dict())
-        # FIXME: sort the repos in the array based on the
-        #        repo priority field so that lower priority
-        #        repos come first in the array
+        # FIXME: sort the repos in the array based on the repo priority field so that lower priority repos come first in
+        #  the array
         results["repo_data"] = repo_data
 
     http_port = results.get("http_port", 80)
@@ -584,8 +682,7 @@ def blender(api_handle, remove_dicts, root_obj):
     if remove_dicts:
         results = flatten(results)
 
-    # add in some variables for easier templating
-    # as these variables change based on object type
+    # Add in some variables for easier templating as these variables change based on object type.
     if "interfaces" in results:
         # is a system object
         results["system_name"] = results["name"]
@@ -611,9 +708,16 @@ def blender(api_handle, remove_dicts, root_obj):
 
 
 def flatten(data):
-    # convert certain nested dicts to strings.
-    # this is only really done for the ones koan needs as strings
-    # this should not be done for everything
+    """
+    Convert certain nested dicts to strings. This is only really done for the ones koan needs as strings this should
+    not be done for everything
+
+    :param data: The dictionary where various keys should be converted into a string.
+    :rtype: dict
+    :return: None (if data is None) or the flattened string.
+    :rtype: None or dict
+    """
+
     if data is None:
         return None
     if "environment" in data:
@@ -637,13 +741,21 @@ def flatten(data):
     if "rpm_list" in data and isinstance(data["rpm_list"], list):
         data["rpm_list"] = " ".join(data["rpm_list"])
 
-    # note -- we do not need to flatten "interfaces" as koan does not expect
-    # it to be a string, nor do we use it on a kernel options line, etc...
+    # Note -- we do not need to flatten "interfaces" as koan does not expect it to be a string, nor do we use it on a
+    # kernel options line, etc...
     return data
 
 
 def uniquify(seq):
-    # credit: http://www.peterbe.com/plog/uniqifiers-benchmark
+    """
+    Remove duplicates from the sequence handed over in the args.
+
+    :param seq: The sequence to check for duplicates.
+    :return: The list without duplicates.
+    :rtype: list
+    """
+
+    # Credit: http://www.peterbe.com/plog/uniqifiers-benchmark
     # FIXME: if this is actually slower than some other way, overhaul it
     seen = {}
     result = []
@@ -657,14 +769,16 @@ def uniquify(seq):
 
 def __consolidate(node, results):
     """
-    Merge data from a given node with the aggregate of all
-    data from past scanned nodes.  Dictionaries and arrays are treated
-    specially.
+    Merge data from a given node with the aggregate of all data from past scanned nodes. Dictionaries and arrays are
+    treated specially.
+
+    :param node: The object to merge data into. The data from the node always wins.
+    :param results: The results dictionary.
     """
     node_data = node.to_dict()
 
-    # if the node has any data items labelled <<inherit>> we need to expunge them.
-    # so that they do not override the supernodes.
+    # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
+    # supernodes.
     node_data_copy = {}
     for key in node_data:
         value = node_data[key]
@@ -680,8 +794,7 @@ def __consolidate(node, results):
 
         data_item = node_data_copy[field]
         if field in results:
-            # now merge data types seperately depending on whether they are dict, list,
-            # or scalar.
+            # Now merge data types seperately depending on whether they are dict, list, or scalar.
             fielddata = results[field]
 
             if isinstance(fielddata, dict):
@@ -693,19 +806,16 @@ def __consolidate(node, results):
                 results[field].extend(data_item)
                 results[field] = uniquify(results[field])
             else:
-                # distro field gets special handling, since we don't
-                # want to overwrite it ever.
-                # FIXME: should the parent's field too? It will be over-
-                #        written if there are multiple sub-profiles in
+                # distro field gets special handling, since we don't want to overwrite it ever.
+                # FIXME: should the parent's field too? It will be overwritten if there are multiple sub-profiles in
                 #        the chain of inheritance
                 if field != "distro":
                     results[field] = data_item
         else:
             results[field] = data_item
 
-    # now if we have any "!foo" results in the list, delete corresponding
-    # key entry "foo", and also the entry "!foo", allowing for removal
-    # of kernel options set in a distro later in a profile, etc.
+    # Now if we have any "!foo" results in the list, delete corresponding key entry "foo", and also the entry "!foo",
+    # allowing for removal of kernel options set in a distro later in a profile, etc.
 
     dict_removals(results, "kernel_options")
     dict_removals(results, "kernel_options_post")
@@ -716,6 +826,12 @@ def __consolidate(node, results):
 
 
 def dict_removals(results, subkey):
+    """
+    Remove entrys from a dictionary starting with a "!".
+
+    :param results: The dictionary to search in
+    :param subkey: The subkey to search through.
+    """
     if subkey not in results:
         return
     scan = list(results[subkey].keys())
@@ -729,11 +845,16 @@ def dict_removals(results, subkey):
 
 def dict_to_string(_dict):
     """
-    Convert a dictionary to a printable string.
-    used primarily in the kernel options string
-    and for some legacy stuff where koan expects strings
-    (though this last part should be changed to dictionaries)
+    Convert a dictionary to a printable string. Used primarily in the kernel options string and for some legacy stuff
+    where koan expects strings (though this last part should be changed to dictionaries)
+
+    A KV-Pair is joined with a "=". Values are enclosed in single quotes.
+
+    :param _dict: The dictionary to convert to a string.
+    :return: The string which was previously a dictionary.
+    :rtype: str
     """
+
     buffer = ""
     if not isinstance(_dict, dict):
         return _dict
@@ -762,8 +883,15 @@ def dict_to_string(_dict):
 
 def rsync_files(src, dst, args, logger=None, quiet=True):
     """
-    Sync files from src to dst. The extra arguments specified
-    by args are appended to the command
+    Sync files from src to dst. The extra arguments specified by args are appended to the command.
+
+    :param src: The source for the copy process.
+    :param dst: The destionation for the copy process.
+    :param args: The extra arguments are appended to our standard arguements.
+    :param logger: The logger to audit the action with.
+    :param quiet: If "True" no progress is reported. If "False" then progress will be reported by rsync.
+    :type quiet: bool
+    :return:
     """
 
     if args is None:
@@ -775,9 +903,7 @@ def rsync_files(src, dst, args, logger=None, quiet=True):
     else:
         RSYNC_CMD += " --progress"
 
-    # Make sure we put a "/" on the end of the source
-    # and destination to make sure we don't cause any
-    # rsync weirdness
+    # Make sure we put a "/" on the end of the source and destination to make sure we don't cause any rsync weirdness.
     if not dst.endswith("/"):
         dst = "%s/" % dst
     if not src.endswith("/"):
@@ -801,6 +927,10 @@ def rsync_files(src, dst, args, logger=None, quiet=True):
 def run_this(cmd, args, logger):
     """
     A simple wrapper around subprocess calls.
+
+    :param cmd: The command to run in a shell process.
+    :param args: The arguments to attach to the command.
+    :param logger: The logger to audit the shell call with.
     """
 
     my_cmd = cmd % args
@@ -811,16 +941,20 @@ def run_this(cmd, args, logger):
 
 def run_triggers(api, ref, globber, additional=[], logger=None):
     """Runs all the trigger scripts in a given directory.
-
-    ``ref`` can be a cobbler object, if not None, the name will be passed to the script. If ref is None, the script will
-    be called with no argumenets. Globber is a wildcard expression indicating which triggers to run.
-
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
     As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
-    """
 
-    # Python triggers first, before shell
+    Python triggers are always run before shell triggers.
+
+    :param api: The api object to use for resolving the actions.
+    :param ref: Can be a cobbler object, if not None, the name will be passed to the script. If ref is None, the script
+                will be called with no argumenets.
+    :param globber: is a wildcard expression indicating which triggers to run.
+    :param additional: Additional arguments to run the triggers with.
+    :type additional: list
+    :param logger: The logger to audit the action with.
+    """
 
     if logger is not None:
         logger.debug("running python triggers from %s" % globber)
@@ -838,8 +972,8 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
         if rc != 0:
             raise CX("cobbler trigger failed: %s" % m.__name__)
 
-    # now do the old shell triggers, which are usually going to be slower, but are easier to write
-    # and support any language
+    # Now do the old shell triggers, which are usually going to be slower, but are easier to write and support any
+    # language.
 
     if logger is not None:
         logger.debug("running shell triggers from %s" % globber)
@@ -879,7 +1013,11 @@ def get_family():
     """
     Get family of running operating system.
 
-    Family is the base Linux distribution of a Linux distribution, with a set of common
+    Family is the base Linux distribution of a Linux distribution, with a set of common parents.
+
+    :return: May be "redhat", "debian" or "suse" currently. If none of these are detected then just the distro name is
+             returned.
+    :rtype: str
     """
 
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
@@ -896,6 +1034,11 @@ def get_family():
 
 
 def os_release():
+    """
+    Get the os version of the linux distro. If the get_family() method succeeds then the result is normalized.
+
+    :return: The os-name and os version.
+    """
     family = get_family()
     distro_name = distro.name().lower()
     distro_version = distro.version()
@@ -924,6 +1067,17 @@ def os_release():
 
 
 def is_safe_to_hardlink(src, dst, api):
+    """
+    Determine if it is safe to hardlink a file to the destination path.
+
+    :param src: The hardlink source path.
+    :param dst: The hardlink target path.
+    :param api: The api-instance to resolve needed information with.
+    :return: True if selinux is disabled, the file is on the same device, the source in not a link, and it is not a
+             remote path. If selinux is enabled the functions still may return true if the object is a kernel or initrd.
+             Otherwise returns False.
+    :rtype: bool
+    """
     (dev1, path1) = get_file_device_path(src)
     (dev2, path2) = get_file_device_path(dst)
     if dev1 != dev2:
@@ -948,6 +1102,11 @@ def is_safe_to_hardlink(src, dst, api):
 def hashfile(fn, lcache=None, logger=None):
     """
     Returns the sha1sum of the file
+
+    :param fn: The file to get the sha1sum of.
+    :param lcache: Not known what this is exactly for.
+    :param logger: The logger to audit the action with.
+    :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
     try:
@@ -975,10 +1134,13 @@ def hashfile(fn, lcache=None, logger=None):
 
 def cachefile(src, dst, api=None, logger=None):
     """
-    Copy a file into a cache and link it into place.
-    Use this with caution, otherwise you could end up
-    copying data twice if the cache is not on the same device
-    as the destination
+    Copy a file into a cache and link it into place. Use this with caution, otherwise you could end up copying data
+    twice if the cache is not on the same device as the destination.
+
+    :param src: The sourcefile for the copy action.
+    :param dst: The destination for the copy action.
+    :param api: The api to resolve basic information with.
+    :param logger: The logger to audit the action with.
     """
     lcache = os.path.join(os.path.dirname(os.path.dirname(dst)), '.link_cache')
     if not os.path.isdir(lcache):
@@ -995,19 +1157,27 @@ def cachefile(src, dst, api=None, logger=None):
 
 def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
     """
-    Attempt to create a link dst that points to src.  Because file
-    systems suck we attempt several different methods or bail to
-    copyfile()
+    Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
+    bail to just copying the file.
+
+    :param src: The source file.
+    :param dst: The destination for the link.
+    :param symlink_ok: If it is okay to just use a symbolic link.
+    :type symlink_ok: bool
+    :param cache: If it is okay to use a cached file instead of the real one.
+    :type cache: bool
+    :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
+                not present.
+    :param logger: If a logger instance is present, then it is used to audit what this method is doing to the
+                   filesystem.
     """
 
     if api is None:
-        # FIXME: this really should not be a keyword
-        # arg
+        # FIXME: this really should not be a keyword arg
         raise CX("Internal error: API handle is required")
 
     if os.path.exists(dst):
-        # if the destination exists, is it right in terms of accuracy
-        # and context?
+        # if the destination exists, is it right in terms of accuracy and context?
         if os.path.samefile(src, dst):
             if not is_safe_to_hardlink(src, dst, api):
                 # may have to remove old hardlinks for SELinux reasons
@@ -1024,22 +1194,18 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
             os.remove(dst)
 
     if is_safe_to_hardlink(src, dst, api):
-        # we can try a hardlink if the destination isn't to NFS or Samba
-        # this will help save space and sync time.
+        # we can try a hardlink if the destination isn't to NFS or Samba this will help save space and sync time.
         try:
             if logger is not None:
                 logger.info("trying hardlink %s -> %s" % (src, dst))
             os.link(src, dst)
             return
         except (IOError, OSError):
-            # hardlink across devices, or link already exists
-            # we'll just symlink it if we can
-            # or otherwise copy it
+            # hardlink across devices, or link already exists we'll just symlink it if we can or otherwise copy it
             pass
 
     if symlink_ok:
-        # we can symlink anywhere except for /tftpboot because
-        # that is run chroot, so if we can symlink now, try it.
+        # we can symlink anywhere except for /tftpboot because that is run chroot, so if we can symlink now, try it.
         try:
             if logger is not None:
                 logger.info("trying symlink %s -> %s" % (src, dst))
@@ -1060,6 +1226,14 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
 
 
 def copyfile(src, dst, api=None, logger=None):
+    """
+    Copy a file from source to the destination.
+
+    :param src: The source file. This may also be a folder.
+    :param dst: The destion for the file or folder.
+    :param api: This parameter is not used currently.
+    :param logger: The logger to audit the action with.
+    """
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst))
@@ -1079,6 +1253,14 @@ def copyfile(src, dst, api=None, logger=None):
 
 
 def copyremotefile(src, dst1, api=None, logger=None):
+    """
+    Copys a file from a remote place to the local destionation.
+
+    :param src: The remote file URI.
+    :param dst1: The copy destination on the local filesystem.
+    :param api: This parameter is not used currently.
+    :param logger: The logger to audit the action with.
+    """
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst1))
@@ -1091,6 +1273,20 @@ def copyremotefile(src, dst1, api=None, logger=None):
 
 
 def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None, logger=None):
+    """
+    Copy 1 or more files with a pattern into a destination.
+
+    :param pattern: The pattern for finding the required files.
+    :param dst: The destination for the file(s) found.
+    :param require_match: If the glob pattern does not find files should an error message be thrown or not.
+    :type require_match: bool
+    :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
+    :type symlink_ok: bool
+    :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
+    :type cache: bool
+    :param api:
+    :param logger: The logger to audit the action with.
+    """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX(_("Could not find files matching %s") % pattern)
@@ -1100,13 +1296,22 @@ def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=T
 
 
 def rmfile(path, logger=None):
+    """
+    Delete a single file.
+
+    :param path: The file to delete.
+    :param logger: The logger to audit the action with.
+    :return: True if the action succeeded.
+    :rtype: bool
+    """
     try:
         if logger is not None:
             logger.info("removing: %s" % path)
         os.unlink(path)
         return True
     except OSError as ioe:
-        if not ioe.errno == errno.ENOENT:   # doesn't exist
+        # doesn't exist
+        if not ioe.errno == errno.ENOENT:
             if logger is not None:
                 log_exc(logger)
             raise CX(_("Error deleting %s") % path)
@@ -1114,12 +1319,25 @@ def rmfile(path, logger=None):
 
 
 def rmtree_contents(path, logger=None):
+    """
+    Delete the content of a folder with a glob pattern.
+
+    :param path: This parameter presents the glob pattern of what should be deleted.
+    :param logger: The logger to audit the action with.
+    """
     what_to_delete = glob.glob("%s/*" % path)
     for x in what_to_delete:
         rmtree(x, logger=logger)
 
 
 def rmtree(path, logger=None):
+    """
+    Delete a complete directory or just a single file.
+
+    :param path: The directory or folder to delete.
+    :param logger: The logger to audit the action with.
+    :return: May possibly return true on success or may return None on success.
+    """
     try:
         if os.path.isfile(path):
             return rmfile(path, logger=logger)
@@ -1136,12 +1354,20 @@ def rmtree(path, logger=None):
 
 
 def mkdir(path, mode=0o755, logger=None):
+    """
+    Create directory with a given mode.
+
+    :param path: The path to create the directory at.
+    :param mode: The mode to create the directory with.
+    :param logger: The logger to audit the action with.
+    """
     try:
         if logger is not None:
             logger.info("mkdir: %s" % path)
         return os.makedirs(path, mode)
     except OSError as oe:
-        if not oe.errno == 17:  # already exists (no constant for 17?)
+        # already exists (no constant for 17?)
+        if not oe.errno == 17:
             if logger is not None:
                 log_exc(logger)
             raise CX(_("Error creating %s") % path)
@@ -1150,6 +1376,11 @@ def mkdir(path, mode=0o755, logger=None):
 def path_tail(apath, bpath):
     """
     Given two paths (B is longer than A), find the part in B not in A
+
+    :param apath: The first path.
+    :param bpath: The second path.
+    :return: If the paths are not starting at the same location this function returns an empty string.
+    :rtype: str
     """
     position = bpath.find(apath)
     if position != 0:
@@ -1162,11 +1393,20 @@ def path_tail(apath, bpath):
 
 
 def set_arch(self, arch, repo=False):
+    """
+    This is a setter for system architectures. If the arch is not valid then an exception is raised.
+
+    :param self: The object where the arch will be set.
+    :param arch: The desired architecture to set for the object.
+    :param repo: If the object where the arch will be set is a repo or not.
+    :type repo: bool
+    """
     if not arch or arch == "standard" or arch == "x86":
         arch = "i386"
 
     if repo:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "noarch", "src", "arm", "aarch64"]
+        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "noarch", "src",
+                  "arm", "aarch64"]
     else:
         valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "arm", "aarch64"]
 
@@ -1178,6 +1418,12 @@ def set_arch(self, arch, repo=False):
 
 
 def set_os_version(self, os_version):
+    """
+    This is a setter for the operating system version of an object.
+
+    :param self: The object to set the os-version for.
+    :param os_version: The version which shall be set.
+    """
     if not os_version:
         self.os_version = ""
         return
@@ -1194,15 +1440,28 @@ def set_os_version(self, os_version):
 
 
 def set_breed(self, breed):
+    """
+    This is a setter for the operating system breed.
+
+    :param self: The object to set the os-breed for.
+    :param breed: The os-breed which shall be set.
+    """
     valid_breeds = get_valid_breeds()
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
+    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support")
+             % (breed, nicer))
 
 
 def set_repo_os_version(self, os_version):
+    """
+    This is a setter for the os-version of a repository.
+
+    :param self: The repo to set the os-version for.
+    :param os_version: The os-version which should be set.
+    """
     if not os_version:
         self.os_version = ""
         return
@@ -1216,15 +1475,30 @@ def set_repo_os_version(self, os_version):
 
 
 def set_repo_breed(self, breed):
+    """
+    This is a setter for the repository breed.
+
+    :param self: The object to set the breed of.
+    :param breed: The new value for breed.
+    """
     valid_breeds = validate.REPO_BREEDS
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support") % (breed, nicer))
+    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support")
+             % (breed, nicer))
 
 
 def set_repos(self, repos, bypass_check=False):
+    """
+    This is a setter for the repository.
+
+    :param self: The object to set the repositories of.
+    :param repos: The repositories to set for the object.
+    :param bypass_check: If the newly set repos should be checked for existence.
+    :type bypass_check: bool
+    """
     # allow the magic inherit string to persist
     if repos == "<<inherit>>":
         self.repos = "<<inherit>>"
@@ -1245,13 +1519,13 @@ def set_repos(self, repos, bypass_check=False):
 
 def set_virt_file_size(self, num):
     """
-    For Virt only.
-    Specifies the size of the virt image in gigabytes.
-    Older versions of koan (x<0.6.3) interpret 0 as "don't care"
-    Newer versions (x>=0.6.4) interpret 0 as "no disks"
+    For Virt only: Specifies the size of the virt image in gigabytes. Older versions of koan (x<0.6.3) interpret 0 as
+    "don't care". Newer versions (x>=0.6.4) interpret 0 as "no disks"
+
+    :param self: The object where the virt file size should be set for.
+    :param num: is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
+                multiple disks
     """
-    # num is a non-negative integer (0 means default)
-    # can also be a comma seperated list -- for usage with multiple disks
 
     if num is None or num == "":
         self.virt_file_size = 0
@@ -1284,8 +1558,10 @@ def set_virt_file_size(self, num):
 
 def set_virt_disk_driver(self, driver):
     """
-    For Virt only.
-    Specifies the on-disk format for the virtualized disk
+    For Virt only. Specifies the on-disk format for the virtualized disk
+
+    :param self: The object where the virt disk driver should be set for.
+    :param driver: The virt driver to set.
     """
     if driver in validate.VIRT_DISK_DRIVERS:
         self.virt_disk_driver = driver
@@ -1296,8 +1572,11 @@ def set_virt_disk_driver(self, driver):
 def set_virt_auto_boot(self, num):
     """
     For Virt only.
-    Specifies whether the VM should automatically boot upon host reboot
-    0 tells Koan not to auto_boot virtuals
+    Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
+
+    :param self: The object where the virt auto boot should be set for.
+    :param num: May be "0" (disabled) or "1" (enabled)
+    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1318,8 +1597,11 @@ def set_virt_auto_boot(self, num):
 def set_virt_pxe_boot(self, num):
     """
     For Virt only.
-    Specifies whether the VM should use PXE for booting
-    0 tells Koan not to PXE boot virtuals
+    Specifies whether the VM should use PXE for booting 0 tells Koan not to PXE boot virtuals
+
+    :param self: The object where the virt pxe boot should be set for.
+    :param num: May be "0" (disabled) or "1" (enabled)
+    :type num: int
     """
 
     # num is a non-negative integer (0 means default)
@@ -1337,7 +1619,10 @@ def set_virt_ram(self, num):
     """
     For Virt only.
     Specifies the size of the Virt RAM in MB.
-    0 tells Koan to just choose a reasonable default.
+
+    :param self: The object where the virtual RAM should be set for.
+    :param num: 0 tells Koan to just choose a reasonable default.
+    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1360,6 +1645,9 @@ def set_virt_ram(self, num):
 def set_virt_type(self, vtype):
     """
     Virtualization preference, can be overridden by koan.
+
+    :param self: The object where the virtual machine type should be set for.
+    :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto"
     """
 
     if vtype == "<<inherit>>":
@@ -1374,6 +1662,9 @@ def set_virt_type(self, vtype):
 def set_virt_bridge(self, vbridge):
     """
     The default bridge for all virtual interfaces under this profile.
+
+    :param self: The object to adjust the virtual interfaces of.
+    :param vbridge: The bridgename to set for the object.
     """
     if not vbridge:
         vbridge = self.settings.default_virt_bridge
@@ -1383,6 +1674,11 @@ def set_virt_bridge(self, vbridge):
 def set_virt_path(self, path, for_system=False):
     """
     Virtual storage location suggestion, can be overriden by koan.
+
+    :param self: The object to adjust the virtual storage location.
+    :param path: The path to the storage.
+    :param for_system: If this is set to True then the value is inherited from a profile.
+    :type for_system: bool
     """
     if path is None:
         path = ""
@@ -1394,10 +1690,11 @@ def set_virt_path(self, path, for_system=False):
 
 def set_virt_cpus(self, num):
     """
-    For Virt only.  Set the number of virtual CPUs to give to the
-    virtual machine.  This is fed to virtinst RAW, so cobbler
-    will not yelp if you try to feed it 9999 CPUs.  No formatting
-    like 9,999 please :)
+    For Virt only. Set the number of virtual CPUs to give to the virtual machine. This is fed to virtinst RAW, so
+    cobbler will not yelp if you try to feed it 9999 CPUs. No formatting like 9,999 please :)
+
+    :param self: The object to adjust the virtual cpu cores.
+    :param num: The number of cpu cores.
     """
     if num == "" or num is None:
         self.virt_cpus = 1
@@ -1416,6 +1713,11 @@ def set_virt_cpus(self, num):
 
 
 def safe_filter(var):
+    """
+    Not know what this function exactly does.
+
+    :param var: This parameter shall not be None or have ".."/";" at the end.
+    """
     if var is None:
         return
     if var.find("..") != -1 or var.find(";") != -1:
@@ -1423,6 +1725,12 @@ def safe_filter(var):
 
 
 def is_selinux_enabled():
+    """
+    This check is achieved via a subprocess call to ``selinuxenabled``. Default return is false.
+
+    :return: Weather selinux is enabled or not.
+    :rtype: bool
+    """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
     cmd = "/usr/sbin/selinuxenabled"
@@ -1433,8 +1741,7 @@ def is_selinux_enabled():
         return False
 
 
-# We cache the contents of /etc/mtab ... the following variables are used
-# to keep our cache in sync
+# We cache the contents of /etc/mtab ... the following variables are used to keep our cache in sync.
 mtab_mtime = None
 mtab_map = []
 
@@ -1448,21 +1755,50 @@ class MntEntObj(object):
     mnt_passno = 0      # pass number on parallel fsck
 
     def __init__(self, input=None):
+        """
+        This is an object which contains information about a mounted filesystem.
+
+        :param input: This is a string which is seperated internally by whitespace. If present it represents the
+                      arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
+                      must be preserved, as well as the separation by whitespace.
+        :type input: str
+        """
         if input and isinstance(input, str):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
     def __dict__(self):
-        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir,
-                "mnt_type": self.mnt_type, "mnt_opts": self.mnt_opts,
-                "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
+        """
+        This mapps all variables available in this class to a dictionary. The name of the keys is identical to the names
+        of the variables.
+
+        :return:
+        """
+        return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, "mnt_type": self.mnt_type,
+                "mnt_opts": self.mnt_opts, "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
 
     def __str__(self):
+        """
+        This is the object representation of a mounted filesystem as a string. It can be fed to the constructor of this
+        class.
+
+        :return: The space separated list of values of this object.
+        """
         return "%s %s %s %s %s %s" % (self.mnt_fsname, self.mnt_dir, self.mnt_type,
                                       self.mnt_opts, self.mnt_freq, self.mnt_passno)
 
 
 def get_mtab(mtab="/etc/mtab", vfstype=None):
+    """
+    Get the list of mtab entries. If a custum mtab should be read then the location can be overriden via a parameter.
+
+    :param mtab: The location of the mtab. Arguemnt can be ommited if the mtab is at its default location.
+    :param vfstype: If this is True, then all filesystems which are nfs are returned. Otherwise this returns all mtab
+                    entries.
+    :type vfstype: bool
+    :return: The list of requested mtab entries.
+    :rtype: list
+    """
     global mtab_mtime, mtab_map
 
     mtab_stat = os.stat(mtab)
@@ -1483,6 +1819,15 @@ def get_mtab(mtab="/etc/mtab", vfstype=None):
 
 
 def set_serial_device(self, device_number):
+    """
+    Set the serial device for an object.
+
+    :param self: The object to set the device number for.
+    :param device_number: The number of the serial device.
+    :type device_number: int
+    :return: True if the action succeeded.
+    :rtype: bool
+    """
     if device_number == "" or device_number is None:
         device_number = None
     else:
@@ -1496,6 +1841,16 @@ def set_serial_device(self, device_number):
 
 
 def set_serial_baud_rate(self, baud_rate):
+    """
+    The baud rate is very import that the communication between the two devices can be established correctly. This is
+    the setter for this parameter. This effectively is the speed of the connection.
+
+    :param self: The object to set the serial baud rate for.
+    :param baud_rate: The baud rate to set.
+    :type baud_rate: int
+    :return: True if the action succeeded.
+    :rtype: bool
+    """
     if baud_rate == "" or baud_rate is None:
         baud_rate = None
     else:
@@ -1509,6 +1864,12 @@ def set_serial_baud_rate(self, baud_rate):
 
 
 def __cache_mtab__(mtab="/etc/mtab"):
+    """
+    Open the mtab and cache it inside cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
+
+    :param mtab: The location of the mtab. Arguemnt can be ommited if the mtab is at its default location.
+    :return: The mtab content stripped from empty lines (if any are present).
+    """
     f = open(mtab)
     mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
     f.close()
@@ -1517,14 +1878,18 @@ def __cache_mtab__(mtab="/etc/mtab"):
 
 
 def get_file_device_path(fname):
-    '''What this function attempts to do is take a file and return:
-         - the device the file is on
-         - the path of the file relative to the device.
-       For example:
+    """
+    What this function attempts to do is take a file and return:
+        - the device the file is on
+        - the path of the file relative to the device.
+    For example:
          /boot/vmlinuz -> (/dev/sda3, /vmlinuz)
          /boot/efi/efi/redhat/elilo.conf -> (/dev/cciss0, /elilo.conf)
          /etc/fstab -> (/dev/sda4, /etc/fstab)
-    '''
+
+    :param fname: The filename to split up.
+    :return: A touple containing the device and relative filename.
+    """
 
     # resolve any symlinks
     fname = os.path.realpath(fname)
@@ -1565,6 +1930,13 @@ def get_file_device_path(fname):
 
 
 def is_remote_file(file):
+    """
+    This function is trying to detect if the file in the argument is remote or not.
+
+    :param file: The filepath to check.
+    :return: If remote True, otherwise False.
+    :rtype: bool
+    """
     (dev, path) = get_file_device_path(file)
     if dev.find(":") != -1:
         return True
@@ -1573,6 +1945,16 @@ def is_remote_file(file):
 
 
 def subprocess_sp(logger, cmd, shell=True, input=None):
+    """
+    Call a shell process and redirect the output for internal usage.
+
+    :param logger: The logger to audit the action with.
+    :param cmd: The command to execute in a subprocess call.
+    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :type shell: bool
+    :param input: If there is any input needed for that command to stdin.
+    :return: A touple of the output and the return code.
+    """
     if logger is not None:
         logger.info("running: %s" % cmd)
 
@@ -1597,20 +1979,54 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
 
 
 def subprocess_call(logger, cmd, shell=True, input=None):
+    """
+    A simple subprocess call with no output capturing.
+
+    :param logger: The logger to audit the action with.
+    :param cmd: The command to execute.
+    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :type shell: bool
+    :param input: If there is any input needed for that command to stdin.
+    :return: The return code of the process
+    """
     data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return rc
 
 
 def subprocess_get(logger, cmd, shell=True, input=None):
+    """
+    A simple subprocess call with no return code capturing.
+
+    :param logger: The logger to audit the action with.
+    :param cmd: The command to execute.
+    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :type shell: bool
+    :param input: If there is any input needed for that command to stdin.
+    :return: The data which the subprocess returns.
+    """
     data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return data
 
 
 def get_supported_system_boot_loaders():
+    """
+    Return the list of currently supported bootloaders.
+
+    :return: The list of currently supported bootloaders.
+    :rtype: list
+    """
     return ["<<inherit>>", "grub", "pxelinux", "yaboot", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):
+    """
+    This is trying to return you the list of known bootloaders if all resorts fail. Otherwise this returns a list which
+    contains only the subset of bootloaders which are available by the distro in the argument.
+
+    :param distro: The distro to check for.
+    :param api_handle: The api instance to resolve metadata and settings from.
+    :return: The list of bootloaders or a dict of well known bootloaders.
+    """
     try:
         # Try to read from the signature
         return api_handle.get_signatures()["breeds"][distro.breed][distro.os_version]["boot_loaders"][distro.arch]
@@ -1635,6 +2051,11 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
 def clear_from_fields(item, fields, is_subobject=False):
     """
     Used by various item_*.py classes for automating datastructure boilerplate.
+
+    :param item: The item to clear the fields of.
+    :param fields: Not known what magic this actually does.
+    :param is_subobject: If in the cobbler inheritance tree the item is considered a subobject (True) or not (False).
+    :type is_subobject: bool
     """
     for elems in fields:
         # if elems startswith * it's an interface field and we do not operate on it.
@@ -1655,6 +2076,13 @@ def clear_from_fields(item, fields, is_subobject=False):
 
 
 def from_dict_from_fields(item, item_dict, fields):
+    """
+    Not known what this method does exactly.
+
+    :param item: Not known what this is needed for exactly.
+    :param item_dict: Not known what this is needed for exactly.
+    :param fields: Not known what this is needed for exactly.
+    """
     int_fields = []
     for elems in fields:
         # we don't have to load interface fields here
@@ -1689,6 +2117,14 @@ def from_dict_from_fields(item, item_dict, fields):
 
 
 def to_dict_from_fields(item, fields):
+    """
+    Not known what this method does exactly.
+
+    :param item: Not known what this is needed for exactly.
+    :param fields: Not known what this is needed for exactly.
+    :return: Not known what this is returning
+    :rtype: dict
+    """
     _dict = {}
     for elem in fields:
         k = elem[0]
@@ -1696,8 +2132,7 @@ def to_dict_from_fields(item, fields):
             continue
         data = getattr(item, k)
         _dict[k] = data
-    # interfaces on systems require somewhat special handling
-    # they are the only exception in Cobbler.
+    # Interfaces on systems require somewhat special handling they are the only exception in Cobbler.
     if item.COLLECTION_TYPE == "system":
         _dict["interfaces"] = copy.deepcopy(item.interfaces)
         # for interface in _dict["interfaces"].keys():
@@ -1711,6 +2146,12 @@ def to_dict_from_fields(item, fields):
 def to_string_from_fields(item_dict, fields, interface_fields=None):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
+
+    :param item_dict: Not known what this is needed for exactly.
+    :param fields: Not known what this is needed for exactly.
+    :param interface_fields: Not known what this is needed for exactly.
+    :return: Not known what this is returning exactly.
+    :rtype: str
     """
     buf = ""
     keys = []
@@ -1749,6 +2190,10 @@ def to_string_from_fields(item_dict, fields, interface_fields=None):
 def get_setter_methods_from_fields(item, fields):
     """
     Return the name of set functions for all fields, keyed by the field name.
+
+    :param item: The item to search for setters.
+    :param fields: The fields to search for setters.
+    :return: The dictionary with the setter methods.
     """
     setters = {}
     for elem in fields:
@@ -1763,7 +2208,11 @@ def get_setter_methods_from_fields(item, fields):
 
 def load_signatures(filename, cache=True):
     """
-    Loads the import signatures for distros
+    Loads the import signatures for distros.
+
+    :param filename: Loads the file with the given name.
+    :param cache: If the cache should be set with the newly read data.
+    :type cache: bool
     """
     global SIGNATURE_CACHE
 
@@ -1778,6 +2227,8 @@ def load_signatures(filename, cache=True):
 def get_valid_breeds():
     """
     Return a list of valid breeds found in the import signatures
+
+    :rtype: list
     """
     if "breeds" in SIGNATURE_CACHE:
         return list(SIGNATURE_CACHE["breeds"].keys())
@@ -1788,6 +2239,11 @@ def get_valid_breeds():
 def get_valid_os_versions_for_breed(breed):
     """
     Return a list of valid os-versions for the given breed
+
+    :param breed: The operating system breed to check for.
+    :return: All operating system version which are known to cobbler according to the signature cache filtered by a
+             os-breed.
+    :rtype: list
     """
     os_versions = []
     if breed in get_valid_breeds():
@@ -1798,6 +2254,9 @@ def get_valid_os_versions_for_breed(breed):
 def get_valid_os_versions():
     """
     Return a list of valid os-versions found in the import signatures
+
+    :return: All operating system versions which are known to cobbler according to the signature cache.
+    :rtype: list
     """
     os_versions = []
     try:
@@ -1811,6 +2270,8 @@ def get_valid_os_versions():
 def get_valid_archs():
     """
     Return a list of valid architectures found in the import signatures
+
+    :return: All architectures which are known to cobbler according to the signature cache.
     """
     archs = []
     try:
@@ -1824,11 +2285,12 @@ def get_valid_archs():
 
 def get_shared_secret():
     """
-    The 'web.ss' file is regenerated each time cobblerd restarts and is
-    used to agree on shared secret interchange between the web server and
-    cobblerd, and also the CLI and cobblerd, when username/password
-    access is not required.  For the CLI, this enables root users
-    to avoid entering username/pass if on the cobbler server.
+    The 'web.ss' file is regenerated each time cobblerd restarts and is used to agree on shared secret interchange
+    between the web server and cobblerd, and also the CLI and cobblerd, when username/password access is not required.
+    For the CLI, this enables root users to avoid entering username/pass if on the cobbler server.
+
+    :return: The Cobbler secret which enables full access to cobbler.
+    :rtype: str
     """
 
     try:
@@ -1840,6 +2302,12 @@ def get_shared_secret():
 
 
 def local_get_cobbler_api_url():
+    """
+    Get the URL of the Cobbler HTTP API from the cobbler settings file.
+
+    :return: The api entry point. This does not respect modifications from Loadbalancers or API-Gateways.
+    :rtype: str
+    """
     # Load server and http port
     try:
         fh = open("/etc/cobbler/settings")
@@ -1862,6 +2330,12 @@ def local_get_cobbler_api_url():
 
 
 def local_get_cobbler_xmlrpc_url():
+    """
+    Get the URL of the Cobbler XMLRPC API from the cobbler settings file.
+
+    :return: The api entry point.
+    :rtype: str
+    """
     # Load xmlrpc port
     try:
         fh = open("/etc/cobbler/settings")
@@ -1875,8 +2349,13 @@ def local_get_cobbler_xmlrpc_url():
 
 def strip_none(data, omit_none=False):
     """
-    Remove "none" entries from datastructures.
-    Used prior to communicating with XMLRPC.
+    Remove "None" entries from datastructures. Used prior to communicating with XMLRPC.
+
+    :param data: The data to strip None away.
+    :param omit_none: If the datastructure is not a single item then None items will be skipped instead of replaced if
+                      set to "True".
+    :type omit_none: bool
+    :return: The modified data structure without any occurrence of None.
     """
     if data is None:
         data = '~'
@@ -1906,7 +2385,10 @@ def strip_none(data, omit_none=False):
 
 def revert_strip_none(data):
     """
-    Does the opposite to strip_none
+    Does the opposite to strip_none. If a value which represents None is detected, it replaces it with None.
+
+    :param data: The data to check.
+    :return: The data without None.
     """
     if isinstance(data, str) and data.strip() == '~':
         return None
@@ -1935,6 +2417,12 @@ def lod_to_dod(_list, indexkey):
 
     EX:  [  { "a" : 2 }, { "a : 3 } ]  ->  { "2" : { "a" : 2 }, "3" : { "a" : "3" }
 
+    :param _list: The list of dictionaries to use for the conversion.
+    :type _list: list
+    :param indexkey: The position to use as dictionary keys.
+    :type indexkey: int
+    :return: The converted dictionary. It is not guaranteed that the same key is not used multiple times.
+    :rtype: dict
     """
     results = {}
     for item in _list:
@@ -1948,19 +2436,40 @@ from functools import cmp_to_key
 
 
 def mycmp(x, y):
+    """
+    Compares if x is smaller than y.
+
+    :param x: The first parameter.
+    :param y: The second parameter.
+    :return: The bool of the action.
+    :rtype: bool
+    """
     return (x < y)
 
 
 def lod_sort_by_key(_list, indexkey):
     """
-    Sorts a list of dictionaries by a given key in the dictionaries
-    note: this is a destructive operation
+    Sorts a list of dictionaries by a given key in the dictionaries.
+
+    Note: This is a destructive operation and does not sort the dictionaries.
+
+    :param _list: The list of dictionaries to sort.
+    :type _list: list
+    :param indexkey: The key to index to dicts in the list.
+    :return: The sorted list.
+    :rtype: list
     """
     _list.sort(key=cmp_to_key(lambda a, b: mycmp(a[indexkey], b[indexkey])))
     return _list
 
 
 def dhcpconf_location(api):
+    """
+    This method returns the location of the dhcpd.conf file.
+
+    :param api: This parameter is currently unused.
+    :return: The path possibly used for the dhcpd.conf file.
+    """
     (dist, version) = os_release()
     if dist in ("redhat", "centos") and version < 6:
         return "/etc/dhcpd.conf"
@@ -1977,6 +2486,12 @@ def dhcpconf_location(api):
 
 
 def namedconf_location(api):
+    """
+    This returns the location of the named.conf file.
+
+    :param api: This parameter is currently unused.
+    :return: If the distro is Debian/Ubuntu then this returns "/etc/bind/named.conf". Otherwise "/etc/named.conf"
+    """
     (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/named.conf"
@@ -1985,6 +2500,13 @@ def namedconf_location(api):
 
 
 def zonefile_base(api):
+    """
+    This determins the base directory for the zone files which are important for the named service which cobbler tries
+    to configure.
+
+    :param api: This parameter is currently unused.
+    :return: One of "/etc/bind/db.", "/var/lib/named/", "/var/named/". The result depends on the distro used.
+    """
     (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "/etc/bind/db."
@@ -1995,6 +2517,12 @@ def zonefile_base(api):
 
 
 def dhcp_service_name(api):
+    """
+    Determine the dhcp service which is different on various distros. This is currently a hardcoded detection.
+
+    :param api: This parameter is currently unused.
+    :return: This will return one of the following names: "dhcp3-server", "isc-dhcp-server", "dhcpd"
+    """
     (dist, version) = os_release()
     if dist == "debian" and int(version) < 6:
         return "dhcp3-server"
@@ -2009,6 +2537,14 @@ def dhcp_service_name(api):
 
 
 def named_service_name(api, logger=None):
+    """
+    Determine the named service which is normally different on various distros.
+
+    :param api: This parameter is currently unused.
+    :param logger: The logger to audit the action with.
+    :return: This will return for debian/ubuntu bind9 and on other distros named-chroot or named.
+    :rtype: str
+    """
     (dist, _) = os_release()
     if dist == "debian" or dist == "ubuntu":
         return "bind9"
@@ -2021,6 +2557,12 @@ def named_service_name(api, logger=None):
 
 
 def link_distro(settings, distro):
+    """
+    Link a cobbler distro from its source into the web directory to make it reachable from the outside.
+
+    :param settings: The settings to resolve user configurable actions with.
+    :param distro: The distro to link into the cobbler web directory.
+    """
     # find the tree location
     base = find_distro_path(settings, distro)
     if not base:
@@ -2028,8 +2570,8 @@ def link_distro(settings, distro):
 
     dest_link = os.path.join(settings.webdir, "links", distro.name)
 
-    # create the links directory only if we are mirroring because with
-    # SELinux Apache can't symlink to NFS (without some doing)
+    # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS (without some
+    # doing)
 
     if not os.path.lexists(dest_link):
         try:
@@ -2040,24 +2582,46 @@ def link_distro(settings, distro):
 
 
 def find_distro_path(settings, distro):
+    """
+    This returns the absolute path to the distro under the ``distro_mirror`` directory. If that directory doesn't
+    contain the kernel, the directory of the kernel in the distro is returned.
+
+    :param settings: The settings to resolve user configurable actions with.
+    :param distro: The distroibution to find the path of.
+    :return: The path to the distro files.
+    """
     possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
     for dir in possible_dirs:
         if os.path.dirname(distro.kernel).find(dir) != -1:
             return os.path.join(settings.webdir, "distro_mirror", dir)
-    # non-standard directory, assume it's the same as the
-    # directory in which the given distro's kernel is
+    # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
 
 
 def compare_versions_gt(ver1, ver2):
+    """
+    Compares versions like "0.9.3" with each other and decides if ver1 is greater than ver2.
+
+    :param ver1: The first version.
+    :param ver2: The second version.
+    :return: True if ver1 is greater, otherwise False.
+    :rtype: bool
+    """
     def versiontuple(v):
         return tuple(map(int, (v.split("."))))
     return versiontuple(ver1) > versiontuple(ver2)
 
 
 def kopts_overwrite(system, distro, kopts, settings):
+    """
+    SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
+
+    :param system: The system to overwrite the kopts for.
+    :param distro: The distro for the system to change to kopts for.
+    :param kopts: The kopts of the system.
+    :param settings: The settings instance of cobbler.
+    """
     if distro and distro.breed == "suse":
-        """SUSE is not using 'text'. Instead 'textmode' is used as kernel option."""
         if 'textmode' in list(kopts.keys()):
             kopts.pop('text', None)
         elif 'text' in list(kopts.keys()):

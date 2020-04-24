@@ -32,16 +32,32 @@ import cobbler.templar as templar
 
 
 def register():
+    """
+    The mandatory cobbler module registration hook.
+    """
     return "manage"
 
 
 def get_manager(config, logger):
+    """
+    Get the DNS Manger object.
+
+    :param config: Unused parameter.
+    :param logger: The logger to audit the actions with.
+    :return: The manager object.
+    """
     return NDjbDnsManager(config, logger)
 
 
 class NDjbDnsManager(object):
 
     def __init__(self, config, logger):
+        """
+        This class can manage a New-DJBDNS server.
+
+        :param config: Currently an usused parameter.
+        :param logger: The logger to audit the actions with.
+        """
         self.logger = logger
         if self.logger is None:
             self.logger = clogger.Logger()
@@ -51,12 +67,23 @@ class NDjbDnsManager(object):
         self.templar = templar.Templar(config)
 
     def what(self):
+        """
+        Static method to identify the manager.
+
+        :return: Always "ndjbdns".
+        """
         return "ndjbdns"
 
     def regen_hosts(self):
+        """
+        Empty stub method to have compability with other dns managers who need this.
+        """
         pass
 
     def write_dns_files(self):
+        """
+        This writes the new dns configuration file to the disc.
+        """
         template_file = '/etc/cobbler/ndjbdns.template'
         data_file = '/etc/ndjbdns/data'
         data_dir = os.path.dirname(data_file)

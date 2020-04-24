@@ -27,11 +27,20 @@ CONFIG_FILE = '/etc/cobbler/users.conf'
 def register():
     """
     The mandatory cobbler module registration hook.
+
+    :return: Always "authz".
+    :rtype: str
     """
     return "authz"
 
 
 def __parse_config():
+    """
+    Parse the the users.conf file.
+
+    :return: The data of the config file.
+    :rtype: dict
+    """
     if not os.path.exists(CONFIG_FILE):
         return []
     config = SafeConfigParser()
@@ -48,8 +57,14 @@ def __parse_config():
 
 def authorize(api_handle, user, resource, arg1=None, arg2=None):
     """
-    Validate a user against a resource.
-    All users in the file are permitted by this module.
+    Validate a user against a resource. All users in the file are permitted by this module.
+
+    :param api_handle: This parameter is not used currently.
+    :param user: The user to authorize.
+    :param resource: This parameter is not used currently.
+    :param arg1: This parameter is not used currently.
+    :param arg2: This parameter is not used currently.
+    :return: "0" if no authorized, "1" if authorized.
     """
     # FIXME: this must be modified to use the new ACL engine
 

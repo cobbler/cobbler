@@ -24,9 +24,12 @@ class Resource(item.Item):
 
     def set_action(self, action):
         """
-        All management resources have an action. Action determine
-        weather a most resources should be created or removed, and
-        if packages should be installed or un-installed.
+        All management resources have an action. Action determine weather a most resources should be created or removed,
+        and if packages should be installed or uninstalled.
+
+        :param action: The action which should be executed for the management resource. Must be on of "create" or
+                       "remove". Parameter is case-insensitive.
+        :type action: str
         """
         action = action.lower()
         valid_actions = ['create', 'remove']
@@ -37,34 +40,40 @@ class Resource(item.Item):
     def set_group(self, group):
         """
         Unix group ownership of a file or directory.
+
+        :param group: The group which the resource will belong to.
         """
         self.group = group
 
     def set_mode(self, mode):
         """
-        Unix file permission mode ie: '0644' assigned to
-        file and directory resources.
+        Unix file permission mode ie: '0644' assigned to file and directory resources.
+
+        :param mode: The mode which the resource will have.
         """
         self.mode = mode
 
     def set_owner(self, owner):
         """
-        Unix owner of a file or directory
+        Unix owner of a file or directory.
+
+        :param owner: The owner which the resource will belong to.
         """
         self.owner = owner
 
     def set_path(self, path):
         """
-        File path used by file and directory resources. Normally
-        a absolute path of the file or directory to create or
-        manage.
+        File path used by file and directory resources.
+
+        :param path: Normally a absolute path of the file or directory to create or manage.
         """
         self.path = path
 
     def set_template(self, template):
         """
-        Path to cheetah template on cobbler's local file system.
-        Used to generate file data shipped to koan via json. All
-        templates have access to flatten autoinstall_meta data.
+        Path to cheetah template on cobbler's local file system. Used to generate file data shipped to koan via json.
+        All templates have access to flatten autoinstall_meta data.
+
+        :param template: The template to use for the resource.
         """
         self.template = template

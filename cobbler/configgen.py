@@ -37,12 +37,16 @@ from cobbler import utils
 
 class ConfigGen(object):
     """
-    Generate configuration data for Cobbler's management resources:
-    repos, files and packages. Mainly used by Koan to configure systems.
+    Generate configuration data for Cobbler's management resources: repos, files and packages.
+    Mainly used by Koan to configure systems.
     """
 
     def __init__(self, hostname):
-        """Constructor. Requires a Cobbler API handle."""
+        """
+        Constructor. Requires a Cobbler API handle.
+
+        :param hostname: The hostname to run config-generation for.
+        """
         self.hostname = hostname
         self.handle = capi.CobblerAPI()
         self.system = self.handle.find_system(hostname=self.hostname)
@@ -53,14 +57,27 @@ class ConfigGen(object):
     # ----------------------------------------------------------------------
 
     def resolve_resource_var(self, string_data):
-        """Substitute variables in strings."""
+        """
+        Substitute variables in strings.
+
+        :param string_data: The string with the data to substitute.
+        :return: A str with the substituted data.
+        :rtype: str
+        """
         data = string.Template(string_data).substitute(self.host_vars)
         return data
 
     # ----------------------------------------------------------------------
 
     def resolve_resource_list(self, list_data):
-        """Substitute variables in lists. Return new list."""
+        """
+        Substitute variables in lists. Return new list.
+
+        :param list_data: The list with the data to substitute.
+        :type list_data: list
+        :return: A list with the substituted data.
+        :rtype: list
+        """
         new_list = []
         for item in list_data:
             new_list.append(string.Template(item).substitute(self.host_vars))
@@ -69,7 +86,12 @@ class ConfigGen(object):
     # ----------------------------------------------------------------------
 
     def get_cobbler_resource(self, resource):
-        """Wrapper around cobbler blender method"""
+        """
+        Wrapper around cobbler blender method
+
+        :param resource: Not known what this actually is doing.
+        :return: Not known what this actually is doing.
+        """
         return cobbler.utils.blender(self.handle, False, self.system)[resource]
 
     # ----------------------------------------------------------------------
@@ -77,7 +99,9 @@ class ConfigGen(object):
     def gen_config_data(self):
         """
         Generate configuration data for repos, files and packages.
-        Returns a dict.
+
+        :return: A dict which has all config data in it.
+        :rtype: dict
         """
         config_data = {
             'repo_data': self.handle.get_repo_config_for_system(self.system),
@@ -140,6 +164,10 @@ class ConfigGen(object):
     # ----------------------------------------------------------------------
 
     def gen_config_data_for_koan(self):
-        """Encode configuration data. Return json object for Koan."""
+        """
+        Encode configuration data. Return json object for Koan.
+
+        :return: A json string for koan.
+        """
         json_config_data = json.JSONEncoder(sort_keys=True, indent=4).encode(self.gen_config_data())
         return json_config_data

@@ -22,16 +22,29 @@ class reboot(Thread):
 
 
 def register():
+    """
+    The mandatory cobbler module registration hook.
+    """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
 def run(api, args, logger):
+    """
+    Obligatory trigger hook.
+
+    :param api: The api to resolve information with.
+    :param args: This is an array containing two objects.
+                 0: String with the content "target" or "profile".
+                 1: The name of target or profile
+    :param logger: Unused parameter for this hook.
+    :return:
+    """
     # FIXME: make everything use the logger
 
-    objtype = args[0]   # "target" or "profile"
-    name = args[1]      # name of target or profile
+    objtype = args[0]
+    name = args[1]
     # boot_ip = args[2] # ip or "?"
 
     if objtype == "system":

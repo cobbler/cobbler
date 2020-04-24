@@ -35,6 +35,8 @@ class YumGen(object):
     def __init__(self, collection_mgr):
         """
         Constructor
+
+        :param collection_mgr: The main collection manager instance which is used by the current running server.
         """
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
@@ -48,6 +50,12 @@ class YumGen(object):
     def get_yum_config(self, obj, is_profile):
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
+
+        :param obj: The object to generate the yumconfig for.
+        :param is_profile: If the requested object is a profile. (Parameter not used currently)
+        :type is_profile: bool
+        :return: The generated yumconfig or the errors.
+        :rtype: str
         """
 
         totalbuf = ""
@@ -56,9 +64,8 @@ class YumGen(object):
 
         input_files = []
 
-        # tack on all the install source repos IF there is more than one.
-        # this is basically to support things like RHEL5 split trees
-        # if there is only one, then there is no need to do this.
+        # Tack on all the install source repos IF there is more than one. This is basically to support things like
+        # RHEL5 split trees if there is only one, then there is no need to do this.
 
         included = {}
         for r in blended["source_repos"]:
@@ -77,9 +84,8 @@ class YumGen(object):
             try:
                 infile_h = open(infile)
             except:
-                # file does not exist and the user needs to run reposync
-                # before we will use this, cobbler check will mention
-                # this problem
+                # File does not exist and the user needs to run reposync before we will use this, cobbler check will
+                # mention this problem
                 totalbuf += "\n# error: could not read repo source: %s\n\n" % infile
                 continue
 

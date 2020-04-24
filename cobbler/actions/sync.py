@@ -42,6 +42,13 @@ class CobblerSync(object):
     def __init__(self, collection_mgr, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
         """
         Constructor
+
+        :param collection_mgr:
+        :param verbose:
+        :param dhcp:
+        :param dns:
+        :param logger:
+        :param tftpd:
         """
         self.logger = logger
         if logger is None:
@@ -75,7 +82,7 @@ class CobblerSync(object):
     def run(self):
         """
         Syncs the current configuration file with the config tree.
-        Using the Check().run_ functions previously is recommended
+        Using the ``Check().run_`` functions previously is recommended
         """
         if not os.path.exists(self.bootloc):
             utils.die(self.logger, "cannot find directory: %s" % self.bootloc)
@@ -95,13 +102,11 @@ class CobblerSync(object):
         self.logger.info("cleaning trees")
         self.clean_trees()
 
-        # Have the tftpd module handle copying bootloaders,
-        # distros, images, and all_system_files
+        # Have the tftpd module handle copying bootloaders, distros, images, and all_system_files
         self.tftpd.sync(self.verbose)
         # Copy distros to the webdir
-        # Adding in the exception handling to not blow up if files have
-        # been moved (or the path references an NFS directory that's no longer
-        # mounted)
+        # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
+        # directory that's no longer mounted)
         for d in self.distros:
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
@@ -158,15 +163,12 @@ class CobblerSync(object):
 
     def clean_trees(self):
         """
-        Delete any previously built pxelinux.cfg tree and virt tree info and then create
-        directories.
+        Delete any previously built pxelinux.cfg tree and virt tree info and then create directories.
 
-        Note: for SELinux reasons, some information goes in /tftpboot, some in
-        /var/www/cobbler and some must be duplicated in both.  This is because
-        PXE needs tftp, and automatic installation and Virt operations need http.
-        Only the kernel and initrd images are duplicated, which is unfortunate,
-        though SELinux won't let me give them two contexts, so symlinks are not
-        a solution.  *Otherwise* duplication is minimal.
+        Note: for SELinux reasons, some information goes in ``/tftpboot``, some in ``/var/www/cobbler`` and some must be
+        duplicated in both. This is because PXE needs tftp, and automatic installation and Virt operations need http.
+        Only the kernel and initrd images are duplicated, which is unfortunate, though SELinux won't let me give them
+        two contexts, so symlinks are not a solution. *Otherwise* duplication is minimal.
         """
 
         # clean out parts of webdir and all of /tftpboot/images and /tftpboot/pxelinux.cfg
@@ -192,16 +194,25 @@ class CobblerSync(object):
         utils.rmtree_contents(self.rendered_dir, logger=self.logger)
 
     def write_dhcp(self):
+        """
+        Write all files which are associated to DHCP.
+        """
         self.logger.info("rendering DHCP files")
         self.dhcp.write_dhcp_file()
         self.dhcp.regen_ethers()
 
     def sync_dhcp(self):
+        """
+        This calls write_dhcp and restarts the DHCP server.
+        """
         if self.settings.manage_dhcp:
             self.write_dhcp()
             self.dhcp.sync_dhcp()
 
     def clean_link_cache(self):
+        """
+        All files which are linked into the cache will be deleted so the cache can be rebuild.
+        """
         for dirtree in [os.path.join(self.bootloc, 'images'), self.settings.webdir]:
             cachedir = os.path.join(dirtree, '.link_cache')
             if os.path.isdir(cachedir):
