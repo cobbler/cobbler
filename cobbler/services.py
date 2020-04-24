@@ -375,12 +375,12 @@ class CobblerSvc(object):
 
     def findks(self, system=None, profile=None, **rest):
         """
-        This is a legacy function which enabled cobbler partly to be backward compatible to 2.6.6 releases.
+        This is a legacy function which enabled Cobbler partly to be backward compatible to 2.6.6 releases.
 
         It should be only be used if you must. Please use find_autoinstall if possible!
         :param system: If you wish to find a system please set this parameter to not null. Hand over the name of it.
         :param profile: If you wish to find a system please set this parameter to not null. Hand over the name of it.
-        :param rest: If you wish you can try to let cobbler autodetect the system with the MAC address.
+        :param rest: If you wish you can try to let Cobbler autodetect the system with the MAC address.
         :return: Returns the autoinstall/kickstart profile.
         """
         self.__xmlrpc_setup()
@@ -405,7 +405,7 @@ class CobblerSvc(object):
 
     def puppet(self, hostname=None, **rest):
         """
-        Dump the puppet data which is available for cobbler.
+        Dump the puppet data which is available for Cobbler.
 
         :param hostname: The hostname for the system which should the puppet data be dumped for.
         :param rest: This parameter is unused.

@@ -42,11 +42,11 @@ class DownloadManager(object):
 
     def urlread(self, url, proxies=None, cert=None):
         """
-        Read the content of a given URL and pass the requests.Response object to the caller.
+        Read the content of a given URL and pass the requests. Response object to the caller.
 
         :param url: The URL the request.
-        :param proxies: Override the default cobbler proxies.
-        :param cert: Override the default cobbler certs.
+        :param proxies: Override the default Cobbler proxies.
+        :param cert: Override the default Cobbler certs.
         :returns: The Python requests.Response object.
         """
         if proxies is None:
@@ -61,8 +61,8 @@ class DownloadManager(object):
 
         :param url: The URL the request.
         :param dst: The destination file path.
-        :param proxies: Override the default cobbler proxies.
-        :param cert: Override the default cobbler certs.
+        :param proxies: Override the default Cobbler proxies.
+        :param cert: Override the default Cobbler certs.
         """
         if proxies is None:
             proxies = self.proxies

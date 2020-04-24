@@ -61,7 +61,7 @@ class File(resource.Resource):
 
     def make_clone(self):
         """
-        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+        Clone this file object. Please manually adjust all values yourself to make the cloned object unique.
 
         :return: The cloned instance of this object.
         """
@@ -72,7 +72,7 @@ class File(resource.Resource):
 
     def get_fields(self):
         """
-        Return all fields which this class has with it's current values.
+        Return all fields which this class has with its current values.
 
         :return: This is a list with lists.
         """

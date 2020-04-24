@@ -127,7 +127,7 @@ class TFTPGen(object):
 
     def copy_single_image_files(self, img):
         """
-        Copys an image to the images directory of cobbler.
+        Copys an image to the images directory of Cobbler.
 
         :param img: The image to copy.
         """

@@ -1,5 +1,5 @@
 """
-Command line interface for cobbler.
+Command line interface for Cobbler.
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -261,7 +261,7 @@ def _add_parser_option_from_field(parser, field, settings):
 
 def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):
     """
-    Add options to the command line from the fields queried from the cobbler server.
+    Add options to the command line from the fields queried from the Cobbler server.
 
     :param object_type: The object type to add options for.
     :param parser: The optparse instance to add options to.
@@ -306,7 +306,7 @@ class CobblerCLI(object):
 
     def __init__(self):
         """
-        The constructor to create a cobbler CLI.
+        The constructor to create a Cobbler CLI.
         """
         # Load server ip and ports from local config
         self.url_cobbler_api = utils.local_get_cobbler_api_url()
@@ -394,7 +394,7 @@ class CobblerCLI(object):
         try:
             s.ping()
         except:
-            print("httpd does not appear to be running and proxying cobbler, or SELinux is in the way. Original "
+            print("httpd does not appear to be running and proxying Cobbler, or SELinux is in the way. Original "
                   "traceback:", file=sys.stderr)
             traceback.print_exc()
             sys.exit(411)
@@ -788,7 +788,7 @@ class CobblerCLI(object):
 
     def follow_task(self, task_id):
         """
-        Follow a task which is remotely executed on the cobbler-server.
+        Follow a task which is remotely executed on the Cobbler-server.
 
         :param task_id: The id of the task to follow.
         """

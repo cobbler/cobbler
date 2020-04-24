@@ -212,7 +212,7 @@ class Settings(object):
 
     def _clear(self):
         """
-        This resets all settings to the defaults which are built into cobbler.
+        This resets all settings to the defaults which are built into Cobbler.
         """
         self.__dict__ = {}
         for key in list(DEFAULTS.keys()):
@@ -253,7 +253,7 @@ class Settings(object):
         """
         Modify this object to load values in dictionary.
 
-        WARNING: If the dict from the args has not all settings included cobbler may behave unexpectedly.
+        WARNING: If the dict from the args has not all settings included Cobbler may behave unexpectedly.
 
         :param _dict: The dictionary with settings to replace.
         :return: Returns the settings instance this method was called from.

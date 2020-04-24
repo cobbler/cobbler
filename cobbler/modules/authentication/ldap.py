@@ -32,7 +32,7 @@ from cobbler.cexceptions import CX
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always "authn"
     :rtype: str
@@ -43,7 +43,7 @@ def register():
 
 def authenticate(api_handle, username, password):
     """
-    Validate an ldap bind, returning whether the authentication was successful or not.
+    Validate an LDAP bind, returning whether the authentication was successful or not.
 
     :param api_handle: The api instance to resolve settings.
     :param username: The username to authenticate.

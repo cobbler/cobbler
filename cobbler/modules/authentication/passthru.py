@@ -19,7 +19,7 @@ from cobbler import utils
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always "authn"
     :rtype: str
@@ -33,7 +33,7 @@ def authenticate(api_handle, username, password):
 
     :param api_handle: This parameter is not used currently.
     :param username: This parameter is not used currently.
-    :param password: This should be the internal cobbler secret.
+    :param password: This should be the internal Cobbler secret.
     :return: True if the password is the secret, otherwise false.
     :rtype: bool
     """

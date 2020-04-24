@@ -83,7 +83,7 @@ class RepoSync(object):
         """
         Constructor
 
-        :param collection_mgr: The object which holds all information in cobbler.
+        :param collection_mgr: The object which holds all information in Cobbler.
         :param tries: The number of tries before the operation fails.
         :param nofail: This sets the strictness of the reposync result handling.
         :param logger: The logger to audit all actions with.
@@ -246,7 +246,7 @@ class RepoSync(object):
                         if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
-                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through Cobbler.")
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
@@ -639,7 +639,7 @@ class RepoSync(object):
 
         # The output case will generate repo configuration files which are usable for the installed systems. They need
         # to be made compatible with --server-override which means they are actually templates, which need to be
-        # rendered by a cobbler-sync on per profile/system basis.
+        # rendered by a Cobbler-sync on per profile/system basis.
 
         if output:
             fname = os.path.join(dest_path, "config.repo")

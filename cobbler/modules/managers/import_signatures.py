@@ -46,7 +46,7 @@ import cobbler.items.repo as item_repo
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage/import"
 
@@ -89,7 +89,7 @@ class ImportSignatureManager(object):
         """
         Constructor
 
-        :param collection_mgr: This is the collection manager which has every information in cobbler available.
+        :param collection_mgr: This is the collection manager which has every information in Cobbler available.
         :param logger: This is the logger to audit all actions with.
         """
         self.logger = logger

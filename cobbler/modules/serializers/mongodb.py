@@ -62,7 +62,7 @@ def __connect():
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     # FIXME: only run this if enabled.
     if not pymongo_loaded:

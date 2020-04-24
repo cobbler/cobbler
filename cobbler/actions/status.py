@@ -46,8 +46,8 @@ class CobblerStatusReport(object):
         Constructor
 
         :param collection_mgr: The collection manager which holds all information.
-        :param mode: This describes how Cobbler should report. Currently there can be explicitly only the option
-                     ``text`` set, everything else triggers the default.
+        :param mode: This describes how Cobbler should report. Currently there only the option ``text`` can be set
+                     explicitly.
         :param logger: The logger to audit all actions with.
         """
         self.collection_mgr = collection_mgr
@@ -97,7 +97,7 @@ class CobblerStatusReport(object):
 
     def catalog(self, profile_or_system, name, ip, start_or_stop, ts):
         """
-        Add a system to cobbler status.
+        Add a system to ``cobbler status``.
 
         :param profile_or_system: This can be ``system`` or ``profile``.
         :type profile_or_system: str
@@ -165,9 +165,9 @@ class CobblerStatusReport(object):
 
     def get_printable_results(self):
         """
-        Convert the status of cobbler from a machine readable form to human readable.
+        Convert the status of Cobbler from a machine readable form to human readable.
 
-        :return: A nice formatted representation of the results of cobbler status.
+        :return: A nice formatted representation of the results of ``cobbler status``.
         """
         format = "%-15s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data

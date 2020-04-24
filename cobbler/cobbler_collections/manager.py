@@ -49,7 +49,7 @@ class CollectionManager(object):
 
     def __load(self, api):
         """
-        Load all collections from the disk into cobbler.
+        Load all collections from the disk into Cobbler.
 
         :param api: The api to resolve information with.
         """

@@ -84,7 +84,7 @@ class YumGen(object):
             try:
                 infile_h = open(infile)
             except:
-                # File does not exist and the user needs to run reposync before we will use this, cobbler check will
+                # File does not exist and the user needs to run reposync before we will use this, Cobbler check will
                 # mention this problem
                 totalbuf += "\n# error: could not read repo source: %s\n\n" % infile
                 continue

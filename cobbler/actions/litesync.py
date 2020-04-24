@@ -1,5 +1,5 @@
 """
-Running small pieces of cobbler sync when certain actions are taken,
+Running small pieces of Cobbler sync when certain actions are taken,
 such that we don't need a time consuming sync when adding new
 systems if nothing has changed for systems that have already
 been created.
@@ -42,7 +42,7 @@ class CobblerLiteSync(object):
         Constructor
 
         :param collection_mgr: The collection manager which has all information.
-        :param verbose: Weather the action should be logged verbose.
+        :param verbose: Whether the action should be logged verbose.
         :type verbose: bool
         :param logger: The logger to audit all action with.
         """
@@ -112,7 +112,7 @@ class CobblerLiteSync(object):
 
     def remove_single_distro(self, name):
         """
-        Sync removing a singel distro.
+        Sync removing a single distro.
 
         :param name: The name of the distribution.
         """

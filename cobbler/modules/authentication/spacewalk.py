@@ -29,7 +29,7 @@ import xmlrpc.client
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "authn"
 

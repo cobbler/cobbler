@@ -1,6 +1,5 @@
 """
-Authorization module that allows everything, which is the default
-for new cobbler installs.
+Authorization module that allows everything, which is the default for new Cobbler installs.
 
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -24,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always "authz"
     :rtype: str

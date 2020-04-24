@@ -56,12 +56,12 @@ class AutoInstallationGen(object):
 
     def createAutoYaSTScript(self, document, script, name):
         """
-        This method attaches a script with a given name to an existing autoyast xml file.
+        This method attaches a script with a given name to an existing AutoYaST XML file.
 
-        :param document: The existing autoyast xml file.
+        :param document: The existing AutoYaST XML file.
         :param script: The script to attach.
         :param name: The name of the script.
-        :return: The autoyast file with the attached script.
+        :return: The AutoYaST file with the attached script.
         """
         newScript = document.createElement("script")
         newScriptSource = document.createElement("source")
@@ -78,9 +78,9 @@ class AutoInstallationGen(object):
 
     def addAutoYaSTScript(self, document, type, source):
         """
-        Add scripts to an existing autoyast xml.
+        Add scripts to an existing AutoYaST XML.
 
-        :param document: The existing autoyast xml object.
+        :param document: The existing AutoYaST XML object.
         :param type: The type of the script which should be added.
         :param source: The source of the script. This should be ideally a string.
         """
@@ -102,16 +102,16 @@ class AutoInstallationGen(object):
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None):
         """
-        Generate an autoyast script for a specific system or general profile. Only a system OR profile can be supplied,
+        Generate an AutoYaST script for a specific system or general profile. Only a system OR profile can be supplied,
         NOT both.
 
-        :param profile: The profile to generate the autoyast file for.
-        :param system: The system to generate the autoyast file for.
+        :param profile: The profile to generate the AutoYaST file for.
+        :param system: The system to generate the AutoYaST file for.
         :param raw_data: The raw data which should be included in the profile.
         :return: The generated script as a string.
         :rtype: str
         """
-        self.api.logger.info("autoyast XML file found. Checkpoint: profile=%s system=%s" % (profile, system))
+        self.api.logger.info("AutoYaST XML file found. Checkpoint: profile=%s system=%s" % (profile, system))
         runpost = "\ncurl \"http://%s/cblr/svc/op/trig/mode/post/%s/%s\" > /dev/null"
         runpre = "\ncurl \"http://%s/cblr/svc/op/trig/mode/pre/%s/%s\" > /dev/null"
 
@@ -174,7 +174,7 @@ class AutoInstallationGen(object):
 
     def generate_repo_stanza(self, obj, is_profile=True):
         """
-        Automatically attaches yum repos to profiles/systems in automatic installation files (kickstart files) that
+        Automatically attaches yum repos to profiles/systems in automatic installation files (template files) that
         contain the magic $yum_repo_stanza variable. This includes repo objects as well as the yum repos that are part
         of split tree installs, whose data is stored with the distro (example: RHEL5 imports)
 
@@ -240,7 +240,7 @@ class AutoInstallationGen(object):
     def generate_config_stanza(self, obj, is_profile=True):
         """
         Add in automatic to configure /etc/yum.repos.d on the remote system if the automatic installation file
-        (kickstart file) contains the magic $yum_config_stanza.
+        (template file) contains the magic $yum_config_stanza.
 
         :param obj: The profile or system to generate a generate a config stanza for.
         :param is_profile: If the object is a profile. If False it is assumed that the object is a system.

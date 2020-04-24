@@ -63,7 +63,7 @@ class CobblerAPI(object):
     """
     Python API module for Cobbler.
     See source for cobbler.py, or pydoc, for example usage.
-    Cli apps and daemons should import api.py, and no other cobbler code.
+    Cli apps and daemons should import api.py, and no other Cobbler code.
     """
     __shared_state = {}
     __has_loaded = False
@@ -144,8 +144,8 @@ class CobblerAPI(object):
 
     def is_selinux_enabled(self):
         """
-        Returns whether selinux is enabled on the cobbler server.
-        We check this just once at cobbler API init time, because a restart is required to change this; this does
+        Returns whether selinux is enabled on the Cobbler server.
+        We check this just once at Cobbler API init time, because a restart is required to change this; this does
         /not/ check enforce/permissive, nor does it need to.
         :rtype: bool
         """
@@ -169,7 +169,7 @@ class CobblerAPI(object):
 
     def last_modified_time(self):
         """
-        Returns the time of the last modification to cobbler, made by any API instance, regardless of the serializer
+        Returns the time of the last modification to Cobbler, made by any API instance, regardless of the serializer
         type.
 
         :returns: 0 if there is no file where the information required for this method is saved.
@@ -209,7 +209,7 @@ class CobblerAPI(object):
 
     def version(self, extended=False):
         """
-        What version is cobbler?
+        What version is Cobbler?
 
         If extended == False, returns a float for backwards compatibility
         If extended == True, returns a dict:
@@ -446,7 +446,7 @@ class CobblerAPI(object):
 
     def remove_distro(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a distribution from cobbler.
+        Remove a distribution from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -458,7 +458,7 @@ class CobblerAPI(object):
 
     def remove_profile(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a profile from cobbler.
+        Remove a profile from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -470,7 +470,7 @@ class CobblerAPI(object):
 
     def remove_system(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a system from cobbler.
+        Remove a system from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -482,7 +482,7 @@ class CobblerAPI(object):
 
     def remove_repo(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a repository from cobbler.
+        Remove a repository from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -494,7 +494,7 @@ class CobblerAPI(object):
 
     def remove_image(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a image from cobbler.
+        Remove a image from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -506,7 +506,7 @@ class CobblerAPI(object):
 
     def remove_mgmtclass(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a management class from cobbler.
+        Remove a management class from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -518,7 +518,7 @@ class CobblerAPI(object):
 
     def remove_package(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a package from cobbler.
+        Remove a package from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -530,7 +530,7 @@ class CobblerAPI(object):
 
     def remove_file(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
         """
-        Remove a file from cobbler.
+        Remove a file from Cobbler.
 
         :param ref: The internal unique handle for the item.
         :param recursive: If the item should recursively should delete dependencies on itself.
@@ -753,7 +753,7 @@ class CobblerAPI(object):
 
     def add_distro(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a distribution to cobbler.
+        Add a distribution to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -764,7 +764,7 @@ class CobblerAPI(object):
 
     def add_profile(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a profile to cobbler.
+        Add a profile to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -775,7 +775,7 @@ class CobblerAPI(object):
 
     def add_system(self, ref, check_for_duplicate_names=False, check_for_duplicate_netinfo=False, save=True, logger=None):
         """
-        Add a system to cobbler.
+        Add a system to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -788,7 +788,7 @@ class CobblerAPI(object):
 
     def add_repo(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a repository to cobbler.
+        Add a repository to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -799,7 +799,7 @@ class CobblerAPI(object):
 
     def add_image(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add an image to cobbler.
+        Add an image to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -810,7 +810,7 @@ class CobblerAPI(object):
 
     def add_mgmtclass(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a management class to cobbler.
+        Add a management class to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -821,7 +821,7 @@ class CobblerAPI(object):
 
     def add_package(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a package to cobbler.
+        Add a package to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -832,7 +832,7 @@ class CobblerAPI(object):
 
     def add_file(self, ref, check_for_duplicate_names=False, save=True, logger=None):
         """
-        Add a file to cobbler.
+        Add a file to Cobbler.
 
         :param ref: The identifier for the object to add to a collection.
         :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
@@ -966,7 +966,7 @@ class CobblerAPI(object):
 
     def __since(self, mtime, collector, collapse=False):
         """
-        Called by get_*_since functions. This is an internal part of cobbler.
+        Called by get_*_since functions. This is an internal part of Cobbler.
 
         :param mtime: The timestamp which marks the gate if an object is included or not.
         :param collector: The list of objects to filter after mtime.
@@ -1343,7 +1343,7 @@ class CobblerAPI(object):
 
     def get_sync(self, verbose=False, logger=None):
         """
-        Get a cobbler Sync object which may be executed through the call of ``obj.run()``.
+        Get a Cobbler Sync object which may be executed through the call of ``obj.run()``.
 
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         :param logger: The logger to audit the removal with.
@@ -1389,11 +1389,11 @@ class CobblerAPI(object):
 
     def status(self, mode, logger=None):
         """
-        Get the status of the current cobbler instance.
+        Get the status of the current Cobbler instance.
 
         :param mode: "text" or anything else. Meaning whether the output is thought for the terminal or not.
         :param logger: The logger to audit the removal with.
-        :return: The current status of cobbler.
+        :return: The current status of Cobbler.
         """
         statusifier = status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
         return statusifier.run()
@@ -1506,8 +1506,8 @@ class CobblerAPI(object):
 
     def acl_config(self, adduser=None, addgroup=None, removeuser=None, removegroup=None, logger=None):
         """
-        Configures users/groups to run the cobbler CLI as non-root.
-        Pass in only one option at a time.  Powers "cobbler aclconfig"
+        Configures users/groups to run the Cobbler CLI as non-root.
+        Pass in only one option at a time. Powers ``cobbler aclconfig``.
 
         :param adduser:
         :param addgroup:
@@ -1543,7 +1543,7 @@ class CobblerAPI(object):
 
     def get_module_by_name(self, module_name):
         """
-        Returns a loaded cobbler module named 'name', if one exists, else None.
+        Returns a loaded Cobbler module named 'name', if one exists, else None.
         Cobbler internal use only.
 
         :param module_name:
@@ -1661,9 +1661,9 @@ class CobblerAPI(object):
                   repo_patterns="", image_patterns="", mgmtclass_patterns=None, package_patterns=None,
                   file_patterns=None, prune=False, omit_data=False, sync_all=False, use_ssl=False, logger=None):
         """
-        Pull down data/configs from a remote cobbler server that is a master to this server.
+        Pull down data/configs from a remote Cobbler server that is a master to this server.
 
-        :param cobbler_master: The hostname/URL of the other cobbler server
+        :param cobbler_master: The hostname/URL of the other Cobbler server
         :type cobbler_master: str
         :param port: The port to use for the replication task.
         :type port: str
@@ -1677,7 +1677,7 @@ class CobblerAPI(object):
         :param file_patterns: The pattern of files which should be synced.
         :param prune: Whether the object not on the master should be removed or not.
         :type prune: bool
-        :param omit_data: If the data downloaded by the current cobbler server should be rsynced to the destination
+        :param omit_data: If the data downloaded by the current Cobbler server should be rsynced to the destination
                           server.
         :type omit_data: bool
         :param sync_all: This parameter behaves similarly to a dry run argument. If True then everything will executed,
@@ -1700,7 +1700,7 @@ class CobblerAPI(object):
 
     def report(self, report_what=None, report_name=None, report_type=None, report_fields=None, report_noheaders=None):
         """
-        Report functionality for cobbler.
+        Report functionality for Cobbler.
 
         :param report_what: The object type that should be reported.
         :param report_name: The name of the object which should be possibly reported.

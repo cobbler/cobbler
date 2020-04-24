@@ -1,5 +1,5 @@
 """
-cobbler daemon for logging remote syslog traffic during automatic installation
+Cobbler daemon for logging remote syslog traffic during automatic installation
 
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -33,7 +33,7 @@ from cobbler import utils
 
 def core(api):
     """
-    Starts cobbler.
+    Starts Cobbler.
 
     :param api: The cobbler_api instance which is used for this method.
     """
@@ -74,10 +74,10 @@ def regen_ss_file():
 
 def do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port):
     """
-    This trys to bring up the cobbler xmlrpc_api and restart it if it fails. Tailcall to ``do_xmlrpc_rw``.
+    This trys to bring up the Cobbler xmlrpc_api and restart it if it fails. Tailcall to ``do_xmlrpc_rw``.
 
     :param cobbler_api: The cobbler_api instance which is used for this method.
-    :param settings: The cobbler settings instance which is used for this method.
+    :param settings: The Cobbler settings instance which is used for this method.
     :param xmlrpc_port: The port where xmlrpc should run on.
     """
     do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
@@ -100,10 +100,10 @@ def log(logger, msg):
 
 def do_xmlrpc_rw(cobbler_api, settings, port):
     """
-    This trys to bring up the cobbler xmlrpc_api and restart it if it fails.
+    This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
 
     :param cobbler_api: The cobbler_api instance which is used for this method.
-    :param settings: The cobbler settings instance which is used for this method.
+    :param settings: The Cobbler settings instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.
     """
     xinterface = remote.ProxiedXMLRPCInterface(cobbler_api, remote.CobblerXMLRPCInterface)

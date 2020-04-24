@@ -35,7 +35,7 @@ from cobbler.utils import _
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -261,7 +261,7 @@ def get_manager(collection_mgr, logger):
     """
     Creates a manager object to manage an isc dhcp server.
 
-    :param collection_mgr: The collection manager which holds all information in the current cobbler instance.
+    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
     :param logger: The logger to audit all actions with.
     :return: The object to manage the server with.
     """

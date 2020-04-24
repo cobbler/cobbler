@@ -15,7 +15,7 @@ settings_file = "/etc/genders"
 
 def register():
     """
-    We should run anytime something inside of cobbler changes.
+    We should run anytime something inside of Cobbler changes.
 
     :return: Always ``/var/lib/cobbler/triggers/change/*``
     """
@@ -53,7 +53,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
 
 def run(api, args, logger):
     """
-    Mandatory cobbler trigger hook.
+    Mandatory Cobbler trigger hook.
 
     :param api: The api to resolve information with.
     :param args: For this implementation unused.

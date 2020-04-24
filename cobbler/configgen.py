@@ -87,7 +87,7 @@ class ConfigGen(object):
 
     def get_cobbler_resource(self, resource):
         """
-        Wrapper around cobbler blender method
+        Wrapper around Cobbler blender method
 
         :param resource: Not known what this actually is doing.
         :return: Not known what this actually is doing.

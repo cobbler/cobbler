@@ -4,9 +4,7 @@
 #
 # License: GPLv2+
 
-# Post install trigger for cobbler to
-# send out a pretty email report that
-# contains target information.
+# Post install trigger for Cobbler to send out a pretty email report that contains target information.
 
 from builtins import str
 import smtplib
@@ -17,7 +15,7 @@ import cobbler.utils as utils
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always ``/var/lib/cobbler/triggers/install/post/*``.
     """
@@ -28,7 +26,7 @@ def register():
 
 def run(api, args, logger):
     """
-    This is the mandatory cobbler module run trigger hook.
+    This is the mandatory Cobbler module run trigger hook.
 
     :param api: The api to resolve information with.
     :param args: This is an array with three elements.

@@ -3,8 +3,7 @@
 #
 # License: GPLv2+
 
-# Post install trigger for cobbler to
-# power cycle the guest if needed
+# Post install trigger for Cobbler to power cycle the guest if needed
 
 from threading import Thread
 import time
@@ -23,7 +22,7 @@ class reboot(Thread):
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type

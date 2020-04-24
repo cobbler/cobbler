@@ -1,5 +1,5 @@
 """
-Module loader, adapted for cobbler usage
+Module loader, adapted for Cobbler usage
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Adrian Likins <alikins@redhat.com>
@@ -43,7 +43,7 @@ MODULES_BY_CATEGORY = {}
 
 def load_modules(module_path=mod_path, blacklist=None):
     """
-    Load the modules from the path handed to the function into cobbler.
+    Load the modules from the path handed to the function into Cobbler.
 
     :param module_path: The path which should be considered as the root module path.
     :param blacklist: Currently an unused parameter.
@@ -83,7 +83,7 @@ def load_modules(module_path=mod_path, blacklist=None):
 
 def __import_module(module_path, modname, logger):
     """
-    Import a module which is not part of the core functionality of cobbler.
+    Import a module which is not part of the core functionality of Cobbler.
 
     :param module_path: The path to the module.
     :param modname: The name of the module.

@@ -26,7 +26,7 @@ CONFIG_FILE = '/etc/cobbler/users.conf'
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always "authz".
     :rtype: str

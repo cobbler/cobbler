@@ -1,5 +1,5 @@
 """
-Configures acls for various users/groups so they can access the cobbler command
+Configures acls for various users/groups so they can access the Cobbler command
 line as non-root.  Now that CLI is largely remoted (XMLRPC) this is largely just
 useful for not having to log in (access to shared-secret) file but also grants
 access to hand-edit various cobbler_collections files and other useful things.
@@ -50,10 +50,10 @@ class AclConfig(object):
         """
         Automate setfacl commands. Only one of the four may be specified but one option also must be specified.
 
-        :param adduser: Add a user to be able to manage cobbler.
-        :param addgroup: Add a group to be able to manage cobbler.
-        :param removeuser: Remove a user to be able to manage cobbler.
-        :param removegroup: Remove a group to be able to manage cobbler.
+        :param adduser: Add a user to be able to manage Cobbler.
+        :param addgroup: Add a group to be able to manage Cobbler.
+        :param removeuser: Remove a user to be able to manage Cobbler.
+        :param removegroup: Remove a group to be able to manage Cobbler.
         """
 
         ok = False
@@ -74,7 +74,7 @@ class AclConfig(object):
 
     def modacl(self, isadd, isuser, who):
         """
-        Modify the acls for cobbler on the filesystem.
+        Modify the acls for Cobbler on the filesystem.
 
         :param isadd: If true then the ``who`` will be added. If false then ``who`` will be removed.
         :type isadd: bool

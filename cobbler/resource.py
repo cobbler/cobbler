@@ -71,7 +71,7 @@ class Resource(item.Item):
 
     def set_template(self, template):
         """
-        Path to cheetah template on cobbler's local file system. Used to generate file data shipped to koan via json.
+        Path to cheetah template on Cobbler's local file system. Used to generate file data shipped to koan via json.
         All templates have access to flatten autoinstall_meta data.
 
         :param template: The template to use for the resource.

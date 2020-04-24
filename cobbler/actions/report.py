@@ -1,5 +1,5 @@
 """
-Report from a cobbler master.
+Report from a Cobbler master.
 FIXME: reinstante functionality for 2.0
 
 Copyright 2007-2009, Red Hat, Inc and Others
@@ -30,7 +30,7 @@ class Report(object):
         """
         Constructor
 
-        :param collection_mgr: The collection manager to hold all information in cobbler available.
+        :param collection_mgr: The collection manager to hold all information in Cobbler available.
         :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
@@ -263,7 +263,7 @@ class Report(object):
 
     def reporting_sorter(self, a, b):
         """
-        Used for sorting cobbler objects for report commands
+        Used for sorting Cobbler objects for report commands
 
         :param a: The first object to compare.
         :param b: The second object to compare.
@@ -300,7 +300,7 @@ class Report(object):
         :param collection: The collection to report.
         :param report_name: The name of the report.
         :param report_type: The type of report to give.
-        :param report_noheaders: Report without the headers. (May be usefull for machine parsing)
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         :return:
         """
         # per-item hack
@@ -352,7 +352,7 @@ class Report(object):
         :param report_name: The name of the report.
         :param report_type: The type of report to give.
         :param report_fields: The fields which should be included in the report.
-        :param report_noheaders: Report without the headers. (May be usefull for machine parsing)
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         """
         # per-item hack
         if report_name:
@@ -391,7 +391,7 @@ class Report(object):
         :param report_name: The name of the report.
         :param report_type: The type of report to give.
         :param report_fields: The fields which should be included in the report.
-        :param report_noheaders: Report without the headers. (May be usefull for machine parsing)
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         """
         if report_type == 'text' and report_fields == 'all':
             for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package", "file"]:

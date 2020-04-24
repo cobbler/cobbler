@@ -29,7 +29,7 @@ from cobbler.module_loader import get_module_name
 
 def hashfun(text):
     """
-    Converts a str object to a hash which was configured in modules.conf of the cobbler settings.
+    Converts a str object to a hash which was configured in modules.conf of the Cobbler settings.
 
     :param text: The text to hash.
     :type text: str
@@ -61,7 +61,7 @@ def hashfun(text):
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "authn"
 

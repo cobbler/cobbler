@@ -42,7 +42,7 @@ def run(api, args, logger):
     """
     Runs the trigger, meaning in this case track any changed which happen to a config or data file.
 
-    :param api: The api instance of the cobbler server. Used to look up if scm_track_enabled is true.
+    :param api: The api instance of the Cobbler server. Used to look up if scm_track_enabled is true.
     :param args: The parameter is currently unused for this trigger.
     :param logger: The logger to audit the action with.
     :return: 0 on success, otherwise an exception is risen.

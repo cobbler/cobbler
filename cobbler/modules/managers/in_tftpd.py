@@ -32,7 +32,7 @@ from cobbler.cexceptions import CX
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -82,7 +82,7 @@ class InTftpdManager(object):
         target = utils.blender(self.collection_mgr.api, False, distro)
 
         # Create metadata for the templar function.
-        # Right now, just using local_img_path, but adding more cobbler variables here would probably be good.
+        # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.
         metadata = {}
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
         # Create the templar instance.  Used to template the target directory
@@ -189,7 +189,7 @@ def get_manager(collection_mgr, logger):
     """
     Creates a manager object to manage an in_tftp server.
 
-    :param collection_mgr: The collection manager which holds all information in the current cobbler instance.
+    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
     :param logger: The logger to audit all actions with.
     :return: The object to manage the server with.
     """

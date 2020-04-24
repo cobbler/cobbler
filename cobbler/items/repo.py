@@ -87,7 +87,7 @@ class Repo(item.Item):
 
     def get_fields(self):
         """
-        Return all fields which this class has with it's current values.
+        Return all fields which this class has with its current values.
 
         :return: This is a list with lists.
         """
@@ -130,7 +130,7 @@ class Repo(item.Item):
         A repo is (initially, as in right now) is something that can be rsynced.
         reposync/repotrack integration over HTTP might come later.
 
-        :param mirror: The mirroruri.
+        :param mirror: The mirror URI.
         """
         self.mirror = mirror
         if not self.arch:

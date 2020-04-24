@@ -1,5 +1,5 @@
 """
-Replicate from a cobbler master.
+Replicate from a Cobbler master.
 
 Copyright 2007-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -41,7 +41,7 @@ class Replicate(object):
         """
         Constructor
 
-        :param collection_mgr: The collection manager which holds all information available in cobbler.
+        :param collection_mgr: The collection manager which holds all information available in Cobbler.
         :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
@@ -55,7 +55,7 @@ class Replicate(object):
 
     def rsync_it(self, from_path, to_path, type=None):
         """
-        Rsync from a source to a destination with the rsync options cobbler was configured with.
+        Rsync from a source to a destination with the rsync options Cobbler was configured with.
 
         :param from_path: The source to rsync from.
         :param to_path: The destination to rsync to.
@@ -376,7 +376,7 @@ class Replicate(object):
         elif len(self.settings.cobbler_master) > 0:
             self.master = self.settings.cobbler_master
         else:
-            utils.die(self.logger, 'No cobbler master specified, try --master.')
+            utils.die(self.logger, 'No Cobbler master specified, try --master.')
 
         self.uri = '%s://%s:%s/cobbler_api' % (protocol, self.master, self.port)
 

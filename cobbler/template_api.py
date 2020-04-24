@@ -87,13 +87,13 @@ class Template(cheetah_template.Template):
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
     # is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
     # and returns the resulting class. This argument, of course, points to this class. Now any methods entered here (or
-    # in the base class above) will be accessible to all cheetah templates compiled by cobbler.
+    # in the base class above) will be accessible to all cheetah templates compiled by Cobbler.
 
     @classmethod
     def compile(cls, *args, **kwargs):
         """
-        Compile a cheetah template with cobbler modifications. Modifications include SNIPPET:: syntax replacement and
-        inclusion of cobbler builtin methods.
+        Compile a cheetah template with Cobbler modifications. Modifications include SNIPPET:: syntax replacement and
+        inclusion of Cobbler builtin methods.
 
         :param args: These just get passed right to Cheetah.
         :param kwargs: We just execute our own preprocessors and remove them and let afterwards handle Cheetah the rest.

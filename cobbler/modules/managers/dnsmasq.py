@@ -34,7 +34,7 @@ from cobbler.cexceptions import CX
 
 def register():
     """
-    The mandatory cobbler modules registration hook.
+    The mandatory Cobbler modules registration hook.
 
     :return: Always "manage".
     """
@@ -242,7 +242,7 @@ class DnsmasqManager(object):
 
 def get_manager(collection_mgr, logger):
     """
-    Creates a manager object to manage an dnsmasq server.
+    Creates a manager object to manage a dnsmasq server.
 
     :param collection_mgr: The collection manager to resolve all information with.
     :param logger: The logger to audit all actions with.

@@ -34,7 +34,7 @@ from cobbler.cexceptions import CX
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "serializer"
 

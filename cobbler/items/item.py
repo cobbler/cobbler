@@ -61,7 +61,7 @@ from cobbler.utils import _
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #
-#   ctime, mtime -- times the object was modified, used internally by cobbler for API purposes
+#   ctime, mtime -- times the object was modified, used internally by Cobbler for API purposes
 #   uid -- also used for some external API purposes
 #   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it
 #                   for RHEL split repos, this is a list of each of them in the install tree, used to generate
@@ -133,7 +133,7 @@ class Item(object):
         and pass in a value of an object of the same type.  Currently this is only supported
         for profiles.  Subobjects blend their data with their parent objects and only require
         a valid parent name and a name for themselves, so other required options can be
-        gathered from items further up the cobbler tree.
+        gathered from items further up the Cobbler tree.
 
                            distro
                                profile
@@ -564,7 +564,7 @@ class Item(object):
         """
         Setter for the creation time of the object.
 
-        :param ctime: The new creation time. Especially usefull for replication cobbler.
+        :param ctime: The new creation time. Especially usefull for replication Cobbler.
         """
         self.ctime = ctime
 

@@ -1,5 +1,5 @@
 """
-Hard links cobbler content together to save space.
+Hard links Cobbler content together to save space.
 
 Copyright 2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -60,7 +60,7 @@ class HardLinker(object):
 
     def run(self):
         """
-        Simply hardlinks directories that are cobbler managed.
+        Simply hardlinks directories that are Cobbler managed.
         This is a /very/ simple command but may grow more complex
         and intelligent over time.
         """

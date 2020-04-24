@@ -1,5 +1,5 @@
 """
-Serializer code for cobbler
+Serializer code for Cobbler
 Now adapted to support different storage backends
 
 Copyright 2006-2009, Red Hat, Inc and Others
@@ -88,7 +88,7 @@ def serialize_item(collection, item):
     """
     Save a collection item to disk
 
-    :param collection: The cobbler collection to know the type of the item.
+    :param collection: The Cobbler collection to know the type of the item.
     :param item: The collection item to serialize.
     """
 
@@ -102,7 +102,7 @@ def serialize_delete(collection, item):
     """
     Delete a collection item from disk
 
-    :param collection: The cobbler collection to know the type of the item.
+    :param collection: The Cobbler collection to know the type of the item.
     :param item: The collection item to delete.
     """
 
@@ -116,7 +116,7 @@ def deserialize(collection, topological=True):
     """
     Load a collection from disk.
 
-    :param collection: The cobbler collection to know the type of the item.
+    :param collection: The Cobbler collection to know the type of the item.
     :param topological: Unkown parameter.
     :type topological: bool
     """

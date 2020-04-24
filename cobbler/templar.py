@@ -130,7 +130,7 @@ class Templar(object):
         else:
             return "# ERROR: UNSUPPORTED TEMPLATE TYPE (%s)" % str(template_type)
 
-        # Now apply some magic post-filtering that is used by cobbler import and some other places. Forcing folks to
+        # Now apply some magic post-filtering that is used by "cobbler import" and some other places. Forcing folks to
         # double escape things would be very unwelcome.
         hp = search_table.get("http_port", "80")
         server = search_table.get("server", "server.example.org")

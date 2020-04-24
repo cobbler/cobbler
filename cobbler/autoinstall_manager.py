@@ -18,7 +18,7 @@ class AutoInstallationManager(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
-        Constructor for the autoinstall manager. If no logger is None then a default cobbler logger is created.
+        Constructor for the autoinstall manager. If no logger is None then a default Cobbler logger is created.
 
         :param collection_mgr: The collection manager which has all objects.
         :param logger: The logger object which logs to the desired target.
@@ -274,10 +274,10 @@ class AutoInstallationManager(object):
     def generate_autoinstall(self, profile=None, system=None):
         """
         Generates the autoinstallation for a system or a profile. You may only specifify one parameter. If you specify
-        both, the system is getting generated and the profile argument is ignored.
+        both, the system is generated and the profile argument is ignored.
 
-        :param profile: The cobbler profile you want an autoinstallation generated for.
-        :param system: The cobbler system you want an autoinstallation generated for.
+        :param profile: The Cobbler profile you want an autoinstallation generated for.
+        :param system: The Cobbler system you want an autoinstallation generated for.
         :return: The rendered template for the system or profile.
         :rtype: str
         """

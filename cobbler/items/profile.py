@@ -105,7 +105,7 @@ class Profile(item.Item):
 
     def get_fields(self):
         """
-        Return all fields which this class has with it's current values.
+        Return all fields which this class has with its current values.
 
         :return: This is a list with lists.
         """

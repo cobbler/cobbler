@@ -3,7 +3,7 @@
 # Adrian Brzezinski <adrbxx@gmail.com>
 # License: GPLv2+
 #
-# Replace (or remove) records in DNS zone for systems created (or removed) by cobbler
+# Replace (or remove) records in DNS zone for systems created (or removed) by Cobbler
 #
 
 # DNS toolkit for Python
@@ -34,7 +34,7 @@ def nslog(msg):
 
 def register():
     """
-    This method is the obligatory cobbler registration hook.
+    This method is the obligatory Cobbler registration hook.
 
     :return: The trigger name or an empty string.
     :rtype: str

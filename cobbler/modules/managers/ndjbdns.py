@@ -33,7 +33,7 @@ import cobbler.templar as templar
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 

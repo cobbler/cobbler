@@ -1,5 +1,5 @@
 """
-Misc heavy lifting functions for cobbler
+Misc heavy lifting functions for Cobbler
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -92,7 +92,8 @@ main_logger = None  # the logger will be lazy loaded later
 
 def die(logger, msg):
     """
-    A
+    This method arifically let's Cobbler crash with an exception. Log the exception once in the per-task log or the main
+    log if this is not a background op.
 
     :param logger:
     :param msg:
@@ -128,7 +129,7 @@ def log_exc(logger):
 
 def get_exc(exc, full=True):
     """
-    A
+    This tries to analyze if an exception comes from Cobbler and potentially enriches or shortens the exception.
 
     :param exc:
     :param full:
@@ -260,7 +261,7 @@ def get_random_mac(api_handle, virt_type="xenpv"):
 
     The code of this method was taken from xend/server/netif.py
 
-    :param api_handle: The main cobbler api instance.
+    :param api_handle: The main Cobbler api instance.
     :param virt_type: The virtualization provider. Currently possible is 'vmware', 'xen', 'qemu', 'kvm'.
     :returns: MAC address string
     :rtype: str
@@ -476,7 +477,7 @@ def remote_file_exists(file_url):
     Return True if the remote file exists.
 
     :param file_url: The URL to check.
-    :return: True if cobbler can reach the specified URL, otherwise false.
+    :return: True if Cobbler can reach the specified URL, otherwise false.
     :rtype: bool
     """
     try:
@@ -528,8 +529,8 @@ def input_string_or_list(options):
 
 def input_string_or_dict(options, allow_multiples=True):
     """
-    Older cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of cobbler
-    allow dictionaries. This function is used to allow loading of older value formats so new users of cobbler aren't
+    Older Cobbler files stored configurations in a flat way, such that all values for strings. Newer versions of Cobbler
+    allow dictionaries. This function is used to allow loading of older value formats so new users of Cobbler aren't
     broken in an upgrade.
 
     :param options: The str or dict to convert.
@@ -597,7 +598,7 @@ def input_boolean(value):
 
 def update_settings_file(data):
     """
-    Write data handed to this function into the settings file of cobbler. This function overwrites the existing content.
+    Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
 
     :param data: The data to put into the settings file.
     :return: True if the action succeded. Otherwise return nothing.
@@ -801,7 +802,7 @@ def __consolidate(node, results):
                 # interweave dict results
                 results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
-                # add to lists (cobbler doesn't have many lists)
+                # add to lists (Cobbler doesn't have many lists)
                 # FIXME: should probably uniqueify list after doing this
                 results[field].extend(data_item)
                 results[field] = uniquify(results[field])
@@ -943,12 +944,12 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
-    As of Cobbler 1.5.X, this also runs cobbler modules that match the globbing paths.
+    As of Cobbler 1.5.X, this also runs Cobbler modules that match the globbing paths.
 
     Python triggers are always run before shell triggers.
 
     :param api: The api object to use for resolving the actions.
-    :param ref: Can be a cobbler object, if not None, the name will be passed to the script. If ref is None, the script
+    :param ref: Can be a Cobbler object, if not None, the name will be passed to the script. If ref is None, the script
                 will be called with no argumenets.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
@@ -970,7 +971,7 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
             logger.debug("running python trigger %s" % m.__name__)
         rc = m.run(api, arglist, logger)
         if rc != 0:
-            raise CX("cobbler trigger failed: %s" % m.__name__)
+            raise CX("Cobbler trigger failed: %s" % m.__name__)
 
     # Now do the old shell triggers, which are usually going to be slower, but are easier to write and support any
     # language.
@@ -1000,7 +1001,7 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
             continue
 
         if rc != 0:
-            raise CX(_("cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
+            raise CX(_("Cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
 
         if logger is not None:
             logger.debug("shell trigger %s finished successfully" % file)
@@ -1088,7 +1089,7 @@ def is_safe_to_hardlink(src, dst, api):
     if dev1.find(":") != -1:
         # is remoted
         return False
-    # note: this is very cobbler implementation specific!
+    # note: this is very Cobbler implementation specific!
     if not api.is_selinux_enabled():
         return True
     if _re_initrd.match(os.path.basename(path1)):
@@ -1691,7 +1692,7 @@ def set_virt_path(self, path, for_system=False):
 def set_virt_cpus(self, num):
     """
     For Virt only. Set the number of virtual CPUs to give to the virtual machine. This is fed to virtinst RAW, so
-    cobbler will not yelp if you try to feed it 9999 CPUs. No formatting like 9,999 please :)
+    Cobbler will not yelp if you try to feed it 9999 CPUs. No formatting like 9,999 please :)
 
     :param self: The object to adjust the virtual cpu cores.
     :param num: The number of cpu cores.
@@ -1865,7 +1866,7 @@ def set_serial_baud_rate(self, baud_rate):
 
 def __cache_mtab__(mtab="/etc/mtab"):
     """
-    Open the mtab and cache it inside cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
+    Open the mtab and cache it inside Cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
 
     :param mtab: The location of the mtab. Arguemnt can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
@@ -2054,7 +2055,7 @@ def clear_from_fields(item, fields, is_subobject=False):
 
     :param item: The item to clear the fields of.
     :param fields: Not known what magic this actually does.
-    :param is_subobject: If in the cobbler inheritance tree the item is considered a subobject (True) or not (False).
+    :param is_subobject: If in the Cobbler inheritance tree the item is considered a subobject (True) or not (False).
     :type is_subobject: bool
     """
     for elems in fields:
@@ -2241,7 +2242,7 @@ def get_valid_os_versions_for_breed(breed):
     Return a list of valid os-versions for the given breed
 
     :param breed: The operating system breed to check for.
-    :return: All operating system version which are known to cobbler according to the signature cache filtered by a
+    :return: All operating system version which are known to Cobbler according to the signature cache filtered by a
              os-breed.
     :rtype: list
     """
@@ -2255,7 +2256,7 @@ def get_valid_os_versions():
     """
     Return a list of valid os-versions found in the import signatures
 
-    :return: All operating system versions which are known to cobbler according to the signature cache.
+    :return: All operating system versions which are known to Cobbler according to the signature cache.
     :rtype: list
     """
     os_versions = []
@@ -2271,7 +2272,7 @@ def get_valid_archs():
     """
     Return a list of valid architectures found in the import signatures
 
-    :return: All architectures which are known to cobbler according to the signature cache.
+    :return: All architectures which are known to Cobbler according to the signature cache.
     """
     archs = []
     try:
@@ -2287,9 +2288,9 @@ def get_shared_secret():
     """
     The 'web.ss' file is regenerated each time cobblerd restarts and is used to agree on shared secret interchange
     between the web server and cobblerd, and also the CLI and cobblerd, when username/password access is not required.
-    For the CLI, this enables root users to avoid entering username/pass if on the cobbler server.
+    For the CLI, this enables root users to avoid entering username/pass if on the Cobbler server.
 
-    :return: The Cobbler secret which enables full access to cobbler.
+    :return: The Cobbler secret which enables full access to Cobbler.
     :rtype: str
     """
 
@@ -2303,7 +2304,7 @@ def get_shared_secret():
 
 def local_get_cobbler_api_url():
     """
-    Get the URL of the Cobbler HTTP API from the cobbler settings file.
+    Get the URL of the Cobbler HTTP API from the Cobbler settings file.
 
     :return: The api entry point. This does not respect modifications from Loadbalancers or API-Gateways.
     :rtype: str
@@ -2331,7 +2332,7 @@ def local_get_cobbler_api_url():
 
 def local_get_cobbler_xmlrpc_url():
     """
-    Get the URL of the Cobbler XMLRPC API from the cobbler settings file.
+    Get the URL of the Cobbler XMLRPC API from the Cobbler settings file.
 
     :return: The api entry point.
     :rtype: str
@@ -2501,7 +2502,7 @@ def namedconf_location(api):
 
 def zonefile_base(api):
     """
-    This determins the base directory for the zone files which are important for the named service which cobbler tries
+    This determins the base directory for the zone files which are important for the named service which Cobbler tries
     to configure.
 
     :param api: This parameter is currently unused.
@@ -2558,10 +2559,10 @@ def named_service_name(api, logger=None):
 
 def link_distro(settings, distro):
     """
-    Link a cobbler distro from its source into the web directory to make it reachable from the outside.
+    Link a Cobbler distro from its source into the web directory to make it reachable from the outside.
 
     :param settings: The settings to resolve user configurable actions with.
-    :param distro: The distro to link into the cobbler web directory.
+    :param distro: The distro to link into the Cobbler web directory.
     """
     # find the tree location
     base = find_distro_path(settings, distro)
@@ -2619,7 +2620,7 @@ def kopts_overwrite(system, distro, kopts, settings):
     :param system: The system to overwrite the kopts for.
     :param distro: The distro for the system to change to kopts for.
     :param kopts: The kopts of the system.
-    :param settings: The settings instance of cobbler.
+    :param settings: The settings instance of Cobbler.
     """
     if distro and distro.breed == "suse":
         if 'textmode' in list(kopts.keys()):

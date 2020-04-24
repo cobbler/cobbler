@@ -37,7 +37,7 @@ from cobbler.utils import _
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -402,7 +402,7 @@ zone "%(arpa)s." {
         """
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
-        :param ips: A list of all IP (v6 and v4 mixed possible) which shall be sorted.
+        :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
         :type ips: list
         :return: The list with sorted IP addresses.
         """
@@ -630,7 +630,7 @@ zone "%(arpa)s." {
 
 def get_manager(collection_mgr, logger):
     """
-    This returns the object to manage a bind server located locally on the cobbler server.
+    This returns the object to manage a BIND server located locally on the Cobbler server.
 
     :param collection_mgr: The collection manager to resolve all information with.
     :param logger: The logger to audit all actions with.

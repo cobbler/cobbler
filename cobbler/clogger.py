@@ -26,8 +26,8 @@ import logging.config
 import os
 
 # Temporary hack, a clean solution seems to be tricky.
-# Defining a variable in our Apache startup code seem not to it is still set later when this code is executed via
-# cobbler.
+# Defining a variable in our Apache startup code seem not to work, it is still set later when this code is executed via
+# Cobbler.
 
 # This is necessary to prevent apache to try to access the file
 LOG_FILE = "/var/log/cobbler/cobbler.log"
@@ -60,7 +60,7 @@ class Logger(object):
 
     def critical(self, msg):
         """
-        A critical message which is related to a porblem which will halt cobbler.
+        A critical message which is related to a porblem which will halt Cobbler.
 
         :param msg: The message to be logged.
         :type msg: str
@@ -69,7 +69,7 @@ class Logger(object):
 
     def error(self, msg):
         """
-        An error message which means that cobbler will not halt but the future actions may not be executed correctly.
+        An error message which means that Cobbler will not halt but the future actions may not be executed correctly.
 
         :param msg: The message to be logged.
         :type msg: str
@@ -97,7 +97,7 @@ class Logger(object):
     def debug(self, msg):
         """
         A message which is useful for finding errors or performance problems. Should not be visible in the production
-        usage of cobbler.
+        usage of Cobbler.
 
         :param msg: The message to be logged.
         :type msg: str

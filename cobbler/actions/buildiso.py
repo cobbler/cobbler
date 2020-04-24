@@ -481,7 +481,7 @@ class BuildIso(object):
 
         :param imagesdir: Unused Parameter.
         :param isolinuxdir: The parent directory where the file isolinux.cfg is located at.
-        :param distname: The name of the cobbler distribution.
+        :param distname: The name of the Cobbler distribution.
         :param filesource: Not know what this does exactly.
         :param airgapped: Whether the repositories have to be locally available or the internet is reachable.
         :type airgapped: bool

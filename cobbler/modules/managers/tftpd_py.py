@@ -26,7 +26,7 @@ import cobbler.templar as templar
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -40,7 +40,7 @@ class TftpdPyManager(object):
         """
         Constructor
 
-        :param collection_mgr: The instance who holds all the information from cobbler.
+        :param collection_mgr: The instance who holds all the information from Cobbler.
         :param logger: The logger to audit all actions with.
         """
         self.logger = logger
@@ -109,7 +109,7 @@ def get_manager(collection_mgr, logger):
     """
     Get the manager object for the tftp server.
 
-    :param collection_mgr: The instance who holds all information about cobbler.
+    :param collection_mgr: The instance who holds all information about Cobbler.
     :param logger: The logger to audit the actions.
     :return: The tftp manager instance.
     """

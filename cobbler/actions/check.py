@@ -235,11 +235,11 @@ class CobblerCheck(object):
 
         enabled = self.collection_mgr.api.is_selinux_enabled()
         if enabled:
-            status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
+            status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
 
     def check_for_default_password(self, status):
         """
-        Check if the default password of cobbler was changed.
+        Check if the default password of Cobbler was changed.
 
         :param status: The status list with possible problems.
         """
@@ -266,7 +266,7 @@ class CobblerCheck(object):
             if r not in repos and r != "<<inherit>>":
                 not_found.append(r)
         if len(not_found) > 0:
-            status.append(_("One or more repos referenced by profile objects is no longer defined in cobbler: %s") % ", ".join(not_found))
+            status.append(_("One or more repos referenced by profile objects is no longer defined in Cobbler: %s") % ", ".join(not_found))
 
     def check_for_unsynced_repos(self, status):
         """
@@ -404,9 +404,9 @@ class CobblerCheck(object):
 
     def check_dhcpd_conf(self, status):
         """
-        NOTE: this code only applies if cobbler is *NOT* set to generate a ``dhcp.conf`` file.
+        NOTE: this code only applies if Cobbler is *NOT* set to generate a ``dhcp.conf`` file.
 
-        Check that dhcpd *appears* to be configured for pxe booting. We can't assure file correctness. Since a cobbler
+        Check that dhcpd *appears* to be configured for pxe booting. We can't assure file correctness. Since a Cobbler
         user might have dhcp on another server, it's okay if it's not there and/or not configured correctly according
         to automated scans.
 

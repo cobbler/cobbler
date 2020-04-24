@@ -61,7 +61,7 @@ FIELDS = [
 
 class Distro(item.Item):
     """
-    A cobbler distribution object
+    A Cobbler distribution object
     """
 
     TYPE_NAME = _("distro")
@@ -236,8 +236,8 @@ class Distro(item.Item):
 
     def set_source_repos(self, repos):
         """
-        A list of http:// URLs on the cobbler server that point to yum configuration files that can be used to
-        install core packages. Use by cobbler import only.
+        A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
+        install core packages. Use by ``cobbler import`` only.
 
         :param repos: The list of URLs.
         """

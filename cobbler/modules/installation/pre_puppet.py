@@ -1,6 +1,6 @@
 """
 This module removes puppet certs from the puppet master prior to
-reinstalling a machine if the puppet master is running on the cobbler
+reinstalling a machine if the puppet master is running on the Cobbler
 server.
 
 Based on:

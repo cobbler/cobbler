@@ -25,7 +25,7 @@ from builtins import Exception
 
 class CobblerException(Exception):
     """
-    This is the default cobbler exception where all other exceptions are inheriting from.
+    This is the default Cobbler exception where all other exceptions are inheriting from.
     """
 
     def __init__(self, value, *args):
@@ -49,7 +49,7 @@ class CobblerException(Exception):
 
 class CX(CobblerException):
     """
-    This is a general exception which get's thrown often inside cobbler.
+    This is a general exception which get's thrown often inside Cobbler.
     """
     pass
 

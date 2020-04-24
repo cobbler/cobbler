@@ -1,7 +1,7 @@
 """
 Authorization module that allow users listed in
 /etc/cobbler/users.conf to be permitted to access resources, with
-the further restriction that cobbler objects can be edited to only
+the further restriction that Cobbler objects can be edited to only
 allow certain users/groups to access those specific objects.
 
 Copyright 2008-2009, Red Hat, Inc and Others
@@ -37,7 +37,7 @@ from cobbler.utils import _
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
 
     :return: Always "authz"
     :rtype: str
@@ -47,7 +47,7 @@ def register():
 
 def __parse_config():
     """
-    Parse the "users.conf" of cobbler and return all data in a dictionary.
+    Parse the "users.conf" of Cobbler and return all data in a dictionary.
 
     :return: The data seperated by sections. Each section has a subdictionary with the key-value pairs.
     :rtype: dict
