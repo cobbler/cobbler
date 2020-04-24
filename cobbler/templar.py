@@ -29,7 +29,6 @@ import functools
 import os
 import os.path
 import pprint
-import string
 
 jinja2_available = False
 try:
