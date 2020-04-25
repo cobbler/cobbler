@@ -70,7 +70,13 @@ Packages
 ========
 
 We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
+However we provide docker files for
 
+- CentOS 7
+- CentOS 8
+- Debian 10 Buster
+
+which will give you packages which will work better then building from source yourself.
 
 Packages from source
 ====================
@@ -80,7 +86,7 @@ For some platforms it's also possible to build packages directly from the source
 RPM
 ###
 
-.. code-block:: none
+.. code-block:: bash
 
     $ make rpms
     ... (lots of output) ...
@@ -96,27 +102,24 @@ running.
 DEB
 ###
 
-To install cobbler from source on Debian Squeeze, the following steps need to be made:
+To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian Buster):
 
-.. code-block:: none
+.. code-block:: bash
 
-    $ apt-get install make
-    $ apt-get install git
-    $ apt-get install python-yaml
-    $ apt-get install python-cheetah
-    $ apt-get install python-netaddr
-    $ apt-get install python-simplejson
-    $ apt-get install libapache2-mod-wsgi
-    $ apt-get install python-django
-    $ apt-get install atftpd
+    $ apt-get -y install make git
+    $ apt-get -y install python3-yaml python3-cheetah python3-netaddr python3-simplejson
+    $ apt-get -y install python3-future python3-distro python3-setuptools python3-sphinx python3-coverage
+    $ apt-get -y install pyflakes3 python3-pycodestyle
+    $ apt-get -y install apache2 libapache2-mod-wsgi-py3
+    $ apt-get -y install atftpd
+    # In case you want cobbler-web
+    $ apt-get -y install python-django
 
     $ a2enmod proxy
     $ a2enmod proxy_http
     $ a2enmod rewrite
 
     $ ln -s /srv/tftp /var/lib/tftpboot
-
-    $ chown www-data /var/lib/cobbler/webui_sessions
 
 Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/``
 Init script:
@@ -129,7 +132,7 @@ Source
 
 The latest source code is available through git:
 
-.. code-block:: none
+.. code-block:: bash
 
     $ git clone https://github.com/cobbler/cobbler.git
     $ cd cobbler
@@ -140,7 +143,7 @@ development series, and always uses an odd number for the minor version (for exa
 When building from source, make sure you have the correct prerequisites. Once they are, you can install Cobbler with the
 following command:
 
-.. code-block:: none
+.. code-block:: bash
 
     $ make install
 
@@ -148,19 +151,23 @@ This command will rewrite all configuration files on your system if you have an 
 (whether it was installed via packages or from an older source tree). To preserve your existing configuration files,
 snippets and automatic installation files, run this command:
 
-.. code-block:: none
+.. code-block:: bash
 
     $ make devinstall
 
 To install the Cobbler web GUI, use this command:
 
-.. code-block:: none
+.. code-block:: bash
 
     $ make webtest
 
 This will do a full install, not just the web GUI. ``make webtest`` is a wrapper around ``make devinstall``, so your
-configuration files will also be saved when running this command.
+configuration files will also be saved when running this command. Be adviced that we don't copy the service file into
+the correct directory and that the path to the binary may be wrong depending on the location of the binary on your
+system. Do this manually and then you should be good to go. The same is valid for the Apache2 webserver config.
 
+Also note that this is not enough to run Cobbler-Web. Cobbler web needs the directories ``/usr/share/cobbler/web``
+with the file ``cobbler.wsgi`` in it. This is currently a manual step.
 
 .. _relocating-your-installation:
 
