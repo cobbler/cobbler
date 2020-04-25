@@ -189,11 +189,11 @@ debs: release
 	-vv -bb cobbler.spec
 
 eraseconfig:
-	-rm /var/lib/cobbler/collections/distros/*
-	-rm /var/lib/cobbler/collections/images/*
-	-rm /var/lib/cobbler/collections/profiles/*
-	-rm /var/lib/cobbler/collections/systems/*
-	-rm /var/lib/cobbler/collections/repos/*
-	-rm /var/lib/cobbler/collections/mgmtclasses/*
-	-rm /var/lib/cobbler/collections/files/*
-	-rm /var/lib/cobbler/collections/packages/*
+	-rm /var/lib/cobbler/cobbler_collections/distros/*
+	-rm /var/lib/cobbler/cobbler_collections/images/*
+	-rm /var/lib/cobbler/cobbler_collections/profiles/*
+	-rm /var/lib/cobbler/cobbler_collections/systems/*
+	-rm /var/lib/cobbler/cobbler_collections/repos/*
+	-rm /var/lib/cobbler/cobbler_collections/mgmtclasses/*
+	-rm /var/lib/cobbler/cobbler_collections/files/*
+	-rm /var/lib/cobbler/cobbler_collections/packages/*
