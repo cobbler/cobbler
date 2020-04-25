@@ -6,8 +6,9 @@ PYTHON=/usr/bin/python3
 # check for executables
 
 PYFLAKES = $(shell which pyflakes)
-
 PYCODESTYLE = $(shell which pycodestyle)
+HTTPD = $(shell which httpd)
+APACHE2 = $(shell which apache2)
 
 # Debian / Ubuntu have /bin/sh -> dash
 SHELL = /bin/bash
@@ -148,27 +149,15 @@ webtest: devinstall ## Runs the task devinstall and then runs the targets clean,
 	make devinstall
 	make restartservices
 
-# Check if we are on Red Hat, Suse or Debian based distribution
 restartservices: ## Restarts the Apache2 and Cobbler-Web via init.d, service or systemctl.
-	if [ -x /sbin/service ] ; then \
-		/sbin/service cobblerd restart; \
-		if [ -f /etc/init.d/httpd ] ; then \
-			/sbin/service httpd restart; \
-		elif [ -f /usr/lib/systemd/system/httpd.service ]; then \
-			/bin/systemctl restart httpd.service; \
-		else \
-			/sbin/service apache2 restart; \
-		fi; \
-	elif [ -x /bin/systemctl ]; then \
-		if [ -d /lib/systemd/system/apache2.service.d ]; then \
-			/bin/systemctl restart apache2.service; \
-		else \
-			/bin/systemctl restart httpd.service; \
-		fi \
-	else \
-		/usr/sbin/service cobblerd restart; \
-		/usr/sbin/service apache2 restart; \
-	fi
+	$(shell systemctl restart cobblerd)
+ifneq ($(strip $(HTTPD)),)
+	systemctl restart httpd
+else ifneq ($(strip $(APACHE2)),)
+	systemctl restart apache2
+else
+	$(error "No apache2 or httpd in $(PATH), consider installing one of the two (depending on the distro)!")
+endif
 
 rpms: release ## Runs the target release and then creates via rpmbuild the rpms in a directory called rpm-build.
 	mkdir -p rpm-build
