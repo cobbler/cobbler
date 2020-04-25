@@ -22,9 +22,9 @@ statepath=/tmp/cobbler_settings/$(prefix)
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-all: clean build
+all: clean build ## Executes the clean target and afterwards the build target.
 
-clean:
+clean: ## Cleans Python bytecode, build artifacts and the temp files.
 	@echo "cleaning: python bytecode"
 	@rm -f *.pyc
 	@rm -f cobbler/*.pyc
@@ -44,15 +44,15 @@ clean:
 	@rm -f *.tmp
 	@rm -f *.log
 
-cleandoc:
+cleandoc: ## Cleans the docs directory.
 	@echo "cleaning: documentation"
 	@cd docs; make clean > /dev/null 2>&1
 
-doc:
+doc: ## Creates the documentation with sphinx in html form.
 	@echo "creating: documentation"
 	@cd docs; make html > /dev/null 2>&1
 
-qa:
+qa: ## If pyflakes and/or pycodestyle is found then they are run.
 ifdef PYFLAKES
 	@echo "checking: pyflakes ${PYFLAKES}"
 	@${PYFLAKES} \
@@ -76,52 +76,52 @@ else
 	@echo "No pycodestyle found"
 endif
 
-authors:
+authors: ## Creates the AUTHORS file.
 	@echo "creating: AUTHORS"
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
-sdist: readme authors
+sdist: readme authors ## Creates the sdist for release preparation.
 	@echo "creating: sdist"
 	@${PYTHON} setup.py sdist > /dev/null
 
-release: clean qa readme authors sdist
+release: clean qa readme authors sdist ## Creates the full release.
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
 	@cp cobbler.spec release/
 
-test-centos7:
+test-centos7: ## Executes the testscript for testing cobbler in a docker container on CentOS7.
 	./tests/build-and-install-rpms.sh --with-tests el7 dockerfiles/CentOS7.dockerfile
 
-test-centos8:
+test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
 	./tests/build-and-install-rpms.sh --with-tests el8 dockerfiles/CentOS8.dockerfile
 
-test-fedora31:
+test-fedora31: ## Executes the testscript for testing cobbler in a docker container on Fedora 31.
 	./tests/build-and-install-rpms.sh --with-tests f31 dockerfiles/Fedora31.dockerfile
 
-test-debian10:
+test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
 	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
 
-build:
+build: ## Runs the Python Build.
 	${PYTHON} setup.py build -f
 
-# Debian/Ubuntu requires an additional parameter in setup.py
-install: build
+install: build ## Runs the build target and then installs via setup.py
+	# Debian/Ubuntu requires an additional parameter in setup.py
 	@${PYTHON} setup.py install --root $(DESTDIR) -f
 
-devinstall:
+devinstall: ## This deletes the /usr/share/cobbler directory and then runs the targets savestate, install and restorestate.
 	-rm -rf $(DESTDIR)/usr/share/cobbler
 	make savestate
 	make install
 	make restorestate
 
-savestate:
+savestate: ## This runs the setup.py task savestate.
 	@${PYTHON} setup.py -v savestate --root $(DESTDIR); \
 
 
-# Check if we are on Red Hat, Suse or Debian based distribution
-restorestate:
+restorestate: ## This restores a state which was previously saved via the target savestate. (Also run via setup.py)
+	# Check if we are on Red Hat, Suse or Debian based distribution
 	@${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
@@ -142,13 +142,13 @@ restorestate:
 	fi
 	rm -rf $(statepath)
 
-webtest: devinstall
+webtest: devinstall ## Runs the task devinstall and then runs the targets clean, devinstall and restartservices.
 	make clean
 	make devinstall
 	make restartservices
 
 # Check if we are on Red Hat, Suse or Debian based distribution
-restartservices:
+restartservices: ## Restarts the Apache2 and Cobbler-Web via init.d, service or systemctl.
 	if [ -x /sbin/service ] ; then \
 		/sbin/service cobblerd restart; \
 		if [ -f /etc/init.d/httpd ] ; then \
@@ -169,7 +169,7 @@ restartservices:
 		/usr/sbin/service apache2 restart; \
 	fi
 
-rpms: release
+rpms: release ## Runs the target release and then creates via rpmbuild the rpms in a directory called rpm-build.
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
@@ -182,7 +182,7 @@ rpms: release
 	-ba cobbler.spec
 
 # Only build a binary package
-debs: release
+debs: release ## Runs the target release and then creates via debbuild the debs in a directory called deb-build.
 	mkdir -p deb-build
 	mkdir -p deb-build/{BUILD,BUILDROOT,DEBS,SDEBS,SOURCES}
 	cp dist/*.gz deb-build/
@@ -192,7 +192,7 @@ debs: release
 	--define "_sourcedir  %{_topdir}" \
 	-vv -bb cobbler.spec
 
-eraseconfig:
+eraseconfig: ## Deletes the cobbler data jsons which are created when using the file provider.
 	-rm /var/lib/cobbler/cobbler_collections/distros/*
 	-rm /var/lib/cobbler/cobbler_collections/images/*
 	-rm /var/lib/cobbler/cobbler_collections/profiles/*
