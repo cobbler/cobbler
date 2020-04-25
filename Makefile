@@ -5,9 +5,9 @@ PYTHON=/usr/bin/python3
 
 # check for executables
 
-PYFLAKES = $(shell { command -v pyflakes-3 || command -v pyflakes3 || command -v pyflakes; }  2> /dev/null)
+PYFLAKES = $(shell which pyflakes)
 
-PYCODESTYLE := $(shell { command -v pycodestyle-3 || command -v pycodestyle3 || command -v pycodestyle; } 2> /dev/null)
+PYCODESTYLE = $(shell which pycodestyle)
 
 # Debian / Ubuntu have /bin/sh -> dash
 SHELL = /bin/bash
@@ -53,7 +53,9 @@ doc: ## Creates the documentation with sphinx in html form.
 	@cd docs; make html > /dev/null 2>&1
 
 qa: ## If pyflakes and/or pycodestyle is found then they are run.
-ifdef PYFLAKES
+ifeq ($(strip $(PYFLAKES)),)
+	@echo "No pyflakes found"
+else
 	@echo "checking: pyflakes ${PYFLAKES}"
 	@${PYFLAKES} \
 		*.py \
@@ -61,19 +63,18 @@ ifdef PYFLAKES
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
-else
-	@echo "No pyflakes found"
 endif
-ifdef PYCODESTYLE
+
+ifeq ($(strip $(PYCODESTYLE)),)
+	@echo "No pycodestyle found"
+else
 	@echo "checking: pycodestyle"
 	@${PYCODESTYLE} -r --ignore E501,E402,E722,W504 \
-	        *.py \
+			*.py \
 		cobbler/*.py \
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
 		bin/cobbler* bin/*.py web/cobbler.wsgi
-else
-	@echo "No pycodestyle found"
 endif
 
 authors: ## Creates the AUTHORS file.
