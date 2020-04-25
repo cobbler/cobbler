@@ -35,7 +35,7 @@ clean: ## Cleans Python bytecode, build artifacts and the temp files.
 	@rm -rf build release dist cobbler.egg-info
 	@rm -rf rpm-build/*
 	@rm -rf deb-build/*
-	@rm -f MANIFEST AUTHORS README
+	@rm -f MANIFEST AUTHORS
 	@rm -f config/version
 	@rm -f docs/*.1.gz
 	@echo "cleaning: temp files"
@@ -81,11 +81,11 @@ authors: ## Creates the AUTHORS file.
 	@cp AUTHORS.in AUTHORS
 	@git log --format='%aN <%aE>' | grep -v 'root' | sort -u >> AUTHORS
 
-sdist: readme authors ## Creates the sdist for release preparation.
+sdist: authors ## Creates the sdist for release preparation.
 	@echo "creating: sdist"
 	@${PYTHON} setup.py sdist > /dev/null
 
-release: clean qa readme authors sdist ## Creates the full release.
+release: clean qa authors sdist ## Creates the full release.
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
