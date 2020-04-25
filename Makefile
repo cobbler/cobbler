@@ -20,7 +20,6 @@ statepath=/tmp/cobbler_settings/$(prefix)
 
 all: clean build
 
-
 clean:
 	@echo "cleaning: python bytecode"
 	@rm -f *.pyc
@@ -44,10 +43,6 @@ clean:
 cleandoc:
 	@echo "cleaning: documentation"
 	@cd docs; make clean > /dev/null 2>&1
-
-readme:
-	@echo "creating: README"
-	@cat README.md | sed -e 's/^\[!.*//g' | tail -n "+3" > README
 
 doc:
 	@echo "creating: documentation"
@@ -92,16 +87,6 @@ release: clean qa readme authors sdist
 	@cp dist/*.gz release/
 	@cp cobbler.spec release/
 
-test:
-	make savestate prefix=test
-	make rpms
-	make install
-	make eraseconfig
-	/sbin/service cobblerd restart
-	-(make nosetests)
-	make restorestate prefix=test
-	/sbin/service cobblerd restart
-
 test-centos7:
 	./tests/build-and-install-rpms.sh --with-tests el7 dockerfiles/CentOS7.dockerfile
 
@@ -113,9 +98,6 @@ test-fedora31:
 
 test-debian10:
 	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
-
-nosetests:
-	PYTHONPATH=./cobbler/ nosetests -v -w tests/cli/ 2>&1 | tee test.log
 
 build:
 	${PYTHON} setup.py build -f
@@ -215,7 +197,3 @@ eraseconfig:
 	-rm /var/lib/cobbler/collections/mgmtclasses/*
 	-rm /var/lib/cobbler/collections/files/*
 	-rm /var/lib/cobbler/collections/packages/*
-
-.PHONY: tags
-tags:
-	find . \( -name build -o -name .git \) -prune -o -type f -name '*.py' -print | xargs etags -o TAGS --
