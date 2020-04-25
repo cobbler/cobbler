@@ -5,12 +5,12 @@ SYNOPSIS
              [--port=<port>(69)]
 
 DESCRIPTION
-A python, cobbler integrated TFTP server.  It is suitable to call via
+A python, Cobbler integrated TFTP server.  It is suitable to call via
 xinetd, or as a stand-alone daemon.  If called via xinetd, it will run,
 handling requests, until it has been idle for at least 30 seconds, and
 will then exit.
 
-This server queries cobbler for information about hosts that make requests,
+This server queries Cobbler for information about hosts that make requests,
 and will instantiate template files from the materialized hosts'
 'fetchable_files' attribute.
 
@@ -356,7 +356,7 @@ class XMLRPCSystem(object):
                 if len(systems) > 1:
                     raise RuntimeError("Args mapped to multiple systems")
                 elif len(systems) == 0:
-                    raise RuntimeError("%s,%s not found in cobbler" % (ip_address, mac_address))
+                    raise RuntimeError("%s,%s not found in Cobbler" % (ip_address, mac_address))
                 name = systems[0]
 
             except RuntimeError as e:

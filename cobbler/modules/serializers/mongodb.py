@@ -43,6 +43,9 @@ mongodb = None
 
 
 def __connect():
+    """
+    Reads the config file for mongodb and then connects to the mongodb.
+    """
     cp = ConfigParser()
     cp.read("/etc/cobbler/mongodb.conf")
 
@@ -59,7 +62,7 @@ def __connect():
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     # FIXME: only run this if enabled.
     if not pymongo_loaded:
@@ -76,10 +79,10 @@ def what():
 
 def serialize_item(collection, item):
     """
-    Save a collection item to database
+    Save a collection item to database.
 
-    @param Collection collection collection
-    @param Item item collection item
+    :param collection: collection
+    :param item: collection item
     """
 
     __connect()
@@ -93,10 +96,10 @@ def serialize_item(collection, item):
 
 def serialize_delete(collection, item):
     """
-    Delete a collection item from database
+    Delete a collection item from database.
 
-    @param Collection collection collection
-    @param Item item collection item
+    :param collection: collection
+    :param item: collection item
     """
 
     __connect()
@@ -108,7 +111,7 @@ def serialize(collection):
     """
     Save a collection to database
 
-    @param Collection collection collection
+    :param collection: collection
     """
 
     # TODO: error detection
@@ -119,9 +122,13 @@ def serialize(collection):
 
 
 def deserialize_raw(collection_type):
+    """
+    Get a collection from mongodb and parse it into an object.
 
-    # FIXME: code to load settings file should not be replicated in all
-    #   serializer subclasses
+    :param collection_type: The collection type to fetch.
+    :return: The first element of the collection requested.
+    """
+    # FIXME: code to load settings file should not be replicated in all serializer subclasses
     if collection_type == "settings":
         fd = open("/etc/cobbler/settings")
         _dict = yaml.safe_load(fd.read())
@@ -135,10 +142,11 @@ def deserialize_raw(collection_type):
 
 def deserialize(collection, topological=True):
     """
-    Load a collection from database
+    Load a collection from the database.
 
-    @param Collection collection collection
-    @param bool topological
+    :param collection: The collection to deserialize.
+    :param topological: This sorts the returned dict.
+    :type topological: bool
     """
 
     datastruct = deserialize_raw(collection.collection_type())
@@ -151,6 +159,13 @@ def deserialize(collection, topological=True):
 
 
 def __depth_cmp(item1, item2):
+    """
+    The comparison function to sort a dict.
+
+    :param item1: The first item to compare.
+    :param item2: The second item to compare.
+    :return: Weather the first or second item is bigger.
+    """
     d1 = item1.get("depth", 1)
     d2 = item2.get("depth", 1)
     return cmp(d1, d2)

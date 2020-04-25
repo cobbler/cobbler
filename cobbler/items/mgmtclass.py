@@ -59,6 +59,11 @@ class Mgmtclass(item.Item):
     #
 
     def make_clone(self):
+        """
+        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
+
+        :return: The cloned instance of this object.
+        """
 
         _dict = self.to_dict()
         cloned = Mgmtclass(self.collection_mgr)
@@ -66,9 +71,17 @@ class Mgmtclass(item.Item):
         return cloned
 
     def get_fields(self):
+        """
+        Return all fields which this class has with it's current values.
+
+        :return: This is a list with lists.
+        """
         return FIELDS
 
     def check_if_valid(self):
+        """
+        Check if this object is in a valid state. This currently checks only if the name is present.
+        """
         if not self.name:
             raise CX("name is required")
 
@@ -77,12 +90,27 @@ class Mgmtclass(item.Item):
     #
 
     def set_packages(self, packages):
+        """
+        Setter for the packages of the managementclass.
+
+        :param packages: A string or list which contains the new packages.
+        """
         self.packages = utils.input_string_or_list(packages)
 
     def set_files(self, files):
+        """
+        Setter for the files of the object.
+
+        :param files: A string or list which contains the new files.
+        """
         self.files = utils.input_string_or_list(files)
 
     def set_params(self, params):
+        """
+        Setter for the params of the managementclass.
+
+        :param params: The new params for the object.
+        """
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
             raise CX(_("invalid parameters"))
@@ -90,9 +118,20 @@ class Mgmtclass(item.Item):
             self.params = value
 
     def set_is_definition(self, isdef):
+        """
+        Setter for property ``is_defintion``.
+
+        :param isdef: The new value for the property.
+        """
         self.is_definition = utils.input_boolean(isdef)
 
     def set_class_name(self, name):
+        """
+        Setter for the name of the managementclass.
+
+        :param name: The new name of the class. This must not contain "_", "-", ".", ":" or "+".
+        :type name: str
+        """
         if not isinstance(name, str) and not isinstance(name, oldstr):
             raise CX(_("class name must be a string"))
         for x in name:

@@ -61,7 +61,7 @@ from cobbler.utils import _
 #
 # hidden fields should not be added without just cause, explanations about these are:
 #
-#   ctime, mtime -- times the object was modified, used internally by cobbler for API purposes
+#   ctime, mtime -- times the object was modified, used internally by Cobbler for API purposes
 #   uid -- also used for some external API purposes
 #   source_repos -- an artifiact of import, this is too complicated to explain on IRC so we just hide it
 #                   for RHEL split repos, this is a list of each of them in the install tree, used to generate
@@ -92,16 +92,33 @@ class Item(object):
 
     @classmethod
     def get_from_cache(cls, ref):
+        """
+        Get an object from the cache. This is may potentially contain not persisted changes.
+
+        :param ref: The id of the object which is in the cache.
+        :return: The object if present or an empty dict.
+        """
         return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.name)
 
     @classmethod
     def set_cache(cls, ref, value):
+        """
+        Add an object to the cache.
+
+        :param ref: An object to identify where to add the item to the cache.
+        :param value: The object to add to the cache.
+        """
         if ref.COLLECTION_TYPE not in cls.converted_cache:
             cls.converted_cache[ref.COLLECTION_TYPE] = {}
         cls.converted_cache[ref.COLLECTION_TYPE][ref.name] = value
 
     @classmethod
     def remove_from_cache(cls, ref):
+        """
+        Remove an item from the cache.
+
+        :param ref: The object reference id to identify the object.
+        """
         cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.name, None)
 
     TYPE_NAME = "generic"
@@ -116,7 +133,7 @@ class Item(object):
         and pass in a value of an object of the same type.  Currently this is only supported
         for profiles.  Subobjects blend their data with their parent objects and only require
         a valid parent name and a name for themselves, so other required options can be
-        gathered from items further up the cobbler tree.
+        gathered from items further up the Cobbler tree.
 
                            distro
                                profile
@@ -149,13 +166,19 @@ class Item(object):
         self.cached_dict = ""
 
     def __find_compare(self, from_search, from_obj):
+        """
+        Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
+        :param from_search: Tries to parse this str in the format as a search result string.
+        :param from_obj: Tries to parse this str in the format of an obj str.
+        :return: True if the comparison succeeded, False otherwise.
+        """
         if isinstance(from_obj, str):
-            # FIXME: fnmatch is only used for string to string comparisions
-            # which should cover most major usage, if not, this deserves fixing
+            # FIXME: fnmatch is only used for string to string comparisions which should cover most major usage, if
+            #        not, this deserves fixing
             from_obj_lower = from_obj.lower()
             from_search_lower = from_search.lower()
-            # it's much faster to not use fnmatch if it's not needed
+            # It's much faster to not use fnmatch if it's not needed
             if '?' not in from_search_lower and '*' not in from_search_lower and '[' not in from_search_lower:
                 match = from_obj_lower == from_search_lower
             else:
@@ -199,6 +222,8 @@ class Item(object):
     def clear(self, is_subobject=False):
         """
         Reset this object.
+
+        :param is_subobject: True if this is a subobject, otherwise the default is enough.
         """
         utils.clear_from_fields(self, self.get_fields(), is_subobject=is_subobject)
 
@@ -210,11 +235,18 @@ class Item(object):
 
     def from_dict(self, _dict):
         """
-        Modify this object to take on values in seed_data
+        Modify this object to take on values in ``seed_data``.
+
+        :param _dict: This should contain all values which should be updated.
         """
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
     def to_dict(self):
+        """
+        This converts everything in this object to a dictionary.
+
+        :return: A dictionary with all values present in this object.
+        """
         # return utils.to_dict_from_fields(self, self.get_fields())
 
         value = self.get_from_cache(self)
@@ -224,17 +256,36 @@ class Item(object):
         return value
 
     def to_string(self):
+        """
+        Convert an item into a string.
+
+        :return: The string representation of the object.
+        """
         return utils.to_string_from_fields(self, self.get_fields())
 
     def get_setter_methods(self):
+        """
+        Get all setter methods which are available in the item.
+
+        :return: A dict with all setter methods.
+        """
         return utils.get_setter_methods_from_fields(self, self.get_fields())
 
     def set_uid(self, uid):
+        """
+        Setter for the uid of the item.
+
+        :param uid: The new uid.
+        """
         self.uid = uid
 
     def get_children(self, sorted=True):
         """
         Get direct children of this object.
+
+        :param sorted: If the list has to be sorted or not.
+        :return: The list with the children. If no childrens are present an emtpy list is returned.
+        :rtype: list
         """
         keys = list(self.children.keys())
         if sorted:
@@ -246,10 +297,10 @@ class Item(object):
 
     def get_descendants(self, sort=False):
         """
-        Get objects that depend on this object, i.e. those that
-        would be affected by a cascading delete, etc.
-        With sort=True the list will be a walk of the tree,
-        e.g., distro -> [profile, sys, sys, profile, sys, sys]
+        Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
+
+        :param sort: If True the list will be a walk of the tree, e.g., distro -> [profile, sys, sys, profile, sys, sys]
+        :return: This is a list of all descendants. May be empty if none exist.
         """
         results = []
         kids = self.get_children(sorted=sort)
@@ -270,8 +321,9 @@ class Item(object):
 
     def get_conceptual_parent(self):
         """
-        The parent may just be a superclass for something like a
-        subprofile.  Get the first parent of a different type.
+        The parent may just be a superclass for something like a subprofile. Get the first parent of a different type.
+
+        :return: The first item which is conceptually not from the same type.
         """
         mtype = type(self)
         parent = self.get_parent()
@@ -287,12 +339,18 @@ class Item(object):
         """
         Set the objects name.
 
-        @param: str name (object name string)
-        @returns: True or CX
+        :param name: object name string
+        :type name: str
+        :return: True or CX
         """
         self.name = validate.object_name(name, self.parent)
 
     def set_comment(self, comment):
+        """
+        Setter for the comment of the item.
+
+        :param comment: The new comment. If ``None`` the comment will be set to an emtpy string.
+        """
         if comment is None:
             comment = ""
         self.comment = comment
@@ -301,13 +359,16 @@ class Item(object):
         """
         The owners field is a comment unless using an authz module that pays attention to it,
         like authz_ownership, which ships with Cobbler but is off by default.
+
+        :param data: This can be a string or a list which contains all owners.
         """
         self.owners = utils.input_string_or_list(data)
 
     def set_kernel_options(self, options):
         """
-        Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a dict.
+        Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        :param options: The new kernel options as a space delimited list.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -317,8 +378,9 @@ class Item(object):
 
     def set_kernel_options_post(self, options):
         """
-        Post kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a dict.
+        Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
+
+        :param options: The new kernel options as a space delimited list.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -329,8 +391,10 @@ class Item(object):
     def set_autoinstall_meta(self, options):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
-        The meta tags are used as input to the templating system
-        to preprocess automatic installation template files
+        The meta tags are used as input to the templating system to preprocess automatic installation template files.
+
+        :param options: The new options for the automatic installation meta options.
+        :return: False if this does not succeed.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -340,16 +404,19 @@ class Item(object):
 
     def set_mgmt_classes(self, mgmt_classes):
         """
-        Assigns a list of configuration management classes that can be assigned
-        to any object, such as those used by Puppet's external_nodes feature.
+        Assigns a list of configuration management classes that can be assigned to any object, such as those used by
+        Puppet's external_nodes feature.
+
+        :param mgmt_classes: The new options for the management classes of an item.
         """
         mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
         self.mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
 
     def set_mgmt_parameters(self, mgmt_parameters):
         """
-        A YAML string which can be assigned to any object, this is used by
-        Puppet's external_nodes feature.
+        A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
+
+        :param mgmt_parameters: The management parameters for an item.
         """
         if mgmt_parameters == "<<inherit>>":
             self.mgmt_parameters = mgmt_parameters
@@ -362,8 +429,10 @@ class Item(object):
 
     def set_template_files(self, template_files):
         """
-        A comma seperated list of source=destination templates
-        that should be generated during a sync.
+        A comma seperated list of source=destination templates that should be generated during a sync.
+
+        :param template_files: The new value for the template files which are used for the item.
+        :return: False if this does not succeed.
         """
         (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
         if not success:
@@ -373,8 +442,10 @@ class Item(object):
 
     def set_boot_files(self, boot_files):
         """
-        A comma seperated list of req_name=source_file_path
-        that should be fetchable via tftp
+        A comma seperated list of req_name=source_file_path that should be fetchable via tftp.
+
+        :param boot_files: The new value for the boot files used by the item.
+        :return: False if this does not succeed.
         """
         (success, value) = utils.input_string_or_dict(boot_files, allow_multiples=False)
         if not success:
@@ -384,8 +455,10 @@ class Item(object):
 
     def set_fetchable_files(self, fetchable_files):
         """
-        A comma seperated list of virt_name=path_to_template
-        that should be fetchable via tftp or a webserver
+        A comma seperated list of virt_name=path_to_template that should be fetchable via tftp or a webserver
+
+        :param fetchable_files: Files which will be made available to external users.
+        :return: False if this does not succeed.
         """
         (success, value) = utils.input_string_or_dict(fetchable_files, allow_multiples=False)
         if not success:
@@ -394,10 +467,23 @@ class Item(object):
             self.fetchable_files = value
 
     def sort_key(self, sort_fields=[]):
+        """
+        Convert the item to a dict and sort the data after specific given fields.
+
+        :param sort_fields: The fields to sort the data after.
+        :return: The sorted data.
+        """
         data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
     def find_match(self, kwargs, no_errors=False):
+        """
+        Find from a given dict if the item matches the kv-pairs.
+
+        :param kwargs: The dict to match for in this item.
+        :param no_errors: How strict this matching is.
+        :return: True if matches or False if the item does not match.
+        """
         # used by find() method in collection.py
         data = self.to_dict()
         for (key, value) in list(kwargs.items()):
@@ -412,6 +498,16 @@ class Item(object):
         return True
 
     def find_match_single_key(self, data, key, value, no_errors=False):
+        """
+        Look if the data matches or not. This is an alternative for ``find_match()``.
+
+        :param data: The data to search through.
+        :param key: The key to look for int the item.
+        :param value: The value for the key.
+        :param no_errors: How strict this matching is.
+        :return: Whether the data matches or not.
+        :rtype: bool
+        """
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
@@ -443,6 +539,13 @@ class Item(object):
             return self.__find_compare(value, data[key])
 
     def dump_vars(self, data, format=True):
+        """
+        Dump all variables.
+
+        :param data: Unused parameter in this method.
+        :param format: Whether to format the output or not.
+        :return: The raw or formatted data.
+        """
         raw = utils.blender(self.collection_mgr.api, False, self)
         if format:
             return pprint.pformat(raw)
@@ -450,15 +553,35 @@ class Item(object):
             return raw
 
     def set_depth(self, depth):
+        """
+        Setter for depth.
+
+        :param depth: The new value for depth.
+        """
         self.depth = depth
 
     def set_ctime(self, ctime):
+        """
+        Setter for the creation time of the object.
+
+        :param ctime: The new creation time. Especially usefull for replication Cobbler.
+        """
         self.ctime = ctime
 
     def set_mtime(self, mtime):
+        """
+        Setter for the modification time of the object.
+
+        :param mtime: The new modification time.
+        """
         self.mtime = mtime
 
     def set_parent(self, parent):
+        """
+        Set the parent object for this object.
+
+        :param parent: The new parent object. This needs to be a descendant in the logical inheritance chain.
+        """
         self.parent = parent
 
     def check_if_valid(self):

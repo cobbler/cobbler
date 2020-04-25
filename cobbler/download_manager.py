@@ -27,6 +27,8 @@ class DownloadManager(object):
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
+
+        :param collection_mgr: This is the current collection manager instance which holds the settings.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -39,6 +41,14 @@ class DownloadManager(object):
             self.proxies = {}
 
     def urlread(self, url, proxies=None, cert=None):
+        """
+        Read the content of a given URL and pass the requests. Response object to the caller.
+
+        :param url: The URL the request.
+        :param proxies: Override the default Cobbler proxies.
+        :param cert: Override the default Cobbler certs.
+        :returns: The Python requests.Response object.
+        """
         if proxies is None:
             proxies = self.proxies
         if cert is None:
@@ -46,6 +56,14 @@ class DownloadManager(object):
         return requests.get(url, proxies=proxies, cert=cert)
 
     def download_file(self, url, dst, proxies=None, cert=None):
+        """
+        Donwload a file from a URL and save it to any disc location.
+
+        :param url: The URL the request.
+        :param dst: The destination file path.
+        :param proxies: Override the default Cobbler proxies.
+        :param cert: Override the default Cobbler certs.
+        """
         if proxies is None:
             proxies = self.proxies
         if cert is None:

@@ -60,13 +60,22 @@ class File(resource.Resource):
     #
 
     def make_clone(self):
+        """
+        Clone this file object. Please manually adjust all values yourself to make the cloned object unique.
 
+        :return: The cloned instance of this object.
+        """
         _dict = self.to_dict()
         cloned = File(self.collection_mgr)
         cloned.from_dict(_dict)
         return cloned
 
     def get_fields(self):
+        """
+        Return all fields which this class has with its current values.
+
+        :return: This is a list with lists.
+        """
         return FIELDS
 
     def check_if_valid(self):
@@ -94,6 +103,8 @@ class File(resource.Resource):
     def set_is_dir(self, is_dir):
         """
         If true, treat file resource as a directory. Templates are ignored.
+
+        :param is_dir: This is the path to check if it is a directory.
         """
         self.is_dir = utils.input_boolean(is_dir)
 

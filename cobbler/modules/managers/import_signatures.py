@@ -46,7 +46,7 @@ import cobbler.items.repo as item_repo
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage/import"
 
@@ -54,17 +54,19 @@ def register():
 def import_walker(top, func, arg):
     """
     Directory tree walk with callback function.
-    For each directory in the directory tree rooted at top (including top
-    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
-    dirname is the name of the directory, and fnames a list of the names of
-    the files and subdirectories in dirname (excluding '.' and '..').  func
-    may modify the fnames list in-place (e.g. via del or slice assignment),
-    and walk will only recurse into the subdirectories whose names remain in
-    fnames; this can be used to implement a filter, or to impose a specific
-    order of visiting.  No semantics are defined for, or required of, arg,
-    beyond that arg is always passed to func.  It can be used, e.g., to pass
-    a filename pattern, or a mutable object designed to accumulate
-    statistics.  Passing None for arg is common.
+
+    For each directory in the directory tree rooted at top (including top itself, but excluding '.' and '..'), call
+    ``func(arg, dirname, fnames)``. dirname is the name of the directory, and fnames a list of the names of the files
+    and subdirectories in dirname (excluding '.' and '..').  ``func`` may modify the ``fnames`` list in-place (e.g. via
+    ``del`` or ``slice`` assignment), and walk will only recurse into the subdirectories whose names remain in
+    ``fnames``; this can be used to implement a filter, or to impose a specific order of visiting. No semantics are
+    defined for, or required of, ``arg``, beyond that arg is always passed to ``func``. It can be used, e.g., to pass
+    a filename pattern, or a mutable object designed to accumulate statistics.
+
+    :param top: The most top directory for which func should be run.
+    :param func: A function which is called as described in the above description.
+    :param arg: Passing ``None`` for this is common.
+    :return:
     """
     try:
         names = os.listdir(top)
@@ -86,6 +88,9 @@ class ImportSignatureManager(object):
     def __init__(self, collection_mgr, logger):
         """
         Constructor
+
+        :param collection_mgr: This is the collection manager which has every information in Cobbler available.
+        :param logger: This is the logger to audit all actions with.
         """
         self.logger = logger
         self.collection_mgr = collection_mgr
@@ -102,11 +107,20 @@ class ImportSignatureManager(object):
 
     # required function for import modules
     def what(self):
+        """
+        Identifies what service this manages.
+
+        :return: Always will return ``import/signatures``.
+        """
         return "import/signatures"
 
     def get_file_lines(self, filename):
         """
-        Get lines from a file, which may or may not be compressed
+        Get lines from a file, which may or may not be compressed. If compressed then it will be uncompressed using
+        ``gzip`` as the algorithm.
+
+        :param filename: The name of the file to be read.
+        :return: An array with all the lines.
         """
         lines = []
         ftype = utils.subprocess_get(self.logger, "/usr/bin/file %s" % filename)
@@ -124,16 +138,17 @@ class ImportSignatureManager(object):
             f.close()
         return lines
 
-    # required function for import modules
     def run(self, path, name, network_root=None, autoinstall_file=None, arch=None, breed=None, os_version=None):
         """
-        path: the directory we are scanning for files
-        name: the base name of the distro
-        network_root: the remote path (nfs/http/ftp) for the distro files
-        autoinstall_file: user-specified response file, which will override the default
-        arch: user-specified architecture
-        breed: user-specified breed
-        os_version: user-specified OS version
+        This is the main entry point in a manager. It is a required function for import modules.
+
+        :param path: the directory we are scanning for files
+        :param name: the base name of the distro
+        :param network_root: the remote path (nfs/http/ftp) for the distro files
+        :param autoinstall_file: user-specified response file, which will override the default
+        :param arch: user-specified architecture
+        :param breed: user-specified breed
+        :param os_version: user-specified OS version
         """
         self.name = name
         self.network_root = network_root
@@ -188,8 +203,7 @@ class ImportSignatureManager(object):
 
     def scan_signatures(self):
         """
-        loop through the signatures, looking for a match for both
-        the signature directory and the version file
+        Loop through the signatures, looking for a match for both the signature directory and the version file.
         """
         sigdata = self.api.get_signatures()
         # self.logger.debug("signature cache: %s" % str(sigdata))
@@ -231,19 +245,32 @@ class ImportSignatureManager(object):
 
     # required function for import modules
     def get_valid_arches(self):
+        """
+        Get all valid architectures from the signature file.
+
+        :return: An empty list or all valid architectures.
+        """
         if self.signature:
             return sorted(self.signature["supported_arches"], key=lambda s: -1 * len(s))
         return []
 
     def get_valid_repo_breeds(self):
+        """
+        Get all valid repository architectures from the signatures file.
+
+        :return: An empty list or all valid architectures.
+        """
         if self.signature:
             return self.signature["supported_repo_breeds"]
         return []
 
     def distro_adder(self, distros_added, dirname, fnames):
         """
-        This is an import_walker routine that finds distributions in the directory
-        to be scanned and then creates them.
+        This is an import_walker routine that finds distributions in the directory to be scanned and then creates them.
+
+        :param distros_added: Unkown what this currently does.
+        :param dirname: Unkown what this currently does.
+        :param fnames: Unkown what this currently does.
         """
 
         re_krn = re.compile(self.signature["kernel_file"])
@@ -258,9 +285,8 @@ class ImportSignatureManager(object):
         for x in fnames:
             adtls = []
 
-            # most of the time we just want to ignore isolinux
-            # directories, unless this is one of the oddball
-            # distros where we do want it
+            # Most of the time we just want to ignore isolinux directories, unless this is one of the oddball distros
+            # where we do want it.
             if dirname.find("isolinux") != -1 and not self.signature["isolinux_ok"]:
                 continue
 
@@ -300,9 +326,13 @@ class ImportSignatureManager(object):
 
     def add_entry(self, dirname, kernel, initrd):
         """
-        When we find a directory with a valid kernel/initrd in it, create the distribution objects
-        as appropriate and save them.  This includes creating xen and rescue distros/profiles
-        if possible.
+        When we find a directory with a valid kernel/initrd in it, create the distribution objects as appropriate and
+        save them. This includes creating xen and rescue distros/profiles if possible.
+
+        :param dirname: Unkown what this currently does.
+        :param kernel: Unkown what this currently does.
+        :param initrd: Unkown what this currently does.
+        :return: Unkown what this currently does.
         """
 
         # build a proposed name based on the directory structure
@@ -392,10 +422,12 @@ class ImportSignatureManager(object):
 
     def learn_arch_from_tree(self):
         """
-        If a distribution is imported from DVD, there is a good chance the path doesn't
-        contain the arch and we should add it back in so that it's part of the
-        meaningful name ... so this code helps figure out the arch name.  This is important
-        for producing predictable distro names (and profile names) from differing import sources
+        If a distribution is imported from DVD, there is a good chance the path doesn't contain the arch and we should
+        add it back in so that it's part of the meaningful name ... so this code helps figure out the arch name.  This
+        is important for producing predictable distro names (and profile names) from differing import sources.
+
+        :return: The guessed architecture from a distribution dvd.
+        :rtype: list
         """
 
         result = {}
@@ -416,9 +448,12 @@ class ImportSignatureManager(object):
 
     def arch_walker(self, foo, dirname, fnames):
         """
-        Function for recursively searching through a directory for
-        a kernel file matching a given architecture, called by
-        learn_arch_from_tree()
+        Function for recursively searching through a directory for a kernel file matching a given architecture, called
+        by ``learn_arch_from_tree()``
+
+        :param foo:
+        :param dirname:
+        :param fnames:
         """
 
         re_krn = re.compile(self.signature["kernel_arch"])
@@ -448,8 +483,13 @@ class ImportSignatureManager(object):
 
     def get_proposed_name(self, dirname, kernel=None):
         """
-        Given a directory name where we have a kernel/initrd pair, try to autoname
-        the distribution (and profile) object based on the contents of that path
+        Given a directory name where we have a kernel/initrd pair, try to autoname the distribution (and profile) object
+        based on the contents of that path.
+
+        :param dirname: The directory where the distribution is living in.
+        :param kernel: The kernel of that distro.
+        :return: The name which is recommended.
+        :rtype: str
         """
 
         if self.network_root is not None:
@@ -481,10 +521,11 @@ class ImportSignatureManager(object):
 
     def configure_tree_location(self, distro):
         """
-        Once a distribution is identified, find the part of the distribution
-        that has the URL in it that we want to use for automating the Linux
-        distribution installation, and create a autoinstall_meta variable $tree
-        that contains this.
+        Once a distribution is identified, find the part of the distribution that has the URL in it that we want to use
+        for automating the Linux distribution installation, and create a autoinstall_meta variable $tree that contains
+        this.
+
+        :param distro: The distribution object for that the tree should be configured.
         """
 
         base = self.rootdir
@@ -492,30 +533,31 @@ class ImportSignatureManager(object):
         # how we set the tree depends on whether an explicit network_root was specified
         if self.network_root is None:
             dest_link = os.path.join(self.settings.webdir, "links", distro.name)
-            # create the links directory only if we are mirroring because with
-            # SELinux Apache can't symlink to NFS (without some doing)
+            # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS
+            # (without some doing)
             if not os.path.exists(dest_link):
                 try:
                     self.logger.info("trying symlink: %s -> %s" % (str(base), str(dest_link)))
                     os.symlink(base, dest_link)
                 except:
-                    # this shouldn't happen but I've seen it ... debug ...
+                    # FIXME: This shouldn't happen but I've seen it ... debug ...
                     self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
             tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
             self.set_install_tree(distro, tree)
         else:
-            # where we assign the automated installation file source is relative
-            # to our current directory and the input start directory in the crawl.
-            # We find the path segments between and tack them on the network source
-            # path to find the explicit network path to the distro that Anaconda
-            # can digest.
+            # Where we assign the automated installation file source is relative to our current directory and the input
+            # start directory in the crawl. We find the path segments between and tack them on the network source
+            # path to find the explicit network path to the distro that Anaconda can digest.
             tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
             self.set_install_tree(distro, tree)
 
     def set_install_tree(self, distro, url):
         """
-        Simple helper function to set the tree automated installation metavariable
+        Simple helper function to set the tree automated installation metavariable.
+
+        :param distro: The distribution object for which the install tree should be set.
+        :param url: The url for the tree.
         """
         distro.autoinstall_meta["tree"] = url
 
@@ -524,9 +566,10 @@ class ImportSignatureManager(object):
 
     def repo_finder(self, distros_added):
         """
-        This routine looks through all distributions and tries to find
-        any applicable repositories in those distributions for post-install
-        usage.
+        This routine looks through all distributions and tries to find any applicable repositories in those
+        distributions for post-install usage.
+
+        :param distros_added: This is an iteratable set of distributions.
         """
         for repo_breed in self.get_valid_repo_breeds():
             self.logger.info("checking for %s repo(s)" % repo_breed)
@@ -556,14 +599,20 @@ class ImportSignatureManager(object):
     def yum_repo_adder(self, distro):
         """
         For yum, we recursively scan the rootdir for repos to add
+
+        :param distro: The distribution object to scan and possibly add.
         """
         self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
         import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
     def yum_repo_scanner(self, distro, dirname, fnames):
         """
-        This is an import_walker routine that looks for potential yum repositories
-        to be added to the configuration for post-install usage.
+        This is an import_walker routine that looks for potential yum repositories to be added to the configuration for
+        post-install usage.
+
+        :param distro: The distribution object to check for.
+        :param dirname: The folder with repositories to check.
+        :param fnames: Unkown what this does exactly.
         """
 
         matches = {}
@@ -585,10 +634,12 @@ class ImportSignatureManager(object):
 
     def yum_process_comps_file(self, comps_path, distro):
         """
-        When importing Fedora/EL certain parts of the install tree can also be used
-        as yum repos containing packages that might not yet be available via updates
-        in yum.  This code identifies those areas. Existing repodata will be used as-is,
-        but repodate is created for earlier, non-yum based, installers.
+        When importing Fedora/EL certain parts of the install tree can also be used as yum repos containing packages
+        that might not yet be available via updates in yum. This code identifies those areas. Existing repodata will be
+        used as-is, but repodate is created for earlier, non-yum based, installers.
+
+        :param comps_path: Not know what this is exactly for.
+        :param distro: The distributions to check.
         """
 
         if os.path.exists(os.path.join(comps_path, "repodata")):
@@ -610,9 +661,8 @@ class ImportSignatureManager(object):
         comps_file = files[0].split("/")[-1]
 
         try:
-            # store the yum configs on the filesystem so we can use them later.
-            # and configure them in the automated installation file post section,
-            # etc
+            # Store the yum configs on the filesystem so we can use them later. And configure them in the automated
+            # installation file post section, etc.
 
             counter = len(distro.source_repos)
 
@@ -631,8 +681,8 @@ class ImportSignatureManager(object):
             if not os.path.exists(config_dir):
                 os.makedirs(config_dir)
 
-            # NOTE: the following file is now a Cheetah template, so it can be remapped
-            # during sync, that's why we have the @@http_server@@ left as templating magic.
+            # NOTE: the following file is now a Cheetah template, so it can be remapped during sync, that's why we have
+            # the @@http_server@@ left as templating magic.
             # repo_url2 is actually no longer used. (?)
 
             config_file = open(fname, "w+")
@@ -644,8 +694,7 @@ class ImportSignatureManager(object):
             config_file.write("priority=$yum_distro_priority\n")
             config_file.close()
 
-            # don't run creatrepo twice -- this can happen easily for Xen and PXE, when
-            # they'll share same repo files.
+            # Don't run creatrepo twice -- this can happen easily for Xen and PXE, when they'll share same repo files.
             if keeprepodata:
                 self.logger.info("Keeping repodata as-is :%s/repodata" % comps_path)
                 self.found_repos[comps_path] = 1
@@ -655,7 +704,8 @@ class ImportSignatureManager(object):
                 cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
                 utils.subprocess_call(self.logger, cmd, shell=True)
                 self.found_repos[comps_path] = 1
-                # for older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up one...
+                # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
+                # one...
                 p1 = os.path.join(comps_path, "repodata", "comps.xml")
                 p2 = os.path.join(comps_path, "base", "comps.xml")
                 if os.path.exists(p1) and os.path.exists(p2):
@@ -669,6 +719,11 @@ class ImportSignatureManager(object):
     # apt-specific
 
     def apt_repo_adder(self, distro):
+        """
+        Automatically import apt repositories when importing signatures.
+
+        :param distro: The distribution to scan for apt repositories.
+        """
         self.logger.info("adding apt repo for %s" % distro.name)
         # Obtain repo mirror from APT if available
         mirror = False
@@ -696,14 +751,14 @@ class ImportSignatureManager(object):
         self.logger.info("Added repos for %s" % distro.name)
         repos = self.collection_mgr.repos()
         repos.add(repo, save=True)
-        # FIXME:
-        # Add the found/generated repos to the profiles
-        # that were created during the import process
+        # FIXME: Add the found/generated repos to the profiles that were created during the import process
 
     def get_repo_mirror_from_apt(self):
         """
-        This tries to determine the apt mirror/archive to use (when processing repos)
-        if the host machine is Debian or Ubuntu.
+        This tries to determine the apt mirror/archive to use (when processing repos) if the host machine is Debian or
+        Ubuntu.
+
+        :return: False if the try fails or otherwise the mirrors.
         """
         try:
             sources = sourceslist.SourcesList()
@@ -723,18 +778,33 @@ class ImportSignatureManager(object):
     # rhn-specific
 
     def rhn_repo_adder(self, distro):
-        """ not currently used """
+        """
+        Not currently used.
+
+        :param distro: Not used currently.
+        """
         return
 
     # ==========================================================================
     # rsync-specific
 
     def rsync_repo_adder(self, distro):
-        """ not currently used """
+        """
+        Not currently used.
+
+        :param distro: Not used currently.
+        """
         return
 
 # ==========================================================================
 
 
 def get_import_manager(config, logger):
+    """
+    Get an instance of the import manager which enables you to import various things.
+
+    :param config: The configuration for the import manager.
+    :param logger: The logger to audit all actions with.
+    :return: The object to import data with.
+    """
     return ImportSignatureManager(config, logger)

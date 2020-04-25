@@ -33,7 +33,7 @@ username = None
 
 def index(request):
     """
-    This is the main greeting page for cobbler web.
+    This is the main greeting page for Cobbler web.
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web", expired=True)
@@ -104,7 +104,7 @@ def _get_field_html_element(field_name):
 def get_fields(what, is_subobject, seed_item=None):
 
     """
-    Helper function.  Retrieves the field table from the cobbler objects
+    Helper function.  Retrieves the field table from the Cobbler objects
     and formats it in a way to make it useful for Django templating.
     The field structure indicates what fields to display and what the default
     values are, etc.
@@ -1079,7 +1079,7 @@ def hardlink(request):
 @csrf_protect
 def replicate(request):
     """
-    Replicate configuration from the central cobbler server, configured
+    Replicate configuration from the central Cobbler server, configured
     in /etc/cobbler/settings (note: this is uni-directional!)
 
     FIXME: this is disabled because we really need a web page to provide options for
@@ -1236,7 +1236,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
 @csrf_protect
 def generic_save(request, what):
     """
-    Saves an object back using the cobbler API after clearing any 'generic_edit' page.
+    Saves an object back using the Cobbler API after clearing any 'generic_edit' page.
     """
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/%s/list" % what, expired=True)
@@ -1324,7 +1324,7 @@ def generic_save(request, what):
                         return error_page(request, str(e))
 
     # special handling for system interface fields
-    # which are the only objects in cobbler that will ever work this way
+    # which are the only objects in Cobbler that will ever work this way
     if what == "system":
         network_interface_fields = get_network_interface_fields()
         interfaces = request.POST.get('interface_list', "").split(",")

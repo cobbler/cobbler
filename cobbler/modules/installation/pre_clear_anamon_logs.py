@@ -27,20 +27,33 @@ from cobbler.cexceptions import CX
 
 
 def register():
-    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
-    # the return of this method indicates the trigger type
+    """
+        This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
+        indicates the trigger type.
+
+        :return: Always: "/var/lib/cobbler/triggers/install/pre/\*"
+        :rtype: str
+        """
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
 def run(api, args, logger):
+    """
+    The list of args should have one element:
+        - 1: the name of the system or profile
+
+    :param api: The api to resolve metadata with.
+    :param args: This should be a list as described above.
+    :param logger: This parameter is unused currently.
+    :return: "0" on success.
+    """
+
     # FIXME: use the logger
 
     if len(args) < 3:
         raise CX("invalid invocation")
 
-    # objtype = args[0]      # "system" or "profile"
-    name = args[1]          # name of system or profile
-    # ip = args[2]           # ip or "?"
+    name = args[1]
 
     settings = api.settings()
     anamon_enabled = str(settings.anamon_enabled)

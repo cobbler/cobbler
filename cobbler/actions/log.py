@@ -35,7 +35,7 @@ class LogTool(object):
 
     def __init__(self, collection_mgr, system, api, logger=None):
         """
-        Log library constructor requires a cobbler system object.
+        Log library constructor requires a Cobbler system object.
         """
         self.system = system
         self.collection_mgr = collection_mgr

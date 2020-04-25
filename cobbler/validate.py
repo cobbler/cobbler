@@ -40,9 +40,12 @@ def object_name(name, parent):
     """
     Validate the object name.
 
-    @param: str name (object name)
-    @param: str parent (parent object name)
-    @returns: str name or CX
+    :param name: object name
+    :type name: str
+    :param parent: (parent object name)
+    :type parent: str
+    :returns: name or CX
+    :rtype: str
     """
     if not isinstance(name, str) or not isinstance(parent, str):
         raise CX("Invalid input, name and parent must be strings")
@@ -63,8 +66,10 @@ def hostname(dnsname):
     """
     Validate the dns name.
 
-    @param: str dnsname (hostname or fqdn)
-    @returns: str dnsname or CX
+    :param dnsname: (hostname or fqdn)
+    :type dnsname: str
+    :returns: dnsname or CX
+    :rtype: str
     """
     if not isinstance(dnsname, str):
         raise CX("Invalid input, dnsname must be a string")
@@ -85,8 +90,9 @@ def mac_address(mac, for_item=True):
     """
     Validate as an Eternet mac address.
 
-    @param: str mac (mac address)
-    @returns: str mac or CX
+    :param mac: mac address
+    :type mac: str
+    :returns: str mac or CX
     """
     if not isinstance(mac, str):
         raise CX("Invalid input, mac must be a string")
@@ -108,8 +114,9 @@ def ipv4_address(addr):
     """
     Validate an IPv4 address.
 
-    @param: str addr (ipv4 address)
-    @returns: str addr or CX
+    :param addr: (ipv4 address)
+    :type addr: str
+    :returns: str addr or CX
     """
     if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
@@ -132,8 +139,9 @@ def ipv4_netmask(addr):
     """
     Validate an IPv4 netmask.
 
-    @param: str addr (ipv4 netmask)
-    @returns: str addr or CX
+    :param addr: ipv4 netmask
+    :type addr: str
+    :returns: str addr or CX
     """
     if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
@@ -156,8 +164,10 @@ def ipv6_address(addr):
     """
     Validate an IPv6 address.
 
-    @param: str addr (ipv6 address)
-    @returns: str addr or CX
+    :param addr: ipv6 address
+    :type addr: str
+    :returns: The ipv6 address.
+    :rtype: str
     """
     if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
@@ -177,8 +187,11 @@ def name_servers(nameservers, for_item=True):
     """
     Validate nameservers IP addresses, works for IPv4 and IPv6
 
-    @param: str/list nameservers (string or list of nameserver addresses)
-    @param: bool for_item (enable/disable special handling for Item objects)
+    :param nameservers: (string or list of nameserver addresses)
+    :type nameservers: str or list
+    :param for_item: (enable/disable special handling for Item objects)
+    :return: The list of valid nameservers.
+    :type for_item: bool
     """
     if isinstance(nameservers, str):
         nameservers = nameservers.strip()
@@ -210,8 +223,11 @@ def name_servers_search(search, for_item=True):
     """
     Validate nameservers search domains.
 
-    @param: str/list search (string or list of search domains)
-    @param: bool for_item (enable/disable special handling for Item objects)
+    :param search: One more more search domains to validate.
+    :type search: str or list
+    :param for_item: (enable/disable special handling for Item objects)
+    :return: The list of valid nameservers.
+    :type for_item: bool
     """
     if isinstance(search, str):
         search = search.strip()
