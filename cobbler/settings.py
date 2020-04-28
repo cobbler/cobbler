@@ -189,10 +189,10 @@ class Settings(object):
         """
         This is a hardcoded string which represents the collection type.
 
-        :return: "settings"
+        :return: "setting"
         :rtype: str
         """
-        return "settings"
+        return "setting"
 
     @staticmethod
     def collection_types() -> str:
