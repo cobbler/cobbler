@@ -18,10 +18,11 @@ class AutoInstallationManager(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
-        Constructor for the autoinstall manager. If no logger is None then a default Cobbler logger is created.
+        Constructor for the autoinstall manager.
 
         :param collection_mgr: The collection manager which has all objects.
-        :param logger: The logger object which logs to the desired target.
+        :param logger: The logger object which logs to the desired target. If this argument is None then a default
+                       Cobbler logger is created.
         """
 
         self.collection_mgr = collection_mgr
@@ -38,9 +39,9 @@ class AutoInstallationManager(object):
 
         :param autoinstall: automatic installation template relative file path
         :type autoinstall: str
-        :param for_item: (enable/disable special handling for Item objects)
+        :param for_item: enable/disable special handling for Item objects
         :type for_item: bool
-        :param new_autoinstall: (when set to true new filenames are allowed)
+        :param new_autoinstall: when set to true new filenames are allowed
         :type new_autoinstall: bool
         :returns: automatic installation template relative file path
         :rtype: str
@@ -158,9 +159,10 @@ class AutoInstallationManager(object):
 
         :param snippet: automatic installation snippet relative file path
         :type snippet: str
-        :param new_snippet: (when set to true new filenames are allowed)
+        :param new_snippet: when set to true new filenames are allowed
         :type new_snippet: bool
-        :returns: snippet or CX
+        :returns: Snippet if successful otherwise raises an exception.
+        :raises CX: Raised when the arguments are invalid or the action performed raised an internal error.
         :rtype: str
         """
 

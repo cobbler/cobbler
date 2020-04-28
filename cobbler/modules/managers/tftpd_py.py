@@ -23,6 +23,7 @@ import cobbler.clogger as clogger
 import cobbler.tftpgen as tftpgen
 import cobbler.templar as templar
 
+# TODO: Deprecate and remove the Python TFTP Server which is delivered with Cobbler.
 
 def register():
     """

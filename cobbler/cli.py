@@ -222,7 +222,7 @@ def _add_parser_option_from_field(parser, field, settings):
 
     :param parser: The optparse instance to add the options to.
     :param field: The field to parse.
-    :param settings: Not known what this does exactly.
+    :param settings: Global cobbler settings as returned from ``CollectionManager.settings()``
     """
     # extract data from field dictionary
     name = field[0]
@@ -267,7 +267,7 @@ def add_options_from_fields(object_type, parser, fields, network_interface_field
     :param parser: The optparse instance to add options to.
     :param fields: The list of fields to add options for.
     :param network_interface_fields: The list of network interface fields if the object type is a system.
-    :param settings: Not known what this does exactly.
+    :param settings: Global cobbler settings as returned from ``CollectionManager.settings()``
     :param object_action: The object action to add options for. May be "add", "edit", "find", "copy", "rename",
                           "remove". If none of these options is given then this method does nothing.
     """
@@ -321,9 +321,12 @@ class CobblerCLI(object):
         """
         Start an asynchronous task in the background.
 
-        :param name:
-        :param options:
-        :return:
+        :param name: "background_" % name function must exist in remote.py. This function will be called in a subthread.
+        :type name: str
+        :param options: Dictionary of options passed to the newly started thread
+        :type options: dict
+        :return: Id of the newly started task
+        :rtype: str
         """
         options = utils.strip_none(vars(options), omit_none=True)
         fn = getattr(self.remote, "background_%s" % name)
@@ -490,7 +493,7 @@ class CobblerCLI(object):
         """
         Process object-based commands such as "distro add" or "profile rename"
 
-        :param object_type: The object type to execute an actio for.
+        :param object_type: The object type to execute an action for.
         :param object_action: The action to execute.
         :return: Depending on the object and action.
         """

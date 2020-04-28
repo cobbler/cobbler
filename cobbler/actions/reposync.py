@@ -52,10 +52,9 @@ def repo_walker(top, func, arg):
     beyond that arg is always passed to func. It can be used, e.g., to pass a filename pattern, or a mutable object
     designed to accumulate statistics. Passing None for arg is common.
 
-    :param top:
-    :param func:
-    :param arg:
-    :return:
+    :param top: The directory that should be taken as root. The root dir will also be included in the processing.
+    :param func: The function that should be executed.
+    :param arg: The arguments for that function.
     """
     try:
         names = os.listdir(top)
@@ -418,7 +417,8 @@ class RepoSync(object):
         This function translates yum repository options into the appropriate options for python-requests
 
         :param yumopts: The options to convert.
-        :return: A touple with the cert and a boolean if it should be verified or not.
+        :return: A tuple with the cert and a boolean if it should be verified or not.
+        :rtype: (str, bool)
         """
         # use SSL options if specified in yum opts
         if 'sslclientkey' and 'sslclientcert' in yumopts:

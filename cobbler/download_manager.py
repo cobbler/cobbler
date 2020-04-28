@@ -47,7 +47,7 @@ class DownloadManager(object):
         :param url: The URL the request.
         :param proxies: Override the default Cobbler proxies.
         :param cert: Override the default Cobbler certs.
-        :returns: The Python requests.Response object.
+        :returns: The Python ``requests.Response`` object.
         """
         if proxies is None:
             proxies = self.proxies

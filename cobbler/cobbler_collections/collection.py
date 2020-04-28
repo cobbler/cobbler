@@ -199,11 +199,10 @@ class Collection(object):
 
     def from_list(self, _list):
         """
-        Convert a collection from a list from into the item dictionary again.
+        Create all collection object items from ``_list``.
 
-        :param _list:
+        :param _list: The list with all item dictionaries.
         :type _list: list
-        :return:
         """
         if _list is None:
             return
@@ -441,8 +440,9 @@ class Collection(object):
         :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
                                             systems.
         :type check_for_duplicate_netinfo: bool
-        :return:
+        :raises CX: If a duplicate is found
         """
+        # ToDo: Use return bool type to indicate duplicates and only throw CX in real error case.
         # always protect against duplicate names
         if check_for_duplicate_names:
             match = None

@@ -66,7 +66,6 @@ def import_walker(top, func, arg):
     :param top: The most top directory for which func should be run.
     :param func: A function which is called as described in the above description.
     :param arg: Passing ``None`` for this is common.
-    :return:
     """
     try:
         names = os.listdir(top)
@@ -451,9 +450,10 @@ class ImportSignatureManager(object):
         Function for recursively searching through a directory for a kernel file matching a given architecture, called
         by ``learn_arch_from_tree()``
 
-        :param foo:
-        :param dirname:
-        :param fnames:
+        :param foo: Into this dict there will be put additional meta information.
+        :type foo: dict
+        :param dirname: The directory name where the kernel can be found.
+        :param fnames: This should be a list like object which will be looped over.
         """
 
         re_krn = re.compile(self.signature["kernel_arch"])

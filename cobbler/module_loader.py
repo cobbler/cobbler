@@ -128,7 +128,7 @@ def get_module_name(category, field, fallback_module_name=None):
     :type field: str
     :param fallback_module_name: Default value used if category/field is not found in configuration file
     :type fallback_module_name: str
-    :raises: CX if unable to find configuration file
+    :raises CX: if unable to find configuration file
     :returns: module name
     :rtype: str
     """

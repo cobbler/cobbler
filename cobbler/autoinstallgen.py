@@ -102,13 +102,13 @@ class AutoInstallationGen(object):
 
     def generate_autoyast(self, profile=None, system=None, raw_data=None):
         """
-        Generate an AutoYaST script for a specific system or general profile. Only a system OR profile can be supplied,
-        NOT both.
+        Generate auto installation information for SUSE distribution (AutoYaST XML file) for a specific system or
+        general profile. Only a system OR profile can be supplied, NOT both.
 
         :param profile: The profile to generate the AutoYaST file for.
         :param system: The system to generate the AutoYaST file for.
         :param raw_data: The raw data which should be included in the profile.
-        :return: The generated script as a string.
+        :return: The generated AutoYaST XML file.
         :rtype: str
         """
         self.api.logger.info("AutoYaST XML file found. Checkpoint: profile=%s system=%s" % (profile, system))

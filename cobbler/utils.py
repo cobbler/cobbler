@@ -92,8 +92,8 @@ main_logger = None  # the logger will be lazy loaded later
 
 def die(logger, msg):
     """
-    This method arifically let's Cobbler crash with an exception. Log the exception once in the per-task log or the main
-    log if this is not a background op.
+    This method let's Cobbler crash with an exception. Log the exception once in the per-task log or the main log if
+    this is not a background op.
 
     :param logger:
     :param msg:
@@ -119,7 +119,7 @@ def log_exc(logger):
     """
     Log an exception.
 
-    :param logger:
+    :param logger: The logger to audit all action.
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occured: %s" % t)
@@ -131,9 +131,9 @@ def get_exc(exc, full=True):
     """
     This tries to analyze if an exception comes from Cobbler and potentially enriches or shortens the exception.
 
-    :param exc:
-    :param full:
-    :return:
+    :param exc: The exception which should be analyzed.
+    :param full: If the full exception should be returned or only the most important information.
+    :return: The exception which has been converted into a string which then can be logged easily.
     """
     (t, v, tb) = sys.exc_info()
     buf = ""
@@ -185,7 +185,7 @@ def get_host_ip(ip, shorten=True):
     Return the IP encoding needed for the TFTP boot tree.
 
     :param ip: The IP address to pretty print.
-    :param shorten: Wheather the IP-Address should be shortened or not.
+    :param shorten: Whether the IP-Address should be shortened or not.
     :rtype: str
     """
 
@@ -221,7 +221,8 @@ def is_ip(strdata):
     """
     Return whether the argument is an IP address.
 
-    :param strdata: str
+    :param strdata: The IP in a string format. This get's passed to the IP object of Python.
+    :type strdata: str
     :rtype: bool
     """
     try:
@@ -377,7 +378,7 @@ def remove_yum_olddata(path, logger=None):
     # FIXME: verify this is still being used
 
     :param path: The path to check for .olddata files.
-    :param logger: The logger to autdit this action with.
+    :param logger: The logger to audit this action with.
     """
     trythese = [
         ".olddata",
@@ -584,7 +585,7 @@ def input_boolean(value):
     """
     Convert a str to a boolean. If this is not possible or the value is false return false.
 
-    :param value: The value to convet to boolean.
+    :param value: The value to convert to boolean.
     :type value: str
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     :rtype: bool
@@ -601,7 +602,7 @@ def update_settings_file(data):
     Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
 
     :param data: The data to put into the settings file.
-    :return: True if the action succeded. Otherwise return nothing.
+    :return: True if the action succeeded. Otherwise return nothing.
     :rtype: bool
     """
     if 1:
@@ -713,7 +714,7 @@ def flatten(data):
     Convert certain nested dicts to strings. This is only really done for the ones koan needs as strings this should
     not be done for everything
 
-    :param data: The dictionary where various keys should be converted into a string.
+    :param data: The dictionary in which various keys should be converted into a string.
     :rtype: dict
     :return: None (if data is None) or the flattened string.
     :rtype: None or dict
@@ -774,7 +775,7 @@ def __consolidate(node, results):
     treated specially.
 
     :param node: The object to merge data into. The data from the node always wins.
-    :param results: The results dictionary.
+    :param results: Merged data as dictionary
     """
     node_data = node.to_dict()
 
@@ -887,12 +888,12 @@ def rsync_files(src, dst, args, logger=None, quiet=True):
     Sync files from src to dst. The extra arguments specified by args are appended to the command.
 
     :param src: The source for the copy process.
-    :param dst: The destionation for the copy process.
+    :param dst: The destination for the copy process.
     :param args: The extra arguments are appended to our standard arguements.
     :param logger: The logger to audit the action with.
     :param quiet: If "True" no progress is reported. If "False" then progress will be reported by rsync.
     :type quiet: bool
-    :return:
+    :return: ``True`` on success, otherwise ``False``.
     """
 
     if args is None:
@@ -1231,7 +1232,7 @@ def copyfile(src, dst, api=None, logger=None):
     Copy a file from source to the destination.
 
     :param src: The source file. This may also be a folder.
-    :param dst: The destion for the file or folder.
+    :param dst: The destination for the file or folder.
     :param api: This parameter is not used currently.
     :param logger: The logger to audit the action with.
     """
@@ -1729,7 +1730,7 @@ def is_selinux_enabled():
     """
     This check is achieved via a subprocess call to ``selinuxenabled``. Default return is false.
 
-    :return: Weather selinux is enabled or not.
+    :return: Whether selinux is enabled or not.
     :rtype: bool
     """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
@@ -1770,10 +1771,11 @@ class MntEntObj(object):
 
     def __dict__(self):
         """
-        This mapps all variables available in this class to a dictionary. The name of the keys is identical to the names
+        This maps all variables available in this class to a dictionary. The name of the keys is identical to the names
         of the variables.
 
-        :return:
+        :return: The dictionary representation of an instance of this class.
+        :rtype: dict
         """
         return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, "mnt_type": self.mnt_type,
                 "mnt_opts": self.mnt_opts, "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
@@ -1793,7 +1795,7 @@ def get_mtab(mtab="/etc/mtab", vfstype=None):
     """
     Get the list of mtab entries. If a custum mtab should be read then the location can be overriden via a parameter.
 
-    :param mtab: The location of the mtab. Arguemnt can be ommited if the mtab is at its default location.
+    :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :param vfstype: If this is True, then all filesystems which are nfs are returned. Otherwise this returns all mtab
                     entries.
     :type vfstype: bool
@@ -1868,7 +1870,7 @@ def __cache_mtab__(mtab="/etc/mtab"):
     """
     Open the mtab and cache it inside Cobbler. If it is guessed that the mtab hasn't changed the cache data is used.
 
-    :param mtab: The location of the mtab. Arguemnt can be ommited if the mtab is at its default location.
+    :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
     f = open(mtab)
@@ -1889,7 +1891,7 @@ def get_file_device_path(fname):
          /etc/fstab -> (/dev/sda4, /etc/fstab)
 
     :param fname: The filename to split up.
-    :return: A touple containing the device and relative filename.
+    :return: A tuple containing the device and relative filename.
     """
 
     # resolve any symlinks
@@ -1954,7 +1956,7 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
     :param shell: Whether to use a shell or not for the execution of the commmand.
     :type shell: bool
     :param input: If there is any input needed for that command to stdin.
-    :return: A touple of the output and the return code.
+    :return: A tuple of the output and the return code.
     """
     if logger is not None:
         logger.info("running: %s" % cmd)
@@ -2123,7 +2125,7 @@ def to_dict_from_fields(item, fields):
 
     :param item: Not known what this is needed for exactly.
     :param fields: Not known what this is needed for exactly.
-    :return: Not known what this is returning
+    :return: Returns a dictionary of the fields of an item (distro, profile,..).
     :rtype: dict
     """
     _dict = {}
@@ -2502,7 +2504,7 @@ def namedconf_location(api):
 
 def zonefile_base(api):
     """
-    This determins the base directory for the zone files which are important for the named service which Cobbler tries
+    This determines the base directory for the zone files which are important for the named service which Cobbler tries
     to configure.
 
     :param api: This parameter is currently unused.
@@ -2588,8 +2590,8 @@ def find_distro_path(settings, distro):
     contain the kernel, the directory of the kernel in the distro is returned.
 
     :param settings: The settings to resolve user configurable actions with.
-    :param distro: The distroibution to find the path of.
-    :return: The path to the distro files.
+    :param distro: The distribution to find the path of.
+    :return: The path to the distribution files.
     """
     possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
     for dir in possible_dirs:

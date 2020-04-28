@@ -179,8 +179,8 @@ class DnsmasqManager(object):
 
     def regen_ethers(self):
         """
-        The regenerates the ethers file. To get more information please read ``man ethers``, the format is also in there
-        described.
+        This function regenerates the ethers file. To get more information please read ``man ethers``, the format is
+        also in there described.
         """
         # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
         # system.

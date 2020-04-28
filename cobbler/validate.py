@@ -42,7 +42,7 @@ def object_name(name, parent):
 
     :param name: object name
     :type name: str
-    :param parent: (parent object name)
+    :param parent: Parent object name
     :type parent: str
     :returns: name or CX
     :rtype: str
@@ -66,9 +66,10 @@ def hostname(dnsname):
     """
     Validate the dns name.
 
-    :param dnsname: (hostname or fqdn)
+    :param dnsname: Hostname or FQDN
     :type dnsname: str
-    :returns: dnsname or CX
+    :returns: dnsname
+    :raises CX: If the Hostname/FQDN is not a string or in an invalid format.
     :rtype: str
     """
     if not isinstance(dnsname, str):
@@ -223,7 +224,7 @@ def name_servers_search(search, for_item=True):
     """
     Validate nameservers search domains.
 
-    :param search: One more more search domains to validate.
+    :param search: One or more search domains to validate.
     :type search: str or list
     :param for_item: (enable/disable special handling for Item objects)
     :return: The list of valid nameservers.

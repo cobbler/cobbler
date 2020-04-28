@@ -73,16 +73,16 @@ class CollectionManager(object):
         Cobbler itself does not use this GUID's though they are provided to allow for easier API linkage with other
         applications. Cobbler uses unique names in each collection as the object id aka primary key.
 
-        :return:
+        :return: A version 4 UUID according to the python implementation of RFC 4122.
         """
         return uuid.uuid4().hex
 
     def __cmp(self, a, b):
         """
-        Compoare object a to object b and determine which is greater. Comparing is done via the object names.
+        Compare object a to object b and determine which is greater. Comparing is done via the object names.
 
         :param a: The first object to compare.
-        :param b: The second object to compoare.
+        :param b: The second object to compare.
         :return: Whether the first or second object is greater.
         """
         return cmp(a.name, b.name)

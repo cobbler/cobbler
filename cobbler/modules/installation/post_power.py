@@ -38,7 +38,7 @@ def run(api, args, logger):
                  0: String with the content "target" or "profile".
                  1: The name of target or profile
     :param logger: Unused parameter for this hook.
-    :return:
+    :return: ``0`` on success.
     """
     # FIXME: make everything use the logger
 
