@@ -20,7 +20,7 @@ DATABASE_HOST = ''
 DATABASE_PORT = ''
 
 # Force Django to use the systems timezone
-TIME_ZONE = None
+TIME_ZONE = False
 
 # Language section
 # TBD.
