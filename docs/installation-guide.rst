@@ -113,13 +113,15 @@ To install Cobbler from source on a Debian-Based system, the following steps nee
     $ apt-get -y install apache2 libapache2-mod-wsgi-py3
     $ apt-get -y install atftpd
     # In case you want cobbler-web
-    $ apt-get -y install python-django
+    $ apt-get -y install python3-django
 
     $ a2enmod proxy
     $ a2enmod proxy_http
     $ a2enmod rewrite
 
     $ ln -s /srv/tftp /var/lib/tftpboot
+
+    $ systemctl restart apache2
 
 Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/``
 Init script:
@@ -167,7 +169,8 @@ the correct directory and that the path to the binary may be wrong depending on 
 system. Do this manually and then you should be good to go. The same is valid for the Apache2 webserver config.
 
 Also note that this is not enough to run Cobbler-Web. Cobbler web needs the directories ``/usr/share/cobbler/web``
-with the file ``cobbler.wsgi`` in it. This is currently a manual step.
+with the file ``cobbler.wsgi`` in it. This is currently a manual step. Also remember to manually enter a value for
+``SECRET_KEY`` in ``settings.py`` and copy that to above mentioned directory as well as the templates directory.
 
 .. _relocating-your-installation:
 
