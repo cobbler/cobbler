@@ -29,7 +29,6 @@ import functools
 import os
 import os.path
 import pprint
-import string
 
 jinja2_available = False
 try:
@@ -118,7 +117,7 @@ class Templar(object):
             # language
             template_type = lines[0].split("=")[1].strip().lower()
             del lines[0]
-            raw_data = string.join(lines, "\n")
+            raw_data = "\n".join(lines)
 
         if template_type == "cheetah":
             data_out = self.render_cheetah(raw_data, search_table, subject)
