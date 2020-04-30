@@ -1620,7 +1620,7 @@ class CobblerAPI(object):
     def build_iso(self, iso=None,
                   profiles=None, systems=None, buildisodir=None, distro=None,
                   standalone=None, airgapped=None, source=None,
-                  exclude_dns=None, mkisofs_opts=None, logger=None):
+                  exclude_dns=None, xorrisofs_opts=None, logger=None):
         """
         Build an iso image which may be network bootable or not.
 
@@ -1633,13 +1633,13 @@ class CobblerAPI(object):
         :param airgapped:
         :param source:
         :param exclude_dns:
-        :param mkisofs_opts:
+        :param xorrisofs_opts:
         :param logger: The logger to audit the removal with.
         """
         builder = buildiso.BuildIso(self._collection_mgr, logger=logger)
         builder.run(
             iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone,
-            airgapped=airgapped, source=source, exclude_dns=exclude_dns, mkisofs_opts=mkisofs_opts
+            airgapped=airgapped, source=source, exclude_dns=exclude_dns, xorrisofs_opts=xorrisofs_opts
         )
 
     # ==========================================================================
