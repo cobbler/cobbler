@@ -32,8 +32,14 @@ class CobblerException(Exception):
         """
         Default constructor for the Exception.
 
-        :param value: Usage of this variable not clear.
-        :param args: Optional arguments which get passed to the Exception.
+        Bad example: ``CobblerException("Profile %s not found" % profile_name)``
+
+        Good example: ``CobblerException("Profile %s not found", profile_name)``
+
+        :param value: The string representation of the Exception. Do not glue strings and pass them as one. Instead pass
+                      them as params and let the constructor of the Exception build the string like (same as it should
+                      be done with logging calls). Example see above.
+        :param args: Optional arguments which replace a ``%s`` in a Python string.
         """
         self.value = value % args
         # this is a hack to work around some odd exception handling in older pythons

@@ -45,6 +45,7 @@ class CobblerSvc(object):
         :param server: The domain to run at.
         :param req: This parameter is unused.
         """
+        # ToDo: Remove req attribute.
         self.server = server
         self.remote = None
         self.req = req

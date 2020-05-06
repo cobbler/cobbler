@@ -1416,7 +1416,6 @@ class CobblerAPI(object):
         :param breed:
         :param os_version:
         :param logger: The logger to audit the removal with.
-        :return:
         """
         self.log("import_tree", [mirror_url, mirror_name, network_root, autoinstall_file, rsync_flags])
 
@@ -1686,7 +1685,6 @@ class CobblerAPI(object):
         :param use_ssl: Whether SSL should be used (True) or not (False).
         :type use_ssl: bool
         :param logger: The logger to audit the removal with.
-        :return:
         """
         replicator = replicate.Replicate(self._collection_mgr, logger=logger)
         return replicator.run(

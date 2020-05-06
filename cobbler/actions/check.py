@@ -134,6 +134,8 @@ class CobblerCheck(object):
         :param which: The service to check for.
         :param notes: A manual not to attach.
         """
+        # TODO: This should be improved. Removing would be hard has we need execute multiple service restarts, so this
+        #       needs to work.
         if notes != "":
             notes = " (NOTE: %s)" % notes
         rc = 0

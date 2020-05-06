@@ -19,8 +19,9 @@ DATABASE_PASSWORD = ''
 DATABASE_HOST = ''
 DATABASE_PORT = ''
 
-# Force Django to use the systems timezone
-TIME_ZONE = None
+# Force Django to use a specific timezone and TZ
+TIME_ZONE = 'UTC'
+USE_TZ = True
 
 # Language section
 # TBD.

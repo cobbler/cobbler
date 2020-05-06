@@ -127,7 +127,7 @@ class TFTPGen(object):
 
     def copy_single_image_files(self, img):
         """
-        Copys an image to the images directory of Cobbler.
+        Copies an image to the images directory of Cobbler.
 
         :param img: The image to copy.
         """
@@ -148,7 +148,6 @@ class TFTPGen(object):
 
         :param system: The system to generate files for.
         :param menu_items:
-        :return:
         """
         profile = system.get_conceptual_parent()
         if profile is None:
@@ -323,8 +322,7 @@ class TFTPGen(object):
 
     def get_menu_items(self, arch=None):
         """
-        Generates menu items for pxe and grub
-        grub menu items are grouped into submenues by profie
+        Generates menu items for pxe and grub. Grub menu items are grouped into submenus by profile.
 
         :param arch: The processor architecture to generate the menu items for. (Optional)
         :type arch: str
@@ -397,12 +395,14 @@ class TFTPGen(object):
 
         :param filename: If present this writes the output into the giving filename. If not present this method just
                          returns the generated configuration.
-        :param system: TODO
-        :param profile: TODO
-        :param distro: TODO
+        :param system: If you supply a system there are other templates used then when using only a profile/image/
+                       distro.
+        :param profile: The profile to generate the pxe-file for.
+        :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
+                       the templates.
         :param arch: The processor architecture to generate the pxefile for.
         :type arch: str
-        :param image: TODO
+        :param image: If you want to be able to deploy an image, supply this parameter.
         :param include_header: Not used parameter currently.
         :type include_header: bool
         :param metadata: Pass additional parameters to the ones being collected during the method.
@@ -621,10 +621,10 @@ class TFTPGen(object):
         """
         Builds the full kernel options line.
 
-        :param system: TODO
-        :param profile: TODO
-        :param distro: TODO
-        :param image: TODO
+        :param system: The system to generate the kernel options for.
+        :param profile: Although the system contains the profile please specify it explicitly here.
+        :param distro: Although the profile contains the distribution please specify it explicitly here.
+        :param image: The image to generate the kernel options for.
         :param arch: The processor architecture to generate the kernel options for.
         :type arch: str
         :param autoinstall_path: The autoinstallation path. Normally this will be a URL because you want to pass a link

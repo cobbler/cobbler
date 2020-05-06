@@ -50,9 +50,9 @@ class Report(object):
         """
         Return data from a subset of fields of some item
 
-        :param structure:
-        :param fields_list:
-        :return:
+        :param structure: The item structure to report.
+        :param fields_list: The list of fields which should be returned.
+        :return: The same item with only the given subset of information.
         """
         item = {}
 
@@ -301,7 +301,7 @@ class Report(object):
         :param report_name: The name of the report.
         :param report_type: The type of report to give.
         :param report_noheaders: Report without the headers. (May be useful for machine parsing)
-        :return:
+        :return: A report with all fields included pretty printed or machine readable.
         """
         # per-item hack
         if report_name:

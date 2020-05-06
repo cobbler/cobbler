@@ -43,6 +43,8 @@ except Exception:
 class Logger(object):
     """
     Logger class for Cobbler which is wrapped around the Python3 standard logger.
+
+    Please don't use this. Utilize the standard logger from Python3 so we can get rid of this eventually.
     """
     def __init__(self, logfile=None):
         """
@@ -60,7 +62,7 @@ class Logger(object):
 
     def critical(self, msg):
         """
-        A critical message which is related to a porblem which will halt Cobbler.
+        A critical message which is related to a problem which will halt Cobbler.
 
         :param msg: The message to be logged.
         :type msg: str
@@ -106,7 +108,8 @@ class Logger(object):
 
     def flat(self, msg):
         """
-        This uses the print function from the std library.
+        This uses the print function from the std library. Avoid using this. This is only used for the report command
+        in ``cobbler/actions/report.py``
 
         :param msg: The message to be logged.
         :type msg: str

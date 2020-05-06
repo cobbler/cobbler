@@ -41,7 +41,7 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
     :param resource: This parameter is not used currently.
     :param arg1: This parameter is not used currently.
     :param arg2: This parameter is not used currently.
-    :return: Alwys True
+    :return: Always True
     :rtype: bool
     """
     return True

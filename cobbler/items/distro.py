@@ -93,7 +93,7 @@ class Distro(item.Item):
         """
         Clone a distro object.
 
-        :return: The cloned object. Not persisted.
+        :return: The cloned object. Not persisted on the disk or in a database.
         """
         _dict = self.to_dict()
         cloned = Distro(self.collection_mgr)
@@ -157,7 +157,7 @@ class Distro(item.Item):
         checked, see docs in the utils module for ``find_kernel``.
 
         :param kernel:
-        :return:
+        :raises CX: If the kernel was not found
         """
         if kernel is None or kernel == "":
             raise CX("kernel not specified")

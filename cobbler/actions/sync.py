@@ -43,12 +43,12 @@ class CobblerSync(object):
         """
         Constructor
 
-        :param collection_mgr:
-        :param verbose:
-        :param dhcp:
-        :param dns:
-        :param logger:
-        :param tftpd:
+        :param collection_mgr: The collection manager instance which holds all information about cobbler.
+        :param verbose: Whether to log the actions performed in this module verbose or not.
+        :param dhcp: The DHCP manager which can update the DHCP config.
+        :param dns: The DNS manager which can update the DNS config.
+        :param logger: The logger to audit all action with.
+        :param tftpd: The TFTP manager which can update the TFTP config.
         """
         self.logger = logger
         if logger is None:

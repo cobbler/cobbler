@@ -171,8 +171,10 @@ class BuildIso(object):
 
         :param imagesdir: Currently unused parameter.
         :param isolinuxdir: The parent directory where the isolinux.cfg is located.
-        :param profiles: The filter to generate a netboot iso for. Set either this parameter or systems.
-        :param systems: The filter to generate a netboot iso for. Set either this paraemter or profiles.
+        :param profiles: The filter to generate a netboot iso for. You may specify multiple profiles on the CLI space
+                        separated.
+        :param systems: The filter to generate a netboot iso for. You may specify multiple systems on the CLI space
+                        separated.
         :param exclude_dns: If this is True then the dns server is skipped. None or False will set it.
         :type exclude_dns: bool or None
         """
@@ -482,7 +484,7 @@ class BuildIso(object):
         :param imagesdir: Unused Parameter.
         :param isolinuxdir: The parent directory where the file isolinux.cfg is located at.
         :param distname: The name of the Cobbler distribution.
-        :param filesource: Not know what this does exactly.
+        :param filesource: Not clear what this exactly does
         :param airgapped: Whether the repositories have to be locally available or the internet is reachable.
         :type airgapped: bool
         :param profiles: The list of profiles to include.

@@ -163,7 +163,7 @@ class Templar(object):
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values (though results are always returned)
         :param subject: is a profile or system object, if available (for snippet eval)
-        :return:
+        :return: The rendered Cheetah Template.
         """
 
         self.check_for_invalid_imports(raw_data)
@@ -227,7 +227,7 @@ class Templar(object):
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values
         :param subject: is a profile or system object, if available (for snippet eval)
-        :return:
+        :return: The rendered Jinja2 Template.
         """
 
         try:
