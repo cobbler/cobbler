@@ -416,7 +416,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'cobbler_collections'), libpath)
+        self._copy(os.path.join(self.statepath, 'collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -448,7 +448,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'cobbler_collections'), self.statepath)
+        self._copy(os.path.join(libpath, 'collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -467,8 +467,7 @@ class savestate(statebase):
 if __name__ == "__main__":
     # # Configurable installation roots for various data files.
 
-    # Trailing slashes on these vars is to allow for easy
-    # later configuration of relative paths if desired.
+    # Trailing slashes on these vars is to allow for easy later configuration of relative paths if desired.
     docpath = "share/man"
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
@@ -514,9 +513,14 @@ if __name__ == "__main__":
         name="cobbler",
         version=VERSION,
         description="Network Boot and Update Server",
-        long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, automatic OS installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
+        long_description="Cobbler is a network install server. Cobbler supports PXE, virtualized installs, "
+                         "and reinstalling existing Linux machines. The last two modes use a helper tool, 'koan', "
+                         "that integrates with cobbler. There is also a web interface 'cobbler-web'. Cobbler's "
+                         "advanced features include importing distributions from DVDs and rsync mirrors, automatic OS "
+                         "installation templating, integrated yum mirroring, and built-in DHCP/DNS Management. "
+                         "Cobbler has a XMLRPC API for integration with other applications.",
         author="Team Cobbler",
-        author_email="cobbler@lists.fedorahosted.org",
+        author_email="cobbler.project@gmail.com",
         url="https://cobbler.github.io",
         license="GPLv2+",
         setup_requires=[
@@ -620,7 +624,6 @@ if __name__ == "__main__":
             ("%sgrub_config/grub/system" % libpath, []),
             ("%sgrub_config/grub/system_link" % libpath, []),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
-            ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),
@@ -671,15 +674,15 @@ if __name__ == "__main__":
             ("%striggers/task/file/pre" % libpath, []),
             ("%striggers/task/file/post" % libpath, []),
             # Build empty directories to hold the database
-            ("%scobbler_collections" % libpath, []),
-            ("%scobbler_collections/distros" % libpath, []),
-            ("%scobbler_collections/images" % libpath, []),
-            ("%scobbler_collections/profiles" % libpath, []),
-            ("%scobbler_collections/repos" % libpath, []),
-            ("%scobbler_collections/systems" % libpath, []),
-            ("%scobbler_collections/mgmtclasses" % libpath, []),
-            ("%scobbler_collections/packages" % libpath, []),
-            ("%scobbler_collections/files" % libpath, []),
+            ("%scollections" % libpath, []),
+            ("%scollections/distros" % libpath, []),
+            ("%scollections/images" % libpath, []),
+            ("%scollections/profiles" % libpath, []),
+            ("%scollections/repos" % libpath, []),
+            ("%scollections/systems" % libpath, []),
+            ("%scollections/mgmtclasses" % libpath, []),
+            ("%scollections/packages" % libpath, []),
+            ("%scollections/files" % libpath, []),
             # logfiles
             ("%scobbler/kicklog" % logpath, []),
             ("%scobbler/syslog" % logpath, []),

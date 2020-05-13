@@ -32,6 +32,9 @@ import cobbler.api as capi
 from cobbler.cexceptions import CX
 
 
+libpath = "/var/lib/cobbler/collections"
+
+
 def register():
     """
     The mandatory Cobbler module registration hook.
@@ -58,7 +61,7 @@ def serialize_item(collection, item):
         raise CX("name unset for item!")
 
     collection_types = collection.collection_types()
-    filename = "/var/lib/cobbler/collections/%s/%s" % (collection_types, item.name)
+    filename = os.path.join(libpath, collection_types, item.name + ".json")
 
     _dict = item.to_dict()
 
@@ -87,7 +90,7 @@ def serialize_delete(collection, item):
     """
 
     collection_types = collection.collection_types()
-    filename = "/var/lib/cobbler/collections/%s/%s" % (collection_types, item.name)
+    filename = os.path.join(libpath, collection_types, item.name + ".json")
 
     filename += ".json"
     if os.path.exists(filename):
@@ -131,7 +134,8 @@ def deserialize_raw(collection_types):
     else:
         results = []
 
-        all_files = glob.glob("/var/lib/cobbler/collections/%s/*" % collection_types)
+        path = os.path.join(libpath, collection_types)
+        all_files = glob.glob("%s/*.json" % path)
 
         for f in all_files:
             fd = open(f)
