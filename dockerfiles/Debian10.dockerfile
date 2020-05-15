@@ -56,6 +56,7 @@ RUN apt-get update -qq && \
     patch \
     pax \
     git \
+    hardlink \
     apache2 \
     libapache2-mod-wsgi-py3 \
     systemd && \

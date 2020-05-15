@@ -160,8 +160,8 @@ def cheetah_exc(exc, full=False):
     """
     lines = get_exc(exc).split("\n")
     buf = ""
-    for l in lines:
-        buf += "# %s\n" % l
+    for line in lines:
+        buf += "# %s\n" % line
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
