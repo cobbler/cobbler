@@ -22,6 +22,7 @@ RUN dnf install -y          \
     python3-pycodestyle     \
     python3-setuptools      \
     python3-sphinx          \
+    python3-pip             \
     rpm-build
 
 # Runtime dependencies
