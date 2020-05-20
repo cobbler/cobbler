@@ -85,7 +85,7 @@ authors: ## Creates the AUTHORS file.
 
 sdist: authors ## Creates the sdist for release preparation.
 	@echo "creating: sdist"
-	@${PYTHON} setup.py sdist > /dev/null
+	@${PYTHON} setup.py sdist bdist_wheel
 
 release: clean qa authors sdist ## Creates the full release.
 	@echo "creating: release artifacts"
