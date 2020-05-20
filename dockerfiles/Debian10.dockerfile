@@ -25,6 +25,7 @@ RUN apt-get update -qq && \
     python-django-common \
     python3-cheetah  \
     python3-coverage \
+    python3-wheel   \
     python3-distro \
     python3-distutils \
     python3-django \

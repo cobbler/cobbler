@@ -15,6 +15,7 @@ RUN dnf install -y          \
     python-sphinx           \
     python3-coverage        \
     python3-devel           \
+    python3-wheel           \
     python3-distro          \
     python3-future          \
     python3-pep8            \

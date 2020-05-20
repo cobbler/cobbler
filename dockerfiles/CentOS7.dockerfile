@@ -20,6 +20,7 @@ RUN yum install -y          \
     python-sphinx           \
     python36-coverage       \
     python36-devel          \
+    python36-wheel          \
     python36-distro         \
     python36-future         \
     python36-pyflakes       \
