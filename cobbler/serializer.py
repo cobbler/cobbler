@@ -1,5 +1,5 @@
 """
-Serializer code for cobbler
+Serializer code for Cobbler
 Now adapted to support different storage backends
 
 Copyright 2006-2009, Red Hat, Inc and Others
@@ -34,7 +34,7 @@ LOCK_HANDLE = None
 
 
 def handler(num, frame):
-    print("Ctrl-C not allowed during writes.  Please wait.", file=sys.stderr)
+    print("Ctrl-C not allowed during writes. Please wait.", file=sys.stderr)
     return True
 
 
@@ -75,7 +75,7 @@ def serialize(collection):
     """
     Save a collection to disk
 
-    @param Collection collection collection
+    :param collection: The collection to serialize.
     """
 
     __grab_lock()
@@ -88,8 +88,8 @@ def serialize_item(collection, item):
     """
     Save a collection item to disk
 
-    @param Collection collection collection
-    @param Item item collection item
+    :param collection: The Cobbler collection to know the type of the item.
+    :param item: The collection item to serialize.
     """
 
     __grab_lock()
@@ -102,8 +102,8 @@ def serialize_delete(collection, item):
     """
     Delete a collection item from disk
 
-    @param Collection collection collection
-    @param Item item collection item
+    :param collection: The Cobbler collection to know the type of the item.
+    :param item: The collection item to delete.
     """
 
     __grab_lock()
@@ -114,10 +114,11 @@ def serialize_delete(collection, item):
 
 def deserialize(collection, topological=True):
     """
-    Load a collection from disk
+    Load a collection from disk.
 
-    @param Collection collection collection
-    @param bool topological
+    :param collection: The Cobbler collection to know the type of the item.
+    :param topological: Unkown parameter.
+    :type topological: bool
     """
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())
@@ -128,6 +129,9 @@ def deserialize(collection, topological=True):
 def __get_storage_module(collection_type):
     """
     Look up serializer in /etc/cobbler/modules.conf
+
+    :param collection_type: str
+    :returns: A Python module.
     """
     return module_loader.get_module_from_file("serializers", collection_type, "serializers.file")
 

@@ -47,8 +47,11 @@ if [ -z "$LOGFILES" ]; then
 fi
 
 start() {
+    python=python
+    [ -x /usr/libexec/platform-python ] && python=/usr/libexec/platform-python
+    [ -x /usr/bin/python3 ] && python=/usr/bin/python3
     echo -n $"Starting anamon: "
-    daemon /usr/local/sbin/anamon --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
+    daemon $python /usr/local/sbin/anamon --watchfile \"$LOGFILES\" --name $COBBLER_NAME --server $COBBLER_SERVER --port ${COBBLER_PORT:-80} --exit
     RETVAL=$?
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
     echo

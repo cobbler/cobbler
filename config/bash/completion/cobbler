@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 _cobbler_completions()
 {
@@ -12,18 +12,18 @@ _cobbler_completions()
     TYPE="distro profile system repo image mgmtclass package file aclsetup buildiso import list replicate report reposync sync validateks version signature get-loaders hardlink"
     ACTION="add edit copy list remove rename report"
     opts=(
-        [distro]="--name --owners --kernel --initrd --kopts --kopts-post --ksmeta --arch --breed --os-version --source-repos --depth --comment --tree-build-time --mgmt-classes --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --clobber --in-place  --help"
-        [profile]="--name --owners --distro --enable-gpxe --enable-menu --kickstart --kopts --ksmeta --proxy --repos --comment --virt-file-size --virt-ram --virt-type --virt-cpus --virt-path --virt-bridge --depth --dhcp-tag --server --name-servers --name-servers-search --mgmt-classes --mgmt-parameters --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --template-remote-kickstarts --clobber --in-place --parent  --help"
-        [system]="--name --owners --profile --image --status --mac --ip-address --hostname --kopts --kopts-post --ksmeta --kickstart --enable-gpxe --proxy --netboot-enabled --comment --depth --server --virt-path --virt-type --virt-cpus --virt-file-size --virt-disk-driver --virt-ram --virt-auto-boot --virt-pxe-boot --virt-bridge --power-address --power-user --power-pass --power-id --gateway --dns-name --name-servers --name-servers-search --ipv6-default-device --ipv6-autoconfiguration --mgmt-classes --mgmt-parameters --boot-files --fetchable-files --template-files --redhat-management-key --redhat-management-server --template-remote-kickstarts --repos-enabled --ldap-enabled --ldap-type --monit-enabled --cnames --interface --delete-interface --rename-interface --interface-type --interface-master --bonding-opts --static-routes --static --netmask --clobber --in-place  --help"
-        [repo]="--mirror --name --owners --comment --parent --rpmlist --creatrepo-flags --yumopts --proxy --keep-updated --environment --priority --arch --mirror-locally --breed --apt-components --apt-dists --depth --clobber --in-place --help"
-        [image]="--name --arch --breed --comment --ctime --mtime --file --depth --image-type --network-count --os-version --owners --parent --kickstart --virt-auto-boot --virt-bridge --virt-cpus --virt-file-size --virt-disk-driver --virt-path --virt-ram --virt-type --clobber --in-place --help"
-        [mgmtclass]="--name --owners --comment --class-name --is-definition --params --packages --files --depth --clobber --in-place --help"
-        [package]="--uid --depth --comment --ctime --mtime --owners --name --action --installer --version --clobber --in-place --help"
-        [file]="--uid --depth --comment --ctime --mtime --owners --name --is-dir --action --group --mode --owner --path --template --clobber --in-place --help"
-        [import]="--arch --breed --os-version --path --name --available-as --kickstart --rsync-flags --help"
+        [distro]="--ctime --depth --mtime --source-repos --tree-build-time --uid --arch --autoinstall-meta --boot-files --boot-loader --breed --comment --fetchable-files --initrd --kernel --kernel-options --kernel-options-post --mgmt-classes --name --os-version --owners --redhat-management-key --template-files --in-place --help"
+        [profile]="--ctime --depth --mtime --uid --autoinstall --autoinstall-meta --boot-files --comment --dhcp-tag --distro --enable-gpxe --enable-menu --fetchable-files --kernel-options --kernel-options-post --mgmt-classes --mgmt-parameters --name --name-servers --name-servers-search --next-server --owners --parent --proxy --redhat-management-key --repos --server --template-files --virt-auto-boot --virt-bridge --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-ram --virt-type --in-place --help"
+        [system]="--ctime --depth --ipv6-autoconfiguration --mtime --repos-enabled --uid --autoinstall --autoinstall-meta --boot-files --boot-loader --comment --enable-gpxe --fetchable-files --gateway --hostname --image --ipv6-default-device --kernel-options --kernel-options-post --mgmt-classes --mgmt-parameters --name --name-servers --name-servers-search --netboot-enabled --next-server --owners --power-address --power-id --power-pass --power-type --power-user --power-options --power-identity-file --profile --proxy --redhat-management-key --server --status --template-files --virt-auto-boot --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-pxe-boot --virt-ram --virt-type --serial-device --serial-baud-rate --bonding-opts --bridge-opts --cnames --interface, --connected-mode --interface) --dhcp-tag --dns-name --if-gateway --interface) --interface-master --interface-type --ip-address --ipv6-address --ipv6-default-gateway --ipv6-mtu --ipv6-prefix --ipv6-secondaries --interface) --ipv6-static-routes --mac-address --management --mtu --netmask --static --interface) --static-routes --virt-bridge --interface --delete-interface --rename-interface --in-place --help"
+        [repo]="--ctime --depth --mtime --parent --uid --apt-components --apt-dists --arch --breed --comment --createrepo-flags --environment --keep-updated --mirror --mirror-locally --name --owners --priority --proxy --rpm-list --yumopts --in-place --help"
+        [image]="--ctime --depth --mtime --parent --uid --arch --autoinstall --breed --comment --file --image-type --name --network-count --os-version --owners --virt-auto-boot --virt-bridge --virt-cpus --virt-disk-driver --virt-file-size --virt-path --virt-ram --virt-type --in-place --help"
+        [mgmtclass]="--ctime --depth --is-definition --mtime --uid --class-name --comment --files --name --owners --packages --params --in-place --help"
+        [package]="--ctime --depth --mtime --uid --action --comment --installer --name --owners --version --in-place --help"
+        [file]="--ctime --depth --mtime --uid --action --comment --group --is-dir --mode --name --owner --owners --path --template --in-place --help"
+        [import]="--arch --breed --os-version --path --name --available-as --autoinstall --rsync-flags --help"
         [buildiso]="--iso --profiles --systems --tempdir --distro --standalone --source --exclude-dns --mkisofs-opts --help"
     )
-    
+
     while :; do
         case "${prev}" in
             cobbler)
@@ -75,7 +75,7 @@ _cobbler_completions()
                 return 0
                 ;;
             *)
-               if [[ ${COMP_CWORD} > 2 ]]; then
+               if [[ ${COMP_CWORD} -gt 2 ]]; then
                    prev="${COMP_WORDS[2]}"
                else
                    return 0

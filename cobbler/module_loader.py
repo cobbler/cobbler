@@ -1,5 +1,5 @@
 """
-Module loader, adapted for cobbler usage
+Module loader, adapted for Cobbler usage
 
 Copyright 2006-2009, Red Hat, Inc and Others
 Adrian Likins <alikins@redhat.com>
@@ -40,11 +40,15 @@ mod_path = os.path.join(os.path.abspath(os.path.dirname(cobbler.__file__)), 'mod
 MODULE_CACHE = {}
 MODULES_BY_CATEGORY = {}
 
-cp = ConfigParser()
-cp.read("/etc/cobbler/modules.conf")
-
 
 def load_modules(module_path=mod_path, blacklist=None):
+    """
+    Load the modules from the path handed to the function into Cobbler.
+
+    :param module_path: The path which should be considered as the root module path.
+    :param blacklist: Currently an unused parameter.
+    :return: Two dictionary's with the dynamically loaded modules.
+    """
     logger = clogger.Logger()
 
     filenames = glob.glob("%s/*.py" % module_path)
@@ -78,6 +82,14 @@ def load_modules(module_path=mod_path, blacklist=None):
 
 
 def __import_module(module_path, modname, logger):
+    """
+    Import a module which is not part of the core functionality of Cobbler.
+
+    :param module_path: The path to the module.
+    :param modname: The name of the module.
+    :type modname: str
+    :param logger: The logger to audit the action with.
+    """
     try:
         blip = __import__("cobbler.modules.%s" % modname, globals(), locals(), [modname])
         if not hasattr(blip, "register"):
@@ -97,6 +109,12 @@ def __import_module(module_path, modname, logger):
 
 
 def get_module_by_name(name):
+    """
+    Get a module by its name. The category of the module is not needed.
+
+    :param name: The name of the module.
+    :return: The module asked by the function parameter.
+    """
     return MODULE_CACHE.get(name, None)
 
 
@@ -104,13 +122,18 @@ def get_module_name(category, field, fallback_module_name=None):
     """
     Get module name from configuration file
 
-    @param category str field category in configuration file
-    @param field str field in configuration file
-    @param fallback_module_name str default value used if category/field is
-            not found in configuration file
-    @raise CX if unable to find configuration file
-    @return str module name
+    :param category: Field category in configuration file.
+    :type category: str
+    :param field: Field in configuration file
+    :type field: str
+    :param fallback_module_name: Default value used if category/field is not found in configuration file
+    :type fallback_module_name: str
+    :raises CX: if unable to find configuration file
+    :returns: module name
+    :rtype: str
     """
+    cp = ConfigParser()
+    cp.read("/etc/cobbler/modules.conf")
 
     try:
         value = cp.get(category, field)
@@ -126,12 +149,14 @@ def get_module_from_file(category, field, fallback_module_name=None):
     """
     Get Python module, based on name defined in configuration file
 
-    @param category str field category in configuration file
-    @param field str field in configuration file
-    @param fallback_module_name str default value used if category/field is
-            not found in configuration file
-    @raise CX if unable to load Python module
-    @return module Python module
+    :param category: field category in configuration file
+    :type category: str
+    :param field: field in configuration file
+    :type field: str
+    :param fallback_module_name: default value used if category/field is not found in configuration file
+    :type fallback_module_name: str
+    :raises CX: If unable to load Python module
+    :returns: A Python module.
     """
 
     module_name = get_module_name(category, field, fallback_module_name)
@@ -142,6 +167,13 @@ def get_module_from_file(category, field, fallback_module_name=None):
 
 
 def get_modules_in_category(category):
+    """
+    Return all modules of a module category.
+
+    :param category: The category.
+    :return: A list of all modules of that category. Returns an empty list if the Category does not exist.
+    :rtype: list
+    """
     if category not in MODULES_BY_CATEGORY:
         return []
     return list(MODULES_BY_CATEGORY[category].values())

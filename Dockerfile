@@ -1,6 +1,6 @@
 # WARNING! This is not in any way production ready. It is just for testing!
 
-FROM opensuse/leap:15
+FROM opensuse/leap:15.2
 
 ENV container docker
 

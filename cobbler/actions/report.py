@@ -1,5 +1,5 @@
 """
-Report from a cobbler master.
+Report from a Cobbler master.
 FIXME: reinstante functionality for 2.0
 
 Copyright 2007-2009, Red Hat, Inc and Others
@@ -29,6 +29,9 @@ class Report(object):
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager to hold all information in Cobbler available.
+        :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -46,6 +49,10 @@ class Report(object):
     def fielder(self, structure, fields_list):
         """
         Return data from a subset of fields of some item
+
+        :param structure: The item structure to report.
+        :param fields_list: The list of fields which should be returned.
+        :return: The same item with only the given subset of information.
         """
         item = {}
 
@@ -70,6 +77,11 @@ class Report(object):
     def reporting_csv(self, info, order, noheaders):
         """
         Formats data on 'info' for csv output
+
+        :param info: The list of iteratable items for csv output.
+        :param order: The list of fields which are available in the csv file.
+        :param noheaders: Whether headers are printed to the output or not.
+        :return: The string with the csv.
         """
         outputheaders = ''
         outputbody = ''
@@ -104,6 +116,11 @@ class Report(object):
     def reporting_trac(self, info, order, noheaders):
         """
         Formats data on 'info' for trac wiki table output
+
+        :param info: The list of iteratable items for table output.
+        :param order: The list of fields which are available in the table file.
+        :param noheaders: Whether headers are printed to the output or not.
+        :return: The string with the generated table.
         """
         outputheaders = ''
         outputbody = ''
@@ -138,6 +155,11 @@ class Report(object):
     def reporting_doku(self, info, order, noheaders):
         """
         Formats data on 'info' for doku wiki table output
+
+        :param info: The list of iteratable items for table output.
+        :param order: The list of fields which are available in the table file.
+        :param noheaders: Whether headers are printed to the output or not.
+        :return: The string with the generated table.
         """
         outputheaders = ''
         outputbody = ''
@@ -173,6 +195,11 @@ class Report(object):
     def reporting_mediawiki(self, info, order, noheaders):
         """
         Formats data on 'info' for mediawiki table output
+
+        :param info: The list of iteratable items for table output.
+        :param order: The list of fields which are available in the table file.
+        :param noheaders: Whether headers are printed to the output or not.
+        :return: The string with the generated table.
         """
         outputheaders = ''
         outputbody = ''
@@ -219,6 +246,11 @@ class Report(object):
     def print_formatted_data(self, data, order, report_type, noheaders):
         """
         Used for picking the correct format to output data as
+
+        :param data: The list of iteratable items for table output.
+        :param order: The list of fields which are available in the table file.
+        :param noheaders: Whether headers are printed to the output or not.
+        :param report_type: The type of report which should be used.
         """
         if report_type == "csv":
             self.logger.flat(self.reporting_csv(data, order, noheaders))
@@ -231,13 +263,19 @@ class Report(object):
 
     def reporting_sorter(self, a, b):
         """
-        Used for sorting cobbler objects for report commands
+        Used for sorting Cobbler objects for report commands
+
+        :param a: The first object to compare.
+        :param b: The second object to compare.
+        :return: Whether the first or second object is greater or smaller.
         """
         return cmp(a.name, b.name)
 
     def reporting_print_sorted(self, collection):
         """
         Prints all objects in a collection sorted by name
+
+        :param collection: The collection to print.
         """
         collection = [x for x in collection]
         collection.sort(self.reporting_sorter)
@@ -247,6 +285,9 @@ class Report(object):
     def reporting_list_names2(self, collection, name):
         """
         Prints a specific object in a collection.
+
+        :param collection: The collections object to print a collection from.
+        :param name: The name of the collection to print.
         """
         obj = collection.get(name)
         if obj is not None:
@@ -255,6 +296,12 @@ class Report(object):
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders):
         """
         Prints all fields in a collection as a table given the report type
+
+        :param collection: The collection to report.
+        :param report_name: The name of the report.
+        :param report_type: The type of report to give.
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
+        :return: A report with all fields included pretty printed or machine readable.
         """
         # per-item hack
         if report_name:
@@ -300,6 +347,12 @@ class Report(object):
     def reporting_print_x_fields(self, collection, report_name, report_type, report_fields, report_noheaders):
         """
         Prints specific fields in a collection as a table given the report type
+
+        :param collection: The collection to report.
+        :param report_name: The name of the report.
+        :param report_type: The type of report to give.
+        :param report_fields: The fields which should be included in the report.
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         """
         # per-item hack
         if report_name:
@@ -333,9 +386,14 @@ class Report(object):
         1. Handles original report output
         2. Handles all fields of report outputs as table given a format
         3. Handles specific fields of report outputs as table given a format
+
+        :param report_what: What should be reported. May be "all".
+        :param report_name: The name of the report.
+        :param report_type: The type of report to give.
+        :param report_fields: The fields which should be included in the report.
+        :param report_noheaders: Report without the headers. (May be useful for machine parsing)
         """
         if report_type == 'text' and report_fields == 'all':
-
             for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package", "file"]:
                 if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name or report_what == "%ses" % collection_name:
                     if report_name:
@@ -347,13 +405,11 @@ class Report(object):
             utils.die(self.logger, "The 'text' type can only be used with field set to 'all'")
 
         elif report_type != 'text' and report_fields == 'all':
-
             for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package", "file"]:
                 if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name or report_what == "%ses" % collection_name:
                     self.reporting_print_all_fields(self.api.get_items(collection_name), report_name, report_type, report_noheaders)
 
         else:
-
             for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package", "file"]:
                 if report_what == "all" or report_what == collection_name or report_what == "%ss" % collection_name or report_what == "%ses" % collection_name:
                     self.reporting_print_x_fields(self.api.get_items(collection_name), report_name, report_type, report_fields, report_noheaders)

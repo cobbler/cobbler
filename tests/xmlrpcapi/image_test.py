@@ -1,93 +1,116 @@
 import pytest
 
+# TODO: Create fixture where image is create
 
-def tprint(call_name):
+
+@pytest.fixture(scope="function")
+def remove_item(remote, token):
     """
-    Print a remote call debug message
+    Remove an item with the given name.
 
-    @param call_name str remote call name
+    :param token: The fixture to have the token for authenticated strings available.
+    :param remote: The fixture to have the base xmlrpc connection.
     """
-
-    print("test remote call: %s()" % call_name)
+    def _remove_item(itemtype, name):
+        yield
+        remote.remove_item(itemtype, name, token)
+    return _remove_item
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestImage:
 
-    def _create_image(self, remote, token):
+    def test_create_image(self, remote, token):
         """
         Test: create/edit of an image object"""
 
-        images = remote.get_images(token)
+        # Arrange
 
-        tprint("new_image")
+        # Act
+        images = remote.get_images(token)
         image = remote.new_image(token)
 
-        tprint("modify_image")
+        # Assert
         assert remote.modify_image(image, "name", "testimage0", token)
-
-        tprint("save_image")
         assert remote.save_image(image, token)
-
         new_images = remote.get_images(token)
         assert len(new_images) == len(images) + 1
 
-    def _get_images(self, remote):
+    def test_get_images(self, remote):
         """
         Test: get images
         """
-        tprint("get_images")
+
+        # Arrange
+
+        # Act
         remote.get_images()
 
-    def _get_image(self, remote):
+        # Assert
+
+    def test_get_image(self, remote):
         """
         Test: Get an image object
         """
 
-        tprint("get_image")
+        # Arrange
+
+        # Act
+
+        # Assert
         image = remote.get_image("testimage0")
 
-    def _find_image(self, remote, token):
+    def test_find_image(self, remote, token):
         """
         Test: Find an image object
         """
 
-        tprint("find_image")
+        # Arrange
+
+        # Act
         result = remote.find_image({"name": "testimage0"}, token)
+
+        # Assert
         assert result
 
-    def _copy_image(self, remote, token):
+    def test_copy_image(self, remote, token):
         """
         Test: Copy an image object
         """
 
-        tprint("find_image")
+        # Arrange
+
+        # Act
         image = remote.get_item_handle("image", "testimage0", token)
+
+        # Assert
         assert remote.copy_image(image, "testimagecopy", token)
 
-    def _rename_image(self, remote, token):
+    def test_rename_image(self, remote, token, remove_item):
         """
         Test: Rename an image object
         """
-
-        tprint("rename_image")
+        # Arrange
+        name = "testimage1"
         image = remote.get_item_handle("image", "testimagecopy", token)
-        assert remote.rename_image(image, "testimage1", token)
 
-    def _remove_image(self, remote, token):
+        # Act
+        result = remote.rename_image(image, name, token)
+
+        # Cleanup
+        remove_item("image", name)
+
+        # Assert
+        assert result
+
+    def test_remove_image(self, remote, token):
         """
         Test: remove an image object
         """
 
-        tprint("remove_image")
-        assert remote.remove_image("testimage0", token)
-        assert remote.remove_image("testimage1", token)
+        # Arrange
 
-    def test_image(self, remote, token):
-        self._get_images(remote)
-        self._create_image(remote, token)
-        self._get_image(remote)
-        self._find_image(remote, token)
-        self._copy_image(remote, token)
-        self._rename_image(remote, token)
-        self._remove_image(remote, token)
+        # Act
+
+        # Assert
+        assert remote.remove_image("testimage0", token)

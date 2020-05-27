@@ -1,6 +1,6 @@
 """
 This module signs newly installed client puppet certificates if the
-puppet master server is running on the same machine as the cobbler
+puppet master server is running on the same machine as the Cobbler
 server.
 
 Based on:
@@ -12,14 +12,26 @@ import cobbler.utils as utils
 
 
 def register():
+    """
+    The mandatory Cobbler module registration hook.
+    """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
 def run(api, args, logger):
-    objtype = args[0]       # "system" or "profile"
-    name = args[1]          # name of system or profile
+    """
+    The obligatory Cobbler modules hook.
+
+    :param api: The api to resolve all information with.
+    :param args: This is an array with two items. The first may be ``system`` or ``profile`` and the second is the name
+                 of this system or profile.
+    :param logger: The logger to audit all actions with.
+    :return: ``0`` or nothing.
+    """
+    objtype = args[0]
+    name = args[1]
     # ip = args[2]          # ip or "?"
 
     if objtype != "system":

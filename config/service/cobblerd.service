@@ -4,8 +4,8 @@ After=syslog.target network.target
 Wants=@@httpd_service@@
 
 [Service]
-ExecStart=@@install_scripts@@/cobblerd -F
-ExecStartPost=-/usr/bin/touch @@install_data@@/share/cobbler/web/cobbler.wsgi
+ExecStart=/usr/bin/cobblerd -F
+ExecStartPost=-/usr/bin/touch /usr/share/cobbler/web/cobbler.wsgi
 PrivateTmp=yes
 KillMode=process
 

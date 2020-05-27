@@ -32,8 +32,14 @@ class Profiles(collection.Collection):
     template file.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "profile"
+
+    @staticmethod
+    def collection_types() -> str:
+        return "profiles"
+
 
     def factory_produce(self, collection_mgr, item_dict):
         """

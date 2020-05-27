@@ -29,7 +29,7 @@ import subprocess
 
 from builtins import OSError
 
-VERSION = "3.1.1"
+VERSION = "3.1.2"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
@@ -331,7 +331,7 @@ class install(_install):
             raise Exception("libpath is not absolute.")
         # libpath is hardcoded in the code everywhere
         # therefor cant relocate using self.root
-        path = os.path.join(libpath, 'webui_sessions')
+        path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except Exception as e:
@@ -416,7 +416,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'cobbler_collections'), libpath)
+        self._copy(os.path.join(self.statepath, 'collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -448,7 +448,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'cobbler_collections'), self.statepath)
+        self._copy(os.path.join(libpath, 'collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -467,8 +467,7 @@ class savestate(statebase):
 if __name__ == "__main__":
     # # Configurable installation roots for various data files.
 
-    # Trailing slashes on these vars is to allow for easy
-    # later configuration of relative paths if desired.
+    # Trailing slashes on these vars is to allow for easy later configuration of relative paths if desired.
     docpath = "share/man"
     etcpath = "/etc/cobbler/"
     libpath = "/var/lib/cobbler/"
@@ -484,13 +483,11 @@ if __name__ == "__main__":
         http_user = "wwwrun"
         httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
-    elif os.path.exists("/etc/debian_version"):
-        if os.path.exists("/etc/apache2/conf-available"):
-            webconfig = "/etc/apache2/conf-available"
-        else:
-            webconfig = "/etc/apache2/conf.d"
+    elif distro.id() in ("debian", "ubuntu"):
+        webconfig = "/etc/apache2/conf-available"
         webroot = "/var/www/"
         http_user = "www-data"
+        httpd_service = "apache2.service"
         defaultpath = "/etc/default/"
     else:
         webconfig = "/etc/httpd/conf.d"
@@ -516,9 +513,14 @@ if __name__ == "__main__":
         name="cobbler",
         version=VERSION,
         description="Network Boot and Update Server",
-        long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, automatic OS installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
+        long_description="Cobbler is a network install server. Cobbler supports PXE, virtualized installs, "
+                         "and reinstalling existing Linux machines. The last two modes use a helper tool, 'koan', "
+                         "that integrates with cobbler. There is also a web interface 'cobbler-web'. Cobbler's "
+                         "advanced features include importing distributions from DVDs and rsync mirrors, automatic OS "
+                         "installation templating, integrated yum mirroring, and built-in DHCP/DNS Management. "
+                         "Cobbler has a XMLRPC API for integration with other applications.",
         author="Team Cobbler",
-        author_email="cobbler@lists.fedorahosted.org",
+        author_email="cobbler.project@gmail.com",
         url="https://cobbler.github.io",
         license="GPLv2+",
         setup_requires=[
@@ -543,7 +545,7 @@ if __name__ == "__main__":
             "dnspython",
             "tornado",
         ],
-        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "coverage"]},
+        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "pytest-cov", "codecov"]},
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
@@ -569,6 +571,7 @@ if __name__ == "__main__":
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
+            ("sbin", ["bin/fence_ipmitool"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%stemplates" % libpath, glob("autoinstall_templates/*")),
@@ -600,7 +603,15 @@ if __name__ == "__main__":
                               "config/rsync/import_rsync_whitelist",
                               "config/rsync/rsync.exclude",
                               "config/version"]),
-            ("%s" % etcpath, glob("templates/etc/*")),
+            ("%s" % etcpath, glob("cobbler/etc/*")),
+            ("%s" % etcpath, ["templates/etc/named.template",
+                              "templates/etc/genders.template",
+                              "templates/etc/secondary.template",
+                              "templates/etc/zone.template",
+                              "templates/etc/dnsmasq.template",
+                              "templates/etc/rsync.template",
+                              "templates/etc/dhcp.template",
+                              "templates/etc/ndjbdns.template"]),
             ("%siso" % etcpath, glob("templates/iso/*")),
             ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             # completion_file
@@ -613,7 +624,6 @@ if __name__ == "__main__":
             ("%sgrub_config/grub/system" % libpath, []),
             ("%sgrub_config/grub/system_link" % libpath, []),
             ("%sreporting" % etcpath, glob("templates/reporting/*")),
-            ("%spower" % etcpath, glob("templates/power/*")),
             # Build empty directories to hold triggers
             ("%striggers/add/distro/pre" % libpath, []),
             ("%striggers/add/distro/post" % libpath, []),
@@ -649,6 +659,20 @@ if __name__ == "__main__":
             ("%striggers/sync/pre" % libpath, []),
             ("%striggers/sync/post" % libpath, []),
             ("%striggers/change" % libpath, []),
+            ("%striggers/task/distro/pre" % libpath, []),
+            ("%striggers/task/distro/post" % libpath, []),
+            ("%striggers/task/profile/pre" % libpath, []),
+            ("%striggers/task/profile/post" % libpath, []),
+            ("%striggers/task/system/pre" % libpath, []),
+            ("%striggers/task/system/post" % libpath, []),
+            ("%striggers/task/repo/pre" % libpath, []),
+            ("%striggers/task/repo/post" % libpath, []),
+            ("%striggers/task/mgmtclass/pre" % libpath, []),
+            ("%striggers/task/mgmtclass/post" % libpath, []),
+            ("%striggers/task/package/pre" % libpath, []),
+            ("%striggers/task/package/post" % libpath, []),
+            ("%striggers/task/file/pre" % libpath, []),
+            ("%striggers/task/file/post" % libpath, []),
             # Build empty directories to hold the database
             ("%scollections" % libpath, []),
             ("%scollections/distros" % libpath, []),
@@ -680,7 +704,7 @@ if __name__ == "__main__":
             # A script that isn't really data, wsgi script
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
-            ("%szone_templates" % etcpath, []),
+            ("%szone_templates" % etcpath, glob("templates/zone_templates/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

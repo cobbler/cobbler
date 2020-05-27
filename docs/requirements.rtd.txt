@@ -1,2 +1,8 @@
+netaddr
+Cheetah3
+django
+simplejson
+dnspython
+pyyaml
 distro
-coverage
+sphinx_rtd_theme

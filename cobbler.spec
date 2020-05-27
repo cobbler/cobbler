@@ -12,6 +12,16 @@
 # If it doesn't build on the Open Build Service (OBS) it's a bug.
 #
 
+# Force bash instead of Debian dash
+%global _buildshell /bin/bash
+
+# Work around quirk in OBS about handling defines...
+%if 0%{?el7}
+%{!?python3_pkgversion: %global python3_pkgversion 36}
+%else
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%endif
+
 %if 0%{?suse_version}
 %define apache_pkg apache2
 %define apache_dir /srv/www
@@ -27,6 +37,8 @@
 %define grub2_x64_efi_pkg grub2-x86_64-efi
 %define grub2_ia32_efi_pkg grub2-i386-efi
 %define system_release_pkg distribution-release
+%undefine python_enable_dependency_generator
+%undefine python_disable_dependency_generator
 %endif
 
 %if 0%{?debian} || 0%{?ubuntu}
@@ -36,7 +48,7 @@
 %define apache_user www-data
 %define apache_group www-data
 %define apache_log /var/log/apache2
-%define apache_webconfigdir /etc/apache2/conf.d
+%define apache_webconfigdir /etc/apache2/conf-available
 %define apache_mod_wsgi libapache2-mod-wsgi-py%{python3_pkgversion}
 %define tftpboot_dir /var/lib/tftpboot
 %define tftpsrv_pkg tftpd-hpa
@@ -57,7 +69,7 @@
 %define apache_mod_wsgi python%{python3_pkgversion}-mod_wsgi
 %define tftpboot_dir /var/lib/tftpboot
 %define tftpsrv_pkg tftp-server
-%define createrepo_pkg %{?el7:createrepo}%{!?el7:createrepo_c}
+%define createrepo_pkg createrepo_c
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
 %define system_release_pkg system-release
@@ -92,13 +104,6 @@
 # To ensure correct byte compilation
 %global __python %{__python3}
 
-# Work around quirk in OBS about handling defines...
-%if 0%{?el7}
-%{!?python3_pkgversion: %global python3_pkgversion 36}
-%else
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-%endif
-
 %if %{_vendor} == "debbuild"
 %global devsuffix dev
 %else
@@ -108,7 +113,7 @@
 %global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
 
 Name:           cobbler
-Version:        3.1.1
+Version:        3.1.2
 Release:        1%{?dist}
 Summary:        Boot server configurator
 URL:            https://cobbler.github.io/
@@ -116,6 +121,9 @@ URL:            https://cobbler.github.io/
 %if %{_vendor} == "debbuild"
 Packager:       Cobbler Developers <cobbler@lists.fedorahosted.org>
 Group:          admin
+%endif
+%if 0%{?suse_version}
+Group:          Productivity/Networking/Boot/Servers
 %else
 Group:          Development/System
 %endif
@@ -132,11 +140,15 @@ BuildRequires:  python-rpm-macros
 %endif
 %if %{_vendor} == "debbuild"
 BuildRequires:  python3-deb-macros
+BuildRequires:  apache2-deb-macros
+
 %endif
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
 BuildRequires:  python%{python3_pkgversion}-future
 BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-netaddr
+BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_sphinx}
 %if 0%{?suse_version}
 # Make post-build-checks happy by including these in the buildroot
@@ -197,6 +209,7 @@ Recommends:     syslinux
 # grub2 efi stuff is only available on x86
 Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
+Recommends:     logrotate
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if %{_vendor} == "debbuild"
@@ -237,13 +250,12 @@ http://server/cobbler_web to configure the install server.
 
 
 %prep
-%autosetup -p1
+%setup
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
 %endif
-
 
 %build
 %py3_build
@@ -264,6 +276,9 @@ mkdir -p %{buildroot}%{tftpboot_dir}/{boot,etc,grub,images{,2},ppc,pxelinux.cfg,
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
+%if 0%{?suse_version}
+ln -sf service %{buildroot}%{_sbindir}/rccobblerd
+%endif
 
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
@@ -280,7 +295,7 @@ if [ $1 -ge 2 ]; then
     if [ ! -d "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}" ]; then
         mkdir -p "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
     fi
-    for i in "config" "snippets" "kickstarts" "triggers" "scripts"; do
+    for i in "config" "snippets" "templates" "triggers" "scripts"; do
         if [ -d "%{_sharedstatedir}/cobbler/${i}" ]; then
             cp -r "%{_sharedstatedir}/cobbler/${i}" "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
         fi
@@ -294,6 +309,7 @@ fi
 %post
 %{py3_bytecompile_post %{name}}
 %{systemd_post cobblerd.service}
+%{apache2_module_post proxy_http}
 
 %preun
 %{py3_bytecompile_preun %{name}}
@@ -304,19 +320,44 @@ fi
 
 %else
 %post
+%if 0%{?suse_version}
+# Create bootloders into /var/lib/cobbler/loaders
+# Other distros might also want to do that
+%{_datadir}/%{name}/bin/mkgrub.sh >/dev/null 2>&1
+%endif
 %systemd_post cobblerd.service
 
 %preun
 %systemd_preun cobblerd.service
 
 %postun
+%if 0%{?suse_version}
+# This is mkgrub.sh cleanup (exeucted above in post):
+# remove linked and installed grub loader executables again
+if [ -e %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup ];then
+   for file in $(cat %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup);do
+       rm -f %{_localstatedir}/lib/cobbler/loaders/$file
+   done
+   rm -rf %{_localstatedir}/lib/cobbler/loaders/.cobbler_postun_cleanup
+fi
+%endif
 %systemd_postun_with_restart cobblerd.service
 %endif
 
 %post web
+%if %{_vendor} == "debbuild"
+# Work around broken attr support
+# Cf. https://github.com/debbuild/debbuild/issues/160
+chown %{apache_user}:%{apache_group} %{_datadir}/cobbler/web
+mkdir -p %{_sharedstatedir}/cobbler/webui_sessions
+chown %{apache_user}:root %{_sharedstatedir}/cobbler/webui_sessions
+chmod 700 %{_sharedstatedir}/cobbler/webui_sessions
+chown %{apache_user}:%{apache_group} %{apache_dir}/cobbler_webui_content/
+%endif
 # Change the SECRET_KEY option in the Django settings.py file
 # required for security reasons, should be unique on all systems
-RAND_SECRET=$(openssl rand -base64 40 | sed 's/\//\\\//g')
+# Choose from letters and numbers only, so no special chars like ampersand (&).
+RAND_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9!' | head -c 50 ; echo '')
 sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler/web/settings.py
 
 
@@ -324,13 +365,71 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %license COPYING
 %doc AUTHORS.in README.md
 %doc docs/developer-guide.rst docs/quickstart-guide.rst docs/installation-guide.rst
-%config(noreplace) %{_sysconfdir}/cobbler
+%dir %{_sysconfdir}/cobbler
+%config(noreplace) %{_sysconfdir}/cobbler/auth.conf
+%dir %{_sysconfdir}/cobbler/boot_loader_conf
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi5.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi51.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi55.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi60.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi65.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi67.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi5.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi6.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_freebsd.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_linux.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_windows.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grublocal.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubsystem.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxedefault.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal_ia64.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_arm.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_esxi.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_arm.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_esxi.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ia64.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ppc.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot_ppc.template
+%config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
+%config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
+%config(noreplace) %{_sysconfdir}/cobbler/dnsmasq.template
+%config(noreplace) %{_sysconfdir}/cobbler/genders.template
+%config(noreplace) %{_sysconfdir}/cobbler/import_rsync_whitelist
+%dir %{_sysconfdir}/cobbler/iso
+%config(noreplace) %{_sysconfdir}/cobbler/iso/buildiso.template
+%config(noreplace) %{_sysconfdir}/cobbler/logging_config.conf
+%config(noreplace) %{_sysconfdir}/cobbler/modules.conf
+%config(noreplace) %{_sysconfdir}/cobbler/mongodb.conf
+%config(noreplace) %{_sysconfdir}/cobbler/named.template
+%config(noreplace) %{_sysconfdir}/cobbler/ndjbdns.template
+%dir %{_sysconfdir}/cobbler/reporting
+%config(noreplace) %{_sysconfdir}/cobbler/reporting/build_report_email.template
+%config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
+%config(noreplace) %{_sysconfdir}/cobbler/rsync.template
+%config(noreplace) %{_sysconfdir}/cobbler/secondary.template
+%config(noreplace) %{_sysconfdir}/cobbler/settings
+%dir %{_sysconfdir}/cobbler/settings.d
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%config(noreplace) %{_sysconfdir}/cobbler/users.conf
+%config(noreplace) %{_sysconfdir}/cobbler/users.digest
+%config(noreplace) %{_sysconfdir}/cobbler/version
+%config(noreplace) %{_sysconfdir}/cobbler/zone.template
+%dir %{_sysconfdir}/cobbler/zone_templates
+%config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_sbindir}/tftpd.py
+%{_sbindir}/fence_ipmitool
 %dir %{_datadir}/cobbler
 %{_datadir}/cobbler/bin
 %{_mandir}/man1/cobbler.1*
@@ -340,9 +439,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{python3_sitelib}/cobbler/
 %{python3_sitelib}/cobbler-*
 %{_unitdir}/cobblerd.service
+%if 0%{?suse_version}
+%{_sbindir}/rccobblerd
+%endif
 %{tftpboot_dir}/*
 %{apache_dir}/cobbler
-%config(noreplace) %{_sharedstatedir}/cobbler
+%{_sharedstatedir}/cobbler
 %exclude %{_sharedstatedir}/cobbler/webui_sessions
 %{_localstatedir}/log/cobbler
 
@@ -350,9 +452,17 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %license COPYING
 %doc AUTHORS.in README.md
 %config(noreplace) %{apache_webconfigdir}/cobbler_web.conf
+%if %{_vendor} == "debbuild"
+# Work around broken attr support
+# Cf. https://github.com/debbuild/debbuild/issues/160
+%{_datadir}/cobbler/web
+%dir %{_sharedstatedir}/cobbler/webui_sessions
+%{apache_dir}/cobbler_webui_content/
+%else
 %attr(-,%{apache_user},%{apache_group}) %{_datadir}/cobbler/web
 %dir %attr(700,%{apache_user},root) %{_sharedstatedir}/cobbler/webui_sessions
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
+%endif
 
 
 %changelog
