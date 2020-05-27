@@ -1,4 +1,4 @@
-include COPYING AUTHORS README
+include COPYING AUTHORS
 include cobbler.spec config/service/cobblerd.service
 include AUTHORS.in README.md
 

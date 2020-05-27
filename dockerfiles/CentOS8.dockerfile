@@ -26,6 +26,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-sphinx            \
     platform-python-coverage  \
     python3-devel             \
+    python3-wheel             \
     python3-distro            \
     python3-future            \
     python3-pyflakes          \
