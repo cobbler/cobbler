@@ -481,6 +481,7 @@ if __name__ == "__main__":
     if suse_release:
         webconfig = "/etc/apache2/vhosts.d"
         webroot = "/srv/www/"
+        tftproot = "/srv/tftpboot/"
         http_user = "wwwrun"
         httpd_service = "apache2.service"
         defaultpath = "/etc/sysconfig/"
@@ -490,11 +491,13 @@ if __name__ == "__main__":
         else:
             webconfig = "/etc/apache2/conf.d"
         webroot = "/var/www/"
+        tftproot = "/srv/tftp/"
         http_user = "www-data"
         defaultpath = "/etc/default/"
     else:
         webconfig = "/etc/httpd/conf.d"
         webroot = "/var/www/"
+        tftproot = "/tftpboot/"
         http_user = "apache"
         defaultpath = "/etc/sysconfig/"
 
@@ -552,6 +555,7 @@ if __name__ == "__main__":
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),
+            'tftproot': os.path.normpath(tftproot),
             'defaultpath': os.path.normpath(defaultpath),
             'httpd_service': httpd_service,
         },
