@@ -72,7 +72,7 @@ class TestMiscellaneous:
         #                       '3.1.2', 'version_tuple': [3, 1, 2]}
         assert type(result) == dict
         assert type(result.get("version_tuple")) == list
-        assert [3, 1, 2] == result.get("version_tuple")
+        assert [3, 2, 0] == result.get("version_tuple")
 
     def test_find_items_paged(self, remote, token, create_distro, remove_distro):
         # Arrange
@@ -474,7 +474,7 @@ class TestMiscellaneous:
 
         # Assert
         # Will fail if the version is adjusted in the setup.py
-        assert result == 3.102
+        assert result == 3.2
 
     def test_xapi_object_edit(self, remote, token, remove_distro):
         # Arrange
