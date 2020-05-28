@@ -112,6 +112,8 @@
 
 %global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
 
+export WEBCONFIG="%{apache_webconfigdir}"  HTTP_USER="%{apache_user}" WEBROOT="/srv/www"; TFTPROOT="%tftpboot_dir"
+
 Name:           cobbler
 Version:        3.1.2
 Release:        1%{?dist}
@@ -258,11 +260,11 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 %endif
 
 %build
-%py3_build
+%{setup_env} %py3_build
 
 %install
 # bypass install errors ( don't chown in install step)
-%py3_install ||:
+%{setup_env} %py3_install ||:
 
 # cobbler
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf

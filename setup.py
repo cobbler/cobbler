@@ -477,23 +477,19 @@ if __name__ == "__main__":
     httpd_service = "httpd.service"
     suse_release = "suse" in distro.like()
 
-    if suse_release:
-        webconfig = "/etc/apache2/vhosts.d"
-        webroot = "/srv/www/"
-        http_user = "wwwrun"
-        httpd_service = "apache2.service"
-        defaultpath = "/etc/sysconfig/"
-    elif distro.id() in ("debian", "ubuntu"):
-        webconfig = "/etc/apache2/conf-available"
-        webroot = "/var/www/"
-        http_user = "www-data"
-        httpd_service = "apache2.service"
-        defaultpath = "/etc/default/"
-    else:
-        webconfig = "/etc/httpd/conf.d"
-        webroot = "/var/www/"
-        http_user = "apache"
-        defaultpath = "/etc/sysconfig/"
+
+    tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
+    http_user = os.environ.get('HTTP_USER', "wwwrun")
+    defaultpath = os.environ.get('DEFAULTPATH', "etc/sysconfig")
+    docpath = os.environ.get('DOCPATH', "share/man")
+    etcpath = os.environ.get('ETCPATH', "/etc/cobbler/")
+    libpath = os.environ.get('LIBPATH', "/var/lib/cobbler/")
+    logpath = os.environ.get('LOG_PATH', "/var/log")
+    completion_path = os.environ.get('COMPLETION_PATH', "/usr/share/bash-completion/completions")
+    statepath = os.environ.get('STATEPATH', "/tmp/cobbler_settings/devinstall")
+    httpd_service = os.environ.get('HTTPD_SERVICE', "httpd.service")
+    webconfig = os.environ.get('WEBCONFIG', "/etc/apache2/vhosts.d")
+    webroot = os.environ.get('WEBROOT', "/srv/www/")
 
     webcontent = webroot + "cobbler_webui_content/"
     webimages = webcontent + "/images"
@@ -554,6 +550,7 @@ if __name__ == "__main__":
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),
+            'tftproot': os.path.normpath(tftproot),
             'defaultpath': os.path.normpath(defaultpath),
             'httpd_service': httpd_service,
         },
