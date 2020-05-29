@@ -326,7 +326,7 @@ if [ "$1" = "upgrade" ]; then
 if [ $1 -ge 2 ]; then
 %endif
     # package upgrade: backup configuration
-    DATE=$(date "+%Y%m%d-%H%M%S")
+    DATE=$(date "+%%Y%%m%%d-%%H%%M%%S")
     if [ ! -d "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}" ]; then
         mkdir -p "%{_sharedstatedir}/cobbler/backup/upgrade-${DATE}"
     fi
