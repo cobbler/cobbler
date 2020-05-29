@@ -260,7 +260,8 @@ Requires:       %{apache_mod_wsgi}
 %if 0%{?fedora} || 0%{?rhel}
 Requires:       mod_ssl
 %endif
-Requires(post): openssl
+Requires(post): coreutils
+Requires(post): sed
 
 %description web
 Web interface for Cobbler that allows visiting
