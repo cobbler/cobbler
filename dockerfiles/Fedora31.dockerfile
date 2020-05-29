@@ -24,7 +24,8 @@ RUN dnf install -y          \
     python3-setuptools      \
     python3-sphinx          \
     python3-pip             \
-    rpm-build
+    rpm-build               \
+    which
 
 # Runtime dependencies
 RUN yum install -y          \

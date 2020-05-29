@@ -85,12 +85,14 @@ authors: ## Creates the AUTHORS file.
 
 sdist: authors ## Creates the sdist for release preparation.
 	@echo "creating: sdist"
-	@${PYTHON} setup.py sdist bdist_wheel
+	@source distro_build_configs.sh; \
+	${PYTHON} setup.py sdist bdist_wheel
 
 release: clean qa authors sdist ## Creates the full release.
 	@echo "creating: release artifacts"
 	@mkdir release
 	@cp dist/*.gz release/
+	@cp distro_build_configs.sh release/
 	@cp cobbler.spec release/
 
 test-centos7: ## Executes the testscript for testing cobbler in a docker container on CentOS7.
@@ -106,11 +108,13 @@ test-debian10: ## Executes the testscript for testing cobbler in a docker contai
 	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
 
 build: ## Runs the Python Build.
+	@source distro_build_configs.sh; \
 	${PYTHON} setup.py build -f
 
 install: build ## Runs the build target and then installs via setup.py
 	# Debian/Ubuntu requires an additional parameter in setup.py
-	@${PYTHON} setup.py install --root $(DESTDIR) -f
+	@source distro_build_configs.sh; \
+	${PYTHON} setup.py install --root $(DESTDIR) -f
 
 devinstall: ## This deletes the /usr/share/cobbler directory and then runs the targets savestate, install and restorestate.
 	-rm -rf $(DESTDIR)/usr/share/cobbler
@@ -119,12 +123,14 @@ devinstall: ## This deletes the /usr/share/cobbler directory and then runs the t
 	make restorestate
 
 savestate: ## This runs the setup.py task savestate.
-	@${PYTHON} setup.py -v savestate --root $(DESTDIR); \
+	@source distro_build_configs.sh; \
+	${PYTHON} setup.py -v savestate --root $(DESTDIR); \
 
 
 restorestate: ## This restores a state which was previously saved via the target savestate. (Also run via setup.py)
 	# Check if we are on Red Hat, Suse or Debian based distribution
-	@${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
+	@source distro_build_configs.sh; \
+	${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x
 	if [ -n "`getent passwd apache`" ] ; then \
 		chown -R apache $(DESTDIR)/var/www/cobbler; \

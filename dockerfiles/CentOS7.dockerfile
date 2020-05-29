@@ -28,7 +28,8 @@ RUN yum install -y          \
     python36-setuptools     \
     python36-requests       \
     python36-sphinx         \
-    rpm-build
+    rpm-build               \
+    which
 
 RUN yum install -y          \
 # Runtime dependencies

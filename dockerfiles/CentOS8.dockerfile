@@ -34,7 +34,8 @@ RUN touch /var/lib/rpm/* &&   \
     python3-setuptools        \
     python3-sphinx            \
     epel-rpm-macros           \
-    rpm-build
+    rpm-build                 \
+    which
 
 # Runtime dependencies
 RUN touch /var/lib/rpm/* &&   \
