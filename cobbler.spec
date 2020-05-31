@@ -128,8 +128,6 @@
 %global devsuffix devel
 %endif
 
-%global __requires_exclude_from ^%{python3_sitelib}/modules/serializer_mongodb.py*$
-
 Name:           cobbler
 Version:        3.2.0
 Release:        1%{?dist}
