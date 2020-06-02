@@ -446,5 +446,12 @@ proxy_url_int: ""
 # files into Jinja2 templates
 #jinja2_includedir: /var/lib/cobbler/jinja2
 
+# Up to now, cobblerd used $server's IP address instead of the DNS name in autoinstallation
+# file settings (pxelinux.cfg files) to save bytes, which seemed required for S/390 systems.
+# This behavior can have negative impact on installs with multi-homed cobbler servers, because
+# not all of the IP addresses may be reachable during system install.
+# This behavior was now made conditional, with default being "off".
+#convert_server_to_ip: 0
+
 # include other configuration snippets
 include: [ "/etc/cobbler/settings.d/*.settings" ]
