@@ -30,8 +30,13 @@ class Files(collection.Collection):
     Files provide a container for file resources.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "file"
+
+    @staticmethod
+    def collection_types() -> str:
+        return "files"
 
     def factory_produce(self, collection_mgr, item_dict):
         """

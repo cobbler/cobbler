@@ -3,7 +3,7 @@
 # Adrian Brzezinski <adrbxx@gmail.com>
 # License: GPLv2+
 #
-# Replace (or remove) records in DNS zone for systems created (or removed) by cobbler
+# Replace (or remove) records in DNS zone for systems created (or removed) by Cobbler
 #
 
 # DNS toolkit for Python
@@ -23,11 +23,22 @@ logf = None
 
 
 def nslog(msg):
+    """
+    Log a message to the logger.
+
+    :param msg: The message to log.
+    """
     if logf is not None:
         logf.write(msg)
 
 
 def register():
+    """
+    This method is the obligatory Cobbler registration hook.
+
+    :return: The trigger name or an empty string.
+    :rtype: str
+    """
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         return "/var/lib/cobbler/triggers/add/system/post/*"
     elif __name__ == "cobbler.modules.nsupdate_delete_system_pre":
@@ -37,6 +48,14 @@ def register():
 
 
 def run(api, args, logger):
+    """
+    This method executes the trigger, meaning in this case that it updates the dns configuration.
+
+    :param api: The api to read metadata from.
+    :param args: Metadata to log.
+    :param logger: The logger to audit the action with.
+    :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
+    """
     global logf
 
     action = None
@@ -52,7 +71,7 @@ def run(api, args, logger):
     if not str(settings.nsupdate_enabled).lower() in ["1", "yes", "y", "true"]:
         return 0
 
-    # read our settings
+    # Read our settings
     if str(settings.nsupdate_log) is not None:
         logf = open(str(settings.nsupdate_log), "a+")
         nslog(">> starting %s %s\n" % (__name__, args))
@@ -68,7 +87,8 @@ def run(api, args, logger):
         keyring_algo = str(settings.nsupdate_tsig_algorithm)
     else:
         keyring_algo = "HMAC-MD5.SIG-ALG.REG.INT"
-#     nslog( " algo %s, key %s : %s \n" % (keyring_algo,str(settings.nsupdate_tsig_key[0]), str(settings.nsupdate_tsig_key[1])) )
+    # nslog( " algo %s, key %s : %s \n" % (keyring_algo, str(settings.nsupdate_tsig_key[0]),
+    #                                      str(settings.nsupdate_tsig_key[1])) )
 
     # get information about this system
     system = api.find_system(args[0])
@@ -134,7 +154,8 @@ def run(api, args, logger):
             nslog('>> done\n')
             logf.close()
 
-            raise CX("nsupdate failed (response: %s, name: %s.%s, ip %s, name server %s)" % (rcode_txt, host, domain, host_ip, soa_mname))
+            raise CX("nsupdate failed (response: %s, name: %s.%s, ip %s, name server %s)"
+                     % (rcode_txt, host, domain, host_ip, soa_mname))
 
     nslog('>> done\n')
     logf.close()

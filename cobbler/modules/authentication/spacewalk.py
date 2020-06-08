@@ -29,24 +29,27 @@ import xmlrpc.client
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "authn"
 
 
 def __looks_like_a_token(password):
+    """
+    What spacewalk sends us could be an internal token or it could be a password if it's long and lowercase hex, it's
+    /likely/ a token, and we should try to treat it as a token first, if not, we should treat it as a password.  All of
+    this code is there to avoid extra XMLRPC calls, which are slow.
 
-    # what spacewalk sends us could be an internal token or it could be a password
-    # if it's long and lowercase hex, it's /likely/ a token, and we should try to treat
-    # it as a token first, if not, we should treat it as a password.  All of this
-    # code is there to avoid extra XMLRPC calls, which are slow.
-
-    # we can't use binascii.unhexlify here as it's an "odd length string"
+    :param password: The password which is possibly a token.
+    :return: True if it is possibly a token or False otherwise.
+    :rtype: bool
+    """
 
     if password.lower() != password:
-        # tokens are always lowercase, this isn't a token
+        # Tokens are always lowercase, this isn't a token.
         return False
 
+    # We can't use binascii.unhexlify here as it's an "odd length string".
     # try:
     #    #data = binascii.unhexlify(password)
     #    return True # looks like a token, but we can't be sure
@@ -60,11 +63,15 @@ def authenticate(api_handle, username, password):
     """
     Validate a username/password combo, returning True/False
 
-    This will pass the username and password back to Spacewalk
-    to see if this authentication request is valid.
+    This will pass the username and password back to Spacewalk to see if this authentication request is valid.
 
-    See also: http://www.redhat.com/spacewalk/documentation/api/0.4/
+    See also: https://github.com/uyuni-project/uyuni/blob/bbbbbf537a1928c1922015c70322034a89b1cb9a/java/code/src/com/redhat/rhn/frontend/xmlrpc/auth/AuthHandler.java#L133
 
+    :param api_handle: The api instance to retrieve settings of.
+    :param username: The username to authenticate agains spacewalk/uyuni/SUSE Manager
+    :param password: The password to authenticate agains spacewalk/uyuni/SUSE Manager
+    :return: True if it succeeded, False otherwise.
+    :rtype: bool
     """
 
     if api_handle is not None:
@@ -75,36 +82,29 @@ def authenticate(api_handle, username, password):
         user_enabled = True
 
     if server == "xmlrpc.rhn.redhat.com":
-        return False        # emergency fail, don't bother RHN!
+        # Emergency fail, don't bother RHN!
+        return False
 
     spacewalk_url = "https://%s/rpc/api" % server
-
     client = xmlrpc.client.Server(spacewalk_url, verbose=0)
 
     if __looks_like_a_token(password) or username == 'taskomatic_user':
-
-        # The tokens
-        # are lowercase hex, but a password can also be lowercase hex,
-        # so we have to try it as both a token and then a password if
-        # we are unsure.  We do it this way to be faster but also to avoid
-        # any login failed stuff in the logs that we don't need to send.
+        # The tokens are lowercase hex, but a password can also be lowercase hex, so we have to try it as both a token
+        # and then a password if we are unsure. We do it this way to be faster but also to avoid any login failed stuff
+        # in the logs that we don't need to send.
 
         try:
             valid = client.auth.checkAuthToken(username, password)
         except:
-            # if the token is not a token this will raise an exception
-            # rather than return an integer.
+            # If the token is not a token this will raise an exception rather than return an integer.
             valid = 0
 
-        # problem at this point, 0xdeadbeef is valid as a token but if that
-        # fails, it's also a valid password, so we must try auth system #2
+        # Problem at this point, 0xdeadbeef is valid as a token but if that fails, it's also a valid password, so we
+        # must try auth system #2
 
         if valid != 1:
-            # first API code returns 1 on success
-            # the second uses exceptions for login failed.
-            #
-            # so... token check failed, but maybe the username/password
-            # is just a simple username/pass!
+            # First API code returns 1 on success the second uses exceptions for login failed.
+            # So... token check failed, but maybe the username/password is just a simple username/pass!
 
             if user_enabled == 0:
                 # this feature must be explicitly enabled.
@@ -114,9 +114,8 @@ def authenticate(api_handle, username, password):
             try:
                 session = client.auth.login(username, password)
             except:
-                # FIXME: should log exceptions that are not excepted
-                # as we could detect spacewalk java errors here that
-                # are not login related.
+                # FIXME: Should log exceptions that are not excepted as we could detect spacewalk java errors here that
+                #        are not login related.
                 return False
 
             # login success by username, role must also match
@@ -127,9 +126,8 @@ def authenticate(api_handle, username, password):
         return True
 
     else:
-
-        # it's an older version of spacewalk, so just try the username/pass
-        # OR: we know for sure it's not a token because it's not lowercase hex.
+        # It's an older version of spacewalk, so just try the username/pass.
+        # OR: We know for sure it's not a token because it's not lowercase hex.
 
         if user_enabled == 0:
             # this feature must be explicitly enabled.

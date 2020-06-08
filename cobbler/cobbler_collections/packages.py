@@ -30,8 +30,13 @@ class Packages(collection.Collection):
     A package provides a container for package resources.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "package"
+
+    @staticmethod
+    def collection_types() -> str:
+        return "packages"
 
     def factory_produce(self, collection_mgr, item_dict):
         """

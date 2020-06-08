@@ -21,16 +21,21 @@ RUN touch /var/lib/rpm/* &&   \
     rsync                     \
     make                      \
     openssl                   \
+    mod_ssl                   \
+    initscripts               \
     python3-sphinx            \
     platform-python-coverage  \
     python3-devel             \
+    python3-wheel             \
     python3-distro            \
     python3-future            \
     python3-pyflakes          \
     python3-pycodestyle       \
     python3-setuptools        \
     python3-sphinx            \
-    rpm-build
+    epel-rpm-macros           \
+    rpm-build                 \
+    which
 
 # Runtime dependencies
 RUN touch /var/lib/rpm/* &&   \
@@ -44,7 +49,9 @@ RUN touch /var/lib/rpm/* &&   \
     python3-tornado           \
     python3-django            \
     python3-dns               \
-    createrepo                \
+    python3-ldap3             \
+    python3-pymongo           \
+    createrepo_c              \
     dnf-plugins-core          \
     xorriso                   \
     grub2-efi-ia32-modules    \
@@ -53,7 +60,6 @@ RUN touch /var/lib/rpm/* &&   \
     syslinux                  \
     tftp-server               \
     fence-agents
-
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

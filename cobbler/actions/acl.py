@@ -1,5 +1,5 @@
 """
-Configures acls for various users/groups so they can access the cobbler command
+Configures acls for various users/groups so they can access the Cobbler command
 line as non-root.  Now that CLI is largely remoted (XMLRPC) this is largely just
 useful for not having to log in (access to shared-secret) file but also grants
 access to hand-edit various cobbler_collections files and other useful things.
@@ -35,6 +35,9 @@ class AclConfig(object):
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager which holds all information about Cobbler.
+        :param logger: The logger to audit actions with.
         """
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
@@ -45,7 +48,12 @@ class AclConfig(object):
 
     def run(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
         """
-        Automate setfacl commands
+        Automate setfacl commands. Only one of the four may be specified but one option also must be specified.
+
+        :param adduser: Add a user to be able to manage Cobbler.
+        :param addgroup: Add a group to be able to manage Cobbler.
+        :param removeuser: Remove a user to be able to manage Cobbler.
+        :param removegroup: Remove a group to be able to manage Cobbler.
         """
 
         ok = False
@@ -65,7 +73,15 @@ class AclConfig(object):
             raise CX("no arguments specified, nothing to do")
 
     def modacl(self, isadd, isuser, who):
+        """
+        Modify the acls for Cobbler on the filesystem.
 
+        :param isadd: If true then the ``who`` will be added. If false then ``who`` will be removed.
+        :type isadd: bool
+        :param isuser: If true then the ``who`` may be a user. If false then ``who`` may be a group.
+        :type isuser: bool
+        :param who: The user or group to be added or removed.
+        """
         snipdir = self.settings.autoinstall_snippets_dir
         tftpboot = self.settings.tftpboot_location
 

@@ -32,9 +32,12 @@ import cobbler.api as capi
 from cobbler.cexceptions import CX
 
 
+libpath = "/var/lib/cobbler/collections"
+
+
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "serializer"
 
@@ -50,19 +53,15 @@ def serialize_item(collection, item):
     """
     Save a collection item to file system
 
-    @param collection Collection  collection
-    @param item Item collection item
+    :param collection: collection
+    :param item: collection item
     """
 
     if not item.name:
         raise CX("name unset for item!")
 
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
+    collection_types = collection.collection_types()
+    filename = os.path.join(libpath, collection_types, item.name + ".json")
 
     _dict = item.to_dict()
 
@@ -84,18 +83,14 @@ def serialize_item(collection, item):
 
 def serialize_delete(collection, item):
     """
-    Delete a collection item from file system
+    Delete a collection item from file system.
 
-    @param collection Collection collection
-    @param item Item collection item
+    :param collection: collection
+    :param item: collection item
     """
 
-    # FIXME: Need a better way to support collections/items
-    # appending an 's' does not work in all cases
-    if collection.collection_type() in ['mgmtclass']:
-        filename = "/var/lib/cobbler/collections/%ses/%s" % (collection.collection_type(), item.name)
-    else:
-        filename = "/var/lib/cobbler/collections/%ss/%s" % (collection.collection_type(), item.name)
+    collection_types = collection.collection_types()
+    filename = os.path.join(libpath, collection_types, item.name + ".json")
 
     filename += ".json"
     if os.path.exists(filename):
@@ -106,7 +101,7 @@ def serialize(collection):
     """
     Save a collection to file system
 
-    @param Collection collection collection
+    :param collection: collection
     """
 
     # do not serialize settings
@@ -116,11 +111,15 @@ def serialize(collection):
             serialize_item(collection, x)
 
 
-def deserialize_raw(collection_type):
+def deserialize_raw(collection_types):
+    """
+    Loads a collection from the disk.
 
-    # FIXME: code to load settings file should not be replicated in all
-    #   serializer subclasses
-    if collection_type == "settings":
+    :param collection_types: The type of collection to load.
+    :return: The loaded dictionary.
+    """
+    # FIXME: code to load settings file should not be replicated in all serializer subclasses.
+    if collection_types == "settings":
         fd = open("/etc/cobbler/settings")
         _dict = yaml.safe_load(fd.read())
         fd.close()
@@ -134,12 +133,9 @@ def deserialize_raw(collection_type):
         return _dict
     else:
         results = []
-        # FIXME: Need a better way to support collections/items
-        # appending an 's' does not work in all cases
-        if collection_type in ['mgmtclass']:
-            all_files = glob.glob("/var/lib/cobbler/collections/%ses/*" % collection_type)
-        else:
-            all_files = glob.glob("/var/lib/cobbler/collections/%ss/*" % collection_type)
+
+        path = os.path.join(libpath, collection_types)
+        all_files = glob.glob("%s/*.json" % path)
 
         for f in all_files:
             fd = open(f)
@@ -152,9 +148,11 @@ def deserialize_raw(collection_type):
 
 def filter_upgrade_duplicates(file_list):
     """
-    In a set of files, some ending with .json, some not, return
-    the list of files with the .json ones taking priority over
-    the ones that are not.
+    In a set of files, some ending with .json, some not, return the list of files with the .json ones taking priority
+    over the ones that are not.
+
+    :param file_list: The list of files to remove duplicates from.
+    :return: The filtered list of files. Normally this should only return ``.json``-Files.
     """
     bases = {}
     for f in file_list:
@@ -170,13 +168,14 @@ def filter_upgrade_duplicates(file_list):
 
 def deserialize(collection, topological=True):
     """
-    Load a collection from file system
+    Load a collection from file system.
 
-    @param Collection collection collection
-    @param bool topological
+    :param collection: The collection type the deserialize
+    :param topological: If the dict/list should be sorted or not.
+    :type topological: bool
     """
 
-    datastruct = deserialize_raw(collection.collection_type())
+    datastruct = deserialize_raw(collection.collection_types())
     if topological and type(datastruct) == list:
         # FIXME
         # datastruct.sort(key=__depth_cmp)
@@ -188,6 +187,13 @@ def deserialize(collection, topological=True):
 
 
 def __depth_cmp(item1, item2):
+    """
+    The compare function to sort a dict.
+
+    :param item1: The first item to compare.
+    :param item2: The second item to compare.
+    :return: Weather the first or second item is bigger!
+    """
     d1 = item1.get("depth", 1)
     d2 = item2.get("depth", 1)
     return cmp(d1, d2)

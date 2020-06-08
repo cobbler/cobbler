@@ -1,0 +1,11 @@
+# We don't want this warning because cobblerd is the server and cobbler would be the cli client.
+addFilter("W: incoherent-logrotate-file")
+
+# In our case okay because we do this as a community
+addFilter("W: hardcoded-packager-tag")
+
+# On Deb-based distros the deduplication would fail
+addFilter("cobbler.noarch: W: files-duplicate /usr/lib/python3.7/site-packages/cobbler")
+
+# We use the normal not suse specific macros
+addFilter("cobbler.noarch: W: systemd-service-without-service")

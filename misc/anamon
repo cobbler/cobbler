@@ -30,7 +30,10 @@ import time
 import re
 import base64
 import shlex
-from xmlrpc import client
+try:
+    from xmlrpc.client import Server
+except ImportError:
+    from xmlrpclib import Server
 
 
 # shlex.split support arrived in python-2.3, the following will provide some
@@ -59,7 +62,7 @@ class WatchedFile:
         self.seen_line[pattern] = 0
 
     def seen(self,pattern):
-        if self.seen_line.has_key(pattern):
+        if pattern in self.seen_line:
             return self.seen_line[pattern]
         else:
             return 0
@@ -77,7 +80,7 @@ class WatchedFile:
     def uploadWrapper(self, blocksize = 262144):
         """upload a file in chunks using the uploadFile call"""
         retries = 3
-        fo = file(self.fn, "r")
+        fo = open(self.fn, "rb")
         totalsize = os.path.getsize(self.fn)
         ofs = 0
         while True:
@@ -95,7 +98,7 @@ class WatchedFile:
             tries = 0
             while tries <= retries:
                 debug("upload_log_data('%s', '%s', %s, %s, ...)\n" % (name, self.alias, sz, offset))
-                if session.upload_log_data(name, self.alias, sz, offset, data):
+                if session.upload_log_data(name, self.alias, sz, offset, data.decode()):
                     break
                 else:
                     tries = tries + 1
@@ -132,7 +135,7 @@ class MountWatcher:
                 line = fd.readline()
                 if not line:
                     break
-                parts = string.split(line)
+                parts = line.split()
                 mp = parts[1]
                 if mp == self.mountpoint:
                     found = 1
@@ -256,7 +259,7 @@ while n < len(sys.argv):
     n = n+1
 
 # Create an xmlrpc session handle
-session = client.Server("http://%s:%s/cobbler_api" % (server, port))
+session = Server("http://%s:%s/cobbler_api" % (server, port))
 
 # Fork and loop
 if daemon:

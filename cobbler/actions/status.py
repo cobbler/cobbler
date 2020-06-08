@@ -44,6 +44,11 @@ class CobblerStatusReport(object):
     def __init__(self, collection_mgr, mode, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager which holds all information.
+        :param mode: This describes how Cobbler should report. Currently there only the option ``text`` can be set
+                     explicitly.
+        :param logger: The logger to audit all actions with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -58,7 +63,6 @@ class CobblerStatusReport(object):
     def scan_logfiles(self):
         """
         Scan the install log-files - starting with the oldest file.
-        :return:
         """
         unsorted_files = glob.glob("/var/log/cobbler/install.log*")
         files_dict = dict()
@@ -92,6 +96,18 @@ class CobblerStatusReport(object):
     # ------------------------------------------------------
 
     def catalog(self, profile_or_system, name, ip, start_or_stop, ts):
+        """
+        Add a system to ``cobbler status``.
+
+        :param profile_or_system: This can be ``system`` or ``profile``.
+        :type profile_or_system: str
+        :param name: The name of the object.
+        :type name: str
+        :param ip: The ip of the system to watch.
+        :param start_or_stop: This parameter may be ``start`` or ``stop``
+        :type start_or_stop: str
+        :param ts: Don't know what this does.
+        """
         ip_data = self.ip_data
 
         if ip not in ip_data:
@@ -123,6 +139,11 @@ class CobblerStatusReport(object):
     # -------------------------------------------------------
 
     def process_results(self):
+        """
+        Look through all systems which were collected and update the status.
+
+        :return: Return ``ip_data`` of the object.
+        """
         # FIXME: this should update the times here
         tnow = int(time.time())
         for ip in list(self.ip_data.keys()):
@@ -143,6 +164,11 @@ class CobblerStatusReport(object):
         return self.ip_data
 
     def get_printable_results(self):
+        """
+        Convert the status of Cobbler from a machine readable form to human readable.
+
+        :return: A nice formatted representation of the results of ``cobbler status``.
+        """
         format = "%-15s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data
         ips = list(ip_data.keys())

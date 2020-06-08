@@ -32,6 +32,9 @@ class ContentDownloader(object):
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The main collection manager instance which is used by the current running server.
+        :param logger: The logger object which logs to the desired target.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -41,11 +44,13 @@ class ContentDownloader(object):
 
     def run(self, force=False):
         """
-        Download bootloader content for all of the latest bootloaders, since the user
-        has chosen to not supply their own.  You may ask "why not get this from yum",
-        we also want this to be able to work on Debian and
-        further do not want folks to have to install a cross compiler.  For those that don't like this approach
-        they can still source their cross-arch bootloader content manually.
+        Download bootloader content for all of the latest bootloaders, since the user has chosen to not supply their
+        own. You may ask "why not get this from yum", we also want this to be able to work on Debian and further do not
+        want folks to have to install a cross compiler. For those that don't like this approach they can still source
+        their cross-arch bootloader content manually.
+
+        :param force: If the target path should be overwritten, even if there are already files present.
+        :type force: bool
         """
 
         content_server = "https://cobbler.github.io/loaders"

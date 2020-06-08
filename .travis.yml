@@ -12,19 +12,21 @@ addons:
       - python3-pip
 jobs:
   include:
-    - stage: testing
-      name: "Run unit tests"
-      before_script:
+    - stage: lint
+      name: "Linter"
+      script:
         - pip3 install pyflakes pycodestyle
         - pyflakes *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
         - pycodestyle -r --ignore E501,E402,E722,W504 *.py cobbler/*.py cobbler/modules/*.py cobbler/web/*.py cobbler/web/templatetags/*.py bin/cobbler* bin/*.py web/cobbler.wsgi
+    - stage: testing
+      name: "Run unit tests"
       script:
         - docker build -t cobbler .
         - docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /test_dir:${PWD} --name cobbler cobbler
-        - sleep 30
+        - sleep 10
         - docker logs cobbler
         - COMMIT_SHA=`git rev-parse HEAD`
-        - docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler; codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${COMMIT_SHA}"
+        - docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${COMMIT_SHA}"
     - stage: rpms
       name: "Build CentOS 7 RPMs"
       script: ./tests/build-and-install-rpms.sh el7 dockerfiles/CentOS7.dockerfile
@@ -32,11 +34,11 @@ jobs:
       name: "Build CentOS 8 RPMs"
       script: ./tests/build-and-install-rpms.sh el8 dockerfiles/CentOS8.dockerfile
     - stage: rpms
-      name: "Build Fedora 29 RPMs"
-      script: ./tests/build-and-install-rpms.sh fc29 dockerfiles/Fedora29.dockerfile
-    - stage: rpms
-      name: "Build Fedora 30 RPMs"
-      script: ./tests/build-and-install-rpms.sh fc30 dockerfiles/Fedora30.dockerfile
+      name: "Build Fedora 31 RPMs"
+      script: ./tests/build-and-install-rpms.sh fc31 dockerfiles/Fedora31.dockerfile
+    - stage: debs
+      name: "Build Debian 10 DEBs"
+      script: ./tests/build-and-install-debs.sh deb10 dockerfiles/Debian10.dockerfile
 notifications:
   webhooks:
     urls:

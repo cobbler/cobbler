@@ -24,24 +24,51 @@ from builtins import Exception
 
 
 class CobblerException(Exception):
+    """
+    This is the default Cobbler exception where all other exceptions are inheriting from.
+    """
 
     def __init__(self, value, *args):
+        """
+        Default constructor for the Exception.
+
+        Bad example: ``CobblerException("Profile %s not found" % profile_name)``
+
+        Good example: ``CobblerException("Profile %s not found", profile_name)``
+
+        :param value: The string representation of the Exception. Do not glue strings and pass them as one. Instead pass
+                      them as params and let the constructor of the Exception build the string like (same as it should
+                      be done with logging calls). Example see above.
+        :param args: Optional arguments which replace a ``%s`` in a Python string.
+        """
         self.value = value % args
-        # this is a hack to work around some odd exception handling
-        # in older pythons
+        # this is a hack to work around some odd exception handling in older pythons
         self.from_cobbler = 1
 
     def __str__(self):
+        """
+        This is the string representation of the base Cobbler Exception.
+        :return: self.value as a string represented.
+        """
         return repr(self.value)
 
 
 class CX(CobblerException):
+    """
+    This is a general exception which get's thrown often inside Cobbler.
+    """
     pass
 
 
 class FileNotFoundException(CobblerException):
+    """
+    This means that the required file was not found during the process of opening it.
+    """
     pass
 
 
 class NotImplementedException(CobblerException):
+    """
+    On the command line interface not everything is always implemented. This is the exception which stated this.
+    """
     pass

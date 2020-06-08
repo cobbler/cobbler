@@ -33,17 +33,26 @@ from cobbler.cexceptions import CX
 
 
 def register():
+    """
+    The mandatory Cobbler modules registration hook.
+
+    :return: Always "manage".
+    """
     return "manage"
 
 
 class DnsmasqManager(object):
     """
-    Handles conversion of internal state to the tftpboot tree layout
+    Handles conversion of internal state to the tftpboot tree layout.
     """
 
     def __init__(self, collection_mgr, logger, dhcp=None):
         """
         Constructor
+
+        :param collection_mgr: The collection manager to resolve all information with.
+        :param logger: The logger to audit all actions with.
+        :param dhcp: This parameter is unused currently.
         """
         self.logger = logger
         self.collection_mgr = collection_mgr
@@ -56,18 +65,36 @@ class DnsmasqManager(object):
         self.templar = templar.Templar(collection_mgr)
 
     def what(self):
+        """
+        This identifies the module.
+
+        :return: Will always return ``dnsmasq``.
+        """
         return "dnsmasq"
 
     def write_dhcp_lease(self, port, host, ip, mac):
+        """
+        Not used
+
+        :param port: Unused in this module implementation.
+        :param host: Unused in this module implementation.
+        :param ip: Unused in this module implementation.
+        :param mac: Unused in this module implementation.
+        """
         pass
 
     def remove_dhcp_lease(self, port, host):
+        """
+        Not used
+
+        :param port: Unused in this module implementation.
+        :param host: Unused in this module implementation.
+        """
         pass
 
     def write_dhcp_file(self):
         """
-        DHCP files are written when manage_dhcp is set in
-        /etc/cobbler/settings.
+        DHCP files are written when manage_dhcp is set in ``/etc/cobbler/settings``.
         """
 
         settings_file = "/etc/dnsmasq.conf"
@@ -107,13 +134,11 @@ class DnsmasqManager(object):
 
                 counter += 1
 
-                # In many reallife situations there is a need to control the IP address
-                # and hostname for a specific client when only the MAC address is available.
-                # In addition to that in some scenarios there is a need to explicitly
-                # label a host with the applicable architecture in order to correctly
-                # handle situations where we need something other than pxelinux.0.
-                # So we always write a dhcp-host entry with as much info as possible
-                # to allow maximum control and flexibility within the dnsmasq config
+                # In many reallife situations there is a need to control the IP address and hostname for a specific
+                # client when only the MAC address is available. In addition to that in some scenarios there is a need
+                # to explicitly label a host with the applicable architecture in order to correctly handle situations
+                # where we need something other than ``pxelinux.0``. So we always write a dhcp-host entry with as much
+                # info as possible to allow maximum control and flexibility within the dnsmasq config.
 
                 systxt = "dhcp-host=net:" + distro.arch.lower() + "," + mac
 
@@ -135,7 +160,7 @@ class DnsmasqManager(object):
                     system_definitions[dhcp_tag] = ""
                 system_definitions[dhcp_tag] = system_definitions[dhcp_tag] + systxt
 
-        # we are now done with the looping through each interface of each system
+        # We are now done with the looping through each interface of each system.
 
         metadata = {
             "insert_cobbler_system_definitions": system_definitions.get("default", ""),
@@ -153,9 +178,12 @@ class DnsmasqManager(object):
         self.templar.render(template_data, metadata, settings_file, None)
 
     def regen_ethers(self):
-        # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date
-        # every time we add a system.
-        # read 'man ethers' for format info
+        """
+        This function regenerates the ethers file. To get more information please read ``man ethers``, the format is
+        also in there described.
+        """
+        # dnsmasq knows how to read this database of MACs -> IPs, so we'll keep it up to date every time we add a
+        # system.
         fh = open("/etc/ethers", "w+")
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
@@ -171,8 +199,10 @@ class DnsmasqManager(object):
         fh.close()
 
     def regen_hosts(self):
-        # dnsmasq knows how to read this database for host info
-        # (other things may also make use of this later)
+        """
+        This rewrites the hosts file and thus also rewrites the dns config.
+        """
+        # dnsmasq knows how to read this database for host info (other things may also make use of this later)
         fh = open("/var/lib/cobbler/cobbler_hosts", "w+")
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
@@ -191,10 +221,16 @@ class DnsmasqManager(object):
         fh.close()
 
     def write_dns_files(self):
+        """
+        Not used
+        """
         # already taken care of by the regen_hosts()
         pass
 
     def sync_dhcp(self):
+        """
+        This restarts the dhcp server and thus applied the newly written config files.
+        """
         restart_dhcp = str(self.settings.restart_dhcp).lower()
         if restart_dhcp != "0":
             rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
@@ -205,4 +241,11 @@ class DnsmasqManager(object):
 
 
 def get_manager(collection_mgr, logger):
+    """
+    Creates a manager object to manage a dnsmasq server.
+
+    :param collection_mgr: The collection manager to resolve all information with.
+    :param logger: The logger to audit all actions with.
+    :return: The object generated from the class.
+    """
     return DnsmasqManager(collection_mgr, logger)

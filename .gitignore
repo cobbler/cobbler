@@ -5,6 +5,7 @@
 *.class
 dist
 rpm-build
+deb-build
 release
 build
 MANIFEST
