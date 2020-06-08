@@ -1,3 +1,4 @@
+# Copyright (c) 2006 Michael DeHaan <mdehaan@redhat.com>
 #
 # RPM spec file for all Cobbler packages
 #
