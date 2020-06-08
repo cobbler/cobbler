@@ -604,6 +604,16 @@ if __name__ == "__main__":
             # files
             ("%s/grub_config/grub" % libpath, glob("config/grub/grub/*")),
             # dirs
+            ("%s/boot" % tftproot, []),
+            ("%s/etc" % tftproot, []),
+            ("%s/grub" % tftproot, []),
+            ("%s/images" % tftproot, []),
+            ("%s/images2" % tftproot, []),
+            ("%s/ppc" % tftproot, []),
+            ("%s/s390x" % tftproot, []),
+            ("%s/pxelinux.cfg" % tftproot, []),
+            ("%s/grub/system" % tftproot, []),
+            ("%s/grub/system_link" % tftproot, []),
             ("%s/grub_config/grub/system" % libpath, []),
             ("%s/grub_config/grub/system_link" % libpath, []),
             ("%s/reporting" % etcpath, glob("templates/reporting/*")),
