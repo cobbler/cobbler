@@ -148,7 +148,7 @@ Group:          Development/System
 %endif
 
 License:        GPL-2.0-or-later
-Source0:        https://github.com/cobbler/cobbler/archive/v%{version}/%{name}-%{version}.tar.gz
+Source:         %{name}-%{version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  git-core
