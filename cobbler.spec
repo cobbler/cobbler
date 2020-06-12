@@ -1,3 +1,4 @@
+# Copyright (c) 2006 Michael DeHaan <mdehaan@redhat.com>
 #
 # RPM spec file for all Cobbler packages
 #
@@ -145,7 +146,7 @@ Group:          Development/System
 %endif
 
 License:        GPL-2.0-or-later
-Source0:        https://github.com/cobbler/cobbler/archive/v%{version}/%{name}-%{version}.tar.gz
+Source:         %{name}-%{version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  git-core
@@ -303,9 +304,6 @@ rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
 
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
-
-# Create data directories in tftpboot_dir
-mkdir -p %{buildroot}%{tftpboot_dir}/{boot,etc,grub,images{,2},ppc,pxelinux.cfg,s390x}
 
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
