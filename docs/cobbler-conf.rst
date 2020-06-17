@@ -251,8 +251,7 @@ defaults:
 mgmt_*
 ======
 Cobbler has a feature that allows for integration with config management systems such as Puppet. The following
-parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at:
-https://github.com/cobbler/cobbler/wiki/Using-cobbler-with-a-configuration-management-system
+parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at :ref:`configuration-management`
 
 .. code-block:: Yaml
 
@@ -360,7 +359,7 @@ default: ``0``
 manage_*
 ========
 If using BIND (named) for DNS management in ``/etc/cobbler/modules.conf`` and manage_dns is enabled (above), this lists
-which zones are managed. See the Wiki (https://github.com/cobbler/cobbler/wiki/Dns-management) for more info
+which zones are managed. See :ref:`dns-management` for more information.
 
 defaults:
 
@@ -378,8 +377,7 @@ default: ``127.0.0.1``
 
 power_management_default_type
 =============================
-Settings for power management features. These settings are optional. See
-https://github.com/cobbler/cobbler/wiki/Power-management to learn more.
+Settings for power management features. These settings are optional. See :ref:`power-management` to learn more.
 
 Choices (refer to codes.py):
 
@@ -669,7 +667,7 @@ WARNING: this is a security setting, do not choose an option blindly.
 
 For more information:
 
-- https://github.com/cobbler/cobbler/wiki/Cobbler-web-interface
+- :ref:`web-interface`
 - https://github.com/cobbler/cobbler/wiki/Security-overview
 - https://github.com/cobbler/cobbler/wiki/Kerberos
 - https://github.com/cobbler/cobbler/wiki/Ldap
@@ -694,7 +692,7 @@ layer of control.
 
 For more information:
 
-- https://github.com/cobbler/cobbler/wiki/Cobbler-web-interface
+- :ref:`web-interface`
 - https://github.com/cobbler/cobbler/wiki/Security-overview
 - https://github.com/cobbler/cobbler/wiki/Web-authorization
 
@@ -712,7 +710,7 @@ Choices:
 
 **NOTE**: More configuration is still required in ``/etc/cobbler``
 
-For more information: https://github.com/cobbler/cobbler/wiki/Dns-management
+For more information see :ref:`dns-management`.
 
 default: ``manage_bind``
 
@@ -727,7 +725,7 @@ Choices:
 
 **NOTE**: More configuration is still required in ``/etc/cobbler``
 
-For more information: https://github.com/cobbler/cobbler/wiki/Dhcp-management
+For more information see :ref:`dhcp-management`.
 
 default: ``manage_isc``
 
