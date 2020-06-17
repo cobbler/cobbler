@@ -33,13 +33,14 @@ by the type of image. Non-image based deployments are generally easier to work w
 infrastructure. Some manual use of other commands beyond of what is typically required of cobbler may be needed to
 prepare images for use with this feature.
 
+.. _power-management:
+
 Power Management
 ################
 
 Cobbler contains a power management feature that allows the user to associate system records in cobbler with the power
-management configuration attached to them.  This can ease installation by making it easy to reassign systems to new
-operating systems and then reboot those systems. Read more about this feature at
-https://github.com/cobbler/cobbler/wiki/Power-management
+management configuration attached to them. This can ease installation by making it easy to reassign systems to new
+operating systems and then reboot those systems.
 
 Non-import (manual) workflow
 ############################
@@ -355,6 +356,8 @@ Cobbler can build all of it's profiles into a bootable CD image using the ``cobb
 PXE-menu like bringup of bare metal in environments where PXE is not possible. Another more advanced method is described
 in the koan manpage, though this method is easier and sufficient for most applications.
 
+.. _dhcp-management:
+
 DHCP Management
 ===============
 
@@ -379,6 +382,8 @@ important to remember to use ``cobbler sync`` when using this feature.
 
 If omapi_enabled is set to 1 in ``/etc/cobbler/settings``, the need to sync when adding new system records can be
 eliminated. However, the omapi feature is experimental and is not recommended for most users.
+
+.. _dns-management:
 
 DNS configuration management
 ============================
