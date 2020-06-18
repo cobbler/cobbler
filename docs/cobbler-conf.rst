@@ -143,7 +143,7 @@ defaults:
 default_ownership
 =================
 if using the ``authz_ownership`` module (see the Wiki), objects created without specifying an owner are assigned to this
-owner and/or group. Can be a comma seperated list.
+owner and/or group. Can be a comma separated list.
 
 default:
  - "admin"
@@ -229,7 +229,7 @@ default: ``{}``
 
 ldap_*
 ======
-Configuration options if using the authn_ldap module. See the the Wiki for details. This can be ignored if you are not
+Configuration options if using the authn_ldap module. See the Wiki for details. This can be ignored if you are not
 using LDAP for WebUI/XMLRPC authentication.
 
 defaults:
@@ -251,7 +251,7 @@ defaults:
 mgmt_*
 ======
 Cobbler has a feature that allows for integration with config management systems such as Puppet. The following
-parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at :ref:`configuration-management`
+parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at :ref:`configuration-management`.
 
 .. code-block:: Yaml
 
@@ -319,7 +319,7 @@ default: ``0``
 
 manage_dns
 ==========
-Set to 1 to enable Cobbler's DNS management features. The choice of DNS mangement engine is in
+Set to 1 to enable Cobbler's DNS management features. The choice of DNS management engine is in
 ``/etc/cobbler/modules.conf``
 
 default: ``0``
@@ -339,7 +339,7 @@ default: ``127.0.0.1``
 
 manage_tftpd
 ==============
-Set to 1 to enable Cobbler's TFTP management features. the choice of TFTP mangement engine is in
+Set to 1 to enable Cobbler's TFTP management features. the choice of TFTP management engine is in
 ``/etc/cobbler/modules.conf``
 
 default: ``1``
@@ -426,7 +426,7 @@ If using ``authn_spacewalk`` in ``modules.conf`` to let cobbler authenticate aga
 by default it will not allow per user access into Cobbler Web and Cobbler XMLRPC. In order to permit this, the following
 setting must be enabled HOWEVER doing so will permit all Spacewalk/Satellite users of certain types to edit all of
 cobbler's configuration. these roles are: ``config_admin`` and ``org_admin``. Users should turn this on only if they
-want this behavior and do not have a cross-multi-org seperation concern. If you have a single org in your satellite,
+want this behavior and do not have a cross-multi-org separation concern. If you have a single org in your satellite,
 it's probably safe to turn this on and then you can use CobblerWeb alongside a Satellite install.
 
 default: ``0``
@@ -639,7 +639,7 @@ default: ``/var/lib/cobbler/jinja2``
 
 include
 =======
-Include other configuration snippets with this regular expresion.
+Include other configuration snippets with this regular expression.
 
 default: ``[ "/etc/cobbler/settings.d/*.settings" ]``
 
@@ -668,9 +668,9 @@ WARNING: this is a security setting, do not choose an option blindly.
 For more information:
 
 - :ref:`web-interface`
-- https://github.com/cobbler/cobbler/wiki/Security-overview
-- https://github.com/cobbler/cobbler/wiki/Kerberos
-- https://github.com/cobbler/cobbler/wiki/Ldap
+- https://cobbler.readthedocs.io/en/release28/5_web-interface/security_overview.html
+- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html#defer-to-apache-kerberos
+- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html#ldap
 
 default: ``authn_configfile``
 
@@ -680,21 +680,21 @@ Once a user has been cleared by the WebUI/XMLRPC, what can they do?
 
 Choices:
 
-- authz_allowall   -- full access for all authneticated users (default)
+- authz_allowall   -- full access for all authenticated users (default)
 - authz_ownership  -- use users.conf, but add object ownership semantics
 - (user supplied)  -- you may write your own module
 
 **WARNING**: this is a security setting, do not choose an option blindly.
 If you want to further restrict cobbler with ACLs for various groups,
-pick authz_ownership.  authz_allowall does not support ACLs.  configfile
+pick authz_ownership.  authz_allowall does not support ACLs. Configfile
 does but does not support object ownership which is useful as an additional
 layer of control.
 
 For more information:
 
 - :ref:`web-interface`
-- https://github.com/cobbler/cobbler/wiki/Security-overview
-- https://github.com/cobbler/cobbler/wiki/Web-authorization
+- https://cobbler.readthedocs.io/en/release28/5_web-interface/security_overview.html
+- https://cobbler.readthedocs.io/en/release28/5_web-interface/web_authentication.html
 
 default: ``authz_allowall``
 

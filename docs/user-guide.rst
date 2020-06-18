@@ -29,7 +29,7 @@ Images
 ######
 
 Cobbler can help with booting images physically and virtually, though the usage of these commands varies substantially
-by the type of image. Non-image based deployments are generally easier to work with and lead to more sustaintable
+by the type of image. Non-image based deployments are generally easier to work with and lead to more sustainable
 infrastructure. Some manual use of other commands beyond of what is typically required of cobbler may be needed to
 prepare images for use with this feature.
 
@@ -118,7 +118,7 @@ mirror. This can save a lot of time when setting up a new provisioning environme
 will want to take advantage of, and is very simple to use.
 
 After an import is run, cobbler will try to detect the distribution type and automatically assign automatic installation
-files. By default, it will provision the system by erasing the hard drive, setting up eth0 for dhcp, and using a default
+files. By default, it will provision the system by erasing the hard drive, setting up eth0 for DHCP, and using a default
 password of "cobbler".  If this is undesirable, edit the automatic installation files in ``/etc/cobbler`` to do
 something else or change the automatic installation setting after cobbler creates the profile.
 
@@ -244,14 +244,14 @@ good reason to let cobbler manage your automatic installation files, though the 
 integration with legacy infrastructure, possibly including web apps that already generate automatic installation files.
 
 Templated automatic files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah
-template can be done to an automatic installation template.  Learn more at http://www.cheetahtemplate.org/learn.html
+template can be done to an automatic installation template.  Learn more at https://cheetahtemplate.org/users_guide/intro.html
 
 When working with Cheetah, be sure to escape any shell macros that look like ``$(this)`` with something like
 ``\$(this)`` or errors may show up during the sync process.
 
 The Cobbler Wiki also contains numerous Cheetah examples that should prove useful in using this feature.
 
-Also usefull ist the following repo: https://github.com/FlossWare/cobbler
+Also useful is the following repository: https://github.com/FlossWare/cobbler
 
 Automatic installation snippets
 ===============================
@@ -353,7 +353,7 @@ Boot CD
 #######
 
 Cobbler can build all of it's profiles into a bootable CD image using the ``cobbler buildiso`` command. This allows for
-PXE-menu like bringup of bare metal in environments where PXE is not possible. Another more advanced method is described
+PXE-menu like bring up of bare metal in environments where PXE is not possible. Another more advanced method is described
 in the koan manpage, though this method is easier and sufficient for most applications.
 
 .. _dhcp-management:

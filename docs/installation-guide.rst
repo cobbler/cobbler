@@ -194,7 +194,7 @@ Done. You're up and running.
 If you decided to access Cobbler's data store over NFS (not recommended) you really want to mount NFS on
 ``/var/www/cobbler`` with SELinux context passed in as a parameter to mount versus the symlink. You may also have to
 deal with problems related to rootsquash. However if you are making a mirror of a Cobbler server for a multi-site setup,
-mounting read only is ok there.
+mounting read only is OK there.
 
 Also Note: ``/var/lib/cobbler`` can not live on NFS, as this interferes with locking ("flock") Cobbler does around it's
 storage files.
