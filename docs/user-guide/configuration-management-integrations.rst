@@ -26,7 +26,7 @@ link cobbler's profiles with the "profiles" of the CMS. This, in general, makes 
 
 Note that there are two independent "variables" here: the possible client operating systems and the possible CMSes. We
 don't attempt to cover all details of all combinations; rather we illustrate the principles and give a small number of
-illustrative examples of particular OS/CMS combinations. Currently cobbler has better support for Redhat-based OSes and
+illustrative examples of particular OS/CMS combinations. Currently cobbler has better support for Red Hat based OSes and
 for Puppet so the current examples tend to deal with this combination.
 
 Background considerations
@@ -88,7 +88,7 @@ Set up Cobbler to include a package repository that contains your chosen CMS:
 
     cobbler repo add ...
 
-Then (illustrating a Redhat/Puppet combination) set up the kickstart file to say something like:
+Then (illustrating a Red Hat/Puppet combination) set up the kickstart file to say something like:
 
 .. code-block:: none
 
@@ -102,7 +102,7 @@ The detail may need to be more substantial, requiring some other associated loca
 may wish to manage this through [Kickstart snippets](Kickstart Snippets).
 
 David Lutterkort has a `walkthrough for kickstart <http://watzmann.net/blog/2006/12/kickstarting-into-puppet.html>`_.
-While his example is written for Redhat (Fedora) and Puppet, the principles are useful for other OS/CMS combinations.
+While his example is written for Red Hat (Fedora) and Puppet, the principles are useful for other OS/CMS combinations.
 
 Built-In Configuration Management
 #################################
