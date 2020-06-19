@@ -128,7 +128,7 @@ savestate: ## This runs the setup.py task savestate.
 
 
 restorestate: ## This restores a state which was previously saved via the target savestate. (Also run via setup.py)
-	# Check if we are on Red Hat, Suse or Debian based distribution
+	# Check if we are on Red Hat, SUSE or Debian based distribution
 	@source distro_build_configs.sh; \
 	${PYTHON} setup.py -v restorestate --root $(DESTDIR); \
 	find $(DESTDIR)/var/lib/cobbler/triggers | xargs chmod +x

@@ -6,7 +6,7 @@
 # - Fedora: 30, 31, Rawhide
 # - CentOS + EPEL: 7, 8
 # - SLE: 15sp1
-# - OpenSuSE: Leap 15.1, Tumbleweed
+# - openSUSE: Leap 15.1, Tumbleweed
 # - Debian: 10
 # - Ubuntu: 18.04
 #
@@ -48,7 +48,7 @@
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
 
-# SuSE
+# SUSE
 %if 0%{?suse_version}
 %define apache_user wwwrun
 %define apache_group www
