@@ -59,7 +59,7 @@
 + netboot/ubuntu-installer/*/linu*
 
 #-----------------------------------------------
-# SuSE
+# SUSE
 # Ex: cobbler import \
 #     --name=suse-11.4-remote \
 #     --path=rsync://mirrors.kernel.org/mirrors/opensuse/distribution/11.4/repo/oss/ \
