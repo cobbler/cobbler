@@ -612,9 +612,17 @@ class TFTPGen(object):
 
         if filename is not None:
             self.logger.info("generating: %s" % filename)
-            fd = open(filename, "w")
-            fd.write(buffer)
-            fd.close()
+            # This try-except is a work-around for the cases where 'open' throws
+            # the FileNotFoundError for not apparent reason.
+            try:
+                with open(filename, "w") as fd:
+                    fd.write(buffer)
+            except FileNotFoundError as e:
+                self.logger.error("Got \"{}\" while trying to write {}".format(e, filename))
+                self.logger.error("Trying to write {} again after some delay.".format(filename))
+                sleep(1)
+                with open(filename, "w") as fd:
+                    fd.write(buffer)
         return buffer
 
     def build_kernel_options(self, system, profile, distro, image, arch, autoinstall_path):
