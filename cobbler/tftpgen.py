@@ -25,6 +25,7 @@ import os
 import os.path
 import re
 import socket
+from time import sleep
 
 from cobbler import templar
 from cobbler import utils
