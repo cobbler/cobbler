@@ -686,17 +686,37 @@ class TFTPGen(object):
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
-            try:
-                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
-            except socket.gaierror:
-                ipaddress = blended["http_server"]
+            # changing http_server's server component to its IP address was intruduced with
+            # https://github.com/cobbler/cobbler/commit/588756aa7aefc122310847d007becf3112647944
+            # to shorten the message length for S390 systems.
+            # On multi-homed cobbler servers, this can lead to serious problems when installing
+            # systems in a dedicated isolated installation subnet:
+            # - typically, $server is reachable by name (DNS resolution assumed) both during PXE
+            #   install and during production, but via different IP addresses
+            # - $http_server is explicitly constructed from $server
+            # - the IP address for $server may resolv differently between cobbler server (production)
+            #   and installing system
+            # - using IP($http_server) below may need to set $server in a way that matches the installation
+            #   network
+            # - using $server for later repository access then will fail, because the installation address
+            #   isn't reachable for production systems
+            #
+            # In order to make the revert less intrusive, it'll depend on a configuration setting
+            if self.settings and self.settings.convert_server_to_ip:
+                try:
+                    httpserveraddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                except socket.gaierror:
+                    httpserveraddress = blended["http_server"]
+            else:
+                httpserveraddress = blended["http_server"]
+
             URL_REGEX = "[a-zA-Z]*://.*"
             local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
             if local_autoinstall_file:
                 if system is not None:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (ipaddress, system.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (httpserveraddress, system.name)
                 else:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (ipaddress, profile.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (httpserveraddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
 
