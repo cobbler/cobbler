@@ -67,8 +67,8 @@ class Repo(item.Item):
         super(Repo, self).__init__(*args, **kwargs)
         self.breed = None
         self.arch = None
-        self.environment = None
-        self.yumopts = None
+        self.environment = {}
+        self.yumopts = {}
 
     #
     # override some base class methods first (item.Item)

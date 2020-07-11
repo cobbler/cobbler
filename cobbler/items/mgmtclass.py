@@ -52,7 +52,7 @@ class Mgmtclass(item.Item):
 
     def __init__(self, *args, **kwargs):
         super(Mgmtclass, self).__init__(*args, **kwargs)
-        self.params = None
+        self.params = {}
 
     #
     # override some base class methods first (item.Item)
