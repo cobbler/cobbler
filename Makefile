@@ -150,20 +150,9 @@ restorestate: ## This restores a state which was previously saved via the target
 	fi
 	rm -rf $(statepath)
 
-webtest: devinstall ## Runs the task devinstall and then runs the targets clean, devinstall and restartservices.
+webtest: devinstall ## Runs the task devinstall and then runs the targets clean and devinstall.
 	make clean
 	make devinstall
-	make restartservices
-
-restartservices: ## Restarts the Apache2 and Cobbler-Web via init.d, service or systemctl.
-	$(shell systemctl restart cobblerd)
-ifneq ($(strip $(HTTPD)),)
-	systemctl restart httpd
-else ifneq ($(strip $(APACHE2)),)
-	systemctl restart apache2
-else
-	$(error "No apache2 or httpd in $(PATH), consider installing one of the two (depending on the distro)!")
-endif
 
 rpms: release ## Runs the target release and then creates via rpmbuild the rpms in a directory called rpm-build.
 	mkdir -p rpm-build
