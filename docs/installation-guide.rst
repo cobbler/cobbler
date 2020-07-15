@@ -51,13 +51,25 @@ Koan can be installed apart from Cobbler, and has only the following requirement
 Source
 ======
 
+.. note::
+   Please be aware that on some distributions the python packages are named differently. On Debian based systems
+   everything which is named ``something-devel`` is named ``something-dev`` there. Also please remember that the case of
+   some packages is slightly different.
+
+.. warning::
+   Some distributions still have Python 2 available. It is your responsibility to adjust the package names to Python3.
+
 Installation from source requires the following additional software:
 
 - git
 - make
-- python-devel
+- python-devel (on Debian based distributions ``python-dev``)
 - python-cheetah
+- python-future
+- python-Sphinx
+- python-coverage
 - openssl
+- A web server (preferably Apache2)
 
 
 Installation
