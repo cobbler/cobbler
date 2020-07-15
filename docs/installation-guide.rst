@@ -63,13 +63,14 @@ Installation from source requires the following additional software:
 
 - git
 - make
-- python-devel (on Debian based distributions ``python-dev``)
-- python-cheetah
-- python-future
-- python-Sphinx
-- python-coverage
+- python3-devel (on Debian based distributions ``python3-dev``)
+- python3-Cheetah3
+- python3-future
+- python3-Sphinx
+- python3-coverage
 - openssl
-- A web server (preferably Apache2)
+- apache2-devel (and thus apache2)
+- A TFTP server
 
 
 Installation
@@ -162,18 +163,23 @@ following command:
     $ make install
 
 This command will rewrite all configuration files on your system if you have an existing installation of Cobbler
-(whether it was installed via packages or from an older source tree). To preserve your existing configuration files,
-snippets and automatic installation files, run this command:
+(whether it was installed via packages or from an older source tree).
+
+To preserve your existing configuration files, snippets and automatic installation files, run this command:
 
 .. code-block:: bash
 
     $ make devinstall
 
-To install the Cobbler web GUI, use this command:
+To install the Cobbler web GUI, use these steps:
 
-.. code-block:: bash
-
-    $ make webtest
+#. Copy the systemd service file for cobblerd from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory.
+#. Install ``apache2-mod_wsgi-python3`` or the package responsible for your distro. (On Debian:
+   ``libapache2-mod-wsgi-py3``)
+#. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.
+#. ``make webtest``
+#. Configure a secret in ``/usr/share/cobbler/settings.py``
+#. Restart your Apache2 and ``cobblerd``.
 
 This will do a full install, not just the web GUI. ``make webtest`` is a wrapper around ``make devinstall``, so your
 configuration files will also be saved when running this command. Be adviced that we don't copy the service file into
