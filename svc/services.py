@@ -63,7 +63,7 @@ def application(environ, start_response):
             form[field] = t
         label = not label
 
-    form["query_string"] = cgi.parse_qs(environ['QUERY_STRING'])
+    form["query_string"] = urllib.parse.parse_qs(environ['QUERY_STRING'])
 
     # This MAC header is set by anaconda during a kickstart booted with the
     # kssendmac kernel option. The field will appear here as something
