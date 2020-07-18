@@ -132,7 +132,7 @@ class Templar(object):
         # Now apply some magic post-filtering that is used by "cobbler import" and some other places. Forcing folks to
         # double escape things would be very unwelcome.
         hp = search_table.get("http_port", "80")
-        server = search_table.get("server", "server.example.org")
+        server = search_table.get("server", self.settings.server)
         if hp not in (80, '80'):
             repstr = "%s:%s" % (server, hp)
         else:
