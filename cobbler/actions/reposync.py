@@ -378,7 +378,10 @@ class RepoSync(object):
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]      # everything after rhn://
-        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
+        
+        # el7:         -p or --download_path
+        # el8, fedora: -p or --download-path
+        cmd = "%s %s --repo=%s -p %s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -420,6 +423,9 @@ class RepoSync(object):
         :return: A tuple with the cert and a boolean if it should be verified or not.
         :rtype: (str, bool)
         """
+        cert = None
+        verify = False
+        
         # use SSL options if specified in yum opts
         if 'sslclientkey' and 'sslclientcert' in yumopts:
             cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
@@ -523,7 +529,7 @@ class RepoSync(object):
         dst = temp_path + "/repomd.xml"
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            self.dlmgr.download_file(src, dst, proxies, cert, verify)
+            self.dlmgr.download_file(src, dst, proxies, cert)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -538,7 +544,7 @@ class RepoSync(object):
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    self.dlmgr.download_file(src, dst, proxies, cert, verify)
+                    self.dlmgr.download_file(src, dst, proxies, cert)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
