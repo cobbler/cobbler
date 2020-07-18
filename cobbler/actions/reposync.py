@@ -477,7 +477,7 @@ class RepoSync(object):
 
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" \
+            cmd = "%s %s --config=%s --repoid=%s -p %s" \
                   % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
                      pipes.quote(self.settings.webdir + "/repo_mirror"))
             if repo.arch != "":
