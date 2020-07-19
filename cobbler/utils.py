@@ -686,7 +686,8 @@ def __consolidate(node, results):
 
             if isinstance(fielddata, dict):
                 # interweave dict results
-                results[field].update(data_item.copy())
+                if len(data_item) > 0:
+                  results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
                 # add to lists (cobbler doesn't have many lists)
                 # FIXME: should probably uniqueify list after doing this
