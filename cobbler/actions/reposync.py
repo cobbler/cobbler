@@ -525,7 +525,7 @@ class RepoSync(object):
         dst = temp_path + "/repomd.xml"
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            self.dlmgr.download_file(src, dst, proxies, cert, verify)
+            self.dlmgr.download_file(src, dst, proxies, cert)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -540,7 +540,7 @@ class RepoSync(object):
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    self.dlmgr.download_file(src, dst, proxies, cert, verify)
+                    self.dlmgr.download_file(src, dst, proxies, cert)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
