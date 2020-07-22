@@ -378,7 +378,7 @@ class RepoSync(object):
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]      # everything after rhn://
-        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
+        cmd = "%s %s --repo=%s -p %s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
@@ -471,7 +471,7 @@ class RepoSync(object):
 
         if not has_rpm_list:
             # If we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" \
+            cmd = "%s %s --config=%s --repoid=%s -p %s" \
                   % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
                      pipes.quote(self.settings.webdir + "/repo_mirror"))
             if repo.arch != "":
