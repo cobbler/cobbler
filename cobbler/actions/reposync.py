@@ -421,6 +421,8 @@ class RepoSync(object):
         :rtype: (str, bool)
         """
         # use SSL options if specified in yum opts
+        cert = None
+        verify = False
         if 'sslclientkey' and 'sslclientcert' in yumopts:
             cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
         # Note that the default of requests is to verify the peer and host but the default here is NOT to verify them
