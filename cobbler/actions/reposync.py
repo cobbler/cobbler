@@ -34,6 +34,12 @@ try:
 except:
     HAS_YUM = False
 
+HAS_LIBREPO = True
+try:
+    import librepo
+except:
+    HAS_LIBREPO = False
+
 from cobbler import clogger
 from cobbler import utils
 from cobbler import download_manager
@@ -216,6 +222,29 @@ class RepoSync(object):
 
     # ====================================================================================
 
+    def librepo_getinfo(self, dirname):
+        h = librepo.Handle()
+        r = librepo.Result()
+        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        h.setopt(librepo.LRO_URLS, [dirname])
+        h.setopt(librepo.LRO_LOCAL, True)
+        h.setopt(librepo.LRO_CHECKSUM, True)
+        h.setopt(librepo.LRO_IGNOREMISSING, True)
+
+        try:
+            h.perform(r)
+        except librepo.LibrepoException as e:
+            rc, msg, general_msg = e
+            if rc == librepo.LRE_BADCHECKSUM:
+                utils.die(self.logger, "Corrupted metadata: " + dirname + " " + msg)
+            else:
+                utils.die(self.logger, "librepo error: " + dirname + " " + msg)
+
+        rmd = r.getinfo( librepo.LRR_RPMMD_REPOMD )['records']
+        return( rmd )
+
+    # ====================================================================================
+
     def createrepo_walker(self, repo, dirname, fnames):
         """
         Used to run createrepo on a copied Yum mirror.
@@ -229,23 +258,33 @@ class RepoSync(object):
 
             # add any repo metadata we can use
             mdoptions = []
-            if os.path.isfile("%s/.origin/repomd.xml" % (dirname)):
-                if not HAS_YUM:
-                    utils.die(self.logger, "yum is required to use this feature")
-
-                rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repomd.xml" % (dirname))
-                if "group" in rmd.repoData:
-                    groupmdfile = rmd.getData("group").location[1]
-                    mdoptions.append("-g %s" % groupmdfile)
-                if "prestodelta" in rmd.repoData:
-                    # need createrepo >= 0.9.7 to add deltas
-                    if utils.get_family() in ("redhat", "suse"):
-                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
-                        createrepo_ver = utils.subprocess_get(self.logger, cmd)
-                        if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
-                            mdoptions.append("--deltas")
-                        else:
-                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through Cobbler.")
+            if os.path.isfile("%s/.origin/repodata/repomd.xml" % (dirname)): 
+                if HAS_LIBREPO: 
+                    rd = self.librepo_getinfo("%s/.origin" % (dirname)) 
+                elif HAS_YUM: 
+                    rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repodata/repomd.xml" % (dirname)) 
+                    rd = rmd.repoData 
+                else: 
+                    utils.die(self.logger, "yum/librepo is required to use this feature") 
+ 
+                if "group" in rd: 
+                    if HAS_LIBREPO: 
+                        groupmdfile =  rd['group']['location_href'] 
+                    else: 
+                        groupmdfile = rmd.getData("group").location[1] 
+                    mdoptions.append("-g %s" % groupmdfile) 
+                if "prestodelta" in rd: 
+                    # need createrepo >= 0.9.7 to add deltas 
+                    if utils.get_family() in ("redhat", "suse"): 
+                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo" 
+                        createrepo_ver = utils.subprocess_get(self.logger, cmd) 
+                        if not createrepo_ver[0:1].isdigit(): 
+                            cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo_c" 
+                            createrepo_ver = utils.subprocess_get(self.logger, cmd) 
+                        if utils.compare_versions_gt(createrepo_ver, "0.9.7"): 
+                            mdoptions.append("--deltas") 
+                        else: 
+                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through Cobbler.") 
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
@@ -464,10 +503,13 @@ class RepoSync(object):
 
         # create yum config file for use by reposync
         temp_path = os.path.join(dest_path, ".origin")
+        temp_meta_path = os.path.join(temp_path, "repodata" )
 
         if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
+        if not os.path.isdir(temp_meta_path):
+            os.makedirs(temp_meta_path)
 
         temp_file = self.create_local_file(temp_path, repo, output=False)
 
@@ -522,7 +564,7 @@ class RepoSync(object):
         elif repo.proxy != '<<None>>' and repo.proxy != '':
             proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
-        dst = temp_path + "/repomd.xml"
+        dst = temp_meta_path + "/repomd.xml"
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
             self.dlmgr.download_file(src, dst, proxies, cert)
@@ -532,11 +574,23 @@ class RepoSync(object):
         # Create our repodata directory now, as any extra metadata we're about to download probably lives there
         if not os.path.isdir(repodata_path):
             os.makedirs(repodata_path)
-        rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
-        for mdtype in list(rmd.repoData.keys()):
+
+        if HAS_LIBREPO:
+            rmd = self.librepo_getinfo(temp_path)
+            k = rmd.keys()
+        elif HAS_YUM:
+            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_meta_path))
+            k = rmd.repoData.keys()
+        else:
+            utils.die(self.logger, "yum/librepo is required to use this feature")
+
+        for mdtype in list(k):
             # don't download metadata files that are created by default
             if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
-                mdfile = rmd.getData(mdtype).location[1]
+                if HAS_LIBREPO:
+                    mdfile = rmd[mdtype]['location_href']
+                elif HAS_YUM:
+                    mdfile = rmd.getData(mdtype).location[1]
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
