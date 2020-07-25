@@ -215,13 +215,13 @@ class Item(object):
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
     def to_dict(self):
-        # return utils.to_dict_from_fields(self, self.get_fields())
+        return utils.to_dict_from_fields(self, self.get_fields())
 
-        value = self.get_from_cache(self)
-        if value is None:
-            value = utils.to_dict_from_fields(self, self.get_fields())
-        self.set_cache(self, value)
-        return value
+        #value = self.get_from_cache(self)
+        #if value is None:
+        #    value = utils.to_dict_from_fields(self, self.get_fields())
+        #self.set_cache(self, value)
+        #return value
 
     def to_string(self):
         return utils.to_string_from_fields(self, self.get_fields())
