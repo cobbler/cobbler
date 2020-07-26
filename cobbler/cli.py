@@ -724,8 +724,8 @@ class CobblerCLI(object):
                 print("No configuration problems found.  All systems go.")
 
         elif action_name == "sync":
-            (options, args) = self.parser.parse_args(self.args)
             self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
+            (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("sync", options)
         elif action_name == "report":
             (options, args) = self.parser.parse_args(self.args)
