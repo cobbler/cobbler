@@ -101,6 +101,15 @@ defaults:
     build_reporting_subject: ""
     build_reporting_ignorelist: [ "" ]
 
+cache_enabled
+========================
+If cache_enabled is 1, a cache will keep converted records in memory to make checking them faster.  This helps with
+use cases like writing out large numbers of records.  There is a known issue with cache and remote XMLRPC API calls.
+If you will use Cobbler with config management or infrastructure-as-code tools such as Terraform, it is recommended
+to disable by setting to 0.
+
+default: ``1``
+
 cheetah_import_whitelist
 ========================
 Cheetah-language autoinstall templates can import Python modules. while this is a useful feature, it is not safe to

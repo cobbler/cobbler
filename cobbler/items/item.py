@@ -215,13 +215,14 @@ class Item(object):
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
     def to_dict(self):
-        return utils.to_dict_from_fields(self, self.get_fields())
+        if not self.settings.cache_enabled:
+          return utils.to_dict_from_fields(self, self.get_fields())
 
-        #value = self.get_from_cache(self)
-        #if value is None:
-        #    value = utils.to_dict_from_fields(self, self.get_fields())
-        #self.set_cache(self, value)
-        #return value
+        value = self.get_from_cache(self)
+        if value is None:
+            value = utils.to_dict_from_fields(self, self.get_fields())
+        self.set_cache(self, value)
+        return value
 
     def to_string(self):
         return utils.to_string_from_fields(self, self.get_fields())
@@ -393,13 +394,13 @@ class Item(object):
         else:
             self.fetchable_files = value
 
-    def sort_key(self, sort_fields=[]):
-        data = self.to_dict()
+    def sort_key(self, api_handle, sort_fields=[]):
+        data = self.to_dict(api_handle)
         return [data.get(x, "") for x in sort_fields]
 
-    def find_match(self, kwargs, no_errors=False):
+    def find_match(self, kwargs, api_handle, no_errors=False):
         # used by find() method in collection.py
-        data = self.to_dict()
+        data = self.to_dict(api_handle)
         for (key, value) in list(kwargs.items()):
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
