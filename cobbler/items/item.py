@@ -394,13 +394,13 @@ class Item(object):
         else:
             self.fetchable_files = value
 
-    def sort_key(self, api_handle, sort_fields=[]):
-        data = self.to_dict(api_handle)
+    def sort_key(self, sort_fields=[]):
+        data = self.to_dict()
         return [data.get(x, "") for x in sort_fields]
 
-    def find_match(self, kwargs, api_handle, no_errors=False):
+    def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
-        data = self.to_dict(api_handle)
+        data = self.to_dict()
         for (key, value) in list(kwargs.items()):
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
