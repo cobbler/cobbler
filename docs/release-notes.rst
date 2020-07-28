@@ -9,7 +9,7 @@ Enhancements
 * Add a whitelist of directories in order to persist a ``cobbler sync``.
 * Add proxy support for get-loaders, signature update and reposync.
 * Add initial support for DJBDNS.
-* Enable external YUM repo mirroring through a proxy server. 
+* Enable external YUM repo mirroring through a proxy server.
 * DHCP configuration now also supports the per interface gateway setting.
 * A new interface_type ``BMC`` was added which also can be managed with DHCP.
 * Yaboot was updated to 1.3.17.

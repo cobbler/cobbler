@@ -1,4 +1,3 @@
-
 from builtins import object
 from builtins import str
 import os
@@ -19,10 +18,11 @@ class AutoInstallationManager(object):
 
     def __init__(self, collection_mgr, logger=None):
         """
-        Constructor
+        Constructor for the autoinstall manager.
 
-        @param CollectionManager collection_mgr collection manager
-        @param Logger logger logger
+        :param collection_mgr: The collection manager which has all objects.
+        :param logger: The logger object which logs to the desired target. If this argument is None then a default
+                       Cobbler logger is created.
         """
 
         self.collection_mgr = collection_mgr
@@ -37,10 +37,14 @@ class AutoInstallationManager(object):
         """
         Validate the automatic installation template's relative file path.
 
-        @param: str autoinstall automatic installation template relative file path
-        @param: bool for_item (enable/disable special handling for Item objects)
-        @param: bool new_autoinstall (when set to true new filenames are allowed)
-        @returns str automatic installation template relative file path
+        :param autoinstall: automatic installation template relative file path
+        :type autoinstall: str
+        :param for_item: enable/disable special handling for Item objects
+        :type for_item: bool
+        :param new_autoinstall: when set to true new filenames are allowed
+        :type new_autoinstall: bool
+        :returns: automatic installation template relative file path
+        :rtype: str
         """
 
         if not isinstance(autoinstall, str):
@@ -71,7 +75,8 @@ class AutoInstallationManager(object):
         """
         Get automatic OS installation templates
 
-        @return list automatic installation templates
+        :returns: A list of automatic installation templates
+        :rtype: list
         """
 
         files = []
@@ -91,8 +96,10 @@ class AutoInstallationManager(object):
         """
         Read an automatic OS installation template
 
-        @param str file_path automatic installation template relative file path
-        @return str automatic installation template content
+        :param file_path: automatic installation template relative file path
+        :type file_path: str
+        :returns: automatic installation template content
+        :rtype: str
         """
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
@@ -108,8 +115,11 @@ class AutoInstallationManager(object):
         """
         Write an automatic OS installation template
 
-        @param str file_path automatic installation template relative file path
-        @param str data automatic installation template content
+        :param file_path: automatic installation template relative file path
+        :type file_path: str
+        :param data: automatic installation template content
+        :type data: str
+        :rtype: bool
         """
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False, new_autoinstall=True)
@@ -118,7 +128,8 @@ class AutoInstallationManager(object):
         try:
             utils.mkdir(os.path.dirname(file_full_path))
         except:
-            utils.die(self.logger, "unable to create directory for automatic OS installation template at %s" % file_path)
+            utils.die(self.logger, "unable to create directory for automatic OS installation template at %s"
+                      % file_path)
 
         fileh = open(file_full_path, "w+")
         fileh.write(data)
@@ -130,7 +141,8 @@ class AutoInstallationManager(object):
         """
         Remove an automatic OS installation template
 
-        @param str file_path automatic installation template relative file path
+        :param file_path: automatic installation template relative file path
+        :type file_path: str
         """
 
         file_path = self.validate_autoinstall_template_file_path(file_path, for_item=False)
@@ -145,9 +157,13 @@ class AutoInstallationManager(object):
         """
         Validate the snippet's relative file path.
 
-        @param: str snippet automatic installation snippet relative file path
-        @param: bool new_snippet (when set to true new filenames are allowed)
-        @returns: str snippet or CX
+        :param snippet: automatic installation snippet relative file path
+        :type snippet: str
+        :param new_snippet: when set to true new filenames are allowed
+        :type new_snippet: bool
+        :returns: Snippet if successful otherwise raises an exception.
+        :raises CX: Raised when the arguments are invalid or the action performed raised an internal error.
+        :rtype: str
         """
 
         if not isinstance(snippet, str):
@@ -165,7 +181,12 @@ class AutoInstallationManager(object):
         return snippet
 
     def get_autoinstall_snippets(self):
+        """
+        Get a list of all autoinstallation snippets.
 
+        :return: The list of snippets
+        :rtype: list
+        """
         files = []
         for root, dirnames, filenames in os.walk(self.snippets_base_dir):
 
@@ -181,7 +202,14 @@ class AutoInstallationManager(object):
         return files
 
     def read_autoinstall_snippet(self, file_path):
+        """
+        Reads a autoinstall snippet from underneath the configured snippet base dir.
 
+        :param file_path: The relative file path under the configured snippets base dir.
+        :type file_path: str
+        :return: The read snippet.
+        :rtype: str
+        """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
         file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
@@ -192,7 +220,14 @@ class AutoInstallationManager(object):
         return data
 
     def write_autoinstall_snippet(self, file_path, data):
+        """
+        Writes a snippet with the given content to the relative path under the snippet root directory.
 
+        :param file_path: The relative path under the configured snippet base dir.
+        :type file_path: str
+        :param data: The snippet code.
+        :type data: str
+        """
         file_path = self.validate_autoinstall_snippet_file_path(file_path, new_snippet=True)
 
         file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
@@ -206,7 +241,14 @@ class AutoInstallationManager(object):
         fileh.close()
 
     def remove_autoinstall_snippet(self, file_path):
+        """
+        Remove the autoinstall snippet with the given path.
 
+        :param file_path: The path relative to the configured snippet root.
+        :type file_path: str
+        :return: A boolean indicating the success of the task.
+        :rtype: bool
+        """
         file_path = self.validate_autoinstall_snippet_file_path(file_path)
 
         file_full_path = "%s/%s" % (self.snippets_base_dir, file_path)
@@ -215,7 +257,14 @@ class AutoInstallationManager(object):
         return True
 
     def is_autoinstall_in_use(self, name):
+        """
+        Reports the status if a given system is currently being provisioned.
 
+        :param name: The name of the system.
+        :type name: str
+        :return: Whether the system is in install mode or not.
+        :rtype: bool
+        """
         for x in self.collection_mgr.profiles():
             if x.autoinstall is not None and x.autoinstall == name:
                 return True
@@ -225,7 +274,15 @@ class AutoInstallationManager(object):
         return False
 
     def generate_autoinstall(self, profile=None, system=None):
+        """
+        Generates the autoinstallation for a system or a profile. You may only specifify one parameter. If you specify
+        both, the system is generated and the profile argument is ignored.
 
+        :param profile: The Cobbler profile you want an autoinstallation generated for.
+        :param system: The Cobbler system you want an autoinstallation generated for.
+        :return: The rendered template for the system or profile.
+        :rtype: str
+        """
         if system is not None:
             return self.autoinstallgen.generate_autoinstall_for_system(system)
         elif profile is not None:
@@ -235,7 +292,10 @@ class AutoInstallationManager(object):
         """
         Log automatic installation file errors
 
-        @param int errors_type validation errors type
+        :param errors_type: validation errors type
+        :type errors_type: int
+        :param errors: A list with all the errors which occurred.
+        :type errors: list
         """
 
         if errors_type == TEMPLATING_ERROR:
@@ -243,17 +303,20 @@ class AutoInstallationManager(object):
             for error in errors:
                 (line, col) = error["lineCol"]
                 line -= 1   # we add some lines to the template data, so numbering is off
-                self.logger.warning("Unknown variable found at line %d, column %d: '%s'" % (line, col, error["rawCode"]))
+                self.logger.warning("Unknown variable found at line %d, column %d: '%s'"
+                                    % (line, col, error["rawCode"]))
         elif errors_type == KICKSTART_ERROR:
             self.logger.warning("Kickstart validation errors: %s" % errors[0])
 
     def validate_autoinstall_file(self, obj, is_profile):
         """
-        Validate automatic installation file used by a system/profile
+        Validate automatic installation file used by a system/profile.
 
-        @param Item obj system/profile
-        @param bool is_profile if obj is a profile
-        @return [bool, int, list] list with validation result, errors type and list of errors
+        :param obj: system/profile
+        :param is_profile: if obj is a profile
+        :type is_profile: bool
+        :returns: [bool, int, list] list with validation result, errors type and list of errors
+        :rtype: list
         """
 
         last_errors = []
@@ -281,15 +344,14 @@ class AutoInstallationManager(object):
 
     def validate_autoinstall_files(self, logger=None):
         """
-        Determine if Cobbler automatic OS installation files will be accepted by
-        corresponding Linux distribution installers. The presence of an error
-        does not imply that the automatic installation file is bad, only that
-        the possibility exists. Automatic installation file validators are not
-        available for all automatic installation file types and on all operating
-        systems in which Cobbler may be installed.
+        Determine if Cobbler automatic OS installation files will be accepted by corresponding Linux distribution
+        installers. The presence of an error does not imply that the automatic installation file is bad, only that the
+        possibility exists. Automatic installation file validators are not available for all automatic installation file
+        types and on all operating systems in which Cobbler may be installed.
 
-        @param Logger logger logger
-        @return bool if all automatic installation files are valid
+        :param logger: The logger which watches the validation
+        :return: True if all automatic installation files are valid, otherwise false.
+        :rtype: bool
         """
         overall_success = True
 

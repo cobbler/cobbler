@@ -126,7 +126,7 @@ class System(item.Item):
 
     def __init__(self, *args, **kwargs):
         super(System, self).__init__(*args, **kwargs)
-        self.interfaces = dict()
+        self.interfaces = {}
         self.kernel_options = {}
         self.kernel_options_post = {}
         self.autoinstall_meta = {}

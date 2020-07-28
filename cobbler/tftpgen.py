@@ -21,16 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import os
 import os.path
 import re
 import socket
-import string
+from time import sleep
 
-from cobbler.cexceptions import CX
 from cobbler import templar
 from cobbler import utils
+from cobbler.cexceptions import CX
 
 
 class TFTPGen(object):
@@ -53,11 +52,10 @@ class TFTPGen(object):
         self.templar = templar.Templar(collection_mgr)
         self.bootloc = self.settings.tftpboot_location
 
-    def copy_bootloaders(self):
+    def copy_bootloaders(self, dest):
         """
         Copy bootloaders to the configured tftpboot directory
-        NOTE: we support different arch's if defined in
-        /etc/cobbler/settings.
+        NOTE: we support different arch's if defined in /etc/cobbler/settings.
         """
         src = self.settings.bootloaders_dir
         dest = self.bootloc
@@ -80,42 +78,60 @@ class TFTPGen(object):
                 errors.append(e)
                 self.logger.error(e.value)
 
-        # FIXME: using logging module so this ends up in cobbler.log?
+    def copy_single_distro_file(self, d_file, distro_dir, symlink_ok):
+        """
+        Copy a single file (kernel/initrd) to distro's images directory
+
+        :param  d_file:     distro's kernel/initrd absolut or remote file path value
+        :type   d_file:     str
+        :param  distro_dir: directory (typically in {www,tftp}/images) where to copy the file
+        :type   distro_dir: str
+        :param  symlink_ok: whethere it is ok to symlink the file. Typically false in case the file
+                            is used by daemons run in chroot environments (tftpd,..)
+        :type   symlink_ok: bool
+
+        :raises CX:         Cobbler Exception is raised in case file IO errors or of the remote file
+                            could not be retrieved
+        :return:            None
+        """
+        full_path = utils.find_kernel(d_file)
+
+        if full_path is None:
+            raise CX("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
+
+        # Koan manages remote kernel/initrd itself, but for consistent PXE
+        # configurations the synchronization is still necessary
+        if not utils.file_is_remote(full_path):
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+        else:
+            b_file = os.path.basename(full_path)
+            dst = os.path.join(distro_dir, b_file)
+            utils.copyremotefile(full_path, dst, api=None, logger=self.logger)
 
     def copy_single_distro_files(self, d, dirtree, symlink_ok):
+        """
+        Copy the files needed for a single distro.
+
+        :param d: The distro to copy.
+        :param dirtree: This is the root where the images are located. The folder "images" gets automatically appended.
+        :param symlink_ok: If it is okay to use a symlink to link the destination to the source.
+        :type symlink_ok: bool
+        """
+
         distros = os.path.join(dirtree, "images")
         distro_dir = os.path.join(distros, d.name)
         utils.mkdir(distro_dir)
-        kernel = utils.find_kernel(d.kernel)    # full path
-        initrd = utils.find_initrd(d.initrd)    # full path
-
-        if kernel is None:
-            raise CX("kernel not found: %(file)s, distro: %(distro)s" % {"file": d.kernel, "distro": d.name})
-
-        if initrd is None:
-            raise CX("initrd not found: %(file)s, distro: %(distro)s" % {"file": d.initrd, "distro": d.name})
-
-        # Koan manages remote kernel itself, but for consistent PXE
-        # configurations the synchronization is still necessary
-        if not utils.file_is_remote(kernel):
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.linkfile(kernel, dst1, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_kernel = os.path.basename(kernel)
-            dst1 = os.path.join(distro_dir, b_kernel)
-            utils.copyremotefile(kernel, dst1, api=None, logger=self.logger)
-
-        if not utils.file_is_remote(initrd):
-            b_initrd = os.path.basename(initrd)
-            dst2 = os.path.join(distro_dir, b_initrd)
-            utils.linkfile(initrd, dst2, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
-        else:
-            b_initrd = os.path.basename(initrd)
-            dst1 = os.path.join(distro_dir, b_initrd)
-            utils.copyremotefile(initrd, dst1, api=None, logger=self.logger)
+        self.copy_single_distro_file(d.kernel, distro_dir, symlink_ok)
+        self.copy_single_distro_file(d.initrd, distro_dir, symlink_ok)
 
     def copy_single_image_files(self, img):
+        """
+        Copies an image to the images directory of Cobbler.
+
+        :param img: The image to copy.
+        """
         images_dir = os.path.join(self.bootloc, "images2")
         filename = img.file
         if not os.path.exists(filename):
@@ -127,7 +143,13 @@ class TFTPGen(object):
         utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
 
     def write_all_system_files(self, system, menu_items):
+        """
+        Writes all files for tftp for a given system with the menu items handed to this method. The system must have a
+        profile attached. Otherwise this method throws an error.
 
+        :param system: The system to generate files for.
+        :param menu_items:
+        """
         profile = system.get_conceptual_parent()
         if profile is None:
             raise CX("system %(system)s references a missing profile %(profile)s" % {"system": system.name, "profile": system.profile})
@@ -301,8 +323,12 @@ class TFTPGen(object):
 
     def get_menu_items(self, arch=None):
         """
-        Generates menu items for pxe and grub
-        grub menu items are grouped into submenues by profie
+        Generates menu items for pxe and grub. Grub menu items are grouped into submenus by profile.
+
+        :param arch: The processor architecture to generate the menu items for. (Optional)
+        :type arch: str
+        :returns: A dictionary with the pxe and grub menu items. It has the keys "pxe" and "grub".
+        :rtype: dict
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
@@ -364,11 +390,29 @@ class TFTPGen(object):
                        image=None, include_header=True, metadata=None, format="pxe"):
         """
         Write a configuration file for the boot loader(s).
-        More system-specific configuration may come in later, if so
-        that would appear inside the system object in api.py
 
+        More system-specific configuration may come in later, if so that would appear inside the system object in api.py
         Can be used for different formats, "pxe" (default) and "grub".
+
+        :param filename: If present this writes the output into the giving filename. If not present this method just
+                         returns the generated configuration.
+        :param system: If you supply a system there are other templates used then when using only a profile/image/
+                       distro.
+        :param profile: The profile to generate the pxe-file for.
+        :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
+                       the templates.
+        :param arch: The processor architecture to generate the pxefile for.
+        :type arch: str
+        :param image: If you want to be able to deploy an image, supply this parameter.
+        :param include_header: Not used parameter currently.
+        :type include_header: bool
+        :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param format: May be "grub" or "pxe".
+        :type format: str
+        :return: The generated filecontent for the required item.
+        :rtype: str
         """
+
         if arch is None:
             raise CX("missing arch")
 
@@ -395,14 +439,22 @@ class TFTPGen(object):
 
         if image is None:
             # not image based, it's something normalish
-
             img_path = os.path.join("/images", distro.name)
+            if format == "grub":
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_grub_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_grub_initrd
 
             if 'http' in distro.kernel and 'http' in distro.initrd:
-                kernel_path = distro.kernel
-                initrd_path = distro.initrd
-            else:
+                if not kernel_path:
+                    kernel_path = distro.kernel
+                if not initrd_path:
+                    initrd_path = distro.initrd
+
+            if not kernel_path:
                 kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
+            if not initrd_path:
                 initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
             # Find the automatic installation file if we inherit from another profile
@@ -412,8 +464,7 @@ class TFTPGen(object):
                 blended = utils.blender(self.api, True, profile)
             autoinstall_path = blended.get("autoinstall", "")
 
-            # update metadata with all known information
-            # this allows for more powerful templating
+            # update metadata with all known information this allows for more powerful templating
             metadata.update(blended)
 
         else:
@@ -460,9 +511,8 @@ class TFTPGen(object):
                     elif arch.startswith("arm"):
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
                     elif distro and distro.os_version.startswith("esxi"):
-                        # ESXi uses a very different pxe method, using more files than
-                        # a standard automatic installation file and different options -
-                        # so giving it a dedicated PXE template makes more sense than
+                        # ESXi uses a very different pxe method, using more files than a standard automatic installation
+                        # file and different options - so giving it a dedicated PXE template makes more sense than
                         # shoe-horning it into the existing templates
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
                 else:
@@ -481,8 +531,8 @@ class TFTPGen(object):
                             if os.path.lexists(f3):
                                 utils.rmfile(f3)
 
-                        # Yaboot/OF doesn't support booting locally once you've
-                        # booted off the network, so nothing left to do
+                        # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
+                        # to do
                         return None
                     else:
                         template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxelocal.template")
@@ -517,8 +567,7 @@ class TFTPGen(object):
         append_line = "%s%s" % (append_line, kernel_options)
         if arch == "ppc" or arch == "ppc64":
             # remove the prefix "append"
-            # TODO: this looks like it's removing more than append, really
-            # not sure what's up here...
+            # TODO: this looks like it's removing more than append, really not sure what's up here...
             append_line = append_line[7:]
         if distro and distro.os_version.startswith("xenserver620"):
             append_line = "%s" % (kernel_options)
@@ -564,15 +613,33 @@ class TFTPGen(object):
 
         if filename is not None:
             self.logger.info("generating: %s" % filename)
-            fd = open(filename, "w")
-            fd.write(buffer)
-            fd.close()
+            # This try-except is a work-around for the cases where 'open' throws
+            # the FileNotFoundError for not apparent reason.
+            try:
+                with open(filename, "w") as fd:
+                    fd.write(buffer)
+            except FileNotFoundError as e:
+                self.logger.error("Got \"{}\" while trying to write {}".format(e, filename))
+                self.logger.error("Trying to write {} again after some delay.".format(filename))
+                sleep(1)
+                with open(filename, "w") as fd:
+                    fd.write(buffer)
         return buffer
 
-    def build_kernel_options(self, system, profile, distro, image, arch,
-                             autoinstall_path):
+    def build_kernel_options(self, system, profile, distro, image, arch, autoinstall_path):
         """
         Builds the full kernel options line.
+
+        :param system: The system to generate the kernel options for.
+        :param profile: Although the system contains the profile please specify it explicitly here.
+        :param distro: Although the profile contains the distribution please specify it explicitly here.
+        :param image: The image to generate the kernel options for.
+        :param arch: The processor architecture to generate the kernel options for.
+        :type arch: str
+        :param autoinstall_path: The autoinstallation path. Normally this will be a URL because you want to pass a link
+                                 to an autoyast, preseed or kickstart file.
+        :return: The generated kernal line options.
+        :rtype: str
         """
 
         management_interface = None
@@ -628,17 +695,37 @@ class TFTPGen(object):
 
             # FIXME: need to make shorter rewrite rules for these URLs
 
-            try:
-                ipaddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
-            except socket.gaierror:
-                ipaddress = blended["http_server"]
+            # changing http_server's server component to its IP address was intruduced with
+            # https://github.com/cobbler/cobbler/commit/588756aa7aefc122310847d007becf3112647944
+            # to shorten the message length for S390 systems.
+            # On multi-homed cobbler servers, this can lead to serious problems when installing
+            # systems in a dedicated isolated installation subnet:
+            # - typically, $server is reachable by name (DNS resolution assumed) both during PXE
+            #   install and during production, but via different IP addresses
+            # - $http_server is explicitly constructed from $server
+            # - the IP address for $server may resolv differently between cobbler server (production)
+            #   and installing system
+            # - using IP($http_server) below may need to set $server in a way that matches the installation
+            #   network
+            # - using $server for later repository access then will fail, because the installation address
+            #   isn't reachable for production systems
+            #
+            # In order to make the revert less intrusive, it'll depend on a configuration setting
+            if self.settings and self.settings.convert_server_to_ip:
+                try:
+                    httpserveraddress = socket.gethostbyname_ex(blended["http_server"])[2][0]
+                except socket.gaierror:
+                    httpserveraddress = blended["http_server"]
+            else:
+                httpserveraddress = blended["http_server"]
+
             URL_REGEX = "[a-zA-Z]*://.*"
             local_autoinstall_file = not re.match(URL_REGEX, autoinstall_path)
             if local_autoinstall_file:
                 if system is not None:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (ipaddress, system.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (httpserveraddress, system.name)
                 else:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (ipaddress, profile.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (httpserveraddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
 
@@ -649,7 +736,7 @@ class TFTPGen(object):
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_mac:
+                if management_mac and not distro.arch.startswith("s390"):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
                 append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
@@ -754,15 +841,15 @@ class TFTPGen(object):
 
     def write_templates(self, obj, write_file=False, path=None):
         """
-        A semi-generic function that will take an object
-        with a template_files dict {source:destiation}, and
-        generate a rendered file.  The write_file option
-        allows for generating of the rendered output without
-        actually creating any files.
+        A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
+        rendered file. The write_file option allows for generating of the rendered output without actually creating any
+        files.
 
-        The return value is a dict of the destination file
-        names (after variable substitution is done) and the
-        data in the file.
+        :param obj: The object to write the template files for.
+        :param write_file: If the generated template should be written to the disk.
+        :type write_file: bool
+        :param path: TODO: A useless parameter?
+        :return: A dict of the destination file names (after variable substitution is done) and the data in the file.
         """
         self.logger.info("Writing template files for %s" % obj.name)
 
@@ -801,9 +888,8 @@ class TFTPGen(object):
         if not success:
             return results
 
-        # FIXME: img_path and local_img_path should probably be moved
-        #        up into the blender function to ensure they're consistently
-        #        available to templates across the board
+        # FIXME: img_path and local_img_path should probably be moved up into the blender function to ensure they're
+        #  consistently available to templates across the board.
         if blended["distro_name"]:
             blended['img_path'] = os.path.join("/images", blended["distro_name"])
             blended['local_img_path'] = os.path.join(self.bootloc, "images", blended["distro_name"])
@@ -813,23 +899,19 @@ class TFTPGen(object):
             if dest is None:
                 continue
 
-            # Run the source and destination files through
-            # templar first to allow for variables in the path
+            # Run the source and destination files through templar first to allow for variables in the path
             template = self.templar.render(template, blended, None).strip()
             dest = os.path.normpath(self.templar.render(dest, blended, None).strip())
             # Get the path for the destination output
             dest_dir = os.path.normpath(os.path.dirname(dest))
 
-            # If we're looking for a single template, skip if this ones
-            # destination is not it.
+            # If we're looking for a single template, skip if this ones destination is not it.
             if path is not None and path != dest:
                 continue
 
-            # If we are writing output to a file, we allow files tobe
-            # written into the tftpboot directory, otherwise force all
-            # templated configs into the rendered directory to ensure that
-            # a user granted cobbler privileges via sudo can't overwrite
-            # arbitrary system files (This also makes cleanup easier).
+            # If we are writing output to a file, we allow files tobe written into the tftpboot directory, otherwise
+            # force all templated configs into the rendered directory to ensure that a user granted cobbler privileges
+            # via sudo can't overwrite arbitrary system files (This also makes cleanup easier).
             if os.path.isabs(dest_dir) and write_file:
                 if dest_dir.find(self.bootloc) != 0:
                     raise CX(" warning: template destination (%s) is outside %s, skipping." % (dest_dir, self.bootloc))
@@ -867,6 +949,16 @@ class TFTPGen(object):
         return results
 
     def generate_gpxe(self, what, name):
+        """
+        Generate the gpxe files.
+
+        :param what: either "profile" or "system". All other item types not valdi.
+        :type what: str
+        :param name: The name of the profile or system.
+        :type name: str
+        :return: The rendered template.
+        :rtype: str
+        """
         if what.lower() not in ("profile", "system"):
             return "# gpxe is only valid for profiles and systems"
 
@@ -879,14 +971,11 @@ class TFTPGen(object):
             distro = obj.get_conceptual_parent().get_conceptual_parent()
             netboot_enabled = obj.netboot_enabled
 
-        # For multi-arch distros, the distro name in distro_mirror
-        # may not contain the arch string, so we need to figure out
-        # the path based on where the kernel is stored. We do this
-        # because some distros base future downloads on the initial
-        # URL passed in, so all of the files need to be at this location
-        # (which is why we can't use the images link, which just contains
-        # the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        # For multi-arch distros, the distro name in distro_mirror may not contain the arch string, so we need to figure
+        # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
+        # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
+        # link, which just contains the kernel and initrd).
+        distro_mirror_name = str.join(distro.kernel.split('/')[-2:-1], '')
 
         blended = utils.blender(self.api, False, obj)
 
@@ -909,8 +998,7 @@ class TFTPGen(object):
 
         template = None
         if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
-            # all of these use a standard kernel/initrd setup so
-            # they all use the same gPXE template
+            # all of these use a standard kernel/initrd setup so they all use the same gPXE template
             template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_linux.template" % what.lower())
         elif distro.breed == 'vmware':
             if distro.os_version == 'esx4':
@@ -944,6 +1032,16 @@ class TFTPGen(object):
         return self.templar.render(template_data, blended, None)
 
     def generate_bootcfg(self, what, name):
+        """
+        Generate a bootcfg for a system of profile.
+
+        :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
+        :type what: str
+        :param name: The name of the item which the bootcfg should be generated for.
+        :type name: str
+        :return: The fully rendered bootcfg as a string.
+        :rtype: str
+        """
         if what.lower() not in ("profile", "system"):
             return "# bootcfg is only valid for profiles and systems"
 
@@ -955,14 +1053,11 @@ class TFTPGen(object):
             obj = self.api.find_system(name=name)
             distro = obj.get_conceptual_parent().get_conceptual_parent()
 
-        # For multi-arch distros, the distro name in distro_mirror
-        # may not contain the arch string, so we need to figure out
-        # the path based on where the kernel is stored. We do this
-        # because some distros base future downloads on the initial
-        # URL passed in, so all of the files need to be at this location
-        # (which is why we can't use the images link, which just contains
-        # the kernel and initrd).
-        distro_mirror_name = string.join(distro.kernel.split('/')[-2:-1], '')
+        # For multi-arch distros, the distro name in distro_mirror may not contain the arch string, so we need to figure
+        # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
+        # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
+        # link, which just contains the kernel and initrd).
+        distro_mirror_name = str.join('', distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
@@ -975,8 +1070,7 @@ class TFTPGen(object):
 
         blended['distro'] = distro_mirror_name
 
-        # FIXME: img_path should probably be moved up into the
-        #        blender function to ensure they're consistently
+        # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_gpxe:
             blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port, distro.name)
@@ -994,6 +1088,17 @@ class TFTPGen(object):
         return self.templar.render(template_data, blended, None)
 
     def generate_script(self, what, objname, script_name):
+        """
+        Generate a script from a autoinstall script template for a given profile or system.
+
+        :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
+        :type what: str
+        :param objname: The name of the item which the bootcfg should be generated for.
+        :type objname: str
+        :param script_name: The name of the template which should be rendered for the system or profile.
+        :return: The fully rendered script as a string.
+        :rtype: str
+        """
         if what == "profile":
             obj = self.api.find_profile(name=objname)
         else:
@@ -1015,8 +1120,7 @@ class TFTPGen(object):
             pass
         blended.update(autoinstall_meta)      # make available at top level
 
-        # FIXME: img_path should probably be moved up into the
-        #        blender function to ensure they're consistently
+        # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
         if obj.enable_gpxe:
             blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port, distro.name)

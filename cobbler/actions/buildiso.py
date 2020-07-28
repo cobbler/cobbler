@@ -63,6 +63,11 @@ class BuildIso(object):
     def add_remaining_kopts(self, koptdict):
         """
         Add remaining kernel_options to append_line
+
+        :param koptdict: The kernel options which are not present in append_line.
+        :type koptdict: dict
+        :return: A single line with all kernel options
+        :rtype: str
         """
         append_line = ""
         for (k, v) in list(koptdict.items()):
@@ -87,7 +92,12 @@ class BuildIso(object):
 
     def make_shorter(self, distname):
         """
-        Return a short distro identifier
+        Return A short distro identifier.
+
+        :param distname: The distro name to return a identifieer for.
+        :type distname: str
+        :return: A short distro identifier
+        :rtype: str
         """
         if distname in self.distmap:
             return self.distmap[distname]
@@ -99,6 +109,11 @@ class BuildIso(object):
     def copy_boot_files(self, distro, destdir, prefix=None):
         """
         Copy kernel/initrd to destdir with (optional) newfile prefix
+
+        :param distro: Distro object to return the boot files for.
+        :param destdir: The destionation direcotry.
+        :param prefix: The file prefix.
+        :type prefix: str
         """
         if not os.path.exists(distro.kernel):
             utils.die(self.logger, "path does not exist: %s" % distro.kernel)
@@ -113,8 +128,14 @@ class BuildIso(object):
 
     def filter_systems_or_profiles(self, selected_items, list_type):
         """
-        Return a list of valid profile or system objects selected from all profiles
-        or systems by name, or everything if selected_items is empty
+        Return a list of valid profile or system objects selected from all profiles or systems by name, or everything if
+        selected_items is empty.
+
+        :param selected_items: The filter to match certain objects with. The filter will be applied to the object name.
+        :param list_type: Must be "profile" or "system".
+        :type list_type: str
+        :return: A list of valid profiles OR systems.
+        :rtype: list
         """
         if list_type == 'profile':
             all_objs = [profile for profile in self.api.profiles()]
@@ -147,6 +168,15 @@ class BuildIso(object):
     def generate_netboot_iso(self, imagesdir, isolinuxdir, profiles=None, systems=None, exclude_dns=None):
         """
         Create bootable CD image to be used for network installations
+
+        :param imagesdir: Currently unused parameter.
+        :param isolinuxdir: The parent directory where the isolinux.cfg is located.
+        :param profiles: The filter to generate a netboot iso for. You may specify multiple profiles on the CLI space
+                        separated.
+        :param systems: The filter to generate a netboot iso for. You may specify multiple systems on the CLI space
+                        separated.
+        :param exclude_dns: If this is True then the dns server is skipped. None or False will set it.
+        :type exclude_dns: bool or None
         """
         which_profiles = self.filter_systems_or_profiles(profiles, 'profile')
         which_systems = self.filter_systems_or_profiles(systems, 'system')
@@ -270,15 +300,15 @@ class BuildIso(object):
                     _domain = system.name.split(".")[1:]
                     if _domain:
                         my_domain = ".".join(_domain)
-                # at least for debian deployments configured for DHCP networking
-                # this values are not used, but specifying here avoids questions
+                # At least for debian deployments configured for DHCP networking this values are not used, but
+                # specifying here avoids questions
                 append_line += " hostname=%s domain=%s" % (my_hostname, my_domain)
-                # a similar issue exists with suite name, as installer requires
-                # the existence of "stable" in the dists directory
+                # A similar issue exists with suite name, as installer requires the existence of "stable" in the dists
+                # directory
                 append_line += " suite=%s" % dist.os_version
 
-            # try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
-            # check for overrides first and clear them from kernel_options
+            # Try to add static ip boot options to avoid DHCP (interface/ip/netmask/gw/dns)
+            # Check for overrides first and clear them from kernel_options
             my_int = None
             my_ip = None
             my_mask = None
@@ -333,8 +363,8 @@ class BuildIso(object):
                     my_dns = data["kernel_options"]["netcfg/get_nameservers"]
                     del data["kernel_options"]["netcfg/get_nameservers"]
 
-            # if no kernel_options overrides are present find the management interface
-            # do nothing when zero or multiple management interfaces are found
+            # If no kernel_options overrides are present find the management interface do nothing when zero or multiple
+            # management interfaces are found
             if my_int is None:
                 mgmt_ints = []
                 mgmt_ints_multi = []
@@ -349,8 +379,8 @@ class BuildIso(object):
                             mgmt_ints.append(iname)
 
                 if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
-                    # bonded/bridged management interface, find a slave interface
-                    # if eth0 is a slave use that (it's what people expect)
+                    # Bonded/bridged management interface, find a slave interface if eth0 is a slave use that (it's what
+                    # people expect)
                     for (iname, idata) in list(data["interfaces"].items()):
                         if idata["interface_type"] in ["bond_slave", "bridge_slave", "bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
                             slave_ints.append(iname)
@@ -359,15 +389,15 @@ class BuildIso(object):
                         my_int = "eth0"
                     else:
                         my_int = slave_ints[0]
-                    # set my_ip from the bonded/bridged interface here
+                    # Set my_ip from the bonded/bridged interface here
                     my_ip = data["ip_address_" + data["interface_master_" + my_int]]
                     my_mask = data["netmask_" + data["interface_master_" + my_int]]
 
                 if len(mgmt_ints) == 1 and len(mgmt_ints_multi) == 0:
-                    # single management interface
+                    # Single management interface
                     my_int = mgmt_ints[0]
 
-            # lookup tcp/ip configuration data
+            # Lookup tcp/ip configuration data
             if my_ip is None and my_int is not None:
                 intip = "ip_address_" + my_int
                 if intip in data and data[intip] != "":
@@ -386,7 +416,7 @@ class BuildIso(object):
                 if "name_servers" in data and data["name_servers"] != "":
                     my_dns = data["name_servers"]
 
-            # add information to the append_line
+            # Add information to the append_line
             if my_int is not None:
                 intmac = "mac_address_" + my_int
                 if dist.breed == "suse":
@@ -439,7 +469,7 @@ class BuildIso(object):
                     else:
                         append_line += " netcfg/get_nameservers=%s" % my_dns
 
-            # add remaining kernel_options to append_line
+            # Add remaining kernel_options to append_line
             append_line += self.add_remaining_kopts(data["kernel_options"])
             cfg.write(append_line)
 
@@ -450,10 +480,17 @@ class BuildIso(object):
     def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped, profiles):
         """
         Create bootable CD image to be used for handsoff CD installtions
+
+        :param imagesdir: Unused Parameter.
+        :param isolinuxdir: The parent directory where the file isolinux.cfg is located at.
+        :param distname: The name of the Cobbler distribution.
+        :param filesource: Not clear what this exactly does
+        :param airgapped: Whether the repositories have to be locally available or the internet is reachable.
+        :type airgapped: bool
+        :param profiles: The list of profiles to include.
         """
-        # Get the distro object for the requested distro
-        # and then get all of its descendants (profiles/sub-profiles/systems)
-        # with sort=True for profile/system heirarchy to allow menu indenting
+        # Get the distro object for the requested distro and then get all of its descendants (profiles/sub-profiles/
+        # systems) with sort=True for profile/system heirarchy to allow menu indenting
         distro = self.api.find_distro(distname)
         if distro is None:
             utils.die(self.logger, "distro %s was not found, aborting" % distname)
@@ -474,7 +511,8 @@ class BuildIso(object):
                 (source_head, source_tail) = os.path.split(source_head)
             # Can't find the source, raise an error
             if not found_source:
-                utils.die(self.logger, "Error, no installation source found. When building a standalone ISO, you must specify a --source if the distro install tree is not hosted locally")
+                utils.die(self.logger, "Error, no installation source found. When building a standalone ISO, you must "
+                                       "specify a --source if the distro install tree is not hosted locally")
 
         self.logger.info("copying kernels and initrds for standalone distro")
         self.copy_boot_files(distro, isolinuxdir, None)
@@ -489,7 +527,8 @@ class BuildIso(object):
 
         for descendant in descendants:
             # if a list of profiles was given, skip any others and their systems
-            if (profiles and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles) or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles))):
+            if profiles and ((descendant.COLLECTION_TYPE == 'profile' and descendant.name not in profiles)
+                             or (descendant.COLLECTION_TYPE == 'system' and descendant.profile not in profiles)):
                 continue
 
             menu_indent = 0
@@ -535,7 +574,8 @@ class BuildIso(object):
                 descendant_repos = data['repos']
                 for repo_name in descendant_repos:
                     repo_obj = self.api.find_repo(repo_name)
-                    error_fmt = (descendant.COLLECTION_TYPE + " " + descendant.name + " refers to repo " + repo_name + ", which %%s; cannot build airgapped ISO")
+                    error_fmt = (descendant.COLLECTION_TYPE + " " + descendant.name + " refers to repo " + repo_name
+                                 + ", which %%s; cannot build airgapped ISO")
 
                     if repo_obj is None:
                         utils.die(self.logger, error_fmt % "does not exist")
@@ -550,10 +590,12 @@ class BuildIso(object):
 
                     # update the baseurl in autoinstall_data to use the cdrom copy of this repo
                     reporegex = re.compile(r"^(\s*repo --name=" + repo_obj.name + " --baseurl=).*", re.MULTILINE)
-                    autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name, autoinstall_data)
+                    autoinstall_data = reporegex.sub(r"\1" + "file:///mnt/source/repo_mirror/" + repo_obj.name,
+                                                     autoinstall_data)
 
                 # rewrite any split-tree repos, such as in redhat, to use cdrom
-                srcreporegex = re.compile(r"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name + r"/?(.*)", re.MULTILINE)
+                srcreporegex = re.compile(r"^(\s*repo --name=\S+ --baseurl=).*/cobbler/distro_mirror/" + distro.name
+                                          + r"/?(.*)", re.MULTILINE)
                 autoinstall_data = srcreporegex.sub(r"\1" + "file:///mnt/source" + r"\2", autoinstall_data)
 
             autoinstall_name = os.path.join(isolinuxdir, "%s.cfg" % descendant.name)
@@ -583,23 +625,39 @@ class BuildIso(object):
                     utils.die(self.logger, "rsync of repo '" + repo_name + "' failed")
 
         # copy distro files last, since they take the most time
-        cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../" % (filesource, isolinuxdir)
+        cmd = "rsync -rlptgu --exclude=boot.cat --exclude=TRANS.TBL --exclude=isolinux/ %s/ %s/../"\
+              % (filesource, isolinuxdir)
         self.logger.info("- copying distro %s files (%s)" % (distname, cmd))
         rc = utils.subprocess_call(self.logger, cmd, shell=True)
         if rc:
             utils.die(self.logger, "rsync of distro files failed")
 
-    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None, source=None, exclude_dns=None, xorrisofs_opts=None):
+    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None,
+            source=None, exclude_dns=None, xorrisofs_opts=None):
+        """
+        A
 
-        # the airgapped option implies standalone
+        :param iso: The name of the iso. Defaults to "autoinst.iso".
+        :param buildisodir: This overwrites the directory from the settings in which the iso is built in.
+        :param profiles:
+        :param systems: Don't use that when building standalone isos.
+        :param distro: (For standalone only)
+        :param standalone: This means that no network connection is needed to install the generated iso.
+        :type standalone: bool
+        :param airgapped: This option implies standalone=True.
+        :type airgapped: bool
+        :param source: If the iso should be offline available this is the path to the sources of the image.
+        :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
+        :param xorrisofs_opts: xorrisofs options to include additionally.
+        """
+
         if airgapped is True:
             standalone = True
 
         # the distro option is for stand-alone builds only
         if not standalone and distro is not None:
             utils.die(self.logger, "The --distro option should only be used when creating a standalone or airgapped ISO")
-        # if building standalone, we only want --distro and --profiles (optional),
-        # systems are disallowed
+        # if building standalone, we only want --distro and --profiles (optional), systems are disallowed
         if standalone:
             if systems is not None:
                 utils.die(self.logger, "When building a standalone ISO, use --distro and --profiles only, not --systems")
@@ -636,8 +694,7 @@ class BuildIso(object):
             shutil.rmtree(buildisodir)
             os.makedirs(buildisodir)
 
-        # if base of buildisodir does not exist, fail
-        # create all profiles unless filtered by "profiles"
+        # if base of buildisodir does not exist, fail create all profiles unless filtered by "profiles"
 
         imagesdir = os.path.join(buildisodir, "images")
         isolinuxdir = os.path.join(buildisodir, "isolinux")

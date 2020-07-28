@@ -1,3 +1,5 @@
+.. _web-interface:
+
 ***********************************
 Web-Interface
 ***********************************
@@ -17,7 +19,7 @@ Old Release 2.8.x
 
 https://cobbler.readthedocs.io/en/release28/web-interface.html
 
-Old Github-Wiki Entry
+Old GitHub-Wiki Entry
 #####################
 
 Most of the day-to-day actions in cobbler's command line can be performed in Cobbler's Web UI.
@@ -29,7 +31,7 @@ With the web user interface (WebUI), you can:
   * Run the equivalent of a ``cobbler sync``
   * Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
 
-You cannnot (yet):
+You cannot (yet):
 
   * Auto-Import media
   * Auto-Import a rsync mirror of install trees

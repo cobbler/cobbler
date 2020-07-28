@@ -56,7 +56,7 @@ configuration files to ensure those changes are applied to the environment.
 It is especially important that the server name field be accurate in ``/etc/cobbler/settings``, without this field being
 correct, automatic installation trees will not be found, and automated installations will fail.
 
-For PXE, if DHCP is to be run from the cobbler server, the dhcp configuration file should be changed as suggested by
+For PXE, if DHCP is to be run from the cobbler server, the DHCP configuration file should be changed as suggested by
 ``cobbler check``. If DHCP is not run locally, the ``next-server`` field on the DHCP server should at minimum point to
 the cobbler server's IP and the filename should be set to ``pxelinux.0``. Alternatively, cobbler can also generate your
 dhcp configuration file if you want to run dhcp locally -- this is covered in a later section. If you don't already have
@@ -74,7 +74,7 @@ For help in building kickstarts, try using the ``system-config-kickstart`` tool,
 ``/root/anaconda-ks.cfg`` file left over from the installer. General kickstart questions can also be asked at
 kickstart-list@redhat.com. Cobbler ships some autoinstall templates in /etc/cobbler that may also be helpful.
 
-For autoyast guides and help please reefer to `the opensuse project <https://doc.opensuse.org/projects/autoyast/>`_
+For AutoYaST guides and help please reefer to `the opensuse project <https://doc.opensuse.org/projects/autoyast/>`_.
 
 Also see the website or documentation for additional documentation, user contributed tips, and so on.
 

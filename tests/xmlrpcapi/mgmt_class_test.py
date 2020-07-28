@@ -1,95 +1,123 @@
 import pytest
 
 
-def tprint(call_name):
-    """
-    Print a remote call debug message
-
-    @param call_name str remote call name
-    """
-
-    print("test remote call: %s()" % call_name)
-
-
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestMgmtClass:
 
-    def _create_mgmtclass(self, remote, token):
+    def test_create_mgmtclass(self, remote, token, remove_mgmt_class):
         """
         Test: create/edit a mgmtclass object
         """
+        # Arrange
+        name = "test_mgmt_class_create"
 
-        mgmtclasses = remote.get_mgmtclasses(token)
-
-        tprint("new_mgmtclass")
+        # Act
         mgmtclass = remote.new_mgmtclass(token)
+        result_modify = remote.modify_mgmtclass(mgmtclass, "name", name, token)
+        result_save = remote.save_mgmtclass(mgmtclass, token)
+        mgmtclass_count = remote.get_mgmtclasses(token)
 
-        tprint("modify_mgmtclass")
-        assert remote.modify_mgmtclass(mgmtclass, "name", "testmgmtclass0", token)
+        # Cleanup
+        remove_mgmt_class(name)
 
-        tprint("save_mgmtclass")
-        assert remote.save_mgmtclass(mgmtclass, token)
+        # Assert
+        assert result_modify
+        assert result_save
+        assert len(mgmtclass_count) == 1
 
-        new_mgmtclasses = remote.get_mgmtclasses(token)
-        assert len(new_mgmtclasses) == len(mgmtclasses) + 1
-
-    def _get_mgmtclasses(self, remote):
+    def test_get_mgmtclasses(self, remote):
         """
         Test: Get mgmtclasses objects
         """
+        # Arrange
 
-        tprint("get_mgmtclasses")
-        remote.get_mgmtclasses()
+        # Act
+        result = remote.get_mgmtclasses()
 
-    def _get_mgmtclass(self, remote):
+        # Assert
+        assert result == []
+
+    def test_get_mgmtclass(self, remote, token, create_mgmt_class, remove_mgmt_class):
         """
         Test: get a mgmtclass object
         """
+        # Arrange
+        name = "test_mgmt_class_get"
+        create_mgmt_class(name)
 
-        tprint("get_mgmtclass")
-        mgmtclass = remote.get_mgmtclass("testmgmtclass0")
+        # Act
+        mgmtclass = remote.get_mgmtclass(name)
 
-    def _find_mgmtclass(self, remote, token):
+        # Cleanup
+        remove_mgmt_class(name)
+
+        # Assert
+        assert mgmtclass
+
+    def test_find_mgmtclass(self, remote, token, create_mgmt_class, remove_mgmt_class):
         """
         Test: find a mgmtclass object
         """
+        # Arrange
+        name = "test_mgmt_class_find"
+        create_mgmt_class(name)
 
-        tprint("find_mgmtclass")
-        result = remote.find_mgmtclass({"name": "testmgmtclass0"}, token)
+        # Act
+        result = remote.find_mgmtclass({"name": name}, token)
+
+        # Cleanup
+        remove_mgmt_class(name)
+
+        # Assert
         assert result
 
-    def _copy_mgmtclass(self, remote, token):
+    def test_copy_mgmtclass(self, remote, token, create_mgmt_class, remove_mgmt_class):
         """
         Test: copy a mgmtclass object
         """
+        # Arrange
+        name = "testmgmtclass0"
+        name_copy = "testmgmtclasscopy"
+        mgmtclass = create_mgmt_class(name)
 
-        tprint("copy_mgmtclass")
-        mgmtclass = remote.get_item_handle("mgmtclass", "testmgmtclass0", token)
-        assert remote.copy_mgmtclass(mgmtclass, "testmgmtclasscopy", token)
+        # Act
+        result = remote.copy_mgmtclass(mgmtclass, name_copy, token)
 
-    def _rename_mgmtclass(self, remote, token):
+        # Cleanup
+        remove_mgmt_class(name)
+        remove_mgmt_class(name_copy)
+
+        # Assert
+        assert result
+
+    def test_rename_mgmtclass(self, remote, token, create_mgmt_class, remove_mgmt_class):
         """
         Test: rename a mgmtclass object
         """
+        # Arrange
+        name = "test_mgmt_class_prerename"
+        name_new = "test_mgmt_class_postrename"
+        mgmtclass = create_mgmt_class(name)
 
-        tprint("rename_mgmtclass")
-        mgmtclass = remote.get_item_handle("mgmtclass", "testmgmtclasscopy", token)
-        assert remote.rename_mgmtclass(mgmtclass, "testmgmtclass1", token)
+        # Act
+        result = remote.rename_mgmtclass(mgmtclass, name_new, token)
 
-    def _remove_mgmtclass(self, remote, token):
+        # Cleanup
+        remove_mgmt_class(name_new)
+
+        # Assert
+        assert result
+
+    def test_remove_mgmtclass(self, remote, token, create_mgmt_class):
         """
         Test: remove a mgmtclass object
         """
+        # Arrange
+        name = "test_mgmt_class_remove"
+        create_mgmt_class(name)
 
-        tprint("remove_mgmtclass")
-        assert remote.remove_mgmtclass("testmgmtclass0", token)
-        assert remote.remove_mgmtclass("testmgmtclass1", token)
+        # Act
+        result = remote.remove_mgmtclass(name, token)
 
-    def test_mgmtclass(self, remote, token):
-        self._get_mgmtclasses(remote)
-        self._create_mgmtclass(remote, token)
-        self._get_mgmtclass(remote)
-        self._find_mgmtclass(remote, token)
-        self._copy_mgmtclass(remote, token)
-        self._rename_mgmtclass(remote, token)
-        self._remove_mgmtclass(remote, token)
+        # Assert
+        assert result

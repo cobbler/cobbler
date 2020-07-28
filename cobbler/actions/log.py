@@ -24,6 +24,7 @@ from builtins import object
 import glob
 import os
 import os.path
+import logging
 
 from cobbler import clogger
 
@@ -35,7 +36,7 @@ class LogTool(object):
 
     def __init__(self, collection_mgr, system, api, logger=None):
         """
-        Log library constructor requires a cobbler system object.
+        Log library constructor requires a Cobbler system object.
         """
         self.system = system
         self.collection_mgr = collection_mgr
@@ -52,11 +53,14 @@ class LogTool(object):
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
             logs = list(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
+        else:
+            logs = []
+            logging.info("No log-files found to delete for system: %s", self.system.name)
+
         for log in logs:
             try:
-                f = open(log, 'w')
-                f.truncate()
-                f.close()
+                with open(log, 'w') as f:
+                    f.truncate()
             except IOError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
             except OSError as e:

@@ -18,7 +18,8 @@ cd /test_dir
 
 # Packages for running cobbler
 zypper -n update
-zypper -n in python3 python3-devel python3-pip python3-setuptools python3-distro python3-future python3-coverage apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders xorriso python3-ldap tftp python3-Sphinx
+zypper -n in python3 python3-devel python3-pip python3-setuptools python3-wheel python3-distro python3-future python3-coverage apache2 apache2-devel acl apache2-mod_wsgi-python3 ipmitool rsync fence-agents genders xorriso python3-ldap tftp python3-Sphinx hardlink
+pip3 install pykickstart
 # Packages for building & installing cobbler from source
 zypper -n in make gzip sed git hg
 

@@ -34,6 +34,12 @@ try:
 except:
     HAS_YUM = False
 
+HAS_LIBREPO = True
+try:
+    import librepo
+except:
+    HAS_LIBREPO = False
+
 from cobbler import clogger
 from cobbler import utils
 from cobbler import download_manager
@@ -43,17 +49,18 @@ from cobbler.utils import os_release
 def repo_walker(top, func, arg):
     """
     Directory tree walk with callback function.
-    For each directory in the directory tree rooted at top (including top
-    itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
-    dirname is the name of the directory, and fnames a list of the names of
-    the files and subdirectories in dirname (excluding '.' and '..').  func
-    may modify the fnames list in-place (e.g. via del or slice assignment),
-    and walk will only recurse into the subdirectories whose names remain in
-    fnames; this can be used to implement a filter, or to impose a specific
-    order of visiting.  No semantics are defined for, or required of, arg,
-    beyond that arg is always passed to func.  It can be used, e.g., to pass
-    a filename pattern, or a mutable object designed to accumulate
-    statistics.  Passing None for arg is common.
+
+    For each directory in the directory tree rooted at top (including top itself, but excluding '.' and '..'), call
+    func(arg, dirname, fnames). dirname is the name of the directory, and fnames a list of the names of the files and
+    subdirectories in dirname (excluding '.' and '..').  func may modify the fnames list in-place (e.g. via del or slice
+    assignment), and walk will only recurse into the subdirectories whose names remain in fnames; this can be used to
+    implement a filter, or to impose a specific order of visiting.  No semantics are defined for, or required of, arg,
+    beyond that arg is always passed to func. It can be used, e.g., to pass a filename pattern, or a mutable object
+    designed to accumulate statistics. Passing None for arg is common.
+
+    :param top: The directory that should be taken as root. The root dir will also be included in the processing.
+    :param func: The function that should be executed.
+    :param arg: The arguments for that function.
     """
     try:
         names = os.listdir(top)
@@ -72,7 +79,7 @@ def repo_walker(top, func, arg):
 
 class RepoSync(object):
     """
-    Handles conversion of internal state to the tftpboot tree layout
+    Handles conversion of internal state to the tftpboot tree layout.
     """
 
     # ==================================================================================
@@ -80,6 +87,11 @@ class RepoSync(object):
     def __init__(self, collection_mgr, tries=1, nofail=False, logger=None):
         """
         Constructor
+
+        :param collection_mgr: The object which holds all information in Cobbler.
+        :param tries: The number of tries before the operation fails.
+        :param nofail: This sets the strictness of the reposync result handling.
+        :param logger: The logger to audit all actions with.
         """
         self.verbose = True
         self.api = collection_mgr.api
@@ -105,6 +117,10 @@ class RepoSync(object):
     def run(self, name=None, verbose=True):
         """
         Syncs the current repo configuration file with the filesystem.
+
+        :param name: The name of the repository to synchronize.
+        :param verbose: If the action should be logged verbose or not.
+        :type verbose: bool
         """
 
         self.logger.info("run, reposync, run!")
@@ -119,10 +135,10 @@ class RepoSync(object):
         report_failure = False
         for repo in self.repos:
             if name is not None and repo.name != name:
-                # invoked to sync only a specific repo, this is not the one
+                # Invoked to sync only a specific repo, this is not the one
                 continue
             elif name is None and not repo.keep_updated:
-                # invoked to run against all repos, but this one is off
+                # Invoked to run against all repos, but this one is off
                 self.logger.info("%s is set to not be updated" % repo.name)
                 continue
 
@@ -132,8 +148,7 @@ class RepoSync(object):
             if not os.path.isdir(repo_path) and not repo.mirror.lower().startswith("rhn://"):
                 os.makedirs(repo_path)
 
-            # set the environment keys specified for this repo
-            # save the old ones if they modify an existing variable
+            # Set the environment keys specified for this repo and save the old one if they modify an existing variable.
 
             env = repo.environment
             old_env = {}
@@ -146,8 +161,7 @@ class RepoSync(object):
                     else:
                         os.environ[k] = env[k]
 
-            # which may actually NOT reposync if the repo is set to not mirror locally
-            # but that's a technicality
+            # Which may actually NOT reposync if the repo is set to not mirror locally but that's a technicality.
 
             for x in range(self.tries + 1, 1, -1):
                 success = False
@@ -159,8 +173,7 @@ class RepoSync(object):
                     utils.log_exc(self.logger)
                     self.logger.warning("reposync failed, tries left: %s" % (x - 2))
 
-            # cleanup/restore any environment variables that were
-            # added or changed above
+            # Cleanup/restore any environment variables that were added or changed above.
 
             for k in list(env.keys()):
                 if env[k] is not None:
@@ -189,6 +202,8 @@ class RepoSync(object):
 
         """
         Conditionally sync a repo, based on type.
+
+        :param repo: The repo to sync.
         """
 
         if repo.breed == "rhn":
@@ -202,41 +217,78 @@ class RepoSync(object):
         elif repo.breed == "wget":
             self.wget_sync(repo)
         else:
-            utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
+            utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)"
+                      % (repo.name, repo.breed))
+
+    # ====================================================================================
+
+    def librepo_getinfo(self, dirname):
+        h = librepo.Handle()
+        r = librepo.Result()
+        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        h.setopt(librepo.LRO_URLS, [dirname])
+        h.setopt(librepo.LRO_LOCAL, True)
+        h.setopt(librepo.LRO_CHECKSUM, True)
+        h.setopt(librepo.LRO_IGNOREMISSING, True)
+
+        try:
+            h.perform(r)
+        except librepo.LibrepoException as e:
+            rc, msg, general_msg = e
+            if rc == librepo.LRE_BADCHECKSUM:
+                utils.die(self.logger, "Corrupted metadata: " + dirname + " " + msg)
+            else:
+                utils.die(self.logger, "librepo error: " + dirname + " " + msg)
+
+        rmd = r.getinfo( librepo.LRR_RPMMD_REPOMD )['records']
+        return( rmd )
 
     # ====================================================================================
 
     def createrepo_walker(self, repo, dirname, fnames):
         """
         Used to run createrepo on a copied Yum mirror.
+
+        :param repo: The repository object to run for.
+        :param dirname: The directory to run in.
+        :param fnames: Not known what this is for.
         """
         if os.path.exists(dirname) or repo['breed'] == 'rsync':
             utils.remove_yum_olddata(dirname)
 
             # add any repo metadata we can use
             mdoptions = []
-            if os.path.isfile("%s/.origin/repomd.xml" % (dirname)):
-                if not HAS_YUM:
-                    utils.die(self.logger, "yum is required to use this feature")
-
-                rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repomd.xml" % (dirname))
-                if "group" in rmd.repoData:
-                    groupmdfile = rmd.getData("group").location[1]
-                    mdoptions.append("-g %s" % groupmdfile)
-                if "prestodelta" in rmd.repoData:
-                    # need createrepo >= 0.9.7 to add deltas
-                    if utils.get_family() in ("redhat", "suse"):
-                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
-                        createrepo_ver = utils.subprocess_get(self.logger, cmd)
-                        if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
-                            mdoptions.append("--deltas")
-                        else:
-                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through cobbler.")
+            if os.path.isfile("%s/.origin/repodata/repomd.xml" % (dirname)): 
+                if HAS_LIBREPO: 
+                    rd = self.librepo_getinfo("%s/.origin" % (dirname)) 
+                elif HAS_YUM: 
+                    rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repodata/repomd.xml" % (dirname)) 
+                    rd = rmd.repoData 
+                else: 
+                    utils.die(self.logger, "yum/librepo is required to use this feature") 
+ 
+                if "group" in rd: 
+                    if HAS_LIBREPO: 
+                        groupmdfile =  rd['group']['location_href'] 
+                    else: 
+                        groupmdfile = rmd.getData("group").location[1] 
+                    mdoptions.append("-g %s" % groupmdfile) 
+                if "prestodelta" in rd: 
+                    # need createrepo >= 0.9.7 to add deltas 
+                    if utils.get_family() in ("redhat", "suse"): 
+                        cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo" 
+                        createrepo_ver = utils.subprocess_get(self.logger, cmd) 
+                        if not createrepo_ver[0:1].isdigit(): 
+                            cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo_c" 
+                            createrepo_ver = utils.subprocess_get(self.logger, cmd) 
+                        if utils.compare_versions_gt(createrepo_ver, "0.9.7"): 
+                            mdoptions.append("--deltas") 
+                        else: 
+                            self.logger.error("this repo has presto metadata; you must upgrade createrepo to >= 0.9.7 first and then need to resync the repo through Cobbler.") 
 
             blended = utils.blender(self.api, False, repo)
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
-                # BOOKMARK
                 cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, pipes.quote(dirname))
                 utils.subprocess_call(self.logger, cmd)
             except:
@@ -250,6 +302,8 @@ class RepoSync(object):
 
         """
         Handle mirroring of directories using wget
+
+        :param repo: The repo object to sync via wget.
         """
 
         repo_mirror = repo.mirror.strip()
@@ -275,6 +329,8 @@ class RepoSync(object):
 
         """
         Handle copying of rsync:// and rsync-over-ssh repos.
+
+        :param repo: The repo to sync via rsync.
         """
 
         if not repo.mirror_locally:
@@ -307,6 +363,8 @@ class RepoSync(object):
 
         """
         Determine reposync command
+
+        :return: The path to the reposync command. If dnf exists it is used instead of reposync.
         """
 
         cmd = None                # reposync command
@@ -315,9 +373,8 @@ class RepoSync(object):
         elif os.path.exists("/usr/bin/reposync"):
             cmd = "/usr/bin/reposync"
         else:
-            # warn about not having yum-utils.  We don't want to require it in the package because
-            # Fedora 22+ has moved to dnf.
-
+            # Warn about not having yum-utils.  We don't want to require it in the package because Fedora 22+ has moved
+            # to dnf.
             utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
         return cmd
 
@@ -327,18 +384,21 @@ class RepoSync(object):
 
         """
         Handle mirroring of RHN repos.
+
+        :param repo: The repo object to synchronize.
         """
 
-        cmd = self.reposync_cmd()  # reposync command
+        # reposync command
+        cmd = self.reposync_cmd()
 
-        has_rpm_list = False       # flag indicating not to pull the whole repo
+        # flag indicating not to pull the whole repo
+        has_rpm_list = False
 
         # detect cases that require special handling
-
         if repo.rpm_list != "" and repo.rpm_list != []:
             has_rpm_list = True
 
-        # create yum config file for use by reposync
+        # Create yum config file for use by reposync
         # FIXME: don't hardcode
         dest_path = os.path.join(self.settings.webdir + "/repo_mirror", repo.name)
         temp_path = os.path.join(dest_path, ".origin")
@@ -349,7 +409,7 @@ class RepoSync(object):
 
         # how we invoke reposync depends on whether this is RHN content or not.
 
-        # this is the somewhat more-complex RHN case.
+        # This is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
             utils.die(self.logger, "rhn:// repos do not work with --mirror-locally=1")
@@ -357,50 +417,55 @@ class RepoSync(object):
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
         rest = repo.mirror[6:]      # everything after rhn://
-        cmd = "%s %s --repo=%s --download_path=%s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
+        cmd = "%s %s --repo=%s -p %s" % (cmd, self.rflags, pipes.quote(rest), pipes.quote(self.settings.webdir + "/repo_mirror"))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
             utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository must match the name of the RHN channel" % args)
 
         if repo.arch == "i386":
-            # counter-intuitive, but we want the newish kernels too
+            # Counter-intuitive, but we want the newish kernels too
             repo.arch = "i686"
 
         if repo.arch != "":
             cmd = "%s -a %s" % (cmd, repo.arch)
 
-        # now regardless of whether we're doing yumdownloader or reposync
-        # or whether the repo was http://, ftp://, or rhn://, execute all queued
-        # commands here.  Any failure at any point stops the operation.
+        # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
+        # rhn://, execute all queued commands here. Any failure at any point stops the operation.
 
         if repo.mirror_locally:
             utils.subprocess_call(self.logger, cmd)
 
-        # some more special case handling for RHN.
-        # create the config file now, because the directory didn't exist earlier
+        # Some more special case handling for RHN. Create the config file now, because the directory didn't exist
+        # earlier.
 
         self.create_local_file(temp_path, repo, output=False)
 
-        # now run createrepo to rebuild the index
+        # Now run createrepo to rebuild the index
 
         if repo.mirror_locally:
             repo_walker(dest_path, self.createrepo_walker, repo)
 
-        # create the config file the hosts will use to access the repository.
+        # Create the config file the hosts will use to access the repository.
 
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
 
-    # This function translates yum repository options into the appropriate
-    # options for python-requests
     def gen_urlgrab_ssl_opts(self, yumopts):
+        """
+        This function translates yum repository options into the appropriate options for python-requests
+
+        :param yumopts: The options to convert.
+        :return: A tuple with the cert and a boolean if it should be verified or not.
+        :rtype: (str, bool)
+        """
         # use SSL options if specified in yum opts
+        cert = None
+        verify = False
         if 'sslclientkey' and 'sslclientcert' in yumopts:
             cert = (yumopts['sslclientcert'], yumopts['sslclientkey'])
-        # note that the default of requests is to verify the peer and host
-        # but the default here is NOT to verify them unless sslverify is
-        # explicitly set to 1 in yumopts
+        # Note that the default of requests is to verify the peer and host but the default here is NOT to verify them
+        # unless sslverify is explicitly set to 1 in yumopts.
         if 'sslverify' in yumopts:
             if yumopts['sslverify'] == 1:
                 verify = True
@@ -415,6 +480,8 @@ class RepoSync(object):
 
         """
         Handle copying of http:// and ftp:// yum repos.
+
+        :param repo: The yum reporitory to sync.
         """
 
         # create the config file the hosts will use to access the repository.
@@ -425,38 +492,44 @@ class RepoSync(object):
         if not repo.mirror_locally:
             return
 
-        cmd = self.reposync_cmd()  # command to run
-        has_rpm_list = False       # flag indicating not to pull the whole repo
+        # command to run
+        cmd = self.reposync_cmd()
+        # flag indicating not to pull the whole repo
+        has_rpm_list = False
 
         # detect cases that require special handling
-
         if repo.rpm_list != "" and repo.rpm_list != []:
             has_rpm_list = True
 
         # create yum config file for use by reposync
         temp_path = os.path.join(dest_path, ".origin")
+        temp_meta_path = os.path.join(temp_path, "repodata" )
 
         if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
+        if not os.path.isdir(temp_meta_path):
+            os.makedirs(temp_meta_path)
 
         temp_file = self.create_local_file(temp_path, repo, output=False)
 
         if not has_rpm_list:
-            # if we have not requested only certain RPMs, use reposync
-            cmd = "%s %s --config=%s --repoid=%s --download_path=%s" % (cmd, self.rflags, temp_file, pipes.quote(repo.name), pipes.quote(self.settings.webdir + "/repo_mirror"))
+            # If we have not requested only certain RPMs, use reposync
+            cmd = "%s %s --config=%s --repoid=%s -p %s" \
+                  % (cmd, self.rflags, temp_file, pipes.quote(repo.name),
+                     pipes.quote(self.settings.webdir + "/repo_mirror"))
             if repo.arch != "":
                 if repo.arch == "x86":
-                    repo.arch = "i386"      # FIX potential arch errors
+                    # Fix potential arch errors
+                    repo.arch = "i386"
                 if repo.arch == "i386":
-                    # counter-intuitive, but we want the newish kernels too
+                    # Counter-intuitive, but we want the newish kernels too
                     cmd = "%s -a i686" % (cmd)
                 else:
                     cmd = "%s -a %s" % (cmd, repo.arch)
 
         else:
-
-            # create the output directory if it doesn't exist
+            # Create the output directory if it doesn't exist
             if not os.path.exists(dest_path):
                 os.makedirs(dest_path)
 
@@ -464,19 +537,19 @@ class RepoSync(object):
             if repo.arch == "src":
                 use_source = "--source"
 
-            # older yumdownloader sometimes explodes on --resolvedeps
-            # if this happens to you, upgrade yum & yum-utils
+            # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
             cmd = ""
             if os.path.exists("/usr/bin/dnf"):
                 cmd = "/usr/bin/dnf download"
             else:
                 cmd = "/usr/bin/yumdownloader"
-            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s" % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path), " ".join(repo.rpm_list))
+            cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s"\
+                  % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path),
+                     " ".join(repo.rpm_list))
 
-        # now regardless of whether we're doing yumdownloader or reposync
-        # or whether the repo was http://, ftp://, or rhn://, execute all queued
-        # commands here.  Any failure at any point stops the operation.
+        # Now regardless of whether we're doing yumdownloader or reposync or whether the repo was http://, ftp://, or
+        # rhn://, execute all queued commands here.  Any failure at any point stops the operation.
 
         rc = utils.subprocess_call(self.logger, cmd)
         if rc != 0:
@@ -491,26 +564,37 @@ class RepoSync(object):
         elif repo.proxy != '<<None>>' and repo.proxy != '':
             proxies = {'http': repo.proxy, 'https': repo.proxy}
         src = repo_mirror + "/repodata/repomd.xml"
-        dst = temp_path + "/repomd.xml"
+        dst = temp_meta_path + "/repomd.xml"
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
         try:
-            self.dlmgr.download_file(src, dst, proxies, cert, verify)
+            self.dlmgr.download_file(src, dst, proxies, cert)
         except Exception as e:
             utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
-        # create our repodata directory now, as any extra metadata we're
-        # about to download probably lives there
+        # Create our repodata directory now, as any extra metadata we're about to download probably lives there
         if not os.path.isdir(repodata_path):
             os.makedirs(repodata_path)
-        rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_path))
-        for mdtype in list(rmd.repoData.keys()):
+
+        if HAS_LIBREPO:
+            rmd = self.librepo_getinfo(temp_path)
+            k = rmd.keys()
+        elif HAS_YUM:
+            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_meta_path))
+            k = rmd.repoData.keys()
+        else:
+            utils.die(self.logger, "yum/librepo is required to use this feature")
+
+        for mdtype in list(k):
             # don't download metadata files that are created by default
             if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
-                mdfile = rmd.getData(mdtype).location[1]
+                if HAS_LIBREPO:
+                    mdfile = rmd[mdtype]['location_href']
+                elif HAS_YUM:
+                    mdfile = rmd.getData(mdtype).location[1]
                 src = repo_mirror + "/" + mdfile
                 dst = dest_path + "/" + mdfile
                 try:
-                    self.dlmgr.download_file(src, dst, proxies, cert, verify)
+                    self.dlmgr.download_file(src, dst, proxies, cert)
                 except Exception as e:
                     utils.die(self.logger, "failed to fetch " + src + " " + e.args)
 
@@ -521,21 +605,21 @@ class RepoSync(object):
     # ====================================================================================
 
     def apt_sync(self, repo):
-
         """
         Handle copying of http:// and ftp:// debian repos.
+
+        :param repo: The apt repository to sync.
         """
 
-        # warn about not having mirror program.
-
+        # Warn about not having mirror program.
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
             utils.die(self.logger, "no %s found, please install it" % (mirror_program))
 
-        cmd = ""                  # command to run
+        # command to run
+        cmd = ""
 
         # detect cases that require special handling
-
         if repo.rpm_list != "" and repo.rpm_list != []:
             utils.die(self.logger, "has_rpm_list not yet supported on apt repos")
 
@@ -546,9 +630,8 @@ class RepoSync(object):
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
 
         if repo.mirror_locally:
-            # NOTE: Dropping @@suite@@ replace as it is also dropped from
-            # from manage_import_debian_ubuntu.py due that repo has no os_version
-            # attribute. If it is added again it will break the Web UI!
+            # NOTE: Dropping @@suite@@ replace as it is also dropped from "from manage_import_debian"_ubuntu.py due that
+            # repo has no os_version attribute. If it is added again it will break the Web UI!
             # mirror = repo.mirror.replace("@@suite@@",repo.os_version)
             mirror = repo.mirror
 
@@ -563,7 +646,9 @@ class RepoSync(object):
             dists = ",".join(repo.apt_dists)
             components = ",".join(repo.apt_components)
 
-            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s" % (pipes.quote(method), pipes.quote(host), pipes.quote(mirror), pipes.quote(dists), pipes.quote(components))
+            mirror_data = "--method=%s --host=%s --root=%s --dist=%s --section=%s"\
+                          % (pipes.quote(method), pipes.quote(host), pipes.quote(mirror), pipes.quote(dists),
+                             pipes.quote(components))
 
             rflags = "--nocleanup"
             for x in repo.yumopts:
@@ -583,8 +668,8 @@ class RepoSync(object):
                     arch = "amd64"      # FIX potential arch errors
                 cmd = "%s --nosource -a %s" % (cmd, arch)
 
-            # Set's an environment variable for subprocess, otherwise debmirror will fail
-            # as it needs this variable to exist.
+            # Set's an environment variable for subprocess, otherwise debmirror will fail as it needs this variable to
+            # exist.
             # FIXME: might this break anything? So far it doesn't
             os.putenv("HOME", "/var/lib/cobbler")
 
@@ -594,18 +679,23 @@ class RepoSync(object):
 
     def create_local_file(self, dest_path, repo, output=True):
         """
-
         Creates Yum config files for use by reposync
 
         Two uses:
         (A) output=True, Create local files that can be used with yum on provisioned clients to make use of this mirror.
         (B) output=False, Create a temporary file for yum to feed into yum for mirroring
+
+        :param dest_path: The destination path to create the file at.
+        :type dest_path: str
+        :param repo: The repository object to create a file for.
+        :param output: See described above.
+        :type output: bool
+        :return: The name of the file which was written.
         """
 
-        # the output case will generate repo configuration files which are usable
-        # for the installed systems.  They need to be made compatible with --server-override
-        # which means they are actually templates, which need to be rendered by a cobbler-sync
-        # on per profile/system basis.
+        # The output case will generate repo configuration files which are usable for the installed systems. They need
+        # to be made compatible with --server-override which means they are actually templates, which need to be
+        # rendered by a Cobbler-sync on per profile/system basis.
 
         if output:
             fname = os.path.join(dest_path, "config.repo")
@@ -632,8 +722,7 @@ class RepoSync(object):
                 line = "baseurl=%s\n" % mstr
 
             config_file.write(line)
-            # user may have options specific to certain yum plugins
-            # add them to the file
+            # User may have options specific to certain yum plugins add them to the file
             for x in repo.yumopts:
                 config_file.write("%s=%s\n" % (x, repo.yumopts[x]))
                 if x == "enabled":
@@ -686,8 +775,9 @@ class RepoSync(object):
     def update_permissions(self, repo_path):
         """
         Verifies that permissions and contexts after an rsync are as expected.
-        Sending proper rsync flags should prevent the need for this, though this is largely
-        a safeguard.
+        Sending proper rsync flags should prevent the need for this, though this is largely a safeguard.
+
+        :param repo_path: The path to update the permissions of.
         """
         # all_path = os.path.join(repo_path, "*")
         owner = "root:apache"

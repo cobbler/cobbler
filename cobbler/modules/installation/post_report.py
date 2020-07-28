@@ -4,9 +4,7 @@
 #
 # License: GPLv2+
 
-# Post install trigger for cobbler to
-# send out a pretty email report that
-# contains target information.
+# Post install trigger for Cobbler to send out a pretty email report that contains target information.
 
 from builtins import str
 import smtplib
@@ -16,12 +14,28 @@ import cobbler.utils as utils
 
 
 def register():
+    """
+    The mandatory Cobbler module registration hook.
+
+    :return: Always ``/var/lib/cobbler/triggers/install/post/*``.
+    """
     # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
     # the return of this method indicates the trigger type
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
 def run(api, args, logger):
+    """
+    This is the mandatory Cobbler module run trigger hook.
+
+    :param api: The api to resolve information with.
+    :param args: This is an array with three elements.
+                 0: "target" or "profile"
+                 1: name of target or profile
+                 2: ip or "?"
+    :param logger: In this module not used.
+    :return: ``0`` or ``1``.
+    """
     # FIXME: make everything use the logger
 
     settings = api.settings()
@@ -30,9 +44,9 @@ def run(api, args, logger):
     if not str(settings.build_reporting_enabled).lower() in ["1", "yes", "y", "true"]:
         return 0
 
-    objtype = args[0]   # "target" or "profile"
-    name = args[1]      # name of target or profile
-    boot_ip = args[2]   # ip or "?"
+    objtype = args[0]
+    name = args[1]
+    boot_ip = args[2]
 
     if objtype == "system":
         target = api.find_system(name)

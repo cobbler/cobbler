@@ -37,10 +37,10 @@ Settings are stored in ``/etc/cobbler/settings``. This file is a YAML formatted 
 editing this file as an incorrectly formatted file will prevent cobblerd from running.
 
 
-Default encrypted password 
+Default encrypted password
 ==========================
 
-This setting controls the root password that is set for new systems during the handsoff installation. 
+This setting controls the root password that is set for new systems during the handsoff installation.
 
 .. code-block:: none
 
@@ -159,7 +159,7 @@ Checking for problems and your first sync
 
 Now that the cobblerd service is up and running, it's time to check for problems. Cobbler's check command will make some
 suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical for
-basic functionality. If you are running iptables or SELinux, it is important to review any messages concering those that
+basic functionality. If you are running iptables or SELinux, it is important to review any messages concerning those that
 check may report.
 
 .. code-block:: none
@@ -189,17 +189,17 @@ is not critical, but a failure to properly sync at this point can reveal a confi
     generating /etc/dhcp/dhcpd.conf
     cleaning link caches
     running: find /var/lib/tftpboot/images/.link_cache -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'
-    received on stdout: 
-    received on stderr: 
+    received on stdout:
+    received on stderr:
     running post-sync triggers
     running python triggers from /var/lib/cobbler/triggers/sync/post/*
     running python trigger cobbler.modules.sync_post_restart_services
     running: dhcpd -t -q
-    received on stdout: 
-    received on stderr: 
+    received on stdout:
+    received on stderr:
     running: service dhcpd restart
-    received on stdout: 
-    received on stderr: 
+    received on stdout:
+    received on stderr:
     running shell triggers from /var/lib/cobbler/triggers/sync/post/*
     running python triggers from /var/lib/cobbler/triggers/change/*
     running python trigger cobbler.modules.scm_track
@@ -231,7 +231,7 @@ Once this file is downloaded, mount it somewhere:
     $ mount -t iso9660 -o loop,ro /path/to/isos/Fedora-17-x86_64-DVD.iso /mnt
 
 
-Run the import 
+Run the import
 ==============
 
 You are now ready to import the distribution. The name and path arguments are the only required options for import:
@@ -256,7 +256,7 @@ during the import.
     $ cobbler profile list
 
 The import command will typically create at least one distro/profile pair, which will have the same name as shown above.
-In some cases (for instance when a xen-based kernel is found), more than one distro/profile pair will be created.
+In some cases (for instance when a Xen-based kernel is found), more than one distro/profile pair will be created.
 
 
 Object details
@@ -271,7 +271,7 @@ The report command shows the details of objects in cobbler:
     Architecture                    : x86_64
     TFTP Boot Files                 : {}
     Breed                           : redhat
-    Comment                         : 
+    Comment                         :
     Fetchable Files                 : {}
     Initrd                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/initrd.img
     Kernel                          : /var/www/cobbler/distro_mirror/fedora17-x86_64/images/pxeboot/vmlinuz
@@ -313,14 +313,14 @@ name and profile are the only two required fields:
     $ cobbler system report --name=test
     Name                           : test
     TFTP Boot Files                : {}
-    Comment                        : 
+    Comment                        :
     Enable gPXE?                   : 0
     Fetchable Files                : {}
-    Gateway                        : 
-    Hostname                       : 
-    Image                          : 
+    Gateway                        :
+    Hostname                       :
+    Image                          :
     IPv6 Autoconfiguration         : False
-    IPv6 Default Device            : 
+    IPv6 Default Device            :
     Kernel Options                 : {}
     Kernel Options (Post Install)  : {}
     Automatic Installation Template: <<inherit>>
@@ -331,11 +331,11 @@ name and profile are the only two required fields:
     Name Servers Search Path       : []
     Netboot Enabled                : True
     Owners                         : ['admin']
-    Power Management Address       : 
-    Power Management ID            : 
-    Power Management Password      : 
+    Power Management Address       :
+    Power Management ID            :
+    Power Management Password      :
     Power Management Type          : ipmitool
-    Power Management Username      : 
+    Power Management Username      :
     Profile                        : fedora17-x86_64
     Proxy                          : <<inherit>>
     Red Hat Management Key         : <<inherit>>
@@ -359,7 +359,7 @@ So now we'll setup a single, simple interface in the ``192.168.1/24`` network:
 
 .. code-block:: none
 
-    $ cobbler system edit --name=test --interface=eth0 --mac=00:11:22:AA:BB:CC --ip-address=192.168.1.100 --netmask=255.255.255.0 --static=1 --dns-name=test.mydomain.com 
+    $ cobbler system edit --name=test --interface=eth0 --mac=00:11:22:AA:BB:CC --ip-address=192.168.1.100 --netmask=255.255.255.0 --static=1 --dns-name=test.mydomain.com
 
 The default gateway isn't specified per-NIC, so just add that separately (along with the hostname):
 

@@ -15,6 +15,7 @@ RUN dnf install -y          \
     python-sphinx           \
     python3-coverage        \
     python3-devel           \
+    python3-wheel           \
     python3-distro          \
     python3-future          \
     python3-pep8            \
@@ -22,7 +23,9 @@ RUN dnf install -y          \
     python3-pycodestyle     \
     python3-setuptools      \
     python3-sphinx          \
-    rpm-build
+    python3-pip             \
+    rpm-build               \
+    which
 
 # Runtime dependencies
 RUN yum install -y          \

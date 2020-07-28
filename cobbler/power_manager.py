@@ -44,9 +44,10 @@ POWER_RETRIES = 3
 
 def get_power_types():
     """
-    Get possible power management types
+    Get possible power management types.
 
-    @return list possible power management types
+    :returns: Possible power management types
+    :rtype: list
     """
 
     power_types = []
@@ -61,10 +62,11 @@ def get_power_types():
 
 def validate_power_type(power_type):
     """
-    Check if a power management type is valid
+    Check if a power management type is valid.
 
-    @param str power_type power management type
-    @raise CX if power management type is invalid
+    :param power_type: Power management type.
+    :type power_type: str
+    :raise CX: if power management type is invalid
     """
 
     power_types = get_power_types()
@@ -78,8 +80,10 @@ def get_power_command(power_type):
     """
     Get power management command path
 
-    @param str power_type power management type
-    @return str power management command path
+    :param power_type: power management type
+    :type power_type: str
+    :returns: power management command path
+    :rtype: str or None
     """
 
     if power_type:
@@ -101,9 +105,12 @@ class PowerManager(object):
         """
         Constructor
 
-        @param CobblerAPI api Cobbler API
-        @param CollectionManager collection_mgr collection manager
-        @param Logger logger logger
+        :param api: Cobbler API
+        :type api: CobblerAPI
+        :param collection_mgr: collection manager
+        :type collection_mgr: CollectionManager
+        :param logger: A logger object to audit the actions of the object instance.
+        :type logger: Logger
         """
 
         self.collection_mgr = collection_mgr
@@ -115,9 +122,15 @@ class PowerManager(object):
 
     def _check_power_conf(self, system, logger, user, password):
         """
-        Prints a warning for invalid power configuraitons
-        @param System system Cobbler system
-        @param Logger logger logger
+        Prints a warning for invalid power configurations.
+
+        :param user: The username for the power command of the system. This overrules the one specified in the system.
+        :param password: The password for the power command of the system. This overrules the one specified in the
+                         system.
+        :param system: Cobbler system
+        :type system: System
+        :param logger: logger
+        :type logger: Logger
         """
 
         if (system.power_pass or password) and system.power_identity_file:
@@ -140,16 +153,21 @@ class PowerManager(object):
 
     def _get_power_input(self, system, power_operation, logger, user, password):
         """
-        Creats an option string for the fence agent from the system data
-        Internal method
+        Creates an option string for the fence agent from the system data. This is an internal method.
 
-        @param System system Cobbler system
-        @param str power_operation power operation. Valid values: on, off, status.
-                Rebooting is implemented as a set of 2 operations (off and on) in
-                a higher level method.
-        @param Logger logger logger
-        @param str user user to override system.power_user
-        @param str password password to override system.power_pass
+        :param system: Cobbler system
+        :type system: System
+        :param power_operation: power operation. Valid values: on, off, status. Rebooting is implemented as a set of 2
+                                operations (off and on) in a higher level method.
+        :type power_operation: str
+        :param logger: logger
+        :type logger: Logger
+        :param user: user to override system.power_user
+        :type user: str
+        :param password: password to override system.power_pass
+        :type password: str
+        :return: The option string for the fencer agent.
+        :rtype: str
         """
 
         self._check_power_conf(system, logger, user, password)
@@ -176,18 +194,21 @@ class PowerManager(object):
         Performs a power operation on a system.
         Internal method
 
-        @param System system Cobbler system
-        @param str power_operation power operation. Valid values: on, off, status.
-                Rebooting is implemented as a set of 2 operations (off and on) in
-                a higher level method.
-        @param str user power management user. If user and password are not
-                supplied, environment variables COBBLER_POWER_USER and
-                COBBLER_POWER_PASS will be used.
-        @param str password power management password
-        @param Logger logger logger
-        @return bool/None if power operation is 'status', return if system is on;
-                otherwise, return None
-        @raise CX if there are errors
+        :param system: Cobbler system
+        :type system: System
+        :param power_operation: power operation. Valid values: on, off, status. Rebooting is implemented as a set of 2
+                                operations (off and on) in a higher level method.
+        :type power_operation: str
+        :param user: power management user. If user and password are not supplied, environment variables
+                     COBBLER_POWER_USER and COBBLER_POWER_PASS will be used.
+        :type user: str
+        :param password: power management password
+        :type password: str
+        :param logger: logger
+        :type logger: Logger
+        :return: bool/None if power operation is 'status', return if system is on; otherwise, return None
+        :rtype: bool or None
+        :raise CX: if there are errors
         """
 
         if logger is None:
@@ -249,10 +270,14 @@ class PowerManager(object):
         """
         Powers up a system that has power management configured.
 
-        @param System system Cobbler system
-        @param str user power management user
-        @param str password power management password
-        @param Logger logger logger
+        :param system: Cobbler system
+        :type system: System
+        :param user: power management user
+        :type user: str
+        :param password: power management password
+        :type password: str
+        :param logger: logger
+        :type logger: Logger
         """
 
         self._power(system, "on", user, password, logger)
@@ -261,10 +286,14 @@ class PowerManager(object):
         """
         Powers down a system that has power management configured.
 
-        @param System system Cobbler system
-        @param str user power management user
-        @param str password power management password
-        @param Logger logger logger
+        :param system: Cobbler system
+        :type system: System
+        :param user: power management user
+        :type user: str
+        :param password: power management password
+        :type password: str
+        :param logger: logger
+        :type logger: Logger
         """
 
         self._power(system, "off", user, password, logger)
@@ -273,10 +302,14 @@ class PowerManager(object):
         """
         Reboot a system that has power management configured.
 
-        @param System system Cobbler system
-        @param str user power management user
-        @param str password power management password
-        @param Logger logger logger
+        :param system: Cobbler system
+        :type system: System
+        :param user: power management user
+        :type user: str
+        :param password: power management password
+        :type password: str
+        :param logger: logger
+        :type logger: Logger
         """
 
         self.power_off(system, user, password, logger=logger)
@@ -287,11 +320,16 @@ class PowerManager(object):
         """
         Get power status for a system that has power management configured.
 
-        @param System system Cobbler system
-        @param str user power management user
-        @param str password power management password
-        @param Logger logger logger
-        @return bool if system is powered on
+        :param system: Cobbler system
+        :type system: System
+        :param user: power management user
+        :type user: str
+        :param password: power management password
+        :type password: str
+        :param logger: logger
+        :type logger: Logger
+        :return: if system is powered on
+        :rtype: bool
         """
 
         return self._power(system, "status", user, password, logger)

@@ -20,6 +20,7 @@ RUN yum install -y          \
     python-sphinx           \
     python36-coverage       \
     python36-devel          \
+    python36-wheel          \
     python36-distro         \
     python36-future         \
     python36-pyflakes       \
@@ -27,7 +28,8 @@ RUN yum install -y          \
     python36-setuptools     \
     python36-requests       \
     python36-sphinx         \
-    rpm-build
+    rpm-build               \
+    which
 
 RUN yum install -y          \
 # Runtime dependencies

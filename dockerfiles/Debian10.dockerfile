@@ -25,6 +25,7 @@ RUN apt-get update -qq && \
     python-django-common \
     python3-cheetah  \
     python3-coverage \
+    python3-wheel   \
     python3-distro \
     python3-distutils \
     python3-django \
@@ -56,6 +57,7 @@ RUN apt-get update -qq && \
     patch \
     pax \
     git \
+    hardlink \
     apache2 \
     libapache2-mod-wsgi-py3 \
     systemd && \

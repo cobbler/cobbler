@@ -37,7 +37,7 @@ from cobbler.utils import _
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -45,11 +45,19 @@ def register():
 class BindManager(object):
 
     def what(self):
+        """
+        Identifies what this class is managing.
+
+        :return: Always will return ``bind``.
+        """
         return "bind"
 
     def __init__(self, collection_mgr, logger):
         """
-        Constructor
+        Constructor to create a default BindManager object.
+
+        :param collection_mgr: The collection manager to resolve all information with.
+        :param logger: This is used to audit all actions with.
         """
         self.logger = logger
         if self.logger is None:
@@ -67,15 +75,21 @@ class BindManager(object):
         self.zonefile_base = utils.zonefile_base(self.api)
 
     def regen_hosts(self):
-        pass        # not used
+        """
+        Not used.
+        """
+        pass
 
     def __expand_IPv6(self, address):
         """
-        Expands an IPv6 address to long format i.e.
-        xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx
+        Expands an IPv6 address to long format i.e. ``xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx``
+
+        This function was created by Chris Miller, approved for GLP use, taken verbatim from:
+        http://forrst.com/posts/Python_Expand_Abbreviated_IPv6_Addresses-1kQ
+
+        :param address: Shortened IPv6 address.
+        :return: The full IPv6 address.
         """
-        # Function by Chris Miller, approved for GLP use, taken verbatim from:
-        # http://forrst.com/posts/Python_Expand_Abbreviated_IPv6_Addresses-1kQ
         fullAddress = ""            # All groups
         expandedAddress = ""        # Each group padded with leading zeroes
         validGroupCount = 8
@@ -107,14 +121,13 @@ class BindManager(object):
 
     def __forward_zones(self):
         """
-        Returns a map of zones and the records that belong
-        in them
+        Returns a map of zones and the records that belong in them
         """
         zones = {}
         forward_zones = self.settings.manage_forward_zones
         if not isinstance(forward_zones, list):
-            # gracefully handle when user inputs only a single zone
-            # as a string instead of a list with only a single item
+            # Gracefully handle when user inputs only a single zone as a string instead of a list with only a single
+            # item
             forward_zones = [forward_zones]
 
         for zone in forward_zones:
@@ -134,8 +147,7 @@ class BindManager(object):
                 if host.find(".") == -1:
                     continue
 
-                # match the longest zone!
-                # e.g. if you have a host a.b.c.d.e
+                # Match the longest zone! E.g. if you have a host a.b.c.d.e
                 # if manage_forward_zones has:
                 # - c.d.e
                 # - b.c.d.e
@@ -145,7 +157,8 @@ class BindManager(object):
                     if re.search(r'\.%s$' % zone, host) and len(zone) > len(best_match):
                         best_match = zone
 
-                if best_match == '':        # no match
+                # no match
+                if best_match == '':
                     continue
 
                 # strip the zone off the dns_name
@@ -162,8 +175,7 @@ class BindManager(object):
                         except socket.error:
                             power_address_is_ip = False
 
-                        # if the power address is an IP, then add it to the DNS
-                        # with the host suffix of "-ipmi"
+                        # if the power address is an IP, then add it to the DNS with the host suffix of "-ipmi"
                         # TODO: Perhpas the suffix can be configurable through settings?
                         if (power_address_is_ip):
                             ipmi_host = host + "-ipmi"
@@ -195,14 +207,15 @@ class BindManager(object):
 
     def __reverse_zones(self):
         """
-        Returns a map of zones and the records that belong
-        in them
+        Returns a map of zones and the records that belong in them
+
+        :return: A dict with all zones.
         """
         zones = {}
         reverse_zones = self.settings.manage_reverse_zones
         if not isinstance(reverse_zones, list):
-            # gracefully handle when user inputs only a single zone
-            # as a string instead of a list with only a single item
+            # Gracefully handle when user inputs only a single zone as a string instead of a list with only a single
+            # item
             reverse_zones = [reverse_zones]
 
         for zone in reverse_zones:
@@ -224,8 +237,7 @@ class BindManager(object):
                     continue
 
                 if ip:
-                    # match the longest zone!
-                    # e.g. if you have an ip 1.2.3.4
+                    # Match the longest zone! E.g. if you have an ip 1.2.3.4
                     # if manage_reverse_zones has:
                     # - 1.2
                     # - 1.2.3
@@ -236,9 +248,8 @@ class BindManager(object):
                             best_match = zone
 
                     if best_match != '':
-                        # strip the zone off the front of the ip
-                        # reverse the rest of the octets
-                        # append the remainder + dns_name
+                        # strip the zone off the front of the ip reverse the rest of the octets append the remainder
+                        # + dns_name
                         ip = ip.replace(best_match, '', 1)
                         if ip[0] == '.':        # strip leading '.' if it's there
                             ip = ip[1:]
@@ -254,8 +265,7 @@ class BindManager(object):
                     for each_ipv6 in ip6s + ipv6_sec_addrs:
                         # convert the IPv6 address to long format
                         long_ipv6 = self.__expand_IPv6(each_ipv6)
-                        # All IPv6 zones are forced to have the format
-                        # xxxx:xxxx:xxxx:xxxx
+                        # All IPv6 zones are forced to have the format xxxx:xxxx:xxxx:xxxx
                         zone = long_ipv6[:19]
                         ipv6_host_part = long_ipv6[20:]
                         tokens = list(re.sub(':', '', ipv6_host_part))
@@ -391,6 +401,10 @@ zone "%(arpa)s." {
     def __ip_sort(self, ips):
         """
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
+
+        :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
+        :type ips: list
+        :return: The list with sorted IP addresses.
         """
         quartets = []
         octets = []
@@ -417,6 +431,12 @@ zone "%(arpa)s." {
     def __pretty_print_host_records(self, hosts, rectype='A', rclass='IN'):
         """
         Format host records by order and with consistent indentation
+
+        :param hosts: The hosts to pretty print.
+        :param rectype: The record type.
+        :param rclass: The record class.
+        :return: A string with all pretty printed hosts.
+        :rtype: str
         """
 
         # Warns on hosts without dns_name, need to iterate over system to name the
@@ -425,8 +445,8 @@ zone "%(arpa)s." {
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
                 if interface["dns_name"] == "":
-                    self.logger.info(
-                        ("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
+                    self.logger.info("Warning: dns_name unspecified in the system: %s, while writing host records"
+                                     % system.name)
 
         names = [k for k, v in list(hosts.items())]
         if not names:
@@ -462,6 +482,10 @@ zone "%(arpa)s." {
     def __pretty_print_cname_records(self, hosts, rectype='CNAME'):
         """
         Format CNAMEs and with consistent indentation
+
+        :param hosts: This parameter is currently unused.
+        :param rectype: The type of record which shall be pretty printed.
+        :return: The pretty printed version of the cname records.
         """
         s = ""
 
@@ -596,8 +620,7 @@ zone "%(arpa)s." {
 
     def write_dns_files(self):
         """
-        BIND files are written when manage_dns is set in
-        /var/lib/cobbler/settings.
+        BIND files are written when manage_dns is set in ``/var/lib/cobbler/settings``.
         """
 
         self.__write_named_conf()
@@ -606,4 +629,11 @@ zone "%(arpa)s." {
 
 
 def get_manager(collection_mgr, logger):
+    """
+    This returns the object to manage a BIND server located locally on the Cobbler server.
+
+    :param collection_mgr: The collection manager to resolve all information with.
+    :param logger: The logger to audit all actions with.
+    :return: The BindManger object to manage bind with.
+    """
     return BindManager(collection_mgr, logger)

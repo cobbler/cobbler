@@ -32,7 +32,7 @@ from cobbler.cexceptions import CX
 
 def register():
     """
-    The mandatory cobbler module registration hook.
+    The mandatory Cobbler module registration hook.
     """
     return "manage"
 
@@ -40,11 +40,19 @@ def register():
 class InTftpdManager(object):
 
     def what(self):
+        """
+        Static method to identify the manager.
+
+        :return: Always "in_tftpd".
+        """
         return "in_tftpd"
 
     def __init__(self, collection_mgr, logger):
         """
         Constructor
+
+        :param collection_mgr: The collection manager to resolve all information with.
+        :param logger: The logger to audit all actions with.
         """
         self.logger = logger
         if self.logger is None:
@@ -57,27 +65,30 @@ class InTftpdManager(object):
         self.bootloc = collection_mgr.settings().tftpboot_location
 
     def regen_hosts(self):
-        pass        # not used
+        """
+        Not used
+        """
+        pass
 
     def write_dns_files(self):
-        pass        # not used
+        """
+        Not used
+        """
+        pass
 
     def write_boot_files_distro(self, distro):
-        # collapse the object down to a rendered datastructure
-        # the second argument set to false means we don't collapse
-        # dicts/arrays into a flat string
+        # Collapse the object down to a rendered datastructure.
+        # The second argument set to false means we don't collapse dicts/arrays into a flat string.
         target = utils.blender(self.collection_mgr.api, False, distro)
 
-        # Create metadata for the templar function
-        # Right now, just using local_img_path, but adding more
-        # cobbler variables here would probably be good
+        # Create metadata for the templar function.
+        # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.
         metadata = {}
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar(self.collection_mgr)
 
-        # Loop through the dict of boot files,
-        # executing a cp for each one
+        # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
         for file in list(target["boot_files"].keys()):
             rendered_file = templater.render(file, metadata, None)
@@ -87,8 +98,7 @@ class InTftpdManager(object):
                         # this wasn't really a glob, so just copy it as is
                         filedst = rendered_file
                     else:
-                        # this was a glob, so figure out what the destination
-                        # file path/name should be
+                        # this was a glob, so figure out what the destination file path/name should be
                         tgt_path, tgt_file = os.path.split(f)
                         rnd_path, rnd_file = os.path.split(rendered_file)
                         filedst = os.path.join(rnd_path, tgt_file)
@@ -102,8 +112,9 @@ class InTftpdManager(object):
 
     def write_boot_files(self):
         """
-        Copy files in profile["boot_files"] into /tftpboot.  Used for vmware
-        currently.
+        Copy files in ``profile["boot_files"]`` into ``/tftpboot``. Used for vmware currently.
+
+        :return: ``0`` on success.
         """
         for distro in self.collection_mgr.distros():
             self.write_boot_files_distro(distro)
@@ -112,7 +123,9 @@ class InTftpdManager(object):
 
     def update_netboot(self, name):
         """
-        Write out new pxelinux.cfg files to /tftpboot
+        Write out new ``pxelinux.cfg`` files to ``/tftpboot``
+
+        :param name: The name of the system to update.
         """
         system = self.systems.find(name=name)
         if system is None:
@@ -124,7 +137,9 @@ class InTftpdManager(object):
 
     def add_single_system(self, system):
         """
-        Write out new pxelinux.cfg files to /tftpboot
+        Write out new ``pxelinux.cfg`` files to ``/tftpboot``
+
+        :param system: The system to be added.
         """
         # write the PXE files for the system
         menu_items = self.tftpgen.get_menu_items()['pxe']
@@ -139,16 +154,17 @@ class InTftpdManager(object):
     def sync(self, verbose=True):
         """
         Write out all files to /tftpdboot
+
+        :param verbose: Whether the tftp server should log this verbose or not.
         """
         self.tftpgen.verbose = verbose
         self.logger.info("copying bootloaders")
-        self.tftpgen.copy_bootloaders()
+        self.tftpgen.copy_bootloaders(self.bootloc)
 
         self.logger.info("copying distros to tftpboot")
 
-        # Adding in the exception handling to not blow up if files have
-        # been moved (or the path references an NFS directory that's no longer
-        # mounted)
+        # Adding in the exception handling to not blow up if files have been moved (or the path references an NFS
+        # directory that's no longer mounted)
         for d in self.collection_mgr.distros():
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
@@ -170,4 +186,11 @@ class InTftpdManager(object):
 
 
 def get_manager(collection_mgr, logger):
+    """
+    Creates a manager object to manage an in_tftp server.
+
+    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
+    :param logger: The logger to audit all actions with.
+    :return: The object to manage the server with.
+    """
     return InTftpdManager(collection_mgr, logger)
