@@ -247,7 +247,8 @@ class Item(object):
 
         :return: A dictionary with all values present in this object.
         """
-        # return utils.to_dict_from_fields(self, self.get_fields())
+        if not self.settings.cache_enabled:
+            return utils.to_dict_from_fields(self, self.get_fields())
 
         value = self.get_from_cache(self)
         if value is None:
