@@ -525,6 +525,7 @@ if __name__ == "__main__":
             "pymongo",
             "distro",
             "ldap3",
+            "librepo",
             "dnspython",
             "tornado",
         ],
