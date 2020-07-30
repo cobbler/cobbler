@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -615,7 +614,7 @@ class CobblerXMLRPCInterface(object):
             sort_fields.insert(0, sort_field)
         sortdata = [(x.sort_key(sort_fields), x) for x in data]
         if sort_rev:
-            sortdata.sort(lambda a, b: cmp(b, a))
+            sortdata.sort(reverse=True)
         else:
             sortdata.sort()
         return [x for (key, x) in sortdata]

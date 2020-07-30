@@ -280,7 +280,7 @@ class Item(object):
         """
         self.uid = uid
 
-    def get_children(self, sorted=True):
+    def get_children(self, sorted=False):
         """
         Get direct children of this object.
 
