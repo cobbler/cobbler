@@ -28,7 +28,12 @@ import os.path
 import pipes
 import stat
 import shutil
-import librepo
+
+HAS_LIBREPO = True
+try:
+    import librepo
+except:
+    HAS_LIBREPO = False
 
 from cobbler import clogger
 from cobbler import utils
