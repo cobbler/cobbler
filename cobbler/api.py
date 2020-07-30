@@ -1145,43 +1145,43 @@ class CobblerAPI(object):
         except:
             raise CX(_("dnf is not installed"))
 
-        base = dnf.Base() 
-        base.read_all_repos() 
-        basearch = base.conf.substitutions["basearch"] 
- 
-        for repository in base.repos.iter_enabled(): 
-            auto_name = repository.id + '-' + base.conf.releasever + '-' + basearch 
- 
-            if self.find_repo(auto_name) is None: 
-                cobbler_repo = self.new_repo() 
-                cobbler_repo.set_name(auto_name) 
-                cobbler_repo.set_breed("yum") 
-                cobbler_repo.set_arch(basearch) 
-                cobbler_repo.set_yumopts({}) 
-                cobbler_repo.set_environment({}) 
-                cobbler_repo.set_apt_dists([]) 
-                cobbler_repo.set_apt_components([]) 
-                cobbler_repo.set_comment(repository.name) 
-                baseurl = repository.baseurl 
-                metalink = repository.metalink 
-                mirrorlist = repository.mirrorlist 
- 
-                if metalink is not None: 
-                    mirror = metalink 
-                    mirror_type = "metalink" 
-                elif mirrorlist is not None: 
-                    mirror = mirrorlist 
-                    mirror_type = "mirrorlist" 
-                elif len(baseurl) > 0: 
-                    mirror = baseurl[0] 
-                    mirror_type = "baseurl" 
- 
-                cobbler_repo.set_mirror(mirror) 
-                cobbler_repo.set_mirror_type(mirror_type) 
-                self.log("auto repo adding: %s" % auto_name) 
-                self.add_repo(cobbler_repo) 
-            else: 
-                self.log("auto repo adding: %s - exists" % auto_name) 
+        base = dnf.Base()
+        base.read_all_repos()
+        basearch = base.conf.substitutions["basearch"]
+
+        for repository in base.repos.iter_enabled():
+            auto_name = repository.id + '-' + base.conf.releasever + '-' + basearch
+
+            if self.find_repo(auto_name) is None:
+                cobbler_repo = self.new_repo()
+                cobbler_repo.set_name(auto_name)
+                cobbler_repo.set_breed("yum")
+                cobbler_repo.set_arch(basearch)
+                cobbler_repo.set_yumopts({})
+                cobbler_repo.set_environment({})
+                cobbler_repo.set_apt_dists([])
+                cobbler_repo.set_apt_components([])
+                cobbler_repo.set_comment(repository.name)
+                baseurl = repository.baseurl
+                metalink = repository.metalink
+                mirrorlist = repository.mirrorlist
+
+                if metalink is not None:
+                    mirror = metalink
+                    mirror_type = "metalink"
+                elif mirrorlist is not None:
+                    mirror = mirrorlist
+                    mirror_type = "mirrorlist"
+                elif len(baseurl) > 0:
+                    mirror = baseurl[0]
+                    mirror_type = "baseurl"
+
+                cobbler_repo.set_mirror(mirror)
+                cobbler_repo.set_mirror_type(mirror_type)
+                self.log("auto repo adding: %s" % auto_name)
+                self.add_repo(cobbler_repo)
+            else:
+                self.log("auto repo adding: %s - exists" % auto_name)
 
     # ==========================================================================
 
