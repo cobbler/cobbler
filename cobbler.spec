@@ -47,6 +47,7 @@
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
+%define py3_module_librepo python%{python3_pkgversion}-librepo
 
 # SUSE
 %if 0%{?suse_version}
@@ -212,6 +213,7 @@ Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
+Requires:       %{py3_module_librepo}
 %endif
 
 
