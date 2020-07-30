@@ -34,7 +34,6 @@ RUN apt-get update -qq && \
     python3-dnsq  \
     python3-future \
     python3-ldap3 \
-    python3-librepo \
     python3-netaddr \
     python3-pip \
     python3-pycodestyle \
