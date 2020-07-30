@@ -26,7 +26,7 @@ then
     # Most of these requirement are already satisfied in the Dockerfiles!
     # Also on Debian mod_wsgi is installed as "libapache2-mod-wsgi-py3"
     docker exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
-    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 Django pymongo distro ldap3'
+    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 Django pymongo distro ldap3 librepo'
     docker exec -it cobbler bash -c 'pip3 install dnspython tornado pyflakes pycodestyle pytest pytest-cov codecov'
     docker exec -it cobbler bash -c 'pytest-3'
 fi
