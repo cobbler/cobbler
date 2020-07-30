@@ -1765,6 +1765,14 @@ class CobblerXMLRPCInterface(object):
         except:
             return 1
 
+    def auto_add_repos(self, token):
+        """
+        :param token: The API-token obtained via the login() method.
+        """
+        self.check_access(token, "new_repo", token)
+        self.api.auto_add_repos()
+        return True
+
     def __is_interface_field(self, f):
         """
         Checks if the field in ``f`` is related to a network interface.
