@@ -213,7 +213,6 @@ Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
-Requires:       %{py3_module_librepo}
 %endif
 
 
@@ -229,6 +228,7 @@ Recommends:     syslinux
 Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
+Recommends:     %{py3_module_librepo}
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if %{_vendor} == "debbuild"
