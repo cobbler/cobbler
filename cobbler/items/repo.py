@@ -45,6 +45,7 @@ FIELDS = [
     ["environment", {}, 0, "Environment Variables", True, "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
     ["keep_updated", True, 0, "Keep Updated", True, "Update this repo on next 'cobbler reposync'?", 0, "bool"],
     ["mirror", None, 0, "Mirror", True, "Address of yum or rsync repo to mirror", 0, "str"],
+    ["mirror_type", "baseurl", 0, "Mirror Type", True, "", ["metalink", "mirrorlist", "baseurl"], "str"],
     ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
     ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
@@ -69,6 +70,7 @@ class Repo(item.Item):
         self.arch = None
         self.environment = {}
         self.yumopts = {}
+        self.mirror_type = "baseurl"
 
     #
     # override some base class methods first (item.Item)
@@ -139,6 +141,14 @@ class Repo(item.Item):
             elif mirror.find("x86") != -1 or mirror.find("i386") != -1:
                 self.set_arch("i386")
         self._guess_breed()
+
+    def set_mirror_type(self, mirror_type):
+        """
+        Override the mirror_type used for reposync
+
+        :param mirror_type: The new mirror_type which will be used.
+        """
+        return utils.set_mirror_type(self, mirror_type)
 
     def set_keep_updated(self, keep_updated):
         """
