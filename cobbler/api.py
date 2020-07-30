@@ -1141,31 +1141,47 @@ class CobblerAPI(object):
         """
         self.log("auto_add_repos")
         try:
-            import yum
+            import dnf
         except:
-            raise CX(_("yum is not installed"))
+            raise CX(_("dnf is not installed"))
 
-        version = yum.__version__
-        (a, b, c) = version.split(".")
-        version = a * 1000 + b * 100 + c
-        if version < 324:
-            raise CX(_("need yum > 3.2.4 to proceed"))
-
-        base = yum.YumBase()
-        base.doRepoSetup()
-        repositorys = base.repos.listEnabled()
-        if len(repositorys) == 0:
-            raise CX(_("no repos enabled/available -- giving up."))
-
-        for repository in repositorys:
-            url = repository.urls[0]
-            cobbler_repo = self.new_repo()
-            auto_name = repository.name.replace(" ", "")
-            # FIXME: probably doesn't work for yum-rhn-plugin ATM
-            cobbler_repo.set_mirror(url)
-            cobbler_repo.set_name(auto_name)
-            print("auto adding: %s (%s)" % (auto_name, url))
-            self._collection_mgr.repos().add(cobbler_repo, save=True)
+        base = dnf.Base() 
+        base.read_all_repos() 
+        basearch = base.conf.substitutions["basearch"] 
+ 
+        for repository in base.repos.iter_enabled(): 
+            auto_name = repository.id + '-' + base.conf.releasever + '-' + basearch 
+ 
+            if self.find_repo(auto_name) is None: 
+                cobbler_repo = self.new_repo() 
+                cobbler_repo.set_name(auto_name) 
+                cobbler_repo.set_breed("yum") 
+                cobbler_repo.set_arch(basearch) 
+                cobbler_repo.set_yumopts({}) 
+                cobbler_repo.set_environment({}) 
+                cobbler_repo.set_apt_dists([]) 
+                cobbler_repo.set_apt_components([]) 
+                cobbler_repo.set_comment(repository.name) 
+                baseurl = repository.baseurl 
+                metalink = repository.metalink 
+                mirrorlist = repository.mirrorlist 
+ 
+                if metalink is not None: 
+                    mirror = metalink 
+                    mirror_type = "metalink" 
+                elif mirrorlist is not None: 
+                    mirror = mirrorlist 
+                    mirror_type = "mirrorlist" 
+                elif len(baseurl) > 0: 
+                    mirror = baseurl[0] 
+                    mirror_type = "baseurl" 
+ 
+                cobbler_repo.set_mirror(mirror) 
+                cobbler_repo.set_mirror_type(mirror_type) 
+                self.log("auto repo adding: %s" % auto_name) 
+                self.add_repo(cobbler_repo) 
+            else: 
+                self.log("auto repo adding: %s - exists" % auto_name) 
 
     # ==========================================================================
 
