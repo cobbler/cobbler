@@ -26,7 +26,7 @@ met prior to installing cobbler or any of its components.
 First and foremost, Cobbler requires Python. Any 2.x version should work for 2.8.x releases. Since 3.0.0 you will need
 Python 3. Cobbler also requires the installation of the following packages:
 
-- createrepo
+- createrepo_c
 - httpd / apache2
 - xorriso
 - mod_wsgi / libapache2-mod-wsgi
@@ -34,11 +34,12 @@ Python 3. Cobbler also requires the installation of the following packages:
 - python-cheetah
 - python-netaddr
 - python-simplejson
+- python-librepo
 - PyYAML / python-yaml
 - rsync
 - syslinux
 - tftp-server / atftpd
-- yum-utils
+- dnf-plugins-core
 
 Cobbler-web only has one other requirement besides Cobbler itself:
 
