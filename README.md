@@ -4,13 +4,14 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9bcdcf0fdf374e22843f2c088d4b7449)](https://www.codacy.com/manual/Cobbler_2/cobbler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cobbler/cobbler&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/cobbler/cobbler/branch/master/graph/badge.svg)](https://codecov.io/gh/cobbler/cobbler)
 
-Cobbler
-=======
+# Cobbler
 
 Cobbler is a Linux installation server that allows for rapid setup of network installation environments. It glues
 together and automates many associated Linux tasks so you do not have to hop between lots of various commands and
 applications when rolling out new systems, and, in some cases, changing existing ones. It can help with installation,
 DNS, DHCP, package updates, power management, configuration management orchestration, and much more.
+
+[![asciicast](https://asciinema.org/a/351156.svg)](https://asciinema.org/a/351156)
 
 Read more at [https://cobbler.github.io](https://cobbler.github.io)
 
