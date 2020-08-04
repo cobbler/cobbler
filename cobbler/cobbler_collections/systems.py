@@ -32,8 +32,13 @@ class Systems(collection.Collection):
     they belong to.
     """
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         return "system"
+
+    @staticmethod
+    def collection_types() -> str:
+        return "systems"
 
     def factory_produce(self, collection_mgr, item_dict):
         """

@@ -7,7 +7,6 @@ import sys
 import time
 import logging
 import glob as _glob
-import distro
 
 from builtins import str
 from setuptools import setup
@@ -29,10 +28,26 @@ import subprocess
 
 from builtins import OSError
 
-VERSION = "3.1.1"
+VERSION = "3.2.0"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
+
+# # Configurable installation roots for various data files.
+docpath = os.environ.get('DOCPATH', "share/man")
+etcpath = os.environ.get('ETCPATH', "/etc/cobbler")
+libpath = os.environ.get('LIBPATH', "/var/lib/cobbler")
+logpath = os.environ.get('LOG_PATH', "/var/log")
+completion_path = os.environ.get('COMPLETION_PATH', "/usr/share/bash-completion/completions")
+statepath = os.environ.get('STATEPATH', "/tmp/cobbler_settings/devinstall")
+http_user = os.environ.get('HTTP_USER', "wwwrun")
+httpd_service = os.environ.get('HTTPD_SERVICE', "apache2.service")
+webconfig = os.environ.get('WEBCONFIG', "/etc/apache2/vhosts.d")
+webroot = os.environ.get('WEBROOT', "/srv/www")
+tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
+
+webcontent = webroot + "/cobbler_webui_content"
+webimages = webcontent + "/images"
 
 
 #####################################################################
@@ -331,7 +346,7 @@ class install(_install):
             raise Exception("libpath is not absolute.")
         # libpath is hardcoded in the code everywhere
         # therefor cant relocate using self.root
-        path = os.path.join(libpath, 'webui_sessions')
+        path = os.path.join(self.root + libpath, 'webui_sessions')
         try:
             self.change_owner(path, http_user)
         except Exception as e:
@@ -416,7 +431,7 @@ class restorestate(statebase):
         if not os.path.exists(self.statepath):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
-        self._copy(os.path.join(self.statepath, 'cobbler_collections'), libpath)
+        self._copy(os.path.join(self.statepath, 'collections'), libpath)
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
@@ -448,7 +463,7 @@ class savestate(statebase):
                 shutil.rmtree(self.statepath)
         if not self.dry_run:
             os.makedirs(self.statepath)
-        self._copy(os.path.join(libpath, 'cobbler_collections'), self.statepath)
+        self._copy(os.path.join(libpath, 'collections'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
@@ -465,41 +480,6 @@ class savestate(statebase):
 
 
 if __name__ == "__main__":
-    # # Configurable installation roots for various data files.
-
-    # Trailing slashes on these vars is to allow for easy
-    # later configuration of relative paths if desired.
-    docpath = "share/man"
-    etcpath = "/etc/cobbler/"
-    libpath = "/var/lib/cobbler/"
-    logpath = "/var/log/"
-    completion_path = "/usr/share/bash-completion/completions"
-    statepath = "/tmp/cobbler_settings/devinstall"
-    httpd_service = "httpd.service"
-    suse_release = "suse" in distro.like()
-
-    if suse_release:
-        webconfig = "/etc/apache2/vhosts.d"
-        webroot = "/srv/www/"
-        http_user = "wwwrun"
-        httpd_service = "apache2.service"
-        defaultpath = "/etc/sysconfig/"
-    elif os.path.exists("/etc/debian_version"):
-        if os.path.exists("/etc/apache2/conf-available"):
-            webconfig = "/etc/apache2/conf-available"
-        else:
-            webconfig = "/etc/apache2/conf.d"
-        webroot = "/var/www/"
-        http_user = "www-data"
-        defaultpath = "/etc/default/"
-    else:
-        webconfig = "/etc/httpd/conf.d"
-        webroot = "/var/www/"
-        http_user = "apache"
-        defaultpath = "/etc/sysconfig/"
-
-    webcontent = webroot + "cobbler_webui_content/"
-    webimages = webcontent + "/images"
 
     setup(
         distclass=Distribution,
@@ -516,9 +496,14 @@ if __name__ == "__main__":
         name="cobbler",
         version=VERSION,
         description="Network Boot and Update Server",
-        long_description="Cobbler is a network install server.  Cobbler supports PXE, virtualized installs, and reinstalling existing Linux machines.  The last two modes use a helper tool, 'koan', that integrates with cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's advanced features include importing distributions from DVDs and rsync mirrors, automatic OS installation templating, integrated yum mirroring, and built-in DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with other applications.",
+        long_description="Cobbler is a network install server. Cobbler supports PXE, virtualized installs, "
+                         "and reinstalling existing Linux machines. The last two modes use a helper tool, 'koan', "
+                         "that integrates with cobbler. There is also a web interface 'cobbler-web'. Cobbler's "
+                         "advanced features include importing distributions from DVDs and rsync mirrors, automatic OS "
+                         "installation templating, integrated yum mirroring, and built-in DHCP/DNS Management. "
+                         "Cobbler has a XMLRPC API for integration with other applications.",
         author="Team Cobbler",
-        author_email="cobbler@lists.fedorahosted.org",
+        author_email="cobbler.project@gmail.com",
         url="https://cobbler.github.io",
         license="GPLv2+",
         setup_requires=[
@@ -543,7 +528,7 @@ if __name__ == "__main__":
             "dnspython",
             "tornado",
         ],
-        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "coverage"]},
+        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "pytest-cov", "codecov"]},
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
@@ -552,7 +537,7 @@ if __name__ == "__main__":
         ],
         configure_values={
             'webroot': os.path.normpath(webroot),
-            'defaultpath': os.path.normpath(defaultpath),
+            'tftproot': os.path.normpath(tftproot),
             'httpd_service': httpd_service,
         },
         configure_files=[
@@ -569,27 +554,28 @@ if __name__ == "__main__":
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
+            ("sbin", ["bin/fence_ipmitool"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
-            ("%stemplates" % libpath, glob("autoinstall_templates/*")),
-            ("%stemplates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
-            ("%ssnippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
-            ("%sscripts" % libpath, glob("autoinstall_scripts/*")),
+            ("%s/templates" % libpath, glob("autoinstall_templates/*")),
+            ("%s/templates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
+            ("%s/snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
+            ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/static/*")),
             ("%s" % webimages, glob("web/static/images/*")),
             ("share/cobbler/bin", glob("scripts/*.sh")),
             ("share/cobbler/web/templates", glob("web/templates/*")),
-            ("%swebui_sessions" % libpath, []),
-            ("%sloaders" % libpath, []),
-            ("%scobbler/misc" % webroot, glob("misc/*")),
+            ("%s/webui_sessions" % libpath, []),
+            ("%s/loaders" % libpath, []),
+            ("%s/cobbler/misc" % webroot, glob("misc/*")),
             # Configuration
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
                               "build/config/apache/cobbler_web.conf",
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings"]),
-            ("%ssettings.d" % etcpath, glob("config/cobbler/settings.d/*")),
+            ("%s/settings.d" % etcpath, glob("config/cobbler/settings.d/*")),
             ("%s" % etcpath, ["config/cobbler/auth.conf",
                               "config/cobbler/modules.conf",
                               "config/cobbler/mongodb.conf",
@@ -600,87 +586,118 @@ if __name__ == "__main__":
                               "config/rsync/import_rsync_whitelist",
                               "config/rsync/rsync.exclude",
                               "config/version"]),
-            ("%s" % etcpath, glob("templates/etc/*")),
-            ("%siso" % etcpath, glob("templates/iso/*")),
-            ("%sboot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
+            ("%s" % etcpath, glob("cobbler/etc/*")),
+            ("%s" % etcpath, ["templates/etc/named.template",
+                              "templates/etc/genders.template",
+                              "templates/etc/secondary.template",
+                              "templates/etc/zone.template",
+                              "templates/etc/dnsmasq.template",
+                              "templates/etc/rsync.template",
+                              "templates/etc/dhcp.template",
+                              "templates/etc/ndjbdns.template"]),
+            ("%s/iso" % etcpath, glob("templates/iso/*")),
+            ("%s/boot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),
             # completion_file
             ("%s" % completion_path, ["config/bash/completion/cobbler"]),
-            ("%sgrub_config" % libpath, glob("config/grub/*")),
+            ("%s/grub_config" % libpath, glob("config/grub/*")),
             # ToDo: Find a nice way to copy whole config/grub structure recursively
             # files
-            ("%sgrub_config/grub" % libpath, glob("config/grub/grub/*")),
+            ("%s/grub_config/grub" % libpath, glob("config/grub/grub/*")),
             # dirs
-            ("%sgrub_config/grub/system" % libpath, []),
-            ("%sgrub_config/grub/system_link" % libpath, []),
-            ("%sreporting" % etcpath, glob("templates/reporting/*")),
-            ("%spower" % etcpath, glob("templates/power/*")),
+            ("%s/boot" % tftproot, []),
+            ("%s/etc" % tftproot, []),
+            ("%s/grub" % tftproot, []),
+            ("%s/images" % tftproot, []),
+            ("%s/images2" % tftproot, []),
+            ("%s/ppc" % tftproot, []),
+            ("%s/s390x" % tftproot, []),
+            ("%s/pxelinux.cfg" % tftproot, []),
+            ("%s/grub/system" % tftproot, []),
+            ("%s/grub/system_link" % tftproot, []),
+            ("%s/grub_config/grub/system" % libpath, []),
+            ("%s/grub_config/grub/system_link" % libpath, []),
+            ("%s/reporting" % etcpath, glob("templates/reporting/*")),
             # Build empty directories to hold triggers
-            ("%striggers/add/distro/pre" % libpath, []),
-            ("%striggers/add/distro/post" % libpath, []),
-            ("%striggers/add/profile/pre" % libpath, []),
-            ("%striggers/add/profile/post" % libpath, []),
-            ("%striggers/add/system/pre" % libpath, []),
-            ("%striggers/add/system/post" % libpath, []),
-            ("%striggers/add/repo/pre" % libpath, []),
-            ("%striggers/add/repo/post" % libpath, []),
-            ("%striggers/add/mgmtclass/pre" % libpath, []),
-            ("%striggers/add/mgmtclass/post" % libpath, []),
-            ("%striggers/add/package/pre" % libpath, []),
-            ("%striggers/add/package/post" % libpath, []),
-            ("%striggers/add/file/pre" % libpath, []),
-            ("%striggers/add/file/post" % libpath, []),
-            ("%striggers/delete/distro/pre" % libpath, []),
-            ("%striggers/delete/distro/post" % libpath, []),
-            ("%striggers/delete/profile/pre" % libpath, []),
-            ("%striggers/delete/profile/post" % libpath, []),
-            ("%striggers/delete/system/pre" % libpath, []),
-            ("%striggers/delete/system/post" % libpath, []),
-            ("%striggers/delete/repo/pre" % libpath, []),
-            ("%striggers/delete/repo/post" % libpath, []),
-            ("%striggers/delete/mgmtclass/pre" % libpath, []),
-            ("%striggers/delete/mgmtclass/post" % libpath, []),
-            ("%striggers/delete/package/pre" % libpath, []),
-            ("%striggers/delete/package/post" % libpath, []),
-            ("%striggers/delete/file/pre" % libpath, []),
-            ("%striggers/delete/file/post" % libpath, []),
-            ("%striggers/install/pre" % libpath, []),
-            ("%striggers/install/post" % libpath, []),
-            ("%striggers/install/firstboot" % libpath, []),
-            ("%striggers/sync/pre" % libpath, []),
-            ("%striggers/sync/post" % libpath, []),
-            ("%striggers/change" % libpath, []),
+            ("%s/triggers/add/distro/pre" % libpath, []),
+            ("%s/triggers/add/distro/post" % libpath, []),
+            ("%s/triggers/add/profile/pre" % libpath, []),
+            ("%s/triggers/add/profile/post" % libpath, []),
+            ("%s/triggers/add/system/pre" % libpath, []),
+            ("%s/triggers/add/system/post" % libpath, []),
+            ("%s/triggers/add/repo/pre" % libpath, []),
+            ("%s/triggers/add/repo/post" % libpath, []),
+            ("%s/triggers/add/mgmtclass/pre" % libpath, []),
+            ("%s/triggers/add/mgmtclass/post" % libpath, []),
+            ("%s/triggers/add/package/pre" % libpath, []),
+            ("%s/triggers/add/package/post" % libpath, []),
+            ("%s/triggers/add/file/pre" % libpath, []),
+            ("%s/triggers/add/file/post" % libpath, []),
+            ("%s/triggers/delete/distro/pre" % libpath, []),
+            ("%s/triggers/delete/distro/post" % libpath, []),
+            ("%s/triggers/delete/profile/pre" % libpath, []),
+            ("%s/triggers/delete/profile/post" % libpath, []),
+            ("%s/triggers/delete/system/pre" % libpath, []),
+            ("%s/triggers/delete/system/post" % libpath, []),
+            ("%s/triggers/delete/repo/pre" % libpath, []),
+            ("%s/triggers/delete/repo/post" % libpath, []),
+            ("%s/triggers/delete/mgmtclass/pre" % libpath, []),
+            ("%s/triggers/delete/mgmtclass/post" % libpath, []),
+            ("%s/triggers/delete/package/pre" % libpath, []),
+            ("%s/triggers/delete/package/post" % libpath, []),
+            ("%s/triggers/delete/file/pre" % libpath, []),
+            ("%s/triggers/delete/file/post" % libpath, []),
+            ("%s/triggers/install/pre" % libpath, []),
+            ("%s/triggers/install/post" % libpath, []),
+            ("%s/triggers/install/firstboot" % libpath, []),
+            ("%s/triggers/sync/pre" % libpath, []),
+            ("%s/triggers/sync/post" % libpath, []),
+            ("%s/triggers/change" % libpath, []),
+            ("%s/triggers/task/distro/pre" % libpath, []),
+            ("%s/triggers/task/distro/post" % libpath, []),
+            ("%s/triggers/task/profile/pre" % libpath, []),
+            ("%s/triggers/task/profile/post" % libpath, []),
+            ("%s/triggers/task/system/pre" % libpath, []),
+            ("%s/triggers/task/system/post" % libpath, []),
+            ("%s/triggers/task/repo/pre" % libpath, []),
+            ("%s/triggers/task/repo/post" % libpath, []),
+            ("%s/triggers/task/mgmtclass/pre" % libpath, []),
+            ("%s/triggers/task/mgmtclass/post" % libpath, []),
+            ("%s/triggers/task/package/pre" % libpath, []),
+            ("%s/triggers/task/package/post" % libpath, []),
+            ("%s/triggers/task/file/pre" % libpath, []),
+            ("%s/triggers/task/file/post" % libpath, []),
             # Build empty directories to hold the database
-            ("%scollections" % libpath, []),
-            ("%scollections/distros" % libpath, []),
-            ("%scollections/images" % libpath, []),
-            ("%scollections/profiles" % libpath, []),
-            ("%scollections/repos" % libpath, []),
-            ("%scollections/systems" % libpath, []),
-            ("%scollections/mgmtclasses" % libpath, []),
-            ("%scollections/packages" % libpath, []),
-            ("%scollections/files" % libpath, []),
+            ("%s/collections" % libpath, []),
+            ("%s/collections/distros" % libpath, []),
+            ("%s/collections/images" % libpath, []),
+            ("%s/collections/profiles" % libpath, []),
+            ("%s/collections/repos" % libpath, []),
+            ("%s/collections/systems" % libpath, []),
+            ("%s/collections/mgmtclasses" % libpath, []),
+            ("%s/collections/packages" % libpath, []),
+            ("%s/collections/files" % libpath, []),
             # logfiles
-            ("%scobbler/kicklog" % logpath, []),
-            ("%scobbler/syslog" % logpath, []),
-            ("%shttpd/cobbler" % logpath, []),
-            ("%scobbler/anamon" % logpath, []),
-            ("%scobbler/tasks" % logpath, []),
+            ("%s/cobbler/kicklog" % logpath, []),
+            ("%s/cobbler/syslog" % logpath, []),
+            ("%s/httpd/cobbler" % logpath, []),
+            ("%s/cobbler/anamon" % logpath, []),
+            ("%s/cobbler/tasks" % logpath, []),
             # web page directories that we own
-            ("%scobbler/localmirror" % webroot, []),
-            ("%scobbler/repo_mirror" % webroot, []),
-            ("%scobbler/distro_mirror" % webroot, []),
-            ("%scobbler/distro_mirror/config" % webroot, []),
-            ("%scobbler/links" % webroot, []),
-            ("%scobbler/misc" % webroot, []),
-            ("%scobbler/pub" % webroot, []),
-            ("%scobbler/rendered" % webroot, []),
-            ("%scobbler/images" % webroot, []),
+            ("%s/cobbler/localmirror" % webroot, []),
+            ("%s/cobbler/repo_mirror" % webroot, []),
+            ("%s/cobbler/distro_mirror" % webroot, []),
+            ("%s/cobbler/distro_mirror/config" % webroot, []),
+            ("%s/cobbler/links" % webroot, []),
+            ("%s/cobbler/misc" % webroot, []),
+            ("%s/cobbler/pub" % webroot, []),
+            ("%s/cobbler/rendered" % webroot, []),
+            ("%s/cobbler/images" % webroot, []),
             # A script that isn't really data, wsgi script
-            ("%scobbler/svc/" % webroot, ["svc/services.py"]),
+            ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
             # A script that isn't really data, wsgi script
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
-            ("%szone_templates" % etcpath, []),
+            ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

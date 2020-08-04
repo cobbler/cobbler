@@ -67,31 +67,42 @@ class Repo(item.Item):
         super(Repo, self).__init__(*args, **kwargs)
         self.breed = None
         self.arch = None
-        self.environment = None
-        self.yumopts = None
+        self.environment = {}
+        self.yumopts = {}
 
     #
     # override some base class methods first (item.Item)
     #
 
     def make_clone(self):
+        """
+        Clone this file object. Please manually adjust all value yourself to make the cloned object unique.
 
+        :return: The cloned instance of this object.
+        """
         _dict = self.to_dict()
         cloned = Repo(self.collection_mgr)
         cloned.from_dict(_dict)
         return cloned
 
     def get_fields(self):
+        """
+        Return all fields which this class has with its current values.
+
+        :return: This is a list with lists.
+        """
         return FIELDS
 
     def get_parent(self):
         """
-        currently the Cobbler object space does not support subobjects of this object
-        as it is conceptually not useful.
+        Currently the Cobbler object space does not support subobjects of this object as it is conceptually not useful.
         """
         return None
 
     def check_if_valid(self):
+        """
+        Checks if the object is valid. Currently checks for name and mirror to be present.
+        """
         if self.name is None:
             raise CX("name is required")
         if self.mirror is None:
@@ -102,6 +113,9 @@ class Repo(item.Item):
     #
 
     def _guess_breed(self):
+        """
+        Guess the breed of a mirror.
+        """
         # backwards compatibility
         if not self.breed:
             if self.mirror.startswith("http://") or self.mirror.startswith("https://") or self.mirror.startswith("ftp://"):
@@ -115,6 +129,8 @@ class Repo(item.Item):
         """
         A repo is (initially, as in right now) is something that can be rsynced.
         reposync/repotrack integration over HTTP might come later.
+
+        :param mirror: The mirror URI.
         """
         self.mirror = mirror
         if not self.arch:
@@ -127,13 +143,16 @@ class Repo(item.Item):
     def set_keep_updated(self, keep_updated):
         """
         This allows the user to disable updates to a particular repo for whatever reason.
+
+        :param keep_updated: This may be a bool-like value if the repository shall be keept up to date or not.
         """
         self.keep_updated = utils.input_boolean(keep_updated)
 
     def set_yumopts(self, options):
         """
-        Kernel options are a space delimited list,
-        like 'a=b c=d e=f g h i=j' or a dictionary.
+        Kernel options are a space delimited list.
+
+        :param options: Something like 'a=b c=d e=f g h i=j' or a dictionary.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
@@ -143,8 +162,9 @@ class Repo(item.Item):
 
     def set_environment(self, options):
         """
-        Yum can take options from the environment.  This puts them there before
-        each reposync.
+        Yum can take options from the environment. This puts them there before each reposync.
+
+        :param options: These are environment variables which are set before each reposync.
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
@@ -154,8 +174,9 @@ class Repo(item.Item):
 
     def set_priority(self, priority):
         """
-        Set the priority of the repository.  1= highest, 99=default
-        Only works if host is using priorities plugin for yum.
+        Set the priority of the repository. Only works if host is using priorities plugin for yum.
+
+        :param priority: Must be a value between 1 and 99. 1 is the highest whereas 99 is the default and lowest.
         """
         try:
             priority = int(str(priority))
@@ -165,46 +186,85 @@ class Repo(item.Item):
 
     def set_rpm_list(self, rpms):
         """
-        Rather than mirroring the entire contents of a repository (Fedora Extras, for instance,
-        contains games, and we probably don't want those), make it possible to list the packages
-        one wants out of those repos, so only those packages + deps can be mirrored.
+        Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
+        probably don't want those), make it possible to list the packages one wants out of those repos, so only those
+        packages and deps can be mirrored.
+
+        :param rpms: The rpm to mirror. This may be a string or list.
         """
         self.rpm_list = utils.input_string_or_list(rpms)
 
     def set_createrepo_flags(self, createrepo_flags):
         """
-        Flags passed to createrepo when it is called.  Common flags to use would be
-        -c cache or -g comps.xml to generate group information.
+        Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
+        generate group information.
+
+        :param createrepo_flags: The createrepo flags which are passed additionally to the default ones.
         """
         if createrepo_flags is None:
             createrepo_flags = ""
         self.createrepo_flags = createrepo_flags
 
     def set_breed(self, breed):
+        """
+        Setter for the operating system breed.
+
+        :param breed: The new breed to set. If this argument evaluates to false then nothing will be done.
+        """
         if breed:
             return utils.set_repo_breed(self, breed)
 
     def set_os_version(self, os_version):
+        """
+        Setter for the operating system version.
+
+        :param os_version: The new operating system version. If this argument evaluates to false then nothing will be
+                           done.
+        """
         if os_version:
             return utils.set_repo_os_version(self, os_version)
 
     def set_arch(self, arch):
         """
         Override the arch used for reposync
+
+        :param arch: The new arch which will be used.
         """
         return utils.set_arch(self, arch, repo=True)
 
     def set_mirror_locally(self, value):
+        """
+        Setter for the local mirror property.
+
+        :param value: The new value for ``mirror_locally``.
+        """
         self.mirror_locally = utils.input_boolean(value)
 
     def set_apt_components(self, value):
+        """
+        Setter for the apt command property.
+
+        :param value: The new value for ``apt_components``.
+        """
         self.apt_components = utils.input_string_or_list(value)
 
     def set_apt_dists(self, value):
+        """
+        Setter for the apt dists.
+
+        :param value: The new value for ``apt_dists``.
+        :return: ``True`` if everything went correctly.
+        """
         self.apt_dists = utils.input_string_or_list(value)
         return True
 
     def set_proxy(self, value):
+        """
+        Setter for the proxy setting of the repository.
+
+        :param value: The new proxy which will be used for the repository.
+        :return: ``True`` if this succeeds.
+        """
         self.proxy = value
         return True
 

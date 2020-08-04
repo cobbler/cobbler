@@ -8,14 +8,14 @@ Patch process
 
 You'd like to contribute features or fixes to Cobbler? Great! We'd love to have them.
 
-It is highly recommended that you have a github.com account if you would like to contribute code. Create an account, log
-in, and then go to github.com/cobbler/cobbler to "fork" the project.
+It is highly recommended that you have a GitHub account if you would like to contribute code. Create an account, log
+in, and then go to https://github.com/cobbler/cobbler to "fork" the project.
 
 Create a new branch named after the feature you are working on. Do the work on your local machine, please make sure your
-work passes Cobbler's coding standards by using ``make qa``. Only then push to your personal Github branch
-(e.g. github.com/yourname/cobbler).
+work passes Cobbler's coding standards by using ``make qa``. Only then push to your personal GitHub branch
+(e.g. https://github.com/yourname/cobbler).
 
-Then use the "submit pull request" feature of Github to request that the official repo pull in your changes. Be sure to
+Then use the "submit pull request" feature of GitHub to request that the official repo pull in your changes. Be sure to
 include a full description of what your change does in the comments, including what you have tested (and other things
 that you may have not been able to test well and need help with).
 
@@ -46,7 +46,7 @@ Install runtime dependencies:
 
 .. code-block:: none
 
-    # yum install httpd mod_wsgi python36-PyYAML python36-netaddr python36-simplejso m
+    # yum install httpd mod_wsgi python36-PyYAML python36-netaddr python36-simplejson
     # pip3 install Cheetah3
 
 Initially, to run Cobbler without using packages:
@@ -73,7 +73,7 @@ Branches
 ########
 
 Cobbler has a development branch called "master" (where the action is), and branches for all releases that are in
-maintaince mode. All work on new features should be done against the master branch. If you want to address bugs then
+maintenance mode. All work on new features should be done against the master branch. If you want to address bugs then
 please target the latest release branch, the maintainers will then cherry-pick those changes into the master branch.
 
 .. code-block:: none
@@ -93,10 +93,10 @@ We're not overly picky, but please follow the python PEP8 standards we want to a
 - Avoid one line if statements.
 - Validate your code by using ``make qa``.
 - Keep things simple, keep in mind that this is a tool for sysadmins and not python developers.
-- Use modules that are easily available (eg. EPEL) but preferrably in the base OS, otherwise they have to be packaged
+- Use modules that are easily available (e.g. EPEL) but preferably in the base OS, otherwise they have to be packaged
   with the app, which usually runs afoul of distribution packaging guidelines.
 - Cobbler is since the 3.x.x release Python3 only.
-- Koan has no new release currently but starting with the next we will also only support Pyhton3.
+- Koan has no new release currently but starting with the next we will also only support Python3.
 - Older releases will of course stay with Python2.
 
 You're also welcome to hang out in #cobbler and #cobbler-devel on irc.freenode.net, as there are folks around to answer
@@ -106,10 +106,10 @@ answer faster.
 Contributing to the website
 ###########################
 
-The github-based git repository for the https://cobbler.github.io website itself is at
+The GitHub-based git repository for the https://cobbler.github.io website itself is at
 https://github.com/cobbler/cobbler.github.io.
 
-If you want to contribute changes to the website, you will need jekyll (http://jekyllrb.com).
+If you want to contribute changes to the website, you will need Jekyll (http://jekyllrb.com).
 
 You will probably want to:
 

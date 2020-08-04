@@ -40,6 +40,8 @@ class Collection(object):
     def __init__(self, collection_mgr):
         """
         Constructor.
+
+        :param collection_mgr: The collection manager to resolve all information with.
         """
         self.collection_mgr = collection_mgr
         self.listing = {}
@@ -49,7 +51,7 @@ class Collection(object):
 
     def __iter__(self):
         """
-        Iterator for the collection.  Allows list comprehensions, etc.
+        Iterator for the collection. Allows list comprehensions, etc.
         """
         for a in list(self.listing.values()):
             yield a
@@ -62,8 +64,10 @@ class Collection(object):
 
     def factory_produce(self, collection_mgr, seed_data):
         """
-        Must override in subclass.  Factory_produce returns an Item object
-        from dict
+        Must override in subclass. Factory_produce returns an Item object from dict.
+
+        :param collection_mgr: The collection manager to resolve all information with.
+        :param seed_data:
         """
         raise NotImplementedException()
 
@@ -71,28 +75,44 @@ class Collection(object):
         """
         Remove an item from collection. This method must be overriden in any subclass.
 
-        @param: str name (item name)
-        @param: bool with_delete (sync and run triggers)
-        @param: bool with_sync (sync to server file system)
-        @param: bool with_triggers (run "on delete" triggers)
-        @param: bool recursive (recursively delete children)
-        @param: clogger logger (logger object)
-        @returns: NotImplementedException
+        :param name: (item name)
+        :type name: str
+        :param with_delete: (sync and run triggers)
+        :type with_delete: bool
+        :param with_sync: (sync to server file system)
+        :type with_sync: bool
+        :param with_triggers: (run "on delete" triggers)
+        :type with_triggers: bool
+        :param recursive: (recursively delete children)
+        :type recursive: bool
+        :param logger: (logger object)
+        :returns: NotImplementedException
         """
         raise NotImplementedException()
 
     def get(self, name):
         """
         Return object with name in the collection
+
+        :param name: The name of the object to retrieve from the collection.
+        :return: The object if it exists. Otherwise None.
         """
         return self.listing.get(name.lower(), None)
 
     def find(self, name=None, return_list=False, no_errors=False, **kargs):
         """
-        Return first object in the collection that maches all item='value'
-        pairs passed, else return None if no objects can be found.
-        When return_list is set, can also return a list.  Empty list
-        would be returned instead of None in that case.
+        Return first object in the collection that maches all item='value' pairs passed, else return None if no objects
+        can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
+        that case.
+
+        :param name: The object name which should be found.
+        :type name: str
+        :param return_list: If a list should be returned or the first match.
+        :param no_errors: If errors which are possibly thrown while searching should be ignored or not.
+        :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
+                      ``name``. You may specify more keys to finetune the search.
+        :type kargs: dict
+        :return: The first item or a list with all matches.
         """
         matches = []
 
@@ -150,10 +170,13 @@ class Collection(object):
 
     def __rekey(self, _dict):
         """
-        Find calls from the command line ("cobbler system find")
-        don't always match with the keys from the datastructs and this
-        makes them both line up without breaking compatibility with either.
-        Thankfully we don't have a LOT to remap.
+        Find calls from the command line ("cobbler system find") don't always match with the keys from the datastructs
+        and this makes them both line up without breaking compatibility with either. Thankfully we don't have a LOT to
+        remap.
+
+        :param _dict: The dict which should be remapped.
+        :return: The dict which can now be understood by the cli.
+        :rtype: dict
         """
         new_dict = {}
         for x in list(_dict.keys()):
@@ -167,11 +190,20 @@ class Collection(object):
     def to_list(self):
         """
         Serialize the collection
+
+        :rtype: list
+        :return: All elements of the collection as a list.
         """
         _list = [x.to_dict() for x in list(self.listing.values())]
         return _list
 
     def from_list(self, _list):
+        """
+        Create all collection object items from ``_list``.
+
+        :param _list: The list with all item dictionaries.
+        :type _list: list
+        """
         if _list is None:
             return
         for item_dict in _list:
@@ -179,6 +211,13 @@ class Collection(object):
             self.add(item)
 
     def copy(self, ref, newname, logger=None):
+        """
+        Copy an object with a new name into the same collection.
+
+        :param ref: The reference to the object which should be copied.
+        :param newname: The new name for the copied object.
+        :param logger: This parameter is unused in this implementation.
+        """
         ref = ref.make_clone()
         ref.uid = self.collection_mgr.generate_uid()
         ref.ctime = 0
@@ -197,8 +236,13 @@ class Collection(object):
 
     def rename(self, ref, newname, with_sync=True, with_triggers=True, logger=None):
         """
-        Allows an object "ref" to be given a newname without affecting the rest
-        of the object tree.
+        Allows an object "ref" to be given a newname without affecting the rest of the object tree.
+
+        :param ref: The reference to the object which should be renamed.
+        :param newname: The new name for the object.
+        :param with_sync: If a sync should be triggered when the object is renamed.
+        :param with_triggers: If triggers should be run when the object is renamed.
+        :param logger: The logger to audit the action with.
         """
         # Nothing to do when it is the same name
         if newname == ref.name:
@@ -235,9 +279,8 @@ class Collection(object):
             # create a symlink for the new distro name
             utils.link_distro(self.api.settings(), newref)
 
-            # test to see if the distro path is based directly
-            # on the name of the distro. If it is, things need
-            # to updated accordingly
+            # Test to see if the distro path is based directly on the name of the distro. If it is, things need to
+            # updated accordingly.
             if os.path.exists(path) and path == "/var/www/cobbler/distro_mirror/%s" % ref.name:
                 newpath = "/var/www/cobbler/distro_mirror/%s" % newref.name
                 os.renames(path, newpath)
@@ -250,11 +293,9 @@ class Collection(object):
                         d.set_initrd(d.initrd.replace(path, newpath))
                         self.collection_mgr.serialize_item(self, d)
 
-        # now descend to any direct ancestors and point them at the new object allowing
-        # the original object to be removed without orphanage.  Direct ancestors
-        # will either be profiles or systems.  Note that we do have to care as
-        # set_parent is only really meaningful for subprofiles. We ideally want a more
-        # generic set_parent.
+        # Now descend to any direct ancestors and point them at the new object allowing the original object to be
+        # removed without orphanage. Direct ancestors will either be profiles or systems. Note that we do have to
+        # care as set_parent is only really meaningful for subprofiles. We ideally want a more generic set_parent.
         kids = ref.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "distro":
@@ -282,13 +323,22 @@ class Collection(object):
         """
         Add an object to the collection
 
-        with_copy is a bit of a misnomer, but lots of internal add operations
-        can run with "with_copy" as False. True means a real final commit, as if
-        entered from the command line (or basically, by a user).
-
-        With with_copy as False, the particular add call might just be being run
-        during deserialization, in which case extra semantics around the add don't really apply.
-        So, in that case, don't run any triggers and don't deal with any actual files.
+        :param ref: The reference to the object.
+        :param save: If this is true then the objet is persited on the disk.
+        :param with_copy: Is a bit of a misnomer, but lots of internal add operations can run with "with_copy" as False.
+                          True means a real final commit, as if entered from the command line (or basically, by a user).
+                          With with_copy as False, the particular add call might just be being run during
+                          deserialization, in which case extra semantics around the add don't really apply. So, in that
+                          case, don't run any triggers and don't deal with any actual files.
+        :param with_sync: If a sync should be triggered when the object is renamed.
+        :param with_triggers: If triggers should be run when the object is renamed.
+        :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
+        :param check_for_duplicate_names: If the name of an object should be unique or not.
+        :type check_for_duplicate_names: bool
+        :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
+                                            systems.
+        :type check_for_duplicate_netinfo: bool
+        :param logger: The logger to audit the action with.
         """
         item_base.Item.remove_from_cache(ref)
         if ref is None:
@@ -315,13 +365,11 @@ class Collection(object):
             save = with_copy
 
         if not save:
-            # for people that aren't quite aware of the API
-            # if not saving the object, you can't run these features
+            # For people that aren't quite aware of the API if not saving the object, you can't run these features.
             with_triggers = False
             with_sync = False
 
-        # Avoid adding objects to the collection
-        # if an object of the same/ip/mac already exists.
+        # Avoid adding objects to the collection if an object of the same/ip/mac already exists.
         self.__duplication_checks(ref, check_for_duplicate_names, check_for_duplicate_netinfo)
 
         if ref.COLLECTION_TYPE != self.collection_type():
@@ -339,8 +387,7 @@ class Collection(object):
 
         # perform filesystem operations
         if save:
-            # save just this item if possible, if not, save
-            # the whole collection
+            # Save just this item if possible, if not, save the whole collection
             self.collection_mgr.serialize_item(self, ref)
 
             if with_sync:
@@ -384,10 +431,18 @@ class Collection(object):
 
     def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):
         """
-        Prevents adding objects with the same name.
-        Prevents adding or editing to provide the same IP, or MAC.
+        Prevents adding objects with the same name. Prevents adding or editing to provide the same IP, or MAC.
         Enforcement is based on whether the API caller requests it.
+
+        :param ref: The refernce to the object.
+        :param check_for_duplicate_names: If the name of an object should be unique or not.
+        :type check_for_duplicate_names: bool
+        :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
+                                            systems.
+        :type check_for_duplicate_netinfo: bool
+        :raises CX: If a duplicate is found
         """
+        # ToDo: Use return bool type to indicate duplicates and only throw CX in real error case.
         # always protect against duplicate names
         if check_for_duplicate_names:
             match = None
@@ -446,10 +501,11 @@ class Collection(object):
 
     def to_string(self):
         """
-        Creates a printable representation of the collection suitable
-        for reading by humans or parsing from scripts.  Actually scripts
-        would be better off reading the JSON in the cobbler_collections files
-        directly.
+        Creates a printable representation of the collection suitable for reading by humans or parsing from scripts.
+        Actually scripts would be better off reading the JSON in the cobbler_collections files directly.
+
+        :return: The object as a string representation.
+        :rtype: str
         """
         values = list(self.listing.values())[:]   # copy the values
         values.sort()                       # sort the copy (2.3 fix)
@@ -461,9 +517,17 @@ class Collection(object):
         else:
             return _("No objects found")
 
-    def collection_type(self):
+    @staticmethod
+    def collection_type() -> str:
         """
-        Returns the string key for the name of the collection (for use in messages for humans)
+        Returns the string key for the name of the collection (used by serializer etc)
+        """
+        return NotImplementedException()
+
+    @staticmethod
+    def collection_types() -> str:
+        """
+        Returns the string key for the plural name of the collection (used by serializer)
         """
         return NotImplementedException()
 

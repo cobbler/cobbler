@@ -1,6 +1,6 @@
 """
 This module removes puppet certs from the puppet master prior to
-reinstalling a machine if the puppet master is running on the cobbler
+reinstalling a machine if the puppet master is running on the Cobbler
 server.
 
 Based on:
@@ -13,15 +13,32 @@ import cobbler.utils as utils
 
 
 def register():
-    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
-    # the return of this method indicates the trigger type
+    """
+    This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
+    indicates the trigger type.
+
+    :return: Always: "/var/lib/cobbler/triggers/install/pre/\*"
+    :rtype: str
+    """
+
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
 def run(api, args, logger):
-    objtype = args[0]   # "system" or "profile"
-    name = args[1]      # name of system or profile
-    # ip = args[2]      # ip or "?"
+    """
+    This method runs the trigger, meaning in this case that old puppet certs are automatically removed via puppetca.
+
+    The list of args should have two elements:
+        - 0: system or profile
+        - 1: the name of the system or profile
+
+    :param api: The api to resolve external information with.
+    :param args: Already described above.
+    :param logger: The logger to audit the action with.
+    :return: "0" on success. If unsuccessful this raises an exception.
+    """
+    objtype = args[0]
+    name = args[1]
 
     if objtype != "system":
         return 0

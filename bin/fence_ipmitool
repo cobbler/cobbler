@@ -1,0 +1,17 @@
+#!/bin/bash -x
+
+# fence_ipmitool wrapper script to call fence_ipmilan with -P parameter
+# fence_ipmilan will then use IPMIv2.0 -I lanplus interface which should
+# be used by all modern IPMI driven BMCs out there
+
+# An issue is open for fence-agents project to use IPMIv2.0 by default:
+# https://github.com/ClusterLabs/fence-agents/issues/314
+
+# Clarification:
+# fence_ipmilan "$@" --lanplus
+# does not work. cobbler passes options via stdin and fence_ipmilan
+# does either recognise opions from stdin or via commandline.
+# Therefore below line adds lanplus=1\n to incomming stdin (cobbler passed fence
+# options)
+
+cat <(echo "lanplus=1") - | fence_ipmilan "$@"

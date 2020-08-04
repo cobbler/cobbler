@@ -1,17 +1,31 @@
-
 from builtins import str
 import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
 
 def register():
-    # this pure python trigger acts as if it were a legacy shell-trigger, but is much faster.
-    # the return of this method indicates the trigger type
+    """
+    This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
+    indicates the trigger type
+
+    :return: Always ``/var/lib/cobbler/triggers/sync/post/*``
+    :rtype: str
+    """
+
     return "/var/lib/cobbler/triggers/sync/post/*"
 
 
 def run(api, args, logger):
+    """
+    Run the trigger via this method, meaning in this case that depending on the settings dns and/or dhcp services are
+    restarted.
 
+    :param api: The api to resolve settings.
+    :param args: This parameter is not used currently.
+    :param logger: The logger to audit the action with.
+    :return: The return code of the service restarts.
+    :rtype: int
+    """
     settings = api.settings()
 
     manage_dhcp = str(settings.manage_dhcp).lower()

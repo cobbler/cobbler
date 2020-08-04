@@ -6,6 +6,9 @@ def create_repo(remote, token):
     """
     Creates a Repository "testrepo0" with a mirror "http://www.sample.com/path/to/some/repo" and the attribute
     "mirror_locally=0".
+
+    :param remote: The xmlrpc object to connect to.
+    :param token: The token to authenticate against the remote object.
     """
     repo = remote.new_repo(token)
     remote.modify_repo(repo, "name", "testrepo0", token)
@@ -14,8 +17,21 @@ def create_repo(remote, token):
     remote.save_repo(repo, token)
 
 
+@pytest.fixture
+def remove_repo(remote, token):
+    """
+    Removes the Repository "testrepo0" which can be created with create_repo.
+
+    :param remote: The xmlrpc object to connect to.
+    :param token: The token to authenticate against the remote object.
+    """
+    yield
+    remote.remove_repo("testrepo0", token)
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
 class TestRepo:
+    @pytest.mark.usefixtures("remove_repo")
     def test_create_repo(self, remote, token):
         """
         Test: create/edit a repo object
@@ -30,9 +46,6 @@ class TestRepo:
         assert remote.modify_repo(repo, "mirror_locally", "0", token)
         assert remote.save_repo(repo, token)
 
-        # Cleanup
-        remote.remove_repo("testrepo0", token)
-
     def test_get_repos(self, remote):
         """
         Test: Get repos
@@ -46,7 +59,7 @@ class TestRepo:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("create_repo")
+    @pytest.mark.usefixtures("create_repo", "remove_repo")
     def test_get_repo(self, remote, token):
         """
         Test: Get a repo object
@@ -60,10 +73,7 @@ class TestRepo:
         # Assert
         assert repo.get("name") == "testrepo0"
 
-        # Cleanup
-        remote.remove_repo("testrepo0", token)
-
-    @pytest.mark.usefixtures("create_repo")
+    @pytest.mark.usefixtures("create_repo", "remove_repo")
     def test_find_repo(self, remote, token):
         """
         Test: find a repo object
@@ -77,10 +87,7 @@ class TestRepo:
         # Assert
         assert result
 
-        # Cleanup
-        remote.remove_repo("testrepo0", token)
-
-    @pytest.mark.usefixtures("create_repo")
+    @pytest.mark.usefixtures("create_repo", "remove_repo")
     def test_copy_repo(self, remote, token):
         """
         Test: copy a repo object
@@ -95,7 +102,6 @@ class TestRepo:
         assert remote.copy_repo(repo, "testrepocopy", token)
 
         # Cleanup
-        remote.remove_repo("testrepo0", token)
         remote.remove_repo("testrepocopy", token)
 
     @pytest.mark.usefixtures("create_repo")

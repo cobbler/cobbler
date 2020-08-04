@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:29
+FROM fedora:31
 
 RUN dnf makecache
 
@@ -10,17 +10,22 @@ RUN dnf install -y          \
     rsync                   \
     make                    \
     openssl                 \
+    mod_ssl                 \
+    initscripts             \
     python-sphinx           \
     python3-coverage        \
     python3-devel           \
+    python3-wheel           \
     python3-distro          \
     python3-future          \
     python3-pep8            \
     python3-pyflakes        \
     python3-pycodestyle     \
     python3-setuptools      \
-    python3-sphinx         \
-    rpm-build
+    python3-sphinx          \
+    python3-pip             \
+    rpm-build               \
+    which
 
 # Runtime dependencies
 RUN yum install -y          \
@@ -35,7 +40,7 @@ RUN yum install -y          \
     python3-dns             \
     python3-ldap3           \
     python3-pymongo         \
-    createrepo              \
+    createrepo_c            \
     dnf-plugins-core        \
     xorriso                 \
     grub2-efi-ia32-modules  \
