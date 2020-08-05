@@ -212,6 +212,7 @@ Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
+Requires:       python%{python3_pkgversion}-distro
 %endif
 
 
