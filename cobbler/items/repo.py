@@ -52,6 +52,7 @@ FIELDS = [
     ["proxy", "<<inherit>>", 0, "Proxy information", True, "http://example.com:8080, or <<inherit>> to use proxy_url_ext from settings, blank or <<None>> for no proxy", [], "str"],
     ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
     ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"],
+    ["rsyncopts", "", 0, "Rsync Options", True, "Options to use with rsync repo", 0, "dict"],
 ]
 
 
@@ -69,6 +70,7 @@ class Repo(item.Item):
         self.arch = None
         self.environment = {}
         self.yumopts = {}
+        self.rsyncopts = {}
 
     #
     # override some base class methods first (item.Item)
@@ -159,6 +161,18 @@ class Repo(item.Item):
             raise CX(_("invalid yum options"))
         else:
             self.yumopts = value
+
+    def set_rsyncopts(self, options):
+        """
+        rsync options are a space delimited list
+
+        :param options: Something like '-a -S -H -v'
+        """
+        (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
+        if not success:
+            raise CX(_("invalid rsync options"))
+        else:
+            self.rsyncopts = value
 
     def set_environment(self, options):
         """
