@@ -22,9 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
 from configparser import ConfigParser
 
 pymongo_loaded = False
@@ -168,6 +165,6 @@ def __depth_cmp(item1, item2):
     """
     d1 = item1.get("depth", 1)
     d2 = item2.get("depth", 1)
-    return cmp(d1, d2)
+    return (d1 > d2) - (d1 < d2)
 
 # EOF

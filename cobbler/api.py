@@ -18,9 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from builtins import object
 from configparser import ConfigParser
@@ -243,16 +240,6 @@ class CobblerAPI(object):
             return data
 
     # ==========================================================
-
-    def __cmp(self, a, b):
-        """
-        Compare two names of objects with each other.
-
-        :param a: First object. Must have the property name.
-        :param b: Second object. Must have the property name.
-        :return: A bool which indicates the result of the comparison.
-        """
-        return cmp(a.name, b.name)
 
     def get_item(self, what, name):
         """

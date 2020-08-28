@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from future import standard_library
-standard_library.install_aliases()
 import os
 import sys
 import time
@@ -509,14 +507,12 @@ if __name__ == "__main__":
         setup_requires=[
             "coverage",
             "distro",
-            "future",
             "setuptools",
             "sphinx",
         ],
         install_requires=[
             "mod_wsgi",
             "requests",
-            "future",
             "pyyaml",
             "simplejson",
             "netaddr",
