@@ -366,7 +366,7 @@ class RepoSync(object):
         
         # if ran in archive mode then repo should already contain all repodata and does not need createrepo ran 
         archive = False
-        if '-a' in flags or '--archive' in flags:
+        if '--archive' in flags:
             archive = True
         else:
             # split flags and skip all --{options} as we need to look for combined flags like -vaH
