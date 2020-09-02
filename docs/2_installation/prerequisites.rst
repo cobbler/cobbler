@@ -24,7 +24,7 @@ the following packages:
 * httpd (apache2 for Debian/Ubuntu)
 * mkisofs
 * mod_wsgi (libapache2-mod-wsgi for Debian/Ubuntu)
-* mod_ssl (libapache2-mod-ssl)
+* mod_ssl (libapache2-mod-ssl or apache2-ssl-dev for Debian/Ubuntu)
 * python-cheetah
 * python-netaddr
 * python-simplejson
@@ -57,7 +57,7 @@ Installation from source requires the following additional packages:
 
 * git
 * make
-* python-devel
+* python-devel (python-dev for Ubuntu)
 * python-setuptools
 * python-cheetah
 * openssl
