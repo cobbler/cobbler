@@ -21,13 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from future import standard_library
-
-standard_library.install_aliases()
-
 from cobbler.cexceptions import CX
 from cobbler.utils import log_exc
-from cobbler import clogger
 from xmlrpc.client import ServerProxy, Error
 
 

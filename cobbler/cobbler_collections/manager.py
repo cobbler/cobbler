@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
 from builtins import object
 import time
 import weakref
@@ -76,16 +75,6 @@ class CollectionManager(object):
         :return: A version 4 UUID according to the python implementation of RFC 4122.
         """
         return uuid.uuid4().hex
-
-    def __cmp(self, a, b):
-        """
-        Compare object a to object b and determine which is greater. Comparing is done via the object names.
-
-        :param a: The first object to compare.
-        :param b: The second object to compare.
-        :return: Whether the first or second object is greater.
-        """
-        return cmp(a.name, b.name)
 
     def distros(self):
         """

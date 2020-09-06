@@ -24,8 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from configparser import ConfigParser
 

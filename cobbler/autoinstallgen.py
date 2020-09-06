@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from future import standard_library
-standard_library.install_aliases()
 from builtins import object
 import urllib.parse
 import xml.dom.minidom

@@ -15,7 +15,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-from past.builtins import cmp
 from builtins import str
 from builtins import object
 import re
@@ -261,16 +260,6 @@ class Report(object):
         if report_type == "doku":
             self.logger.flat(self.reporting_doku(data, order, noheaders))
 
-    def reporting_sorter(self, a, b):
-        """
-        Used for sorting Cobbler objects for report commands
-
-        :param a: The first object to compare.
-        :param b: The second object to compare.
-        :return: Whether the first or second object is greater or smaller.
-        """
-        return cmp(a.name, b.name)
-
     def reporting_print_sorted(self, collection):
         """
         Prints all objects in a collection sorted by name
@@ -278,7 +267,7 @@ class Report(object):
         :param collection: The collection to print.
         """
         collection = [x for x in collection]
-        collection.sort(self.reporting_sorter)
+        collection.sort(key=lambda x: x.name)
         for x in collection:
             self.logger.flat(x.to_string())
 
@@ -312,7 +301,7 @@ class Report(object):
                 return
 
         collection = [x for x in collection]
-        collection.sort(self.reporting_sorter)
+        collection.sort(key=lambda x: x.name)
         data = []
         out_order = []
         count = 0
@@ -363,7 +352,7 @@ class Report(object):
                 return
 
         collection = [x for x in collection]
-        collection.sort(self.reporting_sorter)
+        collection.sort(key=lambda x: x.name)
         data = []
         fields_list = report_fields.replace(' ', '').split(',')
 

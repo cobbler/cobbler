@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from builtins import object
-from past.utils import old_div
 import glob
 import time
 import gzip
@@ -150,11 +149,11 @@ class CobblerStatusReport(object):
             elem = self.ip_data[ip]
             start = int(elem[MOST_RECENT_START])
             stop = int(elem[MOST_RECENT_STOP])
-            if (stop > start):
+            if stop > start:
                 elem[STATE] = "finished"
             else:
                 delta = tnow - start
-                min = old_div(delta, 60)
+                min = delta // 60
                 sec = delta % 60
                 if min > 100:
                     elem[STATE] = "unknown/stalled"
