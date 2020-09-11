@@ -364,7 +364,7 @@ class RepoSync(object):
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
         
-        # if ran in archive mode then repo should already contain all repodata and does not need createrepo ran 
+        # if ran in archive mode then repo should already contain all repodata and does not need createrepo run 
         archive = False
         if '--archive' in flags:
             archive = True
