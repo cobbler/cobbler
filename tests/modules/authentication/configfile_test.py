@@ -49,6 +49,17 @@ class TestConfigfile:
         assert configfile.register() is "authn"
 
     @pytest.mark.parametrize("hashfunction, username, password", [
+        ("md5", "cobbler", "cobbler")
+    ])
+    def test_authenticate_negative(self, adjust_hashfunction, hashfunction, username, password):
+        # Arrange
+        adjust_hashfunction(hashfunction)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            configfile.authenticate(None, username, password)
+
+    @pytest.mark.parametrize("hashfunction, username, password", [
         ("sha3_512", "cobbler", "cobbler")
     ])
     def test_authenticate_positive(self, adjust_hashfunction, hashfunction, username, password):
@@ -60,14 +71,3 @@ class TestConfigfile:
 
         # Assert
         assert result
-
-    @pytest.mark.parametrize("hashfunction, username, password", [
-        ("md5", "cobbler", "cobbler")
-    ])
-    def test_authenticate_negative(self, adjust_hashfunction, hashfunction, username, password):
-        # Arrange
-        adjust_hashfunction(hashfunction)
-
-        # Act & Assert
-        with pytest.raises(ValueError):
-            configfile.authenticate(None, username, password)
