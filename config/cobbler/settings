@@ -322,6 +322,10 @@ register_new_installs: 0
 # does not support -l, you may need to remove that option.
 reposync_flags: "-l -n -d"
 
+# Flags to use for rysync's reposync. If flag 'a' is used then createrepo
+# is not ran after the rsync
+reposync_rsync_flags: "-rltDv --copy-unsafe-links"
+
 # when DHCP and DNS management are enabled, cobbler sync can automatically
 # restart those services to apply changes.  The exception for this is
 # if using ISC for DHCP, then omapi eliminates the need for a restart.

@@ -348,13 +348,39 @@ class RepoSync(object):
         if not repo.mirror.strip().endswith("/"):
             repo.mirror = "%s/" % repo.mirror
 
-        # FIXME: wrapper for subprocess that logs to logger
-        cmd = "rsync -rltDv --copy-unsafe-links --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
+        flags = ''
+        for x in repo.rsyncopts:
+            if repo.rsyncopts[x]:
+                flags += " %s %s" % (x, repo.rsyncopts[x])
+            else:
+                flags += " %s" % x
+        
+        if flags == '':
+            flags = self.settings.reposync_rsync_flags
+
+        cmd = "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
         rc = utils.subprocess_call(self.logger, cmd)
 
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
-        repo_walker(dest_path, self.createrepo_walker, repo)
+        
+        # if ran in archive mode then repo should already contain all repodata and does not need createrepo run 
+        archive = False
+        if '--archive' in flags:
+            archive = True
+        else:
+            # split flags and skip all --{options} as we need to look for combined flags like -vaH
+            fl = flags.split()
+            for f in fl:
+                if f.startswith('--'):
+                    pass
+                else:
+                    if 'a' in f:
+                        archive = True
+                        break
+        if not archive:
+            repo_walker(dest_path, self.createrepo_walker, repo)
+
         self.create_local_file(dest_path, repo)
 
     # ====================================================================================
