@@ -102,12 +102,12 @@ If you want to be explicit with distribution definition, however, here's how it 
 | initrd         | An absolute filesystem path to a initrd image.                                                      |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | remote-boot-   | A URL pointing to the installation initrd of a distribution. If the bootloader has this support,    |
-| kernel         | it will directly download the kernel from this URL, instead of the directory of the tftp client.    |
-|                | Note: The kernel (or initrd below) will still be copied into the image directory of the tftp server.|
+| kernel         | it will directly download the kernel from this URL, instead of the directory of the TFTP client.    |
+|                | Note: The kernel (or initrd below) will still be copied into the image directory of the TFTP server.|
 |                | The above kernel parameter is still needed (e.g. to build iso images, etc.).                        |
 |                | The advantage of letting the boot loader retrieve the kernel/initrd directly is the support of      |
 |                | changing/updated distributions. E.g. openSUSE Tumbleweed is updated on the fly and if cobbler would |
-|                | copy/cache the kernel/initrd in the tftp directory, you would get a "kernel does not match          |
+|                | copy/cache the kernel/initrd in the TFTP directory, you would get a "kernel does not match          |
 |                | distribution" (or similar) error when trying to install.                                            |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | remote-boot-   | See remote-boot-kernel above.                                                                       |
@@ -129,7 +129,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 +----------------+-----------------------------------------------------------------------------------------------------+
 |                | Example: ``noapic``                                                                                 |
 +----------------+-----------------------------------------------------------------------------------------------------+
-| arch           | Sets the architecture for the PXE bootloader and also controls how koan's ``--replace-self`` option |
+| arch           | Sets the architecture for the PXE bootloader and also controls how Koan's ``--replace-self`` option |
 |                | will operate.                                                                                       |
 +----------------+-----------------------------------------------------------------------------------------------------+
 |                | The default setting (``standard``) will use ``pxelinux``. Set to ``ppc`` and ``ppc64`` to use       |
@@ -160,15 +160,15 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                | ``--autoinst`` when creating the profile.                                                           |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | os-version     | Generally this field can be ignored. It is intended to alter some hardware setup for virtualized    |
-|                | instances when provisioning guests with koan. The valid options for ``--os-version`` vary depending |
+|                | instances when provisioning guests with Koan. The valid options for ``--os-version`` vary depending |
 |                | on what is specified for ``--breed``. If you specify an invalid option, the error message will      |
-|                | contain a list of valid os versions that can be used. If you don't know the os version or it does   |
+|                | contain a list of valid OS versions that can be used. If you don't know the OS version or it does   |
 |                | not appear in the list, omitting this argument or using ``other`` should be perfectly fine. If you  |
 |                | don't encounter any problems with virtualized instances, this option can be safely ignored.         |
 +----------------+-----------------------------------------------------------------------------------------------------+
 | owners         | Users with small sites and a limited number of admins can probably ignore this option.  All cobbler |
 |                | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what       |
-|                | cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XMLRPC         |
+|                | cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC        |
 |                | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only        |
 |                | respected by the ``authz_ownership`` module which must be enabled in ``/etc/cobbler/modules.conf``. |
 |                | The value for ``--owners`` is a space separated list of users and groups as specified in            |
@@ -228,12 +228,12 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
 |                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
-|                     | find a compatible installation type on the client system("auto"). See the "koan" manpage for   |
+|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
 |                     | more documentation. The default ``--virt-type`` can be configured in the cobbler settings file |
 |                     | such that this parameter does not have to be provided. Other virtualization types are          |
 |                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
 +---------------------+------------------------------------------------------------------------------------------------+
-| virt-cpus           | (Virt-only) How many virtual CPUs should koan give the virtual machine? The default is 1. This |
+| virt-cpus           | (Virt-only) How many virtual CPUs should Koan give the virtual machine? The default is 1. This |
 |                     | is an integer.                                                                                 |
 +---------------------+------------------------------------------------------------------------------------------------+
 | virt-path           | (Virt-only) Where to store the virtual image on the host system. Except for advanced cases,    |
@@ -249,7 +249,7 @@ listed below:
 |                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
 |                     | want to override this setting in the system object. Bridge settings are important as they      |
 |                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
-|                     | the Cobbler Wiki, where there is a section describing koan usage.                              |
+|                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
 +---------------------+------------------------------------------------------------------------------------------------+
 | repos               | This is a space delimited list of all the repos (created with ``cobbler repo add`` and updated |
 |                     | with ``cobbler reposync``)that this profile can make use of during automated installation. For |
@@ -275,11 +275,11 @@ listed below:
 | server              | This parameter should be useful only in select circumstances. If machines are on a subnet that |
 |                     | cannot access the cobbler server using the name/IP as configured in the cobbler settings file, |
 |                     | use this parameter to override that servername. See also ``--dhcp-tag`` for configuring the    |
-|                     | next server and DHCP information of the system if you are also usingCobbler to help manage your|
-|                     | DHCP configuration.                                                                            |
+|                     | next server and DHCP information of the system if you are also using Cobbler to help manage    |
+|                     | your DHCP configuration.                                                                       |
 +---------------------+------------------------------------------------------------------------------------------------+
 | filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
-|                     | be a path relative to the tftp servers root directory. (e.g. grub/grubx64.efi)                 |
+|                     | be a path relative to the TFTP servers root directory. (e.g. grub/grubx64.efi)                 |
 |                     | For most use cases the default bootloader is correct and this can be omitted                   |
 +---------------------+------------------------------------------------------------------------------------------------+
 
@@ -289,7 +289,7 @@ cobbler system
 System records map a piece of hardware (or a virtual machine) with the cobbler profile to be assigned to run on it. This
 may be thought of as choosing a role for a specific system.
 
-Note that if provisioning via koan and PXE menus alone, it is not required to create system records in cobbler, though
+Note that if provisioning via Koan and PXE menus alone, it is not required to create system records in cobbler, though
 they are useful when system specific customizations are required. One such customization would be defining the MAC
 address. If there is a specific role intended for a given machine, system records should be created for it.
 
@@ -365,15 +365,15 @@ Adds a cobbler System to the configuration. Arguments are specified as per "prof
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                               | This is a per-interface setting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| virt-bridge                                                   | (Virt-only) While --virt-bridge is present in the profile object (see above), here it works on an interface by interfacebasis. For instance it would be possible to have --virt-bridge0=xenbr0 and --virt-bridge1=xenbr1. If not specified in cobbler for each interface, koan will use the value as specified in the profile for each interface, which may not always be what is intended, but will be sufficient in most cases.                                                                                                                                                                                                                                                                                                                                                                                    |
+| virt-bridge                                                   | (Virt-only) While --virt-bridge is present in the profile object (see above), here it works on an interface by interfacebasis. For instance it would be possible to have --virt-bridge0=xenbr0 and --virt-bridge1=xenbr1. If not specified in cobbler for each interface, Koan will use the value as specified in the profile for each interface, which may not always be what is intended, but will be sufficient in most cases.                                                                                                                                                                                                                                                                                                                                                                                    |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                               | This is a per-interface setting.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | autoinst                                                      | While it is recommended that the --autoinst parameter is only used within for the "profile add" command, there are limited scenarios when an install base switching to cobbler may have legacy automatic installation files created on aper-system basis (one automatic installation file for each system, nothing shared) and may not want to immediately make use of the cobbler templating system. This allows specifying a automatic installation file for use on a per-system basis. Creation of a parent profile is still required.  If the automatic installation file is a filesystem location, it will still be treated as a cobbler template.                                                                                                                                                              |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| netboot-enabled                                               | If set false, the system will be provisionable through koan but not through standard PXE. This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object. The default value allows PXE. Cobbler contains a PXE boot loop prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can automatically trip off this value after a system gets done installing. This can prevent installs from appearing in an endless loop when the system is set to PXE first in the BIOS order.                                                                                                                                                                                                                                                             |
+| netboot-enabled                                               | If set false, the system will be provisionable through Koan but not through standard PXE. This will allow the system to fall back to default PXE boot behavior without deleting the cobbler system object. The default value allows PXE. Cobbler contains a PXE boot loop prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can automatically trip off this value after a system gets done installing. This can prevent installs from appearing in an endless loop when the system is set to PXE first in the BIOS order.                                                                                                                                                                                                                                                             |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| repos-enabled                                                 | If set true, koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki,https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| repos-enabled                                                 | If set true, Koan can reconfigure repositories after installation. This is described further on the Cobbler Wiki,https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | dhcp-tag                                                      | If you are setting up a PXE environment with multiple subnets/gateways, and are using cobbler to manage a DHCP configuration, you will probably want to use this option. If not, it can be ignored.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -450,7 +450,7 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 +------------------+---------------------------------------------------------------------------------------------------+
 |                  | Experimental support is also provided for mirroring RHN content when you need a fast local mirror.|
 |                  | The mirror syntax for this is ``--mirror=rhn://channel-name`` and you must have entitlements for  |
-|                  | this to work. This requires the cobbler server to be installed on RHEL5 or later. You will also   |
+|                  | this to work. This requires the cobbler server to be installed on RHEL 5 or later. You will also  |
 |                  | need a version of ``yum-utils`` equal or greater to 1.0.4.                                        |
 +------------------+---------------------------------------------------------------------------------------------------+
 | name             | This name is used as the save location for the mirror. If the mirror represented, say, Fedora     |
@@ -471,7 +471,7 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 | rpm-list         | By specifying a space-delimited list of package names for ``--rpm-list``, one can decide to mirror|
 |                  | only a part of a repo (the list of packages given, plus dependencies). This may be helpful in     |
 |                  | conserving time/space/bandwidth. For instance, when mirroring FC6 Extras, it may be desired to    |
-|                  | mirror just cobbler and koan, and skip all of the game packages. To do this, use                  |
+|                  | mirror just cobbler and Koan, and skip all of the game packages. To do this, use                  |
 |                  | ``--rpm-list="cobbler koan"``.                                                                    |
 +------------------+---------------------------------------------------------------------------------------------------+
 |                  | This option only works for ``http://`` and ``ftp://`` repositories (as it is powered by           |
@@ -684,7 +684,7 @@ cobbler report
 =================
 
 This lists all configuration which cobbler can obtain from the saved data. There are also ``report`` subcommands for
-most of the other cobbler commands. (Currently: distro, profile, system, repo, image, mgmtclass, package, file)
+most of the other cobbler commands (currently: distro, profile, system, repo, image, mgmtclass, package, file).
 
 .. code-block:: shell
 
@@ -785,8 +785,7 @@ cobbler's command line returns a zero for success and non-zero for failure.
 Additional Help
 ###############
 
-We have a Gitter Channel and you also can ask questions as GitHub-Issues. The IRC Channel on Freenode (#cobbler) is not
+We have a Gitter Channel and you also can ask questions as GitHub issues. The IRC Channel on Freenode (#cobbler) is not
 that active but sometimes there are people who can help you.
 
-The way we would prefer are GitHub-Issues as they are easily searchable.
-
+The way we would prefer are GitHub issues as they are easily searchable.

@@ -11,7 +11,7 @@ User Guide
 
 API
 ###
-Cobbler also makes itself available as an XMLRPC API for use by higher level management software. Learn more at
+Cobbler also makes itself available as an XML-RPC API for use by higher level management software. Learn more at
 https://cobbler.github.io
 
 Triggers
@@ -213,7 +213,7 @@ Specify reasonable values for the Virt image size (in GB) and RAM requirements (
 
     cobbler profile add --name=virtwebservers --distro=fc7virt --autoinst=path --virt-file-size=10 --virt-ram=512 [...]
 
-Define systems if desired.  koan can also provision based on the profile name.
+Define systems if desired. Koan can also provision based on the profile name.
 
 .. code-block:: none
 
@@ -221,7 +221,7 @@ Define systems if desired.  koan can also provision based on the profile name.
 
 If you have just installed cobbler, be sure that the "cobblerd" service is running and that port 25151 is unblocked.
 
-See the manpage for koan for the client side steps.
+See the manpage for Koan for the client side steps.
 
 Autoinstallation
 ################
@@ -298,7 +298,7 @@ machines to get a new copy of the profile ``plugh``. To go back to the menu syst
 When using PXE menu deployment exclusively, it is not necessary to make cobbler system records, although the two can
 easily be mixed.
 
-Additionally, note that all files generated for the pxe menu configurations are templatable, so if you wish to change
+Additionally, note that all files generated for the PXE menu configurations are templatable, so if you wish to change
 the color scheme or equivalent, see the files in ``/etc/cobbler``.
 
 Default PXE Boot behavior
@@ -354,7 +354,7 @@ Boot CD
 
 Cobbler can build all of it's profiles into a bootable CD image using the ``cobbler buildiso`` command. This allows for
 PXE-menu like bring up of bare metal in environments where PXE is not possible. Another more advanced method is described
-in the koan manpage, though this method is easier and sufficient for most applications.
+in the Koan manpage, though this method is easier and sufficient for most applications.
 
 .. _dhcp-management:
 
@@ -381,7 +381,7 @@ By default, the DHCP configuration file will be updated each time ``cobbler sync
 important to remember to use ``cobbler sync`` when using this feature.
 
 If omapi_enabled is set to 1 in ``/etc/cobbler/settings``, the need to sync when adding new system records can be
-eliminated. However, the omapi feature is experimental and is not recommended for most users.
+eliminated. However, the OMAPI feature is experimental and is not recommended for most users.
 
 .. _dns-management:
 

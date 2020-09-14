@@ -124,7 +124,7 @@ Notes on files and directories
 ##############################
 
 Cobbler makes heavy use of the ``/var`` directory. The ``/var/www/cobbler/distro_mirror`` directory is where all of the
-distrubtion and repository files are copied, so you will need 5-10GB of free space per distribution you wish to import.
+distribution and repository files are copied, so you will need 5-10GB of free space per distribution you wish to import.
 
 If you have installed Cobbler onto a system that has very little free space in the partition containing ``/var``, please
 read the :ref:`relocating-your-installation` section of the Installation Guide to learn how you can relocate your

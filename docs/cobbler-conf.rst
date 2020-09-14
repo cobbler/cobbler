@@ -17,7 +17,7 @@ default: ``0``
 
 allow_duplicate_ips
 ===================
-if 1, cobbler will allow insertions of system records that duplicate the ip address information of other system records.
+if 1, cobbler will allow insertions of system records that duplicate the IP address information of other system records.
 In general, this is undesirable and should be left 0.
 
 default: ``0``
@@ -42,7 +42,7 @@ By default, installs are *not* set to send installation logs to the cobbler serv
 installation templates may use the ``pre_anamon`` snippet to allow remote live monitoring of their installations from
 the cobbler server. Installation logs will be stored under ``/var/log/cobbler/anamon/``.
 
-**Note**: This does allow an xmlrpc call to send logs to this directory, without authentication, so enable only if you
+**Note**: This does allow an XML-RPC call to send logs to this directory, without authentication, so enable only if you
 are ok with this limitation.
 
 default: ``0``
@@ -104,7 +104,7 @@ defaults:
 cache_enabled
 ========================
 If cache_enabled is 1, a cache will keep converted records in memory to make checking them faster.  This helps with
-use cases like writing out large numbers of records.  There is a known issue with cache and remote XMLRPC API calls.
+use cases like writing out large numbers of records.  There is a known issue with cache and remote XML-RPC API calls.
 If you will use Cobbler with config management or infrastructure-as-code tools such as Terraform, it is recommended
 to disable by setting to 0.
 
@@ -139,7 +139,7 @@ default: ``/var/lib/cobbler/autoinstall_templates/default.ks``
 
 default_name_*
 ==============
-Configure all installed systems to use these nameservers by default unless defined differently in the profile. For DHCP
+Configure all installed systems to use these name servers by default unless defined differently in the profile. For DHCP
 configurations you probably do /not/ want to supply this.
 
 defaults:
@@ -178,8 +178,8 @@ default: ``"cheetah"``
 
 default_virt_bridge
 ===================
-For libvirt based installs in koan, if no virt-bridge is specified, which bridge do we try? For EL 4/5 hosts this should
-be ``xenbr0``, for all versions of Fedora, try ``virbr0``. This can be overriden on a per-profile basis or at the koan
+For libvirt based installs in Koan, if no virt-bridge is specified, which bridge do we try? For EL 4/5 hosts this should
+be ``xenbr0``, for all versions of Fedora, try ``virbr0``. This can be overridden on a per-profile basis or at the Koan
 command line though this saves typing to just set it here to the most common option.
 
 default: ``xenbr0``
@@ -198,7 +198,7 @@ default: ``512``
 
 default_virt_type
 =================
-If koan is invoked without ``--virt-type`` and no virt-type is set on the profile/system, what virtualization type
+If Koan is invoked without ``--virt-type`` and no virt-type is set on the profile/system, what virtualization type
 should be assumed?
 
 Current valid values are: xenpv, xenfv, qemu, vmware
@@ -209,8 +209,8 @@ default: ``xenpv``
 
 enable_gpxe
 ===========
-Enable gPXE booting? Enabling this option will cause cobbler to copy the ``undionly.kpxe`` file to the tftp root
-directory, and if a profile/system is configured to boot via gpxe it will chain load off ``pxelinux.0``.
+Enable gPXE booting? Enabling this option will cause cobbler to copy the ``undionly.kpxe`` file to the TFTP root
+directory, and if a profile/system is configured to boot via gPXE it will chain load off ``pxelinux.0``.
 
 default: ``0``
 
@@ -219,13 +219,13 @@ enable_menu
 Controls whether cobbler will add each new profile entry to the default PXE boot menu. This can be over-ridden on a
 per-profile basis when adding/editing profiles with ``--enable-menu=0/1``. Users should ordinarily leave this setting
 enabled unless they are concerned with accidental reinstalls from users who select an entry at the PXE boot menu. Adding
-a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations
+a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations.
 
 default: ``1``
 
 http_port
 =========
-Change this port if Apache is not running plaintext on port 80. Most people can leave this alone.
+Change this port if Apache is not running plain text on port 80. Most people can leave this alone.
 
 default: ``80``
 
@@ -239,7 +239,7 @@ default: ``{}``
 ldap_*
 ======
 Configuration options if using the authn_ldap module. See the Wiki for details. This can be ignored if you are not
-using LDAP for WebUI/XMLRPC authentication.
+using LDAP for WebUI/XML-RPC authentication.
 
 defaults:
 
@@ -322,14 +322,14 @@ default: 1
 manage_dhcp
 ===========
 Set to 1 to enable Cobbler's DHCP management features. The choice of DHCP management engine is in
-``/etc/cobbler/modules.conf``
+``/etc/cobbler/modules.conf``.
 
 default: ``0``
 
 manage_dns
 ==========
 Set to 1 to enable Cobbler's DNS management features. The choice of DNS management engine is in
-``/etc/cobbler/modules.conf``
+``/etc/cobbler/modules.conf``.
 
 default: ``0``
 
@@ -349,7 +349,7 @@ default: ``127.0.0.1``
 manage_tftpd
 ==============
 Set to 1 to enable Cobbler's TFTP management features. the choice of TFTP management engine is in
-``/etc/cobbler/modules.conf``
+``/etc/cobbler/modules.conf``.
 
 default: ``1``
 
@@ -425,14 +425,14 @@ default: ``1``
 redhat_management_server
 ========================
 This setting is only used by the code that supports using Spacewalk/Satellite authentication within Cobbler Web and
-Cobbler XMLRPC.
+Cobbler XML-RPC.
 
 default: ``"xmlrpc.rhn.redhat.com"``
 
 redhat_management_permissive
 ============================
 If using ``authn_spacewalk`` in ``modules.conf`` to let cobbler authenticate against Satellite/Spacewalk's auth system,
-by default it will not allow per user access into Cobbler Web and Cobbler XMLRPC. In order to permit this, the following
+by default it will not allow per user access into Cobbler Web and Cobbler XML-RPC. In order to permit this, the following
 setting must be enabled HOWEVER doing so will permit all Spacewalk/Satellite users of certain types to edit all of
 cobbler's configuration. these roles are: ``config_admin`` and ``org_admin``. Users should turn this on only if they
 want this behavior and do not have a cross-multi-org separation concern. If you have a single org in your satellite,
@@ -450,7 +450,7 @@ default: ``""``
 
 register_new_installs
 =====================
-If set to ``1``, allows ``/usr/bin/cobbler-register`` (part of the koan package) to be used to remotely add new cobbler
+If set to ``1``, allows ``/usr/bin/cobbler-register`` (part of the Koan package) to be used to remotely add new cobbler
 system records to cobbler. This effectively allows for registration of new hardware from system records.
 
 default: ``0``
@@ -471,7 +471,7 @@ default: ``"-rltDv --copy-unsafe-links"``
 restart_*
 =========
 When DHCP and DNS management are enabled, ``cobbler sync`` can automatically restart those services to apply changes.
-The exception for this is if using ISC for DHCP, then omapi eliminates the need for a restart. ``omapi``, however, is
+The exception for this is if using ISC for DHCP, then OMAPI eliminates the need for a restart. ``omapi``, however, is
 experimental and not recommended for most configurations. If DHCP and DNS are going to be managed, but hosted on a box
 that is not on this server, disable restarts here and write some other script to ensure that the config files get
 copied/rsynced to the destination box. This can be done by modifying the restart services trigger. Note that if
@@ -527,7 +527,7 @@ default: ``0``
 
 client_use_https
 ================
-If set to 1, all commands to the API (not directly to the XMLRPC server) will go over HTTPS instead of plaintext. Be
+If set to 1, all commands to the API (not directly to the XML-RPC server) will go over HTTPS instead of plain text. Be
 sure to change the ``http_port`` setting to the correct value for the web server.
 
 default: ``0``
@@ -572,8 +572,8 @@ default:
 
 xmlrpc_port
 ===========
-Cobbler's public XMLRPC listens on this port. Change this only if absolutely needed, as you'll have to start supplying
-a new port option to koan if it is not the default.
+Cobbler's public XML-RPC listens on this port. Change this only if absolutely needed, as you'll have to start supplying
+a new port option to Koan if it is not the default.
 
 default: ``25151``
 
@@ -610,13 +610,13 @@ default: ``0``
 
 replicate_rsync_options
 =======================
-replication rsync options for distros, autoinstalls, snippets set to override default value of ``-avzH``
+replication rsync options for distros, autoinstalls, snippets set to override default value of ``-avzH``.
 
 default: ``"-avzH"``
 
 replicate_repo_rsync_options
 ============================
-Replication rsync options for repos set to override default value of ``-avzH``
+Replication rsync options for repos set to override default value of ``-avzH``.
 
 default: ``"-avzH"``
 
@@ -665,7 +665,7 @@ If you have own custom modules which are not shipped with Cobbler directly you m
 
 authentication
 ==============
-What users can log into the WebUI and Read-Write XMLRPC?
+What users can log into the WebUI and Read-Write XML-RPC?
 
 Choices:
 
@@ -691,7 +691,7 @@ default: ``authn_configfile``
 
 authorization
 =============
-Once a user has been cleared by the WebUI/XMLRPC, what can they do?
+Once a user has been cleared by the WebUI/XML-RPC, what can they do?
 
 Choices:
 
@@ -701,9 +701,9 @@ Choices:
 
 **WARNING**: this is a security setting, do not choose an option blindly.
 If you want to further restrict cobbler with ACLs for various groups,
-pick authz_ownership.  authz_allowall does not support ACLs. Configfile
-does but does not support object ownership which is useful as an additional
-layer of control.
+pick authz_ownership.  authz_allowall does not support ACLs. Configuration
+file does but does not support object ownership which is useful as an
+additional layer of control.
 
 For more information:
 
@@ -720,7 +720,7 @@ Chooses the DNS management engine if manage_dns is enabled in ``/etc/cobbler/set
 Choices:
 
 - manage_bind    -- default, uses BIND/named
-- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for dhcp below
+- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for DHCP below
 - manage_ndjbdns -- uses ndjbdns
 
 **NOTE**: More configuration is still required in ``/etc/cobbler``
@@ -736,7 +736,7 @@ Chooses the DHCP management engine if ``manage_dhcp`` is enabled in ``/etc/cobbl
 Choices:
 
 - manage_isc     -- default, uses ISC dhcpd
-- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for dns above
+- manage_dnsmasq -- uses dnsmasq, also must select dnsmasq for DNS above
 
 **NOTE**: More configuration is still required in ``/etc/cobbler``
 
@@ -750,7 +750,7 @@ Chooses the TFTP management engine if manage_tftp is enabled in ``/etc/cobbler/s
 
 Choices:
 
-- manage_in_tftpd -- default, uses the system's tftp server
-- manage_tftpd_py -- uses cobbler's tftp server
+- manage_in_tftpd -- default, uses the system's TFTP server
+- manage_tftpd_py -- uses cobbler's TFTP server
 
 default: ``manage_in_tftpd``
