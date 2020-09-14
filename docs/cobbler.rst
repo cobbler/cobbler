@@ -281,7 +281,7 @@ listed below:
 | filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
 |                     | be a path relative to the tftp servers root directory. (e.g. grub/grubx64.efi)                 |
 |                     | For most use cases the default bootloader is correct and this can be omitted                   |
-+----------------------------------------------------------------------------------------------------------------------+
++---------------------+------------------------------------------------------------------------------------------------+
 
 cobbler system
 ==============
