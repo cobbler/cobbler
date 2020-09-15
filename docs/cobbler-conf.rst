@@ -10,37 +10,37 @@ settings
 
 allow_duplicate_hostnames
 =========================
-if 1, cobbler will allow insertions of system records that duplicate the ``--dns-name`` information of other system records.
+if 1, Cobbler will allow insertions of system records that duplicate the ``--dns-name`` information of other system records.
 In general, this is undesirable and should be left 0.
 
 default: ``0``
 
 allow_duplicate_ips
 ===================
-if 1, cobbler will allow insertions of system records that duplicate the IP address information of other system records.
+if 1, Cobbler will allow insertions of system records that duplicate the IP address information of other system records.
 In general, this is undesirable and should be left 0.
 
 default: ``0``
 
 allow_duplicate_macs
 ====================
-If 1, cobbler will allow insertions of system records that duplicate the mac address information of other system
+If 1, Cobbler will allow insertions of system records that duplicate the mac address information of other system
 records. In general, this is undesirable.
 
 default: ``0``
 
 allow_dynamic_settings
 ======================
-If 1, cobbler will allow settings to be changed dynamically without a restart of the cobblerd daemon. You can only
+If 1, Cobbler will allow settings to be changed dynamically without a restart of the cobblerd daemon. You can only
 change this variable by manually editing the settings file, and you MUST restart cobblerd after changing it.
 
 default: ``0``
 
 anamon_enabled
 ==============
-By default, installs are *not* set to send installation logs to the cobbler server. With ``anamon_enabled``, automatic
+By default, installs are *not* set to send installation logs to the Cobbler server. With ``anamon_enabled``, automatic
 installation templates may use the ``pre_anamon`` snippet to allow remote live monitoring of their installations from
-the cobbler server. Installation logs will be stored under ``/var/log/cobbler/anamon/``.
+the Cobbler server. Installation logs will be stored under ``/var/log/cobbler/anamon/``.
 
 **Note**: This does allow an XML-RPC call to send logs to this directory, without authentication, so enable only if you
 are ok with this limitation.
@@ -62,14 +62,14 @@ default: ``3600``
 
 autoinstall_snippets_dir
 ========================
-This is a directory of files that cobbler uses to make templating easier. See the Wiki for more information. Changing
+This is a directory of files that Cobbler uses to make templating easier. See the Wiki for more information. Changing
 this directory should not be required.
 
 default: ``/var/lib/cobbler/snippets``
 
 autoinstall_templates_dir
 =========================
-This is a directory of files that cobbler uses to make templating easier. See the Wiki for more information. Changing
+This is a directory of files that Cobbler uses to make templating easier. See the Wiki for more information. Changing
 this directory should not be required.
 
 default: ``/var/lib/cobbler/templates``
@@ -82,7 +82,7 @@ default: ``"/etc/cobbler/boot_loader_conf"``
 
 build_reporting_*
 =================
-Email out a report when cobbler finishes installing a system.
+Email out a report when Cobbler finishes installing a system.
 
 - enabled: set to 1 to turn this feature on
 - sender: optional
@@ -161,7 +161,7 @@ default_password_crypted
 ========================
 Cobbler has various sample automatic installation templates stored in ``/var/lib/cobbler/autoinstall_templates/``. This
 controls what install (root) password is set up for those systems that reference this variable. The factory default is
-"cobbler" and cobbler check will warn if this is not changed. The simplest way to change the password is to run
+"cobbler" and Cobbler check will warn if this is not changed. The simplest way to change the password is to run
 ``openssl passwd -1`` and put the output between the ``""``.
 
 default: ``"$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."``
@@ -169,7 +169,7 @@ default: ``"$1$mF86/UHC$WvcIcX2t6crBz2onWxyac."``
 default_template_type
 =====================
 The default template type to use in the absence of any other detected template. If you do not specify the template
-with ``#template=<template_type>`` on the first line of your templates/snippets, cobbler will assume try to use the
+with ``#template=<template_type>`` on the first line of your templates/snippets, Cobbler will assume try to use the
 following template engine to parse the templates.
 
 Current valid values are: cheetah, jinja2
@@ -209,14 +209,14 @@ default: ``xenpv``
 
 enable_gpxe
 ===========
-Enable gPXE booting? Enabling this option will cause cobbler to copy the ``undionly.kpxe`` file to the TFTP root
+Enable gPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
 directory, and if a profile/system is configured to boot via gPXE it will chain load off ``pxelinux.0``.
 
 default: ``0``
 
 enable_menu
 ===========
-Controls whether cobbler will add each new profile entry to the default PXE boot menu. This can be over-ridden on a
+Controls whether Cobbler will add each new profile entry to the default PXE boot menu. This can be over-ridden on a
 per-profile basis when adding/editing profiles with ``--enable-menu=0/1``. Users should ordinarily leave this setting
 enabled unless they are concerned with accidental reinstalls from users who select an entry at the PXE boot menu. Adding
 a password to the boot menus templates may also be a good solution to prevent unwanted reinstallations.
@@ -231,7 +231,7 @@ default: ``80``
 
 kernel_options
 ==============
-Kernel options that should be present in every cobbler installation. Kernel options can also be applied at the
+Kernel options that should be present in every Cobbler installation. Kernel options can also be applied at the
 distro/profile/system level.
 
 default: ``{}``
@@ -279,7 +279,7 @@ sign_puppet_certs_automatically
 ===============================
 When puppet starts on a system after installation it needs to have its certificate signed by the puppet master server.
 Enabling the following feature will ensure that the puppet server signs the certificate after installation if the puppet
-master server is running on the same machine as cobbler. This requires ``puppet_auto_setup`` above to be enabled.
+master server is running on the same machine as Cobbler. This requires ``puppet_auto_setup`` above to be enabled.
 
 default: ``0``
 
@@ -294,7 +294,7 @@ remove_old_puppet_certs_automatically
 When a puppet managed machine is reinstalled it is necessary to remove the puppet certificate from the puppet master
 server before a new certificate is signed (see above). Enabling the following feature will ensure that the certificate
 for the machine to be installed is removed from the puppet master server if the puppet master server is running on the
-same machine as cobbler. This requires ``puppet_auto_setup`` above to be enabled
+same machine as Cobbler. This requires ``puppet_auto_setup`` above to be enabled
 
 default: ``0``
 
@@ -307,7 +307,7 @@ default: ``'puppet'``
 
 puppet_version
 ==============
-Let cobbler know that you're using a newer version of puppet. Choose version 3 to use: 'puppet agent'; version 2 uses
+Let Cobbler know that you're using a newer version of puppet. Choose version 3 to use: 'puppet agent'; version 2 uses
 status quo: 'puppetd'. This one is commented out by default.
 
 default: ``2``
@@ -355,7 +355,7 @@ default: ``1``
 
 tftpboot_location
 =================
-This variable contains the location of the tftpboot directory. If this directory is not present cobbler does not start.
+This variable contains the location of the tftpboot directory. If this directory is not present Cobbler does not start.
 
 Default: ``/srv/tftpboot``
 
@@ -379,7 +379,7 @@ defaults:
 
 next_server
 ===========
-If using cobbler with ``manage_dhcp``, put the IP address of the cobbler server here so that PXE booting guests can find
+If using Cobbler with ``manage_dhcp``, put the IP address of the Cobbler server here so that PXE booting guests can find
 it. If you do not set this correctly, this will be manifested in TFTP open timeouts.
 
 default: ``127.0.0.1``
@@ -408,8 +408,8 @@ default: ``ipmitool``
 
 pxe_just_once
 =============
-If this setting is set to 1, cobbler systems that pxe boot will request at the end of their installation to toggle the
-``--netboot-enabled`` record in the cobbler system record. This eliminates the potential for a PXE boot loop if the
+If this setting is set to 1, Cobbler systems that pxe boot will request at the end of their installation to toggle the
+``--netboot-enabled`` record in the Cobbler system record. This eliminates the potential for a PXE boot loop if the
 system is set to PXE first in it's BIOS order. Enable this if PXE is first in your BIOS boot order, otherwise leave this
 disabled. See the manpage for ``--netboot-enabled``.
 
@@ -431,10 +431,10 @@ default: ``"xmlrpc.rhn.redhat.com"``
 
 redhat_management_permissive
 ============================
-If using ``authn_spacewalk`` in ``modules.conf`` to let cobbler authenticate against Satellite/Spacewalk's auth system,
+If using ``authn_spacewalk`` in ``modules.conf`` to let Cobbler authenticate against Satellite/Spacewalk's auth system,
 by default it will not allow per user access into Cobbler Web and Cobbler XML-RPC. In order to permit this, the following
 setting must be enabled HOWEVER doing so will permit all Spacewalk/Satellite users of certain types to edit all of
-cobbler's configuration. these roles are: ``config_admin`` and ``org_admin``. Users should turn this on only if they
+Cobbler's configuration. these roles are: ``config_admin`` and ``org_admin``. Users should turn this on only if they
 want this behavior and do not have a cross-multi-org separation concern. If you have a single org in your satellite,
 it's probably safe to turn this on and then you can use CobblerWeb alongside a Satellite install.
 
@@ -450,8 +450,8 @@ default: ``""``
 
 register_new_installs
 =====================
-If set to ``1``, allows ``/usr/bin/cobbler-register`` (part of the Koan package) to be used to remotely add new cobbler
-system records to cobbler. This effectively allows for registration of new hardware from system records.
+If set to ``1``, allows ``/usr/bin/cobbler-register`` (part of the Koan package) to be used to remotely add new Cobbler
+system records to Cobbler. This effectively allows for registration of new hardware from system records.
 
 default: ``0``
 
@@ -511,7 +511,7 @@ default:
 
 server
 ======
-This is the address of the cobbler server -- as it is used by systems during the install process, it must be the address
+This is the address of the Cobbler server -- as it is used by systems during the install process, it must be the address
 or hostname of the system as those systems can see the server. if you have a server that appears differently to
 different subnets (dual homed, etc), you need to read the ``--server-override`` section of the manpage for how that
 works.
@@ -521,7 +521,7 @@ default: ``127.0.0.1``
 client_use_localhost
 ====================
 If set to 1, all commands will be forced to use the localhost address instead of using the above value which can force
-commands like cobbler sync to open a connection to a remote address if one is in the configuration and would traceback.
+commands like Cobbler sync to open a connection to a remote address if one is in the configuration and would traceback.
 
 default: ``0``
 
@@ -541,7 +541,7 @@ default: ``1``
 
 webdir
 ======
-Cobbler's web directory.  Don't change this setting -- see the Wiki on "relocating your cobbler install" if your /var partition
+Cobbler's web directory.  Don't change this setting -- see the Wiki on "relocating your Cobbler install" if your /var partition
 is not large enough.
 
 default: ``@@webroot@@/cobbler``
@@ -579,11 +579,11 @@ default: ``25151``
 
 yum_post_install_mirror
 =======================
-``cobbler repo add`` commands set cobbler up with repository information that can be used during autoinstall and is
-automatically set up in the cobbler autoinstall templates. By default, these are only available at install time. To
-make these repositories usable on installed systems (since cobbler makes a very convenient mirror) set this to 1. Most
-users can safely set this to 1. Users who have a dual homed cobbler server, or are installing laptops that will not
-always have access to the cobbler server may wish to leave this as 0. In that case, the cobbler mirrored yum repos are
+``cobbler repo add`` commands set Cobbler up with repository information that can be used during autoinstall and is
+automatically set up in the Cobbler autoinstall templates. By default, these are only available at install time. To
+make these repositories usable on installed systems (since Cobbler makes a very convenient mirror) set this to 1. Most
+users can safely set this to 1. Users who have a dual homed Cobbler server, or are installing laptops that will not
+always have access to the Cobbler server may wish to leave this as 0. In that case, the Cobbler mirrored yum repos are
 still accessible at ``http://cobbler.example.org/cblr/repo_mirror`` and yum configuration can still be done manually.
 This is just a shortcut.
 
@@ -639,7 +639,7 @@ defaults:
 
 proxy_url_int
 =============
-Internal proxy - used by systems to reach cobbler for kickstarts.
+Internal proxy - used by systems to reach Cobbler for kickstarts.
 
 E.g.: proxy_url_int: ``http://10.0.0.1:8080``
 
@@ -647,7 +647,7 @@ default: ``""``
 
 jinja2_includedir
 =================
-This is a directory of files that cobbler uses to include files into Jinja2 templates. Per default this settings is
+This is a directory of files that Cobbler uses to include files into Jinja2 templates. Per default this settings is
 commented out.
 
 default: ``/var/lib/cobbler/jinja2``
@@ -700,7 +700,7 @@ Choices:
 - (user supplied)  -- you may write your own module
 
 **WARNING**: this is a security setting, do not choose an option blindly.
-If you want to further restrict cobbler with ACLs for various groups,
+If you want to further restrict Cobbler with ACLs for various groups,
 pick authz_ownership.  authz_allowall does not support ACLs. Configuration
 file does but does not support object ownership which is useful as an
 additional layer of control.
@@ -751,6 +751,6 @@ Chooses the TFTP management engine if manage_tftp is enabled in ``/etc/cobbler/s
 Choices:
 
 - manage_in_tftpd -- default, uses the system's TFTP server
-- manage_tftpd_py -- uses cobbler's TFTP server
+- manage_tftpd_py -- uses Cobbler's TFTP server
 
 default: ``manage_in_tftpd``

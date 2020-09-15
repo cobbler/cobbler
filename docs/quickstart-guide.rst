@@ -57,7 +57,7 @@ the quote marks):
 Server and next_server
 ======================
 
-The ``server`` option sets the IP that will be used for the address of the cobbler server. **DO NOT** use 0.0.0.0, as it
+The ``server`` option sets the IP that will be used for the address of the Cobbler server. **DO NOT** use 0.0.0.0, as it
 is not the listening address. This should be set to the IP you want hosts that are being built to contact the Cobbler
 server on for such protocols as HTTP and TFTP.
 
@@ -157,7 +157,7 @@ If everything has gone well, you should see output from the status command like 
 Checking for problems and your first sync
 #########################################
 
-Now that the cobblerd service is up and running, it's time to check for problems. Cobbler's check command will make some
+Now that the Cobblerd service is up and running, it's time to check for problems. Cobbler's check command will make some
 suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical for
 basic functionality. If you are running iptables or SELinux, it is important to review any messages concerning those that
 check may report.
@@ -262,7 +262,7 @@ In some cases (for instance when a Xen-based kernel is found), more than one dis
 Object details
 ++++++++++++++
 
-The report command shows the details of objects in cobbler:
+The report command shows the details of objects in Cobbler:
 
 .. code-block:: none
 
@@ -299,7 +299,7 @@ Creating a system
 +++++++++++++++++
 
 Now that you have a distro and profile, you can create a system. Profiles can be used to PXE boot, but most of the
-features in cobbler revolve around system objects. The more information you give about a system, the more cobbler will
+features in Cobbler revolve around system objects. The more information you give about a system, the more Cobbler will
 do automatically for you.
 
 First, we'll create a system object based on the profile that was created during the import. When creating a system, the
@@ -372,7 +372,7 @@ The ``--hostname`` field corresponds to the local system name and is returned by
 Neither are required, but it is a good practice to specify both. Some advanced features (like configuration management)
 rely on the ``--dns-name`` field for system record look-ups.
 
-Whenever a system is edited, cobbler executes what is known as a "lite sync", which regenerates critical files like the
+Whenever a system is edited, Cobbler executes what is known as a "lite sync", which regenerates critical files like the
 PXE boot file in the TFTP root directory. One thing it will **NOT** do is execute service management actions, like
 regenerating the ``dhcpd.conf`` and restarting the DHCP service. After adding a system with a static interface it is a
 good idea to execute a full ``cobbler sync`` to ensure the dhcpd.conf file is rewritten with the correct static lease

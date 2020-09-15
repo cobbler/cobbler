@@ -21,7 +21,7 @@ Packages
 Please note that installing any of the packages here via a package manager (such as dnf/yum or apt) can and will require
 a large number of ancilary packages, which we do not document here. The package definition should automatically pull
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
-met prior to installing cobbler or any of its components.
+met prior to installing Cobbler or any of its components.
 
 First and foremost, Cobbler requires Python. Any 2.x version should work for 2.8.x releases. Since 3.0.0 you will need
 Python 3. Cobbler also requires the installation of the following packages:
