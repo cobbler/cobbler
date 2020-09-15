@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from cobbler import api as cobbler_api
 
-# Test listing of items
+# Tests listing of items
 
 # Settings
 
