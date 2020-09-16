@@ -1023,7 +1023,7 @@ def get_family():
     for item in redhat_list:
         if item in distro_name:
             return "redhat"
-    if "debian" in distro_name or "ubuntu" in distro_name:
+    if "debian" in distro_name or "ubuntu" in distro_name or "raspbian" in distro_name:
         return "debian"
     if "suse" in distro.like():
         return "suse"
@@ -1039,6 +1039,9 @@ def os_release():
     family = get_family()
     distro_name = distro.name().lower()
     distro_version = distro.version()
+    if "raspbian" in distro_name:
+        distro_name = "debian"
+        family = "debian"
     if family == "redhat":
         if "fedora" in distro_name:
             make = "fedora"
