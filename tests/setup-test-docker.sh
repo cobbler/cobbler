@@ -26,6 +26,13 @@ zypper -n in make gzip sed git hg
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|/srv/tftpboot|g" -i cobbler/settings.py config/cobbler/settings
 
+# Install and setup testing framework
+pip3 install pytest-django
+pip3 install pytest-pythonpath
+
+# set SECRET_KEY for django tests
+sed -i s/SECRET_KEY.*/'SECRET_KEY\ =\ "qwertyuiopasdfghl;"'/ cobbler/web/settings.py
+
 # Install and upgrade all dependecys
 pip3 install --upgrade pip
 pip3 install .[lint,test]
