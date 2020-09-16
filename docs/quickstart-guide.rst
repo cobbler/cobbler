@@ -31,10 +31,10 @@ TBD
 Changing settings
 ##################
 
-Before starting the cobblerd service, there are a few things you should modify.
+Before starting the `cobblerd` service, there are a few things you should modify.
 
 Settings are stored in ``/etc/cobbler/settings``. This file is a YAML formatted data file, so be sure to take care when
-editing this file as an incorrectly formatted file will prevent cobblerd from running.
+editing this file as an incorrectly formatted file will prevent `cobblerd` from running.
 
 
 Default encrypted password
@@ -157,7 +157,7 @@ If everything has gone well, you should see output from the status command like 
 Checking for problems and your first sync
 #########################################
 
-Now that the Cobblerd service is up and running, it's time to check for problems. Cobbler's check command will make some
+Now that the `cobblerd` service is up and running, it's time to check for problems. Cobbler's check command will make some
 suggestions, but it is important to remember that these are mainly only suggestions and probably aren't critical for
 basic functionality. If you are running iptables or SELinux, it is important to review any messages concerning those that
 check may report.
@@ -170,10 +170,10 @@ check may report.
     1. ....
     2. ....
 
-Restart cobblerd and then run ``cobbler sync`` to apply changes.
+Restart `cobblerd` and then run ``cobbler sync`` to apply changes.
 
 If you decide to follow any of the suggestions, such as installing extra packages, making configuration changes, etc.,
-be sure to restart the cobblerd service as it suggests so the changes are applied.
+be sure to restart the `cobblerd` service as it suggests so the changes are applied.
 
 Once you are done reviewing the output of ``cobbler check``, it is time to synchronize things for the first time. This
 is not critical, but a failure to properly sync at this point can reveal a configuration problem.

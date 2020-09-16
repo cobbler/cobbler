@@ -2,12 +2,12 @@
 Cobblerd
 ***********************************
 
-cobbler - a provisioning and update server
+Cobbler - a provisioning and update server
 
 Preamble
 ########
 
-We will refer to cobblerd here as "cobbler" because cobblerd is short for cobbler-daemon which is basically the server.
+We will refer to `cobblerd` here as "cobbler" because `cobblerd` is short for cobbler-daemon which is basically the server.
 The CLI will be referred to as Cobbler-CLI and Koan as Koan.
 
 Description

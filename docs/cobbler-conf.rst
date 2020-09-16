@@ -31,8 +31,8 @@ default: ``0``
 
 allow_dynamic_settings
 ======================
-If 1, Cobbler will allow settings to be changed dynamically without a restart of the cobblerd daemon. You can only
-change this variable by manually editing the settings file, and you MUST restart cobblerd after changing it.
+If 1, Cobbler will allow settings to be changed dynamically without a restart of the `cobblerd` daemon. You can only
+change this variable by manually editing the settings file, and you MUST restart `cobblerd` after changing it.
 
 default: ``0``
 
@@ -115,7 +115,7 @@ cheetah_import_whitelist
 Cheetah-language autoinstall templates can import Python modules. while this is a useful feature, it is not safe to
 allow them to import anything they want. This whitelists which modules can be imported through Cheetah. Users can expand
 this as needed but should never allow modules such as subprocess or those that allow access to the filesystem as Cheetah
-templates are evaluated by cobblerd as code.
+templates are evaluated by `cobblerd` as code.
 
 default:
  - "random"

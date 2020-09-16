@@ -219,7 +219,7 @@ Define systems if desired. Koan can also provision based on the profile name.
 
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers [...]
 
-If you have just installed Cobbler, be sure that the "cobblerd" service is running and that port 25151 is unblocked.
+If you have just installed Cobbler, be sure that the `cobblerd` service is running and that port 25151 is unblocked.
 
 See the manpage for Koan for the client side steps.
 

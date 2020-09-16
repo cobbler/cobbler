@@ -100,7 +100,7 @@ Basic Setup
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
-6.  Now restart Apache and cobblerd
+6.  Now restart Apache and `cobblerd`.
 
 .. code-block:: none
 
