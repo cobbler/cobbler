@@ -54,7 +54,7 @@
 %define apache_group www
 
 %define apache_dir /srv/www
-%define apache_webconfigdir /etc/apache2/vhosts.d
+%define apache_webconfigdir /etc/apache2/conf.d
 %define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
@@ -206,7 +206,6 @@ Requires:       xorriso
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
 Requires:       python%{python3_pkgversion}-future
-Requires:       python%{python3_pkgversion}-ldap3
 Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
@@ -214,6 +213,7 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
+Recommends:     python%{python3_pkgversion}-ldap3
 %endif
 
 
@@ -268,6 +268,15 @@ Requires(post): sed
 Web interface for Cobbler that allows visiting
 http://server/cobbler_web to configure the install server.
 
+%if 0%{?suse_version}
+%package tests
+Summary:        Unit tests for cobbler
+Requires:       cobbler = %{version}-%{release}
+%endif
+
+%description tests
+Unit test files from the Cobbler project
+
 
 %prep
 %setup
@@ -298,7 +307,7 @@ echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 
 %install
 . distro_build_configs.sh
-# bypass install errors ( don't chown in install step)
+# bypass install errors (don't chown in install step)
 %py3_install ||:
 
 # cobbler
@@ -306,6 +315,11 @@ rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
 
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
+
+# No VirtualHost definition as it overwrite all the Uyuni RewriteRules configured in conf.d/
+mkdir -p %{buildroot}%{_sysconfdir}/apache2/conf.d
+mv %{buildroot}%{_sysconfdir}/apache2/vhosts.d/cobbler.conf %{buildroot}%{_sysconfdir}/apache2/conf.d
+sed -i 's/^.*VirtualHost.*$//g' %{buildroot}%{_sysconfdir}/apache2/conf.d/cobbler.conf
 
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
@@ -316,6 +330,12 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
+
+%if 0%{?suse_version}
+# cobbler-tests
+cp -r tests/ %{buildroot}/%{_datadir}/cobbler/
+%endif
+
 
 %pre
 %if %{_vendor} == "debbuild"
@@ -484,7 +504,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %files web
 %license COPYING
 %doc AUTHORS.in README.md
-%config(noreplace) %{apache_webconfigdir}/cobbler_web.conf
+%config(noreplace) %{apache_etc}vhosts.d/cobbler_web.conf
 %if %{_vendor} == "debbuild"
 # Work around broken attr support
 # Cf. https://github.com/debbuild/debbuild/issues/160
@@ -497,6 +517,11 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
 %endif
 
+%if 0%{?suse_version}
+%files tests
+%dir /usr/share/cobbler/tests
+/usr/share/cobbler/tests/*
+%endif
 
 %changelog
 * Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>
