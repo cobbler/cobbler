@@ -305,8 +305,7 @@ echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 
 %install
 . distro_build_configs.sh
-# bypass install errors (don't chown in install step)
-%py3_install ||:
+%py3_install
 
 # cobbler
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
