@@ -504,12 +504,6 @@ if __name__ == "__main__":
         author_email="cobbler.project@gmail.com",
         url="https://cobbler.github.io",
         license="GPLv2+",
-        setup_requires=[
-            "coverage",
-            "distro",
-            "setuptools",
-            "sphinx",
-        ],
         install_requires=[
             "mod_wsgi",
             "requests",
