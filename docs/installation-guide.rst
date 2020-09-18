@@ -155,8 +155,10 @@ The latest source code is available through git:
 The release30 branch corresponds to the official release version for the 3.0.x series. The master branch is the
 development series, and always uses an odd number for the minor version (for example, 3.1.0).
 
-When building from source, make sure you have the correct prerequisites. Once they are, you can install Cobbler with the
-following command:
+When building from source, make sure you have the correct prerequisites. The Makefile uses a script called
+`distro_build_configs.sh` which sets the correct environment variables. Be sure to source it if you do not
+use the Makefile.
+If all prerequisites are met, you can install Cobbler with the following command:
 
 .. code-block:: bash
 
