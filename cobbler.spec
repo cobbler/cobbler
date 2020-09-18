@@ -268,11 +268,9 @@ Requires(post): sed
 Web interface for Cobbler that allows visiting
 http://server/cobbler_web to configure the install server.
 
-%if 0%{?suse_version}
 %package tests
 Summary:        Unit tests for cobbler
 Requires:       cobbler = %{version}-%{release}
-%endif
 
 %description tests
 Unit test files from the Cobbler project
@@ -331,10 +329,8 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
 
-%if 0%{?suse_version}
 # cobbler-tests
 cp -r tests/ %{buildroot}/%{_datadir}/cobbler/
-%endif
 
 
 %pre
@@ -517,11 +513,9 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
 %endif
 
-%if 0%{?suse_version}
 %files tests
-%dir /usr/share/cobbler/tests
-/usr/share/cobbler/tests/*
-%endif
+%dir %{_datadir}/cobbler/tests
+%{_datadir}/cobbler/tests/*
 
 %changelog
 * Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>
