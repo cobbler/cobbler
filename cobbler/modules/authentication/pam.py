@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 PAM python code based on the pam_python code created by Chris AtLee:
 http://atlee.ca/software/pam/
 
-------------------------------------------------
+#-----------------------------------------------
 pam_python (c) 2007 Chris AtLee <chris@atlee.ca>
 Licensed under the MIT license:
 http://www.opensource.org/licenses/mit-license.php

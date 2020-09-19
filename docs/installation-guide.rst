@@ -2,7 +2,7 @@
 Install Guide
 ***********************************
 
-Setting up and running cobblerd is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts,
+Setting up and running `cobblerd` is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts,
 apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
 
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or
@@ -21,7 +21,7 @@ Packages
 Please note that installing any of the packages here via a package manager (such as dnf/yum or apt) can and will require
 a large number of ancilary packages, which we do not document here. The package definition should automatically pull
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
-met prior to installing cobbler or any of its components.
+met prior to installing Cobbler or any of its components.
 
 First and foremost, Cobbler requires Python. Any 2.x version should work for 2.8.x releases. Since 3.0.0 you will need
 Python 3. Cobbler also requires the installation of the following packages:
@@ -143,7 +143,7 @@ Init script:
 
 
 Source
-======
+######
 
 The latest source code is available through git:
 
@@ -155,8 +155,10 @@ The latest source code is available through git:
 The release30 branch corresponds to the official release version for the 3.0.x series. The master branch is the
 development series, and always uses an odd number for the minor version (for example, 3.1.0).
 
-When building from source, make sure you have the correct prerequisites. Once they are, you can install Cobbler with the
-following command:
+When building from source, make sure you have the correct prerequisites. The Makefile uses a script called
+`distro_build_configs.sh` which sets the correct environment variables. Be sure to source it if you do not
+use the Makefile.
+If all prerequisites are met, you can install Cobbler with the following command:
 
 .. code-block:: bash
 
@@ -173,7 +175,7 @@ To preserve your existing configuration files, snippets and automatic installati
 
 To install the Cobbler web GUI, use these steps:
 
-#. Copy the systemd service file for cobblerd from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory.
+#. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory.
 #. Install ``apache2-mod_wsgi-python3`` or the package responsible for your distro. (On Debian:
    ``libapache2-mod-wsgi-py3``)
 #. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.

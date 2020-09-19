@@ -173,7 +173,7 @@ Further uses
 
 This Cobbler/Cheetah templating system can serve up templates via the magic URLs (see "Leveraging Mod Python" below).
 To do this ensure that the destination path given to any ``--template-files`` element is relative, not absolute; then
-Cobbler and koan won't download those files.
+Cobbler and Koan won't download those files.
 
 For example, in:
 
@@ -204,7 +204,7 @@ Terraform Provider
 ##################
 
 This is developed and maintained by the Terraform community. You will find more information in the docs under
-https://www.terraform.io/docs/providers/cobbler/index.html
+https://www.terraform.io/docs/providers/cobbler/index.html.
 
 The code for the Terraform-Provider can be found at: https://github.com/terraform-providers/terraform-provider-cobbler
 
@@ -263,7 +263,7 @@ have to be doing).
 External Nodes
 ==============
 
-For more documentation on Puppet's external nodes feature, see https://docs.puppetlabs.com
+For more documentation on Puppet's external nodes feature, see https://docs.puppetlabs.com.
 
 Cobbler provides one, so configure puppet to use ``/usr/bin/cobbler-ext-nodes``:
 
