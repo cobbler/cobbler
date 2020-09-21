@@ -213,7 +213,7 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
-Recommends:     python%{python3_pkgversion}-ldap3
+Requires:       python%{python3_pkgversion}-ldap3
 %endif
 
 
