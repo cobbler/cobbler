@@ -54,7 +54,7 @@
 %define apache_group www
 
 %define apache_dir /srv/www
-%define apache_webconfigdir /etc/apache2/conf.d
+%define apache_webconfigdir /etc/apache2/vhosts.d
 %define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
@@ -500,7 +500,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %files web
 %license COPYING
 %doc AUTHORS.in README.md
-%config(noreplace) %{apache_etc}vhosts.d/cobbler_web.conf
+%config(noreplace) %{apache_webconfigdir}/cobbler_web.conf
 %if %{_vendor} == "debbuild"
 # Work around broken attr support
 # Cf. https://github.com/debbuild/debbuild/issues/160
