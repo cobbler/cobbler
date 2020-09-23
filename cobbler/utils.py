@@ -20,13 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
-from future import standard_library
 from functools import reduce
-standard_library.install_aliases()
 from builtins import map
 from builtins import str
-from past.utils import old_div
 from builtins import object
 import copy
 import errno
@@ -200,7 +196,7 @@ def get_host_ip(ip, shorten=True):
             # not enough to make the last nibble insignificant
             return pretty
         else:
-            cutoff = old_div((32 - cidr.prefixlen), 4)
+            cutoff = (32 - cidr.prefixlen) // 4
             return pretty[0:-cutoff]
 
 
@@ -328,10 +324,9 @@ def find_highest_files(directory, unversioned, regex):
         av = get_numbers.search(os.path.basename(a)).groups()
         bv = get_numbers.search(os.path.basename(b)).groups()
 
-        ret = cmp(av[0], bv[0]) or cmp(av[1], bv[1]) or cmp(av[2], bv[2])
-        if ret < 0:
-            return b
-        return a
+        if av > bv:
+            return a
+        return b
 
     if len(files) > 0:
         return reduce(max2, files)
@@ -573,10 +568,10 @@ def input_string_or_dict(options, allow_multiples=True):
                 new_dict[key] = value
         # make sure we have no empty entries
         new_dict.pop('', None)
-        return (True, new_dict)
+        return True, new_dict
     elif isinstance(options, dict):
         options.pop('', None)
-        return (True, options)
+        return True, options
     else:
         raise CX(_("invalid input type"))
 

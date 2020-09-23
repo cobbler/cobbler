@@ -139,7 +139,7 @@ REPO_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "arch", "breed", "keep_updated",
                  "mirror", "rpm_list", "comment"]},
     {"Advanced": ["apt_components", "apt_dists", "createrepo_flags",
-                  "environment", "mirror_locally", "priority", "yumopts"]}
+                  "environment", "mirror_locally", "priority", "yumopts", "rsyncopts"]}
 ]
 
 SYSTEM_UI_FIELDS_MAPPING = [

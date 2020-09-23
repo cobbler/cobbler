@@ -105,6 +105,11 @@ def mac_address(mac, for_item=True):
         if mac == "random":
             return mac
 
+        # copying system collection will set mac to ""
+        # netaddr will fail to validate this mac and throw an exception
+        if mac == "":
+            return mac
+
     if not netaddr.valid_mac(mac):
         raise CX("Invalid mac address format (%s)" % mac)
 

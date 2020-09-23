@@ -9,7 +9,7 @@ Web-Interface
 
 Please be patient until we have time to rework this section or please file a PR for this section.
 
-The standard login for the Web-UI can be read below. We would recommend to change this as soon as possible!
+The standard login for the WebUI can be read below. We would recommend to change this as soon as possible!
 
 Username: ``cobbler``
 Password: ``cobbler``
@@ -100,7 +100,7 @@ Basic Setup
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
-6.  Now restart Apache and Cobblerd
+6.  Now restart Apache and `cobblerd`.
 
 .. code-block:: none
 
@@ -191,7 +191,7 @@ Cobbler start and thus a change of the data requires that Cobbler is restarted t
 Rewrite Rule for secure-http
 ============================
 
-To redirect access to the WebUI via https on an Apache webserver, you can use the following rewrite rule, probably at
+To redirect access to the WebUI via HTTPS on an Apache webserver, you can use the following rewrite rule, probably at
 the end of Apache's ``ssl.conf``:
 
 .. code-block:: none

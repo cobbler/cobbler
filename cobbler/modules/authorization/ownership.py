@@ -24,8 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from configparser import ConfigParser
 
@@ -56,8 +54,8 @@ def __parse_config():
     if not os.path.exists(etcfile):
         raise CX(_("/etc/cobbler/users.conf does not exist"))
     # Make users case sensitive to handle kerberos
-    config.optionxform = str
     config = ConfigParser()
+    config.optionxform = str
     config.read(etcfile)
     alldata = {}
     sections = config.sections()

@@ -18,13 +18,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import cmp
-from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import base64
 import errno
 import fcntl
@@ -615,7 +611,7 @@ class CobblerXMLRPCInterface(object):
             sort_fields.insert(0, sort_field)
         sortdata = [(x.sort_key(sort_fields), x) for x in data]
         if sort_rev:
-            sortdata.sort(lambda a, b: cmp(b, a))
+            sortdata.sort(reverse=True)
         else:
             sortdata.sort()
         return [x for (key, x) in sortdata]
@@ -648,7 +644,7 @@ class CobblerXMLRPCInterface(object):
             items_per_page = default_items_per_page
 
         num_items = len(data)
-        num_pages = (old_div((num_items - 1), items_per_page)) + 1
+        num_pages = ((num_items - 1) // items_per_page) + 1
         if num_pages == 0:
             num_pages = 1
         if page > num_pages:

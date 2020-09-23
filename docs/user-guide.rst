@@ -11,17 +11,17 @@ User Guide
 
 API
 ###
-Cobbler also makes itself available as an XMLRPC API for use by higher level management software. Learn more at
+Cobbler also makes itself available as an XML-RPC API for use by higher level management software. Learn more at
 https://cobbler.github.io
 
 Triggers
 ########
 
-Triggers provide a way to integrate cobbler with arbitrary 3rd party software without modifying cobbler's code. When
+Triggers provide a way to integrate Cobbler with arbitrary 3rd party software without modifying Cobbler's code. When
 adding a distro, profile, system, or repo, all scripts in ``/var/lib/cobbler/triggers/add`` are executed for the
 particular object type. Each particular file must be executable and it is executed with the name of the item being added
 as a parameter. Deletions work similarly -- delete triggers live in ``/var/lib/cobbler/triggers/delete``. Order of
-execution is arbitrary, and cobbler does not ship with any triggers by default. There are also other kinds of triggers
+execution is arbitrary, and Cobbler does not ship with any triggers by default. There are also other kinds of triggers
 -- these are described on the Cobbler Wiki. For larger configurations, triggers should be written in Python -- in which
 case they are installed differently. This is also documented on the Wiki.
 
@@ -30,7 +30,7 @@ Images
 
 Cobbler can help with booting images physically and virtually, though the usage of these commands varies substantially
 by the type of image. Non-image based deployments are generally easier to work with and lead to more sustainable
-infrastructure. Some manual use of other commands beyond of what is typically required of cobbler may be needed to
+infrastructure. Some manual use of other commands beyond of what is typically required of Cobbler may be needed to
 prepare images for use with this feature.
 
 .. _power-management:
@@ -38,7 +38,7 @@ prepare images for use with this feature.
 Power Management
 ################
 
-Cobbler contains a power management feature that allows the user to associate system records in cobbler with the power
+Cobbler contains a power management feature that allows the user to associate system records in Cobbler with the power
 management configuration attached to them. This can ease installation by making it easy to reassign systems to new
 operating systems and then reboot those systems.
 
@@ -68,27 +68,27 @@ REPO MANAGEMENT
 
 This has already been covered a good bit in the command reference section.
 
-Yum repository management is an optional feature, and is not required to provision through cobbler. However, if cobbler
+Yum repository management is an optional feature, and is not required to provision through Cobbler. However, if Cobbler
 is configured to mirror certain repositories, it can then be used to associate profiles with those repositories. Systems
 installed under those profiles will then be autoconfigured to use these repository mirrors in ``/etc/yum.repos.d``, and
 if supported (Fedora Core 6 and later) these repositories can be leveraged even within Anaconda.  This can be useful if
 (A) you have a large install base, (B) you want fast installation and upgrades for your systems, or (C) have some extra
 software not in a standard repository but want provisioned systems to know about that repository.
 
-Make sure there is plenty of space in cobbler's webdir, which defaults to ``/var/www/cobbler``.
+Make sure there is plenty of space in Cobbler's webdir, which defaults to ``/var/www/cobbler``.
 
 .. code-block:: none
 
     cobbler reposync [--only=ONLY] [--tries=N] [--no-fail]
 
 Cobbler reposync is the command to use to update repos as configured with "cobbler repo add".  Mirroring
-can take a long time, and usage of cobbler reposync prior to usage is needed to ensure provisioned systems have the
+can take a long time, and usage of Cobbler reposync prior to usage is needed to ensure provisioned systems have the
 files they need to actually use the mirrored repositories.  If you just add repos and never run "cobbler reposync", the
 repos will never be mirrored.  This is probably a command you would want to put on a crontab, though the frequency of
 that crontab and where the output goes is left up to the systems administrator.
 
-For those familiar with dnf's reposync, cobbler's reposync is (in most uses) a wrapper around the dnf reposync command.  Please
-use "cobbler reposync" to update cobbler mirrors, as dnf's reposync does not perform all required steps. Also cobbler
+For those familiar with dnf's reposync, Cobbler's reposync is (in most uses) a wrapper around the dnf reposync command.  Please
+use "cobbler reposync" to update Cobbler mirrors, as dnf's reposync does not perform all required steps. Also Cobbler
 adds support for rsync and SSH locations, where as dnf's reposync only supports what yum supports (http/ftp).
 
 If you ever want to update a certain repository you can run:
@@ -100,8 +100,8 @@ If you ever want to update a certain repository you can run:
 When updating repos by name, a repo will be updated even if it is set to be not updated during a regular reposync
 operation (ex: cobbler repo edit --name=reponame1 --keep-updated=0).
 
-Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages,
-cobbler can set up automatic installation files to use the cobbler server as a mirror instead of the outside world. If
+Note that if a Cobbler import provides enough information to use the boot server as a yum mirror for core packages,
+Cobbler can set up automatic installation files to use the Cobbler server as a mirror instead of the outside world. If
 this feature is desirable, it can be turned on by setting yum_post_install_mirror to 1 in /etc/settings (and running
 "cobbler sync").  You should not use this feature if machines are provisioned on a different VLAN/network than
 production, or if you are provisioning laptops that will want to acquire updates on multiple networks.
@@ -117,10 +117,10 @@ Cobbler can auto-add distributions and profiles from remote sources, whether thi
 mirror. This can save a lot of time when setting up a new provisioning environment. Import is a feature that many users
 will want to take advantage of, and is very simple to use.
 
-After an import is run, cobbler will try to detect the distribution type and automatically assign automatic installation
+After an import is run, Cobbler will try to detect the distribution type and automatically assign automatic installation
 files. By default, it will provision the system by erasing the hard drive, setting up eth0 for DHCP, and using a default
 password of "cobbler".  If this is undesirable, edit the automatic installation files in ``/etc/cobbler`` to do
-something else or change the automatic installation setting after cobbler creates the profile.
+something else or change the automatic installation setting after Cobbler creates the profile.
 
 Mirrored content is saved automatically in ``/var/www/cobbler/distro_mirror``.
 
@@ -146,7 +146,7 @@ stored on an external NAS box, or potentially on another partition on the same m
 
 For import methods using rsync, additional flags can be passed to rsync with the option ``--rsync-flags``.
 
-Should you want to force the usage of a specific cobbler automatic installation template for all profiles created by an
+Should you want to force the usage of a specific Cobbler automatic installation template for all profiles created by an
 import, you can feed the option ``--autoinst`` to import, to bypass the built-in automatic installation file
 auto-detection.
 
@@ -169,7 +169,7 @@ and create a profile that will auto install those repository configurations on p
 Import Workflow
 ===============
 
-Import is a very useful command that makes starting out with cobbler very quick and easy.
+Import is a very useful command that makes starting out with Cobbler very quick and easy.
 
 This example shows how to create a provisioning infrastructure from a distribution mirror or DVD ISO. Then a default PXE
 configuration is created, so that by default systems will PXE boot into a fully automated install process for that
@@ -181,7 +181,7 @@ Import knows how to autodetect the architecture of what is being imported, thoug
 correctly, it's always a good idea to specify ``--arch``. For instance, if you import a distribution named "fedora8"
 from an ISO, and it's an x86_64 ISO, specify ``--arch=x86_64`` and the distro will be named "fedora8-x86_64"
 automatically, and the right architecture field will also be set on the distribution object. If you are batch importing
-an entire mirror (containing multiple distributions and arches), you don't have to do this, as cobbler will set the
+an entire mirror (containing multiple distributions and arches), you don't have to do this, as Cobbler will set the
 names for things based on the paths it finds.
 
 .. code-block:: none
@@ -214,15 +214,15 @@ Specify reasonable values for the Virt image size (in GB) and RAM requirements (
 
     cobbler profile add --name=virtwebservers --distro=fc7virt --autoinst=path --virt-file-size=10 --virt-ram=512 [...]
 
-Define systems if desired.  koan can also provision based on the profile name.
+Define systems if desired. Koan can also provision based on the profile name.
 
 .. code-block:: none
 
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers [...]
 
-If you have just installed cobbler, be sure that the "cobblerd" service is running and that port 25151 is unblocked.
+If you have just installed Cobbler, be sure that the `cobblerd` service is running and that port 25151 is unblocked.
 
-See the manpage for koan for the client side steps.
+See the manpage for Koan for the client side steps.
 
 Autoinstallation
 ################
@@ -241,7 +241,7 @@ To apply these changes, ``cobbler sync`` must be run to generate custom automati
 profile/system.
 
 For NFS and HTTP automatic installation file URLs, the ``--autoinstall_meta`` options will have no effect. This is a
-good reason to let cobbler manage your automatic installation files, though the URL functionality is provided for
+good reason to let Cobbler manage your automatic installation files, though the URL functionality is provided for
 integration with legacy infrastructure, possibly including web apps that already generate automatic installation files.
 
 Templated automatic files are processed by the templating program/package Cheetah, so anything you can do in a Cheetah
@@ -285,33 +285,33 @@ Cobbler will automatically generate PXE menus for all profiles it has defined. R
 generate and update these menus.
 
 To access the menus, type ``menu`` at the ``boot:`` prompt while a system is PXE booting. If nothing is typed, the
-network boot will default to a local boot. If "menu" is typed, the user can then choose and provision any cobbler
+network boot will default to a local boot. If "menu" is typed, the user can then choose and provision any Cobbler
 profile the system knows about.
 
 If the association between a system (MAC address) and a profile is already known, it may be more useful to just use
-``system add`` commands and declare that relationship in cobbler; however many use cases will prefer having a PXE
+``system add`` commands and declare that relationship in Cobbler; however many use cases will prefer having a PXE
 system, especially when provisioning is done at the same time as installing new physical machines.
 
 If this behavior is not desired, run ``cobbler system add --name=default --profile=plugh`` to default all PXE booting
 machines to get a new copy of the profile ``plugh``. To go back to the menu system, run
 ``cobbler system remove --name=default`` and then ``cobbler sync`` to regenerate the menus.
 
-When using PXE menu deployment exclusively, it is not necessary to make cobbler system records, although the two can
+When using PXE menu deployment exclusively, it is not necessary to make Cobbler system records, although the two can
 easily be mixed.
 
-Additionally, note that all files generated for the pxe menu configurations are templatable, so if you wish to change
+Additionally, note that all files generated for the PXE menu configurations are templatable, so if you wish to change
 the color scheme or equivalent, see the files in ``/etc/cobbler``.
 
 Default PXE Boot behavior
 =========================
 
-What happens when PXE booting a system when cobbler has no record of the system being booted?
+What happens when PXE booting a system when Cobbler has no record of the system being booted?
 
-By default, cobbler will configure PXE to boot to the contents of ``/etc/cobbler/default.pxe``, which (if unmodified)
+By default, Cobbler will configure PXE to boot to the contents of ``/etc/cobbler/default.pxe``, which (if unmodified)
 will just fall through to the local boot process. Administrators can modify this file if they like to change that
 behavior.
 
-An easy way to specify a default cobbler profile to PXE boot is to create a system named ``default``. This will cause
+An easy way to specify a default Cobbler profile to PXE boot is to create a system named ``default``. This will cause
 ``/etc/cobbler/default.pxe`` to be ignored. To restore the previous behavior do a ``cobbler system remove`` on the
 ``default`` system.
 
@@ -346,7 +346,7 @@ Cobbler knows how to keep track of the status of automatic installation of machi
 
     cobbler status
 
-Using the status command will show when cobbler thinks a machine started automatic installation and when it finished,
+Using the status command will show when Cobbler thinks a machine started automatic installation and when it finished,
 provided the proper snippets are found in the automatic installation template. This is a good way to track machines that
 may have gone interactive (or stalled/crashed) during automatic installation.
 
@@ -355,7 +355,7 @@ Boot CD
 
 Cobbler can build all of it's profiles into a bootable CD image using the ``cobbler buildiso`` command. This allows for
 PXE-menu like bring up of bare metal in environments where PXE is not possible. Another more advanced method is described
-in the koan manpage, though this method is easier and sufficient for most applications.
+in the Koan manpage, though this method is easier and sufficient for most applications.
 
 .. _dhcp-management:
 
@@ -368,9 +368,9 @@ Choose either ``management = isc_and_bind`` in ``/etc/cobbler/dhcp.template`` or
 ``/etc/cobbler/modules.conf``.  Then set ``manage_dhcp=1`` in ``/etc/cobbler/settings``.
 
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for
-systems you add into cobbler.
+systems you add into Cobbler.
 
-Depending on your choice, cobbler will use ``/etc/cobbler/dhcpd.template`` or ``/etc/cobbler/dnsmasq.template`` as a
+Depending on your choice, Cobbler will use ``/etc/cobbler/dhcpd.template`` or ``/etc/cobbler/dnsmasq.template`` as a
 starting point. This file must be user edited for the user's particular networking environment. Read the file and
 understand how the particular app (ISC dhcpd or dnsmasq) work before proceeding.
 
@@ -382,7 +382,7 @@ By default, the DHCP configuration file will be updated each time ``cobbler sync
 important to remember to use ``cobbler sync`` when using this feature.
 
 If omapi_enabled is set to 1 in ``/etc/cobbler/settings``, the need to sync when adding new system records can be
-eliminated. However, the omapi feature is experimental and is not recommended for most users.
+eliminated. However, the OMAPI feature is experimental and is not recommended for most users.
 
 .. _dns-management:
 
@@ -412,5 +412,5 @@ feature.
 Containerization
 ################
 
-We have a test-image which you can find in the cobbler repository and an old image made by the community:
+We have a test-image which you can find in the Cobbler repository and an old image made by the community:
 https://github.com/osism/docker-cobbler

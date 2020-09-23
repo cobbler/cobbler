@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from past.builtins import str as oldstr
 from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -132,7 +131,7 @@ class Mgmtclass(item.Item):
         :param name: The new name of the class. This must not contain "_", "-", ".", ":" or "+".
         :type name: str
         """
-        if not isinstance(name, str) and not isinstance(name, oldstr):
+        if not isinstance(name, str):
             raise CX(_("class name must be a string"))
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:

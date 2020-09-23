@@ -199,6 +199,7 @@ Requires(postun): systemd
 Requires:       %{apache_pkg}
 Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
+Requires:       file
 Requires:       rsync
 Requires:       xorriso
 %{?python_enable_dependency_generator}
@@ -213,6 +214,7 @@ Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
+Requires:       python%{python3_pkgversion}-distro
 %endif
 
 
@@ -241,13 +243,13 @@ Obsoletes:      cobbler-nsupdate < 3.0.99
 Provides:       cobbler-nsupdate = %{version}-%{release}
 
 %description
-Cobbler is a network install server.  Cobbler supports PXE, ISO
+Cobbler is a network install server. Cobbler supports PXE, ISO
 virtualized installs, and re-installing existing Linux machines.
 The last two modes use a helper tool, 'koan', that integrates with
-cobbler.  There is also a web interface 'cobbler-web'.  Cobbler's
+cobbler. There is also a web interface 'cobbler-web'. Cobbler's
 advanced features include importing distributions from DVDs and rsync
 mirrors, kickstart templating, integrated yum mirroring, and built-in
-DHCP/DNS Management.  Cobbler has a XMLRPC API for integration with
+DHCP/DNS Management. Cobbler has a XML-RPC API for integration with
 other applications.
 
 

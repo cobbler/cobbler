@@ -21,8 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 # Only add standard python modules here. When running under a virtualenv other modules are not
 # available at this point.
-from future import standard_library
-standard_library.install_aliases()
+
 from builtins import str
 import os
 import urllib.request

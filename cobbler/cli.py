@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from future import standard_library
-standard_library.install_aliases()
 from builtins import str
 from builtins import object
 import optparse
@@ -319,10 +317,10 @@ class CobblerCLI(object):
         self.args = cliargs
 
     def start_task(self, name, options):
-        """
+        r"""
         Start an asynchronous task in the background.
 
-        :param name: "background_" % name function must exist in remote.py. This function will be called in a subthread.
+        :param name: "background\_" % name function must exist in remote.py. This function will be called in a subthread.
         :type name: str
         :param options: Dictionary of options passed to the newly started thread
         :type options: dict
