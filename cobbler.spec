@@ -47,7 +47,6 @@
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
-%define py3_module_librepo python%{python3_pkgversion}-librepo
 
 # SUSE
 %if 0%{?suse_version}
