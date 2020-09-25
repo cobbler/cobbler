@@ -142,9 +142,10 @@ class Templar(object):
 
         # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
         regex = r"@@[a-zA-Z]*@@"
-        matches = re.finditer(regex, data_out, re.MULTILINE)
-        for matchNum, match in enumerate(matches, start=1):
-            data_out = data_out.replace(match.group(), search_table[str(match.group()).strip("@@")])
+        regex_matches = re.finditer(regex, data_out, re.MULTILINE)
+        matches = set([match.group() for match_num, match in enumerate(regex_matches, start=1)])
+        for match in matches:
+            data_out = data_out.replace(match, search_table[match.strip("@@")])
 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):
