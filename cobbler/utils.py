@@ -370,7 +370,6 @@ def find_kernel(path):
 def remove_yum_olddata(path, logger=None):
     """
     Delete .olddata files that might be present from a failed run of createrepo.
-    # FIXME: verify this is still being used
 
     :param path: The path to check for .olddata files.
     :param logger: The logger to audit this action with.
@@ -615,6 +614,7 @@ def grab_tree(api_handle, item):
     :return: The list of items with all parents from that object upwards the tree. Contains at least the item itself.
     :rtype: list
     """
+    # TODO: Move into item.py
     settings = api_handle.settings()
     results = [item]
     parent = item.get_parent()
@@ -820,7 +820,7 @@ def __consolidate(node, results):
 
 def dict_removals(results, subkey):
     """
-    Remove entrys from a dictionary starting with a "!".
+    Remove entries from a dictionary starting with a "!".
 
     :param results: The dictionary to search in
     :param subkey: The subkey to search through.
@@ -875,14 +875,14 @@ def dict_to_string(_dict):
 
 
 def rsync_files(src, dst, args, logger=None, quiet=True):
-    """
+    r"""
     Sync files from src to dst. The extra arguments specified by args are appended to the command.
 
     :param src: The source for the copy process.
     :param dst: The destination for the copy process.
-    :param args: The extra arguments are appended to our standard arguements.
+    :param args: The extra arguments are appended to our standard arguments.
     :param logger: The logger to audit the action with.
-    :param quiet: If "True" no progress is reported. If "False" then progress will be reported by rsync.
+    :param quiet: If "True" no progress is reported. If ``False`` then progress will be reported by rsync.
     :type quiet: bool
     :return: ``True`` on success, otherwise ``False``.
     """
@@ -1012,7 +1012,7 @@ def get_family():
              returned.
     :rtype: str
     """
-
+    # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
     redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
 
     distro_name = distro.name().lower()
@@ -1093,17 +1093,19 @@ def is_safe_to_hardlink(src, dst, api):
 
 
 def hashfile(fn, lcache=None, logger=None):
-    """
+    r"""
     Returns the sha1sum of the file
 
     :param fn: The file to get the sha1sum of.
-    :param lcache: Not known what this is exactly for.
+    :param lcache: This is a directory where Cobbler would store its ``link_cache.json`` file to speed up the return
+                   of the hash. The hash looked up would be checked against the Cobbler internal mtime of the object.
     :param logger: The logger to audit the action with.
     :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
+    # WARNING: The directory from the following line may not exist.
+    dbfile = os.path.join(lcache, 'link_cache.json')
     try:
-        dbfile = os.path.join(lcache, 'link_cache.json')
         if os.path.exists(dbfile):
             db = simplejson.load(open(dbfile, 'r'))
     except:
@@ -1115,10 +1117,12 @@ def hashfile(fn, lcache=None, logger=None):
             return db[fn][1]
 
     if os.path.exists(fn):
+        # TODO: Replace this with the follwing: https://stackoverflow.com/a/22058673
         cmd = '/usr/bin/sha1sum %s' % fn
         key = subprocess_get(logger, cmd).split(' ')[0]
         if lcache is not None:
             db[fn] = (mtime, key)
+            # TODO: Safeguard this against above mentioned directory does not exist error.
             simplejson.dump(db, open(dbfile, 'w'))
         return key
     else:
@@ -1500,11 +1504,13 @@ def set_repos(self, repos, bypass_check=False):
     if repos is None:
         self.repos = []
     else:
+        # TODO: Don't store the names. Store the internal references.
         self.repos = input_string_or_list(repos)
     if bypass_check:
         return
 
     for r in self.repos:
+        # FIXME: First check this and then set the repos if the bypass check is used.
         if self.collection_mgr.repos().find(name=r) is None:
             raise CX(_("repo %s is not defined") % r)
 
