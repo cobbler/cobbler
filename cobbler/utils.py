@@ -282,7 +282,7 @@ def get_random_mac(api_handle, virt_type="xenpv"):
 
     mac = ':'.join(["%02x" % x for x in mac])
     systems = api_handle.systems()
-    while (systems.find(mac_address=mac)):
+    while systems.find(mac_address=mac):
         mac = get_random_mac(api_handle)
 
     return mac
@@ -538,7 +538,7 @@ def input_string_or_dict(options, allow_multiples=True):
         options = {}
 
     if options is None or options == "delete":
-        return (True, {})
+        return True, {}
     elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
     elif isinstance(options, str):
@@ -600,14 +600,10 @@ def update_settings_file(data):
     :return: True if the action succeeded. Otherwise return nothing.
     :rtype: bool
     """
-    if 1:
-        # clogger.Logger().debug("in update_settings_file(): value is: %s" % str(value))
-        settings_file = open("/etc/cobbler/settings", "w")
+    # TODO: Move this as a static method to the settings file. This does not belong here.
+    with open("/etc/cobbler/settings", "w") as settings_file:
         yaml.safe_dump(data, settings_file)
-        settings_file.close()
-        return True
-    # except:
-    #    return False
+    return True
 
 
 def grab_tree(api_handle, item):
@@ -1177,8 +1173,7 @@ def linkfile(src, dst, symlink_ok=False, cache=True, api=None, logger=None):
         # if the destination exists, is it right in terms of accuracy and context?
         if os.path.samefile(src, dst):
             if not is_safe_to_hardlink(src, dst, api):
-                # may have to remove old hardlinks for SELinux reasons
-                # as previous implementations were not complete
+                # may have to remove old hardlinks for SELinux reasons as previous implementations were not complete
                 if logger is not None:
                     logger.info("removing: %s" % dst)
                 os.remove(dst)
