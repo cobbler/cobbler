@@ -31,6 +31,7 @@ Here you should find a comprehensive overview about the usage of cobbler.
    Developer Guide <developer-guide>
    Cobbler-Code Documentation<code-autodoc/cobbler>
    Release Notes <release-notes>
+   Limitations and Surprises <limitations>
 
 Indices and tables
 ##################
