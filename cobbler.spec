@@ -47,7 +47,6 @@
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
-%define py3_module_ldap python%{python3_pkgversion}-ldap
 
 # SUSE
 %if 0%{?suse_version}
@@ -74,7 +73,6 @@
 %define py3_module_dns python%{python3_pkgversion}-dnspython
 %define py3_module_pyyaml python%{python3_pkgversion}-PyYAML
 %define py3_module_sphinx python%{python3_pkgversion}-Sphinx
-%define py3_module_ldap python%{python3_pkgversion}-ldap3
 # endif SUSE
 %endif
 
@@ -217,9 +215,9 @@ Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
 %if 0%{?suse_version}
-Recommends:     %{py3_module_ldap}
+Recommends:     python%{python3_pkgversion}-ldap3
 %else
-Requires:       %{py3_module_ldap}
+Requires:       python%{python3_pkgversion}-ldap3
 %endif
 %endif
 
