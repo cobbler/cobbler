@@ -127,9 +127,8 @@ def deserialize_raw(collection_type):
     """
     # FIXME: code to load settings file should not be replicated in all serializer subclasses
     if collection_type == "settings":
-        fd = open("/etc/cobbler/settings")
-        _dict = yaml.safe_load(fd.read())
-        fd.close()
+        with open("/etc/cobbler/settings") as fd:
+            _dict = yaml.safe_load(fd.read())
         return _dict
     else:
         __connect()
