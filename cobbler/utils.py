@@ -20,10 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from functools import reduce
-from builtins import map
-from builtins import str
-from builtins import object
+from functools import reduce, cmp_to_key
+from builtins import map, str, object
 import copy
 import errno
 import glob
@@ -441,9 +439,8 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
             raise FileNotFoundException("%s: %s" % (_("File not found"), file_location))
 
         try:
-            f = open(file_location)
-            data = f.read()
-            f.close()
+            with open(file_location) as f:
+                data = f.read()
             return data
         except:
             if logger:
@@ -1261,9 +1258,8 @@ def copyremotefile(src, dst1, api=None, logger=None):
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst1))
         srcfile = urllib.request.urlopen(src)
-        output = open(dst1, 'wb')
-        output.write(srcfile.read())
-        output.close()
+        with open(dst1, 'wb') as output:
+            output.write(srcfile.read())
     except Exception as e:
         raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e)))
 
@@ -1869,9 +1865,8 @@ def __cache_mtab__(mtab="/etc/mtab"):
     :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
     :return: The mtab content stripped from empty lines (if any are present).
     """
-    f = open(mtab)
-    mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
-    f.close()
+    with open(mtab) as f:
+        mtab = [MntEntObj(line) for line in f.read().split('\n') if len(line) > 0]
 
     return mtab
 
@@ -2215,9 +2210,8 @@ def load_signatures(filename, cache=True):
     """
     global SIGNATURE_CACHE
 
-    f = open(filename, "r")
-    sigjson = f.read()
-    f.close()
+    with open(filename, "r") as f:
+        sigjson = f.read()
     sigdata = simplejson.loads(sigjson)
     if cache:
         SIGNATURE_CACHE = sigdata
@@ -2293,8 +2287,8 @@ def get_shared_secret():
     """
 
     try:
-        fd = open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8')
-        data = fd.read()
+        with open("/var/lib/cobbler/web.ss", 'rb', encoding='utf-8') as fd:
+            data = fd.read()
     except:
         return -1
     return str(data).strip()
@@ -2309,9 +2303,8 @@ def local_get_cobbler_api_url():
     """
     # Load server and http port
     try:
-        fh = open("/etc/cobbler/settings")
-        data = yaml.safe_load(fh.read())
-        fh.close()
+        with open("/etc/cobbler/settings") as fh:
+            data = yaml.safe_load(fh.read())
     except:
         traceback.print_exc()
         raise CX("/etc/cobbler/settings is not a valid YAML file")
@@ -2337,9 +2330,8 @@ def local_get_cobbler_xmlrpc_url():
     """
     # Load xmlrpc port
     try:
-        fh = open("/etc/cobbler/settings")
-        data = yaml.safe_load(fh.read())
-        fh.close()
+        with open("/etc/cobbler/settings") as fh:
+            data = yaml.safe_load(fh.read())
     except:
         traceback.print_exc()
         raise CX("/etc/cobbler/settings is not a valid YAML file")
@@ -2410,11 +2402,11 @@ def revert_strip_none(data):
 
 
 def lod_to_dod(_list, indexkey):
-    """
-    things like get_distros() returns a list of a dictionaries
-    convert this to a dict of dicts keyed off of an arbitrary field
+    r"""
+    Things like ``get_distros()`` returns a list of a dictionaries. Convert this to a dict of dicts keyed off of an
+    arbitrary field.
 
-    EX:  [  { "a" : 2 }, { "a : 3 } ]  ->  { "2" : { "a" : 2 }, "3" : { "a" : "3" }
+    Example:  ``[ { "a" : 2 }, { "a" : 3 } ]``  ->  ``{ "2" : { "a" : 2 }, "3" : { "a" : "3" } }``
 
     :param _list: The list of dictionaries to use for the conversion.
     :type _list: list
@@ -2431,9 +2423,6 @@ def lod_to_dod(_list, indexkey):
 # -------------------------------------------------------
 
 
-from functools import cmp_to_key
-
-
 def mycmp(x, y):
     """
     Compares if x is smaller than y.
@@ -2443,7 +2432,7 @@ def mycmp(x, y):
     :return: The bool of the action.
     :rtype: bool
     """
-    return (x < y)
+    return x < y
 
 
 def lod_sort_by_key(_list, indexkey):
