@@ -318,11 +318,6 @@ rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd_rotate %{buildroot}%{_sysconfdir}/logrotate.d/cobblerd
 
-# No VirtualHost definition as it overwrite all the Uyuni RewriteRules configured in conf.d/
-mkdir -p %{buildroot}%{_sysconfdir}/apache2/conf.d
-mv %{buildroot}%{_sysconfdir}/apache2/vhosts.d/cobbler.conf %{buildroot}%{_sysconfdir}/apache2/conf.d
-sed -i 's/^.*VirtualHost.*$//g' %{buildroot}%{_sysconfdir}/apache2/conf.d/cobbler.conf
-
 # systemd
 mkdir -p %{buildroot}%{_unitdir}
 mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
