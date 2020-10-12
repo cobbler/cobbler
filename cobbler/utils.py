@@ -708,7 +708,7 @@ def flatten(data):
     :rtype: None or dict
     """
 
-    if data is None:
+    if data is None or not isinstance(data, dict):
         return None
     if "environment" in data:
         data["environment"] = dict_to_string(data["environment"])
@@ -824,6 +824,7 @@ def dict_removals(results, subkey):
     """
     if subkey not in results:
         return
+    # FIXME: If the dict has no subdict then this method fails.
     scan = list(results[subkey].keys())
     for k in scan:
         if str(k).startswith("!") and k != "!":
@@ -1752,7 +1753,7 @@ class MntEntObj(object):
         """
         This is an object which contains information about a mounted filesystem.
 
-        :param input: This is a string which is seperated internally by whitespace. If present it represents the
+        :param input: This is a string which is separated internally by whitespace. If present it represents the
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
         :type input: str
@@ -1783,11 +1784,11 @@ class MntEntObj(object):
                                       self.mnt_opts, self.mnt_freq, self.mnt_passno)
 
 
-def get_mtab(mtab="/etc/mtab", vfstype=None):
+def get_mtab(mtab="/etc/mtab", vfstype=False):
     """
-    Get the list of mtab entries. If a custum mtab should be read then the location can be overriden via a parameter.
+    Get the list of mtab entries. If a custom mtab should be read then the location can be overridden via a parameter.
 
-    :param mtab: The location of the mtab. Argument can be ommited if the mtab is at its default location.
+    :param mtab: The location of the mtab. Argument can be omitted if the mtab is at its default location.
     :param vfstype: If this is True, then all filesystems which are nfs are returned. Otherwise this returns all mtab
                     entries.
     :type vfstype: bool
