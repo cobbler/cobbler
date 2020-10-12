@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from functools import reduce, cmp_to_key
+from functools import reduce
 from builtins import map, str, object
 import copy
 import errno
@@ -45,7 +45,6 @@ from cobbler.cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate
-
 
 CHEETAH_ERROR_DISCLAIMER = """
 # *** ERROR ***
@@ -180,6 +179,7 @@ def get_host_ip(ip, shorten=True):
 
     :param ip: The IP address to pretty print.
     :param shorten: Whether the IP-Address should be shortened or not.
+    :return: The IP encoded as a hexadecimal value.
     :rtype: str
     """
 
@@ -367,18 +367,19 @@ def find_kernel(path):
 
 def remove_yum_olddata(path, logger=None):
     """
-    Delete .olddata files that might be present from a failed run of createrepo.
+    Delete .olddata folders that might be present from a failed run of createrepo.
 
     :param path: The path to check for .olddata files.
     :param logger: The logger to audit this action with.
     """
-    trythese = [
+    # FIXME: If the folder is actually a file this method fails wonderfully.
+    directories_to_try = [
         ".olddata",
         ".repodata/.olddata",
         "repodata/.oldata",
         "repodata/repodata"
     ]
-    for pathseg in trythese:
+    for pathseg in directories_to_try:
         olddata = os.path.join(path, pathseg)
         if os.path.exists(olddata):
             if logger is not None:
@@ -955,7 +956,6 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
         if ref:
             arglist.append(ref.name)
         for x in additional:
-
             arglist.append(x)
         if logger is not None:
             logger.debug("running python trigger %s" % m.__name__)
@@ -1069,24 +1069,25 @@ def is_safe_to_hardlink(src, dst, api):
              Otherwise returns False.
     :rtype: bool
     """
+    # FIXME: Calling this with emtpy strings returns True?!
     (dev1, path1) = get_file_device_path(src)
     (dev2, path2) = get_file_device_path(dst)
     if dev1 != dev2:
         return False
-    # do not hardlink to a symbolic link; chances are high the new link will be dangling
+    # Do not hardlink to a symbolic link! Chances are high the new link will be dangling.
     if os.path.islink(src):
         return False
     if dev1.find(":") != -1:
-        # is remoted
+        # Is a remote file
         return False
-    # note: this is very Cobbler implementation specific!
+    # Note: This is very Cobbler implementation specific!
     if not api.is_selinux_enabled():
         return True
     if _re_initrd.match(os.path.basename(path1)):
         return True
     if _re_kernel.match(os.path.basename(path1)):
         return True
-    # we're dealing with SELinux and files that are not safe to chcon
+    # We're dealing with SELinux and files that are not safe to chown
     return False
 
 
@@ -1101,7 +1102,7 @@ def hashfile(fn, lcache=None, logger=None):
     :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
-    # WARNING: The directory from the following line may not exist.
+    # FIXME: The directory from the following line may not exist.
     dbfile = os.path.join(lcache, 'link_cache.json')
     try:
         if os.path.exists(dbfile):
@@ -1341,7 +1342,7 @@ def rmtree(path, logger=None):
     except OSError as ioe:
         if logger is not None:
             log_exc(logger)
-        if not ioe.errno == errno.ENOENT:   # doesn't exist
+        if not ioe.errno == errno.ENOENT:  # doesn't exist
             raise CX(_("Error deleting %s") % path)
         return True
 
@@ -1708,10 +1709,11 @@ def set_virt_cpus(self, num):
 
 
 def safe_filter(var):
-    """
-    Not know what this function exactly does.
+    r"""
+    This function does nothing if the argument does not find any semicolons or two points behind each other.
 
     :param var: This parameter shall not be None or have ".."/";" at the end.
+    :raises CX: In case any ``..`` or ``/`` is found in ``var``.
     """
     if var is None:
         return
@@ -1945,7 +1947,7 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
 
     :param logger: The logger to audit the action with.
     :param cmd: The command to execute in a subprocess call.
-    :param shell: Whether to use a shell or not for the execution of the commmand.
+    :param shell: Whether to use a shell or not for the execution of the command.
     :type shell: bool
     :param input: If there is any input needed for that command to stdin.
     :return: A tuple of the output and the return code.
@@ -1958,8 +1960,8 @@ def subprocess_sp(logger, cmd, shell=True, input=None):
         stdin = subprocess.PIPE
 
     try:
-        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8",
-                              close_fds=True)
+        sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              encoding="utf-8", close_fds=True)
     except OSError:
         if logger is not None:
             log_exc(logger)
@@ -1984,7 +1986,7 @@ def subprocess_call(logger, cmd, shell=True, input=None):
     :param input: If there is any input needed for that command to stdin.
     :return: The return code of the process
     """
-    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
+    _, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
     return rc
 
 
@@ -1999,7 +2001,7 @@ def subprocess_get(logger, cmd, shell=True, input=None):
     :param input: If there is any input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
-    data, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
+    data, _ = subprocess_sp(logger, cmd, shell=shell, input=input)
     return data
 
 
@@ -2048,7 +2050,7 @@ def clear_from_fields(item, fields, is_subobject=False):
     Used by various item_*.py classes for automating datastructure boilerplate.
 
     :param item: The item to clear the fields of.
-    :param fields: Not known what magic this actually does.
+    :param fields: This is the array of arrays containing the properties of the item.
     :param is_subobject: If in the Cobbler inheritance tree the item is considered a subobject (True) or not (False).
     :type is_subobject: bool
     """
@@ -2071,12 +2073,12 @@ def clear_from_fields(item, fields, is_subobject=False):
 
 
 def from_dict_from_fields(item, item_dict, fields):
-    """
-    Not known what this method does exactly.
+    r"""
+    This method updates an item based on an item dictionary which is enriched by the fields the item dictionary has.
 
-    :param item: Not known what this is needed for exactly.
-    :param item_dict: Not known what this is needed for exactly.
-    :param fields: Not known what this is needed for exactly.
+    :param item: The item to update.
+    :param item_dict: The dictionary with the keys and values in the item to update.
+    :param fields: The fields to update. ``item_dict`` needs to be a subset of this array of arrays.
     """
     int_fields = []
     for elems in fields:
@@ -2093,7 +2095,7 @@ def from_dict_from_fields(item, item_dict, fields):
             setattr(item, dst_k, item_dict[src_k])
 
     if item.uid == '':
-        item.uid = item.config.generate_uid()
+        item.uid = item.collection_mgr.generate_uid()
 
     # special handling for interfaces
     if item.COLLECTION_TYPE == "system":
@@ -2112,11 +2114,12 @@ def from_dict_from_fields(item, item_dict, fields):
 
 
 def to_dict_from_fields(item, fields):
-    """
-    Not known what this method does exactly.
+    r"""
+    Each specific Cobbler item has an array in its module. This is called FIELDS. From this array we generate a
+    dictionary.
 
-    :param item: Not known what this is needed for exactly.
-    :param fields: Not known what this is needed for exactly.
+    :param item: The item to generate a dictionary of.
+    :param fields: The list of fields to include. This is a subset of ``item.get_fields()``.
     :return: Returns a dictionary of the fields of an item (distro, profile,..).
     :rtype: dict
     """
@@ -2130,10 +2133,6 @@ def to_dict_from_fields(item, fields):
     # Interfaces on systems require somewhat special handling they are the only exception in Cobbler.
     if item.COLLECTION_TYPE == "system":
         _dict["interfaces"] = copy.deepcopy(item.interfaces)
-        # for interface in _dict["interfaces"].keys():
-        #    for k in _dict["interfaces"][interface].keys():
-        #        if field_info.DEPRECATED_FIELDS.has_key(k):
-        #            _dict["interfaces"][interface][field_info.DEPRECATED_FIELDS[k]] = _dict["interfaces"][interface][k]
 
     return _dict
 
@@ -2142,10 +2141,10 @@ def to_string_from_fields(item_dict, fields, interface_fields=None):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
 
-    :param item_dict: Not known what this is needed for exactly.
-    :param fields: Not known what this is needed for exactly.
-    :param interface_fields: Not known what this is needed for exactly.
-    :return: Not known what this is returning exactly.
+    :param item_dict: The dictionary representation of a Cobbler Item.
+    :param fields: This is the list of fields a Cobbler item has.
+    :param interface_fields: This is the list of fields from a network interface of a system. This is optional.
+    :return: The string representation of a Cobbler item with all its values.
     :rtype: str
     """
     buf = ""
@@ -2372,6 +2371,7 @@ def strip_none(data, omit_none=False):
 
     return data
 
+
 # -------------------------------------------------------
 
 
@@ -2399,6 +2399,7 @@ def revert_strip_none(data):
 
     return data
 
+
 # -------------------------------------------------------
 
 
@@ -2412,7 +2413,6 @@ def lod_to_dod(_list, indexkey):
     :param _list: The list of dictionaries to use for the conversion.
     :type _list: list
     :param indexkey: The position to use as dictionary keys.
-    :type indexkey: int
     :return: The converted dictionary. It is not guaranteed that the same key is not used multiple times.
     :rtype: dict
     """
@@ -2421,35 +2421,23 @@ def lod_to_dod(_list, indexkey):
         results[item[indexkey]] = item
     return results
 
+
 # -------------------------------------------------------
 
 
-def mycmp(x, y):
-    """
-    Compares if x is smaller than y.
-
-    :param x: The first parameter.
-    :param y: The second parameter.
-    :return: The bool of the action.
-    :rtype: bool
-    """
-    return x < y
-
-
-def lod_sort_by_key(_list, indexkey):
+def lod_sort_by_key(list_to_sort, indexkey):
     """
     Sorts a list of dictionaries by a given key in the dictionaries.
 
     Note: This is a destructive operation and does not sort the dictionaries.
 
-    :param _list: The list of dictionaries to sort.
-    :type _list: list
+    :param list_to_sort: The list of dictionaries to sort.
+    :type list_to_sort: list
     :param indexkey: The key to index to dicts in the list.
     :return: The sorted list.
     :rtype: list
     """
-    _list.sort(key=cmp_to_key(lambda a, b: mycmp(a[indexkey], b[indexkey])))
-    return _list
+    return sorted(list_to_sort, key=lambda k: k[indexkey])
 
 
 def dhcpconf_location(api):
@@ -2566,7 +2554,7 @@ def link_distro(settings, distro):
         try:
             os.symlink(base, dest_link)
         except:
-            # this shouldn't happen but I've seen it ... debug ...
+            # FIXME: This shouldn't happen but I've (jsabo) seen it...
             print(_("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link})
 
 
@@ -2580,9 +2568,9 @@ def find_distro_path(settings, distro):
     :return: The path to the distribution files.
     """
     possible_dirs = glob.glob(settings.webdir + "/distro_mirror/*")
-    for dir in possible_dirs:
-        if os.path.dirname(distro.kernel).find(dir) != -1:
-            return os.path.join(settings.webdir, "distro_mirror", dir)
+    for directory in possible_dirs:
+        if os.path.dirname(distro.kernel).find(directory) != -1:
+            return os.path.join(settings.webdir, "distro_mirror", directory)
     # non-standard directory, assume it's the same as the directory in which the given distro's kernel is
     return os.path.dirname(distro.kernel)
 
@@ -2596,8 +2584,10 @@ def compare_versions_gt(ver1, ver2):
     :return: True if ver1 is greater, otherwise False.
     :rtype: bool
     """
+
     def versiontuple(v):
         return tuple(map(int, (v.split("."))))
+
     return versiontuple(ver1) > versiontuple(ver2)
 
 
