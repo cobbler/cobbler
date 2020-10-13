@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from builtins import str
 from builtins import object
+import re
 import Cheetah
 import functools
 import os
@@ -139,9 +140,12 @@ class Templar(object):
             repstr = server
         search_table["http_server"] = repstr
 
-        for x in list(search_table.keys()):
-            if type(x) == str:
-                data_out = data_out.replace("@@%s@@" % str(x), str(search_table[str(x)]))
+        # string replacements for @@xyz@@ in data_out with prior regex lookups of keys
+        regex = r"@@[\S]*@@"
+        regex_matches = re.finditer(regex, data_out, re.MULTILINE)
+        matches = set([match.group() for match_num, match in enumerate(regex_matches, start=1)])
+        for match in matches:
+            data_out = data_out.replace(match, search_table[match.strip("@@")])
 
         # remove leading newlines which apparently breaks AutoYAST ?
         if data_out.startswith("\n"):

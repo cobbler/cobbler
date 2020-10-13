@@ -13,7 +13,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "env(name): mark test to run only on named environment")
 
 
-@pytest.fixture("session")
+@pytest.fixture(scope="session")
 def file_basedir():
     """
     This is the base-directory for fake files which are needed for the test. The advantage of the location under
@@ -24,7 +24,7 @@ def file_basedir():
     return "/dev/shm/cobbler_test"
 
 
-@pytest.fixture("session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def create_file_basedir(file_basedir):
     """
     This creates the directory needed for the cobbler tests.
@@ -35,7 +35,7 @@ def create_file_basedir(file_basedir):
         os.makedirs(file_basedir)
 
 
-@pytest.fixture("session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def delete_file_basedir(file_basedir):
     if os.path.exists(file_basedir):
         shutil.rmtree(file_basedir)
