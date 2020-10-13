@@ -32,6 +32,7 @@ OUTPUT_DIR = "config"
 log = logging.getLogger("setup.py")
 
 # # Configurable installation roots for various data files.
+datadir = os.environ.get('DATAPATH', '/usr/share/cobbler')
 docpath = os.environ.get('DOCPATH', "share/man")
 etcpath = os.environ.get('ETCPATH', "/etc/cobbler")
 libpath = os.environ.get('LIBPATH', "/var/lib/cobbler")
@@ -699,5 +700,11 @@ if __name__ == "__main__":
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),
             ("%s/man5" % docpath, glob("build/sphinx/man/*.5")),
             ("%s/man8" % docpath, glob("build/sphinx/man/*.8")),
+            ("%s/tests" % datadir, glob("tests/*.py")),
+            ("%s/tests/cli" % datadir, glob("tests/cli/*.py")),
+            ("%s/tests/modules" % datadir, glob("tests/modules/*.py")),
+            ("%s/tests/modules/authentication" % datadir, glob("tests/modules/authentication/*.py")),
+            ("%s/tests/views" % datadir, glob("tests/views/*.py")),
+            ("%s/tests/xmlrpcapi" % datadir, glob("tests/xmlrpcapi/*.py")),
         ],
     )

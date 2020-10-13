@@ -328,9 +328,6 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
 
-# cobbler-tests
-cp -r tests/ %{buildroot}%{_datadir}/cobbler/
-
 
 %pre
 %if %{_vendor} == "debbuild"
