@@ -329,7 +329,7 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
 
 # cobbler-tests
-cp -r tests/ %{buildroot}/%{_datadir}/cobbler/
+cp -r tests/ %{buildroot}%{_datadir}/cobbler/
 
 
 %pre
