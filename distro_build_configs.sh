@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export DATAPATH="/usr/share/cobbler"
 export DOCPATH="share/man"
 export ETCPATH="/etc/cobbler"
