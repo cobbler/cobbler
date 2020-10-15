@@ -881,7 +881,7 @@ def rsync_files(src, dst, args, logger=None, quiet=True):
     :param dst: The destination for the copy process.
     :param args: The extra arguments are appended to our standard arguments.
     :param logger: The logger to audit the action with.
-    :param quiet: If "True" no progress is reported. If ``False`` then progress will be reported by rsync.
+    :param quiet: If ``True`` no progress is reported. If ``False`` then progress will be reported by rsync.
     :type quiet: bool
     :return: ``True`` on success, otherwise ``False``.
     """
@@ -2141,7 +2141,7 @@ def to_string_from_fields(item_dict, fields, interface_fields=None):
     """
     item_dict is a dictionary, fields is something like item_distro.FIELDS
 
-    :param item_dict: The dictionary representation of a Cobbler Item.
+    :param item_dict: The dictionary representation of a Cobbler item.
     :param fields: This is the list of fields a Cobbler item has.
     :param interface_fields: This is the list of fields from a network interface of a system. This is optional.
     :return: The string representation of a Cobbler item with all its values.
@@ -2372,9 +2372,6 @@ def strip_none(data, omit_none=False):
     return data
 
 
-# -------------------------------------------------------
-
-
 def revert_strip_none(data):
     """
     Does the opposite to strip_none. If a value which represents None is detected, it replaces it with None.
@@ -2400,9 +2397,6 @@ def revert_strip_none(data):
     return data
 
 
-# -------------------------------------------------------
-
-
 def lod_to_dod(_list, indexkey):
     r"""
     Things like ``get_distros()`` returns a list of a dictionaries. Convert this to a dict of dicts keyed off of an
@@ -2420,9 +2414,6 @@ def lod_to_dod(_list, indexkey):
     for item in _list:
         results[item[indexkey]] = item
     return results
-
-
-# -------------------------------------------------------
 
 
 def lod_sort_by_key(list_to_sort, indexkey):

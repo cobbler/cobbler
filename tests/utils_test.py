@@ -282,9 +282,9 @@ def test_update_settings_file():
     # Assert
     assert result
     # This should work the following: The time of modifying the settings file should be greater then the time taken
-    # before modifying it. Thus the value of the subtraction of both should be great 0. If writing to the files does not
-    # work this is smaller then 0. The content is a yaml file thus we don't want to test if writing a yaml file is
-    # logically correct. This is the matter of the library we are using.
+    # before modifying it. Thus the value of the subtraction of both should be greater than zero. If writing to the
+    # files does not work, this is smaller then 0. The content is a yaml file thus we don't want to test if writing a
+    # YAML file is logically correct. This is the matter of the library we are using.
     assert os.path.getmtime("/etc/cobbler/settings") - time_before_write > 0
 
 
@@ -415,7 +415,7 @@ def test_run_triggers():
     utils.run_triggers(api, None, globber)
 
     # Assert
-    # TODO: How the heck to we check this actually did what it is supposed to do?
+    # TODO: How the heck do we check that this actually did what it is supposed to do?
     assert False
 
 
@@ -484,7 +484,7 @@ def test_cachefile():
 
     # Assert
     # TODO: Check .link_cache folder exists and the link cache file in it
-    # TODO: Assert file exists on the cache destination
+    # TODO: Assert file exists in the cache destination
     assert False
 
 
@@ -596,7 +596,7 @@ def test_mkdir():
     except OSError:
         pass
 
-    # Pre Assert to check that this actually does something
+    # Pre assert to check that this actually does something
     assert not os.path.exists(testfolder)
 
     # Act
