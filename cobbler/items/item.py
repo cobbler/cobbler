@@ -121,51 +121,8 @@ class Item(object):
         """
         cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.name, None)
 
-    TYPE_NAME = "generic"
-
-    def __init__(self, collection_mgr, is_subobject=False):
-        """
-        Constructor.  Requires a back reference to the CollectionManager object.
-
-        NOTE: is_subobject is used for objects that allow inheritance in their trees.  This
-        inheritance refers to conceptual inheritance, not Python inheritance.  Objects created
-        with is_subobject need to call their set_parent() method immediately after creation
-        and pass in a value of an object of the same type.  Currently this is only supported
-        for profiles.  Subobjects blend their data with their parent objects and only require
-        a valid parent name and a name for themselves, so other required options can be
-        gathered from items further up the Cobbler tree.
-
-                           distro
-                               profile
-                                    profile  <-- created with is_subobject=True
-                                         system   <-- created as normal
-
-        For consistancy, there is some code supporting this in all object types, though it is only usable
-        (and only should be used) for profiles at this time.  Objects that are children of
-        objects of the same type (i.e. subprofiles) need to pass this in as True.  Otherwise, just
-        use False for is_subobject and the parent object will (therefore) have a different type.
-        """
-
-        self.collection_mgr = collection_mgr
-        self.settings = self.collection_mgr._settings
-        self.clear(is_subobject)        # reset behavior differs for inheritance cases
-        self.parent = ''                # all objects by default are not subobjects
-        self.children = {}              # caching for performance reasons, not serialized
-        self.log_func = self.collection_mgr.api.log
-        self.ctime = 0                  # to be filled in by collection class
-        self.mtime = 0                  # to be filled in by collection class
-        self.uid = ""                   # to be filled in by collection class
-        self.kernel_options = None
-        self.kernel_options_post = None
-        self.autoinstall_meta = None
-        self.fetchable_files = None
-        self.boot_files = None
-        self.template_files = None
-        self.name = None
-        self.last_cached_mtime = 0
-        self.cached_dict = ""
-
-    def __find_compare(self, from_search, from_obj):
+    @classmethod
+    def __find_compare(cls, from_search, from_obj):
         """
         Only one of the two parameters shall be given in this method. If you give both ``from_obj`` will be preferred.
 
@@ -211,6 +168,50 @@ class Item(object):
                     return False
 
             raise CX(_("find cannot compare type: %s") % type(from_obj))
+
+    TYPE_NAME = "generic"
+
+    def __init__(self, collection_mgr, is_subobject=False):
+        """
+        Constructor.  Requires a back reference to the CollectionManager object.
+
+        NOTE: is_subobject is used for objects that allow inheritance in their trees.  This
+        inheritance refers to conceptual inheritance, not Python inheritance.  Objects created
+        with is_subobject need to call their set_parent() method immediately after creation
+        and pass in a value of an object of the same type.  Currently this is only supported
+        for profiles.  Subobjects blend their data with their parent objects and only require
+        a valid parent name and a name for themselves, so other required options can be
+        gathered from items further up the Cobbler tree.
+
+                           distro
+                               profile
+                                    profile  <-- created with is_subobject=True
+                                         system   <-- created as normal
+
+        For consistancy, there is some code supporting this in all object types, though it is only usable
+        (and only should be used) for profiles at this time.  Objects that are children of
+        objects of the same type (i.e. subprofiles) need to pass this in as True.  Otherwise, just
+        use False for is_subobject and the parent object will (therefore) have a different type.
+        """
+
+        self.collection_mgr = collection_mgr
+        self.settings = self.collection_mgr._settings
+        self.clear(is_subobject)        # reset behavior differs for inheritance cases
+        self.parent = ''                # all objects by default are not subobjects
+        self.children = {}              # caching for performance reasons, not serialized
+        self.log_func = self.collection_mgr.api.log
+        self.ctime = 0                  # to be filled in by collection class
+        self.mtime = 0                  # to be filled in by collection class
+        self.uid = ""                   # to be filled in by collection class
+        self.kernel_options = None
+        self.kernel_options_post = None
+        self.autoinstall_meta = None
+        self.fetchable_files = None
+        self.boot_files = None
+        self.template_files = None
+        self.name = None
+        self.last_cached_mtime = 0
+        self.cached_dict = ""
 
     def get_fields(self):
         """

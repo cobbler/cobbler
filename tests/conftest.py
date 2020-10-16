@@ -1,5 +1,6 @@
 import os
 import shutil
+from contextlib import contextmanager
 
 import pytest
 
@@ -11,6 +12,10 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     # register an additional marker
     config.addinivalue_line("markers", "env(name): mark test to run only on named environment")
+
+@contextmanager
+def does_not_raise():
+    yield
 
 
 @pytest.fixture(scope="session")
