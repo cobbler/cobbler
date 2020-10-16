@@ -3,6 +3,6 @@ Cheetah3
 django
 simplejson
 dnspython
-pyyaml
+pyyaml==5.3.1
 distro
 sphinx_rtd_theme
