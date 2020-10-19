@@ -28,7 +28,7 @@ import threading
 from typing import Optional, List, Union
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
-from cobbler import autoinstall_manager
+from cobbler import autoinstall_manager, settings
 from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import module_loader
@@ -39,15 +39,10 @@ from cobbler import utils
 from cobbler import yumgen
 from cobbler import autoinstallgen
 from cobbler import download_manager
-from cobbler.cexceptions import CX
-
-
-ERROR = 100
-INFO = 10
-DEBUG = 5
 
 # FIXME: add --quiet depending on if not --verbose?
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
+
 
 # notes on locking:
 # - CobblerAPI is a singleton object
@@ -68,7 +63,7 @@ class CobblerAPI:
         """
         Constructor
 
-        :param is_cobblerd: Wether this API is run as a deamon or not.
+        :param is_cobblerd: Wether this API is run as a daemon or not.
         :param settingsfile_location: The location of the settings file on the disk.
         """
 
@@ -87,12 +82,7 @@ class CobblerAPI:
                 main_thread = threading.main_thread()
                 main_thread.setName("Daemon")
 
-            try:
-                self.logger = logging.getLogger()
-            except CX:
-                # return to CLI/other but perms are not valid
-                # perms_ok is False
-                return
+            self.logger = logging.getLogger()
 
             # FIXME: consolidate into 1 server instance
 
@@ -422,7 +412,8 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def remove_item(self, what: str, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
+    def remove_item(self, what: str, ref: str, recursive: bool = False, delete: bool = True,
+                    with_triggers: bool = True):
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         remove_<itemtype> methods.
@@ -437,7 +428,7 @@ class CobblerAPI:
             if isinstance(ref, str):
                 ref = self.get_item(what, ref)
                 if ref is None:
-                    return      # nothing to remove
+                    return  # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
         self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
@@ -590,7 +581,7 @@ class CobblerAPI:
         """
         self.rename_item("repo", ref, newname)
 
-    def rename_image(self, ref, newname):
+    def rename_image(self, ref, newname: str):
         """
         Rename an image to a new name.
 
@@ -1000,7 +991,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def __since(self, mtime, collector, collapse: bool = False) -> list:
+    def __since(self, mtime: float, collector, collapse: bool = False) -> list:
         """
         Called by get_*_since functions. This is an internal part of Cobbler.
 
@@ -1020,7 +1011,7 @@ class CobblerAPI:
                     results2.append(x.to_dict())
         return results2
 
-    def get_distros_since(self, mtime, collapse: bool = False):
+    def get_distros_since(self, mtime: float, collapse: bool = False):
         """
         Returns distros modified since a certain time (in seconds since Epoch)
 
@@ -1030,7 +1021,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.distros, collapse=collapse)
 
-    def get_profiles_since(self, mtime, collapse: bool = False) -> list:
+    def get_profiles_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Returns profiles modified since a certain time (in seconds since Epoch)
 
@@ -1041,7 +1032,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.profiles, collapse=collapse)
 
-    def get_systems_since(self, mtime, collapse: bool = False) -> list:
+    def get_systems_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return systems modified since a certain time (in seconds since Epoch)
 
@@ -1052,7 +1043,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.systems, collapse=collapse)
 
-    def get_repos_since(self, mtime, collapse: bool = False) -> list:
+    def get_repos_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return repositories modified since a certain time (in seconds since Epoch)
 
@@ -1063,7 +1054,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.repos, collapse=collapse)
 
-    def get_images_since(self, mtime, collapse: bool = False) -> list:
+    def get_images_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return images modified since a certain time (in seconds since Epoch)
 
@@ -1074,7 +1065,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.images, collapse=collapse)
 
-    def get_mgmtclasses_since(self, mtime, collapse: bool = False) -> list:
+    def get_mgmtclasses_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return management classes modified since a certain time (in seconds since Epoch)
 
@@ -1085,7 +1076,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.mgmtclasses, collapse=collapse)
 
-    def get_packages_since(self, mtime, collapse: bool = False) -> list:
+    def get_packages_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return packages modified since a certain time (in seconds since Epoch)
 
@@ -1096,7 +1087,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.packages, collapse=collapse)
 
-    def get_files_since(self, mtime, collapse: bool = False) -> list:
+    def get_files_since(self, mtime: float, collapse: bool = False) -> list:
         """
         Return files modified since a certain time (in seconds since Epoch)
 
@@ -1107,7 +1098,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.files, collapse=collapse)
 
-    def get_menus_since(self, mtime, collapse=False) -> list:
+    def get_menus_since(self, mtime: float, collapse=False) -> list:
         """
         Return files modified since a certain time (in seconds since Epoch)
 
@@ -1192,14 +1183,10 @@ class CobblerAPI:
 
             if self.find_repo(auto_name) is None:
                 cobbler_repo = self.new_repo()
-                cobbler_repo.set_name(auto_name)
-                cobbler_repo.set_breed("yum")
-                cobbler_repo.set_arch(basearch)
-                cobbler_repo.set_yumopts({})
-                cobbler_repo.set_environment({})
-                cobbler_repo.set_apt_dists([])
-                cobbler_repo.set_apt_components([])
-                cobbler_repo.set_comment(repository.name)
+                cobbler_repo.name = auto_name
+                cobbler_repo.breed = "yum"
+                cobbler_repo.arch = basearch
+                cobbler_repo.comment = repository.name
                 baseurl = repository.baseurl
                 metalink = repository.metalink
                 mirrorlist = repository.mirrorlist
@@ -1214,8 +1201,8 @@ class CobblerAPI:
                     mirror = baseurl[0]
                     mirror_type = "baseurl"
 
-                cobbler_repo.set_mirror(mirror)
-                cobbler_repo.set_mirror_type(mirror_type)
+                cobbler_repo.mirror = mirror
+                cobbler_repo.mirror_type = mirror_type
                 self.log("auto repo adding: %s" % auto_name)
                 self.add_repo(cobbler_repo)
             else:
@@ -1471,7 +1458,6 @@ class CobblerAPI:
         :param tries: How many tries should be executed before the action fails.
         :param nofail: If True then the action will fail, otherwise the action will just be skipped. This respects the
                        ``tries`` parameter.
-        :param logger: The logger to audit the removal with.
         """
         self.log("reposync", [name])
         action_reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail)
@@ -1484,7 +1470,6 @@ class CobblerAPI:
         Get the status of the current Cobbler instance.
 
         :param mode: "text" or anything else. Meaning whether the output is thought for the terminal or not.
-        :param logger: The logger to audit the removal with.
         :return: The current status of Cobbler.
         """
         statusifier = status.CobblerStatusReport(self._collection_mgr, mode)
@@ -1537,7 +1522,7 @@ class CobblerAPI:
         if not mirror_url.endswith("/"):
             mirror_url = "%s/" % mirror_url
 
-        if mirror_url.startswith("http://") or mirror_url.startswith("https://") or mirror_url.startswith("ftp://")\
+        if mirror_url.startswith("http://") or mirror_url.startswith("https://") or mirror_url.startswith("ftp://") \
                 or mirror_url.startswith("nfs://"):
             # HTTP mirrors are kind of primative. rsync is better. That's why this isn't documented in the manpage and
             # we don't support them.
@@ -1588,7 +1573,7 @@ class CobblerAPI:
                     self.log("Network root given to --available-as is missing a colon, please see the manpage example.")
                     return False
 
-        import_module = self.get_module_by_name("managers.import_signatures")\
+        import_module = self.get_module_by_name("managers.import_signatures") \
             .get_import_manager(self._collection_mgr)
         import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
 
@@ -1603,7 +1588,6 @@ class CobblerAPI:
         :param addgroup:
         :param removeuser:
         :param removegroup:
-        :param logger: The logger to audit the removal with.
         """
         action_acl = acl.AclConfig(self._collection_mgr)
         action_acl.run(
@@ -1833,8 +1817,7 @@ class CobblerAPI:
         """
         Return the list of valid boot loaders for the object
 
-        :param token: The API-token obtained via the login() method.
         :param obj: The object for which the boot loaders should be looked up.
         :return: Get a list of all valid boot loaders.
         """
-        return obj.get_supported_boot_loaders()
+        return obj.supported_boot_loaders

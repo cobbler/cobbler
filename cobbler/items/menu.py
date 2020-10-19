@@ -17,25 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import uuid
 
 from cobbler.items import item
 from cobbler.cexceptions import CX
-
-
-# this data structure is described in item.py
-FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "int"],
-    ["depth", 1, 1, "", False, "", 0, "int"],
-    ["mtime", 0, 0, "", False, "", 0, "int"],
-    ["uid", "", "", "", False, "", 0, "str"],
-
-    # editable in UI
-    ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
-    ["name", "", None, "Name", True, "Ex: Systems", 0, "str"],
-    ["display_name", "", "", "Display Name", True, "Ex: Systems menu", [], "str"],
-    ["parent", '', '', "Parent Menu", True, "", [], "str"],
-]
 
 
 class Menu(item.Item):
@@ -47,7 +32,7 @@ class Menu(item.Item):
 
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
-        self.display_name = ""
+        self._display_name = ""
 
     #
     # override some base class methods first (item.Item)
@@ -62,24 +47,8 @@ class Menu(item.Item):
         _dict = self.to_dict()
         cloned = Menu(self.api)
         cloned.from_dict(_dict)
+        cloned.uid = uuid.uuid4().hex
         return cloned
-
-    def get_fields(self):
-        """
-        Return all fields which this class has with its current values.
-
-        :return: This is a list with lists.
-        """
-        return FIELDS
-
-    def get_parent(self):
-        """
-        Return object next highest up the tree.
-        """
-        if not self.parent or self.parent == '':
-            return None
-
-        return self.api.menus().find(name=self.parent)
 
     def check_if_valid(self):
         """
@@ -89,41 +58,78 @@ class Menu(item.Item):
         if not self.name:
             raise CX("Name is required")
 
+    def from_dict(self, dictionary: dict):
+        """
+        Initializes the object with attributes from the dictionary.
+
+        :param dictionary: The dictionary with values.
+        """
+        item.Item._remove_depreacted_dict_keys(dictionary)
+        to_pass = dictionary.copy()
+        for key in dictionary:
+            lowered_key = key.lower()
+            if hasattr(self, "_" + lowered_key):
+                try:
+                    setattr(self, lowered_key, dictionary[key])
+                except AttributeError as e:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
+                to_pass.pop(key)
+        super().from_dict(to_pass)
+
+    @property
+    def parent(self):
+        """
+        TODO
+
+        :return:
+        """
+        if not self._parent:
+            return None
+        return self.api.menus().find(name=self._parent)
+
+    @parent.setter
+    def parent(self, value: str):
+        """
+        TODO
+
+        :param value:
+        """
+        old_parent = self._parent
+        if isinstance(old_parent, item.Item):
+            old_parent.children.pop(self.name, 'pass')
+        if not value:
+            self._parent = ''
+            return
+        if value == self.name:
+            # check must be done in two places as the parent setter could be called before/after setting the name...
+            raise CX("self parentage is weird")
+        found = self.api.menus().find(name=value)
+        if found is None:
+            raise CX("menu %s not found" % value)
+        self._parent = value
+        self.depth = found.depth + 1
+        parent = self._parent
+        if isinstance(parent, item.Item):
+            parent.children[self.name] = self
+
     #
     # specific methods for item.Menu
     #
 
-    def set_display_name(self, display_name):
+    @property
+    def display_name(self) -> str:
+        """
+        TODO
+
+        :return:
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str):
         """
         Setter for the display_name of the item.
 
         :param display_name: The new display_name. If ``None`` the comment will be set to an emtpy string.
         """
-        if display_name is None:
-            display_name = ""
-        self.display_name = display_name
-
-    def set_parent(self, parent_name):
-        """
-        Set parent menu for the submenu.
-
-        :param parent_name: The name of the parent menu.
-        """
-        old_parent = self.get_parent()
-        if isinstance(old_parent, item.Item):
-            old_parent.children.pop(self.name, 'pass')
-        if not parent_name:
-            self.parent = ''
-            return
-        if parent_name == self.name:
-            # check must be done in two places as set_parent could be called before/after
-            # set_name...
-            raise CX("self parentage is weird")
-        found = self.api.menus().find(name=parent_name)
-        if found is None:
-            raise CX("menu %s not found" % parent_name)
-        self.parent = parent_name
-        self.depth = found.depth + 1
-        parent = self.get_parent()
-        if isinstance(parent, item.Item):
-            parent.children[self.name] = self
+        self._display_name = display_name

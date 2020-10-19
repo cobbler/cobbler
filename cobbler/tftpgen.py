@@ -99,7 +99,11 @@ class TFTPGen:
         full_path = utils.find_kernel(d_file)
 
         if not full_path:
-            raise FileNotFoundError("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
+            full_path = utils.find_initrd(d_file)
+
+        if full_path is None or not full_path:
+            # Will raise if None or an empty str
+            raise FileNotFoundError("No kernel found at \"%s\", tried to copy to: \"%s\"" % (d_file, distro_dir))
 
         # Koan manages remote kernel/initrd itself, but for consistent PXE
         # configurations the synchronization is still necessary
@@ -358,7 +362,7 @@ class TFTPGen:
         """
         return self.get_menu_level(None, arch)
 
-    def get_submenus(self, menu, metadata, arch: str):
+    def get_submenus(self, menu, metadata: dict, arch: str):
         """
         Generates submenus metatdata for pxe, ipxe and grub.
 
@@ -367,9 +371,9 @@ class TFTPGen:
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
         if menu:
-            childs = menu.get_children(sorted=True)
+            childs = menu.get_children(sort_list=True)
         else:
-            childs = [child for child in self.menus if child.get_parent() is None]
+            childs = [child for child in self.menus if child.parent is None]
 
         nested_menu_items = {}
         menu_labels = {}
@@ -413,7 +417,7 @@ class TFTPGen:
             profile_list = [profile for profile in self.profiles if profile.menu is None or profile.menu == ""]
         profile_list = sorted(profile_list, key=lambda profile: profile.name)
         if arch:
-            profile_list = [profile for profile in profile_list if profile.get_arch() == arch]
+            profile_list = [profile for profile in profile_list if profile.arch == arch]
 
         current_menu_items = {}
         menu_labels = metadata["menu_labels"]
@@ -424,13 +428,13 @@ class TFTPGen:
                 continue
             arch = None
             distro = profile.get_conceptual_parent()
-            boot_loaders = profile.get_boot_loaders()
+            boot_loaders = profile.boot_loaders
 
             if distro:
                 arch = distro.arch
 
             for boot_loader in boot_loaders:
-                if boot_loader not in profile.get_boot_loaders():
+                if boot_loader not in profile.boot_loaders:
                     continue
                 contents = self.write_pxe_file(filename=None, system=None, profile=profile, distro=distro, arch=arch,
                                                image=None, format=boot_loader)
@@ -517,7 +521,7 @@ class TFTPGen:
                 template_data[boot_loader] = template_fh.read()
                 template_fh.close()
                 if menu:
-                    parent_menu = menu.get_parent()
+                    parent_menu = menu.parent
                     metadata["menu_name"] = menu.name
                     metadata["menu_label"] = \
                         menu.display_name if menu.display_name and menu.display_name != "" else menu.name
@@ -618,7 +622,7 @@ class TFTPGen:
             metadata["menu_label"] = system.name
             metadata["menu_name"] = system.name
         elif profile:
-            boot_loaders = profile.get_boot_loaders()
+            boot_loaders = profile.boot_loaders
             metadata["menu_label"] = profile.name
             metadata["menu_name"] = profile.name
         elif image:
@@ -734,7 +738,6 @@ class TFTPGen:
         img_path = None
 
         # ---
-        autoinstall_meta = {}
 
         if system:
             blended = utils.blender(self.api, True, system)
@@ -745,6 +748,9 @@ class TFTPGen:
         elif image:
             blended = utils.blender(self.api, True, image)
             meta_blended = utils.blender(self.api, False, image)
+        else:
+            blended = {}
+            meta_blended = {}
 
         autoinstall_meta = meta_blended.get("autoinstall_meta", {})
         metadata.update(blended)
@@ -1109,7 +1115,7 @@ class TFTPGen:
             elif write_file and os.path.isdir(dest):
                 raise CX("template destination (%s) is a directory" % dest)
             elif template == "" or dest == "":
-                raise CX("either the template source or destination was blank (unknown variable used?)" % dest)
+                raise CX("either the template source or destination was blank (unknown variable used?)")
 
             template_fh = open(template)
             template_data = template_fh.read()
@@ -1141,7 +1147,6 @@ class TFTPGen:
         image = None
         profile = None
         system = None
-        arch = None
         if what == "profile":
             profile = self.api.find_profile(name=name)
             if profile:
@@ -1179,7 +1184,6 @@ class TFTPGen:
         if what.lower() not in ("profile", "system"):
             return "# bootcfg is only valid for profiles and systems"
 
-        distro = None
         if what == "profile":
             obj = self.api.find_profile(name=name)
             distro = obj.get_conceptual_parent()

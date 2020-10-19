@@ -5,6 +5,7 @@ import cobbler.actions.sync
 import cobbler.modules.managers.bind
 import cobbler.modules.managers.isc
 from cobbler.api import CobblerAPI
+from cobbler.items.image import Image
 from tests.conftest import does_not_raise
 
 
@@ -122,3 +123,18 @@ def test_sync_systems(input_systems, input_verbose, expected_exception, mocker):
         # Assert
         stub.run_sync_systems.assert_called_once()
         stub.run_sync_systems.assert_called_with(input_systems)
+
+
+def test_image_rename():
+    # Arrange
+    test_api = CobblerAPI()
+    testimage = Image(test_api)
+    testimage.name = "myimage"
+    test_api.add_image(testimage, save=False)
+
+    # Act
+    test_api.rename_image(testimage, "new_name")
+
+    # Assert
+    assert test_api.images().get("new_name")
+    assert test_api.images().get("myimage") is None

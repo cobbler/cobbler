@@ -17,12 +17,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import time
 import os
 import uuid
 from threading import Lock
-from typing import Optional
+from typing import List, Union
 
 from cobbler import utils
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
@@ -46,6 +46,7 @@ class Collection:
         self.api = self.collection_mgr.api
         self.lite_sync = None
         self.lock = Lock()
+        self.logger = logging.getLogger()
 
     def __iter__(self):
         """
@@ -64,7 +65,7 @@ class Collection:
         """
         Must override in subclass. Factory_produce returns an Item object from dict.
 
-        :param api: The collection manager to resolve all information with.
+        :param api: The API to resolve all information with.
         :param seed_data: Unused Parameter in the base collection.
         """
         raise NotImplementedError()
@@ -92,7 +93,8 @@ class Collection:
         """
         return self.listing.get(name.lower(), None)
 
-    def find(self, name: Optional[str] = None, return_list: bool = False, no_errors=False, **kargs: dict):
+    def find(self, name: str = "", return_list: bool = False, no_errors=False,
+             **kargs: dict) -> Union[List[item_base.Item], item_base.Item, None]:
         """
         Return first object in the collection that matches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
@@ -104,12 +106,11 @@ class Collection:
         :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
                       ``name``. You may specify more keys to finetune the search.
         :return: The first item or a list with all matches.
-        :raises ValueError
+        :raises ValueError: In case no arguments for searching were specified.
         """
         matches = []
 
-        # support the old style innovation without kwargs
-        if name is not None:
+        if name:
             kargs["name"] = name
 
         kargs = self.__rekey(kargs)
@@ -210,20 +211,19 @@ class Collection:
         ref = ref.make_clone()
         ref.uid = uuid.uuid4().hex
         ref.ctime = 0
-        ref.set_name(newname)
+        ref.name = newname
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
             for iname in list(ref.interfaces.keys()):
                 # clear all these out to avoid DHCP/DNS conflicts
-                ref.set_dns_name("", iname)
+                ref.set_dns_name("", iname, self.collection_mgr.settings().allow_duplicate_hostnames)
                 ref.set_mac_address("", iname)
                 ref.set_ip_address("", iname)
 
-        self.add(
-            ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
-            check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
+        self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True, check_for_duplicate_names=True,
+                 check_for_duplicate_netinfo=False)
 
-    def rename(self, ref, newname, with_sync: bool = True, with_triggers: bool = True):
+    def rename(self, ref: item_base.Item, newname, with_sync: bool = True, with_triggers: bool = True):
         """
         Allows an object "ref" to be given a new name without affecting the rest of the object tree.
 
@@ -239,7 +239,7 @@ class Collection:
         # make a copy of the object, but give it a new name.
         oldname = ref.name
         newref = ref.make_clone()
-        newref.set_name(newname)
+        newref.name = newname
 
         self.add(newref, with_triggers=with_triggers, save=True)
 
@@ -285,28 +285,29 @@ class Collection:
                 distros = self.api.distros()
                 for d in distros:
                     if d.kernel.find(path) == 0:
-                        d.set_kernel(d.kernel.replace(path, newpath))
-                        d.set_initrd(d.initrd.replace(path, newpath))
+                        d.kernel = d.kernel.replace(path, newpath)
+                        d.initrd = d.initrd.replace(path, newpath)
                         self.collection_mgr.serialize_item(self, d)
 
         # Now descend to any direct ancestors and point them at the new object allowing the original object to be
         # removed without orphanage. Direct ancestors will either be profiles or systems. Note that we do have to
-        # care as set_parent is only really meaningful for subprofiles. We ideally want a more generic set_parent.
+        # care as setting the parent is only really meaningful for subprofiles. We ideally want a more generic parent
+        # setter.
         kids = ref.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "distro":
                 raise CX("internal error, not expected to have distro child objects")
             elif k.COLLECTION_TYPE == "profile":
                 if k.parent != "":
-                    k.set_parent(newname)
+                    k.parent = newname
                 else:
-                    k.set_distro(newname)
+                    k.distro = newname
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "menu":
-                k.set_parent(newname)
+                k.parent = newname
                 self.api.menus().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "system":
-                k.set_profile(newname)
+                k.profile = newname
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "repo":
                 raise CX("internal error, not expected to have repo child objects")
@@ -349,11 +350,11 @@ class Collection:
         if ref.uid == '':
             ref.uid = uuid.uuid4().hex
 
-        if save is True:
+        if save:
             now = time.time()
             if ref.ctime == 0:
                 ref.ctime = now
-            ref.mtime = now
+            ref.mtime = float(now)
 
         if self.lite_sync is None:
             self.lite_sync = self.api.get_sync()
@@ -425,9 +426,9 @@ class Collection:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(), [])
 
         # update children cache in parent object
-        parent = ref.get_parent()
-        if parent is not None:
-            parent.children[ref.name] = ref
+        if ref.parent:
+            ref.parent.children[ref.name] = ref
+            self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 
     def __duplication_checks(self, ref, check_for_duplicate_names: bool, check_for_duplicate_netinfo: bool):
         """

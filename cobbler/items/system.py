@@ -17,105 +17,573 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from typing import Optional, Union
+import logging
+import uuid
+from typing import Any, Dict, Optional, Union
 
-from cobbler import autoinstall_manager
-from cobbler.items.item import Item
-from cobbler import power_manager
-from cobbler import utils
-from cobbler import validate
+from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
+from cobbler.items.item import Item
+
 from ipaddress import AddressValueError, NetmaskValueError
 
 
-# this data structure is described in item.py
-FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "int"],
-    ["ipv6_autoconfiguration", False, 0, "IPv6 Autoconfiguration", True, "", 0, "bool"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["repos_enabled", False, 0, "Repos Enabled", True, "(re)configure local repos on this machine at next config update?", 0, "bool"],
-    ["uid", "", 0, "", False, "", 0, "str"],
+class NetworkInterface:
+    """
+    A subobject of a Cobbler System which represents the network interfaces
+    """
 
-    # editable in UI
-    ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
-    ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
-    ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["enable_ipxe", "<<inherit>>", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
-    ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
-    ["gateway", "", 0, "Gateway", True, "", 0, "str"],
-    ["hostname", "", 0, "Hostname", True, "", 0, "str"],
-    ["image", None, 0, "Image", True, "Parent image (if not a profile)", 0, "str"],
-    ["ipv6_default_device", "", 0, "IPv6 Default Device", True, "", 0, "str"],
-    ["kernel_options", {}, 0, "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
-    ["kernel_options_post", {}, 0, "Kernel Options (Post Install)", True, "Ex: clocksource=pit noapic", 0, "dict"],
-    ["mgmt_classes", "<<inherit>>", 0, "Management Classes", True, "For external config management", 0, "list"],
-    ["mgmt_parameters", "<<inherit>>", 0, "Management Parameters", True, "Parameters which will be handed to your management application (Must be valid YAML dictionary)", 0, "str"],
-    ["name", "", 0, "Name", True, "Ex: vanhalen.example.org", 0, "str"],
-    ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
-    ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
-    ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
-    ["next_server_v4", "<<inherit>>", 0, "Next Server (IPv4) Override", True, "See manpage or leave blank", 0, "str"],
-    ["next_server_v6", "<<inherit>>", 0, "Next Server (IPv6) Override", True, "See manpage or leave blank", 0, "str"],
-    ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
-    ["owners", "<<inherit>>", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
-    ["power_id", "", 0, "Power Management ID", True, "Usually a plug number or blade name, if power type requires it", 0, "str"],
-    ["power_pass", "", 0, "Power Management Password", True, "", 0, "str"],
-    ["power_type", "SETTINGS:power_management_default_type", 0, "Power Management Type", True, "Power management script to use", power_manager.get_power_types(), "str"],
-    ["power_user", "", 0, "Power Management Username", True, "", 0, "str"],
-    ["power_options", "", 0, "Power Management Options", True, "Additional options, to be passed to the fencing agent", 0, "str"],
-    ["power_identity_file", "", 0, "Power Identity File", True, "Identity file to be passed to the fencing agent (ssh key)", 0, "str"],
-    ["profile", None, 0, "Profile", True, "Parent profile", [], "str"],
-    ["proxy", "<<inherit>>", 0, "Internal Proxy", True, "Internal proxy URL", 0, "str"],
-    ["redhat_management_key", "<<inherit>>", 0, "Redhat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["server", "<<inherit>>", 0, "Server Override", True, "See manpage or leave blank", 0, "str"],
-    ["status", "production", 0, "Status", True, "System status", ["", "development", "testing", "acceptance", "production"], "str"],
-    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in configuration management", 0, "dict"],
-    ["virt_auto_boot", "<<inherit>>", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
-    ["virt_cpus", "<<inherit>>", 0, "Virt CPUs", True, "", 0, "int"],
-    ["virt_disk_driver", "<<inherit>>", 0, "Virt Disk Driver Type", True, "The on-disk format for the virtualization disk", validate.VIRT_DISK_DRIVERS, "str"],
-    ["virt_file_size", "<<inherit>>", 0, "Virt File Size(GB)", True, "", 0, "float"],
-    ["virt_path", "<<inherit>>", 0, "Virt Path", True, "Ex: /directory or VolGroup00", 0, "str"],
-    ["virt_pxe_boot", 0, 0, "Virt PXE Boot", True, "Use PXE to build this VM?", 0, "bool"],
-    ["virt_ram", "<<inherit>>", 0, "Virt RAM (MB)", True, "", 0, "int"],
-    ["virt_type", "<<inherit>>", 0, "Virt Type", True, "Virtualization technology to use", validate.VIRT_TYPES, "str"],
-    ["serial_device", "", 0, "Serial Device #", True, "Serial Device Number", 0, "int"],
-    ["serial_baud_rate", "", 0, "Serial Baud Rate", True, "Serial Baud Rate", ["", "2400", "4800", "9600", "19200", "38400", "57600", "115200"], "int"],
-]
+    def __init__(self, api):
+        self.__logger = logging.getLogger()
+        self.__api = api
+        # ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
+        self._bonding_opts = ""
+        # ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
+        self._bridge_opts = ""
+        # ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
+        self._cnames = []
+        # ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
+        self._connected_mode = False
+        # ["dhcp_tag", "", 0 "DHCP Tag", True, "Should be used with --interface", 0, "str"],
+        self._dhcp_tag = ""
+        # ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
+        self._dns_name = ""
+        # ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
+        self._if_gateway = ""
+        # ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
+        self._interface_master = ""
+        # ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
+        self._interface_type = 0
+        # ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
+        self._ip_address = ""
+        # ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
+        self._ipv6_address = ""
+        # ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
+        self._ipv6_default_gateway = ""
+        # ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
+        self._ipv6_mtu = ""
+        # ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
+        self._ipv6_prefix = ""
+        # ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
+        self._ipv6_secondaries = []
+        # ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
+        self._ipv6_static_routes = []
+        # ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
+        self._mac_address = ""
+        # ["management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
+        self._management = False
+        # ["mtu", "", 0, "MTU", True, "", 0, "str"],
+        self._mtu = ""
+        # ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
+        self._netmask = ""
+        # ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
+        self._static = False
+        # ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
+        self._static_routes = []
+        # ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
+        self._virt_bridge = ""
 
-# network interface fields are in a separate list because a system may contain
-# several network interfaces and thus several values for each one of those fields
-# (1-N cardinality), while it may contain only one value for other fields
-# (1-1 cardinality). This difference requires special handling.
-NETWORK_INTERFACE_FIELDS = [
-    ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
-    ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
-    ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
-    ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
-    ["dhcp_tag", "", 0, "DHCP Tag", True, "Should be used with --interface", 0, "str"],
-    ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
-    ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
-    ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
-    ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
-    ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
-    ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
-    ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
-    ["management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
-    ["mtu", "", 0, "MTU", True, "", 0, "str"],
-    ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
-    ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
-    ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
-    ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
-]
+    def from_dict(self, dictionary: dict):
+        """
+        TODO
+
+        :param dictionary:
+        """
+        dictionary_keys = list(dictionary.keys())
+        for key in dictionary:
+            if hasattr(self, key):
+                setattr(self, key, dictionary[key])
+                dictionary_keys.remove(key)
+        if len(dictionary_keys) > 0:
+            self.__logger.info("The following keys were ignored and could not be set for the NetworkInterface object: "
+                               "%s", str(dictionary_keys))
+
+    def to_dict(self) -> dict:
+        """
+        TODO
+
+        :return:
+        """
+        result = {}
+        for key in self.__dict__:
+            if key.startswith("__"):
+                pass
+            if key.startswith("_"):
+                result[key[1:]] = self.__dict__[key]
+        return result
+
+    @property
+    def dhcp_tag(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._dhcp_tag
+
+    @dhcp_tag.setter
+    def dhcp_tag(self, dhcp_tag):
+        """
+        TODO
+
+        :param dhcp_tag:
+        """
+        self._dhcp_tag = dhcp_tag
+
+    @property
+    def cnames(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._cnames
+
+    @cnames.setter
+    def cnames(self, cnames):
+        """
+        TODO
+
+        :param cnames:
+        """
+        self._cnames = utils.input_string_or_list(cnames)
+
+    @property
+    def static_routes(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._static_routes
+
+    @static_routes.setter
+    def static_routes(self, routes):
+        """
+        TODO
+
+        :param routes:
+        """
+        self._static_routes = utils.input_string_or_list(routes)
+
+    @property
+    def static(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._static
+
+    @static.setter
+    def static(self, truthiness):
+        self._static = utils.input_boolean(truthiness)
+
+    @property
+    def management(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._management
+
+    @management.setter
+    def management(self, truthiness):
+        """
+        TODO
+
+        :param truthiness:
+        """
+        self._management = utils.input_boolean(truthiness)
+
+    @property
+    def dns_name(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._dns_name
+
+    @dns_name.setter
+    def dns_name(self, dns_name: str):
+        """
+        Set DNS name for interface.
+
+        :param dns_name: DNS Name of the system
+        :raises ValueError: In case the DNS name is already existing inside Cobbler
+        """
+        dns_name = validate.hostname(dns_name)
+        if dns_name != "" and not self.__api.settings().allow_duplicate_hostname:
+            matched = self.__api.find_items("system", {"dns_name": dns_name})
+            for x in matched:
+                # FIXME: The check for the system does not work yet.
+                if x.name != self.name:
+                    raise ValueError("DNS name duplicated: %s" % dns_name)
+        self._dns_name = dns_name
+
+    @property
+    def ip_address(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ip_address
+
+    @ip_address.setter
+    def ip_address(self, address: str):
+        """
+        Set IPv4 address on interface.
+
+        :param address: IP address
+        :raises ValueError: In case the ip address is already existing inside Cobbler.
+        """
+        address = validate.ipv4_address(address)
+        if address != "" and not self.__api.settings().allow_duplicate_ips:
+            matched = self.__api.find_items("system", {"ip_address": address})
+            for x in matched:
+                # FIXME: The check for the system does not work yet.
+                if x.name != self.name:
+                    raise ValueError("IP address duplicated: %s" % address)
+        self._ip_address = address
+
+    @property
+    def mac_address(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._mac_address
+
+    @mac_address.setter
+    def mac_address(self, address):
+        """
+        Set MAC address on interface.
+
+        :param address: MAC address
+        :raises CX:
+        """
+        address = validate.mac_address(address)
+        if address == "random":
+            address = utils.get_random_mac(self.__api)
+        if address != "" and not self.__api.settings().allow_duplicate_macs:
+            matched = self.__api.find_items("system", {"mac_address": address})
+            for x in matched:
+                # FIXME: The check for the system does not work yet.
+                if x.name != self.name:
+                    raise CX("MAC address duplicated: %s" % address)
+        self._mac_address = address
+
+    @property
+    def netmask(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._netmask
+
+    @netmask.setter
+    def netmask(self, netmask: str):
+        """
+        Set the netmask for given interface.
+
+        :param netmask: netmask
+        """
+        self._netmask = validate.ipv4_netmask(netmask)
+
+    @property
+    def if_gateway(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._if_gateway
+
+    @if_gateway.setter
+    def if_gateway(self, gateway: str):
+        """
+        Set the per-interface gateway.
+
+        :param gateway: IPv4 address for the gateway
+        :returns: True or CX
+        """
+        self._if_gateway = validate.ipv4_address(gateway)
+
+    @property
+    def virt_bridge(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_bridge
+
+    @virt_bridge.setter
+    def virt_bridge(self, bridge: str):
+        """
+        TODO
+
+        :param bridge:
+        """
+        if bridge == "":
+            bridge = self.__api.settings.default_virt_bridge
+        self._virt_bridge = bridge
+
+    @property
+    def interface_type(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._interface_type
+
+    @interface_type.setter
+    def interface_type(self, type: str):
+        if type not in enums.NetworkInterfaceType:
+            raise ValueError("interface type value must be one of: %s or blank" %
+                             ",".join(list(map(str, enums.NetworkInterfaceType))))
+        if type == "na":
+            type = ""
+        self._interface_type = type
+
+    @property
+    def interface_master(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._interface_master
+
+    @interface_master.setter
+    def interface_master(self, interface_master):
+        """
+        TODO
+
+        :param interface_master:
+        """
+        self._interface_master = interface_master
+
+    @property
+    def bonding_opts(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._bonding_opts
+
+    @bonding_opts.setter
+    def bonding_opts(self, bonding_opts):
+        self._bonding_opts = bonding_opts
+
+    @property
+    def bridge_opts(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._bridge_opts
+
+    @bridge_opts.setter
+    def bridge_opts(self, bridge_opts):
+        self._bridge_opts = bridge_opts
+
+    @property
+    def ipv6_address(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_address
+
+    @ipv6_address.setter
+    def ipv6_address(self, address: str):
+        """
+        Set IPv6 address on interface.
+
+        :param address: IP address
+        :raises CX
+        """
+        address = validate.ipv6_address(address)
+        if address != "" and self.__api.settings().allow_duplicate_ips is False:
+            matched = self.__api.find_items("system", {"ipv6_address": address})
+            for x in matched:
+                if x.name != self.name:
+                    raise CX("IP address duplicated: %s" % address)
+        self._ipv6_address = address
+
+    @property
+    def ipv6_prefix(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_address
+
+    @ipv6_prefix.setter
+    def ipv6_prefix(self, prefix):
+        """
+        Assign a IPv6 prefix
+        """
+        self._ipv6_prefix = prefix.strip()
+
+    @property
+    def ipv6_secondaries(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_secondaries
+
+    @ipv6_secondaries.setter
+    def ipv6_secondaries(self, addresses):
+        data = utils.input_string_or_list(addresses)
+        secondaries = []
+        for address in data:
+            if address == "" or utils.is_ip(address):
+                secondaries.append(address)
+            else:
+                raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
+        self._ipv6_secondaries = secondaries
+
+    @property
+    def ipv6_default_gateway(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_default_gateway
+
+    @ipv6_default_gateway.setter
+    def ipv6_default_gateway(self, address):
+        if address == "" or utils.is_ip(address):
+            self._ipv6_default_gateway = address.strip()
+            return
+        raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
+
+    @property
+    def ipv6_static_routes (self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_static_routes
+
+    @ipv6_static_routes.setter
+    def ipv6_static_routes(self, routes):
+        """
+        TODO
+
+        :param routes:
+        """
+        self._ipv6_static_routes = utils.input_string_or_list(routes)
+
+    @property
+    def ipv6_mtu(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._ipv6_mtu
+
+    @ipv6_mtu.setter
+    def ipv6_mtu(self, mtu):
+        self._ipv6_mtu = mtu
+
+    @property
+    def mtu(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._mtu
+
+    @mtu.setter
+    def mtu(self, mtu):
+        self._mtu = mtu
+
+    @property
+    def connected_mode(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._connected_mode
+
+    @connected_mode.setter
+    def connected_mode(self, truthiness):
+        self._connected_mode = utils.input_boolean(truthiness)
+
+    def modify_interface(self, _dict: dict):
+        """
+        Used by the WUI to modify an interface more-efficiently
+        """
+        for (key, value) in list(_dict.items()):
+            (field, interface) = key.split("-", 1)
+            field = field.replace("_", "").replace("-", "")
+
+            if field == "bondingopts":
+                self.bonding_opts = value
+            if field == "bridgeopts":
+                self.bridge_opts = value
+            if field == "connected_mode":
+                self.connected_mode = value
+            if field == "cnames":
+                self.cnames = value
+            if field == "dhcptag":
+                self.dhcp_tag = value
+            if field == "dnsname":
+                self.dns_name = value
+            if field == "ifgateway":
+                self.if_gateway = value
+            if field == "interfacetype":
+                self.interface_type = value
+            if field == "interfacemaster":
+                self.interface_master = value
+            if field == "ipaddress":
+                self.ip_address = value
+            if field == "ipv6address":
+                self.ipv6_address = value
+            if field == "ipv6defaultgateway":
+                self.ipv6_default_gateway = value
+            if field == "ipv6mtu":
+                self.ipv6_mtu = value
+            if field == "ipv6prefix":
+                self.ipv6_prefix = value
+            if field == "ipv6secondaries":
+                self.ipv6_secondaries = value
+            if field == "ipv6staticroutes":
+                self.ipv6_static_routes = value
+            if field == "macaddress":
+                self.mac_address = value
+            if field == "management":
+                self.management = value
+            if field == "mtu":
+                self.mtu = value
+            if field == "netmask":
+                self.netmask = value
+            if field == "static":
+                self.static = value
+            if field == "staticroutes":
+                self.static_routes = value
+            if field == "virtbridge":
+                self.virt_bridge = value
 
 
 class System(Item):
@@ -127,13 +595,44 @@ class System(Item):
 
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
-        self.interfaces = {}
-        self.kernel_options = {}
-        self.kernel_options_post = {}
-        self.autoinstall_meta = {}
-        self.fetchable_files = {}
-        self.boot_files = {}
-        self.template_files = {}
+        self._interfaces: Dict[str, NetworkInterface] = {}
+        self._ipv6_autoconfiguration = False
+        self._repos_enabled = False
+        self._autoinstall = ""
+        self._boot_loaders = []
+        self._enable_ipxe = False
+        self._gateway = ""
+        self._hostname = ""
+        self._image = ""
+        self._ipv6_default_device = ""
+        self._name_servers = []
+        self._name_servers_search = []
+        self._netboot_enabled = False
+        self._next_server_v4 = ""
+        self._next_server_v6 = ""
+        self._filename = ""
+        self._power_address = ""
+        self._power_id = ""
+        self._power_pass = ""
+        self._power_type = ""
+        self._power_user = ""
+        self._power_options = ""
+        self._power_identity_file = ""
+        self._profile = ""
+        self._proxy = ""
+        self._redhat_management_key = ""
+        self._server = ""
+        self._status = ""
+        self._virt_auto_boot = False
+        self._virt_cpus = 0
+        self._virt_disk_driver = enums.VirtDiskDrivers.INHERTIED
+        self._virt_file_size = 0.0
+        self._virt_path = ""
+        self._virt_pxe_boot = False
+        self._virt_ram = 0
+        self._virt_type = enums.VirtType.AUTO
+        self._serial_device = 0
+        self._serial_baud_rate = enums.BaudRates.B0
 
     def __getattr__(self, name):
         if name == "kickstart":
@@ -146,31 +645,76 @@ class System(Item):
     # override some base class methods first (item.Item)
     #
 
-    def get_fields(self):
-        return FIELDS
-
     def make_clone(self):
         _dict = self.to_dict()
         cloned = System(self.api)
         cloned.from_dict(_dict)
+        cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def from_dict(self, seed_data: dict):
-        # FIXME: most definitely doesn't grok interfaces yet.
-        return utils.from_dict_from_fields(self, seed_data, FIELDS)
+    def from_dict(self, dictionary: dict):
+        """
+        Initializes the object with attributes from the dictionary.
 
-    def get_parent(self):
+        :param dictionary: The dictionary with values.
+        """
+        Item._remove_depreacted_dict_keys(dictionary)
+        to_pass = dictionary.copy()
+        for key in dictionary:
+            lowered_key = key.lower()
+            if hasattr(self, "_" + lowered_key):
+                try:
+                    setattr(self, lowered_key, dictionary[key])
+                except AttributeError as e:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
+                to_pass.pop(key)
+        super().from_dict(to_pass)
+
+    @property
+    def parent(self) -> Optional[Item]:
         """
         Return object next highest up the tree.
 
-        :raises CX
+        :returns: None when there is no parent or the corresponding Item.
         """
-        if (self.parent is None or self.parent == '') and self.profile:
+        if (self._parent is None or self._parent == '') and self.profile:
             return self.api.profiles().find(name=self.profile)
-        elif (self.parent is None or self.parent == '') and self.image:
+        elif (self._parent is None or self._parent == '') and self.image:
             return self.api.images().find(name=self.image)
+        elif self._parent:
+            return self.api.systems().find(name=self._parent)
         else:
-            return self.api.systems().find(name=self.parent)
+            return None
+
+    @parent.setter
+    def parent(self, value: str):
+        """
+        TODO
+
+        :param value: The name of a profile, an image or another System.
+        :raises TypeError: In case value was not of type ``str``.
+        :raises ValueError: In case the specified name does not map to an existing profile, image or system.
+        """
+        if not isinstance(value, str):
+            raise TypeError("The name of the parent must be of type str.")
+        if not value:
+            self._parent = ""
+            return
+        # FIXME: Add an exists method so we don't need to play try-catch here.
+        try:
+            self.api.systems().find(name=value)
+        except ValueError:
+            pass
+        try:
+            self.api.profiles().find(name=value)
+        except ValueError:
+            pass
+        try:
+            self.api.images().find(name=value)
+        except ValueError as value_error:
+            raise ValueError("Neither a system, profile or image could be found with the name \"%s\"."
+                             % value) from value_error
+        self._parent = value
 
     def check_if_valid(self):
         """
@@ -180,155 +724,279 @@ class System(Item):
             raise CX("name is required")
         if self.profile is None or self.profile == "":
             if self.image is None or self.image == "":
-                raise CX("Error with system %s - profile or image is required" % (self.name))
+                raise CX("Error with system %s - profile or image is required" % self.name)
 
     #
     # specific methods for item.System
     #
 
-    def __create_interface(self, interface):
+    @property
+    def interfaces(self):
+        """
+        TODO
 
-        self.interfaces[interface] = {}
-        for field in NETWORK_INTERFACE_FIELDS:
-            self.interfaces[interface][field[0]] = field[1]
+        :return:
+        """
+        return self._interfaces
 
-    def __get_interface(self, name):
+    @interfaces.setter
+    def interfaces(self, value: Dict[str, Any]):
+        """
+        This methods needs to be able to take a dictionary from ``make_clone()``
 
-        if not name:
-            name = "default"
-        if name not in self.interfaces:
-            self.__create_interface(name)
+        :param value:
+        """
+        if not isinstance(value, dict):
+            raise TypeError("interfaces must of of type dict")
+        dict_values = list(value.values())
+        if all(isinstance(x, NetworkInterface) for x in dict_values):
+            self._interfaces = value
+            return
+        if all(isinstance(x, dict) for x in dict_values):
+            for key in value:
+                network_iface = NetworkInterface(self.api)
+                network_iface.from_dict(value[key])
+                self._interfaces[key] = network_iface
+            return
+        raise ValueError("The values of the interfaces must fully of type dict (one level with values) or "
+                         "NetworkInterface objects")
 
-        return self.interfaces[name]
-
-    def delete_interface(self, name):
+    def delete_interface(self, name: str):
         """
         Used to remove an interface.
 
-        :raises CX
+        :raises TypeError: If the name of the interface is not of type str
         """
-        if name in self.interfaces and len(self.interfaces) > 1:
+        if not isinstance(name, str):
+            raise TypeError("The name of the interface must be of type str")
+        if not name:
+            return
+        if name in self.interfaces:
             del self.interfaces[name]
-        else:
-            if name not in self.interfaces:
-                # no interface here to delete
-                pass
-            else:
-                raise CX("At least one interface needs to be defined.")
 
-    def rename_interface(self, names):
+    def rename_interface(self, old_name: str, new_name: str):
         """
         Used to rename an interface.
 
         :raises CX
         """
-        (name, newname) = names
-        if name not in self.interfaces:
-            raise CX("Interface %s does not exist" % name)
-        if newname in self.interfaces:
-            raise CX("Interface %s already exists" % newname)
-        else:
-            self.interfaces[newname] = self.interfaces[name]
-            del self.interfaces[name]
+        if not isinstance(old_name, str):
+            raise TypeError("The old_name of the interface must be of type str")
+        if not isinstance(new_name, str):
+            raise TypeError("The new_name of the interface must be of type str")
+        if old_name not in self.interfaces:
+            raise ValueError("Interface \"%s\" does not exist" % old_name)
+        if new_name in self.interfaces:
+            raise ValueError("Interface \"%s\" already exists" % new_name)
+        self.interfaces[new_name] = self.interfaces[old_name]
+        del self.interfaces[old_name]
 
-    def set_boot_loaders(self, boot_loaders: str):
+    @property
+    def hostname(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._hostname
+
+    @hostname.setter
+    def hostname(self, value):
+        """
+        TODO
+
+        :param value:
+        """
+        self._hostname = value
+
+    @property
+    def status(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._status
+
+    @status.setter
+    def status(self, status):
+        """
+        TODO
+
+        :param status:
+        """
+        self._status = status
+
+    @property
+    def boot_loaders(self):
+        """
+        TODO
+
+        :return:
+        """
+        if self._boot_loaders == '<<inherit>>':
+            if self.profile and self.profile != "":
+                profile = self.api.profiles().find(name=self.profile)
+                return profile.boot_loaders
+            if self.image and self.image != "":
+                image = self.api.images().find(name=self.image)
+                return image.boot_loaders
+        return self._boot_loaders
+
+    @boot_loaders.setter
+    def boot_loaders(self, boot_loaders: str):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
         :raises CX
         """
-        if boot_loaders == "<<inherit>>":
-            self.boot_loaders = "<<inherit>>"
+        if boot_loaders == enums.VALUE_INHERITED:
+            self._boot_loaders = enums.VALUE_INHERITED
             return
 
         if boot_loaders:
             boot_loaders_split = utils.input_string_or_list(boot_loaders)
 
-            if self.profile and self.profile != "":
+            if self.profile:
                 profile = self.api.profiles().find(name=self.profile)
-                parent_boot_loaders = profile.get_boot_loaders()
-            elif self.image and self.image != "":
+                parent_boot_loaders = profile.boot_loaders
+            elif self.image:
                 image = self.api.images().find(name=self.image)
-                parent_boot_loaders = image.get_boot_loaders()
+                parent_boot_loaders = image.boot_loaders
             else:
                 parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
-                         (self.name, boot_loaders_split, parent_boot_loaders))
-            self.boot_loaders = boot_loaders_split
+                raise CX("Error with system \"%s\" - not all boot_loaders are supported (given: \"%s\"; supported:"
+                         "\"%s\")" % (self.name, str(boot_loaders_split), str(parent_boot_loaders)))
+            self._boot_loaders = boot_loaders_split
         else:
-            self.boot_loaders = []
+            self._boot_loaders = []
 
-    def get_boot_loaders(self):
+    @property
+    def server(self):
         """
-        :return: The bootloaders.
-        """
-        boot_loaders = self.boot_loaders
-        if boot_loaders == '<<inherit>>':
-            if self.profile and self.profile != "":
-                profile = self.api.profiles().find(name=self.profile)
-                return profile.get_boot_loaders()
-            if self.image and self.image != "":
-                image = self.api.images().find(name=self.image)
-                return image.get_boot_loaders()
-        return boot_loaders
+        TODO
 
-    def set_server(self, server):
+        :return:
+        """
+        return self._server
+
+    @server.setter
+    def server(self, server):
         """
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
         if server is None or server == "":
-            server = "<<inherit>>"
-        self.server = server
+            server = enums.VALUE_INHERITED
+        self._server = server
 
-    def set_next_server_v4(self, server: str = ""):
+    @property
+    def next_server_v4(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._next_server_v4
+
+    @next_server_v4.setter
+    def next_server_v4(self, server: str = ""):
         """
         Setter for the IPv4 next server. See profile.py for more details.
 
-        :param server: The address of the IPv4 next server. Must be a string or ``Item.VALUE_INHERITED``.
+        :param server: The address of the IPv4 next server. Must be a string or ``enums.VALUE_INHERITED``.
         :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
             raise TypeError("Server must be a string.")
-        if server == Item.VALUE_INHERITED:
-            self.next_server_v4 = Item.VALUE_INHERITED
+        if server == enums.VALUE_INHERITED:
+            self._next_server_v4 = enums.VALUE_INHERITED
         else:
-            self.next_server_v4 = validate.ipv4_address(server)
+            self._next_server_v4 = validate.ipv4_address(server)
 
-    def set_next_server_v6(self, server: str = ""):
+    @property
+    def next_server_v6(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._next_server_v6
+
+    @next_server_v6.setter
+    def next_server_v6(self, server: str = ""):
         """
         Setter for the IPv6 next server. See profile.py for more details.
 
-        :param server: The address of the IPv6 next server. Must be a string or ``Item.VALUE_INHERITED``.
+        :param server: The address of the IPv6 next server. Must be a string or ``enums.VALUE_INHERITED``.
         :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
             raise TypeError("Server must be a string.")
-        if server == Item.VALUE_INHERITED:
-            self.next_server_v6 = Item.VALUE_INHERITED
+        if server == enums.VALUE_INHERITED:
+            self._next_server_v6 = enums.VALUE_INHERITED
         else:
-            self.next_server_v6 = validate.ipv6_address(server)
+            self._next_server_v6 = validate.ipv6_address(server)
 
-    def set_filename(self, filename):
+    @property
+    def filename(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._filename
+
+    @filename.setter
+    def filename(self, filename):
+        """
+        TODO
+
+        :param filename:
+        :return:
+        """
         if not filename:
-            self.filename = "<<inherit>>"
+            self._filename = enums.VALUE_INHERITED
         else:
-            self.filename = filename.strip()
+            self._filename = filename.strip()
 
-    def set_proxy(self, proxy):
+    @property
+    def proxy(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._proxy
+
+    @proxy.setter
+    def proxy(self, proxy):
+        """
+        TODO
+
+        :param proxy:
+        :return:
+        """
         if proxy is None or proxy == "":
-            proxy = "<<inherit>>"
-        self.proxy = proxy
+            proxy = enums.VALUE_INHERITED
+        self._proxy = proxy
 
-    def set_redhat_management_key(self, management_key):
+    @property
+    def redhat_management_key(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._redhat_management_key
+
+    @redhat_management_key.setter
+    def redhat_management_key(self, management_key):
         if management_key is None or management_key == "":
-            self.redhat_management_key = "<<inherit>>"
-        self.redhat_management_key = management_key
-
-    def get_redhat_management_key(self):
-        return self.redhat_management_key
+            self._redhat_management_key = enums.VALUE_INHERITED
+        self._redhat_management_key = management_key
 
     def get_mac_address(self, interface):
         """
@@ -348,12 +1016,12 @@ class System(Item):
         Get the IP address for the given interface.
         """
         intf = self.__get_interface(interface)
-        if intf["ip_address"] != "":
-            return intf["ip_address"].strip()
+        if intf.ip_address:
+            return intf.ip_address.strip()
         else:
             return ""
 
-    def is_management_supported(self, cidr_ok: bool = True):
+    def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan only record.
         """
@@ -370,334 +1038,373 @@ class System(Item):
                 return True
         return False
 
-    def set_dhcp_tag(self, dhcp_tag, interface):
-        intf = self.__get_interface(interface)
-        intf["dhcp_tag"] = dhcp_tag
-
-    def set_cnames(self, cnames, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(cnames)
-        intf["cnames"] = data
-
-    def set_static_routes(self, routes, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes)
-        intf["static_routes"] = data
-
-    def set_status(self, status):
-        self.status = status
-
-    def set_static(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["static"] = utils.input_boolean(truthiness)
-
-    def set_management(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["management"] = utils.input_boolean(truthiness)
-
-# ---
-
-    def set_dns_name(self, dns_name: str, interface: str):
+    def __create_interface(self, interface):
         """
-        Set DNS name for interface.
+        TODO
 
-        :param dns_name: DNS name
-        :param interface: interface name
-        :raises CX
+        :param interface:
         """
-        dns_name = validate.hostname(dns_name)
-        if dns_name != "" and self.api.settings().allow_duplicate_hostnames is False:
-            matched = self.api.find_items("system", {"dns_name": dns_name})
-            for x in matched:
-                if x.name != self.name:
-                    raise CX("DNS name duplicated: %s" % dns_name)
+        self.interfaces[interface] = NetworkInterface()
 
-        intf = self.__get_interface(interface)
-        intf["dns_name"] = dns_name
-
-    def set_hostname(self, hostname: str):
+    def __get_interface(self, interface_name: str):
         """
-        Set hostname.
+        TODO
 
-        :param hostname: hostname for system
-        :returns: True or CX
+        :param interface_name:
+        :return:
         """
-        self.hostname = validate.hostname(hostname)
+        if not interface_name:
+            interface_name = "default"
+        if interface_name not in self._interfaces:
+            self.__create_interface(interface_name)
+        return self._interfaces[interface_name]
 
-    def set_ip_address(self, address: str, interface: str):
+    @property
+    def gateway(self):
         """
-        Set IPv4 address on interface.
+        TODO
 
-        :param address: IP address
-        :param interface: interface name
-        :raises CX
+        :return:
         """
-        address = validate.ipv4_address(address)
-        if address != "" and self.api.settings().allow_duplicate_ips is False:
-            matched = self.api.find_items("system", {"ip_address": address})
-            for x in matched:
-                if x.name != self.name:
-                    raise CX("IP address duplicated: %s" % address)
+        return self._gateway
 
-        intf = self.__get_interface(interface)
-        intf["ip_address"] = address
-
-    def set_mac_address(self, address: str, interface: str):
-        """
-        Set MAC address on interface.
-
-        :param address: MAC address
-        :param interface: interface name
-        :raises CX
-        """
-        address = validate.mac_address(address)
-        if address == "random":
-            address = utils.get_random_mac(self.api)
-        if address != "" and self.api.settings().allow_duplicate_macs is False:
-            matched = self.api.find_items("system", {"mac_address": address})
-            for x in matched:
-                if x.name != self.name:
-                    raise CX("MAC address duplicated: %s" % address)
-
-        intf = self.__get_interface(interface)
-        intf["mac_address"] = address
-
-    def set_gateway(self, gateway: str):
+    @gateway.setter
+    def gateway(self, gateway: str):
         """
         Set a gateway IPv4 address.
 
         :param gateway: IP address
         :returns: True or CX
         """
-        self.gateway = validate.ipv4_address(gateway)
+        self._gateway = validate.ipv4_address(gateway)
 
-    def set_name_servers(self, data: Union[str, list]):
+    @property
+    def name_servers(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._name_servers
+
+    @name_servers.setter
+    def name_servers(self, data: Union[str, list]):
         """
         Set the DNS servers.
 
         :param data: string or list of nameservers
         :returns: True or CX
         """
-        self.name_servers = validate.name_servers(data)
+        self._name_servers = validate.name_servers(data)
 
-    def set_name_servers_search(self, data: Union[str, list]):
+    @property
+    def name_servers_search(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._name_servers_search
+
+    @name_servers_search.setter
+    def name_servers_search(self, data: Union[str, list]):
         """
         Set the DNS search paths.
 
         :param data: string or list of search domains
         :returns: True or CX
         """
-        self.name_servers_search = validate.name_servers_search(data)
+        self._name_servers_search = validate.name_servers_search(data)
 
-    def set_netmask(self, netmask: str, interface: str):
+    @property
+    def ipv6_autoconfiguration(self):
         """
-        Set the netmask for given interface.
+        TODO
 
-        :param netmask: netmask
-        :param interface: interface name
-        :raises ValueError
+        :return:
         """
-        intf = self.__get_interface(interface)
-        intf["netmask"] = validate.ipv4_netmask(netmask)
+        return self._ipv6_autoconfiguration
 
-    def set_if_gateway(self, gateway: str, interface: str):
+    @ipv6_autoconfiguration.setter
+    def ipv6_autoconfiguration(self, value: bool):
         """
-        Set the per-interface gateway.
+        TODO
 
-        :param gateway: IPv4 address for the gateway
-        :param interface: interface name
-        :returns: True or CX
+        :param value:
         """
-        intf = self.__get_interface(interface)
-        intf["if_gateway"] = validate.ipv4_address(gateway)
+        if not isinstance(value, bool):
+            raise TypeError("ipv6_autoconfiguration needs to be of type bool")
+        self._ipv6_autoconfiguration = value
 
-# --
+    @property
+    def ipv6_default_device(self):
+        """
+        TODO
 
-    def set_virt_bridge(self, bridge, interface):
-        if bridge == "":
-            bridge = self.settings.default_virt_bridge
-        intf = self.__get_interface(interface)
-        intf["virt_bridge"] = bridge
+        :return:
+        """
+        return self._ipv6_default_device
 
-    def set_interface_type(self, type: str, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na",
-                           "infiniband", ""]
-        if type not in interface_types:
-            raise ValueError("interface type value must be one of: %s or blank" % ",".join(interface_types))
-        if type == "na":
-            type = ""
-        intf = self.__get_interface(interface)
-        intf["interface_type"] = type
+    @ipv6_default_device.setter
+    def ipv6_default_device(self, interface_name):
+        """
+        TODO
 
-    def set_interface_master(self, interface_master, interface):
-        intf = self.__get_interface(interface)
-        intf["interface_master"] = interface_master
-
-    def set_bonding_opts(self, bonding_opts, interface):
-        intf = self.__get_interface(interface)
-        intf["bonding_opts"] = bonding_opts
-
-    def set_bridge_opts(self, bridge_opts, interface):
-        intf = self.__get_interface(interface)
-        intf["bridge_opts"] = bridge_opts
-
-    def set_ipv6_autoconfiguration(self, truthiness):
-        self.ipv6_autoconfiguration = utils.input_boolean(truthiness)
-
-    def set_ipv6_default_device(self, interface_name):
+        :param interface_name:
+        """
         if interface_name is None:
             interface_name = ""
-        self.ipv6_default_device = interface_name
+        self._ipv6_default_device = interface_name
 
-    def set_ipv6_address(self, address: str, interface: str):
+    @property
+    def enable_ipxe(self):
         """
-        Set IPv6 address on interface.
+        TODO
 
-        :param address: IP address
-        :param interface: interface name
-        :raises CX
+        :return:
         """
-        address = validate.ipv6_address(address)
-        if address != "" and self.api.settings().allow_duplicate_ips is False:
-            matched = self.api.find_items("system", {"ipv6_address": address})
-            for x in matched:
-                if x.name != self.name:
-                    raise CX("IP address duplicated: %s" % address)
+        return self._enable_ipxe
 
-        intf = self.__get_interface(interface)
-        intf["ipv6_address"] = address
-
-    def set_ipv6_prefix(self, prefix, interface):
-        """
-        Assign a IPv6 prefix
-        """
-        intf = self.__get_interface(interface)
-        intf["ipv6_prefix"] = prefix.strip()
-
-    def set_ipv6_secondaries(self, addresses, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(addresses)
-        secondaries = []
-        for address in data:
-            if address == "" or utils.is_ip(address):
-                secondaries.append(address)
-            else:
-                raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
-
-        intf["ipv6_secondaries"] = secondaries
-
-    def set_ipv6_default_gateway(self, address, interface):
-        intf = self.__get_interface(interface)
-        if address == "" or utils.is_ip(address):
-            intf["ipv6_default_gateway"] = address.strip()
-            return
-        raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
-
-    def set_ipv6_static_routes(self, routes, interface):
-        intf = self.__get_interface(interface)
-        data = utils.input_string_or_list(routes)
-        intf["ipv6_static_routes"] = data
-
-    def set_ipv6_mtu(self, mtu, interface):
-        intf = self.__get_interface(interface)
-        intf["ipv6_mtu"] = mtu
-
-    def set_mtu(self, mtu, interface):
-        intf = self.__get_interface(interface)
-        intf["mtu"] = mtu
-
-    def set_connected_mode(self, truthiness, interface):
-        intf = self.__get_interface(interface)
-        intf["connected_mode"] = utils.input_boolean(truthiness)
-
-    def set_enable_ipxe(self, enable_ipxe: bool):
+    @enable_ipxe.setter
+    def enable_ipxe(self, enable_ipxe: bool):
         """
         Sets whether or not the system will use iPXE for booting.
         """
-        self.enable_ipxe = utils.input_boolean(enable_ipxe)
+        if not isinstance(enable_ipxe, bool):
+            raise TypeError("enable_ipxe needs to be of type bool")
+        self._enable_ipxe = enable_ipxe
 
-    def set_profile(self, profile_name):
+    @property
+    def profile(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._profile
+
+    @profile.setter
+    def profile(self, profile_name: str):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
 
-        :raises CX
+        :param profile_name: The name of the profile which the system is underneath.
         """
-        old_parent = self.get_parent()
-        if profile_name in ["delete", "None", "~", ""] or profile_name is None:
-            self.profile = ""
+        if not isinstance(profile_name, str):
+            raise TypeError("The name of a profile needs to be of type str.")
+        old_parent = self.parent
+        if profile_name in ["delete", "None", "~", ""]:
+            self._profile = ""
             if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             return
 
-        self.image = ""         # mutual exclusion rule
+        self.image = ""  # mutual exclusion rule
 
         p = self.api.profiles().find(name=profile_name)
-        if p is not None:
-            self.profile = profile_name
-            self.depth = p.depth + 1            # subprofiles have varying depths.
-            if isinstance(old_parent, Item):
-                old_parent.children.pop(self.name, 'pass')
-            new_parent = self.get_parent()
-            if isinstance(new_parent, Item):
-                new_parent.children[self.name] = self
-            return
-        raise CX("invalid profile name: %s" % profile_name)
+        if p is None:
+            raise ValueError("Profile with the name \"%s\" is not existing" % profile_name)
+        self._profile = profile_name
+        self.depth = p.depth + 1  # subprofiles have varying depths.
+        if isinstance(old_parent, Item):
+            old_parent.children.pop(self.name, 'pass')
+        new_parent = self.parent
+        if isinstance(new_parent, Item):
+            new_parent.children[self.name] = self
 
-    def set_image(self, image_name):
+    @property
+    def image(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._image
+
+    @image.setter
+    def image(self, image_name: str):
         """
         Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time.
         It's one or the other.
 
-        :raises CX
+        :param image_name: The name of the image which will act as a parent.
+        :raises CX: In case the image name was invalid.
         """
-        old_parent = self.get_parent()
-        if image_name in ["delete", "None", "~", ""] or image_name is None:
-            self.image = ""
+        if not isinstance(image_name, str):
+            raise TypeError("The name of an image must be of type str.")
+        old_parent = self.parent
+        if image_name in ["delete", "None", "~", ""]:
+            self._image = ""
             if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             return
 
-        self.profile = ""       # mutual exclusion rule
+        self.profile = ""  # mutual exclusion rule
 
         img = self.api.images().find(name=image_name)
 
         if img is not None:
-            self.image = image_name
+            self._image = image_name
             self.depth = img.depth + 1
             if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
-            new_parent = self.get_parent()
+            new_parent = self.parent
             if isinstance(new_parent, Item):
                 new_parent.children[self.name] = self
             return
         raise CX("invalid image name (%s)" % image_name)
 
-    def set_virt_cpus(self, num):
-        return utils.set_virt_cpus(self, num)
+    @property
+    def virt_cpus(self):
+        """
+        TODO
 
-    def set_virt_file_size(self, num):
-        return utils.set_virt_file_size(self, num)
+        :return:
+        """
+        return self._virt_cpus
 
-    def set_virt_disk_driver(self, driver):
-        return utils.set_virt_disk_driver(self, driver)
+    @virt_cpus.setter
+    def virt_cpus(self, num):
+        """
+        TODO
 
-    def set_virt_auto_boot(self, num):
-        return utils.set_virt_auto_boot(self, num)
+        :param num:
+        """
+        self._virt_cpus = validate.validate_virt_cpus(num)
 
-    def set_virt_pxe_boot(self, num):
-        return utils.set_virt_pxe_boot(self, num)
+    @property
+    def virt_file_size(self):
+        """
+        TODO
 
-    def set_virt_ram(self, num):
-        return utils.set_virt_ram(self, num)
+        :return:
+        """
+        return self._virt_file_size
 
-    def set_virt_type(self, vtype):
-        return utils.set_virt_type(self, vtype)
+    @virt_file_size.setter
+    def virt_file_size(self, num):
+        """
+        TODO
 
-    def set_virt_path(self, path):
-        return utils.set_virt_path(self, path, for_system=True)
+        :param num:
+        """
+        self._virt_file_size = validate.validate_virt_file_size(num)
 
-    def set_netboot_enabled(self, netboot_enabled: bool):
+    @property
+    def virt_disk_driver(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_disk_driver
+
+    @virt_disk_driver.setter
+    def virt_disk_driver(self, driver):
+        """
+        TODO
+
+        :param driver:
+        """
+        self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
+
+    @property
+    def virt_auto_boot(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_auto_boot
+
+    @virt_auto_boot.setter
+    def virt_auto_boot(self, num):
+        """
+        TODO
+
+        :param num:
+        """
+        self._virt_auto_boot = validate.validate_virt_auto_boot(num)
+
+    @property
+    def virt_pxe_boot(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_pxe_boot
+
+    @virt_pxe_boot.setter
+    def virt_pxe_boot(self, num):
+        """
+        TODO
+
+        :param num:
+        """
+        self._virt_pxe_boot = validate.validate_virt_pxe_boot(num)
+
+    @property
+    def virt_ram(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_ram
+
+    @virt_ram.setter
+    def virt_ram(self, num):
+        self._virt_ram = validate.validate_virt_ram(num)
+
+    @property
+    def virt_type(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_type
+
+    @virt_type.setter
+    def virt_type(self, vtype):
+        """
+        TODO
+
+        :param vtype:
+        """
+        self._virt_type = validate.validate_virt_type(vtype)
+
+    @property
+    def virt_path(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._virt_path
+
+    @virt_path.setter
+    def virt_path(self, path):
+        """
+        TODO
+
+        :param path:
+        """
+        self._virt_path = validate.validate_virt_path(path, for_system=True)
+
+    @property
+    def netboot_enabled(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._netboot_enabled
+
+    @netboot_enabled.setter
+    def netboot_enabled(self, netboot_enabled: bool):
         """
         If true, allows per-system PXE files to be generated on sync (or add).  If false,
         these files are not generated, thus eliminating the potential for an infinite install
@@ -711,160 +1418,228 @@ class System(Item):
         Use of this option does not affect the ability to use PXE menus.  If an admin has machines
         set up to PXE only after local boot fails, this option isn't even relevant.
         """
-        self.netboot_enabled = utils.input_boolean(netboot_enabled)
+        if not isinstance(netboot_enabled, bool):
+            raise TypeError("netboot_enabled needs to be a bool")
+        self._netboot_enabled = netboot_enabled
 
-    def set_autoinstall(self, autoinstall: str):
+    @property
+    def autoinstall(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._autoinstall
+
+    @autoinstall.setter
+    def autoinstall(self, autoinstall: str):
         """
         Set the automatic installation template filepath, this must be a local file.
 
         :param autoinstall: local automatic installation template file path
         """
-
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
-        self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
+        self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
-    def set_power_type(self, power_type):
-        if power_type is None:
-            power_type = ""
+    @property
+    def power_type(self) -> str:
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_type
+
+    @power_type.setter
+    def power_type(self, power_type: str):
+        """
+        TODO
+
+        :param power_type:
+        """
+        if not isinstance(power_type, str):
+            raise TypeError("power_type must be of type str")
+        if not power_type:
+            self._power_type = ""
+            return
         power_manager.validate_power_type(power_type)
-        self.power_type = power_type
+        self._power_type = power_type
 
-    def set_power_identity_file(self, power_identity_file):
+    @property
+    def power_identity_file(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_identity_file
+
+    @power_identity_file.setter
+    def power_identity_file(self, power_identity_file):
+        """
+        TODO
+
+        :param power_identity_file:
+        """
         if power_identity_file is None:
             power_identity_file = ""
         utils.safe_filter(power_identity_file)
-        self.power_identity_file = power_identity_file
+        self._power_identity_file = power_identity_file
 
-    def set_power_options(self, power_options):
+    @property
+    def power_options(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_options
+
+    @power_options.setter
+    def power_options(self, power_options):
         if power_options is None:
             power_options = ""
         utils.safe_filter(power_options)
-        self.power_options = power_options
+        self._power_options = power_options
 
-    def set_power_user(self, power_user):
+    @property
+    def power_user(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_user
+
+    @power_user.setter
+    def power_user(self, power_user):
         if power_user is None:
             power_user = ""
         utils.safe_filter(power_user)
-        self.power_user = power_user
+        self._power_user = power_user
 
-    def set_power_pass(self, power_pass):
+    @property
+    def power_pass(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_pass
+
+    @power_pass.setter
+    def power_pass(self, power_pass):
+        """
+        TODO
+
+        :param power_pass:
+        """
         if power_pass is None:
             power_pass = ""
         utils.safe_filter(power_pass)
-        self.power_pass = power_pass
+        self._power_pass = power_pass
 
-    def set_power_address(self, power_address):
+    @property
+    def power_address(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_address
+
+    @power_address.setter
+    def power_address(self, power_address):
         if power_address is None:
             power_address = ""
         utils.safe_filter(power_address)
-        self.power_address = power_address
+        self._power_address = power_address
 
-    def set_power_id(self, power_id):
+    @property
+    def power_id(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._power_id
+
+    @power_id.setter
+    def power_id(self, power_id):
+        """
+        TODO
+
+        :param power_id:
+        """
         if power_id is None:
             power_id = ""
         utils.safe_filter(power_id)
-        self.power_id = power_id
+        self._power_id = power_id
 
-    def modify_interface(self, _dict: dict):
+    @property
+    def repos_enabled(self) -> bool:
         """
-        Used by the WUI to modify an interface more-efficiently
+        TODO
+
+        :return:
         """
+        return self._repos_enabled
 
-        for (key, value) in list(_dict.items()):
-            (field, interface) = key.split("-", 1)
-            field = field.replace("_", "").replace("-", "")
+    @repos_enabled.setter
+    def repos_enabled(self, repos_enabled: bool):
+        """
+        TODO
 
-            if field == "bondingopts":
-                self.set_bonding_opts(value, interface)
+        :param repos_enabled:
+        """
+        self._repos_enabled = repos_enabled
 
-            if field == "bridgeopts":
-                self.set_bridge_opts(value, interface)
+    @property
+    def serial_device(self):
+        """
+        TODO
 
-            if field == "connected_mode":
-                self.set_connected_mode(value, interface)
+        :return:
+        """
+        return self._serial_device
 
-            if field == "cnames":
-                self.set_cnames(value, interface)
+    @serial_device.setter
+    def serial_device(self, device_number: int):
+        """
+        TODO
 
-            if field == "dhcptag":
-                self.set_dhcp_tag(value, interface)
+        :param device_number:
+        """
+        self._serial_device = validate.validate_serial_device(device_number)
 
-            if field == "dnsname":
-                self.set_dns_name(value, interface)
+    @property
+    def serial_baud_rate(self):
+        """
+        TODO
 
-            if field == "ifgateway":
-                self.set_if_gateway(value, interface)
+        :return:
+        """
+        return self._serial_baud_rate
 
-            if field == "interfacetype":
-                self.set_interface_type(value, interface)
+    @serial_baud_rate.setter
+    def serial_baud_rate(self, baud_rate: int):
+        """
+        TODO
 
-            if field == "interfacemaster":
-                self.set_interface_master(value, interface)
-
-            if field == "ipaddress":
-                self.set_ip_address(value, interface)
-
-            if field == "ipv6address":
-                self.set_ipv6_address(value, interface)
-
-            if field == "ipv6defaultgateway":
-                self.set_ipv6_default_gateway(value, interface)
-
-            if field == "ipv6mtu":
-                self.set_ipv6_mtu(value, interface)
-
-            if field == "ipv6prefix":
-                self.set_ipv6_prefix(value, interface)
-
-            if field == "ipv6secondaries":
-                self.set_ipv6_secondaries(value, interface)
-
-            if field == "ipv6staticroutes":
-                self.set_ipv6_static_routes(value, interface)
-
-            if field == "macaddress":
-                self.set_mac_address(value, interface)
-
-            if field == "management":
-                self.set_management(value, interface)
-
-            if field == "mtu":
-                self.set_mtu(value, interface)
-
-            if field == "netmask":
-                self.set_netmask(value, interface)
-
-            if field == "static":
-                self.set_static(value, interface)
-
-            if field == "staticroutes":
-                self.set_static_routes(value, interface)
-
-            if field == "virtbridge":
-                self.set_virt_bridge(value, interface)
-
-    def set_repos_enabled(self, repos_enabled: bool):
-        self.repos_enabled = utils.input_boolean(repos_enabled)
-
-    def set_serial_device(self, device_number: int):
-        return utils.set_serial_device(self, device_number)
-
-    def set_serial_baud_rate(self, baud_rate: int):
-        return utils.set_serial_baud_rate(self, baud_rate)
+        :param baud_rate:
+        """
+        self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
     def get_config_filename(self, interface: str, loader: Optional[str] = None):
         """
-        The configuration file for each system pxe uses is either
-        a form of the MAC address of the hex version of the IP.  If none
-        of that is available, just use the given name, though the name
-        given will be unsuitable for PXE configuration (For this, check
-        system.is_management_supported()). This same file is used to store
-        system config information in the Apache tree, so it's still relevant.
+        The configuration file for each system pxe uses is either a form of the MAC address of the hex version of the
+        IP. If none of that is available, just use the given name, though the name given will be unsuitable for PXE
+        configuration (For this, check system.is_management_supported()). This same file is used to store system config
+        information in the Apache tree, so it's still relevant.
 
         :param interface: Name of the interface.
         :param loader: Bootloader type.
         """
-
         boot_loaders = self.get_boot_loaders()
         if loader is None:
             if "grub" in boot_loaders or len(boot_loaders) < 1:

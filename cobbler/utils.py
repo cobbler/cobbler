@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import copy
 import enum
 import errno
 import glob
+import json
 import logging
 import os
 import random
@@ -36,16 +36,13 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
-import uuid
 from functools import reduce
-from typing import List, Optional, Union
+from typing import List, Optional, Pattern, Union
 
 import distro
 import netaddr
-import json
 
-from cobbler import settings
-from cobbler import validate
+from cobbler import enums, settings, validate
 from cobbler.cexceptions import CX
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -66,14 +63,11 @@ CHEETAH_ERROR_DISCLAIMER = """
 #
 """
 
-
 MODULE_CACHE = {}
 SIGNATURE_CACHE = {}
 
 _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
-_re_is_mac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 6) + '$')
-_re_is_ibmac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
 
 
 class DHCP(enum.Enum):
@@ -215,15 +209,6 @@ def is_ip(strdata: str) -> bool:
     return True
 
 
-def is_mac(strdata: str) -> bool:
-    """
-    Return whether the argument is a mac address.
-    """
-    if strdata is None:
-        return False
-    return bool(_re_is_mac.match(strdata) or _re_is_ibmac.match(strdata))
-
-
 def is_systemd() -> bool:
     """
     Return whether or not this system uses systemd.
@@ -271,7 +256,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     return mac
 
 
-def find_matching_files(directory, regex) -> list:
+def find_matching_files(directory: str, regex: Pattern[str]) -> list:
     """
     Find all files in a given directory that match a given regex. Can't use glob directly as glob doesn't take regexen.
     The search does not include subdirectories.
@@ -288,7 +273,7 @@ def find_matching_files(directory, regex) -> list:
     return results
 
 
-def find_highest_files(directory, unversioned, regex):
+def find_highest_files(directory: str, unversioned: str, regex: Pattern[str]) -> str:
     """
     Find the highest numbered file (kernel or initrd numbering scheme) in a given directory that matches a given
     pattern. Used for auto-booting the latest kernel in a directory.
@@ -296,13 +281,15 @@ def find_highest_files(directory, unversioned, regex):
     :param directory: The directory to search in.
     :param unversioned: The base filename which also acts as a last resort if no numbered files are found.
     :param regex: The regex to search for.
-    :return: None or the file with the highest number.
+    :return: The file with the highest number or an empty string.
     """
     files = find_matching_files(directory, regex)
     get_numbers = re.compile(r'(\d+).(\d+).(\d+)')
 
     def max2(a, b):
-        """Returns the larger of the two values"""
+        """
+        Returns the larger of the two values
+        """
         av = get_numbers.search(os.path.basename(a)).groups()
         bv = get_numbers.search(os.path.basename(b)).groups()
 
@@ -317,36 +304,29 @@ def find_highest_files(directory, unversioned, regex):
     last_chance = os.path.join(directory, unversioned)
     if os.path.exists(last_chance):
         return last_chance
-    return None
+    return ""
 
 
-def find_kernel(path):
+def find_kernel(path: str) -> str:
     """
-    Given a directory or a filename, find if the path can be made to resolve into a kernel, and return that full path if
-    possible.
+    Given a filename, find if the path can be made to resolve into a kernel, and return that full path if possible.
 
     :param path: The path to check for a kernel.
-    :return: None or the path with the kernel.
+    :return: path if at the specified location a possible match for a kernel was found, otherwise an empty string.
     """
-    if path is None:
-        return None
+    if not isinstance(path, str):
+        raise TypeError("path must be of type str!")
 
     if os.path.isfile(path):
-        # filename = os.path.basename(path)
-        # if _re_kernel.match(filename):
-        #   return path
-        # elif filename == "vmlinuz":
-        #   return path
-        return path
-
+        filename = os.path.basename(path)
+        if _re_kernel.match(filename) or filename == "vmlinuz":
+            return path
     elif os.path.isdir(path):
         return find_highest_files(path, "vmlinuz", _re_kernel)
-
     # For remote URLs we expect an absolute path, and will not do any searching for the latest:
     elif file_is_remote(path) and remote_file_exists(path):
         return path
-
-    return None
+    return ""
 
 
 def remove_yum_olddata(path):
@@ -392,8 +372,7 @@ def find_initrd(path: str) -> Optional[str]:
     elif os.path.isdir(path):
         return find_highest_files(path, "initrd.img", _re_initrd)
 
-    # For remote URLs we expect an absolute path, and will not
-    # do any searching for the latest:
+    # For remote URLs we expect an absolute path, and will not do any searching for the latest:
     elif file_is_remote(path) and remote_file_exists(path):
         return path
 
@@ -482,8 +461,8 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
              Otherwise this function tries to return the arg option or tries to split it into a list.
              :raises TypeError
     """
-    if options == "<<inherit>>":
-        return "<<inherit>>"
+    if options == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
     if not options or options == "delete":
         return []
     elif isinstance(options, list):
@@ -574,10 +553,11 @@ def grab_tree(api_handle, item) -> list:
     # TODO: Move into item.py
     results = [item]
     # FIXME: The following line will throw an AttributeError for None because there is not get_parent() for None
-    parent = item.get_parent()
+    parent = item.parent
     while parent is not None:
         results.append(parent)
-        parent = parent.get_parent()
+        parent = parent.parent
+        # FIXME: Now get the object and check its existence
     results.append(api_handle.settings())
     return results
 
@@ -592,12 +572,11 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     :param root_obj: The object which should act as the root-node object.
     :return: A dictionary with all the information from the root node downwards.
     """
-
     tree = grab_tree(api_handle, root_obj)
     tree.reverse()  # start with top of tree, override going down
     results = {}
     for node in tree:
-        __consolidate(node, results)
+        results.update(__consolidate(node))
 
     # Make interfaces accessible without Cheetah-voodoo in the templates
     # EXAMPLE: $ip == $ip0, $ip1, $ip2 and so on.
@@ -619,14 +598,18 @@ def blender(api_handle, remove_dicts: bool, root_obj):
         results["repo_data"] = repo_data
 
     http_port = results.get("http_port", 80)
-    if http_port not in (80, "80"):
-        results["http_server"] = "%s:%s" % (results["server"], http_port)
-    else:
+    if http_port in (80, "80"):
         results["http_server"] = results["server"]
+    else:
+        results["http_server"] = "%s:%s" % (results["server"], http_port)
 
     mgmt_parameters = results.get("mgmt_parameters", {})
     mgmt_parameters.update(results.get("autoinstall_meta", {}))
     results["mgmt_parameters"] = mgmt_parameters
+
+    if "children" in results:
+        for key in results["children"]:
+            results["children"][key] = results["children"][key].to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:
@@ -694,7 +677,7 @@ def flatten(data: dict) -> Optional[dict]:
     return data
 
 
-def uniquify(seq) -> list:
+def uniquify(seq: list) -> list:
     """
     Remove duplicates from the sequence handed over in the args.
 
@@ -704,6 +687,7 @@ def uniquify(seq) -> list:
 
     # Credit: http://www.peterbe.com/plog/uniqifiers-benchmark
     # FIXME: if this is actually slower than some other way, overhaul it
+    # For above there is a better version: https://www.peterbe.com/plog/fastest-way-to-uniquify-a-list-in-python-3.6
     seen = {}
     result = []
     for item in seq:
@@ -714,14 +698,15 @@ def uniquify(seq) -> list:
     return result
 
 
-def __consolidate(node, results):
+def __consolidate(node) -> dict:
     """
     Merge data from a given node with the aggregate of all data from past scanned nodes. Dictionaries and arrays are
     treated specially.
 
     :param node: The object to merge data into. The data from the node always wins.
-    :param results: Merged data as dictionary
+    :return: A dictionary with the consolidated data.
     """
+    results = {}
     node_data = node.to_dict()
 
     # If the node has any data items labelled <<inherit>> we need to expunge them. So that they do not override the
@@ -729,7 +714,7 @@ def __consolidate(node, results):
     node_data_copy = {}
     for key in node_data:
         value = node_data[key]
-        if value != "<<inherit>>":
+        if value != enums.VALUE_INHERITED:
             if isinstance(value, dict):
                 node_data_copy[key] = value.copy()
             elif isinstance(value, list):
@@ -738,18 +723,16 @@ def __consolidate(node, results):
                 node_data_copy[key] = value
 
     for field in node_data_copy:
-
         data_item = node_data_copy[field]
         if field in results:
-            # Now merge data types seperately depending on whether they are dict, list, or scalar.
+            # Now merge data types separately depending on whether they are dict, list, or scalar.
             fielddata = results[field]
-
             if isinstance(fielddata, dict):
                 # interweave dict results
                 results[field].update(data_item.copy())
             elif isinstance(fielddata, list) or isinstance(fielddata, tuple):
                 # add to lists (Cobbler doesn't have many lists)
-                # FIXME: should probably uniqueify list after doing this
+                # FIXME: should probably uniquify list after doing this
                 results[field].extend(data_item)
                 results[field] = uniquify(results[field])
             else:
@@ -770,9 +753,10 @@ def __consolidate(node, results):
     dict_removals(results, "template_files")
     dict_removals(results, "boot_files")
     dict_removals(results, "fetchable_files")
+    return results
 
 
-def dict_removals(results, subkey):
+def dict_removals(results: dict, subkey: str):
     """
     Remove entries from a dictionary starting with a "!".
 
@@ -922,8 +906,7 @@ def run_triggers(api, ref, globber, additional: list = None):
     for file in triggers:
         try:
             if file.startswith(".") or file.find(".rpm") != -1:
-                # skip dotfiles or .rpmnew files that may have been installed
-                # in the triggers directory
+                # skip dotfiles or .rpmnew files that may have been installed in the triggers directory
                 continue
             arglist = [file]
             if ref:
@@ -1308,349 +1291,6 @@ def path_tail(apath, bpath) -> str:
     return result
 
 
-def set_arch(self, arch: str, repo: bool = False):
-    """
-    This is a setter for system architectures. If the arch is not valid then an exception is raised.
-
-    :param self: The object where the arch will be set.
-    :param arch: The desired architecture to set for the object.
-    :param repo: If the object where the arch will be set is a repo or not.
-    :raises CX
-    """
-    if not arch or arch == "standard" or arch == "x86":
-        arch = "i386"
-
-    if repo:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "noarch", "src",
-                  "arm", "aarch64"]
-    else:
-        valids = ["i386", "x86_64", "ia64", "ppc", "ppc64", "ppc64le", "ppc64el", "s390", "s390x", "arm", "aarch64"]
-
-    if arch in valids:
-        self.arch = arch
-        return
-
-    raise CX("arch choices include: %s" % ", ".join(valids))
-
-
-def set_os_version(self, os_version):
-    """
-    This is a setter for the operating system version of an object.
-
-    :param self: The object to set the os-version for.
-    :param os_version: The version which shall be set.
-    :raises CX
-    """
-    if not os_version:
-        self.os_version = ""
-        return
-    self.os_version = os_version.lower()
-    if not self.breed:
-        raise CX("cannot set --os-version without setting --breed first")
-    if self.breed not in get_valid_breeds():
-        raise CX("fix --breed first before applying this setting")
-    matched = SIGNATURE_CACHE["breeds"][self.breed]
-    if os_version not in matched:
-        nicer = ", ".join(matched)
-        raise CX("--os-version for breed %s must be one of %s, given was %s" % (self.breed, nicer, os_version))
-    self.os_version = os_version
-
-
-def set_breed(self, breed):
-    """
-    This is a setter for the operating system breed.
-
-    :param self: The object to set the os-breed for.
-    :param breed: The os-breed which shall be set.
-    :raises ValueError
-    """
-    valid_breeds = get_valid_breeds()
-    if breed is not None and breed.lower() in valid_breeds:
-        self.breed = breed.lower()
-        return
-    nicer = ", ".join(valid_breeds)
-    raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
-                     % (breed, nicer))
-
-
-def set_mirror_type(self, mirror_type: str):
-    """
-    This is a setter for repo mirror type.
-
-    :param self: The object where the arch will be set.
-    :param mirror_type: The desired mirror type to set for the repo.
-    :raises CX
-    """
-    if not mirror_type:
-        mirror_type = "baseurl"
-
-    valids = ["metalink", "mirrorlist", "baseurl"]
-
-    if mirror_type in valids:
-        self.mirror_type = mirror_type
-        return
-
-    raise CX("mirror_type choices include: %s" % ", ".join(valids))
-
-
-def set_repo_os_version(self, os_version):
-    """
-    This is a setter for the os-version of a repository.
-
-    :param self: The repo to set the os-version for.
-    :param os_version: The os-version which should be set.
-    :raises CX
-    """
-    if not os_version:
-        self.os_version = ""
-        return
-    self.os_version = os_version.lower()
-    if not self.breed:
-        raise CX("cannot set --os-version without setting --breed first")
-    if self.breed not in validate.REPO_BREEDS:
-        raise CX("fix --breed first before applying this setting")
-    self.os_version = os_version
-    return
-
-
-def set_repo_breed(self, breed: str):
-    """
-    This is a setter for the repository breed.
-
-    :param self: The object to set the breed of.
-    :param breed: The new value for breed.
-    """
-    valid_breeds = validate.REPO_BREEDS
-    if breed is not None and breed.lower() in valid_breeds:
-        self.breed = breed.lower()
-        return
-    nicer = ", ".join(valid_breeds)
-    raise CX("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
-             % (breed, nicer))
-
-
-def set_repos(self, repos, bypass_check: bool = False):
-    """
-    This is a setter for the repository.
-
-    :param self: The object to set the repositories of.
-    :param repos: The repositories to set for the object.
-    :param bypass_check: If the newly set repos should be checked for existence.
-    """
-    # allow the magic inherit string to persist
-    if repos == "<<inherit>>":
-        self.repos = "<<inherit>>"
-        return
-
-    # store as an array regardless of input type
-    if repos is None:
-        self.repos = []
-    else:
-        # TODO: Don't store the names. Store the internal references.
-        self.repos = input_string_or_list(repos)
-    if bypass_check:
-        return
-
-    for r in self.repos:
-        # FIXME: First check this and then set the repos if the bypass check is used.
-        if self.collection_mgr.repos().find(name=r) is None:
-            raise CX("repo %s is not defined" % r)
-
-
-def set_virt_file_size(self, num: Union[str, int, float]):
-    """
-    For Virt only: Specifies the size of the virt image in gigabytes. Older versions of koan (x<0.6.3) interpret 0 as
-    "don't care". Newer versions (x>=0.6.4) interpret 0 as "no disks"
-
-    :param self: The object where the virt file size should be set for.
-    :param num: is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
-                multiple disks
-    """
-
-    if num is None or num == "":
-        self.virt_file_size = 0
-        return
-
-    if num == "<<inherit>>":
-        self.virt_file_size = "<<inherit>>"
-        return
-
-    if isinstance(num, str) and num.find(",") != -1:
-        tokens = num.split(",")
-        for t in tokens:
-            # hack to run validation on each
-            self.set_virt_file_size(t)
-        # if no exceptions raised, good enough
-        self.virt_file_size = num
-        return
-
-    try:
-        inum = int(num)
-        if inum != float(num):
-            raise CX("invalid virt file size (%s)" % num)
-        if inum >= 0:
-            self.virt_file_size = inum
-            return
-        raise CX("invalid virt file size (%s)" % num)
-    except:
-        raise CX("invalid virt file size (%s)" % num)
-
-
-def set_virt_disk_driver(self, driver: str):
-    """
-    For Virt only. Specifies the on-disk format for the virtualized disk
-
-    :param self: The object where the virt disk driver should be set for.
-    :param driver: The virt driver to set.
-    """
-    if driver in validate.VIRT_DISK_DRIVERS:
-        self.virt_disk_driver = driver
-    else:
-        raise CX("invalid virt disk driver type (%s)" % driver)
-
-
-def set_virt_auto_boot(self, num: int):
-    """
-    For Virt only.
-    Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
-
-    :param self: The object where the virt auto boot should be set for.
-    :param num: May be "0" (disabled) or "1" (enabled)
-    """
-
-    if num == "<<inherit>>":
-        self.virt_auto_boot = "<<inherit>>"
-        return
-
-    # num is a non-negative integer (0 means default)
-    try:
-        inum = int(num)
-        if inum == 0:
-            self.virt_auto_boot = False
-            return
-        elif inum == 1:
-            self.virt_auto_boot = True
-            return
-        raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum)
-    except:
-        raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
-
-
-def set_virt_pxe_boot(self, num: int):
-    """
-    For Virt only.
-    Specifies whether the VM should use PXE for booting 0 tells Koan not to PXE boot virtuals
-
-    :param self: The object where the virt pxe boot should be set for.
-    :param num: May be "0" (disabled) or "1" (enabled)
-    """
-
-    # num is a non-negative integer (0 means default)
-    try:
-        inum = int(num)
-        if (inum == 0) or (inum == 1):
-            self.virt_pxe_boot = inum
-            return
-        raise CX("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum)
-    except:
-        raise CX("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
-
-
-def set_virt_ram(self, num: Union[int, float]):
-    """
-    For Virt only.
-    Specifies the size of the Virt RAM in MB.
-
-    :param self: The object where the virtual RAM should be set for.
-    :param num: 0 tells Koan to just choose a reasonable default.
-    """
-
-    if num == "<<inherit>>":
-        self.virt_ram = "<<inherit>>"
-        return
-
-    # num is a non-negative integer (0 means default)
-    try:
-        inum = int(num)
-        if inum != float(num):
-            raise CX("invalid virt ram size (%s)" % num)
-        if inum >= 0:
-            self.virt_ram = inum
-            return
-        raise CX("invalid virt ram size (%s)" % num)
-    except:
-        raise CX("invalid virt ram size (%s)" % num)
-
-
-def set_virt_type(self, vtype: str):
-    """
-    Virtualization preference, can be overridden by koan.
-
-    :param self: The object where the virtual machine type should be set for.
-    :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto"
-    """
-
-    if vtype == "<<inherit>>":
-        self.virt_type = "<<inherit>>"
-        return
-
-    if vtype.lower() not in ["qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto"]:
-        raise CX("invalid virt type (%s)" % vtype)
-    self.virt_type = vtype
-
-
-def set_virt_bridge(self, vbridge):
-    """
-    The default bridge for all virtual interfaces under this profile.
-
-    :param self: The object to adjust the virtual interfaces of.
-    :param vbridge: The bridgename to set for the object.
-    """
-    if not vbridge:
-        vbridge = self.settings.default_virt_bridge
-    self.virt_bridge = vbridge
-
-
-def set_virt_path(self, path: str, for_system: bool = False):
-    """
-    Virtual storage location suggestion, can be overriden by koan.
-
-    :param self: The object to adjust the virtual storage location.
-    :param path: The path to the storage.
-    :param for_system: If this is set to True then the value is inherited from a profile.
-    """
-    if path is None:
-        path = ""
-    if for_system:
-        if path == "":
-            path = "<<inherit>>"
-    self.virt_path = path
-
-
-def set_virt_cpus(self, num: Union[int, str]):
-    """
-    For Virt only. Set the number of virtual CPUs to give to the virtual machine. This is fed to virtinst RAW, so
-    Cobbler will not yelp if you try to feed it 9999 CPUs. No formatting like 9,999 please :)
-
-    :param self: The object to adjust the virtual cpu cores.
-    :param num: The number of cpu cores.
-    """
-    if num == "" or num is None:
-        self.virt_cpus = 1
-        return
-
-    if num == "<<inherit>>":
-        self.virt_cpus = "<<inherit>>"
-        return
-
-    try:
-        num = int(str(num))
-    except:
-        raise CX("invalid number of virtual CPUs (%s)" % num)
-
-    self.virt_cpus = num
-
-
 def safe_filter(var):
     r"""
     This function does nothing if the argument does not find any semicolons or two points behind each other.
@@ -1751,47 +1391,6 @@ def get_mtab(mtab="/etc/mtab", vfstype: bool = False) -> list:
         return mtab_type_map
 
     return mtab_map
-
-
-def set_serial_device(self, device_number: int) -> bool:
-    """
-    Set the serial device for an object.
-
-    :param self: The object to set the device number for.
-    :param device_number: The number of the serial device.
-    :return: True if the action succeeded.
-    """
-    if device_number == "" or device_number is None:
-        device_number = None
-    else:
-        try:
-            device_number = int(str(device_number))
-        except:
-            raise CX("invalid value for serial device (%s)" % device_number)
-
-    self.serial_device = device_number
-    return True
-
-
-def set_serial_baud_rate(self, baud_rate: int) -> bool:
-    """
-    The baud rate is very import that the communication between the two devices can be established correctly. This is
-    the setter for this parameter. This effectively is the speed of the connection.
-
-    :param self: The object to set the serial baud rate for.
-    :param baud_rate: The baud rate to set.
-    :return: True if the action succeeded.
-    """
-    if baud_rate == "" or baud_rate is None:
-        baud_rate = None
-    else:
-        try:
-            baud_rate = int(str(baud_rate))
-        except:
-            raise CX("invalid value for serial baud (%s)" % baud_rate)
-
-    self.serial_baud_rate = baud_rate
-    return True
 
 
 def __cache_mtab__(mtab="/etc/mtab"):
@@ -1965,149 +1564,6 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
             except:
                 # Else return the globally known list
                 return get_supported_system_boot_loaders()
-
-
-def clear_from_fields(item, fields, is_subobject: bool = False):
-    """
-    Used by various item_*.py classes for automating datastructure boilerplate.
-
-    :param item: The item to clear the fields of.
-    :param fields: This is the array of arrays containing the properties of the item.
-    :param is_subobject: If in the Cobbler inheritance tree the item is considered a subobject (True) or not (False).
-    """
-    for elems in fields:
-        # if elems startswith * it's an interface field and we do not operate on it.
-        if elems[0].startswith("*"):
-            continue
-        if is_subobject:
-            val = elems[2]
-        else:
-            val = elems[1]
-        if isinstance(val, str):
-            if val.startswith("SETTINGS:"):
-                setkey = val.split(":")[-1]
-                val = getattr(item.settings, setkey)
-        setattr(item, elems[0], val)
-
-    if item.COLLECTION_TYPE == "system":
-        item.interfaces = {}
-
-
-def from_dict_from_fields(item, item_dict: dict, fields):
-    r"""
-    This method updates an item based on an item dictionary which is enriched by the fields the item dictionary has.
-
-    :param item: The item to update.
-    :param item_dict: The dictionary with the keys and values in the item to update.
-    :param fields: The fields to update. ``item_dict`` needs to be a subset of this array of arrays.
-    """
-    int_fields = []
-    for elems in fields:
-        # we don't have to load interface fields here
-        if elems[0].startswith("*"):
-            if elems[0].startswith("*"):
-                int_fields.append(elems)
-            continue
-        src_k = dst_k = elems[0]
-        if src_k in item_dict:
-            setattr(item, dst_k, item_dict[src_k])
-
-    if item.uid == '':
-        item.uid = uuid.uuid4().hex
-
-    # special handling for interfaces
-    if item.COLLECTION_TYPE == "system":
-        item.interfaces = copy.deepcopy(item_dict["interfaces"])
-        for interface in list(item.interfaces.keys()):
-            # populate fields that might be missing
-            for int_field in int_fields:
-                if not int_field[0][1:] in item.interfaces[interface]:
-                    item.interfaces[interface][int_field[0][1:]] = int_field[1]
-
-
-def to_dict_from_fields(item, fields) -> dict:
-    r"""
-    Each specific Cobbler item has an array in its module. This is called FIELDS. From this array we generate a
-    dictionary.
-
-    :param item: The item to generate a dictionary of.
-    :param fields: The list of fields to include. This is a subset of ``item.get_fields()``.
-    :return: Returns a dictionary of the fields of an item (distro, profile,..).
-    """
-    _dict = {}
-    for elem in fields:
-        k = elem[0]
-        if k.startswith("*"):
-            continue
-        data = getattr(item, k)
-        _dict[k] = data
-    # Interfaces on systems require somewhat special handling they are the only exception in Cobbler.
-    if item.COLLECTION_TYPE == "system":
-        _dict["interfaces"] = copy.deepcopy(item.interfaces)
-
-    return _dict
-
-
-def to_string_from_fields(item_dict, fields, interface_fields=None) -> str:
-    """
-    item_dict is a dictionary, fields is something like item_distro.FIELDS
-
-    :param item_dict: The dictionary representation of a Cobbler item.
-    :param fields: This is the list of fields a Cobbler item has.
-    :param interface_fields: This is the list of fields from a network interface of a system. This is optional.
-    :return: The string representation of a Cobbler item with all its values.
-    """
-    buf = ""
-    keys = []
-    for elem in fields:
-        keys.append((elem[0], elem[3], elem[4]))
-    keys.sort()
-    buf += "%-30s : %s\n" % ("Name", item_dict["name"])
-    for (k, nicename, editable) in keys:
-        # FIXME: supress fields users don't need to see?
-        # FIXME: interfaces should be sorted
-        # FIXME: print ctime, mtime nicely
-        if not editable:
-            continue
-
-        if k != "name":
-            # FIXME: move examples one field over, use description here.
-            buf += "%-30s : %s\n" % (nicename, item_dict[k])
-
-    # somewhat brain-melting special handling to print the dicts
-    # inside of the interfaces more neatly.
-    if "interfaces" in item_dict and interface_fields is not None:
-        keys = []
-        for elem in interface_fields:
-            keys.append((elem[0], elem[3], elem[4]))
-        keys.sort()
-        for iname in list(item_dict["interfaces"].keys()):
-            # FIXME: inames possibly not sorted
-            buf += "%-30s : %s\n" % ("Interface ===== ", iname)
-            for (k, nicename, editable) in keys:
-                if editable:
-                    buf += "%-30s : %s\n" % (nicename, item_dict["interfaces"][iname].get(k, ""))
-
-    return buf
-
-
-def get_setter_methods_from_fields(item, fields):
-    """
-    Return the name of set functions for all fields, keyed by the field name.
-
-    :param item: The item to search for setters.
-    :param fields: The fields to search for setters.
-    :return: The dictionary with the setter methods.
-    """
-    setters = {}
-    for elem in fields:
-        name = elem[0].replace("*", "")
-        setters[name] = getattr(item, "set_%s" % name)
-    if item.COLLECTION_TYPE == "system":
-        setters["modify_interface"] = getattr(item, "modify_interface")
-        setters["delete_interface"] = getattr(item, "delete_interface")
-        setters["rename_interface"] = getattr(item, "rename_interface")
-    return setters
 
 
 def load_signatures(filename, cache: bool = True):
@@ -2433,7 +1889,7 @@ def find_distro_path(settings, distro):
     return os.path.dirname(distro.kernel)
 
 
-def compare_versions_gt(ver1, ver2) -> bool:
+def compare_versions_gt(ver1: str, ver2: str) -> bool:
     """
     Compares versions like "0.9.3" with each other and decides if ver1 is greater than ver2.
 

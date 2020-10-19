@@ -107,7 +107,6 @@ class TestImage:
         """
         Test: remove an image object
         """
-
         # Arrange
 
         # Act

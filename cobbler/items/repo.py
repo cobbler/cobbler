@@ -17,43 +17,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import uuid
 from typing import Union
 
-from cobbler.items import item
+from cobbler import enums
 from cobbler import utils
-from cobbler import validate
 from cobbler.cexceptions import CX
-
-
-# this data structure is described in item.py
-FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "float"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    ["mtime", 0, 0, "", False, "", 0, "float"],
-    ["parent", None, 0, "", False, "", 0, "str"],
-    ["uid", None, 0, "", False, "", 0, "str"],
-
-    # editable in UI
-    ["apt_components", "", 0, "Apt Components (apt only)", True, "ex: main restricted universe", [], "list"],
-    ["apt_dists", "", 0, "Apt Dist Names (apt only)", True, "ex: precise precise-updates", [], "list"],
-    ["arch", "x86_64", 0, "Arch", True, "ex: i386, x86_64", ['i386', 'x86_64', 'ia64', 'ppc', 'ppc64', 'ppc64le', 'ppc64el', 's390', 's390x', 'arm', 'aarch64', 'noarch', 'src'], "str"],
-    ["breed", "rsync", 0, "Breed", True, "", validate.REPO_BREEDS, "str"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["createrepo_flags", '<<inherit>>', 0, "Createrepo Flags", True, "Flags to use with createrepo", 0, "dict"],
-    ["environment", {}, 0, "Environment Variables", True, "Use these environment variables during commands (key=value, space delimited)", 0, "dict"],
-    ["keep_updated", True, 0, "Keep Updated", True, "Update this repo on next 'cobbler reposync'?", 0, "bool"],
-    ["mirror", None, 0, "Mirror", True, "Address of yum or rsync repo to mirror", 0, "str"],
-    ["mirror_type", "baseurl", 0, "Mirror Type", True, "", ["metalink", "mirrorlist", "baseurl"], "str"],
-    ["mirror_locally", True, 0, "Mirror locally", True, "Copy files or just reference the repo externally?", 0, "bool"],
-    ["name", "", 0, "Name", True, "Ex: f10-i386-updates", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
-    ["priority", 99, 0, "Priority", True, "Value for yum priorities plugin, if installed", 0, "int"],
-    ["proxy", "<<inherit>>", 0, "Proxy information", True, "http://example.com:8080, or <<inherit>> to use proxy_url_ext from settings, blank or <<None>> for no proxy", [], "str"],
-    ["rpm_list", [], 0, "RPM List", True, "Mirror just these RPMs (yum only)", 0, "list"],
-    ["yumopts", {}, 0, "Yum Options", True, "Options to write to yum config file", 0, "dict"],
-    ["rsyncopts", "", 0, "Rsync Options", True, "Options to use with rsync repo", 0, "dict"],
-]
+from cobbler.items import item
 
 
 class Repo(item.Item):
@@ -66,12 +36,22 @@ class Repo(item.Item):
 
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
-        self.breed = None
-        self.arch = None
-        self.environment = {}
-        self.yumopts = {}
-        self.rsyncopts = {}
-        self.mirror_type = "baseurl"
+        self._breed = enums.RepoBreeds.NONE
+        self._arch = enums.RepoArchs.X86_64
+        self._environment = {}
+        self._yumopts = {}
+        self._rsyncopts = {}
+        self._mirror_type = enums.MirrorType.NONE
+        self._apt_components = []
+        self._apt_dists = []
+        self._createrepo_flags = {}
+        self._keep_updated = False
+        self._mirror = ""
+        self._mirror_locally = False
+        self._priority = 0
+        self._proxy = ""
+        self._rpm_list = []
+        self._os_version = ""
 
     #
     # override some base class methods first (item.Item)
@@ -86,21 +66,27 @@ class Repo(item.Item):
         _dict = self.to_dict()
         cloned = Repo(self.api)
         cloned.from_dict(_dict)
+        cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def get_fields(self):
+    def from_dict(self, dictionary: dict):
         """
-        Return all fields which this class has with its current values.
+        Initializes the object with attributes from the dictionary.
 
-        :return: This is a list with lists.
+        :param dictionary: The dictionary with values.
         """
-        return FIELDS
-
-    def get_parent(self):
-        """
-        Currently the Cobbler object space does not support subobjects of this object as it is conceptually not useful.
-        """
-        return None
+        item.Item._remove_depreacted_dict_keys(dictionary)
+        dictionary.pop("parent")
+        to_pass = dictionary.copy()
+        for key in dictionary:
+            lowered_key = key.lower()
+            if hasattr(self, "_" + lowered_key):
+                try:
+                    setattr(self, lowered_key, dictionary[key])
+                except AttributeError as e:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
+                to_pass.pop(key)
+        super().from_dict(to_pass)
 
     def check_if_valid(self):
         """
@@ -111,10 +97,10 @@ class Repo(item.Item):
         if self.name is None:
             raise CX("name is required")
         if self.mirror is None:
-            raise CX("Error with repo %s - mirror is required" % (self.name))
+            raise CX("Error with repo %s - mirror is required" % self.name)
 
     #
-    # specific methods for item.File
+    # specific methods for item.Repo
     #
 
     def _guess_breed(self):
@@ -123,45 +109,95 @@ class Repo(item.Item):
         """
         # backwards compatibility
         if not self.breed:
-            if self.mirror.startswith("http://") or self.mirror.startswith("https://") or self.mirror.startswith("ftp://"):
-                self.set_breed("yum")
+            if self.mirror.startswith("http://") or self.mirror.startswith("https://") \
+                    or self.mirror.startswith("ftp://"):
+                self.breed = "yum"
             elif self.mirror.startswith("rhn://"):
-                self.set_breed("rhn")
+                self.breed = "rhn"
             else:
-                self.set_breed("rsync")
+                self.breed = "rsync"
 
-    def set_mirror(self, mirror):
+    @property
+    def mirror(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._mirror
+
+    @mirror.setter
+    def mirror(self, mirror):
         """
         A repo is (initially, as in right now) is something that can be rsynced.
         reposync/repotrack integration over HTTP might come later.
 
         :param mirror: The mirror URI.
         """
-        self.mirror = mirror
+        self._mirror = mirror
         if not self.arch:
             if mirror.find("x86_64") != -1:
-                self.set_arch("x86_64")
+                self.arch = "x86_64"
             elif mirror.find("x86") != -1 or mirror.find("i386") != -1:
-                self.set_arch("i386")
+                self.arch = "i386"
         self._guess_breed()
 
-    def set_mirror_type(self, mirror_type: str):
+    @property
+    def mirror_type(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._mirror_type
+
+    @mirror_type.setter
+    def mirror_type(self, mirror_type: Union[str, enums.MirrorType]):
         """
         Override the mirror_type used for reposync
 
         :param mirror_type: The new mirror_type which will be used.
         """
-        return utils.set_mirror_type(self, mirror_type)
+        # Convert an mirror_type which came in as a string
+        if isinstance(mirror_type, str):
+            try:
+                mirror_type = enums.MirrorType[mirror_type.upper()]
+            except KeyError as e:
+                raise ValueError("mirror_type choices include: %s" % list(map(str, enums.MirrorType))) from e
+        # Now the mirror_type MUST be from the type for the enum.
+        if not isinstance(mirror_type, enums.MirrorType):
+            raise TypeError("mirror_type needs to be of type enums.MirrorType")
+        self._mirror_type = mirror_type
 
-    def set_keep_updated(self, keep_updated: bool):
+    @property
+    def keep_updated(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._keep_updated
+
+    @keep_updated.setter
+    def keep_updated(self, keep_updated: bool):
         """
         This allows the user to disable updates to a particular repo for whatever reason.
 
         :param keep_updated: This may be a bool-like value if the repository shall be keept up to date or not.
         """
-        self.keep_updated = utils.input_boolean(keep_updated)
+        self._keep_updated = keep_updated
 
-    def set_yumopts(self, options: Union[str, dict]):
+    @property
+    def yumopts(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._yumopts
+
+    @yumopts.setter
+    def yumopts(self, options: Union[str, dict]):
         """
         Kernel options are a space delimited list.
 
@@ -170,11 +206,21 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX("invalid yum options")
+            raise ValueError("invalid yum options")
         else:
-            self.yumopts = value
+            self._yumopts = value
 
-    def set_rsyncopts(self, options: Union[str, dict]):
+    @property
+    def rsyncopts(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._rsyncopts
+
+    @rsyncopts.setter
+    def rsyncopts(self, options: Union[str, dict]):
         """
         rsync options are a space delimited list
 
@@ -183,11 +229,21 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX("invalid rsync options")
+            raise ValueError("invalid rsync options")
         else:
-            self.rsyncopts = value
+            self._rsyncopts = value
 
-    def set_environment(self, options: Union[str, dict]):
+    @property
+    def environment(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._environment
+
+    @environment.setter
+    def environment(self, options: Union[str, dict]):
         """
         Yum can take options from the environment. This puts them there before each reposync.
 
@@ -196,24 +252,44 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX("invalid environment options")
+            raise ValueError("invalid environment options")
         else:
-            self.environment = value
+            self._environment = value
 
-    def set_priority(self, priority: int):
+    @property
+    def priority(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._priority
+
+    @priority.setter
+    def priority(self, priority: int):
         """
         Set the priority of the repository. Only works if host is using priorities plugin for yum.
 
         :param priority: Must be a value between 1 and 99. 1 is the highest whereas 99 is the default and lowest.
         :raises CX
         """
-        try:
-            priority = int(str(priority))
-        except:
-            raise CX("invalid priority level: %s" % priority)
-        self.priority = priority
+        if not isinstance(priority, int):
+            raise TypeError("Repository priority must be of type int.")
+        if priority < 0 or priority > 99:
+            raise ValueError("Repository priority must be between 0 and 99 (inclusive)!")
+        self._priority = priority
 
-    def set_rpm_list(self, rpms: Union[str, list]):
+    @property
+    def rpm_list(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._rpm_list
+
+    @rpm_list.setter
+    def rpm_list(self, rpms: Union[str, list]):
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
         probably don't want those), make it possible to list the packages one wants out of those repos, so only those
@@ -221,9 +297,19 @@ class Repo(item.Item):
 
         :param rpms: The rpm to mirror. This may be a string or list.
         """
-        self.rpm_list = utils.input_string_or_list(rpms)
+        self._rpm_list = utils.input_string_or_list(rpms)
 
-    def set_createrepo_flags(self, createrepo_flags):
+    @property
+    def createrepo_flags(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._createrepo_flags
+
+    @createrepo_flags.setter
+    def createrepo_flags(self, createrepo_flags):
         """
         Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
         generate group information.
@@ -232,67 +318,161 @@ class Repo(item.Item):
         """
         if createrepo_flags is None:
             createrepo_flags = ""
-        self.createrepo_flags = createrepo_flags
+        self._createrepo_flags = createrepo_flags
 
-    def set_breed(self, breed: str):
+    @property
+    def breed(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._breed
+
+    @breed.setter
+    def breed(self, breed: Union[str, enums.RepoBreeds]):
         """
         Setter for the operating system breed.
 
         :param breed: The new breed to set. If this argument evaluates to false then nothing will be done.
         """
-        if breed:
-            return utils.set_repo_breed(self, breed)
+        # Convert an arch which came in as a string
+        if isinstance(breed, str):
+            try:
+                breed = enums.RepoBreeds[breed.upper()]
+            except KeyError as e:
+                raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different "
+                                 "levels of support " % (breed, list(map(str, enums.RepoBreeds)))) from e
+        # Now the arch MUST be from the type for the enum.
+        if not isinstance(breed, enums.RepoBreeds):
+            raise TypeError("arch needs to be of type enums.Archs")
+        self._breed = breed
 
-    def set_os_version(self, os_version):
+    @property
+    def os_version(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._os_version
+
+    @os_version.setter
+    def os_version(self, os_version):
         """
         Setter for the operating system version.
 
         :param os_version: The new operating system version. If this argument evaluates to false then nothing will be
                            done.
         """
-        if os_version:
-            return utils.set_repo_os_version(self, os_version)
+        if not os_version:
+            self._os_version = ""
+            return
+        self._os_version = os_version.lower()
+        if not self.breed:
+            raise CX("cannot set --os-version without setting --breed first")
+        if self.breed not in enums.RepoBreeds:
+            raise CX("fix --breed first before applying this setting")
+        self._os_version = os_version
+        return
 
-    def set_arch(self, arch: str):
+    @property
+    def arch(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._arch
+
+    @arch.setter
+    def arch(self, arch: Union[str, enums.RepoArchs]):
         """
         Override the arch used for reposync
 
         :param arch: The new arch which will be used.
         """
-        return utils.set_arch(self, arch, repo=True)
+        # Convert an arch which came in as a string
+        if isinstance(arch, str):
+            try:
+                arch = enums.RepoArchs[arch.upper()]
+            except KeyError as e:
+                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from e
+        # Now the arch MUST be from the type for the enum.
+        if not isinstance(arch, enums.RepoArchs):
+            raise TypeError("arch needs to be of type enums.Archs")
+        self._arch = arch
 
-    def set_mirror_locally(self, value: bool):
+    @property
+    def mirror_locally(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._mirror_locally
+
+    @mirror_locally.setter
+    def mirror_locally(self, value: bool):
         """
         Setter for the local mirror property.
 
         :param value: The new value for ``mirror_locally``.
         """
-        self.mirror_locally = utils.input_boolean(value)
+        if not isinstance(value, bool):
+            raise TypeError("mirror_locally needs to be of type bool")
+        self._mirror_locally = value
 
-    def set_apt_components(self, value: Union[str, list]):
+    @property
+    def apt_components(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._apt_components
+
+    @apt_components.setter
+    def apt_components(self, value: Union[str, list]):
         """
         Setter for the apt command property.
 
         :param value: The new value for ``apt_components``.
         """
-        self.apt_components = utils.input_string_or_list(value)
+        self._apt_components = utils.input_string_or_list(value)
 
-    def set_apt_dists(self, value: Union[str, list]):
+    @property
+    def apt_dists(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._apt_dists
+
+    @apt_dists.setter
+    def apt_dists(self, value: Union[str, list]):
         """
         Setter for the apt dists.
 
         :param value: The new value for ``apt_dists``.
-        :return: ``True`` if everything went correctly.
         """
-        self.apt_dists = utils.input_string_or_list(value)
-        return True
+        self._apt_dists = utils.input_string_or_list(value)
 
-    def set_proxy(self, value):
+    @property
+    def proxy(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._proxy
+
+    @proxy.setter
+    def proxy(self, value):
         """
         Setter for the proxy setting of the repository.
 
         :param value: The new proxy which will be used for the repository.
-        :return: ``True`` if this succeeds.
         """
-        self.proxy = value
-        return True
+        self._proxy = value

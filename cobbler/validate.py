@@ -24,42 +24,15 @@ from typing import Union
 
 import netaddr
 
-from cobbler.cexceptions import CX
-
-RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
+from cobbler import enums, utils
+from cobbler.utils import get_valid_breeds, input_string_or_list
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
-
-REPO_BREEDS = ["rsync", "rhn", "yum", "apt", "wget"]
-
-VIRT_TYPES = ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"]
-VIRT_DISK_DRIVERS = ["<<inherit>>", "raw", "qcow2", "qed", "vdi", "vmdk"]
 
 # blacklist invalid values to the repo statement in autoinsts
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
 
 
-def object_name(name: str, parent: str) -> str:
-    """
-    Validate the object name.
-
-    :param name: Object name
-    :param parent: Parent object name
-    :returns: Object name
-    :raises TypeError
-    """
-    if not isinstance(name, str) or not isinstance(parent, str):
-        raise TypeError("Invalid input, name and parent must be strings")
-    else:
-        name = name.strip()
-        parent = parent.strip()
-
-    if name != "" and parent != "" and name == parent:
-        raise CX("Self parentage is not allowed")
-
-    if not RE_OBJECT_NAME.match(name):
-        raise ValueError("Invalid characters in name: '%s'" % name)
-
-    return name
+# FIXME: Allow the <<inherit>> magic string to be parsed correctly.
 
 
 def hostname(dnsname: str) -> str:
@@ -200,11 +173,10 @@ def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[
         nameservers = nameservers.strip()
         if for_item is True:
             # special handling for Items
-            if nameservers in ["<<inherit>>", ""]:
+            if nameservers in [enums.VALUE_INHERITED, ""]:
                 return nameservers
 
-        # convert string to a list; do the real validation
-        # in the isinstance(list) code block below
+        # convert string to a list; do the real validation in the isinstance(list) code block below
         nameservers = shlex.split(nameservers)
 
     if isinstance(nameservers, list):
@@ -235,17 +207,332 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
         search = search.strip()
         if for_item is True:
             # special handling for Items
-            if search in ["<<inherit>>", ""]:
+            if search in [enums.VALUE_INHERITED, ""]:
                 return search
 
-        # convert string to a list; do the real validation
-        # in the isinstance(list) code block below
+        # convert string to a list; do the real validation in the isinstance(list) code block below
         search = shlex.split(search)
 
     if isinstance(search, list):
         for sl in search:
             hostname(sl)
     else:
-        raise TypeError("Invalid input type %s, expected str or list" % type(search))
+        raise TypeError("Invalid input type \"%s\", expected str or list" % type(search))
 
     return search
+
+
+def validate_breed(breed: str) -> str:
+    """
+    This is a setter for the operating system breed.
+
+    :param breed: The os-breed which shall be set.
+    :raises TypeError: If breed is not a str.
+    :raises ValueError: If breed is not a supported breed.
+    """
+    if not isinstance(breed, str):
+        raise TypeError("breed must be of type str")
+    if not breed:
+        return ""
+    # FIXME: The following line will fail if load_signatures() from utils.py was not called!
+    valid_breeds = get_valid_breeds()
+    breed = breed.lower()
+    if breed and breed in valid_breeds:
+        return breed
+    nicer = ", ".join(valid_breeds)
+    raise ValueError("Invalid value for breed (\"%s\"). Must be one of %s, different breeds have different levels of "
+                     "support!" % (breed, nicer))
+
+
+def validate_os_version(os_version: str, breed: str) -> str:
+    """
+    This is a setter for the operating system version of an object.
+
+    :param os_version: The version which shall be set.
+    :param breed: The breed to validate the os_version for.
+    """
+    # Type checks
+    if not isinstance(os_version, str):
+        raise TypeError("os_version needs to be of type str")
+    if not isinstance(breed, str):
+        raise TypeError("breed needs to be of type str")
+    # Early bail out if we do a reset
+    if not os_version or not breed:
+        return ""
+    # Check breed again, so access does not fail
+    validated_breed = validate_breed(breed)
+    if not validated_breed == breed:
+        raise ValueError("The breed supplied to the validation function of os_version was not valid.")
+    # Now check the os_version
+    # FIXME: The following line will fail if load_signatures() from utils.py was not called!
+    matched = utils.SIGNATURE_CACHE["breeds"][breed]
+    os_version = os_version.lower()
+    if os_version not in matched:
+        nicer = ", ".join(matched)
+        raise ValueError("os_version for breed \"%s\" must be one of %s, given was \"%s\"" % (breed, nicer, os_version))
+    return os_version
+
+
+def validate_arch(arch: Union[str, enums.Archs]) -> enums.Archs:
+    """
+    This is a validator for system architectures. If the arch is not valid then an exception is raised.
+
+    :param arch: The desired architecture to set for the object.
+    :raises TypeError: In case the any type other then str or enums.Archs was supplied.
+    :raises ValueError: In case the supplied str could not be converted.
+    """
+    # Convert an arch which came in as a string
+    if isinstance(arch, str):
+        try:
+            arch = enums.Archs[arch.upper()]
+        except KeyError as e:
+            raise ValueError("arch choices include: %s" % list(map(str, enums.Archs))) from e
+    # Now the arch MUST be from the type for the enum.
+    if not isinstance(arch, enums.Archs):
+        raise TypeError("arch needs to be of type enums.Archs")
+    return arch
+
+
+def validate_repos(repos, api, bypass_check=False):
+    """
+    This is a setter for the repository.
+
+    :param repos: The repositories to set for the object.
+    :param api: The api to find the repos.
+    :param bypass_check: If the newly set repos should be checked for existence.
+    :type bypass_check: bool
+    """
+    # allow the magic inherit string to persist
+    if repos == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+
+    # store as an array regardless of input type
+    if repos is None:
+        repos = []
+    else:
+        # TODO: Don't store the names. Store the internal references.
+        repos = input_string_or_list(repos)
+    if not bypass_check:
+        for r in repos:
+            # FIXME: First check this and then set the repos if the bypass check is used.
+            if api.repos().find(name=r) is None:
+                raise ValueError("repo %s is not defined" % r)
+    return repos
+
+
+def validate_virt_file_size(num: Union[str, int, float]):
+    """
+    For Virt only: Specifies the size of the virt image in gigabytes. Older versions of koan (x<0.6.3) interpret 0 as
+    "don't care". Newer versions (x>=0.6.4) interpret 0 as "no disks"
+
+    :param num: is a non-negative integer (0 means default). Can also be a comma seperated list -- for usage with
+                multiple disks
+    """
+
+    if num is None or num == "":
+        return 0
+
+    if num == enums.VALUE_INHERITED:
+        return enums.VALUE_INHERITED
+
+    if isinstance(num, str) and num.find(",") != -1:
+        tokens = num.split(",")
+        for t in tokens:
+            # hack to run validation on each
+            validate_virt_file_size(t)
+        # if no exceptions raised, good enough
+        return num
+
+    try:
+        inum = int(num)
+        if inum != float(num):
+            raise ValueError("invalid virt file size (%s)" % num)
+        if inum >= 0:
+            return inum
+        raise ValueError("invalid virt file size (%s)" % num)
+    except:
+        raise ValueError("invalid virt file size (%s)" % num)
+
+
+def validate_virt_disk_driver(driver: Union[enums.VirtDiskDrivers, str]):
+    """
+    For Virt only. Specifies the on-disk format for the virtualized disk
+
+    :param driver: The virt driver to set.
+    """
+    if not isinstance(driver, (str, enums.VirtDiskDrivers)):
+        raise TypeError("driver needs to be of type str or enums.VirtDiskDrivers")
+    # Convert an driver which came in as a string
+    if isinstance(driver, str):
+        if driver == enums.VALUE_INHERITED:
+            return enums.VirtDiskDrivers.INHERTIED
+        try:
+            driver = enums.VirtDiskDrivers[driver.upper()]
+        except KeyError as e:
+            raise ValueError("driver choices include: %s" % list(map(str, enums.VirtDiskDrivers))) from e
+    # Now the arch MUST be from the type for the enum.
+    if driver not in enums.VirtDiskDrivers:
+        raise ValueError("invalid virt disk driver type (%s)" % driver)
+    return driver
+
+
+def validate_virt_auto_boot(value: bool) -> bool:
+    """
+    For Virt only.
+    Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
+
+    :param value: May be True or False.
+    """
+    if not isinstance(value, bool):
+        raise TypeError("virt_auto_boot needs to be of type bool.")
+    return value
+
+
+def validate_virt_pxe_boot(value: bool) -> bool:
+    """
+    For Virt only.
+    Specifies whether the VM should use PXE for booting 0 tells Koan not to PXE boot virtuals
+
+    :param value: May be True or False.
+    :return: True or False
+    """
+    if not isinstance(value, bool):
+        raise TypeError("virt_pxe_boot needs to be of type bool.")
+    return value
+
+
+def validate_virt_ram(value: Union[int, float]) -> Union[str, int]:
+    """
+    For Virt only.
+    Specifies the size of the Virt RAM in MB.
+
+    :param value: 0 tells Koan to just choose a reasonable default.
+    :returns: An integer in all cases, except when ``value`` is the magic inherit string.
+    """
+    if not isinstance(value, (str, int, float)):
+        raise TypeError("virt_ram must be of type int, float or the str '<<inherti>>'!")
+
+    if isinstance(value, str):
+        if value != enums.VALUE_INHERITED:
+            raise ValueError("str numbers are not allowed for virt_ram")
+        return enums.VALUE_INHERITED
+
+    # value is a non-negative integer (0 means default)
+    interger_number = int(value)
+    if interger_number != float(value):
+        raise ValueError("The virt_ram needs to be an integer. The float conversion changed its value and is thus "
+                         "invalid. Value was: \"%s\"" % value)
+    if interger_number < 0:
+        raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default raM" % value)
+    return interger_number
+
+
+def validate_virt_type(vtype: Union[enums.VirtType, str]):
+    """
+    Virtualization preference, can be overridden by koan.
+
+    :param vtype: May be one of "qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz" or "auto"
+    """
+    if not isinstance(vtype, (str, enums.VirtType)):
+        raise TypeError("driver needs to be of type str or enums.VirtDiskDrivers")
+    # Convert an arch which came in as a string
+    if isinstance(vtype, str):
+        if vtype == enums.VALUE_INHERITED:
+            return enums.VALUE_INHERITED
+        try:
+            vtype = enums.VirtType[vtype.upper()]
+        except KeyError as e:
+            raise ValueError("vtype choices include: %s" % list(map(str, enums.VirtType))) from e
+    # Now it must be of the enum Type
+    if vtype not in enums.VirtType:
+        raise ValueError("invalid virt type (%s)" % vtype)
+    return vtype
+
+
+def validate_virt_bridge(vbridge: str) -> str:
+    """
+    The default bridge for all virtual interfaces under this profile.
+
+    :param vbridge: The bridgename to set for the object.
+    :raises TypeError: In case vbridge was not of type str.
+    """
+    if not isinstance(vbridge, str):
+        raise TypeError("vbridge must be of type str.")
+    # FIXME: Settings are not available here
+    if not vbridge:
+        return ""
+    return vbridge
+
+
+def validate_virt_path(path: str, for_system: bool = False):
+    """
+    Virtual storage location suggestion, can be overriden by koan.
+
+    :param path: The path to the storage.
+    :param for_system: If this is set to True then the value is inherited from a profile.
+    """
+    if path is None:
+        path = ""
+    if for_system:
+        if path == "":
+            path = enums.VALUE_INHERITED
+    return path
+
+
+def validate_virt_cpus(num: Union[str, int]) -> int:
+    """
+    For Virt only. Set the number of virtual CPUs to give to the virtual machine. This is fed to virtinst RAW, so
+    Cobbler will not yelp if you try to feed it 9999 CPUs. No formatting like 9,999 please :)
+
+    Zero means that the number of cores is inherited. Negative numbers are forbidden
+
+    :param num: The number of cpu cores. If you pass the magic inherit string it will be converted to 0.
+    """
+    if isinstance(num, str):
+        if num == enums.VALUE_INHERITED:
+            return 0
+    if not isinstance(num, int):
+        raise TypeError("virt_cpus needs to be an integer")
+    if num < 0:
+        raise ValueError("virt_cpus needs to be 0 or greater")
+    return int(num)
+
+
+def validate_serial_device(device_number: int) -> int:
+    """
+    Set the serial device for an object.
+
+    :param device_number: The number of the serial device.
+    :return: The validated device number
+    """
+    if device_number == "" or device_number is None:
+        device_number = None
+    else:
+        try:
+            device_number = int(str(device_number))
+        except:
+            raise ValueError("invalid value for serial device (%s)" % device_number)
+
+    return device_number
+
+
+def validate_serial_baud_rate(baud_rate: Union[int, enums.BaudRates]) -> enums.BaudRates:
+    """
+    The baud rate is very import that the communication between the two devices can be established correctly. This is
+    the setter for this parameter. This effectively is the speed of the connection.
+
+    :param baud_rate: The baud rate to set.
+    :return: The validated baud rate.
+    """
+    if not isinstance(baud_rate, (int, enums.BaudRates)):
+        raise TypeError("serial baud rate needs to be of type int or enums.BaudRates")
+    # Convert the baud rate which came in as an int
+    if isinstance(baud_rate, int):
+        try:
+            baud_rate = enums.BaudRates["B" + str(baud_rate)]
+        except KeyError as key_error:
+            raise ValueError("vtype choices include: %s" % list(map(str, enums.BaudRates))) from key_error
+    # Now it must be of the enum Type
+    if baud_rate not in enums.BaudRates:
+        raise ValueError("invalid value for serial baud Rate (%s)" % baud_rate)
+    return baud_rate

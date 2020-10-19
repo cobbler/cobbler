@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import uuid
 from typing import Union
 
 from cobbler.items import item
@@ -24,34 +25,21 @@ from cobbler import utils
 from cobbler.cexceptions import CX
 
 
-# this data structure is described in item.py
-FIELDS = [
-    # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "int"],
-    ["depth", 2, 0, "", False, "", 0, "float"],
-    ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
-    ["mtime", 0, 0, "", False, "", 0, "int"],
-    ["uid", "", 0, "", False, "", 0, "str"],
-
-    # editable in UI
-    ["class_name", "", 0, "Class Name", True, "Actual Class Name (leave blank to use the name field)", 0, "str"],
-    ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["files", [], 0, "Files", True, "File resources", 0, "list"],
-    ["name", "", 0, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
-    ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
-    ["packages", [], 0, "Packages", True, "Package resources", 0, "list"],
-    ["params", {}, 0, "Parameters/Variables", True, "List of parameters/variables", 0, "dict"],
-]
-
-
 class Mgmtclass(item.Item):
+    """
+    TODO Explain purpose of the class
+    """
 
     TYPE_NAME = "mgmtclass"
     COLLECTION_TYPE = "mgmtclass"
 
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
-        self.params = {}
+        self._is_definition = False
+        self._params = {}
+        self._class_name = ""
+        self._files = []
+        self._packages = []
 
     #
     # override some base class methods first (item.Item)
@@ -67,16 +55,27 @@ class Mgmtclass(item.Item):
         _dict = self.to_dict()
         cloned = Mgmtclass(self.api)
         cloned.from_dict(_dict)
+        cloned.uid = uuid.uuid4().hex
         return cloned
 
-    def get_fields(self):
+    def from_dict(self, dictionary: dict):
         """
-        Return all fields which this class has with it's current values.
+        Initializes the object with attributes from the dictionary.
 
-        :return: This is a list with lists.
+        :param dictionary: The dictionary with values.
         raises CX
         """
-        return FIELDS
+        item.Item._remove_depreacted_dict_keys(dictionary)
+        to_pass = dictionary.copy()
+        for key in dictionary:
+            lowered_key = key.lower()
+            if hasattr(self, "_" + lowered_key):
+                try:
+                    setattr(self, lowered_key, dictionary[key])
+                except AttributeError as e:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % key.lower()) from e
+                to_pass.pop(key)
+        super().from_dict(to_pass)
 
     def check_if_valid(self):
         """
@@ -91,23 +90,53 @@ class Mgmtclass(item.Item):
     # specific methods for item.Mgmtclass
     #
 
-    def set_packages(self, packages):
+    @property
+    def packages(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._packages
+
+    @packages.setter
+    def packages(self, packages):
         """
         Setter for the packages of the managementclass.
 
         :param packages: A string or list which contains the new packages.
         """
-        self.packages = utils.input_string_or_list(packages)
+        self._packages = utils.input_string_or_list(packages)
 
-    def set_files(self, files: Union[str, list]):
+    @property
+    def files(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._files
+
+    @files.setter
+    def files(self, files: Union[str, list]):
         """
         Setter for the files of the object.
 
         :param files: A string or list which contains the new files.
         """
-        self.files = utils.input_string_or_list(files)
+        self._files = utils.input_string_or_list(files)
 
-    def set_params(self, params):
+    @property
+    def params(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._params
+
+    @params.setter
+    def params(self, params):
         """
         Setter for the params of the managementclass.
 
@@ -118,17 +147,37 @@ class Mgmtclass(item.Item):
         if not success:
             raise TypeError("invalid parameters")
         else:
-            self.params = value
+            self._params = value
 
-    def set_is_definition(self, isdef: bool):
+    @property
+    def is_definition(self):
+        """
+        TODO
+
+        :return:
+        """
+        return self._is_definition
+
+    @is_definition.setter
+    def is_definition(self, isdef: bool):
         """
         Setter for property ``is_defintion``.
 
         :param isdef: The new value for the property.
         """
-        self.is_definition = utils.input_boolean(isdef)
+        self._is_definition = isdef
 
-    def set_class_name(self, name: str):
+    @property
+    def class_name(self) -> str:
+        """
+        TODO
+
+        :return:
+        """
+        return self._class_name
+
+    @class_name.setter
+    def class_name(self, name: str):
         """
         Setter for the name of the managementclass.
 
@@ -140,4 +189,4 @@ class Mgmtclass(item.Item):
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise ValueError("invalid characters in class name: '%s'" % name)
-        self.class_name = name
+        self._class_name = name

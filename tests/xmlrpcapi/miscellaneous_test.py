@@ -118,14 +118,18 @@ class TestMiscellaneous:
     @pytest.mark.skip("This functionality was implemented very quickly. The test for this needs to be fixed at a "
                       "later point!")
     def test_find_system_by_dns_name(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                                     create_system, remove_system):
+                                     create_system, remove_system, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_template_for_system"
         name_profile = "test_profile_template_for_system"
         name_system = "test_system_template_for_system"
         dns_name = "test.cobbler-test.local"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         system = create_system(name_system, name_profile)
         remote.modify_system(system, "dns_name", dns_name, token)
@@ -143,13 +147,17 @@ class TestMiscellaneous:
         assert result
 
     def test_generate_script(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system):
+                             create_system, remove_system, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_template_for_system"
         name_profile = "test_profile_template_for_system"
         name_autoinstall_script = "test_generate_script"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         # TODO: Create Autoinstall Script
 
@@ -163,11 +171,15 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_item_as_rendered(self, remote, token, create_distro, remove_distro):
+    def test_get_item_as_rendered(self, remote, token, create_distro, remove_distro, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name = "test_item_as_rendered"
-        create_distro(name, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name, "x86_64", "suse", path_kernel, path_initrd)
 
         # Act
         result = remote.get_distro_as_rendered(name, token)
@@ -178,15 +190,18 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_get_s_since(self, remote, create_distro, remove_distro):
+    def test_get_s_since(self, remote, create_distro, remove_distro, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro_before = "test_distro_since_before"
         name_distro_after = "test_distro_since_after"
-        create_distro(name_distro_before, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
-        mtime = time.time()
-        create_distro(name_distro_after, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro_before, "x86_64", "suse", path_kernel, path_initrd)
+        mtime = float(time.time())
+        create_distro(name_distro_after, "x86_64", "suse", path_kernel, path_initrd)
 
         # Act
         result = remote.get_distros_since(mtime)
@@ -196,7 +211,7 @@ class TestMiscellaneous:
         remove_distro(name_distro_after)
 
         # Assert
-        assert type(result) == list
+        assert isinstance(result, list)
         assert len(result) == 1
 
     def test_get_authn_module_name(self, remote, token):
@@ -209,13 +224,17 @@ class TestMiscellaneous:
         assert result
 
     def test_get_blended_data(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                              create_system, remove_system):
+                              create_system, remove_system, create_kernel_initrd):
         # Arrange
-        name_distro = "test_distro_template_for_system"
-        name_profile = "test_profile_template_for_system"
-        name_system = "test_system_template_for_system"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
+        name_distro = "test_distro_blended"
+        name_profile = "test_profile_blended"
+        name_system = "test_system_blended"
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         create_system(name_system, name_profile)
 
@@ -231,14 +250,18 @@ class TestMiscellaneous:
         assert result
 
     def test_get_config_data(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system):
+                             create_system, remove_system, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_template_for_system"
         name_profile = "test_profile_template_for_system"
         name_system = "test_system_template_for_system"
         system_hostname = "testhostname"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         system = create_system(name_system, name_profile)
         remote.modify_system(system, "hostname", system_hostname, token)
@@ -256,17 +279,21 @@ class TestMiscellaneous:
         assert json.loads(result)
 
     def test_get_repos_compatible_with_profile(self, remote, token, create_distro, remove_distro, create_profile,
-                                               remove_profile, create_repo, remove_repo):
+                                               remove_profile, create_repo, remove_repo, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_get_repo_for_profile"
         name_profile = "test_profile_get_repo_for_profile"
         name_repo_compatible = "test_repo_compatible_profile_1"
         name_repo_incompatible = "test_repo_compatible_profile_2"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
-        repo_compatible = create_repo(name_repo_compatible, "http://localhost", "0")
-        repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", "0")
+        repo_compatible = create_repo(name_repo_compatible, "http://localhost", False)
+        repo_incompatible = create_repo(name_repo_incompatible, "http://localhost", False)
         remote.modify_repo(repo_compatible, "arch", "x86_64", token)
         remote.save_repo(repo_compatible, token)
         remote.modify_repo(repo_incompatible, "arch", "ppc64le", token)
@@ -295,14 +322,19 @@ class TestMiscellaneous:
 
     @pytest.mark.skip("The function under test appears to have a bug. For now we skip the test.")
     def test_get_template_file_for_profile(self, remote, create_distro, remove_distro, create_profile, remove_profile,
-                                           create_autoinstall_template, remove_autoinstall_template):
+                                           create_autoinstall_template, remove_autoinstall_template,
+                                           create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_template_for_profile"
         name_profile = "test_profile_template_for_profile"
         name_template = "test_template_for_profile"
         content_template = "# Testtemplate"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         create_autoinstall_template(name_template, content_template)
 
@@ -320,15 +352,19 @@ class TestMiscellaneous:
 
     def test_get_template_file_for_system(self, remote, create_distro, remove_distro, create_profile, remove_profile,
                                           create_system, remove_system, create_autoinstall_template,
-                                          remove_autoinstall_template):
+                                          remove_autoinstall_template, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_template_for_system"
         name_profile = "test_profile_template_for_system"
         name_system = "test_system_template_for_system"
         name_template = "test_template_for_system"
         content_template = "# Testtemplate"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         create_system(name_system, name_profile)
         create_autoinstall_template(name_template, content_template)
@@ -345,12 +381,17 @@ class TestMiscellaneous:
         # Assert
         assert result
 
-    def test_is_autoinstall_in_use(self, remote, token, create_distro, remove_distro, create_profile, remove_profile):
+    def test_is_autoinstall_in_use(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
+                                   create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name_distro = "test_distro_is_autoinstall_in_use"
         name_profile = "test_profile_is_autoinstall_in_use"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
 
         # Act
@@ -484,15 +525,19 @@ class TestMiscellaneous:
         # Will fail if the version is adjusted in the setup.py
         assert result == 3.201
 
-    def test_xapi_object_edit(self, remote, token, remove_distro):
+    def test_xapi_object_edit(self, remote, token, remove_distro, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
         name = "testdistro_xapi_edit"
 
         # Act
         result = remote.xapi_object_edit("distro", name, "add",
-                                         {"name": name, "arch": "x86_64", "breed": "suse",
-                                          "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log"}, token)
+                                         {"name": name, "arch": "x86_64", "breed": "suse", "kernel": path_kernel,
+                                          "initrd": path_initrd}, token)
 
         # Cleanup
         remove_distro(name)

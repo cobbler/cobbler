@@ -22,7 +22,7 @@ import os.path
 import glob
 
 from cobbler.cobbler_collections import collection
-from cobbler.items import distro as distro
+from cobbler.items import distro
 from cobbler import utils
 from cobbler.cexceptions import CX
 
@@ -53,15 +53,16 @@ class Distros(collection.Collection):
         """
         Remove element named 'name' from the collection
 
-        :raises CX
+        :raises CX: In case any subitem (profiles or systems) would be orphaned. If the option ``recursive`` is set then
+                    the orphaned items would be removed automatically.
         """
         name = name.lower()
 
         # first see if any Groups use this distro
         if not recursive:
-            for v in self.api.profiles():
-                if v.distro and v.distro.lower() == name:
-                    raise CX("removal would orphan profile: %s" % v.name)
+            for profile in self.api.profiles():
+                if profile.distro and profile.distro.name.lower() == name:
+                    raise CX("removal would orphan profile: %s" % profile.name)
 
         obj = self.find(name=name)
 
@@ -71,7 +72,7 @@ class Distros(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     self.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
-                                                           with_triggers=with_triggers)
+                                            with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:
@@ -92,8 +93,8 @@ class Distros(collection.Collection):
                     utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [])
                     utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
-            # look through all mirrored directories and find if any directory is holding
-            # this particular distribution's kernel and initrd
+            # look through all mirrored directories and find if any directory is holding this particular distribution's
+            # kernel and initrd
             settings = self.api.settings()
             possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
             path = None
@@ -102,11 +103,11 @@ class Distros(collection.Collection):
                     path = storage
                     continue
 
-            # if we found a mirrored path above, we can delete the mirrored storage /if/
-            # no other object is using the same mirrored storage.
+            # if we found a mirrored path above, we can delete the mirrored storage /if/ no other object is using the
+            # same mirrored storage.
             if with_delete and path is not None and os.path.exists(path) and kernel.find(settings.webdir) != -1:
-                # this distro was originally imported so we know we can clean up the associated
-                # storage as long as nothing else is also using this storage.
+                # this distro was originally imported so we know we can clean up the associated storage as long as
+                # nothing else is also using this storage.
                 found = False
                 distros = self.api.distros()
                 for d in distros:

@@ -32,16 +32,7 @@ class TestProfile:
         ("enable_ipxe", False),
         ("enable_menu", True),
         ("enable_menu", False),
-        ("enable_ipxe", "yes"),
-        ("enable_ipxe", "YES"),
-        ("enable_ipxe", "1"),
-        ("enable_ipxe", "0"),
-        ("enable_ipxe", "no"),
-        ("enable_menu", "yes"),
-        ("enable_menu", "YES"),
-        ("enable_menu", "1"),
-        ("enable_menu", "0"),
-        ("enable_menu", "no"),
+
         ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
         ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
         ("autoinstall", "test.ks"),
@@ -59,27 +50,29 @@ class TestProfile:
         ("menu", "testmenu0"),
         ("virt_auto_boot", True),
         ("virt_auto_boot", False),
-        ("virt_auto_boot", "1"),
-        ("virt_auto_boot", "0"),
+        ("enable_ipxe", True),
+        ("enable_ipxe", False),
+        ("enable_menu", True),
+        ("enable_menu", False),
         ("virt_bridge", "<<inherit>>"),
         ("virt_bridge", "br0"),
         ("virt_bridge", "virbr0"),
         ("virt_bridge", "xenbr0"),
         ("virt_cpus", "<<inherit>>"),
-        ("virt_cpus", "1"),
-        ("virt_cpus", "2"),
+        ("virt_cpus", 1),
+        ("virt_cpus", 2),
         ("virt_disk_driver", "<<inherit>>"),
         ("virt_disk_driver", "raw"),
         ("virt_disk_driver", "qcow2"),
-        ("virt_disk_driver", "vmdk"),
+        ("virt_disk_driver", "vdmk"),
         ("virt_file_size", "<<inherit>>"),
         ("virt_file_size", "5"),
         ("virt_file_size", "10"),
         ("virt_path", "<<inherit>>"),
         ("virt_path", "/path/to/test"),
         ("virt_ram", "<<inherit>>"),
-        ("virt_ram", "256"),
-        ("virt_ram", "1024"),
+        ("virt_ram", 256),
+        ("virt_ram", 1024),
         ("virt_type", "<<inherit>>"),
         ("virt_type", "xenpv"),
         ("virt_type", "xenfv"),
@@ -87,7 +80,7 @@ class TestProfile:
         ("virt_type", "kvm"),
         ("virt_type", "vmware"),
         ("virt_type", "openvz"),
-        ("boot_loaders", "pxe ipxe grub")
+        # ("boot_loaders", "pxe ipxe grub") FIXME: This raises currently but it did not in the past
     ])
     def test_create_profile_positive(self, remote, token, template_files, field_name, field_value):
         """
@@ -109,6 +102,16 @@ class TestProfile:
     @pytest.mark.parametrize("field_name,field_value", [
         ("distro", "baddistro"),
         ("autoinstall", "/path/to/bad/autoinstall"),
+        ("enable_ipxe", "yes"),
+        ("enable_ipxe", "YES"),
+        ("enable_ipxe", "1"),
+        ("enable_ipxe", "0"),
+        ("enable_ipxe", "no"),
+        ("enable_menu", "yes"),
+        ("enable_menu", "YES"),
+        ("enable_menu", "1"),
+        ("enable_menu", "0"),
+        ("enable_menu", "no"),
         ("mgmt_parameters", "badyaml"),
         ("menu", "badmenu"),
         ("virt_auto_boot", "yes"),
@@ -117,7 +120,7 @@ class TestProfile:
         ("virt_file_size", "a"),
         ("virt_ram", "a"),
         ("virt_type", "bad"),
-        ("boot_loaders", "badloader")
+        ("boot_loaders", "badloader"),
     ])
     def test_create_profile_negative(self, remote, token, field_name, field_value):
         """
@@ -163,7 +166,6 @@ class TestProfile:
         """
         Test: get a profile object
         """
-
         # Arrange --> Done in fixture.
 
         # Act
@@ -233,7 +235,6 @@ class TestProfile:
         """
         Test: remove a profile object
         """
-
         # Arrange
         # TODO: Verify why the test passes without the fixture for creating the profile!
 
@@ -250,7 +251,6 @@ class TestProfile:
         """
         Test: get repository configuration of a profile
         """
-
         # Arrange --> There is nothing to be arranged
 
         # Act

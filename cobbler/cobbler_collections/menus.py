@@ -64,17 +64,17 @@ class Menus(collection.Collection):
         name = name.lower()
         for profile in self.api.profiles():
             if profile.menu and profile.menu.lower() == name:
-                profile.set_menu(None)
+                profile.menu = ""
         for image in self.api.images():
             if image.menu and image.menu.lower() == name:
-                image.set_menu(None)
+                image.menu = ""
 
         obj = self.find(name=name)
         if obj is not None:
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.remove(k.name, with_delete=with_delete, with_sync=False, recursive=recursive)
+                    self.remove(k, with_delete=with_delete, with_sync=False, recursive=recursive)
 
             if with_delete:
                 if with_triggers:

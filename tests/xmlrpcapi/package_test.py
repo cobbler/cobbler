@@ -111,5 +111,6 @@ class TestPackage:
         """
         Test: remove a package object
         """
-
+        # Arrange --> Done in Fixture
+        # Act & Assert
         assert remote.remove_package("testpackage0", token)

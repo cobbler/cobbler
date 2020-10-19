@@ -91,7 +91,7 @@ def import_walker(top: str, func: Callable, arg: Any):
 class _ImportSignatureManager(ManagerModule):
 
     @staticmethod
-    def what(self) -> str:
+    def what() -> str:
         """
         Identifies what service this manages.
 
@@ -361,23 +361,22 @@ class _ImportSignatureManager(ManagerModule):
                 # this is an artifact of some EL-3 imports
                 continue
 
-            new_distro.set_name(name)
-            new_distro.set_kernel(kernel)
-            new_distro.set_initrd(initrd)
-            new_distro.set_arch(pxe_arch)
-            new_distro.set_breed(self.breed)
-            new_distro.set_os_version(self.os_version)
-            new_distro.set_kernel_options(self.signature.get("kernel_options", ""))
-            new_distro.set_kernel_options_post(self.signature.get("kernel_options_post", ""))
-            new_distro.set_template_files(self.signature.get("template_files", ""))
+            new_distro.name = name
+            new_distro.kernel = kernel
+            new_distro.initrd = initrd
+            new_distro.arch = pxe_arch
+            new_distro.breed = self.breed
+            new_distro.os_version = self.os_version
+            new_distro.kernel_options = self.signature.get("kernel_options", "")
+            new_distro.kernel_options_post = self.signature.get("kernel_options_post", "")
+            new_distro.template_files = self.signature.get("template_files", "")
             supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(new_distro, self.api)
-            new_distro.set_supported_boot_loaders(supported_distro_boot_loaders)
-            new_distro.set_boot_loader(supported_distro_boot_loaders[0])
+            new_distro.boot_loaders = supported_distro_boot_loaders[0]
 
             boot_files = ''
             for boot_file in self.signature["boot_files"]:
                 boot_files += '$local_img_path/%s=%s/%s ' % (boot_file, self.path, boot_file)
-            new_distro.set_boot_files(boot_files.strip())
+            new_distro.boot_files = boot_files.strip()
 
             self.configure_tree_location(new_distro)
 
@@ -396,18 +395,18 @@ class _ImportSignatureManager(ManagerModule):
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue
 
-            new_profile.set_name(name)
-            new_profile.set_distro(name)
-            new_profile.set_autoinstall(self.autoinstall_file)
+            new_profile.name = name
+            new_profile.distro = name
+            new_profile.autoinstall = self.autoinstall_file
 
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan
             if name.find("-xen") != -1:
-                new_profile.set_virt_type("xenpv")
+                new_profile.virt_type = "xenpv"
             elif name.find("vmware") != -1:
-                new_profile.set_virt_type("vmware")
+                new_profile.virt_type = "vmware"
             else:
-                new_profile.set_virt_type("kvm")
+                new_profile.virt_type = "kvm"
 
             self.profiles.add(new_profile, save=True)
 
@@ -727,19 +726,19 @@ class _ImportSignatureManager(ManagerModule):
             mirror = "http://archive.ubuntu.com/ubuntu"
 
         repo = item_repo.Repo(self.collection_mgr)
-        repo.set_breed("apt")
-        repo.set_arch(distribution.arch)
-        repo.set_keep_updated(True)
-        repo.set_apt_components("main universe")  # TODO: make a setting?
-        repo.set_apt_dists("%s %s-updates %s-security" % ((distribution.os_version,) * 3))
-        repo.set_name(distribution.name)
-        repo.set_os_version(distribution.os_version)
+        repo.breed = "apt"
+        repo.arch = distribution.arch
+        repo.keep_updated = True
+        repo.apt_components = "main universe"  # TODO: make a setting?
+        repo.apt_dists = "%s %s-updates %s-security" % ((distribution.os_version,) * 3)
+        repo.name = distribution.name
+        repo.os_version = distribution.os_version
 
         if distribution.breed == "ubuntu":
-            repo.set_mirror(mirror)
+            repo.mirror = mirror
         else:
             # NOTE : The location of the mirror should come from timezone
-            repo.set_mirror("http://ftp.%s.debian.org/debian/dists/%s" % ('us', distribution.os_version))
+            repo.mirror = "http://ftp.%s.debian.org/debian/dists/%s" % ('us', distribution.os_version)
 
         self.logger.info("Added repos for %s" % distribution.name)
         repos = self.collection_mgr.repos()
@@ -794,7 +793,7 @@ def get_import_manager(collection_mgr):
     """
     Get an instance of the import manager which enables you to import various things.
 
-    :param config: The configuration for the import manager.
+    :param collection_mgr: The collection Manager instance of Cobbler
     :return: The object to import data with.
     """
     # Singleton used, therefore ignoring 'global'

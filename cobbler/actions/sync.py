@@ -388,7 +388,7 @@ class CobblerSync:
         # Rebuild the yum configuration files for any attached repos generate any templates listed in the distro.
         self.tftpgen.write_templates(profile)
         # Cascade sync
-        kids = profile.get_children()
+        kids = profile.children
         for k in kids:
             if k.COLLECTION_TYPE == "profile":
                 self.add_single_profile(k.name, rebuild_menu=False)

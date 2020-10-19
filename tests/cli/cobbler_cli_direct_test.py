@@ -47,6 +47,7 @@ def assert_report_section():
     return _assert_report_section
 
 
+@pytest.mark.skip
 class TestCobblerCliTestDirect:
     """
     Tests Cobbler CLI direct commands
