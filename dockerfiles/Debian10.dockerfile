@@ -53,6 +53,7 @@ RUN apt-get update -qq && \
     createrepo \
     rsync \
     xorriso\
+    fence-agents\
     fakeroot \
     patch \
     pax \

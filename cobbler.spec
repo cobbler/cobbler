@@ -54,7 +54,7 @@
 %define apache_group www
 
 %define apache_dir /srv/www
-%define apache_webconfigdir /etc/apache2/vhosts.d
+%define apache_webconfigdir /etc/apache2/conf.d
 %define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
@@ -198,6 +198,7 @@ Requires(postun): systemd
 Requires:       %{apache_pkg}
 Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
+Requires:       fence-agents
 Requires:       file
 Requires:       rsync
 Requires:       xorriso
@@ -206,7 +207,6 @@ Requires:       xorriso
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
 Requires:       python%{python3_pkgversion}-future
-Requires:       python%{python3_pkgversion}-ldap3
 Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
@@ -214,6 +214,11 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
+%if 0%{?suse_version}
+Recommends:     python%{python3_pkgversion}-ldap3
+%else
+Requires:       python%{python3_pkgversion}-ldap3
+%endif
 %endif
 
 
@@ -268,6 +273,13 @@ Requires(post): sed
 Web interface for Cobbler that allows visiting
 http://server/cobbler_web to configure the install server.
 
+%package tests
+Summary:        Unit tests for cobbler
+Requires:       cobbler = %{version}-%{release}
+
+%description tests
+Unit test files from the Cobbler project
+
 
 %prep
 %setup
@@ -298,8 +310,7 @@ echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 
 %install
 . distro_build_configs.sh
-# bypass install errors ( don't chown in install step)
-%py3_install ||:
+%py3_install
 
 # cobbler
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler.conf
@@ -316,6 +327,7 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
+
 
 %pre
 %if %{_vendor} == "debbuild"
@@ -497,6 +509,9 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
 %endif
 
+%files tests
+%dir %{_datadir}/cobbler/tests
+%{_datadir}/cobbler/tests/*
 
 %changelog
 * Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>
