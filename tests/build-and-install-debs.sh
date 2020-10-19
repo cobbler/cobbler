@@ -33,7 +33,7 @@ echo "==> Install fresh packages ..."
 docker exec -it cobbler bash -c 'dpkg -i deb-build/DEBS/all/cobbler*.deb'
 
 echo "==> Restart Apache and Cobbler daemon ..."
-docker exec -it cobbler bash -c 'a2enconf cobbler cobbler_web'
+docker exec -it cobbler bash -c 'a2enconf cobbler'
 
 echo "==> Start Supervisor"
 docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
@@ -47,7 +47,7 @@ then
     # Also on Debian mod_wsgi is installed as "libapache2-mod-wsgi-py3"
     echo "==> Running tests ..."
     docker exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx requests future'
-    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 Django pymongo distro ldap3 librepo'
+    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 pymongo distro ldap3 librepo'
     docker exec -it cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
     docker exec -it cobbler bash -c 'pytest-3'
 fi

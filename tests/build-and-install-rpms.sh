@@ -32,14 +32,8 @@ docker run -t -d --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "
 echo "==> Install fresh RPMs ..."
 docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
 
-# === HACK === HACK === HACK
-# To get around this Apache error:
-# AH02240: Server should be SSL-aware but has no certificate configured [Hint: SSLCertificateFile] (/etc/httpd/conf.d/cobbler_web.conf:13)
-# make cobbler_web listen on HTTP instead of HTTPS.
-echo "==> Use HTTP instead of HTTPS ..."
-docker exec -it cobbler bash -c 'sed -i s/443/80/g /etc/httpd/conf.d/cobbler_web.conf'
+echo "==> Remove httpd SSL default config which is automatically loaded normally"
 docker exec -it cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
-# END === HACK ===
 
 echo "==> Start Supervisor ..."
 docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
@@ -54,7 +48,7 @@ if $RUN_TESTS
 then
     echo "==> Running tests ..."
     docker exec -it cobbler bash -c 'pip3 install coverage distro future setuptools sphinx mod_wsgi requests future'
-    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 Django pymongo distro ldap3 librepo'
+    docker exec -it cobbler bash -c 'pip3 install pyyaml simplejson netaddr Cheetah3 pymongo distro ldap3 librepo'
     docker exec -it cobbler bash -c 'pip3 install dnspython pyflakes pycodestyle pytest pytest-cov codecov'
     docker exec -it cobbler bash -c 'pytest'
 fi

@@ -36,8 +36,7 @@ All open security problems which are publicly known are to be found at:
 
 ## Remarks
 
-Cobbler uses currently a very old Django version (for the web frontend) and the code of Cobbler itself is currently in
-a state whith a lot of tech-debt. We don't offer a SELinux profile or an Apparmor profile. Also this tool manages your
+We don't offer a SELinux profile or an Apparmor profile. Also this tool manages your
 DHCP and TFTP server. This implicates that Cobbler has a lot of control of your network, thus we would advise you to
 protect it as much as possible. However please be aware of the implications when using it. There is code in there to
 automatically download and update files on your local filesystem as well as serving files like bootloaders which have

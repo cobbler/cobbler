@@ -46,10 +46,6 @@ If you decide to use the LDAP authentication, please also install manually in an
 
 - python3-ldap3 (or via PyPi: ldap3)
 
-Cobbler-web only has one other requirement besides Cobbler itself:
-
-- Django / python-django
-
 Koan can be installed apart from Cobbler, and has only the following requirement (besides python itself of course):
 
 - python-simplejson
@@ -134,8 +130,6 @@ To install Cobbler from source on a Debian-Based system, the following steps nee
     $ apt-get -y install pyflakes3 python3-pycodestyle
     $ apt-get -y install apache2 libapache2-mod-wsgi-py3
     $ apt-get -y install atftpd
-    # In case you want cobbler-web
-    $ apt-get -y install python3-django
 
     $ a2enmod proxy
     $ a2enmod proxy_http

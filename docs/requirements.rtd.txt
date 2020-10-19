@@ -1,6 +1,5 @@
 netaddr
 Cheetah3
-django
 simplejson
 dnspython
 pyyaml
