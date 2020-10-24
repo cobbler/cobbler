@@ -2183,7 +2183,7 @@
           "tboot.b00"
         ],
         "version_file": "vmware-esx-base-osl\\.txt",
-        "version_file_regex": "^(VMware )?ESXi (v)?6\\.5.*$",
+        "version_file_regex": "^(VMware )?ESXi( )?(v)?6(\\.)?5(\\.)?.*$",
         "kernel_arch": "tools\\.t00",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
@@ -2206,7 +2206,7 @@
           "b.b00"
         ],
         "version_file": "vmware-esx-base-osl\\.txt",
-        "version_file_regex": "^(VMware )?ESXi (v)?6\\.7.*$",
+        "version_file_regex": "^(VMware )?ESXi( )?(v)?6(\\.)?7(\\.)?.*$",
         "kernel_arch": "tools\\.t00",
         "kernel_arch_regex": "^.*(x86_64).*$",
         "supported_arches": [
@@ -2220,6 +2220,29 @@
         "kernel_options": "",
         "kernel_options_post": "",
         "template_files": "/etc/cobbler/boot_loader_conf/bootcfg_esxi67.template=$local_img_path/cobbler-boot.cfg",
+        "boot_files": [
+          "*.*"
+        ]
+      },
+      "esxi70": {
+        "signatures": [
+          "b.b00"
+        ],
+        "version_file": "vmware-esx-base-osl\\.txt",
+        "version_file_regex": "^(VMware )?ESXi( )?(v)?7(\\.)?0(\\.)?.*$",
+        "kernel_arch": "tools\\.t00",
+        "kernel_arch_regex": "^.*(x86_64).*$",
+        "supported_arches": [
+          "x86_64"
+        ],
+        "supported_repo_breeds": [],
+        "kernel_file": "mboot\\.c32",
+        "initrd_file": "imgpayld\\.tgz",
+        "isolinux_ok": false,
+        "default_autoinstall": "sample_esxi7.ks",
+        "kernel_options": "",
+        "kernel_options_post": "",
+        "template_files": "/etc/cobbler/boot_loader_conf/bootcfg_esxi70.template=$local_img_path/cobbler-boot.cfg",
         "boot_files": [
           "*.*"
         ]

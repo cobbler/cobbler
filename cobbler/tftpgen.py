@@ -863,7 +863,7 @@ class TFTPGen(object):
         blended = utils.blender(self.api, False, obj)
 
         if obj.COLLECTION_TYPE == "distro":
-            if re.search("esxi[56]", obj.os_version) is not None:
+            if re.search("esxi[567]", obj.os_version) is not None:
                 realbootcfg = open(os.path.join(os.path.dirname(obj.kernel), 'boot.cfg')).read()
                 bootmodules = re.findall(r'modules=(.*)', realbootcfg)
                 for modules in bootmodules:
@@ -999,25 +999,36 @@ class TFTPGen(object):
         template = None
         if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
             # all of these use a standard kernel/initrd setup so they all use the same gPXE template
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_linux.template" % what.lower())
+            template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                    "gpxe_%s_linux.template" % what.lower())
         elif distro.breed == 'vmware':
             if distro.os_version == 'esx4':
                 # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_linux.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_linux.template" % what.lower())
             elif distro.os_version == 'esxi4':
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi4.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_esxi4.template" % what.lower())
             elif distro.os_version.startswith('esxi5'):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi5.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_esxi5.template" % what.lower())
             elif distro.os_version.startswith('esxi6'):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_esxi6.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_esxi6.template" % what.lower())
+            elif distro.os_version.startswith('esxi7'):
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_esxi7.template" % what.lower())
         elif distro.breed == 'freebsd':
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_freebsd.template" % what.lower())
+            template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                    "gpxe_%s_freebsd.template" % what.lower())
         elif distro.breed == 'windows':
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_windows.template" % what.lower())
+            template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                    "gpxe_%s_windows.template" % what.lower())
 
         if what == "system":
             if not netboot_enabled:
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "gpxe_%s_local.template" % what.lower())
+                template = os.path.join(self.settings.boot_loader_conf_template_dir,
+                                        "gpxe_%s_local.template" % what.lower())
 
         if not template:
             return "# unsupported breed/os version"

@@ -419,8 +419,10 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi60.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi65.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi67.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi70.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi5.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi6.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi7.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_freebsd.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_linux.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
