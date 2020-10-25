@@ -328,6 +328,10 @@ ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 # cobbler-web
 rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
 
+# ghosted files
+touch %{buildroot}%{_sharedstatedir}/cobbler/web.ss
+chmod 0600 %{buildroot}%{_sharedstatedir}/cobbler/web.ss
+
 
 %pre
 %if %{_vendor} == "debbuild"
@@ -503,10 +507,12 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 # Work around broken attr support
 # Cf. https://github.com/debbuild/debbuild/issues/160
 %{_datadir}/cobbler/web
+%ghost %{_sharedstatedir}/cobbler/web.ss
 %dir %{_sharedstatedir}/cobbler/webui_sessions
 %{apache_dir}/cobbler_webui_content/
 %else
 %attr(-,%{apache_user},%{apache_group}) %{_datadir}/cobbler/web
+%ghost %attr(0660,%{apache_user},root) %{_sharedstatedir}/cobbler/web.ss
 %dir %attr(700,%{apache_user},root) %{_sharedstatedir}/cobbler/webui_sessions
 %attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
 %endif
