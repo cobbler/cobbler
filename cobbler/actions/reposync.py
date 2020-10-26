@@ -27,12 +27,7 @@ import os
 import os.path
 import pipes
 import stat
-
-HAS_YUM = True
-try:
-    import yum
-except:
-    HAS_YUM = False
+import shutil
 
 HAS_LIBREPO = True
 try:
@@ -234,11 +229,7 @@ class RepoSync(object):
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
-            rc, msg, general_msg = e
-            if rc == librepo.LRE_BADCHECKSUM:
-                utils.die(self.logger, "Corrupted metadata: " + dirname + " " + msg)
-            else:
-                utils.die(self.logger, "librepo error: " + dirname + " " + msg)
+            utils.die(self.logger, "librepo error: " + dirname + " - " + e.args[1]) 
 
         rmd = r.getinfo( librepo.LRR_RPMMD_REPOMD )['records']
         return( rmd )
@@ -258,21 +249,15 @@ class RepoSync(object):
 
             # add any repo metadata we can use
             mdoptions = []
-            if os.path.isfile("%s/.origin/repodata/repomd.xml" % (dirname)): 
-                if HAS_LIBREPO: 
-                    rd = self.librepo_getinfo("%s/.origin" % (dirname)) 
-                elif HAS_YUM: 
-                    rmd = yum.repoMDObject.RepoMD('', "%s/.origin/repodata/repomd.xml" % (dirname)) 
-                    rd = rmd.repoData 
-                else: 
-                    utils.die(self.logger, "yum/librepo is required to use this feature") 
+            origin_path = os.path.join(dirname, ".origin") 
+            repodata_path = os.path.join(origin_path, "repodata") 
+ 
+            if os.path.isfile(os.path.join(repodata_path, "repomd.xml")): 
+                rd = self.librepo_getinfo(origin_path) 
  
                 if "group" in rd: 
-                    if HAS_LIBREPO: 
-                        groupmdfile =  rd['group']['location_href'] 
-                    else: 
-                        groupmdfile = rmd.getData("group").location[1] 
-                    mdoptions.append("-g %s" % groupmdfile) 
+                    groupmdfile = rd['group']['location_href'] 
+                    mdoptions.append("-g %s" % os.path.join(origin_path, groupmdfile)) 
                 if "prestodelta" in rd: 
                     # need createrepo >= 0.9.7 to add deltas 
                     if utils.get_family() in ("redhat", "suse"): 
@@ -529,13 +514,10 @@ class RepoSync(object):
 
         # create yum config file for use by reposync
         temp_path = os.path.join(dest_path, ".origin")
-        temp_meta_path = os.path.join(temp_path, "repodata" )
-
+ 
         if not os.path.isdir(temp_path):
             # FIXME: there's a chance this might break the RHN D/L case
             os.makedirs(temp_path)
-        if not os.path.isdir(temp_meta_path):
-            os.makedirs(temp_meta_path)
 
         temp_file = self.create_local_file(temp_path, repo, output=False)
 
@@ -565,11 +547,7 @@ class RepoSync(object):
 
             # Older yumdownloader sometimes explodes on --resolvedeps if this happens to you, upgrade yum & yum-utils
             extra_flags = self.settings.yumdownloader_flags
-            cmd = ""
-            if os.path.exists("/usr/bin/dnf"):
-                cmd = "/usr/bin/dnf download"
-            else:
-                cmd = "/usr/bin/yumdownloader"
+            cmd = "/usr/bin/dnf download"
             cmd = "%s %s %s --disablerepo=* --enablerepo=%s -c %s --destdir=%s %s"\
                   % (cmd, extra_flags, use_source, pipes.quote(repo.name), temp_file, pipes.quote(dest_path),
                      " ".join(repo.rpm_list))
@@ -581,48 +559,63 @@ class RepoSync(object):
         if rc != 0:
             utils.die(self.logger, "cobbler reposync failed")
 
-        repodata_path = os.path.join(dest_path, "repodata")
-
-        # grab repomd.xml and use it to download any metadata we can use
-        proxies = None
+        # download any metadata we can use
+        proxy = None
         if repo.proxy == '<<inherit>>':
-            proxies = self.settings.proxy_url_ext
+            proxy = self.settings.proxy_url_ext
         elif repo.proxy != '<<None>>' and repo.proxy != '':
-            proxies = {'http': repo.proxy, 'https': repo.proxy}
-        src = repo_mirror + "/repodata/repomd.xml"
-        dst = temp_meta_path + "/repomd.xml"
+            proxy = repo.proxy
         (cert, verify) = self.gen_urlgrab_ssl_opts(repo.yumopts)
+
+        if os.path.exists(repodata_path) and not os.path.isfile(repomd_path):
+            shutil.rmtree(repodata_path, ignore_errors=False, onerror=None)
+
+        h = librepo.Handle()
+        r = librepo.Result()
+        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        h.setopt(librepo.LRO_CHECKSUM, True)
+
+        if os.path.isfile(repomd_path):
+            h.setopt(librepo.LRO_LOCAL, True)
+            h.setopt(librepo.LRO_URLS, [temp_path])
+            h.setopt(librepo.LRO_IGNOREMISSING, True)
+
+            try:
+                h.perform(r)
+            except librepo.LibrepoException as e:
+                utils.die(self.logger, "librepo error: " + temp_path + " - " + e.args[1])
+
+            h.setopt(librepo.LRO_LOCAL, False)
+            h.setopt(librepo.LRO_URLS, [])
+            h.setopt(librepo.LRO_IGNOREMISSING, False)
+            h.setopt(librepo.LRO_UPDATE, True)
+
+        h.setopt(librepo.LRO_DESTDIR, temp_path)
+ 
+        if repo.mirror_type == "metalink":
+            h.setopt(librepo.LRO_METALINKURL, repo_mirror)
+        elif repo.mirror_type == "mirrorlist":
+            h.setopt(librepo.LRO_MIRRORLISTURL, repo_mirror)
+        elif repo.mirror_type == "baseurl":
+            h.setopt(librepo.LRO_URLS, [repo_mirror])
+
+        if verify:
+            h.setopt(librepo.LRO_SSLVERIFYPEER, True )
+            h.setopt(librepo.LRO_SSLVERIFYHOST, True )
+
+        if cert:
+            sslclientcert, sslclientkey = cert
+            h.setopt(librepo.LRO_SSLCLIENTCERT, sslclientcert )
+            h.setopt(librepo.LRO_SSLCLIENTKEY, sslclientkey )
+
+        if proxy:
+            h.setopt(librepo.LRO_PROXY, proxy )
+            h.setopt(librepo.LRO_PROXYTYPE, librepo.PROXY_HTTP )
+
         try:
-            self.dlmgr.download_file(src, dst, proxies, cert)
-        except Exception as e:
-            utils.die(self.logger, "failed to fetch " + src + " " + e.args)
-
-        # Create our repodata directory now, as any extra metadata we're about to download probably lives there
-        if not os.path.isdir(repodata_path):
-            os.makedirs(repodata_path)
-
-        if HAS_LIBREPO:
-            rmd = self.librepo_getinfo(temp_path)
-            k = rmd.keys()
-        elif HAS_YUM:
-            rmd = yum.repoMDObject.RepoMD('', "%s/repomd.xml" % (temp_meta_path))
-            k = rmd.repoData.keys()
-        else:
-            utils.die(self.logger, "yum/librepo is required to use this feature")
-
-        for mdtype in list(k):
-            # don't download metadata files that are created by default
-            if mdtype not in ["primary", "primary_db", "filelists", "filelists_db", "other", "other_db"]:
-                if HAS_LIBREPO:
-                    mdfile = rmd[mdtype]['location_href']
-                elif HAS_YUM:
-                    mdfile = rmd.getData(mdtype).location[1]
-                src = repo_mirror + "/" + mdfile
-                dst = dest_path + "/" + mdfile
-                try:
-                    self.dlmgr.download_file(src, dst, proxies, cert)
-                except Exception as e:
-                    utils.die(self.logger, "failed to fetch " + src + " " + e.args)
+            h.perform(r)
+        except librepo.LibrepoException as e:
+            utils.die(self.logger, "librepo error: " + temp_path + " - " + e.args[1])
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
@@ -759,7 +752,7 @@ class RepoSync(object):
             mstr = repo.mirror
             if mstr.startswith("/"):
                 mstr = "file://%s" % mstr
-            line = "baseurl=%s\n" % mstr
+            line = repo.mirror_type + "=%s\n" % mstr
             if self.settings.http_port not in (80, '80'):
                 http_server = "%s:%s" % (self.settings.server, self.settings.http_port)
             else:

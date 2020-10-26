@@ -234,6 +234,7 @@ Recommends:     syslinux
 Recommends:     %{grub2_x64_efi_pkg}
 Recommends:     %{grub2_ia32_efi_pkg}
 Recommends:     logrotate
+Recommends:     python%{python3_pkgversion}-librepo
 %endif
 # https://github.com/cobbler/cobbler/issues/1685
 %if %{_vendor} == "debbuild"

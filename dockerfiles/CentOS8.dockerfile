@@ -50,6 +50,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-django            \
     python3-dns               \
     python3-ldap3             \
+    python3-librepo           \
     python3-pymongo           \
     createrepo_c              \
     dnf-plugins-core          \

@@ -44,6 +44,7 @@ RUN yum install -y          \
     python36-dns            \
     python36-ldap3          \
     python36-cheetah        \
+    python36-librepo        \
     createrepo_c            \
     xorriso                 \
     grub2-efi-ia32-modules  \

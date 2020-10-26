@@ -1449,6 +1449,26 @@ def set_breed(self, breed):
              % (breed, nicer))
 
 
+def set_mirror_type(self, mirror_type):
+    """
+    This is a setter for repo mirror type.
+
+    :param self: The object where the arch will be set.
+    :param mirror_type: The desired mirror type to set for the repo.
+    :type repo: bool
+    """
+    if not mirror_type:
+        mirror_type = "baseurl"
+
+    valids = ["metalink", "mirrorlist", "baseurl"]
+
+    if mirror_type in valids:
+        self.mirror_type = mirror_type
+        return
+
+    raise CX("mirror_type choices include: %s" % ", ".join(valids))
+
+
 def set_repo_os_version(self, os_version):
     """
     This is a setter for the os-version of a repository.

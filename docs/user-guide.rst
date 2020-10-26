@@ -79,7 +79,7 @@ Make sure there is plenty of space in Cobbler's webdir, which defaults to ``/var
 
 .. code-block:: none
 
-    cobbler reposync [--tries=N] [--no-fail]
+    cobbler reposync [--only=ONLY] [--tries=N] [--no-fail]
 
 Cobbler reposync is the command to use to update repos as configured with "cobbler repo add".  Mirroring
 can take a long time, and usage of Cobbler reposync prior to usage is needed to ensure provisioned systems have the
@@ -87,9 +87,9 @@ files they need to actually use the mirrored repositories.  If you just add repo
 repos will never be mirrored.  This is probably a command you would want to put on a crontab, though the frequency of
 that crontab and where the output goes is left up to the systems administrator.
 
-For those familiar with yum's reposync, Cobbler's reposync is (in most uses) a wrapper around the yum command.  Please
-use "cobbler reposync" to update Cobbler mirrors, as yum's reposync does not perform all required steps. Also Cobbler
-adds support for rsync and SSH locations, where as yum's reposync only supports what yum supports (http/ftp).
+For those familiar with dnf's reposync, Cobbler's reposync is (in most uses) a wrapper around the dnf reposync command.  Please
+use "cobbler reposync" to update Cobbler mirrors, as dnf's reposync does not perform all required steps. Also Cobbler
+adds support for rsync and SSH locations, where as dnf's reposync only supports what yum supports (http/ftp).
 
 If you ever want to update a certain repository you can run:
 
@@ -153,13 +153,14 @@ auto-detection.
 Repository mirroring workflow
 =============================
 
-The following example shows how to set up a repo mirror for two repositories, and create a profile that will auto
-install those repository configurations on provisioned systems using that profile.
+The following example shows how to set up a repo mirror for all enabled Cobbler host repositories and two additional repositories,
+and create a profile that will auto install those repository configurations on provisioned systems using that profile.
 
 .. code-block:: none
 
     cobbler check
     # set up your cobbler distros here.
+    cobbler autoadd
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras
     cobbler reposync
