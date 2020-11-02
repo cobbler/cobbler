@@ -36,7 +36,6 @@ a user against the Pluggable Authentication Modules (PAM) on the system.
 Implemented using ctypes, so no compilation is necessary.
 """
 
-from builtins import str
 from builtins import range
 from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
 from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int
@@ -68,7 +67,9 @@ def register():
 
 
 class PamHandle(Structure):
-    """wrapper class for pam_handle_t"""
+    """
+    wrapper class for pam_handle_t
+    """
     _fields_ = [("handle", c_void_p)]
 
     def __init__(self):
@@ -77,7 +78,9 @@ class PamHandle(Structure):
 
 
 class PamMessage(Structure):
-    """wrapper class for pam_message structure"""
+    """
+    wrapper class for pam_message structure
+    """
     _fields_ = [("msg_style", c_int), ("msg", c_char_p)]
 
     def __repr__(self):
@@ -85,7 +88,9 @@ class PamMessage(Structure):
 
 
 class PamResponse(Structure):
-    """wrapper class for pam_response structure"""
+    """
+    wrapper class for pam_response structure
+    """
     _fields_ = [("resp", c_char_p), ("resp_retcode", c_int)]
 
     def __repr__(self):
@@ -96,7 +101,9 @@ CONV_FUNC = CFUNCTYPE(c_int, c_int, POINTER(POINTER(PamMessage)), POINTER(POINTE
 
 
 class PamConv(Structure):
-    """wrapper class for pam_conv structure"""
+    """
+    wrapper class for pam_conv structure
+    """
     _fields_ = [("conv", CONV_FUNC), ("appdata_ptr", c_void_p)]
 
 
@@ -111,14 +118,20 @@ PAM_AUTHENTICATE.argtypes = [PamHandle, c_int]
 
 def authenticate(api_handle, username, password):
     """
-    Returns True if the given username and password authenticate for the
-    given service.  Returns False otherwise
+    :param api_handle: Used for resolving the the pam service name and getting the Logger.
+    :param username:The username to log in with.
+    :type username: str
+    :param password: The password to log in with.
+    :type password: str
+    :returns: True if the given username and password authenticate for the given service. Otherwise False
+    :rtype: bool
     """
 
     @CONV_FUNC
     def my_conv(n_messages, messages, p_response, app_data):
-        """Simple conversation function that responds to any
-        prompt where the echo is off with the supplied password"""
+        """
+        Simple conversation function that responds to any prompt where the echo is off with the supplied password
+        """
         # Create an array of n_messages response objects
         addr = CALLOC(n_messages, sizeof(PamResponse))
         p_response[0] = cast(addr, POINTER(PamResponse))
@@ -141,8 +154,7 @@ def authenticate(api_handle, username, password):
     retval = PAM_START(service.encode(), username.encode(), pointer(conv), pointer(handle))
 
     if retval != 0:
-        # TODO: This is not an authentication error, something
-        # has gone wrong starting up PAM
+        # TODO: This is not an authentication error, something has gone wrong starting up PAM
         api_handle.logger.error("authn_pam: error initializing PAM library")
         return False
 
