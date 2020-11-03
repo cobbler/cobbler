@@ -975,7 +975,7 @@ class TFTPGen(object):
         # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
         # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
         # link, which just contains the kernel and initrd).
-        distro_mirror_name = str.join(distro.kernel.split('/')[-2:-1], '')
+        distro_mirror_name = ''.join(distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
@@ -1068,7 +1068,7 @@ class TFTPGen(object):
         # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
         # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
         # link, which just contains the kernel and initrd).
-        distro_mirror_name = str.join('', distro.kernel.split('/')[-2:-1])
+        distro_mirror_name = ''.join(distro.kernel.split('/')[-2:-1])
 
         blended = utils.blender(self.api, False, obj)
 
