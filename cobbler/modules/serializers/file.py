@@ -166,32 +166,18 @@ def deserialize(collection, topological=True):
     """
     Load a collection from file system.
 
-    :param collection: The collection type the deserialize
-    :param topological: If the dict/list should be sorted or not.
+    :param collection: The collection to deserialize.
+    :param topological: If the collection list should be sorted by the
+                        collection dict depth value or not.
     :type topological: bool
     """
 
     datastruct = deserialize_raw(collection.collection_types())
     if topological and type(datastruct) == list:
-        # FIXME
-        # datastruct.sort(key=__depth_cmp)
-        pass
+        datastruct.sort(key = lambda x: x["depth"])
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:
         collection.from_list(datastruct)
-
-
-def __depth_cmp(item1, item2):
-    """
-    The compare function to sort a dict.
-
-    :param item1: The first item to compare.
-    :param item2: The second item to compare.
-    :return: Weather the first or second item is bigger!
-    """
-    d1 = item1.get("depth", 1)
-    d2 = item2.get("depth", 1)
-    return (d1 > d2) - (d1 < d2)
 
 # EOF
