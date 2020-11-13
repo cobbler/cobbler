@@ -71,7 +71,6 @@ def serialize_item(collection, item):
         sort_keys = False
         indent = None
 
-    filename += ".json"
     _dict = item.to_dict()
     fd = open(filename, "w+")
     data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
@@ -91,7 +90,6 @@ def serialize_delete(collection, item):
     collection_types = collection.collection_types()
     filename = os.path.join(libpath, collection_types, item.name + ".json")
 
-    filename += ".json"
     if os.path.exists(filename):
         os.remove(filename)
 
