@@ -57,7 +57,7 @@ def regen_ss_file():
     data = fd.read(512)
     fd.close()
 
-    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o600)
+    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o660)
     os.write(fd, binascii.hexlify(data))
     os.close(fd)
 
