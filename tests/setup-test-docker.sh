@@ -23,6 +23,23 @@ pip3 install pykickstart
 # Packages for building & installing cobbler from source
 zypper -n in make gzip sed git hg
 
+# Add Testuser for the PAM tests
+password=$(perl -e 'print crypt("test", "password")')
+useradd -p "$password" test
+
+# Manipulate /etc/pam.d/login
+cat > /etc/pam.d/login << EOF
+#%PAM-1.0
+auth      include    common-auth
+account   include    common-account
+password  include    common-password
+session   required   pam_loginuid.so
+session   optional   pam_keyinit.so force revoke
+session   include    common-session
+#session  optional   pam_lastlog.so nowtmp showfailed
+session   optional   pam_mail.so standard
+EOF
+
 # Set tftpboot location correctly for SUSE distributions
 sed -e "s|/var/lib/tftpboot|/srv/tftpboot|g" -i cobbler/settings.py config/cobbler/settings
 
@@ -33,7 +50,7 @@ pip3 install pytest-pythonpath
 # set SECRET_KEY for django tests
 sed -i s/SECRET_KEY.*/'SECRET_KEY\ =\ "qwertyuiopasdfghl;"'/ cobbler/web/settings.py
 
-# Install and upgrade all dependecys
+# Install and upgrade all dependencies
 pip3 install --upgrade pip
 pip3 install .[lint,test]
 
