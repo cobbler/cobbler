@@ -16,8 +16,8 @@
 # Force bash instead of Debian dash
 %global _buildshell /bin/bash
 
-# Exclude "shebang which doesn't start with '/' (gpxe)"
-%global __brp_mangle_shebangs_exclude_from /etc/cobbler/boot_loader_conf/gpxe*
+# Stop mangling shebangs. It breaks CI.
+%undefine __brp_mangle_shebangs
 
 # Work around quirk in OBS about handling defines...
 %if 0%{?el7}
