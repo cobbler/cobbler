@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DATAPATH="/usr/share/cobbler"
-export DOCPATH="share/man"
+export DOCPATH="/usr/share/man"
 export ETCPATH="/etc/cobbler"
 export LIBPATH="/var/lib/cobbler"
 export LOGPATH="/var/log"

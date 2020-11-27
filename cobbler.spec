@@ -303,8 +303,8 @@ echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 # [ "${ETCPATH}" != "/etc/cobbler" ]
 # [ "${LIBPATH}" != "/var/lib/cobbler" ]
 [ "${LOGPATH}" != %{_localstatedir}/log ] && echo "ERROR: LOGPATH: ${LOGPATH} does not match %{_localstatedir}/log"
-[ "${COMPLETION_PATH}" != %{_datadir}/bash-completion/completions/cobbler ] && \
-    echo "ERROR: COMPLETION: ${COMPLETION_PATH} does not match %{_datadir}/bash-completion/completions/cobbler"
+[ "${COMPLETION_PATH}" != %{_datadir}/bash-completion/completions ] && \
+    echo "ERROR: COMPLETION: ${COMPLETION_PATH} does not match %{_datadir}/bash-completion/completions"
 
 [ "${WEBROOT}" != %{apache_dir} ] && echo "ERROR: WEBROOT: ${WEBROOT} does not match %{apache_dir}"
 [ "${WEBCONFIG}" != %{apache_webconfigdir} ] && echo "ERROR: WEBCONFIG: ${WEBCONFIG} does not match %{apache_webconfigdir}"
