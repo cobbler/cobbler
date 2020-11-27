@@ -20,11 +20,11 @@ services:
     volumes:
       - ./rpm-build/el8:/usr/src/cobbler/rpm-build
 
-  fedora31-build:
-    image: local/cobbler-fedora31
-    container_name: cobbler-fedora31
+  fedora33-build:
+    image: local/cobbler-fedora33
+    container_name: cobbler-fedora33
     build:
       context: .
-      dockerfile: ./dockerfiles/Fedora31.dockerfile
+      dockerfile: ./dockerfiles/Fedora33.dockerfile
     volumes:
-      - ./rpm-build/f31:/usr/src/cobbler/rpm-build
+      - ./rpm-build/f33:/usr/src/cobbler/rpm-build
