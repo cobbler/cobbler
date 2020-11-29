@@ -23,8 +23,8 @@ a large number of ancilary packages, which we do not document here. The package 
 these packages in and install them along with Cobbler, however it is always best to verify these requirements have been
 met prior to installing Cobbler or any of its components.
 
-First and foremost, Cobbler requires Python. Any 2.x version should work for 2.8.x releases. Since 3.0.0 you will need
-Python 3. Cobbler also requires the installation of the following packages:
+First and foremost, Cobbler requires Python. Since 3.0.0 you will need Python 3. Cobbler also requires the installation
+of the following packages:
 
 - createrepo_c
 - httpd / apache2
@@ -41,6 +41,10 @@ Python 3. Cobbler also requires the installation of the following packages:
 - tftp-server / atftpd
 - dnf-plugins-core
 
+If you decide to use the LDAP authentication, please also install manually in any case:
+
+- python3-ldap3 (or via PyPi: ldap3)
+
 Cobbler-web only has one other requirement besides Cobbler itself:
 
 - Django / python-django
@@ -48,6 +52,9 @@ Cobbler-web only has one other requirement besides Cobbler itself:
 Koan can be installed apart from Cobbler, and has only the following requirement (besides python itself of course):
 
 - python-simplejson
+
+.. note::
+   Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
 
 Source
 ======
