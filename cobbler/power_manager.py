@@ -22,9 +22,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
-from builtins import range
-from builtins import object
+import json
 import glob
 import os
 from pathlib import Path
@@ -36,9 +34,7 @@ from cobbler.cexceptions import CX
 from cobbler import clogger
 from cobbler import utils
 
-# Try the power command 3 times before giving up.
-# Some power switches are flakey
-
+# Try the power command 3 times before giving up. Some power switches are flaky.
 POWER_RETRIES = 3
 
 
@@ -218,16 +214,11 @@ class PowerManager(object):
         if not power_command:
             utils.die(logger, "no power type set for system")
 
-        meta = utils.blender(self.api, False, system)
-        meta["power_mode"] = power_operation
+        power_info = {"type": system.power_type, "address": system.power_address, "user": system.power_user,
+                      "id": system.power_id, "options": system.power_options,
+                      "identity_file": system.power_identity_file}
 
-        logger.info("cobbler power configuration is:")
-        logger.info("      type   : %s" % system.power_type)
-        logger.info("      address: %s" % system.power_address)
-        logger.info("      user   : %s" % system.power_user)
-        logger.info("      id     : %s" % system.power_id)
-        logger.info("      options: %s" % system.power_options)
-        logger.info("identity_file: %s" % system.power_identity_file)
+        logger.info("cobbler power configuration is: %s" % json.dumps(power_info))
 
         # if no username/password data, check the environment
         if not system.power_user and not user:
@@ -240,13 +231,17 @@ class PowerManager(object):
         logger.info("power command: %s" % power_command)
         logger.info("power command input: %s" % power_input)
 
+        rc = -1
+
         for x in range(0, POWER_RETRIES):
             output, rc = utils.subprocess_sp(logger, power_command, shell=False, input=power_input)
-            # fencing agent returns 2 if the system is powered off
-            if rc == 0 or (rc == 2 and power_operation == 'status'):
-                # If the desired state is actually a query for the status
-                # return different information than command return code
-                if power_operation == 'status':
+            # Allowed return codes: 0, 1, 2
+            # Source: https://github.com/ClusterLabs/fence-agents/blob/master/doc/FenceAgentAPI.md#agent-operations-and-return-values
+            if power_operation in ("on", "off", "reboot"):
+                if rc == 0:
+                    return None
+            elif power_operation is "status":
+                if rc in (0, 2):
                     match = re.match(r'^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE | re.MULTILINE)
                     if match:
                         power_status = match.groups()[1]
@@ -257,9 +252,7 @@ class PowerManager(object):
                     error_msg = "command succeeded (rc=%s), but output ('%s') was not understood" % (rc, output)
                     utils.die(logger, error_msg)
                     raise CX(error_msg)
-                return None
-            else:
-                time.sleep(2)
+            time.sleep(2)
 
         if not rc == 0:
             error_msg = "command failed (rc=%s), please validate the physical setup and cobbler config" % rc
