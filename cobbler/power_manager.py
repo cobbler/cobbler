@@ -240,7 +240,7 @@ class PowerManager(object):
             if power_operation in ("on", "off", "reboot"):
                 if rc == 0:
                     return None
-            elif power_operation is "status":
+            elif power_operation == "status":
                 if rc in (0, 2):
                     match = re.match(r'^(Status:|.+power\s=)\s(on|off)$', output, re.IGNORECASE | re.MULTILINE)
                     if match:

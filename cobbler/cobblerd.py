@@ -23,12 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import binascii
 import os
 import pwd
-import sys
 import time
 
-from cobbler.api import CobblerAPI
 from cobbler import remote
 from cobbler import utils
+from cobbler.api import CobblerAPI
 
 
 def core(cobbler_api: CobblerAPI):
