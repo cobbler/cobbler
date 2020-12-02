@@ -25,6 +25,8 @@ wimlib_mount = wimlib + " mountrw"
 wimlib_umount = wimlib + " unmount"
 mount_point = "/mnt/wim"
 
+bcdedit = "/usr/local/bin/bcdedit.pl"
+
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
