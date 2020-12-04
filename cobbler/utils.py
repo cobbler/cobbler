@@ -115,7 +115,7 @@ def log_exc(logger):
     :param logger: The logger to audit all action.
     """
     (t, v, tb) = sys.exc_info()
-    logger.info("Exception occured: %s" % t)
+    logger.info("Exception occurred: %s" % t)
     logger.info("Exception value: %s" % v)
     logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
 

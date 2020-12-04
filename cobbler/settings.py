@@ -325,4 +325,4 @@ class Settings(object):
                 self.__dict__[name] = lookup
                 return lookup
             else:
-                raise AttributeError
+		raise AttributeError(f"no settings attribute named '{ name }' found")
