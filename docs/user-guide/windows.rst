@@ -4,21 +4,29 @@ Automatic Windows installation with Cobbler
 
 One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
 
-Trigger sync_post_wingen.py does:
+Trigger `sync_post_wingen.py` does:
 - some of the files are created from standard ones (pxeboot.n12, bootmgr.exe) by directly replacing one sting with another directly in the binary
-- in the process of changing the bootmgr.exe file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with python-pefile
-- hivex is used in bcdedit.pl to modify Windows boot configuration data (BCD)
-- uses wimlib-tools to replace startnet.cmd startup script in WIM image
-- Windows answer files (autounattended.xml ) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
-- startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (post_install.cmd) are also generated from templates
+- in the process of changing the `bootmgr.exe` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with `python-pefile`
+- `python3-hivex` is used to modify Windows boot configuration data (BCD). For pxelibux distro boot_loader in BCD, paths to winpe.wim and boot.sdi are generated as `/winos/<distro_name>/boot`, and for iPXE - `\Boot`.
+- uses `wimlib-tools` to replace `startnet.cmd startup` script in WIM image
+- Windows answer files (`autounattended.xml`) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
+- startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (`post_install.cmd`) are also generated from templates
 
-Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (win.ks).
+Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (`win.ks`).
 
 A logically automatic network installation of Windows 7 and newer can be represented as follows:
+PXE + Legacy BIOS Boot
+
 .. code-block:: none
 
     Original files: pxeboot.n12 → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
     Cobbler profile 1: pxeboot.001 → boot001.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
+    ...
+
+iPXE + UEFI BIOS Boot
+
+    Original files: ipxe-x86_64.efi → wimboot → bootx64.efi → BCD → winpe.wim → startnet.cmd → autounattended.xml
+    Cobbler profile 1: ipxe-x86_64.efi → wimboot → bootx64.efi → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
     ...
 
 For older versions (Windows XP, 2003):
@@ -31,60 +39,43 @@ For older versions (Windows XP, 2003):
 Preparing for an unattended network installation of Windows
 ===========================================================
 
-- dnf install python3-pefile python3-hivex ntfs-3g fuse wimlib-utils
-- To prepare the BCD, the trigger uses bcdedit.pl from http://www.ultimatedeployment.org/win7pxelinux1.html
-  You can put the following line into it:
-
-.. code-block:: none
-
-    diff -c bcdedit.pl.orig bcdedit.pl 
-    *** bcdedit.pl.orig
-    --- bcdedit.pl
-    ***************
-    *** 232,237 ****
-    --- 232,238 ----
-      &AddElement($BCDFILE,$guids{bootmgr},"25000004","hex:3:1e,00,00,00,00,00,00,00");
-      &AddElement($BCDFILE,$guids{bootmgr},"12000004","string:Windows Boot Manager");
-      &AddElement($BCDFILE,$guids{bootmgr},"24000001",&Guids2MultiSZ($newguid));
-    + &AddElement($BCDFILE,$guids{bootmgr},"16000048","hex:3:01");
-    
-      print "Creating New Object\n";
-      &CreateGuid($BCDFILE,$newguid,"0x10200003");
-
-  which is equivalent to running the Windows command:
-
-.. code-block:: none
-
-    bcdedit -set {bootmgr} nointegritychecks Yes
-
-  cp bcdedit.pl /usr/local/bin
-
+- `dnf install python3-pefile python3-hivex ntfs-3g fuse wimlib-utils`
 - In the server's tftp directory, create a directory winos
 
 .. code-block:: none
 
     mkdir /var/lib/tftpboot/winos
 
-  and copy the Windows distributions there:
+and copy the Windows distributions there:
 
 .. code-block:: none
 
     dr-xr-xr-x. 1 root   root         200 Mar 23  2017 Win10_EN-x64
     dr-xr-xr-x. 1 root   root         238 Aug  7  2015 Win2012-Server_EN-x64
     dr-xr-xr-x. 1 root   root         220 May 17  2019 Win2016-Server_EN-x64
+    drwxr-xr-x. 1 root   root         236 Dec  3 22:42 Win2019-Server_EN-x64
     dr-xr-xr-x. 1 root   root         788 Aug  8  2015 Win2k3-Server_EN-x64
     dr-xr-xr-x. 1 root   root         196 Sep 24  2017 Win2k8-Server_EN-x64
     dr-xr-xr-x. 1 root   root         132 Aug  8  2015 Win7_EN-x64
     dr-xr-xr-x. 1 root   root         238 Aug  7  2015 Win8_EN-x64
     dr-xr-xr-x. 1 root   root         456 Aug  8  2015 WinXp_EN-i386
 
-  Copy the following files to the distributions directories (for Windows 7 and newer):
+Copy the following files to the distributions directories (for Windows 7 and newer):
+PXE + Legacy BIOS Boot
     - pxeboot.n12
     - bootmgr.exe
     - boot/BCD
     - boot/boot.sdi
 
-- Share /var/lib/tftpboot/winos via Samba:
+iPXE + UEFI BIOS Boot
+    - ipxe-x86_64.efi
+    - ipxe-x86_64.efi
+    - wimboot
+    - boot/bootx64.efi
+    - boot/BCD
+    - boot/boot.sdi
+
+- Share `/var/lib/tftpboot/winos` via Samba:
 
 .. code-block:: none
 
@@ -98,13 +89,13 @@ Preparing for an unattended network installation of Windows
             printable = no
 
 
-- You can use tftpd.rules to indicate the actual locations of the bootmgr.exe and BCD files generated by the trigger.
+- You can use `tftpd.rules` to indicate the actual locations of the bootmgr.exe and BCD files generated by the trigger.
 
 .. code-block:: none
 
     cp /usr/lib/systemd/system/tftp.service /etc/systemd/system
 
-  Replace the line in the /etc/systemd/system/tftp.service
+Replace the line in the `/etc/systemd/system/tftp.service`
 
 .. code-block:: none
 
@@ -112,7 +103,7 @@ Preparing for an unattended network installation of Windows
         to:
     ExecStart=/usr/sbin/in.tftpd -m /etc/tftpd.rules -s /var/lib/tftpboot
 
-  Create a file /etc/tftpd.rules:
+Create a file /etc/tftpd.rules:
 
 .. code-block:: none
 
@@ -137,8 +128,11 @@ Preparing for an unattended network installation of Windows
     r	(boot28.\.exe)				/winos/Win2k8-Server_EN-x64/\1
     r	(/Boot/)(28.)				/winos/Win2k8-Server_EN-x64/boot/\2
     
-    r	(boot6r.\.exe)				/winos/Win2016-Server_EN-x64/\1
-    r	(/Boot/)(6r.)				/winos/Win2016-Server_EN-x64/boot/\2
+    r   (boot9r.\.exe)				/winos/Win2019-Server_EN-x64/\1
+    r   (/Boot/)(9r.)				/winos/Win2019-Server_EN-x64/boot/\2
+    
+    r	(boot6e.\.exe)				/winos/Win2016-Server_EN-x64/\1
+    r	(/Boot/)(6e.)				/winos/Win2016-Server_EN-x64/boot/\2
     
     r	(boot2e.\.exe)				/winos/Win2012-Server_EN-x64/\1
     r	(/Boot/)(2e.)				/winos/Win2012-Server_EN-x64/boot/\2
@@ -149,27 +143,106 @@ Preparing for an unattended network installation of Windows
     r	(boot1e.\.exe)				/winos/Win10_EN-x64/\1
     r	(/Boot/)(1E.)				/winos/Win10_EN-x64/boot/\2
 
-- Add information about Windows distributions to the distro_signatures.json file
+- Add information about Windows distributions to the `distro_signatures.json` file
 
 .. code-block:: none
 
     vi /var/lib/cobbler/distro_signatures.json
         "windows": {
          "2003": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+              ]
+            }
          },
          "2008": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          },
          "2012": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          },
          "2016": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          },
          "XP": {
+              "supported_arches": [
+              "i386",
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+              ]
+            }
          },
          "7": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          },
          "8": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          },
          "10": {
+              "supported_arches": [
+              "x86_64"
+            ],
+            "boot_loaders": {
+              "x86_64": [
+                "pxelinux",
+                "grub"
+                "ipxe"
+              ]
+            }
          }
         }
 
@@ -178,8 +251,8 @@ Preparing for an unattended network installation of Windows
 Cobbler Windows Templates
 =========================
 
-- /var/lib/tftpboot/winos/startnet.template is used to generate /Windows/System32/startnet.cmd script in WIM image.
-  Example:
+- `/var/lib/tftpboot/winos/startnet.template` is used to generate /Windows/System32/startnet.cmd script in WIM image.
+Example:
 
 .. code-block:: none
 
@@ -231,9 +304,9 @@ Cobbler Windows Templates
     
     :EXIT
 
-- Templates /var/lib/tftpboot/winos/ {winpe7,winpe8 }.template are standard or customized WIM images. The trigger copies to the directory of the corresponding distro and changes the contents of startnet.cmd based on the corresponding template and Cobbler profile. winpe7 is used for Windows 7 and Windows 2008 Server, and winpe8 for newer versions.
-- /var/lib/tftpboot/winos/win_sif.template is used to generate /var/lib/tftpboot/winos/<distro_name>/sources/autounattended.xml in case of Windows 7 and newer or winnt.sif for  Windows XP, 2003
-  Example:
+- Templates `/var/lib/tftpboot/winos/{winpe7,winpe8 }.template` are standard or customized WIM PE images. The trigger copies to the directory of the corresponding distro and changes the contents of `startnet.cmd` based on the corresponding template and Cobbler profile. winpe7 is used for Windows 7 and Windows 2008 Server, and winpe8 for newer versions.
+- `/var/lib/tftpboot/winos/win_sif.template` is used to generate `/var/lib/tftpboot/winos/<distro_name>/sources/autounattended.xml` in case of Windows 7 and newer or winnt.sif for  Windows XP, 2003
+Example:
 
 .. code-block:: none
 
@@ -262,7 +335,7 @@ Cobbler Windows Templates
     [GuiRunOnce]
     "%Systemdrive%\post_install.cmd @@profile_name@@"
     <..>
-    #else if $distro_name in ('Win7_EN-x64', 'Win2k8-Server_EN-x64', 'Win2012-Server_EN-x64', 'Win2016-Server_EN-x64', 'Win8_EN-x64', 'Win10_EN-x64' )
+    #else if $distro_name in ('Win7_EN-x64', 'Win2k8-Server_EN-x64', 'Win2012-Server_EN-x64', 'Win2016-Server_EN-x64', 'Win2019-Server_EN-x64', 'Win8_EN-x64', 'Win10_EN-x64' )
     <?xml version="1.0" encoding="utf-8"?>
     <unattend xmlns="urn:schemas-microsoft-com:unattend">
     #if $distro_name in ( 'Win2012-Server_EN-x64' )
@@ -299,8 +372,8 @@ Cobbler Windows Templates
                 </FirstLogonCommands>
     <..>
 
-- The post_inst_cmd.template is used to generate a script that is launched after OS installation in the <FirstLogonCommands> autounattended.xml section, or [GuiRunOnce] in winnt.sif
-  Example:
+- The `post_inst_cmd.template` is used to generate a script that is launched after OS installation in the <FirstLogonCommands> `autounattended.xml` section, or [GuiRunOnce] in `winnt.sif`
+Example:
 
 .. code-block:: none
 
@@ -318,7 +391,7 @@ Cobbler Windows Templates
     DEL /F /Q wget.exe >nul 2>&1
     DEL /F /Q %0 >nul 2>&1
 
-  For the script to work, you need to place the following files in the /var/lib/tftpboot/winos/<distro_name>/$OEM$/$1/TMP directory:
+For the script to work, you need to place the following files in the /var/lib/tftpboot/winos/<distro_name>/$OEM$/$1/TMP directory:
 
 .. code-block:: none
 
@@ -332,7 +405,7 @@ Cobbler Windows Templates
     -rwxr-xr-x. 1 root root   52736 Oct 27  2013 todos.exe
     -rwxr-xr-x. 1 root root  449024 Dec 31  2008 wget.exe
 
-  The win_wait_network_online snippet might look something like this:
+The `win_wait_network_online` snippet might look something like this:
 
 .. code-block:: none
 
@@ -351,8 +424,8 @@ Cobbler Windows Templates
     
     :wno_exit
 
-- win.ks - Automatic Installation Template, which is specified for the Cobbler profile in "cobbler profile add/edit --autoinstall=win.ks .." command.
-  Example:
+- `win.ks` - Automatic Installation Template, which is specified for the Cobbler profile in `"cobbler profile add/edit --autoinstall=win.ks .."` command.
+Example:
 
 .. code-block:: none
 
@@ -455,7 +528,7 @@ Cobbler Windows Templates
     DEL /F /S /Q %systemdrive%\TMP\*.*
     exit
 
-- Add Windows to the network installation menu in the /etc/cobbler/boot_loader_conf/pxedefault.template file:
+- Add Windows to the network installation menu in the `/etc/cobbler/boot_loader_conf/pxedefault.template` file:
 
 .. code-block:: none
 
@@ -483,6 +556,18 @@ Cobbler Windows Templates
                     menu exit
     menu end
 
+Or create an iPXE boot menu
+
+    #!ipxe
+    < .. >
+    kernel http://<http_server>/winos/wimboot
+    initrd --name bootx64.efi   http://<http_server>/winos/Win10_EN-x64/EFI/Boot/bootx64.efi bootx64.efi
+    initrd --name bcd           http://<http_server>/winos/Win10_EN-x64/boot/1Ea             bcd
+    initrd --name boot.sdi      http://<http_server>/winos/Win10_EN-x64/boot/boot.sdi        boot.sdi
+    initrd --name winpe.wim     http://<http_server>/winos/Win10_EN-x64/boot/winpe.wim       winpe.wim
+    boot
+    < .. >
+
 Final steps
 ===========
 
@@ -501,12 +586,10 @@ Final steps
 
     cobbler distro add –name=Win10_EN-x64 \
     --kernel=/var/lib/tftpboot/winos/Win10_EN-x64/pxeboot.n12 \
-    --initrd=/var/lib/tftpboot/winos/add_ram.dat \
+    --initrd=/var/lib/tftpboot/winos/boot/boot.sdi \
     --boot-loader=pxelinux \
     --arch=x86_64 --breed=windows –os-version=10 \
     --kernel-options='post_install=/var/lib/tftpboot/winos/Win10_EN-x64/sources/$OEM$/$1/post_install.cmd'
-
-  add_ram.dat – any empty file
 
 - and profiles:
 

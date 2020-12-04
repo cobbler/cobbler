@@ -25,8 +25,6 @@ wimlib_mount = wimlib + " mountrw"
 wimlib_umount = wimlib + " unmount"
 mount_point = "/mnt/wim"
 
-bcdedit = "/usr/local/bin/bcdedit.pl"
-
 plib = distutils.sysconfig.get_python_lib()
 mod_path="%s/cobbler" % plib
 sys.path.insert(0, mod_path)
@@ -58,32 +56,31 @@ def bcdedit( orig_bcd, new_bcd, wim, sdi, startoptions=None ):
     h = hivex.Hivex( orig_bcd, write=True )
     root = h.root()
     objs = h.node_get_child( root, "Objects" )
-    o = h.node_children(objs)
 
-    for n in o:
+    for n in h.node_children(objs):
         h.node_delete_child( n )
 
     b = h.node_add_child( objs, "{9dea862c-5cdd-4e70-acc1-f32b344d4795}" )
     d = h.node_add_child( b, "Description" )
-    h.node_set_value( d, { "key": "Type", "t": REG_DWORD_BIG_ENDIAN, "value": b"\x10\x10\x00\x02" } )
+    h.node_set_value( d, { "key": "Type", "t": REG_DWORD, "value": b"\x02\x00\x10\x10" } )
     e = h.node_add_child( b, "Elements" )
     e1 = h.node_add_child( e, "25000004" )
     h.node_set_value( e1, { "key": "Element", "t": REG_BINARY, "value": b"\x1e\x00\x00\x00\x00\x00\x00\x00" } )
     e1 = h.node_add_child( e, "12000004" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Windows Boot Manager".encode(encoding="utf_16_le") } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Windows Boot Manager\0".encode(encoding="utf-16le") } )
     e1 = h.node_add_child( e, "24000001" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_MULTI_SZ, "value": "{65c31250-afa2-11df-8045-000c29f37d88}".encode(encoding="utf_16_le") + b"\x00\x00\x00\x00" } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_MULTI_SZ, "value": "{65c31250-afa2-11df-8045-000c29f37d88}\0\0".encode(encoding="utf-16le") } )
     e1 = h.node_add_child( e, "16000048" )
     h.node_set_value( e1, { "key": "Element", "t": REG_BINARY, "value": b"\x01" } )
 
     b = h.node_add_child( objs, "{65c31250-afa2-11df-8045-000c29f37d88}" )
     d = h.node_add_child( b, "Description" )
-    h.node_set_value( d, { "key": "Type", "t": REG_DWORD_BIG_ENDIAN, "value": b"\x10\x20\x00\x03" } )
+    h.node_set_value( d, { "key": "Type", "t": REG_DWORD, "value": b"\x03\x00\x20\x13" } )
     e = h.node_add_child( b, "Elements" )
     e1 = h.node_add_child( e, "12000004" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Windows PE".encode(encoding="utf_16_le") } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Windows PE\0".encode(encoding="utf-16le") } )
     e1 = h.node_add_child( e, "22000002" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "\\Windows".encode(encoding="utf_16_le") } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "\\Windows\0".encode(encoding="utf-16le") } )
     e1 = h.node_add_child( e, "26000010" )
     h.node_set_value( e1, { "key": "Element", "t": REG_BINARY, "value": b"\x01" } )
     e1 = h.node_add_child( e, "26000022" )
@@ -104,20 +101,20 @@ def bcdedit( orig_bcd, new_bcd, wim, sdi, startoptions=None ):
 
     if startoptions:
         e1 = h.node_add_child( e, "12000030" )
-        h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": startoptions.encode(encoding="utf_16_le") } )
+        h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": startoptions.join("\0").encode(encoding="utf-16le") } )
 
     b = h.node_add_child( objs, "{ae5534e0-a924-466c-b836-758539a3ee3a}" )
     d = h.node_add_child( b, "Description" )
-    h.node_set_value( d, { "key": "Type", "t": REG_DWORD_BIG_ENDIAN, "value": b"\x30\x00\x00\x00" } )
+    h.node_set_value( d, { "key": "Type", "t": REG_DWORD, "value": b"\x00\x00\x00\x30" } )
     e = h.node_add_child( b, "Elements" )
     e1 = h.node_add_child( e, "12000004" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Ramdisk Options".encode(encoding="utf_16_le") } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": "Ramdisk Options\0".encode(encoding="utf-16le") } )
     e1 = h.node_add_child( e, "32000004" )
-    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": sdi.encode(encoding="utf_16_le") } )
+    h.node_set_value( e1, { "key": "Element", "t": REG_SZ, "value": sdi.encode(encoding="utf-16le") + b"\x00\x00" } )
     e1 = h.node_add_child( e, "31000003" )
     h.node_set_value( e1, { "key": "Element", "t": REG_BINARY, "value": b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00" + \
-                        b"\x00\x48\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" + \
-                        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" } )
+                      b"\x00\x48\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" + \
+                      b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" } )
     h.commit( new_bcd )
 
 def run( api, args, logger ):
@@ -163,7 +160,7 @@ def run( api, args, logger ):
             if "sif" in profile.kernel_options:
                 data = templ.render( tmpl_data, meta, None, profile )
 
-                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "10" ):
+                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "2019", "10" ):
                     sif_file_name = os.path.join( distro_path, 'sources', profile.kernel_options["sif"] )
                 else:
                     sif_file_name = os.path.join( distro_path, profile.kernel_options["sif"] )
@@ -179,7 +176,7 @@ def run( api, args, logger ):
                 wl_file_name = os.path.join( distro_path, profile.kernel_options["bootmgr"] )
                 logger.info( "Build PXEBoot: " + wk_file_name )
 
-                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "10" ):
+                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "2019", "10" ):
                     if len(profile.kernel_options["bootmgr"]) != 11:
                         logger.error( "The loader  name should be EXACTLY 11 character" )
                         return 1
@@ -221,7 +218,7 @@ def run( api, args, logger ):
                 if out != data:
                     open(wl_file_name, 'wb+').write(out)
 
-                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "10" ):
+                if distro.os_version in ( "7", "2008", "8", "2012", "2016", "2019", "10" ):
                     pe =  pefile.PE( wl_file_name, fast_load=True )
                     pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
                     pe.write( filename=wl_file_name )
@@ -240,22 +237,22 @@ def run( api, args, logger ):
                 if "winpe" in profile.kernel_options:
                     wim_file_name = profile.kernel_options["winpe"]
 
-                wim_file_name = os.path.join( '/winos', distro.name, 'boot', wim_file_name )
-                sdi_file_name = os.path.join( '/winos', distro.name, 'boot', 'boot.sdi' )
-                logger.info( 'Build BCD: ' + bcd_file_name + ' for ' + wim_file_name )
+                if distro.boot_loader == "ipxe":
+                    wim_file_name = '\\Boot\\' + wim_file_name
+                    sdi_file_name = '\\Boot\\' + 'boot.sdi'
+                else:
+                    wim_file_name = os.path.join( '/winos', distro.name, 'boot', wim_file_name )
+                    sdi_file_name = os.path.join( '/winos', distro.name, 'boot', 'boot.sdi' )
 
-#                bcdedit( obcd_file_name, bcd_file_name, wim_file_name, sdi_file_name )
-                cmd = "/usr/bin/cp " + obcd_file_name + " " + bcd_file_name
-                rc = utils.subprocess_call( logger, cmd, shell=True )
-                cmd = bcdedit + " " + bcd_file_name + " " +  wim_file_name + " " + sdi_file_name
-                rc = utils.subprocess_call( logger, cmd, shell=True )
+                logger.info( 'Build BCD: ' + bcd_file_name + ' for ' + wim_file_name )
+                bcdedit( obcd_file_name, bcd_file_name, wim_file_name, sdi_file_name )
 
             if "winpe" in profile.kernel_options:
                 ps_file_name = os.path.join( distro_path, "boot",  profile.kernel_options["winpe"] )
 
                 if distro.os_version in ( "7", "2008" ):
                     wim_pl_name = wim7_template_name
-                elif distro.os_version in ( "8", "2012", "2016", "10" ):
+                elif distro.os_version in ( "8", "2012", "2016", "2019", "10" ):
                     wim_pl_name = wim8_template_name
 
                 cmd = "/usr/bin/cp " + wim_pl_name + " " + ps_file_name
