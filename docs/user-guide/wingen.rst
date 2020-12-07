@@ -4,17 +4,20 @@ Automatic Windows installation with Cobbler
 
 One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
 
-Trigger `sync_post_wingen.py` does:
-- some of the files are created from standard ones (pxeboot.n12, bootmgr.exe) by directly replacing one sting with another directly in the binary
+Trigger `sync_post_wingen.py`:
+- some of the files are created from standard ones (pxeboot.n12, bootmgr.exe) by directly replacing one string with another directly in the binary
 - in the process of changing the `bootmgr.exe` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with `python-pefile`
-- `python3-hivex` is used to modify Windows boot configuration data (BCD). For pxelibux distro boot_loader in BCD, paths to winpe.wim and boot.sdi are generated as `/winos/<distro_name>/boot`, and for iPXE - `\Boot`.
+- `python3-hivex` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to `winpe.wim` and `boot.sdi` are generated as `/winos/<distro_name>/boot`, and for iPXE - `\Boot`.
 - uses `wimlib-tools` to replace `startnet.cmd startup` script in WIM image
-- Windows answer files (`autounattended.xml`) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
-- startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (`post_install.cmd`) are also generated from templates
+
+Windows answer files (`autounattended.xml`) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
+
+startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (`post_install.cmd`) are also generated from templates
 
 Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (`win.ks`).
 
 A logically automatic network installation of Windows 7 and newer can be represented as follows:
+
 PXE + Legacy BIOS Boot
 
 .. code-block:: none
@@ -61,6 +64,7 @@ and copy the Windows distributions there:
     dr-xr-xr-x. 1 root   root         456 Aug  8  2015 WinXp_EN-i386
 
 Copy the following files to the distributions directories (for Windows 7 and newer):
+
 PXE + Legacy BIOS Boot
     - pxeboot.n12
     - bootmgr.exe
