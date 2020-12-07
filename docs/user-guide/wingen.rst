@@ -5,6 +5,7 @@ Automatic Windows installation with Cobbler
 One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
 
 Trigger `sync_post_wingen.py`:
+
 - some of the files are created from standard ones (pxeboot.n12, bootmgr.exe) by directly replacing one string with another directly in the binary
 - in the process of changing the `bootmgr.exe` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with `python-pefile`
 - `python3-hivex` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to `winpe.wim` and `boot.sdi` are generated as `/winos/<distro_name>/boot`, and for iPXE - `\Boot`.
