@@ -23,43 +23,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import binascii
 import os
 import pwd
-import sys
 import time
 
-from cobbler import api as cobbler_api
 from cobbler import remote
 from cobbler import utils
+from cobbler.api import CobblerAPI
 
 
-def core(api):
+def core(cobbler_api: CobblerAPI):
     """
     Starts Cobbler.
 
-    :param api: The cobbler_api instance which is used for this method.
+    :param cobbler_api: The cobbler_api instance which is used for this method.
     """
-    cobbler_api = api
     settings = cobbler_api.settings()
     xmlrpc_port = settings.xmlrpc_port
 
     regen_ss_file()
-    do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port)
+    do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
 
 
 def regen_ss_file():
     """
     This is only used for Kerberos auth at the moment. It identifies XMLRPC requests from Apache that have already been
     cleared by Kerberos.
-
-    :return: 1 if this was successful.
     """
     ssfile = "/var/lib/cobbler/web.ss"
-    fd = open("/dev/urandom", 'rb')
-    data = fd.read(512)
-    fd.close()
+    with open("/dev/urandom", 'rb') as fd:
+        data = fd.read(512)
 
-    fd = os.open(ssfile, os.O_CREAT | os.O_RDWR, 0o660)
-    os.write(fd, binascii.hexlify(data))
-    os.close(fd)
+    with open(ssfile, 'wb', 0o660) as fd:
+        fd.write(binascii.hexlify(data))
 
     http_user = "apache"
     family = utils.get_family()
@@ -68,34 +62,6 @@ def regen_ss_file():
     elif family == "suse":
         http_user = "wwwrun"
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
-
-    return 1
-
-
-def do_xmlrpc_tasks(cobbler_api, settings, xmlrpc_port):
-    """
-    This trys to bring up the Cobbler xmlrpc_api and restart it if it fails. Tailcall to ``do_xmlrpc_rw``.
-
-    :param cobbler_api: The cobbler_api instance which is used for this method.
-    :param settings: The Cobbler settings instance which is used for this method.
-    :param xmlrpc_port: The port where xmlrpc should run on.
-    """
-    do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
-
-
-def log(logger, msg):
-    """
-    This logs something with the Cobbler Logger.
-
-    :param logger: If this is not none then an info message is printed to the log target. In any other case stderr is
-                   used.
-    :param msg: The message to be logged.
-    :type msg: str
-    """
-    if logger is not None:
-        logger.info(msg)
-    else:
-        print(msg, file=sys.stderr)
 
 
 def do_xmlrpc_rw(cobbler_api, settings, port):
@@ -122,7 +88,4 @@ def do_xmlrpc_rw(cobbler_api, settings, port):
 
 
 if __name__ == "__main__":
-    cobbler_api = cobbler_api.CobblerAPI()
-    settings = cobbler_api.settings()
-    regen_ss_file()
-    do_xmlrpc_rw(cobbler_api, settings, 25151)
+    core(CobblerAPI())

@@ -847,6 +847,7 @@ class CobblerCLI(object):
         print("usage\n=====")
         print("cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... ")
         print("        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]")
+        print("cobbler setting [edit|report]")
         print("cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS))
         return 2
 

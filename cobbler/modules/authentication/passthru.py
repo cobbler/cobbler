@@ -37,9 +37,4 @@ def authenticate(api_handle, username, password):
     :return: True if the password is the secret, otherwise false.
     :rtype: bool
     """
-    ss = utils.get_shared_secret()
-    if password == ss:
-        rc = True
-    else:
-        rc = False
-    return rc
+    return password == utils.get_shared_secret()

@@ -55,7 +55,7 @@ FIELDS = [
     ["os_version", "virtio26", 0, "OS Version", True, "Needed for some virtualization optimizations", utils.get_valid_os_versions(), "str"],
     ["owners", "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["redhat_management_key", "", "", "Redhat Management Key", True, "Registration key for RHN, Spacewalk, or Satellite", 0, "str"],
-    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "list"]
+    ["template_files", {}, 0, "Template Files", True, "File mappings for built-in config management", 0, "dict"]
 ]
 
 

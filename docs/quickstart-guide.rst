@@ -222,7 +222,12 @@ Download an ISO image
 
 In order to import a distribution, you will need a DVD ISO for your distribution.
 
-**NOTE:** You must use a full DVD, and not a "Live CD" ISO. For this example, we'll be using the Fedora 17 x86_64 ISO.
+.. note::
+   You must use a full DVD, and not a "Live CD" ISO. For this example, we'll be using the Fedora 17 x86_64 ISO.
+
+.. warning::
+   When running Cobbler via systemd, you cannot mount the ISO to ``/tmp`` or a sub-folder of it because we are using the
+   option `Private Temporary Directory`, to enhance the security of our application.
 
 Once this file is downloaded, mount it somewhere:
 

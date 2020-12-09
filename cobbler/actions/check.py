@@ -106,6 +106,7 @@ class CobblerCheck(object):
 
         :param status: The status list with possible problems. The status list with possible problems.
         """
+        # FIXME: This tools is cross-platform via Python. Thus all distros can have it.
         # ubuntu also identifies as "debian"
         if self.checked_family in ["debian", "suse"]:
             return
@@ -115,13 +116,11 @@ class CobblerCheck(object):
 
     def check_for_cman(self, status):
         """
-        Check if the fencing tools are available. This is done thorugh checking if the binary ``fence_ilo`` is present
+        Check if the fence agents are available. This is done through checking if the binary ``fence_ilo`` is present
         in ``/sbin`` or ``/usr/sbin``.
 
         :param status: The status list with possible problems. The status list with possible problems.
         """
-        if self.checked_family == "suse":
-            return
         # not doing rpm -q here to be cross-distro friendly
         if not os.path.exists("/sbin/fence_ilo") and not os.path.exists("/usr/sbin/fence_ilo"):
             status.append("fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them")
@@ -175,6 +174,7 @@ class CobblerCheck(object):
 
         :param status: The status list with possible problems.
         """
+        # FIXME: Replace this with calls which check for the path of these tools.
         if self.checked_family == "debian":
             return
 
@@ -195,7 +195,7 @@ class CobblerCheck(object):
 
     def check_debmirror(self, status):
         """
-        Check if debmirror is available and the config file for it exists. If the distro familiy is suse then this will
+        Check if debmirror is available and the config file for it exists. If the distro family is suse then this will
         pass without checking.
 
         :param status: The status list with possible problems.
@@ -206,14 +206,14 @@ class CobblerCheck(object):
         if not os.path.exists("/usr/bin/debmirror"):
             status.append(_("debmirror package is not installed, it will be required to manage debian deployments and repositories"))
         if os.path.exists("/etc/debmirror.conf"):
-            f = open("/etc/debmirror.conf")
-            re_dists = re.compile(r'@dists=')
-            re_arches = re.compile(r'@arches=')
-            for line in f.readlines():
-                if re_dists.search(line) and not line.strip().startswith("#"):
-                    status.append(_("comment out 'dists' on /etc/debmirror.conf for proper debian support"))
-                if re_arches.search(line) and not line.strip().startswith("#"):
-                    status.append(_("comment out 'arches' on /etc/debmirror.conf for proper debian support"))
+            with open("/etc/debmirror.conf") as f:
+                re_dists = re.compile(r'@dists=')
+                re_arches = re.compile(r'@arches=')
+                for line in f.readlines():
+                    if re_dists.search(line) and not line.strip().startswith("#"):
+                        status.append(_("comment out 'dists' on /etc/debmirror.conf for proper debian support"))
+                    if re_arches.search(line) and not line.strip().startswith("#"):
+                        status.append(_("comment out 'arches' on /etc/debmirror.conf for proper debian support"))
 
     def check_name(self, status):
         """
@@ -302,8 +302,8 @@ class CobblerCheck(object):
 
         :param status: The status list with possible problems.
         """
-        rc = utils.subprocess_get(self.logger, "dnsmasq --help")
-        if rc.find("Valid options") == -1:
+        rc = utils.subprocess_call(self.logger, "dnsmasq --help")
+        if rc != 0:
             status.append("dnsmasq is not installed and/or in path")
 
     def check_bind_bin(self, status):
@@ -312,9 +312,9 @@ class CobblerCheck(object):
 
         :param status: The status list with possible problems.
         """
-        rc = utils.subprocess_get(self.logger, "named -v")
+        rc = utils.subprocess_call(self.logger, "named -v")
         # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
-        if rc.find("BIND") == -1:
+        if rc != 0:
             status.append("named is not installed and/or in path")
 
     def check_for_wget_curl(self, status):
@@ -323,9 +323,9 @@ class CobblerCheck(object):
 
         :param status: The status list with possible problems.
         """
-        rc1 = utils.subprocess_call(self.logger, "which wget")
-        rc2 = utils.subprocess_call(self.logger, "which curl")
-        if rc1 != 0 and rc2 != 0:
+        rc_wget = utils.subprocess_call(self.logger, "wget --help")
+        rc_curl = utils.subprocess_call(self.logger, "curl --help")
+        if rc_wget != 0 and rc_curl != 0:
             status.append("Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one of these utilities be installed.")
 
     def check_bootloaders(self, status):
