@@ -4,7 +4,7 @@ FROM centos:8
 
 RUN dnf makecache && \
     dnf install -y epel-release dnf-utils && \
-    dnf config-manager --set-enabled PowerTools && \
+    dnf config-manager --set-enabled powertools && \
     dnf makecache
 
 # overlay2 bug with yum/dnf
