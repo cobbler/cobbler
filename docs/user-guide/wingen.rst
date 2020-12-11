@@ -43,7 +43,7 @@ For older versions (Windows XP, 2003):
 Preparing for an unattended network installation of Windows
 ===========================================================
 
-- `dnf install python3-pefile python3-hivex ntfs-3g fuse wimlib-utils`
+- `dnf install python3-pefile python3-hivex wimlib-utils`
 - In the server's tftp directory, create a directory winos
 
 .. code-block:: none
