@@ -152,104 +152,44 @@ Create a file /etc/tftpd.rules:
 
 .. code-block:: none
 
-    vi /var/lib/cobbler/distro_signatures.json
-        "windows": {
-         "2003": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-              ]
-            }
-         },
-         "2008": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         },
-         "2012": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         },
-         "2016": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         },
-         "XP": {
-              "supported_arches": [
-              "i386",
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-              ]
-            }
-         },
-         "7": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         },
-         "8": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         },
-         "10": {
-              "supported_arches": [
-              "x86_64"
-            ],
-            "boot_loaders": {
-              "x86_64": [
-                "pxelinux",
-                "grub"
-                "ipxe"
-              ]
-            }
-         }
-        }
+  "windows": {
+   "2003": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub"]}
+   },
+   "2008": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "2012": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "2016": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "2019": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "XP": {
+    "supported_arches":["i386","x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub"]}
+   },
+   "7": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "8": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   },
+   "10": {
+    "supported_arches":["x86_64"],
+    "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+   }
+  },
 
 - Add trigger /usr/lib/python3.9/site-packages/cobbler/modules/sync_post_wingen.py
 
