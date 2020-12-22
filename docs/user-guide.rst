@@ -54,8 +54,8 @@ Then, a machine is assigned to each profile.
     cobbler check
     cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img
     cobbler distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img
-    cobbler profile add --name=fc5webservers --distro=fc5-i386 --autoinst=/dir4/kick.ks --kopts="something_to_make_my_gfx_card_work=42 some_other_parameter=foo"
-    cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --autoinst=/dir5/kick.ks
+    cobbler profile add --name=fc5webservers --distro=fc5-i386 --autoinstall=/dir4/kick.ks --kernel-options="something_to_make_my_gfx_card_work=42 some_other_parameter=foo"
+    cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --autoinstall=/dir5/kick.ks
     cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers
     cobbler report
@@ -147,7 +147,7 @@ stored on an external NAS box, or potentially on another partition on the same m
 For import methods using rsync, additional flags can be passed to rsync with the option ``--rsync-flags``.
 
 Should you want to force the usage of a specific Cobbler automatic installation template for all profiles created by an
-import, you can feed the option ``--autoinst`` to import, to bypass the built-in automatic installation file
+import, you can feed the option ``--autoinstall`` to import, to bypass the built-in automatic installation file
 auto-detection.
 
 Repository mirroring workflow
@@ -164,7 +164,7 @@ and create a profile that will auto install those repository configurations on p
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras
     cobbler reposync
-    cobbler profile add --name=p1 --distro=existing_distro_name --autoinst=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
+    cobbler profile add --name=p1 --distro=existing_distro_name --autoinstall=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
 
 Import Workflow
 ===============
@@ -212,7 +212,7 @@ Specify reasonable values for the Virt image size (in GB) and RAM requirements (
 
 .. code-block:: none
 
-    cobbler profile add --name=virtwebservers --distro=fc7virt --autoinst=path --virt-file-size=10 --virt-ram=512 [...]
+    cobbler profile add --name=virtwebservers --distro=fc7virt --autoinstall=path --virt-file-size=10 --virt-ram=512 [...]
 
 Define systems if desired. Koan can also provision based on the profile name.
 
@@ -232,9 +232,9 @@ Automatic installation templating
 
 The ``--autoinstall_meta`` options above require more explanation.
 
-If and only if ``--autoinst`` options reference filesystem URLs, ``--ksmeta`` allows for templating of the automatic
-installation files to achieve advanced functions.  If the ``--ksmeta`` option for a profile read
-``--ksmeta="foo=7 bar=llama"``, anywhere in the automatic installation file where the string ``$bar`` appeared would be
+If and only if ``--autoinstall`` options reference filesystem URLs, ``--autoinstall-meta`` allows for templating of the automatic
+installation files to achieve advanced functions.  If the ``--autoinstall-meta`` option for a profile read
+``--autoinstall-meta="foo=7 bar=llama"``, anywhere in the automatic installation file where the string ``$bar`` appeared would be
 replaced with the string "llama".
 
 To apply these changes, ``cobbler sync`` must be run to generate custom automatic installation files for each

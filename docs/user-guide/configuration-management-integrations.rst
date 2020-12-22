@@ -252,7 +252,7 @@ objects.
 .. code-block:: none
 
     cobbler distro edit --name=distro1 --mgmt-classes="distro1"
-    cobbler profile add --name=webserver --distro=distro1 --mgmt-classes="webserver likes_llamas" --kickstart=/etc/cobbler/my.ks
+    cobbler profile add --name=webserver --distro=distro1 --mgmt-classes="webserver likes_llamas" --autoinstall=/etc/cobbler/my.ks
     cobbler system edit --name=system --profile=webserver --mgmt-classes="orange" --dns-name=system.example.org
 
 For Puppet, the ``--dns-name`` (shown above) must be set because this is what puppet will be sending to cobbler and is
