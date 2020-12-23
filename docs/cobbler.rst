@@ -95,40 +95,6 @@ If you want to be explicit with distribution definition, however, here's how it 
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | Name            | Description                                                                                         |
 +=================+=====================================================================================================+
-| name            | a string identifying the distribution, this should be something like ``rhel6``.                     |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| kernel          | An absolute filesystem path to a kernel image.                                                      |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| initrd          | An absolute filesystem path to a initrd image.                                                      |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| remote-boot-    | A URL pointing to the installation initrd of a distribution. If the bootloader has this support,    |
-| kernel          | it will directly download the kernel from this URL, instead of the directory of the TFTP client.    |
-|                 | Note: The kernel (or initrd below) will still be copied into the image directory of the TFTP server.|
-|                 | The above kernel parameter is still needed (e.g. to build iso images, etc.).                        |
-|                 | The advantage of letting the boot loader retrieve the kernel/initrd directly is the support of      |
-|                 | changing/updated distributions. E.g. openSUSE Tumbleweed is updated on the fly and if Cobbler would |
-|                 | copy/cache the kernel/initrd in the TFTP directory, you would get a "kernel does not match          |
-|                 | distribution" (or similar) error when trying to install.                                            |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| remote-boot-    | See remote-boot-kernel above.                                                                       |
-| initrd          |                                                                                                     |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| kernel-options  | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will use. |
-|                 | To remove a kernel argument that may be added by a higher Cobbler object (or in the global          |
-|                 | settings), you can prefix it with a ``!``.                                                          |
-|                 |                                                                                                     |
-|                 | Example: ``--kernel-options="foo=bar baz=3 asdf !gulp"``                                            |
-|                 |                                                                                                     |
-|                 | This example passes the arguments ``foo=bar baz=3 asdf`` but will make sure ``gulp`` is not passed  |
-|                 | even if it was requested at a level higher up in the Cobbler configuration.                         |
-+-----------------+-----------------------------------------------------------------------------------------------------+
-| kernel-options- | This is just like ``--kernel-options``, though it governs kernel options on the installed OS, as    |
-| post            | opposed to kernel options fed to the installer. The syntax is exactly the same. This requires some  |
-|                 | special snippets to be found in your automatic installation template in order for this to work.     |
-|                 | Automatic installation templating is described later on in this document.                           |
-|                 |                                                                                                     |
-|                 | Example: ``noapic``                                                                                 |
-+-----------------+-----------------------------------------------------------------------------------------------------+
 | arch            | Sets the architecture for the PXE bootloader and also controls how Koan's ``--replace-self`` option |
 |                 | will operate.                                                                                       |
 |                 |                                                                                                     |
@@ -147,6 +113,11 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                 |                                                                                                     |
 |                 | See the section on "Kickstart Templating" for further information.                                  |
 +-----------------+-----------------------------------------------------------------------------------------------------+
+| boot-files      | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                              |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| boot-loader     | Boot loader (Network installation boot loader).                                                     |
+|                 | Valid options are <<inherit>>, `grub`, `pxelinux`, `yaboot`, `ipxe`.                                |
++-----------------+-----------------------------------------------------------------------------------------------------+
 | breed           | Controls how various physical and virtual parameters, including kernel arguments for automatic      |
 |                 | installation, are to be treated. Defaults to ``redhat``, which is a suitable value for Fedora and   |
 |                 | CentOS as well. It means anything Red Hat based.                                                    |
@@ -158,6 +129,34 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                 |                                                                                                     |
 |                 | The file used for the answer file, regardless of the breed setting, is the value used for           |
 |                 | ``--autoinstall`` when creating the profile.                                                        |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| comment         | Simple attach a description (Free form text) to your distro.                                        |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| fetchable-files | Fetchable Files (Templates for tftp or wget/curl)                                                   |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| **initrd**      | An absolute filesystem path to a initrd image.                                                      |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| **kernel**      | An absolute filesystem path to a kernel image.                                                      |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| kernel-options  | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will use. |
+|                 | To remove a kernel argument that may be added by a higher Cobbler object (or in the global          |
+|                 | settings), you can prefix it with a ``!``.                                                          |
+|                 |                                                                                                     |
+|                 | Example: ``--kernel-options="foo=bar baz=3 asdf !gulp"``                                            |
+|                 |                                                                                                     |
+|                 | This example passes the arguments ``foo=bar baz=3 asdf`` but will make sure ``gulp`` is not passed  |
+|                 | even if it was requested at a level higher up in the Cobbler configuration.                         |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| kernel-options- | This is just like ``--kernel-options``, though it governs kernel options on the installed OS, as    |
+| post            | opposed to kernel options fed to the installer. The syntax is exactly the same. This requires some  |
+|                 | special snippets to be found in your automatic installation template in order for this to work.     |
+|                 | Automatic installation templating is described later on in this document.                           |
+|                 |                                                                                                     |
+|                 | Example: ``noapic``                                                                                 |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| mgmt-classes    | Management Classes (Management classes for external config management).                             |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| **name**        | A string identifying the distribution, this should be something like ``rhel6``.                     |
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | os-version      | Generally this field can be ignored. It is intended to alter some hardware setup for virtualized    |
 |                 | instances when provisioning guests with Koan. The valid options for ``--os-version`` vary depending |
@@ -174,6 +173,21 @@ If you want to be explicit with distribution definition, however, here's how it 
 |                 | The value for ``--owners`` is a space separated list of users and groups as specified in            |
 |                 | ``/etc/cobbler/users.conf``. For more information see the users.conf file as well as the Cobbler    |
 |                 | Wiki. In the default Cobbler configuration, this value is completely ignored, as is ``users.conf``. |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| redhat-         | Management Classes (Management classes for external config management).                             |
+| management-key  |                                                                                                     |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-    | A URL pointing to the installation initrd of a distribution. If the bootloader has this support,    |
+| kernel          | it will directly download the kernel from this URL, instead of the directory of the TFTP client.    |
+|                 | Note: The kernel (or initrd below) will still be copied into the image directory of the TFTP server.|
+|                 | The above kernel parameter is still needed (e.g. to build iso images, etc.).                        |
+|                 | The advantage of letting the boot loader retrieve the kernel/initrd directly is the support of      |
+|                 | changing/updated distributions. E.g. openSUSE Tumbleweed is updated on the fly and if Cobbler would |
+|                 | copy/cache the kernel/initrd in the TFTP directory, you would get a "kernel does not match          |
+|                 | distribution" (or similar) error when trying to install.                                            |
++-----------------+-----------------------------------------------------------------------------------------------------+
+| remote-boot-    | See remote-boot-kernel above.                                                                       |
+| initrd          |                                                                                                     |
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | template-files  | This feature allows Cobbler to be used as a configuration management system. The argument is a space|
 |                 | delimited string of ``key=value`` pairs. Each key is the path to a template file, each value is the |
@@ -201,12 +215,30 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | Name                | Description                                                                                    |
 +=====================+================================================================================================+
-| name                | A descriptive name. This could be something like ``rhel5webservers`` or ``f9desktops``.        |
-+---------------------+------------------------------------------------------------------------------------------------+
-| distro              | The name of a previously defined Cobbler distribution. This value is required.                 |
-+---------------------+------------------------------------------------------------------------------------------------+
 | autoinstall         | Local filesystem path to a automatic installation file, the file must reside under             |
 |                     | ``/var/lib/cobbler/templates``                                                                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| autoinstall-meta    | Automatic Installation Metadata (Ex: `dog=fang agent=86`).                                     |
++---------------------+------------------------------------------------------------------------------------------------+
+| boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
++---------------------+------------------------------------------------------------------------------------------------+
+| comment             | Simple attach a description (Free form text) to your distro.                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| dhcp-tag            | DHCP Tag (see description in system).                                                          |
++---------------------+------------------------------------------------------------------------------------------------+
+| **distro**          | The name of a previously defined Cobbler distribution. This value is required.                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
++---------------------+------------------------------------------------------------------------------------------------+
+| enable-menu         | Enable PXE Menu? (Show this profile in the PXE menu?)                                          |
++---------------------+------------------------------------------------------------------------------------------------+
+| fetchable-files     | Fetchable Files (Templates for tftp or wget/curl)                                              |
++---------------------+------------------------------------------------------------------------------------------------+
+| filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
+|                     | be a path relative to the TFTP servers root directory. (e.g. grub/grubx64.efi)                 |
+|                     | For most use cases the default bootloader is correct and this can be omitted                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| **name**            | A descriptive name. This could be something like ``rhel5webservers`` or ``f9desktops``.        |
 +---------------------+------------------------------------------------------------------------------------------------+
 | name-servers        | If your nameservers are not provided by DHCP, you can specify a space separated list of        |
 |                     | addresses here to configure each of the installed nodes to use them (provided the automatic    |
@@ -218,44 +250,18 @@ listed below:
 |                     | to use them as domain search path. This is available to set in profiles to avoid having to set |
 |                     | it repeatedly for each system record.                                                          |
 +---------------------+------------------------------------------------------------------------------------------------+
-| virt-file-size      | (Virt-only) How large the disk image should be in Gigabytes. The default is 5. This can be a   |
-|                     | comma separated list (ex: ``5,6,7``) to allow for multiple disks of different sizes depending  |
-|                     | on what is given to ``--virt-path``. This should be input as a integer or decimal value without|
-|                     | units.                                                                                         |
+| next-server         | To override the Next server.                                                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
-| virt-ram            | (Virt-only) How many megabytes of RAM to consume. The default is 512 MB. This should be input  |
-|                     | as an integer without units.                                                                   |
-+---------------------+------------------------------------------------------------------------------------------------+
-| virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
-|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
-|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
-|                     | more documentation. The default ``--virt-type`` can be configured in the Cobbler settings file |
-|                     | such that this parameter does not have to be provided. Other virtualization types are          |
-|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
-+---------------------+------------------------------------------------------------------------------------------------+
-| virt-cpus           | (Virt-only) How many virtual CPUs should Koan give the virtual machine? The default is 1. This |
-|                     | is an integer.                                                                                 |
-+---------------------+------------------------------------------------------------------------------------------------+
-| virt-path           | (Virt-only) Where to store the virtual image on the host system. Except for advanced cases,    |
-|                     | this parameter can usually be omitted. For disk images, the value is usually an absolute path  |
-|                     | to an existing directory with an optional filename component. There is support for specifying  |
-|                     | partitions ``/dev/sda4`` or volume groups ``VolGroup00``, etc.                                 |
-|                     |                                                                                                |
-|                     | For multiple disks, separate the values with commas such as ``VolGroup00,VolGroup00`` or       |
-|                     | ``/dev/sda4,/dev/sda5``. Both those examples would create two disks for the VM.                |
-+---------------------+------------------------------------------------------------------------------------------------+
-| virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
-|                     | profile. If not specified, it will assume the default value in the Cobbler settings file, which|
-|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
-|                     | want to override this setting in the system object. Bridge settings are important as they      |
-|                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
-|                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
-+---------------------+------------------------------------------------------------------------------------------------+
-| repos               | This is a space delimited list of all the repos (created with ``cobbler repo add`` and updated |
-|                     | with ``cobbler reposync``)that this profile can make use of during automated installation. For |
-|                     | example, an example might be ``--repos="fc6i386updates fc6i386extras"`` if the profile wants to|
-|                     | access these two mirrors that are already mirrored on the Cobbler server. Repo management is   |
-|                     | described in greater depth later in the manpage.                                               |
+| owners              | Users with small sites and a limited number of admins can probably ignore this option. All     |
+|                     | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what  |
+|                     | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC   |
+|                     | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only   |
+|                     | respected by the ``authz_ownership`` module which must be enabled in                           |
+|                     | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users   |
+|                     | and groups as specified in ``/etc/cobbler/users.conf``.                                        |
+|                     | For more information see the users.conf file as well as the Cobbler                            |
+|                     | Wiki. In the default Cobbler configuration, this value is completely ignored, as is            |
+|                     | ``users.conf``.                                                                                |
 +---------------------+------------------------------------------------------------------------------------------------+
 | parent              | This is an advanced feature.                                                                   |
 |                     |                                                                                                |
@@ -274,15 +280,67 @@ listed below:
 |                     | Example: If profile A has a ``--virt-file-size=5`` and B does not specify a size, B will use   |
 |                     | the value from A.                                                                              |
 +---------------------+------------------------------------------------------------------------------------------------+
+| proxy               | Proxy URL.                                                                                     |
++---------------------+------------------------------------------------------------------------------------------------+
+| redhat-             | Management Classes (Management classes for external config management).                        |
+| management-key      |                                                                                                |
++---------------------+------------------------------------------------------------------------------------------------+
+| repos               | This is a space delimited list of all the repos (created with ``cobbler repo add`` and updated |
+|                     | with ``cobbler reposync``)that this profile can make use of during automated installation. For |
+|                     | example, an example might be ``--repos="fc6i386updates fc6i386extras"`` if the profile wants to|
+|                     | access these two mirrors that are already mirrored on the Cobbler server. Repo management is   |
+|                     | described in greater depth later in the manpage.                                               |
++---------------------+------------------------------------------------------------------------------------------------+
 | server              | This parameter should be useful only in select circumstances. If machines are on a subnet that |
 |                     | cannot access the Cobbler server using the name/IP as configured in the Cobbler settings file, |
 |                     | use this parameter to override that servername. See also ``--dhcp-tag`` for configuring the    |
 |                     | next server and DHCP information of the system if you are also using Cobbler to help manage    |
 |                     | your DHCP configuration.                                                                       |
 +---------------------+------------------------------------------------------------------------------------------------+
-| filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
-|                     | be a path relative to the TFTP servers root directory. (e.g. grub/grubx64.efi)                 |
-|                     | For most use cases the default bootloader is correct and this can be omitted                   |
+| template-files      | This feature allows Cobbler to be used as a configuration management system. The argument is a |
+|                     | space delimited string of ``key=value`` pairs. Each key is the path to a template file, each   |
+|                     | value is the path to install the file on the system. This is described in further detail on    |
+|                     | the Cobbler Wiki and is implemented using special code in the post install. Koan also can      |
+|                     | retrieve these files from a Cobbler server on demand, effectively allowing Cobbler to function |
+|                     | as a lightweight templated configuration management system.                                    |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-auto-boot      | (Virt-only) Virt Auto Boot (Auto boot this VM?).                                               |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
+|                     | profile. If not specified, it will assume the default value in the Cobbler settings file, which|
+|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
+|                     | want to override this setting in the system object. Bridge settings are important as they      |
+|                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
+|                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-cpus           | (Virt-only) How many virtual CPUs should Koan give the virtual machine? The default is 1. This |
+|                     | is an integer.                                                                                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-disk-driver    | (Virt-only) Virt Disk Driver Type (The on-disk format for the virtualization disk).            |
+|                     | Valid options are <<inherit>>, `raw`, `qcow2`, `qed`, `vdi`, `vmdk`                            |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-file-size      | (Virt-only) How large the disk image should be in Gigabytes. The default is 5. This can be a   |
+|                     | comma separated list (ex: ``5,6,7``) to allow for multiple disks of different sizes depending  |
+|                     | on what is given to ``--virt-path``. This should be input as a integer or decimal value without|
+|                     | units.                                                                                         |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-path           | (Virt-only) Where to store the virtual image on the host system. Except for advanced cases,    |
+|                     | this parameter can usually be omitted. For disk images, the value is usually an absolute path  |
+|                     | to an existing directory with an optional filename component. There is support for specifying  |
+|                     | partitions ``/dev/sda4`` or volume groups ``VolGroup00``, etc.                                 |
+|                     |                                                                                                |
+|                     | For multiple disks, separate the values with commas such as ``VolGroup00,VolGroup00`` or       |
+|                     | ``/dev/sda4,/dev/sda5``. Both those examples would create two disks for the VM.                |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-ram            | (Virt-only) How many megabytes of RAM to consume. The default is 512 MB. This should be input  |
+|                     | as an integer without units.                                                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
+|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
+|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
+|                     | more documentation. The default ``--virt-type`` can be configured in the Cobbler settings file |
+|                     | such that this parameter does not have to be provided. Other virtualization types are          |
+|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
 +---------------------+------------------------------------------------------------------------------------------------+
 
 Cobbler system
@@ -315,98 +373,6 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 +---------------------+------------------------------------------------------------------------------------------------+
 | Name                | Description                                                                                    |
 +=====================+================================================================================================+
-| name                | The system name works like the name option for other commands.                                 |
-|                     |                                                                                                |
-|                     | If the name looks like a MAC address or an IP, the name will implicitly be used for either     |
-|                     | ``--mac`` or ``--ip`` of the first interface, respectively. However, it's usually better to    |
-|                     | give a descriptive name -- don't rely on this behavior.                                        |
-|                     |                                                                                                |
-|                     | A system created with name "default" has special semantics. If a default system object exists, |
-|                     | it sets all undefined systems to PXE to a specific profile. Without a "default" system name    |
-|                     | created, PXE will fall through to local boot for unconfigured systems.                         |
-|                     |                                                                                                |
-|                     | When using "default" name, don't specify any other arguments than ``--profile``, as they won't |
-|                     | be used.                                                                                       |
-+---------------------+------------------------------------------------------------------------------------------------+
-| mac                 | Specifying a mac address via ``--mac`` allows the system object to boot directly to a specific |
-|                     | profile via PXE, bypassing Cobbler's PXE menu. If the name of the Cobbler system already looks |
-|                     | like a mac address, this is inferred from the system name and does not need to be specified.   |
-|                     |                                                                                                |
-|                     | MAC addresses have the format AA:BB:CC:DD:EE:FF. It's highly recommended to register your MAC  |
-|                     | addresses in Cobbler if you're using static addressing with multiple interfaces, or if you are |
-|                     | using any of the advanced networking features like bonding, bridges or VLANs.                  |
-|                     |                                                                                                |
-|                     | Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add   |
-|                     | new system records when it finds profiles being provisioned on hardware it has seen before.    |
-|                     | This may help if you do not have a report of all the MAC addresses in your datacenter/lab      |
-|                     | configuration.                                                                                 |
-+---------------------+------------------------------------------------------------------------------------------------+
-| ip-address          | If Cobbler is configured to generate a DHCP configuration (see advanced section), use this     |
-|                     | setting to define a specific IP for this system in DHCP. Leaving off this parameter will       |
-|                     | result in no DHCP management for this particular system.                                       |
-|                     |                                                                                                |
-|                     | Example: ``--ip-address=192.168.1.50``                                                         |
-|                     |                                                                                                |
-|                     | If DHCP management is disabled and the interface is labelled ``--static=1``, this setting will |
-|                     | be used for static IP configuration.                                                           |
-|                     |                                                                                                |
-|                     | Special feature: To control the default PXE behavior for an entire subnet, this field can also |
-|                     | be passed in using CIDR notation. If ``--ip`` is CIDR, do not specify any other arguments      |
-|                     | other than ``--name`` and ``--profile``.                                                       |
-|                     |                                                                                                |
-|                     | When using the CIDR notation trick, don't specify any arguments other than ``--name`` and      |
-|                     | ``--profile``, as they won't be used.                                                          |
-+---------------------+------------------------------------------------------------------------------------------------+
-| dns-name            | If using the DNS management feature (see advanced section -- Cobbler supports auto-setup of    |
-|                     | BIND and dnsmasq), use this to define a hostname for the system to receive from DNS.           |
-|                     |                                                                                                |
-|                     | Example: ``--dns-name=mycomputer.example.com``                                                 |
-|                     |                                                                                                |
-|                     | This is a per-interface parameter. If you have multiple interfaces, it may be different for    |
-|                     | each interface, for example, assume a DMZ / dual-homed setup.                                  |
-+---------------------+------------------------------------------------------------------------------------------------+
-| gateway and netmask | If you are using static IP configurations and the interface is flagged ``--static=1``, these   |
-|                     | will be applied.                                                                               |
-|                     |                                                                                                |
-|                     | Netmask is a per-interface parameter. Because of the way gateway is stored on the installed OS,|
-|                     | gateway is a global parameter. You may use ``--static-routes`` for per-interface customizations|
-|                     | if required.                                                                                   |
-+---------------------+------------------------------------------------------------------------------------------------+
-| if-gateway          | If you are using static IP configurations and have multiple interfaces, use this to define     |
-|                     | different gateway for each interface.                                                          |
-|                     |                                                                                                |
-|                     | This is a per-interface setting.                                                               |
-+---------------------+------------------------------------------------------------------------------------------------+
-| hostname            | This field corresponds to the hostname set in a systems ``/etc/sysconfig/network`` file. This  |
-|                     | has no bearing on DNS, even when manage_dns is enabled. Use ``--dns-name`` instead for that    |
-|                     | feature.                                                                                       |
-|                     |                                                                                                |
-|                     | This parameter is assigned once per system, it is not a per-interface setting.                 |
-+---------------------+------------------------------------------------------------------------------------------------+
-| power-address,      | Cobbler contains features that enable integration with power management for easier             |
-| power-type,         | installation, reinstallation, and management of machines in a datacenter environment. These    |
-| power-user,         | parameters are described online at `power-management`. If you have a power-managed             |
-| power-pass,         | datacenter/lab setup, usage of these features may be something you are interested in.          |
-| power-id            |                                                                                                |
-+---------------------+------------------------------------------------------------------------------------------------+
-| static              | Indicates that this interface is statically configured. Many fields (such as gateway/netmask)  |
-|                     | will not be used unless this field is enabled.                                                 |
-|                     |                                                                                                |
-|                     | This is a per-interface setting.                                                               |
-+---------------------+------------------------------------------------------------------------------------------------+
-| static-routes       | This is a space delimited list of ip/mask:gateway routing information in that format.          |
-|                     | Most systems will not need this information.                                                   |
-|                     |                                                                                                |
-|                     | This is a per-interface setting.                                                               |
-+---------------------+------------------------------------------------------------------------------------------------+
-| virt-bridge         | (Virt-only) While ``--virt-bridge`` is present in the profile object (see above), here it      |
-|                     | works on an interface by interface basis. For instance it would be possible to have            |
-|                     | ``--virt-bridge0=xenbr0`` and ``--virt-bridge1=xenbr1``. If not specified in Cobbler for each  |
-|                     | interface, Koan will use the value as specified in the profile for each interface, which may   |
-|                     | not always be what is intended, but will be sufficient in most cases.                          |
-|                     |                                                                                                |
-|                     | This is a per-interface setting.                                                               |
-+---------------------+------------------------------------------------------------------------------------------------+
 | autoinstall         | While it is recommended that the ``--autoinstall`` parameter is only used within for the       |
 |                     | "profile add" command, there are limited scenarios when an install base switching to Cobbler   |
 |                     | may have legacy automatic installation files created on aper-system basis (one automatic       |
@@ -415,16 +381,14 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | a per-system basis. Creation of a parent profile is still required. If the automatic           |
 |                     | installation file is a filesystem location, it will still be treated as a Cobbler template.    |
 +---------------------+------------------------------------------------------------------------------------------------+
-| netboot-enabled     | If set false, the system will be provisionable through Koan but not through standard PXE.      |
-|                     | This will allow the system to fall back to default PXE boot behavior without deleting the      |
-|                     | Cobbler system object. The default value allows PXE. Cobbler contains a PXE boot loop          |
-|                     | prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can           |
-|                     | automatically trip off this value after a system gets done installing. This can prevent        |
-|                     | installs from appearing in an endless loop when the system is set to PXE first in the BIOS     |
-|                     | order.                                                                                         |
+| autoinstall-meta    | Automatic Installation Metadata (Ex: `dog=fang agent=86`).                                     |
 +---------------------+------------------------------------------------------------------------------------------------+
-| repos-enabled       | If set true, Koan can reconfigure repositories after installation. This is described further   |
-|                     | on the Cobbler Wiki,https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.                  |
+| boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
++---------------------+------------------------------------------------------------------------------------------------+
+| boot-loader         | Boot loader (Network installation boot loader).                                                |
+|                     | Valid options are <<inherit>>, `grub`, `pxelinux`, `yaboot`, `ipxe`.                           |
++---------------------+------------------------------------------------------------------------------------------------+
+| comment             | Simple attach a description (Free form text) to your distro.                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
 | dhcp-tag            | If you are setting up a PXE environment with multiple subnets/gateways, and are using Cobbler  |
 |                     | to manage a DHCP configuration, you will probably want to use this option. If not, it can be   |
@@ -439,6 +403,35 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | those particular systems.                                                                      |
 |                     |                                                                                                |
 |                     | This is described further on the Cobbler Wiki.                                                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| dns-name            | If using the DNS management feature (see advanced section -- Cobbler supports auto-setup of    |
+|                     | BIND and dnsmasq), use this to define a hostname for the system to receive from DNS.           |
+|                     |                                                                                                |
+|                     | Example: ``--dns-name=mycomputer.example.com``                                                 |
+|                     |                                                                                                |
+|                     | This is a per-interface parameter. If you have multiple interfaces, it may be different for    |
+|                     | each interface, for example, assume a DMZ / dual-homed setup.                                  |
++---------------------+------------------------------------------------------------------------------------------------+
+| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
++---------------------+------------------------------------------------------------------------------------------------+
+| fetchable-files     | Fetchable Files (Templates for tftp or wget/curl)                                              |
++---------------------+------------------------------------------------------------------------------------------------+
+| filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
+|                     | be a path relative to the TFTP servers root directory. (e.g. grub/grubx64.efi)                 |
+|                     | For most use cases the default bootloader is correct and this can be omitted                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| gateway and netmask | If you are using static IP configurations and the interface is flagged ``--static=1``, these   |
+|                     | will be applied.                                                                               |
+|                     |                                                                                                |
+|                     | Netmask is a per-interface parameter. Because of the way gateway is stored on the installed OS,|
+|                     | gateway is a global parameter. You may use ``--static-routes`` for per-interface customizations|
+|                     | if required.                                                                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| hostname            | This field corresponds to the hostname set in a systems ``/etc/sysconfig/network`` file. This  |
+|                     | has no bearing on DNS, even when manage_dns is enabled. Use ``--dns-name`` instead for that    |
+|                     | feature.                                                                                       |
+|                     |                                                                                                |
+|                     | This parameter is assigned once per system, it is not a per-interface setting.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
 | interface           | By default flags like ``--ip``, ``--mac``, ``--dhcp-tag``, ``--dns-name``, ``--netmask``,      |
 |                     | ``--virt-bridge``, and ``--static-routes`` operate on the first network interface defined for  |
@@ -510,6 +503,171 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     |                                                                                                |
 |                     | cobbler system report --name=foo                                                               |
 +---------------------+------------------------------------------------------------------------------------------------+
+| if-gateway          | If you are using static IP configurations and have multiple interfaces, use this to define     |
+|                     | different gateway for each interface.                                                          |
+|                     |                                                                                                |
+|                     | This is a per-interface setting.                                                               |
++---------------------+------------------------------------------------------------------------------------------------+
+| ip-address,         | If Cobbler is configured to generate a DHCP configuration (see advanced section), use this     |
+| ipv6-address        | setting to define a specific IP for this system in DHCP. Leaving off this parameter will       |
+|                     | result in no DHCP management for this particular system.                                       |
+|                     |                                                                                                |
+|                     | Example: ``--ip-address=192.168.1.50``                                                         |
+|                     |                                                                                                |
+|                     | If DHCP management is disabled and the interface is labelled ``--static=1``, this setting will |
+|                     | be used for static IP configuration.                                                           |
+|                     |                                                                                                |
+|                     | Special feature: To control the default PXE behavior for an entire subnet, this field can also |
+|                     | be passed in using CIDR notation. If ``--ip`` is CIDR, do not specify any other arguments      |
+|                     | other than ``--name`` and ``--profile``.                                                       |
+|                     |                                                                                                |
+|                     | When using the CIDR notation trick, don't specify any arguments other than ``--name`` and      |
+|                     | ``--profile``, as they won't be used.                                                          |
++---------------------+------------------------------------------------------------------------------------------------+
+| kernel-options      | Sets kernel command-line arguments that the distro, and profiles/systems depending on it, will |
+|                     | use. To remove a kernel argument that may be added by a higher Cobbler object (or in the global|
+|                     | settings), you can prefix it with a ``!``.                                                     |
+|                     |                                                                                                |
+|                     | Example: ``--kernel-options="foo=bar baz=3 asdf !gulp"``                                       |
+|                     |                                                                                                |
+|                     | This example passes the arguments ``foo=bar baz=3 asdf`` but will make sure ``gulp`` is not    |
+|                     | passed even if it was requested at a level higher up in the Cobbler configuration.             |
++---------------------+------------------------------------------------------------------------------------------------+
+| kernel-options-post | This is just like ``--kernel-options``, though it governs kernel options on the installed OS,  |
+|                     | as opposed to kernel options fed to the installer. The syntax is exactly the same. This        |
+|                     | requires some special snippets to be found in your automatic installation template in order    |
+|                     | for this to work. Automatic installation templating is described later on in this document.    |
+|                     |                                                                                                |
+|                     | Example: ``noapic``                                                                            |
++---------------------+------------------------------------------------------------------------------------------------+
+| mac,                | Specifying a mac address via ``--mac`` allows the system object to boot directly to a specific |
+| mac-address         | profile via PXE, bypassing Cobbler's PXE menu. If the name of the Cobbler system already looks |
+|                     | like a mac address, this is inferred from the system name and does not need to be specified.   |
+|                     |                                                                                                |
+|                     | MAC addresses have the format AA:BB:CC:DD:EE:FF. It's highly recommended to register your MAC  |
+|                     | addresses in Cobbler if you're using static addressing with multiple interfaces, or if you are |
+|                     | using any of the advanced networking features like bonding, bridges or VLANs.                  |
+|                     |                                                                                                |
+|                     | Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add   |
+|                     | new system records when it finds profiles being provisioned on hardware it has seen before.    |
+|                     | This may help if you do not have a report of all the MAC addresses in your datacenter/lab      |
+|                     | configuration.                                                                                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| mgmt-classes        | Management Classes (Management classes for external config management).                        |
++---------------------+------------------------------------------------------------------------------------------------+
+| mgmt-parameters     | Management Parameters which will be handed to your management application.                     |
+|                     | (Must be valid YAML dictionary)                                                                |
++---------------------+------------------------------------------------------------------------------------------------+
+| **name**            | The system name works like the name option for other commands.                                 |
+|                     |                                                                                                |
+|                     | If the name looks like a MAC address or an IP, the name will implicitly be used for either     |
+|                     | ``--mac`` or ``--ip`` of the first interface, respectively. However, it's usually better to    |
+|                     | give a descriptive name -- don't rely on this behavior.                                        |
+|                     |                                                                                                |
+|                     | A system created with name "default" has special semantics. If a default system object exists, |
+|                     | it sets all undefined systems to PXE to a specific profile. Without a "default" system name    |
+|                     | created, PXE will fall through to local boot for unconfigured systems.                         |
+|                     |                                                                                                |
+|                     | When using "default" name, don't specify any other arguments than ``--profile``, as they won't |
+|                     | be used.                                                                                       |
++---------------------+------------------------------------------------------------------------------------------------+
+| name-servers        | If your nameservers are not provided by DHCP, you can specify a space separated list of        |
+|                     | addresses here to configure each of the installed nodes to use them (provided the automatic    |
+|                     | installation files used are installed on a per-system basis). Users with DHCP setups should not|
+|                     | need to use this option. This is available to set in profiles to avoid having to set it        |
+|                     | repeatedly for each system record.                                                             |
++---------------------+------------------------------------------------------------------------------------------------+
+| name-servers-search | You can specify a space separated list of domain names to configure each of the installed nodes|
+|                     | to use them as domain search path. This is available to set in profiles to avoid having to set |
+|                     | it repeatedly for each system record.                                                          |
++---------------------+------------------------------------------------------------------------------------------------+
+| netboot-enabled     | If set false, the system will be provisionable through Koan but not through standard PXE.      |
+|                     | This will allow the system to fall back to default PXE boot behavior without deleting the      |
+|                     | Cobbler system object. The default value allows PXE. Cobbler contains a PXE boot loop          |
+|                     | prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can           |
+|                     | automatically trip off this value after a system gets done installing. This can prevent        |
+|                     | installs from appearing in an endless loop when the system is set to PXE first in the BIOS     |
+|                     | order.                                                                                         |
++---------------------+------------------------------------------------------------------------------------------------+
+| next-server         | To override the Next server.                                                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| owners              | Users with small sites and a limited number of admins can probably ignore this option. All     |
+|                     | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what  |
+|                     | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC   |
+|                     | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only   |
+|                     | respected by the ``authz_ownership`` module which must be enabled in                           |
+|                     | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users   |
+|                     | and groups as specified in ``/etc/cobbler/users.conf``.                                        |
+|                     | For more information see the users.conf file as well as the Cobbler                            |
+|                     | Wiki. In the default Cobbler configuration, this value is completely ignored, as is            |
+|                     | ``users.conf``.                                                                                |
++---------------------+------------------------------------------------------------------------------------------------+
+| power-address,      | Cobbler contains features that enable integration with power management for easier             |
+| power-type,         | installation, reinstallation, and management of machines in a datacenter environment. These    |
+| power-user,         | parameters are described online at `power-management`. If you have a power-managed             |
+| power-pass,         | datacenter/lab setup, usage of these features may be something you are interested in.          |
+| power-id,           |                                                                                                |
+| power-options,      |                                                                                                |
+| power-identity-file |                                                                                                |
++---------------------+------------------------------------------------------------------------------------------------+
+| **profile**         | The name of Cobbler profile the system will inherite its properties.                           |
++---------------------+------------------------------------------------------------------------------------------------+
+| proxy               | Proxy URL.                                                                                     |
++---------------------+------------------------------------------------------------------------------------------------+
+| redhat-             | Management Classes (Management classes for external config management).                        |
+| management-key      |                                                                                                |
++---------------------+------------------------------------------------------------------------------------------------+
+| repos-enabled       | If set true, Koan can reconfigure repositories after installation. This is described further   |
+|                     | on the Cobbler Wiki,https://github.com/cobbler/cobbler/wiki/Manage-yum-repos.                  |
++---------------------+------------------------------------------------------------------------------------------------+
+| static              | Indicates that this interface is statically configured. Many fields (such as gateway/netmask)  |
+|                     | will not be used unless this field is enabled.                                                 |
+|                     |                                                                                                |
+|                     | This is a per-interface setting.                                                               |
++---------------------+------------------------------------------------------------------------------------------------+
+| static-routes       | This is a space delimited list of ip/mask:gateway routing information in that format.          |
+|                     | Most systems will not need this information.                                                   |
+|                     |                                                                                                |
+|                     | This is a per-interface setting.                                                               |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-auto-boot      | (Virt-only) Virt Auto Boot (Auto boot this VM?).                                               |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-bridge         | (Virt-only) This specifies the default bridge to use for all systems defined under this        |
+|                     | profile. If not specified, it will assume the default value in the Cobbler settings file, which|
+|                     | as shipped in the RPM is ``xenbr0``. If using KVM, this is most likely not correct. You may    |
+|                     | want to override this setting in the system object. Bridge settings are important as they      |
+|                     | define how outside networking will reach the guest. For more information on bridge setup, see  |
+|                     | the Cobbler Wiki, where there is a section describing Koan usage.                              |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-cpus           | (Virt-only) How many virtual CPUs should Koan give the virtual machine? The default is 1. This |
+|                     | is an integer.                                                                                 |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-disk-driver    | (Virt-only) Virt Disk Driver Type (The on-disk format for the virtualization disk).            |
+|                     | Valid options are <<inherit>>, `raw`, `qcow2`, `qed`, `vdi`, `vmdk`                            |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-file-size      | (Virt-only) How large the disk image should be in Gigabytes. The default is 5. This can be a   |
+|                     | comma separated list (ex: ``5,6,7``) to allow for multiple disks of different sizes depending  |
+|                     | on what is given to ``--virt-path``. This should be input as a integer or decimal value without|
+|                     | units.                                                                                         |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-path           | (Virt-only) Where to store the virtual image on the host system. Except for advanced cases,    |
+|                     | this parameter can usually be omitted. For disk images, the value is usually an absolute path  |
+|                     | to an existing directory with an optional filename component. There is support for specifying  |
+|                     | partitions ``/dev/sda4`` or volume groups ``VolGroup00``, etc.                                 |
+|                     |                                                                                                |
+|                     | For multiple disks, separate the values with commas such as ``VolGroup00,VolGroup00`` or       |
+|                     | ``/dev/sda4,/dev/sda5``. Both those examples would create two disks for the VM.                |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-ram            | (Virt-only) How many megabytes of RAM to consume. The default is 512 MB. This should be input  |
+|                     | as an integer without units.                                                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| virt-type           | (Virt-only) Koan can install images using either Xen paravirt (``xenpv``) or QEMU/KVM          |
+|                     | (``qemu``). Choose one or the other strings to specify, or values will default to attempting to|
+|                     | find a compatible installation type on the client system("auto"). See the "Koan" manpage for   |
+|                     | more documentation. The default ``--virt-type`` can be configured in the Cobbler settings file |
+|                     | such that this parameter does not have to be provided. Other virtualization types are          |
+|                     | supported, for information on those options (such as VMware), see the Cobbler Wiki.            |
++---------------------+------------------------------------------------------------------------------------------------+
 
 Cobbler repo
 ============
@@ -526,7 +684,27 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 +------------------+---------------------------------------------------------------------------------------------------+
 | Name             | Description                                                                                       |
 +==================+===================================================================================================+
-| mirror           | The address of the yum mirror. This can be an ``rsync://``-URL, an ssh location, or a ``http://`` |
+| apt-components   | Apt Components (apt only) (ex: main restricted universe)                                          |
++------------------+---------------------------------------------------------------------------------------------------+
+| apt-dists        | Apt Dist Names (apt only) (ex: precise precise-updates)                                           |
++------------------+---------------------------------------------------------------------------------------------------+
+| arch             | Specifies what architecture the repository should use. By default the current system arch (of the |
+|                  | server) is used,which may not be desirable. Using this to override the default arch allows        |
+|                  | mirroring of source repositories(using ``--arch=src``).                                           |
++------------------+---------------------------------------------------------------------------------------------------+
+| breed            | Ordinarily Cobbler's repo system will understand what you mean without supplying this parameter,  |
+|                  | though you can set it explicitly if needed.                                                       |
++------------------+---------------------------------------------------------------------------------------------------+
+| comment          | Simple attach a description (Free form text) to your distro.                                      |
++------------------+---------------------------------------------------------------------------------------------------+
+| createrepo-flags | Specifies optional flags to feed into the createrepo tool, which is called when                   |
+|                  | ``cobbler reposync`` is run for the given repository. The defaults are ``-c cache``.              |
++------------------+---------------------------------------------------------------------------------------------------+
+| keep-updated     | Specifies that the named repository should not be updated during a normal "cobbler reposync". The |
+|                  | repo may still be updated by name. The repo should be synced at least once before disabling this  |
+|                  | feature. See "cobbler reposync" below.                                                            |
++------------------+---------------------------------------------------------------------------------------------------+
+| **mirror**       | The address of the yum mirror. This can be an ``rsync://``-URL, an ssh location, or a ``http://`` |
 |                  | or ``ftp://`` mirror location. Filesystem paths also work.                                        |
 |                  |                                                                                                   |
 |                  | The mirror address should specify an exact repository to mirror -- just one architecture and just |
@@ -544,10 +722,11 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 |                  | this to work. This requires the Cobbler server to be installed on RHEL 5 or later. You will also  |
 |                  | need a version of ``yum-utils`` equal or greater to 1.0.4.                                        |
 +------------------+---------------------------------------------------------------------------------------------------+
-| mirror_type      | The type of the yum mirror. This can be an ``baseurl``- list of URLs, ``mirrorlist`` - URL of     |
-|                  | a mirrorlist, or a ``metalink`` - URL of a metalink. The defaults are ``baseurl``.                |
+| mirror-locally   | When set to ``N``, specifies that this yum repo is to be referenced directly via automatic        |
+|                  | installation files and not mirrored locally on the Cobbler server. Only ``http://`` and ``ftp://``|
+|                  | mirror urls are supported when using ``--mirror-locally=N``, you cannot use filesystem URLs.      |
 +------------------+---------------------------------------------------------------------------------------------------+
-| name             | This name is used as the save location for the mirror. If the mirror represented, say, Fedora     |
+| **name**         | This name is used as the save location for the mirror. If the mirror represented, say, Fedora     |
 |                  | Core 6 i386 updates, a good name would be ``fc6i386updates``. Again, be specific.                 |
 |                  |                                                                                                   |
 |                  | This name corresponds with values given to the ``--repos`` parameter of ``cobbler profile add``.  |
@@ -562,6 +741,24 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 |                  |                                                                                                   |
 |                  | See the documentation on ``cobbler profile add`` for more information.                            |
 +------------------+---------------------------------------------------------------------------------------------------+
+| owners           | Users with small sites and a limited number of admins can probably ignore this option. All        |
+|                  | objects (distros, profiles, systems, and repos) can take a --owners parameter to specify what     |
+|                  | Cobbler users can edit particular objects.This only applies to the Cobbler WebUI and XML-RPC      |
+|                  | interface, not the "cobbler" command line tool run from the shell. Furthermore, this is only      |
+|                  | respected by the ``authz_ownership`` module which must be enabled in                              |
+|                  | ``/etc/cobbler/modules.conf``. The value for ``--owners`` is a space separated list of users      |
+|                  | and groups as specified in ``/etc/cobbler/users.conf``.                                           |
+|                  | For more information see the users.conf file as well as the Cobbler                               |
+|                  | Wiki. In the default Cobbler configuration, this value is completely ignored, as is               |
+|                  | ``users.conf``.                                                                                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| priority         | Specifies the priority of the repository (the lower the number, the higher the priority), which   |
+|                  | applies to installed machines using the repositories that also have the yum priorities plugin     |
+|                  | installed. The default priority for the plugins 99, as is that of all Cobbler mirrored            |
+|                  | repositories.                                                                                     |
++------------------+---------------------------------------------------------------------------------------------------+
+| proxy            | Proxy URL.                                                                                        |
++---------------------+------------------------------------------------------------------------------------------------+
 | rpm-list         | By specifying a space-delimited list of package names for ``--rpm-list``, one can decide to mirror|
 |                  | only a part of a repo (the list of packages given, plus dependencies). This may be helpful in     |
 |                  | conserving time/space/bandwidth. For instance, when mirroring FC6 Extras, it may be desired to    |
@@ -572,32 +769,9 @@ probably be overkill, though it can be very useful for larger setups (labs, data
 |                  | yumdownloader). It will be ignored for other mirror types, such as local paths and ``rsync://``   |
 |                  | mirrors.                                                                                          |
 +------------------+---------------------------------------------------------------------------------------------------+
-| createrepo-flags | Specifies optional flags to feed into the createrepo tool, which is called when                   |
-|                  | ``cobbler reposync`` is run for the given repository. The defaults are ``-c cache``.              |
-+------------------+---------------------------------------------------------------------------------------------------+
-| keep-updated     | Specifies that the named repository should not be updated during a normal "cobbler reposync". The |
-|                  | repo may still be updated by name. The repo should be synced at least once before disabling this  |
-|                  | feature. See "cobbler reposync" below.                                                            |
-+------------------+---------------------------------------------------------------------------------------------------+
-| mirror-locally   | When set to ``N``, specifies that this yum repo is to be referenced directly via automatic        |
-|                  | installation files and not mirrored locally on the Cobbler server. Only ``http://`` and ``ftp://``|
-|                  | mirror urls are supported when using ``--mirror-locally=N``, you cannot use filesystem URLs.      |
-+------------------+---------------------------------------------------------------------------------------------------+
-| priority         | Specifies the priority of the repository (the lower the number, the higher the priority), which   |
-|                  | applies to installed machines using the repositories that also have the yum priorities plugin     |
-|                  | installed. The default priority for the plugins 99, as is that of all Cobbler mirrored            |
-|                  | repositories.                                                                                     |
-+------------------+---------------------------------------------------------------------------------------------------+
-| arch             | Specifies what architecture the repository should use. By default the current system arch (of the |
-|                  | server) is used,which may not be desirable. Using this to override the default arch allows        |
-|                  | mirroring of source repositories(using ``--arch=src``).                                           |
-+------------------+---------------------------------------------------------------------------------------------------+
 | yumopts          | Sets values for additional yum options that the repo should use on installed systems. For instance|
 |                  | if a yum plugin takes a certain parameter "alpha" and "beta", use something like                  |
 |                  | ``--yumopts="alpha=2 beta=3"``.                                                                   |
-+------------------+---------------------------------------------------------------------------------------------------+
-| breed            | Ordinarily Cobbler's repo system will understand what you mean without supplying this parameter,  |
-|                  | though you can set it explicitly if needed.                                                       |
 +------------------+---------------------------------------------------------------------------------------------------+
 
 .. code-block:: shell
@@ -631,19 +805,21 @@ Resources are executed in the order listed above.
 
     $ cobbler mgmtclass add --name=string --comment=string [--packages=list] [--files=list]
 
-+----------+-----------------------------------------------------------------------------------------------------------+
-| Name     | Description                                                                                               |
-+==========+===========================================================================================================+
-| name     | The name of the mgmtclass. Use this name when adding a management class to a system, profile, or distro.  |
-|          | To add a mgmtclass to an existing system use something like                                               |
-|          | (``cobbler system edit --name="madhatter" --mgmt-classes="http mysql"``).                                 |
-+----------+-----------------------------------------------------------------------------------------------------------+
-| comment  | A comment that describes the functions of the management class.                                           |
-+----------+-----------------------------------------------------------------------------------------------------------+
-| packages | Specifies a list of package resources required by the management class.                                   |
-+----------+-----------------------------------------------------------------------------------------------------------+
-| files    | Specifies a list of file resources required by the management class.                                      |
-+----------+-----------------------------------------------------------------------------------------------------------+
++------------+-----------------------------------------------------------------------------------------------------------+
+| Name       | Description                                                                                               |
++============+===========================================================================================================+
+| class-name | Class Name (Actual Class Name (leave blank to use the name field)).                                       |
++------------+-----------------------------------------------------------------------------------------------------------+
+| comment    | A comment that describes the functions of the management class.                                           |
++------------+-----------------------------------------------------------------------------------------------------------+
+| files      | Specifies a list of file resources required by the management class.                                      |
++------------+-----------------------------------------------------------------------------------------------------------+
+| **name**   | The name of the mgmtclass. Use this name when adding a management class to a system, profile, or distro.  |
+|            | To add a mgmtclass to an existing system use something like                                               |
+|            | (``cobbler system edit --name="madhatter" --mgmt-classes="http mysql"``).                                 |
++------------+-----------------------------------------------------------------------------------------------------------+
+| packages   | Specifies a list of package resources required by the management class.                                   |
++------------+-----------------------------------------------------------------------------------------------------------+
 
 
 Cobbler package
@@ -667,6 +843,8 @@ Attributes:
 | Name      | Description                                            |
 +===========+========================================================+
 | installer | Which package manager to use, vaild options [rpm|yum]. |
++-----------+--------------------------------------------------------+
+| **name**  | Cobbler object name.                                   |
 +-----------+--------------------------------------------------------+
 | version   | Which version of the package to install.               |
 +-----------+--------------------------------------------------------+
@@ -692,19 +870,21 @@ Actions:
 
 Attributes:
 
-+----------+--------------------------------+
-| Name     | Description                    |
-+==========+================================+
-| mode     | Permission mode (as in chmod). |
-+----------+--------------------------------+
-| group    | The group owner of the file.   |
-+----------+--------------------------------+
-| user     | The user for the file.         |
-+----------+--------------------------------+
-| path     | The path for the file.         |
-+----------+--------------------------------+
-| template | The template for the file.     |
-+----------+--------------------------------+
++----------+---------------------------------+
+| Name     | Description                     |
++==========+=================================+
+| group    | The group owner of the file.    |
++----------+---------------------------------+
+| mode     | Permission mode (as in chmod).  |
++----------+---------------------------------+
+| **name** | Name of the cobbler file object |
++----------+---------------------------------+
+| **path** | The path for the file.          |
++----------+---------------------------------+
+| template | The template for the file.      |
++----------+---------------------------------+
+| user     | The user for the file.          |
++----------+---------------------------------+
 
 Example:
 
