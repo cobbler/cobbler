@@ -84,7 +84,7 @@ We need to consider getting Cobbler to install and automatically invoke the CMS 
 
 Set up Cobbler to include a package repository that contains your chosen CMS:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler repo add ...
 
@@ -127,7 +127,7 @@ files as templates, you can use the same templating to drive your CMS configurat
 
 For example:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler profile edit --name=webserver --template-files=/srv/cobbler/x.template=/etc/foo.conf
 
@@ -135,7 +135,7 @@ A client system installed via the above profile will gain a file ``/etc/foo.conf
 template given by ``/srv/cobbler/x.template``. Multiple files may be specified; each ``template=destination`` pair
 should be placed in a space-separated list enclosed in quotes:
 
-.. code-block:: none
+.. code-block:: shell
 
     --template-files="srv/cobbler/x.template=/etc/xfile.conf srv/cobbler/y.template=/etc/yfile.conf"
 
@@ -150,7 +150,7 @@ Template files follows general Cheetah syntax, so can include Cheetah variables.
 the cobbler object hierarchy (distros, profiles, and systems) are available to your templates. To see all the variables
 available, use the command:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler profile dumpvars --name=webserver
 
@@ -161,7 +161,7 @@ Ongoing maintenance
 
 Koan can pull down files to keep a system updated with the latest templates and variables:
 
-.. code-block:: none
+.. code-block:: shell
 
     koan --server=cobbler.example.org --profile=foo --update-files
 
@@ -177,7 +177,7 @@ Cobbler and Koan won't download those files.
 
 For example, in:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler profile edit --name=foo --template-files="/srv/templates/a.src=/etc/foo/a.conf /srv/templates/b.src=1"
 
@@ -249,7 +249,7 @@ Keeping Class Mappings In Cobbler
 First, we assign management classes to distro, profile, or system
 objects.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro edit --name=distro1 --mgmt-classes="distro1"
     cobbler profile add --name=webserver --distro=distro1 --mgmt-classes="webserver likes_llamas" --autoinstall=/etc/cobbler/my.ks

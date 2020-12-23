@@ -49,7 +49,7 @@ The following example uses a local kernel and initrd file (already downloaded), 
 using two different automatic installation files -- one for a web server configuration and one for a database server.
 Then, a machine is assigned to each profile.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img
@@ -77,7 +77,7 @@ software not in a standard repository but want provisioned systems to know about
 
 Make sure there is plenty of space in Cobbler's webdir, which defaults to ``/var/www/cobbler``.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler reposync [--only=ONLY] [--tries=N] [--no-fail]
 
@@ -93,7 +93,7 @@ adds support for rsync and SSH locations, where as dnf's reposync only supports 
 
 If you ever want to update a certain repository you can run:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler reposync --only="reponame1" ...
 
@@ -156,7 +156,7 @@ Repository mirroring workflow
 The following example shows how to set up a repo mirror for all enabled Cobbler host repositories and two additional repositories,
 and create a profile that will auto install those repository configurations on provisioned systems using that profile.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     # set up your cobbler distros here.
@@ -184,7 +184,7 @@ automatically, and the right architecture field will also be set on the distribu
 an entire mirror (containing multiple distributions and arches), you don't have to do this, as Cobbler will set the
 names for things based on the paths it finds.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     cobbler import --path=rsync://yourfavoritemirror.com/rhel/5/os/x86_64 --name=rhel5 --arch=x86_64
@@ -204,19 +204,19 @@ Virtualization
 For Virt, be sure the distro uses the correct kernel (if paravirt) and follow similar steps as above, adding additional
 parameters as desired:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro add --name=fc7virt [options...]
 
 Specify reasonable values for the Virt image size (in GB) and RAM requirements (in MB):
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler profile add --name=virtwebservers --distro=fc7virt --autoinstall=path --virt-file-size=10 --virt-ram=512 [...]
 
 Define systems if desired. Koan can also provision based on the profile name.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers [...]
 
@@ -315,14 +315,14 @@ An easy way to specify a default Cobbler profile to PXE boot is to create a syst
 ``/etc/cobbler/default.pxe`` to be ignored. To restore the previous behavior do a ``cobbler system remove`` on the
 ``default`` system.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=default --profile=boot_this
     cobbler system remove --name=default
 
 As mentioned in earlier sections, it is also possible to control the default behavior for a specific network:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=network1 --ip-address=192.168.0.0/24 --profile=boot_this
 
@@ -333,7 +333,7 @@ If you have your machines set to PXE first in the boot order (ahead of hard driv
 in ``/etc/cobbler/settings`` to 1. This will set the machines to not PXE on successive boots once they complete one
 install. To re-enable PXE for a specific system, run the following command:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system edit --name=name --netboot-enabled=1
 
@@ -342,7 +342,7 @@ Automatic installation tracking
 
 Cobbler knows how to keep track of the status of automatic installation of machines.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler status
 

@@ -31,7 +31,7 @@ Deleting configuration entries
 
 If you want to remove a specific object, use the remove command with the name that was used to add it.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file remove --name=string
 
@@ -42,7 +42,7 @@ If you want to change a particular setting without doing an ``add`` again, use t
 you gave when you added the item. Anything supplied in the parameter list will overwrite the settings in the existing
 object, preserving settings not mentioned.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file edit --name=string [parameterlist]
 
@@ -51,7 +51,7 @@ Copying
 
 Objects can also be copied:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file copy --name=oldname --newname=newname
 
@@ -60,7 +60,7 @@ Renaming
 
 Objects can also be renamed, as long as other objects don't reference them.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro|profile|system|repo|image|mgmtclass|package|file rename --name=oldname --newname=newname
 
@@ -306,7 +306,7 @@ Read more about networking setup at: https://cobbler.readthedocs.io/en/release28
 
 Example:
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ cobbler system add --name=string --profile=string [--mac=macaddress] [--ip-address=ipaddress] [--hostname=hostname] [--kernel-options=string] [--autoinstall-meta=string] [--autoinstall=path] [--netboot-enabled=Y/N] [--server=string] [--gateway=string] [--dns-name=string] [--static-routes=string] [--power-address=string] [--power-type=string] [--power-user=string] [--power-pass=string] [--power-id=string]
 
