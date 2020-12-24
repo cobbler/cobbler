@@ -1138,7 +1138,7 @@ class TFTPGen(object):
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.normpath(os.path.join("/var/lib/cobbler/autoinstall_scripts", script_name))
+        template = os.path.normpath(os.path.join("/var/lib/cobbler/scripts", script_name))
         if not os.path.exists(template):
             return "# script template %s not found" % script_name
 
