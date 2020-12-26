@@ -90,26 +90,26 @@ Basic Setup
 
 4. Change the password for the 'cobbler' username:
 
-.. code-block:: none
+.. code-block:: shell
 
       htdigest /etc/cobbler/users.digest "Cobbler" cobbler
 
 5.  If this is not a new install, your Apache configuration for Cobbler might not be current.
 
-.. code-block:: none
+.. code-block:: shell
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
 6.  Now restart Apache and `cobblerd`.
 
-.. code-block:: none
+.. code-block:: shell
 
     /sbin/service cobblerd restart
     /sbin/service httpd restart
 
 7.  If you use SELinux, you may also need to set the following, so that the WebUI can connect with the [XMLRPC](XMLRPC):
 
-.. code-block:: none
+.. code-block:: shell
 
     setsebool -P httpd_can_network_connect true
 
@@ -156,7 +156,7 @@ this it is recommended to use either ``openssl`` or Python directly.
 
 Example using ``openssl 1.1.1`` or later:
 
-.. code-block:: none
+.. code-block:: shell
 
     printf "foobar" | openssl dgst -sha3-512
 
@@ -184,7 +184,7 @@ Before Cobbler 3.1.2 it was recommended to do edit the file ``users.digest`` wit
 is not FIPS compatible from Cobbler 3.1.3 and onwards this is not possible anymore. The file was also just read once per
 Cobbler start and thus a change of the data requires that Cobbler is restarted that it picks up these changes.
 
-.. code-block:: none
+.. code-block:: shell
 
     htdigest /etc/cobbler/users.digest "Cobbler" <username>
 

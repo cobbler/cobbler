@@ -38,20 +38,20 @@ For CentOS you will need the EPEL repository:
 
 Install development dependencies:
 
-.. code-block:: none
+.. code-block:: shell
 
     # yum install git make openssl python-sphinx python36-coverage python36-devel python36-distro python36-future python36-pyflakes python36-pycodestyle python36-setuptools rpm-build
 
 Install runtime dependencies:
 
-.. code-block:: none
+.. code-block:: shell
 
     # yum install httpd mod_wsgi python36-PyYAML python36-netaddr python36-simplejson
     # pip3 install Cheetah3
 
 Initially, to run Cobbler without using packages:
 
-.. code-block:: none
+.. code-block:: shell
 
     # git clone https://github.com/<your username>/cobbler.git
     # cd cobbler
@@ -59,7 +59,7 @@ Initially, to run Cobbler without using packages:
 
 For each successive run, do not run make install again. To avoid blowing away your configuration, run:
 
-.. code-block:: none
+.. code-block:: shell
 
     # make webtest
 
@@ -76,7 +76,7 @@ Cobbler has a development branch called "master" (where the action is), and bran
 maintenance mode. All work on new features should be done against the master branch. If you want to address bugs then
 please target the latest release branch, the maintainers will then cherry-pick those changes into the master branch.
 
-.. code-block:: none
+.. code-block:: shell
 
     # git branch -r
     # git checkout <branch>

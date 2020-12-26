@@ -49,13 +49,13 @@ The following example uses a local kernel and initrd file (already downloaded), 
 using two different automatic installation files -- one for a web server configuration and one for a database server.
 Then, a machine is assigned to each profile.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     cobbler distro add --name=rhel4u3 --kernel=/dir1/vmlinuz --initrd=/dir1/initrd.img
     cobbler distro add --name=fc5 --kernel=/dir2/vmlinuz --initrd=/dir2/initrd.img
-    cobbler profile add --name=fc5webservers --distro=fc5-i386 --autoinst=/dir4/kick.ks --kopts="something_to_make_my_gfx_card_work=42 some_other_parameter=foo"
-    cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --autoinst=/dir5/kick.ks
+    cobbler profile add --name=fc5webservers --distro=fc5-i386 --autoinstall=/dir4/kick.ks --kernel-options="something_to_make_my_gfx_card_work=42 some_other_parameter=foo"
+    cobbler profile add --name=rhel4u3dbservers --distro=rhel4u3 --autoinstall=/dir5/kick.ks
     cobbler system add --name=AA:BB:CC:DD:EE:FF --profile=fc5-webservers
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=rhel4u3-dbservers
     cobbler report
@@ -77,7 +77,7 @@ software not in a standard repository but want provisioned systems to know about
 
 Make sure there is plenty of space in Cobbler's webdir, which defaults to ``/var/www/cobbler``.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler reposync [--only=ONLY] [--tries=N] [--no-fail]
 
@@ -93,7 +93,7 @@ adds support for rsync and SSH locations, where as dnf's reposync only supports 
 
 If you ever want to update a certain repository you can run:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler reposync --only="reponame1" ...
 
@@ -147,7 +147,7 @@ stored on an external NAS box, or potentially on another partition on the same m
 For import methods using rsync, additional flags can be passed to rsync with the option ``--rsync-flags``.
 
 Should you want to force the usage of a specific Cobbler automatic installation template for all profiles created by an
-import, you can feed the option ``--autoinst`` to import, to bypass the built-in automatic installation file
+import, you can feed the option ``--autoinstall`` to import, to bypass the built-in automatic installation file
 auto-detection.
 
 Repository mirroring workflow
@@ -156,7 +156,7 @@ Repository mirroring workflow
 The following example shows how to set up a repo mirror for all enabled Cobbler host repositories and two additional repositories,
 and create a profile that will auto install those repository configurations on provisioned systems using that profile.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     # set up your cobbler distros here.
@@ -164,7 +164,7 @@ and create a profile that will auto install those repository configurations on p
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/core/updates/6/i386/ --name=fc6i386updates
     cobbler repo add --mirror=http://mirrors.kernel.org/fedora/extras/6/i386/ --name=fc6i386extras
     cobbler reposync
-    cobbler profile add --name=p1 --distro=existing_distro_name --autoinst=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
+    cobbler profile add --name=p1 --distro=existing_distro_name --autoinstall=/etc/cobbler/kickstart_fc6.ks --repos="fc6i386updates fc6i386extras"
 
 Import Workflow
 ===============
@@ -184,7 +184,7 @@ automatically, and the right architecture field will also be set on the distribu
 an entire mirror (containing multiple distributions and arches), you don't have to do this, as Cobbler will set the
 names for things based on the paths it finds.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler check
     cobbler import --path=rsync://yourfavoritemirror.com/rhel/5/os/x86_64 --name=rhel5 --arch=x86_64
@@ -204,19 +204,19 @@ Virtualization
 For Virt, be sure the distro uses the correct kernel (if paravirt) and follow similar steps as above, adding additional
 parameters as desired:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler distro add --name=fc7virt [options...]
 
 Specify reasonable values for the Virt image size (in GB) and RAM requirements (in MB):
 
-.. code-block:: none
+.. code-block:: shell
 
-    cobbler profile add --name=virtwebservers --distro=fc7virt --autoinst=path --virt-file-size=10 --virt-ram=512 [...]
+    cobbler profile add --name=virtwebservers --distro=fc7virt --autoinstall=path --virt-file-size=10 --virt-ram=512 [...]
 
 Define systems if desired. Koan can also provision based on the profile name.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=AA:BB:CC:DD:EE:FE --profile=virtwebservers [...]
 
@@ -232,9 +232,9 @@ Automatic installation templating
 
 The ``--autoinstall_meta`` options above require more explanation.
 
-If and only if ``--autoinst`` options reference filesystem URLs, ``--ksmeta`` allows for templating of the automatic
-installation files to achieve advanced functions.  If the ``--ksmeta`` option for a profile read
-``--ksmeta="foo=7 bar=llama"``, anywhere in the automatic installation file where the string ``$bar`` appeared would be
+If and only if ``--autoinstall`` options reference filesystem URLs, ``--autoinstall-meta`` allows for templating of the automatic
+installation files to achieve advanced functions.  If the ``--autoinstall-meta`` option for a profile read
+``--autoinstall-meta="foo=7 bar=llama"``, anywhere in the automatic installation file where the string ``$bar`` appeared would be
 replaced with the string "llama".
 
 To apply these changes, ``cobbler sync`` must be run to generate custom automatic installation files for each
@@ -315,14 +315,14 @@ An easy way to specify a default Cobbler profile to PXE boot is to create a syst
 ``/etc/cobbler/default.pxe`` to be ignored. To restore the previous behavior do a ``cobbler system remove`` on the
 ``default`` system.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=default --profile=boot_this
     cobbler system remove --name=default
 
 As mentioned in earlier sections, it is also possible to control the default behavior for a specific network:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system add --name=network1 --ip-address=192.168.0.0/24 --profile=boot_this
 
@@ -333,7 +333,7 @@ If you have your machines set to PXE first in the boot order (ahead of hard driv
 in ``/etc/cobbler/settings`` to 1. This will set the machines to not PXE on successive boots once they complete one
 install. To re-enable PXE for a specific system, run the following command:
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler system edit --name=name --netboot-enabled=1
 
@@ -342,7 +342,7 @@ Automatic installation tracking
 
 Cobbler knows how to keep track of the status of automatic installation of machines.
 
-.. code-block:: none
+.. code-block:: shell
 
     cobbler status
 

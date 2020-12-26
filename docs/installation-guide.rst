@@ -107,7 +107,7 @@ For some platforms it's also possible to build packages directly from the source
 RPM
 ###
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ make rpms
     ... (lots of output) ...
@@ -125,7 +125,7 @@ DEB
 
 To install Cobbler from source on a Debian-Based system, the following steps need to be made (tested on Debian Buster):
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ apt-get -y install make git
     $ apt-get -y install python3-yaml python3-cheetah python3-netaddr python3-simplejson
@@ -155,7 +155,7 @@ Source
 
 The latest source code is available through git:
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ git clone https://github.com/cobbler/cobbler.git
     $ cd cobbler
@@ -168,7 +168,7 @@ When building from source, make sure you have the correct prerequisites. The Mak
 use the Makefile.
 If all prerequisites are met, you can install Cobbler with the following command:
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ make install
 
@@ -177,7 +177,7 @@ This command will rewrite all configuration files on your system if you have an 
 
 To preserve your existing configuration files, snippets and automatic installation files, run this command:
 
-.. code-block:: bash
+.. code-block:: shell
 
     $ make devinstall
 
