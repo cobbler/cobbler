@@ -842,7 +842,7 @@ Attributes:
 +-----------+--------------------------------------------------------+
 | Name      | Description                                            |
 +===========+========================================================+
-| installer | Which package manager to use, vaild options [rpm|yum]. |
+| installer | Which package manager to use, valid options [rpm|yum]. |
 +-----------+--------------------------------------------------------+
 | **name**  | Cobbler object name.                                   |
 +-----------+--------------------------------------------------------+
