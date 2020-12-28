@@ -19,19 +19,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import glob
+import gzip
 import os
 import os.path
 import re
 import shutil
 import stat
 
+import magic
+
 # Import aptsources module if available to obtain repo mirror.
 try:
     from aptsources import distro as debdistro
     from aptsources import sourceslist
+
     apt_available = True
 except:
     apt_available = False
@@ -121,21 +123,20 @@ class ImportSignatureManager(object):
         :param filename: The name of the file to be read.
         :return: An array with all the lines.
         """
-        lines = []
-        ftype = utils.subprocess_get(self.logger, "/usr/bin/file %s" % filename)
-        if ftype.find("gzip") != -1:
+        ftype = magic.detect_from_filename(filename)
+        if ftype.mime_type == "application/gzip":
             try:
-                import gzip
-                f = gzip.open(filename, 'r')
-                lines = f.readlines()
-                f.close()
+                with gzip.open(filename, 'r') as f:
+                    return f.readlines()
             except:
                 pass
-        elif ftype.find("text") != -1:
-            f = open(filename, 'r')
-            lines = f.readlines()
-            f.close()
-        return lines
+        elif ftype.mime_type == "text/plain":
+            with open(filename, 'r') as f:
+                return f.readlines()
+        else:
+            self.logger.info("Could not detect the filetype and read the content of file \"%s\". Returning nothing." %
+                             filename)
+            return []
 
     def run(self, path, name, network_root=None, autoinstall_file=None, arch=None, breed=None, os_version=None):
         """
@@ -231,7 +232,8 @@ class ImportSignatureManager(object):
                                                 break
                                         else:
                                             continue
-                                    self.logger.debug("Found a matching signature: breed=%s, version=%s" % (breed, version))
+                                    self.logger.debug(
+                                        "Found a matching signature: breed=%s, version=%s" % (breed, version))
                                     if not self.breed:
                                         self.breed = breed
                                     if not self.os_version:
@@ -267,9 +269,9 @@ class ImportSignatureManager(object):
         """
         This is an import_walker routine that finds distributions in the directory to be scanned and then creates them.
 
-        :param distros_added: Unkown what this currently does.
-        :param dirname: Unkown what this currently does.
-        :param fnames: Unkown what this currently does.
+        :param distros_added: Unknown what this currently does.
+        :param dirname: Unknown what this currently does.
+        :param fnames: Unknown what this currently does.
         """
 
         re_krn = re.compile(self.signature["kernel_file"])
@@ -349,7 +351,7 @@ class ImportSignatureManager(object):
             self.logger.error("No arch could be detected in %s, and none was specified via the --arch option" % dirname)
             return []
         elif len(archs) > 1:
-            self.logger.warning("- Warning : Multiple archs found : %s" % (archs))
+            self.logger.warning("- Warning : Multiple archs found : %s" % archs)
 
         distros_added = []
         for pxe_arch in archs:
@@ -514,7 +516,8 @@ class ImportSignatureManager(object):
         # remove any architecture name related string, as real arch will be appended later
         name = name.replace("chrp", "ppc64")
         for separator in ['-', '_', '.']:
-            for arch in ["i386", "x86_64", "ia64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "s390x", "s390", "386", "amd"]:
+            for arch in ["i386", "x86_64", "ia64", "ppc64le", "ppc64el", "ppc64", "ppc32", "ppc", "x86", "s390x",
+                         "s390", "386", "amd"]:
                 name = name.replace("%s%s" % (separator, arch), "")
 
         return name
@@ -541,8 +544,9 @@ class ImportSignatureManager(object):
                     os.symlink(base, dest_link)
                 except:
                     # FIXME: This shouldn't happen but I've seen it ... debug ...
-                    self.logger.warning("symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
-            tree = "http://@@http_server@@/cblr/links/%s" % (distro.name)
+                    self.logger.warning(
+                        "symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
+            tree = "http://@@http_server@@/cblr/links/%s" % distro.name
             self.set_install_tree(distro, tree)
         else:
             # Where we assign the automated installation file source is relative to our current directory and the input
@@ -561,8 +565,8 @@ class ImportSignatureManager(object):
         """
         distro.autoinstall_meta["tree"] = url
 
-# ==========================================================================
-# Repo Functions
+    # ==========================================================================
+    # Repo Functions
 
     def repo_finder(self, distros_added):
         """
@@ -655,7 +659,7 @@ class ImportSignatureManager(object):
         files = glob.glob("%s/%s/*comps*.xml" % (comps_path, masterdir))
         if len(files) == 0:
             self.logger.info("no comps found here: %s" % os.path.join(comps_path, masterdir))
-            return      # no comps xml file found
+            return  # no comps xml file found
 
         # pull the filename from the longer part
         comps_file = files[0].split("/")[-1]
@@ -673,7 +677,7 @@ class ImportSignatureManager(object):
             fname = os.path.join(self.settings.webdir, "distro_mirror", "config", "%s-%s.repo" % (distro.name, counter))
 
             repo_url = "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo" % (distro.name, counter)
-            repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % (urlseg)
+            repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % urlseg
 
             distro.source_repos.append([repo_url, repo_url2])
 
@@ -685,14 +689,13 @@ class ImportSignatureManager(object):
             # the @@http_server@@ left as templating magic.
             # repo_url2 is actually no longer used. (?)
 
-            config_file = open(fname, "w+")
-            config_file.write("[core-%s]\n" % counter)
-            config_file.write("name=core-%s\n" % counter)
-            config_file.write("baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % (urlseg))
-            config_file.write("enabled=1\n")
-            config_file.write("gpgcheck=0\n")
-            config_file.write("priority=$yum_distro_priority\n")
-            config_file.close()
+            with open(fname, "w+") as config_file:
+                config_file.write("[core-%s]\n" % counter)
+                config_file.write("name=core-%s\n" % counter)
+                config_file.write("baseurl=http://@@http_server@@/cobbler/distro_mirror/%s\n" % urlseg)
+                config_file.write("enabled=1\n")
+                config_file.write("gpgcheck=0\n")
+                config_file.write("priority=$yum_distro_priority\n")
 
             # Don't run creatrepo twice -- this can happen easily for Xen and PXE, when they'll share same repo files.
             if keeprepodata:
@@ -701,7 +704,8 @@ class ImportSignatureManager(object):
 
             elif comps_path not in self.found_repos:
                 utils.remove_yum_olddata(comps_path)
-                cmd = "createrepo %s --groupfile %s %s" % (self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
+                cmd = "createrepo %s --groupfile %s %s" % (
+                    self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
                 utils.subprocess_call(self.logger, cmd, shell=True)
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
@@ -710,7 +714,6 @@ class ImportSignatureManager(object):
                 p2 = os.path.join(comps_path, "base", "comps.xml")
                 if os.path.exists(p1) and os.path.exists(p2):
                     shutil.copyfile(p1, p2)
-
         except:
             self.logger.error("error launching createrepo (not installed?), ignoring")
             utils.log_exc(self.logger)
@@ -737,7 +740,7 @@ class ImportSignatureManager(object):
         repo.set_breed("apt")
         repo.set_arch(distro.arch)
         repo.set_keep_updated(True)
-        repo.set_apt_components("main universe")        # TODO: make a setting?
+        repo.set_apt_components("main universe")  # TODO: make a setting?
         repo.set_apt_dists("%s %s-updates %s-security" % ((distro.os_version,) * 3))
         repo.set_name(distro.name)
         repo.set_os_version(distro.os_version)
@@ -767,12 +770,9 @@ class ImportSignatureManager(object):
             mirrors = release.get_server_list()
             for mirror in mirrors:
                 if mirror[2]:
-                    mirror = mirror[1]
-                    break
+                    return mirror[1]
         except:
             return False
-
-        return mirror
 
     # ==========================================================================
     # rhn-specific
@@ -795,6 +795,7 @@ class ImportSignatureManager(object):
         :param distro: Not used currently.
         """
         return
+
 
 # ==========================================================================
 

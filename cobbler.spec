@@ -199,7 +199,6 @@ Requires:       %{apache_pkg}
 Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
 Requires:       fence-agents
-Requires:       file
 Requires:       rsync
 Requires:       xorriso
 %{?python_enable_dependency_generator}
@@ -214,6 +213,7 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
+Requires:       python%{python3_pkgversion}-file
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
 %else

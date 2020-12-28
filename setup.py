@@ -524,6 +524,7 @@ if __name__ == "__main__":
             "ldap3",
             "dnspython",
             "tornado",
+            "file-magic"
         ],
         extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "pytest-cov", "codecov"]},
         packages=find_packages(exclude=["*tests*"]),
