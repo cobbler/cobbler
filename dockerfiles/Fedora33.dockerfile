@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:31
+FROM fedora:33
 
 RUN dnf makecache
 
@@ -18,7 +18,6 @@ RUN dnf install -y          \
     python3-wheel           \
     python3-distro          \
     python3-future          \
-    python3-pep8            \
     python3-pyflakes        \
     python3-pycodestyle     \
     python3-setuptools      \

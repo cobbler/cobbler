@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export DATAPATH="/usr/share/cobbler"
-export DOCPATH="share/man"
+export DOCPATH="/usr/share/man"
 export ETCPATH="/etc/cobbler"
 export LIBPATH="/var/lib/cobbler"
 export LOGPATH="/var/log"
@@ -38,18 +38,19 @@ if [ "$DISTRO" = "SUSE" ];then
     export APACHE_GROUP="www"
 elif [ "$DISTRO" = "UBUNTU" ];then
     export APACHE_USER="www-data"
+    export HTTP_USER=$APACHE_USER # overrule setup.py
     export APACHE_GROUP="www-data"
-    export WEBROOT="/var/www";
-    export WEBCONFIG="/etc/apache2/conf-available";
+    export WEBROOT="/var/www"
+    export WEBCONFIG="/etc/apache2/conf-available"
     export DEFAULTPATH="etc/default"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
+    export HTTP_USER=$APACHE_USER # overrule setup.py
     export APACHE_GROUP="apache"
-
     export HTTPD_SERVICE="httpd.service"
-    export WEBROOT="/var/www";
-    export WEBCONFIG="/etc/httpd/conf.d";
-    export WEBROOTCONFIG="/etc/httpd";
+    export WEBROOT="/var/www"
+    export WEBCONFIG="/etc/httpd/conf.d"
+    export WEBROOTCONFIG="/etc/httpd"
     export TFTPROOT="/var/lib/tftpboot"
 else
     echo "ERROR, unknown distro $DISTRO"

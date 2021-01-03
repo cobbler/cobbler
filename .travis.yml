@@ -34,8 +34,8 @@ jobs:
       name: "Build CentOS 8 RPMs"
       script: ./tests/build-and-install-rpms.sh el8 dockerfiles/CentOS8.dockerfile
     - stage: rpms
-      name: "Build Fedora 31 RPMs"
-      script: ./tests/build-and-install-rpms.sh fc31 dockerfiles/Fedora31.dockerfile
+      name: "Build Fedora 33 RPMs"
+      script: ./tests/build-and-install-rpms.sh fc33 dockerfiles/Fedora33.dockerfile
     - stage: debs
       name: "Build Debian 10 DEBs"
       script: ./tests/build-and-install-debs.sh deb10 dockerfiles/Debian10.dockerfile

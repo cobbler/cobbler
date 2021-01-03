@@ -101,8 +101,8 @@ test-centos7: ## Executes the testscript for testing cobbler in a docker contain
 test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
 	./tests/build-and-install-rpms.sh --with-tests el8 dockerfiles/CentOS8.dockerfile
 
-test-fedora31: ## Executes the testscript for testing cobbler in a docker container on Fedora 31.
-	./tests/build-and-install-rpms.sh --with-tests f31 dockerfiles/Fedora31.dockerfile
+test-fedora33: ## Executes the testscript for testing cobbler in a docker container on Fedora 33.
+	./tests/build-and-install-rpms.sh --with-tests fc33 dockerfiles/Fedora33.dockerfile
 
 test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
 	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
