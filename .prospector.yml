@@ -1,0 +1,52 @@
+max-line-length: 120
+
+inherits:
+  - strictness_veryhigh
+
+ignore-patterns:
+  - ^setup.py$
+
+bandit:
+  run: false
+
+dodgy:
+  run: false
+
+frosted:
+
+mccabe:
+
+mypy:
+
+pep257:
+  disable:
+    - D400
+    - D401
+
+pep8:
+  options:
+    max-line-length: 120
+    disable:
+      - E304
+      - E265
+      - E266
+      - W291
+      - W292
+      - W391
+      - N811
+      - N812
+      - N813
+      - N814
+
+pyflakes:
+
+pylint:
+  run: false
+
+pyroma:
+  disable:
+    - PYR15
+    - PYR18
+    - PYR17
+
+vulture:
