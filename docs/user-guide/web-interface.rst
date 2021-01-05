@@ -88,11 +88,7 @@ Basic Setup
     [authorization]
     module = authz_allowall
 
-4. Change the password for the 'cobbler' username:
-
-.. code-block:: shell
-
-      htdigest /etc/cobbler/users.digest "Cobbler" cobbler
+4. You should change the password for the 'cobbler' username, see `Managing users.digest`_.
 
 5.  If this is not a new install, your Apache configuration for Cobbler might not be current.
 
@@ -146,13 +142,21 @@ Should you ever need to debug things, see the following log files:
     /var/log/httpd/error_log
     /var/log/cobbler/cobbler.log
 
-Further setup
-=============
+Managing users.digest
+=====================
 
 Cobbler authenticates all WebUI logins through ``cobblerd``, which uses a configurable authentication mechanism. You may
 wish to adjust that for your environment. For instance, if in ``modules.conf`` above you choose to stay with the
-``authentication.configfile`` module, you may want to add your system administrator usernames to the digest file. To do
-this it is recommended to use either ``openssl`` or Python directly.
+``authentication.configfile`` module, you may want to add your system administrator usernames to the digest file.
+
+Because the generated password isn't supported by the `htdigest` command you have to generate the entries yourself, and
+to generate the password hashes it is recommended to use either ``openssl`` or Python directly.
+
+The entry format should be, where `Cobbler` is the realm:
+
+..code-block:: none
+
+    username:realm:hash
 
 Example using ``openssl 1.1.1`` or later:
 
