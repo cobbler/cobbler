@@ -1,4 +1,4 @@
-netaddr
+netaddr==0.8.0
 Cheetah3
 django
 simplejson
