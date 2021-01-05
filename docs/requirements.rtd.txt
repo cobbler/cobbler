@@ -1,5 +1,5 @@
 netaddr
-Cheetah3
+Cheetah3==3.2.6
 django
 simplejson
 dnspython
