@@ -1,0 +1,4 @@
+# Bandit Config: https://bandit.readthedocs.io/en/latest/config.html
+
+# (optional) list skipped tests here:
+skips: ['B414',]
