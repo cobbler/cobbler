@@ -2,7 +2,7 @@ netaddr
 Cheetah3
 django
 simplejson
-dnspython
+dnspython==2.0.0
 pyyaml
 distro
 sphinx_rtd_theme
