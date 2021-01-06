@@ -13,10 +13,13 @@ dodgy:
   run: false
 
 frosted:
+  run: true
 
 mccabe:
+  run: true
 
 mypy:
+  run: true
 
 pep257:
   disable:
@@ -39,6 +42,7 @@ pep8:
       - N814
 
 pyflakes:
+  run: true
 
 pylint:
   run: false
@@ -50,3 +54,4 @@ pyroma:
     - PYR17
 
 vulture:
+  run: true
