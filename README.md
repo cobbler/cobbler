@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/cobbler/cobbler.svg)](https://travis-ci.org/cobbler/cobbler)
 [![Documentation Status](https://readthedocs.org/projects/cobbler/badge/?version=latest)](https://cobbler.readthedocs.io/en/latest/)
 [![Gitter chat](https://badges.gitter.im/cobbler/gitter.png)](https://gitter.im/cobbler/community)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9bcdcf0fdf374e22843f2c088d4b7449)](https://www.codacy.com/manual/Cobbler_2/cobbler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cobbler/cobbler&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/c8c0c787c4854aba925d361eacc15811)](https://www.codacy.com/gh/cobbler/cobbler/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=cobbler/cobbler&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/cobbler/cobbler/branch/master/graph/badge.svg)](https://codecov.io/gh/cobbler/cobbler)
 
 # Cobbler
