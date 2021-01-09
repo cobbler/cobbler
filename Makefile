@@ -63,7 +63,7 @@ else
 		cobbler/*.py \
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
-		bin/cobbler* bin/*.py web/cobbler.wsgi
+		bin/cobbler* web/cobbler.wsgi
 endif
 
 ifeq ($(strip $(PYCODESTYLE)),)
@@ -75,7 +75,7 @@ else
 		cobbler/*.py \
 		cobbler/modules/*.py \
 		cobbler/web/*.py cobbler/web/templatetags/*.py \
-		bin/cobbler* bin/*.py web/cobbler.wsgi
+		bin/cobbler* web/cobbler.wsgi
 endif
 
 authors: ## Creates the AUTHORS file.

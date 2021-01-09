@@ -523,7 +523,6 @@ if __name__ == "__main__":
             "distro",
             "ldap3",
             "dnspython",
-            "tornado",
             "file-magic",
             "schema"
         ],
@@ -554,8 +553,6 @@ if __name__ == "__main__":
             'docs/cobbler.rst'
         ],
         data_files=[
-            # tftpd, hide in /usr/sbin
-            ("sbin", ["bin/tftpd.py"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s/templates" % libpath, glob("autoinstall_templates/*")),
