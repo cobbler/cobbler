@@ -304,7 +304,6 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 
 # Check distro specific variables for consistency
 [ "${DOCPATH}" != %{_mandir} ] && echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
-echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 
 # [ "${ETCPATH}" != "/etc/cobbler" ]
 # [ "${LIBPATH}" != "/var/lib/cobbler" ]
