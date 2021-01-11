@@ -1,0 +1,31 @@
+name: Testing Cobbler
+
+on:
+  push:
+    branches:
+      - master
+      - release30
+      - release32
+  pull_request:
+    branches:
+      - master
+      - release30
+      - release32
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker Test Container
+        run: docker build -t cobbler .
+      - name: Run previously built Docker Container
+        run: docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /test_dir:${PWD} --name cobbler cobbler
+      - name: Wait for startup
+        run: sleep 10
+      - name: Get the logs for debugging if things go south
+        run: docker logs cobbler
+      - name: Run the Tests inside the Docker Container
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          docker exec -u 0 -it cobbler bash -c "pytest --cov=./cobbler && codecov --token=1064928c-6477-41be-9ac2-7ce5e6d1fd8b --commit=${GITHUB_SHA}"

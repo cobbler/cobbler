@@ -1,0 +1,47 @@
+name: Building Cobbler Packages
+
+on:
+  push:
+    branches:
+      - master
+      - release30
+      - release32
+  pull_request:
+    branches:
+      - master
+      - release30
+      - release32
+
+jobs:
+  build-centos7-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a CentOS 7 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./tests/build-and-install-rpms.sh el7 dockerfiles/CentOS7.dockerfile
+  build-centos8-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a CentOS 8 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./tests/build-and-install-rpms.sh el8 dockerfiles/CentOS8.dockerfile
+  build-fedora33-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a Fedora 33 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./tests/build-and-install-rpms.sh fc33 dockerfiles/Fedora33.dockerfile
+  build-debian-debs:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a Debian 10 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./tests/build-and-install-rpms.sh deb10 dockerfiles/Debian10.dockerfile
