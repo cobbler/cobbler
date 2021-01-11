@@ -857,7 +857,6 @@ def snippet_save(request):
         return login(request, next="/cobbler_web/snippet/list", expired=True)
     # FIXME: error checking
 
-    editmode = request.POST.get('editmode', 'edit')
     snippet_name = request.POST.get('snippet_name', None)
     snippetdata = request.POST.get('snippetdata', "").replace('\r\n', '\n')
 
