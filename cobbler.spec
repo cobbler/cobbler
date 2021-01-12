@@ -216,7 +216,15 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
+%if 0%{?suse_version}
 Requires:       python%{python3_pkgversion}-file
+%endif
+%if 0%{?fedora} || 0%{?rhel}
+Requires:       python%{python3_pkgversion}-file-magic
+%endif
+%if "%{_vendor}" == "debbuild"
+Requires:       python%{python3_pkgversion}-file
+%endif
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
 %else
