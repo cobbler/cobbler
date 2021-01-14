@@ -13,14 +13,6 @@ on:
       - release32
 
 jobs:
-  build-centos7-rpms:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build a CentOS 7 Package
-        shell: 'script -q -e -c "bash {0}"'
-        run: |
-          ./tests/build-and-install-rpms.sh el7 dockerfiles/CentOS7.dockerfile
   build-centos8-rpms:
     runs-on: ubuntu-20.04
     steps:
