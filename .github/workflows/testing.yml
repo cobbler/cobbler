@@ -18,9 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build Docker Test Container
-        run: docker build -t cobbler .
+        run: docker build -t cobbler -f docker/openSUSE_Leap.dockerfile .
       - name: Run previously built Docker Container
-        run: docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v /test_dir:${PWD} --name cobbler cobbler
+        run: docker run -d --name cobbler cobbler
       - name: Wait for startup
         run: sleep 10
       - name: Get the logs for debugging if things go south

@@ -20,7 +20,7 @@ jobs:
       - name: Build a CentOS 8 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./tests/build-and-install-rpms.sh el8 dockerfiles/CentOS8.dockerfile
+          ./tests/build-and-install-rpms.sh el8 docker/CentOS8.dockerfile
   build-fedora33-rpms:
     runs-on: ubuntu-20.04
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Build a Fedora 33 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./tests/build-and-install-rpms.sh fc33 dockerfiles/Fedora33.dockerfile
+          ./tests/build-and-install-rpms.sh fc33 docker/Fedora33.dockerfile
   build-debian-debs:
     runs-on: ubuntu-20.04
     steps:
@@ -36,4 +36,4 @@ jobs:
       - name: Build a Debian 10 Package
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          ./tests/build-and-install-rpms.sh deb10 dockerfiles/Debian10.dockerfile
+          ./tests/build-and-install-debs.sh deb10 docker/Debian10.dockerfile

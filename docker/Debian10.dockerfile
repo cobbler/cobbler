@@ -32,7 +32,7 @@ RUN apt-get update -qq && \
     python3-dnspython \
     python3-dns  \
     python3-dnsq  \
-    python3-future \
+    python3-magic  \
     python3-ldap3 \
     python3-netaddr \
     python3-pip \
@@ -61,13 +61,17 @@ RUN apt-get update -qq && \
     hardlink \
     apache2 \
     libapache2-mod-wsgi-py3 \
-    systemd && \
+    systemd \
+    supervisor && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Make /bin/sh point to bash, not dash
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
     dpkg-reconfigure dash
+
+COPY ./docker/Debian10/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/Debian10/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

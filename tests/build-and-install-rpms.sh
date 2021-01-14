@@ -26,21 +26,27 @@ mkdir -p rpm-build
 docker run -ti -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE"
 
 # Launch container and install cobbler
-echo "==> Start privileged container with systemd ..."
-docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE" /usr/lib/systemd/systemd --system
-echo "==> Docker logs ..."
-docker logs cobbler
+echo "==> Start container ..."
+docker run -t -d --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "$IMAGE" /bin/bash
+
 echo "==> Install fresh RPMs ..."
 docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
+
 # === HACK === HACK === HACK
 # To get around this Apache error:
 # AH02240: Server should be SSL-aware but has no certificate configured [Hint: SSLCertificateFile] (/etc/httpd/conf.d/cobbler_web.conf:13)
 # make cobbler_web listen on HTTP instead of HTTPS.
 echo "==> Use HTTP instead of HTTPS ..."
 docker exec -it cobbler bash -c 'sed -i s/443/80/g /etc/httpd/conf.d/cobbler_web.conf'
-echo "==> Restart Apache and Cobbler daemon ..."
-docker exec -it cobbler bash -c 'systemctl daemon-reload && systemctl restart httpd cobblerd'
+docker exec -it cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
 # END === HACK ===
+
+echo "==> Start Supervisor ..."
+docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
+
+echo "==> Show Logs ..."
+docker exec -it cobbler bash -c 'cat /var/log/supervisor/supervisor.log'
+
 echo "==> Wait 3 sec. and show Cobbler version ..."
 docker exec -it cobbler bash -c 'sleep 3 && cobbler version'
 
