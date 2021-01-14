@@ -165,7 +165,6 @@ BuildRequires:  apache2-deb-macros
 %endif
 BuildRequires:  %{py3_module_coverage}
 BuildRequires:  python%{python3_pkgversion}-distro
-BuildRequires:  python%{python3_pkgversion}-future
 BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  %{py3_module_cheetah}
@@ -208,7 +207,6 @@ Requires:       xorriso
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
-Requires:       python%{python3_pkgversion}-future
 Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
@@ -223,7 +221,7 @@ Requires:       python%{python3_pkgversion}-file
 Requires:       python%{python3_pkgversion}-file-magic
 %endif
 %if "%{_vendor}" == "debbuild"
-Requires:       python%{python3_pkgversion}-file
+Requires:       python3-magic
 %endif
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
