@@ -68,6 +68,25 @@ them, rather than blindly overwriting them.
 
 You can now run Cobbler commands and access the web interface.
 
+Tests
+#####
+
+We are using pytest and are executing our tests inside Docker because of the high overhead (TFTP, Apache 2, ...), this
+also has the advantage that we can easily debug the tests locally.
+
+Build RPMs/DEBs using Docker
+############################
+
+1. Make sure docker and docker-compose are installed
+2. Use docker-compose to build rpms for the various distros
+
+.. code-block::
+
+   make clean
+   docker-compose build --parallel
+   docker-compose up
+
+3. RPMs are in rpm-build/
 
 Branches
 ########
