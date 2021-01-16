@@ -26,14 +26,17 @@ mkdir -p deb-build tmp
 docker run -ti -v "$PWD/deb-build:/usr/src/cobbler/deb-build" -v "$PWD/tmp:/var/tmp" "$IMAGE"
 
 # Launch container and install cobbler
-echo "==> Start privileged container with systemd ..."
-docker run -d --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /lib/systemd/systemd --system
+echo "==> Start container ..."
+docker run -t -d --name cobbler -v "$PWD/deb-build:/usr/src/cobbler/deb-build" "$IMAGE" /bin/bash
 
 echo "==> Install fresh packages ..."
 docker exec -it cobbler bash -c 'dpkg -i deb-build/DEBS/all/cobbler*.deb'
 
 echo "==> Restart Apache and Cobbler daemon ..."
-docker exec -it cobbler bash -c 'a2enconf cobbler cobbler_web && systemctl daemon-reload && systemctl restart apache2 cobblerd'
+docker exec -it cobbler bash -c 'a2enconf cobbler cobbler_web'
+
+echo "==> Start Supervisor"
+docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
 echo "==> Wait 3 sec. and show Cobbler version ..."
 docker exec -it cobbler bash -c 'sleep 3 && cobbler --version'

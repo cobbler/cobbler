@@ -28,7 +28,6 @@ RUN touch /var/lib/rpm/* &&   \
     python3-devel             \
     python3-wheel             \
     python3-distro            \
-    python3-future            \
     python3-pyflakes          \
     python3-pycodestyle       \
     python3-setuptools        \
@@ -48,6 +47,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-cheetah           \
     python3-tornado           \
     python3-django            \
+    python3-magic             \
     python3-dns               \
     python3-ldap3             \
     python3-librepo           \
@@ -60,7 +60,11 @@ RUN touch /var/lib/rpm/* &&   \
     logrotate                 \
     syslinux                  \
     tftp-server               \
-    fence-agents
+    fence-agents              \
+    supervisor
+
+COPY ./docker/Fedora33/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/Fedora33/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler

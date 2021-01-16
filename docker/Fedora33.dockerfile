@@ -17,7 +17,6 @@ RUN dnf install -y          \
     python3-devel           \
     python3-wheel           \
     python3-distro          \
-    python3-future          \
     python3-pyflakes        \
     python3-pycodestyle     \
     python3-setuptools      \
@@ -37,6 +36,7 @@ RUN yum install -y          \
     python3-tornado         \
     python3-django          \
     python3-dns             \
+    python3-file-magic      \
     python3-ldap3           \
     python3-librepo         \
     python3-pymongo         \
@@ -48,7 +48,11 @@ RUN yum install -y          \
     logrotate               \
     syslinux                \
     tftp-server             \
-    fence-agents
+    fence-agents            \
+    supervisor
+
+COPY ./docker/Fedora33/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/Fedora33/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
