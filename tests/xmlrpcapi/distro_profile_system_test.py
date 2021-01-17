@@ -1157,3 +1157,20 @@ class TestDistroProfileSystem:
 
         # Assert --> Let the test pass if the call is okay.
         assert True
+
+    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    def test_render_vars(self, remote, token):
+        """
+        Test: string replacements for @@xyz@@
+        """
+
+        # Arrange --> There is nothing to be arranged
+        kernel_options = "tree=http://@@http_server@@/cblr/links/@@distro_name@@"
+
+        # Act
+        distro = remote.get_item_handle("distro", "testdistro0", token)
+        remote.modify_distro(distro, "kernel_options", kernel_options, token)
+        remote.save_distro(distro, token)
+
+        # Assert --> Let the test pass if the call is okay.
+        assert True
