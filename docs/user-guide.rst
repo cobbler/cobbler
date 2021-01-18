@@ -7,6 +7,8 @@ User Guide
 
    Web User Interface <user-guide/web-interface>
    Configuration Management Integrations <user-guide/configuration-management-integrations>
+   Automatic Windows installation with Cobbler <user-guide/wingen>
+   Extending Cobbler <user-guide/extending-cobbler>
 
 
 API

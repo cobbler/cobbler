@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import re
 import Cheetah
 import functools
@@ -47,8 +45,10 @@ from . import utils
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
+CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
-class Templar(object):
+
+class Templar:
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -206,15 +206,20 @@ class Templar(object):
         })
 
         # Now do full templating scan, where we will also templatify the snippet insertions
-        t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame': False})
+        t = Template().compile(
+            source=raw_data,
+            compilerSettings={'useStackFrame': False},
+            baseclass=Template.compile(file=CHEETAH_MACROS_FILE)
+        )
 
         if fix_cheetah_class:
             t.SNIPPET = functools.partial(t.SNIPPET, t)
             t.read_snippet = functools.partial(t.read_snippet, t)
 
         try:
-            data_out = t.respond()
-            self.last_errors = t.errorCatcher().listErrors()
+            generated_template_class = t(searchList=[search_table])
+            data_out = str(generated_template_class)
+            self.last_errors = generated_template_class.errorCatcher().listErrors()
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
                 self.logger.warning("\n" + pprint.pformat(self.last_errors))

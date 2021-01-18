@@ -29,10 +29,8 @@ import re
 from cobbler.cexceptions import FileNotFoundException
 from cobbler import utils
 
-CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
-
 # This class is defined using the Cheetah language. Using the 'compile' function
-# we can compile the source directly into a python class. This class will allow
+# we can compile the source directly into a Python class. This class will allow
 # us to define the cheetah builtins.
 
 
@@ -49,7 +47,6 @@ class Template(cheetah_template.Template):
 
         :param kwargs: These arguments get passed to the super constructor of this class.
         """
-        self.MacrosTemplate = Template.compile(file=CHEETAH_MACROS_FILE)
         self.BuiltinTemplate = Template.compile(source="\n".join([
 
             # This part (see 'Template' below
@@ -92,8 +89,9 @@ class Template(cheetah_template.Template):
     @classmethod
     def compile(cls, *args, **kwargs):
         """
-        Compile a cheetah template with Cobbler modifications. Modifications include SNIPPET:: syntax replacement and
-        inclusion of Cobbler builtin methods.
+        Compile a cheetah template with Cobbler modifications. Modifications include ``SNIPPET::`` syntax replacement
+        and inclusion of Cobbler builtin methods. Please be aware that you cannot use the ``baseclass`` attribute of
+        Cheetah anymore due to the fact that we are using it in our implementation to enable the Cheetah Macros.
 
         :param args: These just get passed right to Cheetah.
         :param kwargs: We just execute our own preprocessors and remove them and let afterwards handle Cheetah the rest.
