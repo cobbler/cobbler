@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import subprocess
 
-from cobbler import templar
+from cobbler.manager import ManagerModule
 
 
 def register() -> str:
@@ -34,29 +34,9 @@ def register() -> str:
     return "manage"
 
 
-def get_manager(config):
-    """
-    Get the DNS Manger object.
+class _NDjbDnsManager(ManagerModule):
 
-    :param config: Unused parameter.
-    :return: The manager object.
-    """
-    return NDjbDnsManager(config)
-
-
-class NDjbDnsManager:
-
-    def __init__(self, config):
-        """
-        This class can manage a New-DJBDNS server.
-
-        :param config: Currently an usused parameter.
-        """
-
-        self.config = config
-        self.systems = config.systems()
-        self.templar = templar.Templar(config)
-
+    @staticmethod
     def what(self) -> str:
         """
         Static method to identify the manager.
@@ -65,13 +45,10 @@ class NDjbDnsManager:
         """
         return "ndjbdns"
 
-    def regen_hosts(self):
-        """
-        Empty stub method to have compability with other dns managers who need this.
-        """
+    def __init__(self, collection_mgr):
         pass
 
-    def write_dns_files(self):
+    def write_configs(self):
         """
         This writes the new dns configuration file to the disc.
         """
@@ -105,3 +82,20 @@ class NDjbDnsManager:
 
         if p.returncode != 0:
             raise Exception('Could not regenerate tinydns data file.')
+
+
+manager = None
+
+def get_manager(collection_mgr):
+    """
+    Creates a manager object to manage an isc dhcp server.
+
+    :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
+    :param logger: The logger to audit all actions with.
+    :return: The object to manage the server with.
+    """
+    global manager
+
+    if not manager:
+        manager = _NDjbDnsManager(collection_mgr)
+    return manager

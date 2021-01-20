@@ -1267,29 +1267,64 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def sync(self, verbose: bool = False):
+    def sync(self, verbose: bool = False, what: list = []):
         """
         Take the values currently written to the configuration files in /etc, and /var, and build out the information
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
         synchronized with this command.
 
-        :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
+        :param what:   List of strings what services to sync (e.g. dhcp and/or dns). Empty list for full sync.
+        :param logger: The logger to audit the removal with.
         """
-        self.log("sync")
-        sync = self.get_sync(verbose=verbose)
-        sync.run()
+        # Empty what: Full sync
+        if not what:
+            self.logger.info("syncing all")
+            sync = self.get_sync(verbose=verbose)
+            sync.run()
+            return
+        if 'dhcp' in what:
+            self.sync_dhcp()
+        if 'dns' in what:
+            self.sync_dns()
 
     # ==========================================================================
 
-    def sync_dhcp(self, verbose: bool = False):
+    def sync_dns(self):
+        """
+        Only build out the DNS configuration
+
+        :param verbose: If True be as much verbose as possible.
+        """
+        if not self.settings().manage_dns:
+            self.logger.error("manage_dns not set")
+            return
+        self.log("sync_dns")
+        self.dns = self.get_module_from_file(
+            "dns",
+            "module",
+            "managers.bind"
+        ).get_manager(self._collection_mgr)
+        self.dns.sync()
+
+    # ==========================================================================
+
+    def sync_dhcp(self):
         """
         Only build out the DHCP configuration
 
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         """
+        if not self.settings().manage_dhcp:
+            self.logger.error("manage_dhcp not set")
+            return
         self.log("sync_dhcp")
-        sync = self.get_sync(verbose=verbose)
-        sync.sync_dhcp()
+        self.dhcp = self.get_module_from_file(
+            "dhcp",
+            "module",
+            "managers.isc"
+        ).get_manager(self._collection_mgr)
+        self.dhcp.sync()
+
     # ==========================================================================
 
     def get_sync(self, verbose: bool = False):

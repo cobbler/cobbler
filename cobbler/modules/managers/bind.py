@@ -28,6 +28,7 @@ import time
 from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
+from cobbler.manager import ManagerModule
 
 
 def register() -> str:
@@ -37,7 +38,7 @@ def register() -> str:
     return "manage"
 
 
-class BindManager:
+class _BindManager(ManagerModule):
 
     def what(self) -> str:
         """
@@ -48,21 +49,8 @@ class BindManager:
         return "bind"
 
     def __init__(self, collection_mgr):
-        """
-        Constructor to create a default BindManager object.
+        super().__init__(collection_mgr)
 
-        :param collection_mgr: The collection manager to resolve all information with.
-        """
-        self.logger = logging.getLogger()
-
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
         self.settings_file = utils.namedconf_location()
         self.zonefile_base = utils.zonefile_base()
 
@@ -606,7 +594,7 @@ zone "%(arpa)s." {
             self.logger.info("generating (reverse) %s", zonefilename)
             self.templar.render(template_data, metadata, zonefilename)
 
-    def write_dns_files(self):
+    def write_configs(self):
         """
         BIND files are written when ``manage_dns`` is set in our settings.
         """
@@ -615,6 +603,19 @@ zone "%(arpa)s." {
         self.__write_secondary_conf()
         self.__write_zone_files()
 
+    def restart_service(self):
+        """
+        This syncs the bind server with it's new config files.
+        Basically this restarts the service to apply the changes.
+        """
+        named_service_name = utils.named_service_name()
+        dns_restart_command = "service %s restart" % named_service_name
+        ret = utils.subprocess_call(dns_restart_command, True)
+        if ret != 0:
+            self.logger.error("%s service failed", named_service_name)
+        return ret
+
+manager = None
 
 def get_manager(collection_mgr):
     """
@@ -623,4 +624,8 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager to resolve all information with.
     :return: The BindManger object to manage bind with.
     """
-    return BindManager(collection_mgr)
+    global manager
+
+    if not manager:
+        manager = _BindManager(collection_mgr)
+    return manager
