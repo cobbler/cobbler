@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from configparser import ConfigParser
+from importlib import import_module
 
 import glob
 import os
@@ -88,7 +89,7 @@ def __import_module(module_path, modname, logger):
     :param logger: The logger to audit the action with.
     """
     try:
-        blip = __import__("cobbler.modules.%s" % modname, globals(), locals(), [modname])
+        blip = import_module("cobbler.modules.%s" % modname)
         if not hasattr(blip, "register"):
             if not modname.startswith("__init__"):
                 errmsg = _("%(module_path)s/%(modname)s is not a proper module")
