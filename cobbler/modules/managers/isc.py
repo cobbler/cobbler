@@ -54,7 +54,7 @@ class _IscManager(ManagerModule):
 
         self.settings_file = utils.dhcpconf_location()
 
-    def write_configs(self):
+    def write_dhcp_file(self):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
         """
@@ -225,9 +225,10 @@ class _IscManager(ManagerModule):
         This syncs the dhcp server with it's new config files.
         Basically this restarts the service to apply the changes.
         """
+        restart_dhcp = str(self.settings.restart_dhcp).lower()
         service_name = utils.dhcp_service_name()
         ret = 0
-        if self.settings.restart_dhcp:
+        if restart_dhcp != "0":
             ret = utils.subprocess_call("dhcpd -t -q", shell=True)
             if ret != 0:
                 self.logger.error("dhcpd -t failed")

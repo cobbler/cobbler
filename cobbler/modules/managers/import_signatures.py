@@ -724,8 +724,7 @@ class _ImportSignatureManager(ManagerModule):
         if apt_available:
             # Example returned URL: http://us.archive.ubuntu.com/ubuntu
             mirror = self.get_repo_mirror_from_apt()
-        # If the mirror is only whitespace then use the default one.
-        if mirror.isspace():
+        if not mirror:
             mirror = "http://archive.ubuntu.com/ubuntu"
 
         repo = item_repo.Repo(self.collection_mgr)

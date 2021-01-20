@@ -20,6 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+
 import re
 import socket
 import time
@@ -596,7 +597,7 @@ zone "%(arpa)s." {
 
     def write_configs(self):
         """
-        BIND files are written when ``manage_dns`` is set in our settings.
+        BIND files are written when manage_dns is set in ``/var/lib/cobbler/settings``.
         """
 
         self.__write_named_conf()
