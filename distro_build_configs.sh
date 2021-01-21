@@ -13,6 +13,7 @@ export WEBROOT="/srv/www";
 export WEBCONFIG="/etc/apache2/vhosts.d";
 export WEBROOTCONFIG="/etc/apache2";
 export TFTPROOT="/srv/tftpboot"
+export ZONEFILES="/var/lib/named"
 export DEFAULTPATH="etc/sysconfig"
 
 # First parameter is DISTRO if provided
@@ -42,6 +43,7 @@ elif [ "$DISTRO" = "UBUNTU" ];then
     export APACHE_GROUP="www-data"
     export WEBROOT="/var/www"
     export WEBCONFIG="/etc/apache2/conf-available"
+    export ZONEFILES="/etc/bind/db."
     export DEFAULTPATH="etc/default"
 elif [ "$DISTRO" = "FEDORA" ];then
     export APACHE_USER="apache"
@@ -52,6 +54,7 @@ elif [ "$DISTRO" = "FEDORA" ];then
     export WEBCONFIG="/etc/httpd/conf.d"
     export WEBROOTCONFIG="/etc/httpd"
     export TFTPROOT="/var/lib/tftpboot"
+    export ZONEFILES="/var/named"
 else
     echo "ERROR, unknown distro $DISTRO"
     # ToDo: Should we loudly warn here?

@@ -242,6 +242,9 @@ manage_dns: 0
 # configuration files.  This should be automatically detected.
 bind_chroot_path: ""
 
+# set to path where zonefiles of bind/named server are located.
+bind_zonefile_path: "@@bind_zonefiles@@"
+
 # set to the ip address of the master bind DNS server for creating secondary
 # bind configuration files
 bind_master: 127.0.0.1

@@ -45,6 +45,7 @@ DEFAULTS = {
     "autoinstall_snippets_dir": ["/var/lib/cobbler/snippets", "str"],
     "autoinstall_templates_dir": ["/var/lib/cobbler/templates", "str"],
     "bind_chroot_path": ["", "str"],
+    "bind_zonefile_path": ["/var/lib/named", "str"],
     "bind_master": ["127.0.0.1", "str"],
     "boot_loader_conf_template_dir": ["/etc/cobbler/boot_loader_conf", "str"],
     "bootloaders_dir": ["/var/lib/cobbler/loaders", "str"],

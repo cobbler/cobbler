@@ -53,7 +53,7 @@ class _BindManager(ManagerModule):
         super().__init__(collection_mgr)
 
         self.settings_file = utils.namedconf_location()
-        self.zonefile_base = utils.zonefile_base()
+        self.zonefile_base = self.settings.bind_zonefile_path + "/"
 
     def regen_hosts(self):
         """
@@ -382,6 +382,7 @@ zone "%(arpa)s." {
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
         :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
+        :type ips: list
         :return: The list with sorted IP addresses.
         """
         quartets = []
