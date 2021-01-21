@@ -50,6 +50,7 @@
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
+%define py3_module_file python%{python3_pkgversion}-magic
 
 # SUSE
 %if 0%{?suse_version}
@@ -109,6 +110,7 @@
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
 %define system_release_pkg system-release
+%define py3_module_file python%{python3_pkgversion}-file-magic
 #endif FEDORA
 %endif
 
@@ -214,15 +216,7 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
-%if 0%{?suse_version}
-Requires:       python%{python3_pkgversion}-file
-%endif
-%if 0%{?fedora} || 0%{?rhel}
-Requires:       python%{python3_pkgversion}-file-magic
-%endif
-%if "%{_vendor}" == "debbuild"
-Requires:       python3-magic
-%endif
+Requires:       %{py3_module_file}
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
 %else
