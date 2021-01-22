@@ -2254,29 +2254,6 @@
         "boot_files": [
           "*.*"
         ]
-      },
-      "esxi70u1": {
-        "signatures": [
-          "b.b00"
-        ],
-        "version_file": "vmware-esx-base-osl\\.txt",
-        "version_file_regex": "^(VMware )?ESXi( )?(v)?7(\\.)?0(\\.)?1.*$",
-        "kernel_arch": "tools\\.t00",
-        "kernel_arch_regex": "^.*(x86_64).*$",
-        "supported_arches": [
-          "x86_64"
-        ],
-        "supported_repo_breeds": [],
-        "kernel_file": "mboot\\.c32",
-        "initrd_file": "imgpayld\\.tgz",
-        "isolinux_ok": false,
-        "default_autoinstall": "sample_esxi7.ks",
-        "kernel_options": "",
-        "kernel_options_post": "",
-        "template_files": "/etc/cobbler/boot_loader_conf/bootcfg_esxi70u1.template=$local_img_path/cobbler-boot.cfg",
-        "boot_files": [
-          "*.*"
-        ]
       }
     },
     "freebsd": {
