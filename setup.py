@@ -439,6 +439,7 @@ class restorestate(statebase):
         self._copy(os.path.join(self.statepath, 'users.conf'), etcpath)
         self._copy(os.path.join(self.statepath, 'users.digest'), etcpath)
         self._copy(os.path.join(self.statepath, 'dhcp.template'), etcpath)
+        self._copy(os.path.join(self.statepath, 'dhcp6.template'), etcpath)
         self._copy(os.path.join(self.statepath, 'rsync.template'), etcpath)
 
 #####################################################################
@@ -470,6 +471,7 @@ class savestate(statebase):
         self._copy(os.path.join(etcpath, 'users.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'users.digest'), self.statepath)
         self._copy(os.path.join(etcpath, 'dhcp.template'), self.statepath)
+        self._copy(os.path.join(etcpath, 'dhcp6.template'), self.statepath)
         self._copy(os.path.join(etcpath, 'rsync.template'), self.statepath)
 
 
@@ -585,6 +587,7 @@ if __name__ == "__main__":
                               "templates/etc/dnsmasq.template",
                               "templates/etc/rsync.template",
                               "templates/etc/dhcp.template",
+                              "templates/etc/dhcp6.template",
                               "templates/etc/ndjbdns.template"]),
             ("%s/iso" % etcpath, glob("templates/iso/*")),
             ("%s/boot_loader_conf" % etcpath, glob("templates/boot_loader_conf/*")),

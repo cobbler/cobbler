@@ -234,6 +234,17 @@ remove_old_puppet_certs_automatically: 0
 # the choice of DHCP management engine is in /etc/cobbler/modules.conf
 manage_dhcp: 0
 
+# set to 1 to enable DHCP IPv6 address configuration generation.
+# This currently only works with manager.isc DHCP module (isc dhcpd6 daemon)
+# See /etc/cobbler/modules.conf whether this isc module is chosen for dhcp
+# generation.
+enable_dhcpv6: 1
+
+# set to 1 to enable DHCP IPv4 address configuration generation.
+# This currently only works with manager.isc DHCP module
+# Other dhcp modules ignore this and above settings
+enable_dhcpv4: 1
+
 # set to 1 to enable Cobbler's DNS management features.
 # the choice of DNS mangement engine is in /etc/cobbler/modules.conf
 manage_dns: 0
@@ -271,6 +282,10 @@ manage_reverse_zones: []
 # of the cobbler server here so that PXE booting guests can find it
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
 next_server: 127.0.0.1
+
+# And the same if you set "enable_dhcpv6: 1".
+# Set the cobbler IPv6 address here so that PXE booting guests can find it
+next_server: "::1"
 
 # settings for power management features.  optional.
 # see https://github.com/cobbler/cobbler/wiki/Power-management to learn more
