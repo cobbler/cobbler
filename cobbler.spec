@@ -50,6 +50,7 @@
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
+%define py3_module_file python%{python3_pkgversion}-magic
 
 # SUSE
 %if 0%{?suse_version}
@@ -57,7 +58,7 @@
 %define apache_group www
 
 %define apache_dir /srv/www
-%define apache_webconfigdir /etc/apache2/conf.d
+%define apache_webconfigdir /etc/apache2/vhosts.d
 %define apache_mod_wsgi apache2-mod_wsgi-python%{python3_pkgversion}
 %define tftpboot_dir /srv/tftpboot
 
@@ -109,6 +110,7 @@
 %define grub2_x64_efi_pkg grub2-efi-x64
 %define grub2_ia32_efi_pkg grub2-efi-ia32
 %define system_release_pkg system-release
+%define py3_module_file python%{python3_pkgversion}-file-magic
 #endif FEDORA
 %endif
 
@@ -214,15 +216,7 @@ Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
-%if 0%{?suse_version}
-Requires:       python%{python3_pkgversion}-file
-%endif
-%if 0%{?fedora} || 0%{?rhel}
-Requires:       python%{python3_pkgversion}-file-magic
-%endif
-%if "%{_vendor}" == "debbuild"
-Requires:       python3-magic
-%endif
+Requires:       %{py3_module_file}
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
 %else
@@ -304,7 +298,6 @@ sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cob
 
 # Check distro specific variables for consistency
 [ "${DOCPATH}" != %{_mandir} ] && echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
-echo "ERROR: DOCPATH: ${DOCPATH} does not match %{_mandir}"
 
 # [ "${ETCPATH}" != "/etc/cobbler" ]
 # [ "${LIBPATH}" != "/var/lib/cobbler" ]
