@@ -44,41 +44,63 @@ Download an OS-specific package to install on your local system via the
 `Terraform downloads <https://www.terraform.io/downloads.html>`__.
 Unpack the ZIP-file and move the binary-file into ``/usr/local/bin``.
 
-.. important::
-   After setting up a Cobbler Terraform repository for the first time, run
-   ``terraform init`` in the **basedir**, so the Cobbler provider
-   plugin gets installed automatically in ``tf_cobbler/.terraform/plugins``.
-
-Make sure you’re using at least **Terraform v0.12 or higher**.
+Make sure you’re using at least **Terraform v0.14 or higher**.
 Check with ``terraform version``:
 
 .. code::
 
   $ terraform version
-  Terraform v0.12.29
-
-If you ever run into this error:
-``provider.cobbler: no suitable version installed``, re-run ``terraform init``
-in the **basedir** to upgrade the Cobbler provider.
+  Terraform v0.14.5
 
 Install terraform-provider-cobbler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For Terraform 0.13 and higher, you can use the provider via the Terraform provider registry.
+Since Terraform version 0.13, you can use the Cobbler provider via the
+`Terraform provider registry <https://registry.terraform.io/providers/cobbler/cobbler/latest>`__.
 
-For Terraform 0.12, you can download and add the pre-built binary for your
-system (Linux or macOS) to ``~/.terraform.d/plugins/``.
-Replace ``linux`` with ``darwin`` for the macOS version:
+After setting up a Cobbler Terraform repository for the first time, run
+``terraform init`` in the **basedir**, so the Cobbler provider
+gets installed automatically in ``tf_cobbler/.terraform/providers``.
 
 .. code::
 
-  wget https://github.com/cobbler/terraform-provider-cobbler/releases/download/v2.0.1/terraform-provider-cobbler_2.0.1_linux_amd64.zip
-  unzip terraform-provider-cobbler_2.0.1_linux_amd64.zip
-  mkdir -p ~/.terraform.d/plugins/
-  mv terraform-provider-cobbler_v2.0.1 ~/.terraform.d/plugins/
-  chmod +x ~/.terraform.d/plugins/terraform-provider-cobbler_v2.0.1
+    $ terraform init
 
-Repository & configurations
+    Initializing the backend...
+
+    Initializing provider plugins...
+    - Reusing previous version of cobbler/cobbler from the dependency lock file
+    - Installing cobbler/cobbler v2.0.2...
+    - Installed cobbler/cobbler v2.0.2 (self-signed, key ID B2677721AC1E7A84)
+
+    Partner and community providers are signed by their developers.
+    If you'd like to know more about provider signing, you can read about it here:
+    https://www.terraform.io/docs/plugins/signing.html
+
+    Terraform has made some changes to the provider dependency selections recorded
+    in the .terraform.lock.hcl file. Review those changes and commit them to your
+    version control system if they represent changes you intended to make.
+
+    Terraform has been successfully initialized!
+
+    You may now begin working with Terraform. Try running "terraform plan" to see
+    any changes that are required for your infrastructure. All Terraform commands
+    should now work.
+
+    If you ever set or change modules or backend configuration for Terraform,
+    rerun this command to reinitialize your working directory. If you forget, other
+    commands will detect it and remind you to do so if necessary.
+
+If you ever run into this error:
+``Error: Could not load plugin``, re-run ``terraform init``
+in the **basedir** to reinstall / upgrade the Cobbler provider.
+
+When you initialize a Terraform configuration for the first time with Terraform 0.14 or later,
+Terraform will generate a new ``.terraform.lock.hcl`` file in the current working directory.
+You should include the lock file in your version control repository to ensure that Terraform
+uses the same provider versions across your team and in ephemeral remote execution environments.
+
+Repository setup & configurations
 ---------------------------
 
 Create a git repository (for example ``tf_cobbler``) and use a phased approach
@@ -99,7 +121,8 @@ The directory-tree would look something like this:
 
    ├── .gitignore
    ├── .terraform
-   │   └── plugins
+   │   └── prioviders
+   ├── .terraform.lock.hcl
    ├── README.md
    ├── templates
    │   ├── main.tf
@@ -130,20 +153,46 @@ The directory-tree would look something like this:
    ├── profiles
    │   └── profile-debian10-x86_64.tf
    ├── terraform.tfvars
-   └── variables.tf
+   ├── variables.tf
+   └── versions.tf
 
 Each host-subdirectory consists of a Terraform-file named ``main.tf``,
-one **symlinked** directory ``.terraform`` and two files **symlinked**
-from the root: ``variables.tf`` and ``terraform.tfvars``:
+one **symlinked** directory ``.terraform`` and files **symlinked**
+from the root: ``versions.tf``, ``variables.tf``. ``.terraform.lock.hcl``
+and ``terraform.tfvars``:
 
 .. code::
 
    tf_cobbler/production/webserver
    .
-   ├── main.tf
    ├── .terraform -> ../../.terraform
+   ├── .terraform.lock.hcl -> ../../.terraform.lock.hcl
+   ├── main.tf
+   ├── terraform.tfstate
+   ├── terraform.tfstate.backup
    ├── terraform.tfvars -> ../../terraform.tfvars
-   └── variables.tf -> ../../variables.tf
+   ├── variables.tf -> ../../variables.tf
+   └── versions.tf -> ../../versions.tf
+
+The files ``terraform.tfstate`` and ``terraform.tfstate.backup`` are the state files once Terraform
+has run succesfully.
+
+File ``versions.tf``
+~~~~~~~~~~~~~~~~~~~~~
+
+The block in this file specifies the required provider version and required Terraform version for the configuration.
+
+.. code::
+
+  terraform {
+    required_version = ">= 0.14"
+    required_providers {
+      cobbler = {
+        source = "cobbler/cobbler"
+        version = "~> 2.0.1"
+      }
+    }
+  }
 
 Credentials
 ~~~~~~~~~~~
@@ -196,7 +245,6 @@ File ``variables.tf``
    }
 
    provider "cobbler" {
-     version  = "~> 2.0.1"
      username = var.cobbler_username
      password = var.cobbler_password
      url      = var.cobbler_url
@@ -370,8 +418,10 @@ We need these in every subdirectory.
   #!/bin/sh
 
   ln -s ../../variables.tf
+  ln -s ../../versions.tf
   ln -s ../../.terraform
   ln -s ../../terraform.tfvars
+  ln -s ../../.terraform.lock.hcl
 
 Adding a new system
 ~~~~~~~~~~~~~~~~~~~
