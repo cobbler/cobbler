@@ -42,7 +42,7 @@ import yaml
 import distro
 
 from cobbler.cexceptions import FileNotFoundException, CX
-from cobbler import clogger
+from cobbler import clogger, settings
 from cobbler import field_info
 from cobbler import validate
 
@@ -582,20 +582,6 @@ def input_boolean(value):
         return True
     else:
         return False
-
-
-def update_settings_file(data):
-    """
-    Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
-
-    :param data: The data to put into the settings file.
-    :return: True if the action succeeded. Otherwise return nothing.
-    :rtype: bool
-    """
-    # TODO: Move this as a static method to the settings file. This does not belong here.
-    with open("/etc/cobbler/settings", "w") as settings_file:
-        yaml.safe_dump(data, settings_file)
-    return True
 
 
 def grab_tree(api_handle, item):
@@ -2317,12 +2303,8 @@ def local_get_cobbler_api_url():
     :rtype: str
     """
     # Load server and http port
-    try:
-        with open("/etc/cobbler/settings") as fh:
-            data = yaml.safe_load(fh.read())
-    except:
-        traceback.print_exc()
-        raise CX("/etc/cobbler/settings is not a valid YAML file")
+    # TODO: Replace with Settings access
+    data = settings.read_settings_file()
 
     ip = data.get("server", "127.0.0.1")
     if data.get("client_use_localhost", False):
@@ -2344,8 +2326,9 @@ def local_get_cobbler_xmlrpc_url():
     :rtype: str
     """
     # Load xmlrpc port
+    # TODO: Replace with Settings access
     try:
-        with open("/etc/cobbler/settings") as fh:
+        with open("/etc/cobbler/settings.yaml") as fh:
             data = yaml.safe_load(fh.read())
     except:
         traceback.print_exc()

@@ -24,40 +24,39 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 from configparser import ConfigParser
 
-pymongo_loaded = False
-try:
-    from pymongo import Connection
-    pymongo_loaded = True
-except:
-    # FIXME: log message
-    pass
-
-import yaml
-
+from cobbler import settings
 from cobbler.cexceptions import CX
 
-mongodb = None
+try:
+    from pymongo import MongoClient
+    pymongo_loaded = True
+except ModuleNotFoundError:
+    # FIXME: log message
+    pymongo_loaded = False
+    pass
+
+mongodb: MongoClient
 
 
-def __connect():
+def __connect(configfile="/etc/cobbler/mongodb.conf"):
     """
     Reads the config file for mongodb and then connects to the mongodb.
     """
     cp = ConfigParser()
-    cp.read("/etc/cobbler/mongodb.conf")
+    cp.read(configfile)
 
     host = cp.get("connection", "host")
     port = int(cp.get("connection", "port"))
     # TODO: detect connection error
     global mongodb
     try:
-        mongodb = Connection(host, port)['cobbler']
-    except:
+        mongodb = MongoClient(host, port)['cobbler']
+    except Exception:
         # FIXME: log error
-        raise CX("Unable to connect to Mongo database")
+        raise CX("Unable to connect to Mongo database or get database \"cobbler\"")
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
@@ -67,7 +66,7 @@ def register():
     return "serializer"
 
 
-def what():
+def what() -> str:
     """
     Module identification function
     """
@@ -125,11 +124,8 @@ def deserialize_raw(collection_type):
     :param collection_type: The collection type to fetch.
     :return: The first element of the collection requested.
     """
-    # FIXME: code to load settings file should not be replicated in all serializer subclasses
     if collection_type == "settings":
-        with open("/etc/cobbler/settings") as fd:
-            _dict = yaml.safe_load(fd.read())
-        return _dict
+        return settings.read_settings_file()
     else:
         __connect()
         collection = mongodb[collection_type]
@@ -148,10 +144,8 @@ def deserialize(collection, topological=True):
 
     datastruct = deserialize_raw(collection.collection_type())
     if topological and type(datastruct) == list:
-        datastruct.sort(key = lambda x: x["depth"])
+        datastruct.sort(key=lambda x: x["depth"])
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:
         collection.from_list(datastruct)
-
-# EOF

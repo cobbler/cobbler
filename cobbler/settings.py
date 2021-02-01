@@ -22,8 +22,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import glob
 import os.path
 import re
+import traceback
+
+import yaml
 
 from cobbler import utils
+from cobbler.cexceptions import CX
+
 
 # defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
@@ -129,7 +134,8 @@ DEFAULTS = {
     "tftpboot_location": ["/var/lib/tftpboot", "str"],
     "virt_auto_boot": [0, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
-    "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered", "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
+    "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered",
+                         "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
     "xmlrpc_port": [25151, "int"],
     "yum_distro_priority": [1, "int"],
     "yum_post_install_mirror": [1, "bool"],
@@ -141,52 +147,15 @@ FIELDS = [
     ["value", "", "", "Value", True, "Ex: 127.0.0.1", 0, "str"],
 ]
 
-if os.path.exists("/srv/www/"):
-    DEFAULTS["webdir"] = "/srv/www/cobbler"
 
-# Autodetect bind chroot configuration
-# RHEL/Fedora
-if os.path.exists("/etc/sysconfig/named"):
-    bind_config_filename = "/etc/sysconfig/named"
-# Debian
-else:
-    bind_config_filename = None
-    bind_config_files = glob.glob("/etc/default/bind*")
-    for filename in bind_config_files:
-        if os.path.exists(filename):
-            bind_config_filename = filename
-# Parse the config file
-if bind_config_filename:
-    bind_config = {}
-    # When running as a webapp we can't access this, but don't need it
-    try:
-        bind_config_file = open(bind_config_filename, "r")
-    except (IOError, OSError):
-        pass
-    else:
-        for line in bind_config_file:
-            if re.match(r"[a-zA-Z]+=", line):
-                (name, value) = line.rstrip().split("=")
-                bind_config[name] = value.strip('"')
-        # RHEL, SysV Fedora
-        if "ROOTDIR" in bind_config:
-            DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
-        # Debian, Systemd Fedora
-        if "OPTIONS" in bind_config:
-            rootdirmatch = re.search(r"-t ([/\w]+)", bind_config["OPTIONS"])
-            if rootdirmatch is not None:
-                DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
-
-
-class Settings(object):
+class Settings:
 
     @staticmethod
-    def collection_type():
+    def collection_type() -> str:
         """
         This is a hardcoded string which represents the collection type.
 
         :return: "setting"
-        :rtype: str
         """
         return "setting"
 
@@ -221,23 +190,21 @@ class Settings(object):
         """
         return self.__setattr__(name, value)
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Returns the kernel options as a string.
 
         :return: The multiline string with the kernel options.
-        :rtype: str
         """
         buf = "defaults\n"
         buf += "kernel options  : %s\n" % self.__dict__['kernel_options']
         return buf
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Return an easily serializable representation of the config.
 
         :return: The dict with all user settings combined with settings which are left to the default.
-        :rtype: dict
         """
         return self.__dict__
 
@@ -289,13 +256,11 @@ class Settings(object):
                 raise AttributeError
 
             self.__dict__[name] = value
-            if not utils.update_settings_file(self.to_dict()):
-                raise AttributeError
+            update_settings_file(self.to_dict())
 
             return 0
         else:
-            # FIXME. Not sure why __dict__ is part of name
-            # workaround applied, ignore exception
+            # FIXME. Not sure why __dict__ is part of name workaround applied, ignore exception
             # raise AttributeError
             pass
 
@@ -319,4 +284,89 @@ class Settings(object):
                 self.__dict__[name] = lookup
                 return lookup
             else:
-                raise AttributeError(f"no settings attribute named '{ name }' found")
+                raise AttributeError(f"no settings attribute named '{name}' found")
+
+
+def parse_bind_config(configpath):
+    global DEFAULTS
+    bind_config = {}
+    # When running as a webapp we can't access this, but don't need it
+    try:
+        bind_config_file = open(configpath, "r")
+    except (IOError, OSError):
+        pass
+    else:
+        for line in bind_config_file:
+            if re.match(r"[a-zA-Z]+=", line):
+                (name, value) = line.rstrip().split("=")
+                bind_config[name] = value.strip('"')
+        # RHEL, SysV Fedora
+        if "ROOTDIR" in bind_config:
+            DEFAULTS["bind_chroot_path"] = bind_config["ROOTDIR"]
+        # Debian, Systemd Fedora
+        if "OPTIONS" in bind_config:
+            rootdirmatch = re.search(r"-t ([/\w]+)", bind_config["OPTIONS"])
+            if rootdirmatch is not None:
+                DEFAULTS["bind_chroot_path"] = rootdirmatch.group(1)
+
+
+def autodect_bind_chroot():
+    """
+    Autodetect bind chroot configuration
+    """
+    bind_config_filename = None
+    if os.path.exists("/etc/sysconfig/named"):
+        # RHEL/Fedora
+        bind_config_filename = "/etc/sysconfig/named"
+    else:
+        # Debian
+        bind_config_files = glob.glob("/etc/default/bind*")
+        for filename in bind_config_files:
+            if os.path.exists(filename):
+                bind_config_filename = filename
+    # Parse the config file if available
+    if bind_config_filename:
+        parse_bind_config(bind_config_filename)
+
+
+def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
+    """
+    Reads the settings file from the default location or the given one. This method then also recursively includes all
+    files in the ``include`` directory. Any key may be overwritten in a later loaded settings file. The last loaded file
+    wins.
+
+    :param filepath: The path to the settings file.
+    :return: A dictionary with the settings. As a word of caution: This may not represent a correct settings object, it
+             will only contain a correct YAML representation.
+    :raises CX: If the YAML file is not syntactically valid or could not be read.
+    :raises FileNotFoundError: If the file handed to the function does not exist.
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError("Given path \"%s\" does not exist." % filepath)
+    try:
+        with open(filepath) as main_settingsfile:
+            filecontent = yaml.safe_load(main_settingsfile.read())
+
+            for ival in filecontent.get("include", []):
+                for ifile in glob.glob(ival):
+                    with open(ifile, 'r') as extra_settingsfile:
+                        filecontent.update(yaml.safe_load(extra_settingsfile.read()))
+    except Exception:
+        traceback.print_exc()
+        raise CX("\"%s\" is not a valid YAML file" % filepath)
+    return filecontent
+
+
+def update_settings_file(data):
+    """
+    Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
+
+    :param data: The data to put into the settings file.
+    :return: True if the action succeeded. Otherwise return nothing.
+    """
+    with open("/etc/cobbler/settings.yaml", "w") as settings_file:
+        yaml.safe_dump(data, settings_file)
+
+
+# Initialize Settings module for manipulating the global DEFAULTS variable
+autodect_bind_chroot()
