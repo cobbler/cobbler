@@ -40,6 +40,7 @@ RUN yum install -y          \
     python3-ldap3           \
     python3-librepo         \
     python3-pymongo         \
+    python3-schema          \
     createrepo_c            \
     dnf-plugins-core        \
     xorriso                 \

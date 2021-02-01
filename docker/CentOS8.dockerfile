@@ -32,6 +32,7 @@ RUN touch /var/lib/rpm/* &&   \
     python3-pycodestyle       \
     python3-setuptools        \
     python3-sphinx            \
+    python3-schema            \
     epel-rpm-macros           \
     rpm-build                 \
     which
