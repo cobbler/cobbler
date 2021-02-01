@@ -87,9 +87,9 @@ def serialize_item(collection, item):
         indent = None
 
     _dict = item.to_dict()
-    with open(filename, "w+") as fd:
+    with open(filename, "w+") as file_descriptor:
         data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
-        fd.write(data)
+        file_descriptor.write(data)
 
 
 def serialize_delete(collection, item):
@@ -138,8 +138,8 @@ def deserialize_raw(collection_types):
         all_files = glob.glob("%s/*.json" % path)
 
         for f in all_files:
-            with open(f) as fd:
-                json_data = fd.read()
+            with open(f) as file_descriptor:
+                json_data = file_descriptor.read()
                 _dict = simplejson.loads(json_data, encoding='utf-8')
                 results.append(_dict)
         return results
