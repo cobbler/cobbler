@@ -23,7 +23,7 @@ def register():
 
 def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_genders):
     """
-    Genders file is over-written when manage_genders is set in /var/lib/cobbler/settings.
+    Genders file is over-written when manage_genders is set in our settings.
 
     :param config: The config file to template with the data.
     :param profiles_genders: The profiles which should be included.

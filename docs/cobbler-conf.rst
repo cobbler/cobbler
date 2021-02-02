@@ -715,7 +715,7 @@ default: ``authz_allowall``
 
 dns
 ===
-Chooses the DNS management engine if manage_dns is enabled in ``/etc/cobbler/settings``, which is off by default.
+Chooses the DNS management engine if manage_dns is enabled in ``/etc/cobbler/settings.yaml``, which is off by default.
 
 Choices:
 
@@ -731,7 +731,8 @@ default: ``manage_bind``
 
 dhcp
 ====
-Chooses the DHCP management engine if ``manage_dhcp`` is enabled in ``/etc/cobbler/settings``, which is off by default.
+Chooses the DHCP management engine if ``manage_dhcp`` is enabled in ``/etc/cobbler/settings.yaml``, which is off by
+default.
 
 Choices:
 
@@ -746,7 +747,7 @@ default: ``manage_isc``
 
 tftpd
 =====
-Chooses the TFTP management engine if manage_tftp is enabled in ``/etc/cobbler/settings``, which is ON by default.
+Chooses the TFTP management engine if manage_tftp is enabled in ``/etc/cobbler/settings.yaml``, which is ON by default.
 
 Choices:
 

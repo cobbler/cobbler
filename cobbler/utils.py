@@ -2332,7 +2332,7 @@ def local_get_cobbler_xmlrpc_url():
             data = yaml.safe_load(fh.read())
     except:
         traceback.print_exc()
-        raise CX("/etc/cobbler/settings is not a valid YAML file")
+        raise CX("/etc/cobbler/settings.yaml is not a valid YAML file")
     return "http://%s:%s" % ("127.0.0.1", data.get("xmlrpc_port", "25151"))
 
 
