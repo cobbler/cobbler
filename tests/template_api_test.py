@@ -24,12 +24,13 @@ class TestCobblerTemplate:
     def test_read_snippet(self):
         # Arrange
         test_template = CobblerTemplate()
+        expected = "set -x -v\n" + "exec 1>/root/ks-post.log 2>&1"
 
         # Act
-        result = test_template.read_snippet()
+        result = test_template.read_snippet("log_ks_post")
 
         # Assert
-        assert False
+        assert result == expected
 
 
     def test_SNIPPET(self):
@@ -37,6 +38,8 @@ class TestCobblerTemplate:
         test_template = CobblerTemplate()
 
         # Act
+        result = test_template.SNIPPET("preseed_early_default")
+
         # Assert
         assert False
 

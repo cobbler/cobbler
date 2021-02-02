@@ -21,7 +21,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from typing import Optional
+from typing import Optional, TextIO, Tuple, Union
 
 import Cheetah.Template as cheetah_template
 import os.path
@@ -101,7 +101,7 @@ class CobblerTemplate(cheetah_template.Template):
         def replacer(match):
             return "$SNIPPET('%s')" % match.group(1)
 
-        def preprocess(source, file):
+        def preprocess(source: Optional[str], file: Union[TextIO, str]) -> Tuple[str, Union[TextIO, str]]:
             # Normally, the cheetah compiler worries about this, but we need to preprocess the actual source.
             if source is None:
                 if hasattr(file, 'read'):
@@ -157,7 +157,7 @@ class CobblerTemplate(cheetah_template.Template):
         except FileNotFoundException:
             return None
 
-    def SNIPPET(self, file):
+    def SNIPPET(self, file: str):
         """
         Include the contents of the named snippet here. This is equivalent to the #include directive in Cheetah, except
         that it searches for system and profile specific snippets, and it includes the snippet's namespace.
@@ -197,7 +197,7 @@ class CobblerTemplate(cheetah_template.Template):
     #
     # sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
     #
-    def sedesc(self, value):
+    def sedesc(self, value: str):
         """
         Escape a string for use in sed.
 
@@ -205,10 +205,10 @@ class CobblerTemplate(cheetah_template.Template):
         :return: The escaped phrase.
         """
 
-        def escchar(c):
-            if c in '/^.[]$()|*+?{}\\':
-                return '\\' + c
+        def escchar(character: str) -> str:
+            if character in '/^.[]$()|*+?{}\\':
+                return '\\' + character
             else:
-                return c
+                return character
 
         return ''.join([escchar(c) for c in value])

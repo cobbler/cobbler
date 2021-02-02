@@ -25,7 +25,7 @@ class TemplarTest:
         test_templar = Templar(test_collection_mgr)
 
         # Act
-        test_templar.render()
+        result = test_templar.render("", {}, None, template_type="cheetah")
 
         # Assert
         assert False

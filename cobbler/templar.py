@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import re
-from typing import Optional
+from typing import Optional, Union
 from typing.io import TextIO
 
 import Cheetah
@@ -89,19 +89,17 @@ class Templar:
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
                     raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input: (TextIO, str), search_table: dict, out_path: Optional[str], subject=None,
-               template_type="default"):
+    def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str], subject=None,
+               template_type="default") -> str:
         """
         Render data_input back into a file.
 
-        :param data_input: is either a string or a filename
-        :param search_table: is a dict of metadata keys and values out_path if not-none writes the results to a file
-                             (though results are always returned)
+        :param data_input: is either a str or a TextIO object.
+        :param search_table: is a dict of metadata keys and values.
         :param out_path: Optional parameter which (if present), represents the target path to write the result into.
-        :param subject: is a profile or system object, if available (for snippet eval)
+        :param subject: Unused and will be removed in one of the next versions.
         :param template_type: May currently be "cheetah" or "jinja2". "default" looks in the settings.
         :return: The rendered template.
-        :rtype: str
         """
 
         if not isinstance(data_input, str):
@@ -109,6 +107,9 @@ class Templar:
         else:
             raw_data = data_input
         lines = raw_data.split('\n')
+
+        if template_type not in ("default", "jinja2", "cheetah"):
+            return "# ERROR: Unsupported Template Type selected!"
 
         if template_type == "default":
             if self.settings and self.settings.default_template_type:
@@ -124,10 +125,10 @@ class Templar:
             raw_data = "\n".join(lines)
 
         if template_type == "cheetah":
-            data_out = self.render_cheetah(raw_data, search_table, subject)
+            data_out = self.render_cheetah(raw_data, search_table)
         elif template_type == "jinja2":
             if jinja2_available:
-                data_out = self.render_jinja2(raw_data, search_table, subject)
+                data_out = self.render_jinja2(raw_data, search_table)
             else:
                 return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
         else:
@@ -162,13 +163,12 @@ class Templar:
 
         return data_out
 
-    def render_cheetah(self, raw_data, search_table, subject=None):
+    def render_cheetah(self, raw_data, search_table: dict):
         """
         Render data_input back into a file.
 
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values (though results are always returned)
-        :param subject: is a profile or system object, if available (for snippet eval)
         :return: The rendered Cheetah Template.
         """
 
@@ -231,13 +231,12 @@ class Templar:
 
         return data_out
 
-    def render_jinja2(self, raw_data, search_table, subject=None):
+    def render_jinja2(self, raw_data, search_table):
         """
         Render data_input back into a file.
 
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values
-        :param subject: is a profile or system object, if available (for snippet eval)
         :return: The rendered Jinja2 Template.
         """
 
