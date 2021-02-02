@@ -30,7 +30,6 @@ import cobbler.templar as templar
 import cobbler.utils as utils
 
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 def register():
@@ -79,7 +78,7 @@ class IscManager(object):
         try:
             f2 = open(template_file, "r")
         except:
-            raise CX(_("error reading template: %s") % template_file)
+            raise CX("error reading template: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()

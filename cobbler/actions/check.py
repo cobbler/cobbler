@@ -26,7 +26,6 @@ import re
 
 from cobbler import clogger
 from cobbler import utils
-from cobbler.utils import _
 
 
 class CobblerCheck(object):
@@ -142,17 +141,17 @@ class CobblerCheck(object):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/sbin/service %s status > /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
-                status.append(_("service %s is not running%s") % (which, notes))
+                status.append("service %s is not running%s" % (which, notes))
                 return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
                 rc = utils.subprocess_call(self.logger, "/etc/init.d/%s status /dev/null 2>/dev/null" % which, shell=True)
             if rc != 0:
-                status.append(_("service %s is not running%s") % (which, notes))
+                status.append("service %s is not running%s" % (which, notes))
                 return
         else:
-            status.append(_("Unknown distribution type, cannot check for running service %s" % which))
+            status.append("Unknown distribution type, cannot check for running service %s" % which)
             return
 
     def check_iptables(self, status):
@@ -166,7 +165,7 @@ class CobblerCheck(object):
         if os.path.exists("/etc/rc.d/init.d/iptables"):
             rc = utils.subprocess_call(self.logger, "/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
             if rc == 0:
-                status.append(_("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked") % {"xmlrpc": self.settings.xmlrpc_port})
+                status.append("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked" % {"xmlrpc": self.settings.xmlrpc_port})
 
     def check_yum(self, status):
         """
@@ -179,19 +178,19 @@ class CobblerCheck(object):
             return
 
         if not os.path.exists("/usr/bin/createrepo"):
-            status.append(_("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?"))
+            status.append("createrepo package is not installed, needed for cobbler import and cobbler reposync, install createrepo?")
 
         if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
-            status.append(_("reposync not installed, install yum-utils"))
+            status.append("reposync not installed, install yum-utils")
 
         if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/reposync"):
-            status.append(_("reposync is not installed, install yum-utils or dnf-plugins-core"))
+            status.append("reposync is not installed, install yum-utils or dnf-plugins-core")
 
         if not os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
-            status.append(_("yumdownloader is not installed, install yum-utils"))
+            status.append("yumdownloader is not installed, install yum-utils")
 
         if os.path.exists("/usr/bin/dnf") and not os.path.exists("/usr/bin/yumdownloader"):
-            status.append(_("yumdownloader is not installed, install yum-utils or dnf-plugins-core"))
+            status.append("yumdownloader is not installed, install yum-utils or dnf-plugins-core")
 
     def check_debmirror(self, status):
         """
@@ -204,16 +203,16 @@ class CobblerCheck(object):
             return
 
         if not os.path.exists("/usr/bin/debmirror"):
-            status.append(_("debmirror package is not installed, it will be required to manage debian deployments and repositories"))
+            status.append("debmirror package is not installed, it will be required to manage debian deployments and repositories")
         if os.path.exists("/etc/debmirror.conf"):
             with open("/etc/debmirror.conf") as f:
                 re_dists = re.compile(r'@dists=')
                 re_arches = re.compile(r'@arches=')
                 for line in f.readlines():
                     if re_dists.search(line) and not line.strip().startswith("#"):
-                        status.append(_("comment out 'dists' on /etc/debmirror.conf for proper debian support"))
+                        status.append("comment out 'dists' on /etc/debmirror.conf for proper debian support")
                     if re_arches.search(line) and not line.strip().startswith("#"):
-                        status.append(_("comment out 'arches' on /etc/debmirror.conf for proper debian support"))
+                        status.append("comment out 'arches' on /etc/debmirror.conf for proper debian support")
 
     def check_name(self, status):
         """
@@ -223,9 +222,9 @@ class CobblerCheck(object):
         :param status: The status list with possible problems.
         """
         if self.settings.server == "127.0.0.1":
-            status.append(_("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or automatic installation features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it."))
+            status.append("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or automatic installation features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it.")
         if self.settings.next_server == "127.0.0.1":
-            status.append(_("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network."))
+            status.append("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network.")
 
     def check_selinux(self, status):
         """
@@ -239,7 +238,7 @@ class CobblerCheck(object):
 
         enabled = self.collection_mgr.api.is_selinux_enabled()
         if enabled:
-            status.append(_("SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux"))
+            status.append("SELinux is enabled. Please review the following wiki page for details on ensuring Cobbler works correctly in your SELinux environment:\n    https://github.com/cobbler/cobbler/wiki/Selinux")
 
     def check_for_default_password(self, status):
         """
@@ -249,7 +248,7 @@ class CobblerCheck(object):
         """
         default_pass = self.settings.default_password_crypted
         if default_pass == "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.":
-            status.append(_("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to generate new one"))
+            status.append("The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to generate new one")
 
     def check_for_unreferenced_repos(self, status):
         """
@@ -270,7 +269,7 @@ class CobblerCheck(object):
             if r not in repos and r != "<<inherit>>":
                 not_found.append(r)
         if len(not_found) > 0:
-            status.append(_("One or more repos referenced by profile objects is no longer defined in Cobbler: %s") % ", ".join(not_found))
+            status.append("One or more repos referenced by profile objects is no longer defined in Cobbler: %s" % ", ".join(not_found))
 
     def check_for_unsynced_repos(self, status):
         """
@@ -285,7 +284,7 @@ class CobblerCheck(object):
                 if not os.path.exists(lookfor):
                     need_sync.append(r.name)
         if len(need_sync) > 0:
-            status.append(_("One or more repos need to be processed by cobbler reposync for the first time before automating installations using them: %s") % ", ".join(need_sync))
+            status.append("One or more repos need to be processed by cobbler reposync for the first time before automating installations using them: %s" % ", ".join(need_sync))
 
     def check_dhcpd_bin(self, status):
         """
@@ -378,7 +377,7 @@ class CobblerCheck(object):
 
         bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
-            status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
+            status.append("please create directory: %(dirname)s" % {"dirname": bootloc})
 
     def check_ctftpd_dir(self, status):
         """
@@ -391,7 +390,7 @@ class CobblerCheck(object):
 
         bootloc = self.settings.tftpboot_location
         if not os.path.exists(bootloc):
-            status.append(_("please create directory: %(dirname)s") % {"dirname": bootloc})
+            status.append("please create directory: %(dirname)s" % {"dirname": bootloc})
 
     def check_rsync_conf(self, status):
         """
@@ -404,7 +403,7 @@ class CobblerCheck(object):
 
         if os.path.exists("/usr/lib/systemd/system/rsyncd.service"):
             if not os.path.exists("/etc/systemd/system/multi-user.target.wants/rsyncd.service"):
-                status.append(_("enable and start rsyncd.service with systemctl"))
+                status.append("enable and start rsyncd.service with systemctl")
 
     def check_dhcpd_conf(self, status):
         """
@@ -429,10 +428,10 @@ class CobblerCheck(object):
                 if line.find("filename") != -1:
                     match_file = True
             if not match_next:
-                status.append(_("expecting next-server entry in %(file)s") % {"file": self.settings.dhcpd_conf})
+                status.append("expecting next-server entry in %(file)s" % {"file": self.settings.dhcpd_conf})
             if not match_file:
-                status.append(_("missing file: %(file)s") % {"file": self.settings.dhcpd_conf})
+                status.append("missing file: %(file)s" % {"file": self.settings.dhcpd_conf})
         else:
-            status.append(_("missing file: %(file)s") % {"file": self.settings.dhcpd_conf})
+            status.append("missing file: %(file)s" % {"file": self.settings.dhcpd_conf})
 
 # EOF

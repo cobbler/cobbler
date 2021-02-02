@@ -19,7 +19,6 @@ import pprint
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX, NotImplementedException
-from cobbler.utils import _
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
 # entry to the list following some conventions to be described later.  You must also add a method called
@@ -167,7 +166,7 @@ class Item(object):
                         return True
                     return False
 
-            raise CX(_("find cannot compare type: %s") % type(from_obj))
+            raise CX("find cannot compare type: %s" % type(from_obj))
 
     TYPE_NAME = "generic"
 
@@ -374,7 +373,7 @@ class Item(object):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
-            raise CX(_("invalid kernel options"))
+            raise CX("invalid kernel options")
         else:
             self.kernel_options = value
 
@@ -386,7 +385,7 @@ class Item(object):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
-            raise CX(_("invalid post kernel options"))
+            raise CX("invalid post kernel options")
         else:
             self.kernel_options_post = value
 
@@ -426,7 +425,7 @@ class Item(object):
             import yaml
             data = yaml.safe_load(mgmt_parameters)
             if type(data) is not dict:
-                raise CX(_("Input YAML in Puppet Parameter field must evaluate to a dictionary."))
+                raise CX("Input YAML in Puppet Parameter field must evaluate to a dictionary.")
             self.mgmt_parameters = data
 
     def set_template_files(self, template_files):
@@ -529,7 +528,7 @@ class Item(object):
             if not key_found_already:
                 if not no_errors:
                     # FIXME: removed for 2.0 code, shouldn't cause any problems to not have an exception here?
-                    # raise CX(_("searching for field that does not exist: %s" % key))
+                    # raise CX("searching for field that does not exist: %s" % key)
                     return False
             else:
                 if value is not None:       # FIXME: new?

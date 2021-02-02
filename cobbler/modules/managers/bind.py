@@ -32,7 +32,6 @@ import cobbler.clogger as clogger
 import cobbler.templar as templar
 import cobbler.utils as utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 def register():
@@ -324,7 +323,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise CX(_("error reading template from file: %s") % template_file)
+            raise CX("error reading template from file: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -389,7 +388,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise CX(_("error reading template from file: %s") % template_file)
+            raise CX("error reading template from file: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -542,7 +541,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(default_template_file, "r")
         except:
-            raise CX(_("error reading template from file: %s") % default_template_file)
+            raise CX("error reading template from file: %s" % default_template_file)
         default_template_data = ""
         default_template_data = f2.read()
         f2.close()

@@ -29,7 +29,7 @@ import os
 
 from cobbler.cexceptions import CX
 from cobbler import clogger
-from cobbler.utils import _, log_exc
+from cobbler.utils import log_exc
 
 # add cobbler/modules to python path
 import cobbler
@@ -92,7 +92,7 @@ def __import_module(module_path, modname, logger):
         blip = import_module("cobbler.modules.%s" % modname)
         if not hasattr(blip, "register"):
             if not modname.startswith("__init__"):
-                errmsg = _("%(module_path)s/%(modname)s is not a proper module")
+                errmsg = "%(module_path)s/%(modname)s is not a proper module"
                 print(errmsg % {'module_path': module_path, 'modname': modname})
             return None
         category = blip.register()
@@ -139,7 +139,7 @@ def get_module_name(category, field, fallback_module_name=None):
         if fallback_module_name is not None:
             value = fallback_module_name
         else:
-            raise CX(_("Cannot find config file setting for: %s") % field)
+            raise CX("Cannot find config file setting for: %s" % field)
     return value
 
 
@@ -160,7 +160,7 @@ def get_module_from_file(category, field, fallback_module_name=None):
     module_name = get_module_name(category, field, fallback_module_name)
     rc = MODULE_CACHE.get(module_name, None)
     if rc is None:
-        raise CX(_("Failed to load module for %s/%s") % (category, field))
+        raise CX("Failed to load module for %s/%s" % (category, field))
     return rc
 
 
