@@ -31,7 +31,6 @@ from cobbler import clogger
 from cobbler import templar
 from cobbler import tftpgen
 from cobbler import utils
-from cobbler.utils import _
 
 
 class CobblerSync(object):
@@ -228,7 +227,7 @@ class CobblerSync(object):
         try:
             template = open(template_file, "r")
         except:
-            raise CX(_("error reading template %s") % template_file)
+            raise CX("error reading template %s" % template_file)
 
         template_data = ""
         template_data = template.read()

@@ -65,11 +65,6 @@ CHEETAH_ERROR_DISCLAIMER = """
 """
 
 
-# placeholder for translation
-def _(foo):
-    return foo
-
-
 MODULE_CACHE = {}
 SIGNATURE_CACHE = {}
 
@@ -437,7 +432,7 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
         if not os.path.exists(file_location):
             if logger:
                 logger.warning("File does not exist: %s" % file_location)
-            raise FileNotFoundException("%s: %s" % (_("File not found"), file_location))
+            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
 
         try:
             with open(file_location) as f:
@@ -462,7 +457,7 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
             # File likely doesn't exist
             if logger:
                 logger.warning("File does not exist: %s" % file_location)
-            raise FileNotFoundException("%s: %s" % (_("File not found"), file_location))
+            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
 
 
 def remote_file_exists(file_url):
@@ -517,7 +512,7 @@ def input_string_or_list(options):
         tokens = shlex.split(options)
         return tokens
     else:
-        raise CX(_("invalid input type"))
+        raise CX("invalid input type")
 
 
 def input_string_or_dict(options, allow_multiples=True):
@@ -537,7 +532,7 @@ def input_string_or_dict(options, allow_multiples=True):
     if options is None or options == "delete":
         return True, {}
     elif isinstance(options, list):
-        raise CX(_("No idea what to do with list: %s") % options)
+        raise CX("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
@@ -570,7 +565,7 @@ def input_string_or_dict(options, allow_multiples=True):
         options.pop('', None)
         return True, options
     else:
-        raise CX(_("invalid input type"))
+        raise CX("invalid input type")
 
 
 def input_boolean(value):
@@ -991,7 +986,7 @@ def run_triggers(api, ref, globber, additional=[], logger=None):
             continue
 
         if rc != 0:
-            raise CX(_("Cobbler trigger failed: %(file)s returns %(code)d") % {"file": file, "code": rc})
+            raise CX("Cobbler trigger failed: %(file)s returns %(code)d" % {"file": file, "code": rc})
 
         if logger is not None:
             logger.debug("shell trigger %s finished successfully" % file)
@@ -1238,13 +1233,13 @@ def copyfile(src, dst, api=None, logger=None):
             shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
-            raise CX(_("Cannot read: %s") % src)
+            raise CX("Cannot read: %s" % src)
         if os.path.samefile(src, dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
             raise
             # traceback.print_exc()
-            # raise CX(_("Error copying %(src)s to %(dst)s") % { "src" : src, "dst" : dst})
+            # raise CX("Error copying %(src)s to %(dst)s" % { "src" : src, "dst" : dst})
 
 
 def copyremotefile(src, dst1, api=None, logger=None):
@@ -1263,7 +1258,7 @@ def copyremotefile(src, dst1, api=None, logger=None):
         with open(dst1, 'wb') as output:
             output.write(srcfile.read())
     except Exception as e:
-        raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e)))
+        raise CX("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
 
 
 def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None, logger=None):
@@ -1283,7 +1278,7 @@ def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=T
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
-        raise CX(_("Could not find files matching %s") % pattern)
+        raise CX("Could not find files matching %s" % pattern)
     for file in files:
         dst1 = os.path.join(dst, os.path.basename(file))
         linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api, logger=logger)
@@ -1308,7 +1303,7 @@ def rmfile(path, logger=None):
         if not ioe.errno == errno.ENOENT:
             if logger is not None:
                 log_exc(logger)
-            raise CX(_("Error deleting %s") % path)
+            raise CX("Error deleting %s" % path)
         return True
 
 
@@ -1343,7 +1338,7 @@ def rmtree(path, logger=None):
         if logger is not None:
             log_exc(logger)
         if not ioe.errno == errno.ENOENT:  # doesn't exist
-            raise CX(_("Error deleting %s") % path)
+            raise CX("Error deleting %s" % path)
         return True
 
 
@@ -1364,7 +1359,7 @@ def mkdir(path, mode=0o755, logger=None):
         if not oe.errno == 17:
             if logger is not None:
                 log_exc(logger)
-            raise CX(_("Error creating %s") % path)
+            raise CX("Error creating %s" % path)
 
 
 def path_tail(apath, bpath):
@@ -1423,13 +1418,13 @@ def set_os_version(self, os_version):
         return
     self.os_version = os_version.lower()
     if not self.breed:
-        raise CX(_("cannot set --os-version without setting --breed first"))
+        raise CX("cannot set --os-version without setting --breed first")
     if self.breed not in get_valid_breeds():
-        raise CX(_("fix --breed first before applying this setting"))
+        raise CX("fix --breed first before applying this setting")
     matched = SIGNATURE_CACHE["breeds"][self.breed]
     if os_version not in matched:
         nicer = ", ".join(matched)
-        raise CX(_("--os-version for breed %s must be one of %s, given was %s") % (self.breed, nicer, os_version))
+        raise CX("--os-version for breed %s must be one of %s, given was %s" % (self.breed, nicer, os_version))
     self.os_version = os_version
 
 
@@ -1445,7 +1440,7 @@ def set_breed(self, breed):
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support")
+    raise CX("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
              % (breed, nicer))
 
 
@@ -1481,9 +1476,9 @@ def set_repo_os_version(self, os_version):
         return
     self.os_version = os_version.lower()
     if not self.breed:
-        raise CX(_("cannot set --os-version without setting --breed first"))
+        raise CX("cannot set --os-version without setting --breed first")
     if self.breed not in validate.REPO_BREEDS:
-        raise CX(_("fix --breed first before applying this setting"))
+        raise CX("fix --breed first before applying this setting")
     self.os_version = os_version
     return
 
@@ -1500,7 +1495,7 @@ def set_repo_breed(self, breed):
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX(_("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support")
+    raise CX("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
              % (breed, nicer))
 
 
@@ -1530,7 +1525,7 @@ def set_repos(self, repos, bypass_check=False):
     for r in self.repos:
         # FIXME: First check this and then set the repos if the bypass check is used.
         if self.collection_mgr.repos().find(name=r) is None:
-            raise CX(_("repo %s is not defined") % r)
+            raise CX("repo %s is not defined" % r)
 
 
 def set_virt_file_size(self, num):
@@ -1563,13 +1558,13 @@ def set_virt_file_size(self, num):
     try:
         inum = int(num)
         if inum != float(num):
-            raise CX(_("invalid virt file size (%s)" % num))
+            raise CX("invalid virt file size (%s)" % num)
         if inum >= 0:
             self.virt_file_size = inum
             return
-        raise CX(_("invalid virt file size (%s)" % num))
+        raise CX("invalid virt file size (%s)" % num)
     except:
-        raise CX(_("invalid virt file size (%s)" % num))
+        raise CX("invalid virt file size (%s)" % num)
 
 
 def set_virt_disk_driver(self, driver):
@@ -1582,7 +1577,7 @@ def set_virt_disk_driver(self, driver):
     if driver in validate.VIRT_DISK_DRIVERS:
         self.virt_disk_driver = driver
     else:
-        raise CX(_("invalid virt disk driver type (%s)" % driver))
+        raise CX("invalid virt disk driver type (%s)" % driver)
 
 
 def set_virt_auto_boot(self, num):
@@ -1605,9 +1600,9 @@ def set_virt_auto_boot(self, num):
         if (inum == 0) or (inum == 1):
             self.virt_auto_boot = inum
             return
-        raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+        raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum)
     except:
-        raise CX(_("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+        raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
 
 
 def set_virt_pxe_boot(self, num):
@@ -1626,9 +1621,9 @@ def set_virt_pxe_boot(self, num):
         if (inum == 0) or (inum == 1):
             self.virt_pxe_boot = inum
             return
-        raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum))
+        raise CX("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum)
     except:
-        raise CX(_("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num))
+        raise CX("invalid virt_pxe_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
 
 
 def set_virt_ram(self, num):
@@ -1649,13 +1644,13 @@ def set_virt_ram(self, num):
     try:
         inum = int(num)
         if inum != float(num):
-            raise CX(_("invalid virt ram size (%s)" % num))
+            raise CX("invalid virt ram size (%s)" % num)
         if inum >= 0:
             self.virt_ram = inum
             return
-        raise CX(_("invalid virt ram size (%s)" % num))
+        raise CX("invalid virt ram size (%s)" % num)
     except:
-        raise CX(_("invalid virt ram size (%s)" % num))
+        raise CX("invalid virt ram size (%s)" % num)
 
 
 def set_virt_type(self, vtype):
@@ -1671,7 +1666,7 @@ def set_virt_type(self, vtype):
         return
 
     if vtype.lower() not in ["qemu", "kvm", "xenpv", "xenfv", "vmware", "vmwarew", "openvz", "auto"]:
-        raise CX(_("invalid virt type (%s)" % vtype))
+        raise CX("invalid virt type (%s)" % vtype)
     self.virt_type = vtype
 
 
@@ -1723,7 +1718,7 @@ def set_virt_cpus(self, num):
     try:
         num = int(str(num))
     except:
-        raise CX(_("invalid number of virtual CPUs (%s)" % num))
+        raise CX("invalid number of virtual CPUs (%s)" % num)
 
     self.virt_cpus = num
 
@@ -1852,7 +1847,7 @@ def set_serial_device(self, device_number):
         try:
             device_number = int(str(device_number))
         except:
-            raise CX(_("invalid value for serial device (%s)" % device_number))
+            raise CX("invalid value for serial device (%s)" % device_number)
 
     self.serial_device = device_number
     return True
@@ -1875,7 +1870,7 @@ def set_serial_baud_rate(self, baud_rate):
         try:
             baud_rate = int(str(baud_rate))
         except:
-            raise CX(_("invalid value for serial baud (%s)" % baud_rate))
+            raise CX("invalid value for serial baud (%s)" % baud_rate)
 
     self.serial_baud_rate = baud_rate
     return True
@@ -2566,7 +2561,7 @@ def link_distro(settings, distro):
             os.symlink(base, dest_link)
         except:
             # FIXME: This shouldn't happen but I've (jsabo) seen it...
-            print(_("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link})
+            print("- symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
 
 
 def find_distro_path(settings, distro):

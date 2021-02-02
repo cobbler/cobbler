@@ -28,7 +28,6 @@ from threading import Lock
 from cobbler.actions import litesync
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
 
-from cobbler.utils import _
 from cobbler.cexceptions import CX, NotImplementedException
 
 
@@ -124,7 +123,7 @@ class Collection(object):
 
         # no arguments is an error, so we don't return a false match
         if len(kargs) == 0:
-            raise CX(_("calling find with no arguments"))
+            raise CX("calling find with no arguments")
 
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
@@ -299,7 +298,7 @@ class Collection(object):
         kids = ref.get_children()
         for k in kids:
             if k.COLLECTION_TYPE == "distro":
-                raise CX(_("internal error, not expected to have distro child objects"))
+                raise CX("internal error, not expected to have distro child objects")
             elif k.COLLECTION_TYPE == "profile":
                 if k.parent != "":
                     k.set_parent(newname)
@@ -310,9 +309,9 @@ class Collection(object):
                 k.set_profile(newname)
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "repo":
-                raise CX(_("internal error, not expected to have repo child objects"))
+                raise CX("internal error, not expected to have repo child objects")
             else:
-                raise CX(_("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE))
+                raise CX("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE)
 
         # now delete the old version
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
@@ -373,7 +372,7 @@ class Collection(object):
         self.__duplication_checks(ref, check_for_duplicate_names, check_for_duplicate_netinfo)
 
         if ref.COLLECTION_TYPE != self.collection_type():
-            raise CX(_("API error: storing wrong data type in collection"))
+            raise CX("API error: storing wrong data type in collection")
 
         # failure of a pre trigger will prevent the object from being added
         if save and with_triggers:
@@ -414,7 +413,7 @@ class Collection(object):
                 elif isinstance(ref, file.File):
                     pass
                 else:
-                    print(_("Internal error. Object type not recognized: %s") % type(ref))
+                    print("Internal error. Object type not recognized: %s" % type(ref))
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -466,7 +465,7 @@ class Collection(object):
                 raise CX("internal error, unknown object type")
 
             if match:
-                raise CX(_("An object already exists with that name.  Try 'edit'?"))
+                raise CX("An object already exists with that name.  Try 'edit'?")
 
         # the duplicate mac/ip checks can be disabled.
         if not check_for_duplicate_netinfo:
@@ -491,13 +490,13 @@ class Collection(object):
 
                 for x in match_mac:
                     if x.name != ref.name:
-                        raise CX(_("Can't save system %s. The MAC address (%s) is already used by system %s (%s)") % (ref.name, intf["mac_address"], x.name, name))
+                        raise CX("Can't save system %s. The MAC address (%s) is already used by system %s (%s)" % (ref.name, intf["mac_address"], x.name, name))
                 for x in match_ip:
                     if x.name != ref.name:
-                        raise CX(_("Can't save system %s. The IP address (%s) is already used by system %s (%s)") % (ref.name, intf["ip_address"], x.name, name))
+                        raise CX("Can't save system %s. The IP address (%s) is already used by system %s (%s)" % (ref.name, intf["ip_address"], x.name, name))
                 for x in match_hosts:
                     if x.name != ref.name:
-                        raise CX(_("Can't save system %s.  The dns name (%s) is already used by system %s (%s)") % (ref.name, intf["dns_name"], x.name, name))
+                        raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)" % (ref.name, intf["dns_name"], x.name, name))
 
     def to_string(self):
         """
@@ -515,7 +514,7 @@ class Collection(object):
         if len(values) > 0:
             return "\n\n".join(results)
         else:
-            return _("No objects found")
+            return "No objects found"
 
     @staticmethod
     def collection_type() -> str:

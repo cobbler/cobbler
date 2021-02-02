@@ -16,7 +16,6 @@ from cobbler.cobbler_collections import collection
 from cobbler.items import image as image
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 class Images(collection.Collection):
@@ -55,7 +54,7 @@ class Images(collection.Collection):
         if not recursive:
             for v in self.collection_mgr.systems():
                 if v.image is not None and v.image.lower() == name:
-                    raise CX(_("removal would orphan system: %s") % v.name)
+                    raise CX("removal would orphan system: %s" % v.name)
 
         obj = self.find(name=name)
 
@@ -87,6 +86,6 @@ class Images(collection.Collection):
 
             return
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        raise CX("cannot delete an object that does not exist: %s" % name)
 
 # EOF

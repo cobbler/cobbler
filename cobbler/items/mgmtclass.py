@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -46,7 +45,7 @@ FIELDS = [
 
 class Mgmtclass(item.Item):
 
-    TYPE_NAME = _("mgmtclass")
+    TYPE_NAME = "mgmtclass"
     COLLECTION_TYPE = "mgmtclass"
 
     def __init__(self, *args, **kwargs):
@@ -112,7 +111,7 @@ class Mgmtclass(item.Item):
         """
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
-            raise CX(_("invalid parameters"))
+            raise CX("invalid parameters")
         else:
             self.params = value
 
@@ -132,10 +131,10 @@ class Mgmtclass(item.Item):
         :type name: str
         """
         if not isinstance(name, str):
-            raise CX(_("class name must be a string"))
+            raise CX("class name must be a string")
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
-                raise CX(_("invalid characters in class name: '%s'" % name))
+                raise CX("invalid characters in class name: '%s'" % name)
         self.class_name = name
 
 # EOF
