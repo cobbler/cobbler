@@ -30,6 +30,8 @@ import urllib.error
 import xmlrpc.server
 import cgi
 
+from cobbler import settings
+
 
 def application(environ, start_response):
 
@@ -82,10 +84,7 @@ def application(environ, start_response):
     form["REMOTE_ADDR"] = environ.get("REMOTE_ADDR", None)
 
     # Read config for the XMLRPC port to connect to:
-    # TODO: Replace with settings usage
-    with open("/etc/cobbler/settings.yaml") as fd:
-        data = fd.read()
-    ydata = yaml.safe_load(data)
+    ydata = settings.read_settings_file()
     remote_port = ydata.get("xmlrpc_port", 25151)
 
     # instantiate a CobblerWeb object

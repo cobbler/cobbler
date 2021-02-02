@@ -20,31 +20,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from functools import reduce
-from builtins import map, str, object
 import copy
 import errno
 import glob
-import netaddr
 import os
 import random
 import re
 import shlex
 import shutil
-import simplejson
 import subprocess
 import sys
 import traceback
-import urllib.request
 import urllib.error
 import urllib.parse
-import yaml
-import distro
+import urllib.request
+from functools import reduce
 
-from cobbler.cexceptions import FileNotFoundException, CX
+import distro
+import netaddr
+import simplejson
+
 from cobbler import clogger, settings
 from cobbler import field_info
 from cobbler import validate
+from cobbler.cexceptions import FileNotFoundException, CX
 
 CHEETAH_ERROR_DISCLAIMER = """
 # *** ERROR ***
@@ -2326,13 +2325,7 @@ def local_get_cobbler_xmlrpc_url():
     :rtype: str
     """
     # Load xmlrpc port
-    # TODO: Replace with Settings access
-    try:
-        with open("/etc/cobbler/settings.yaml") as fh:
-            data = yaml.safe_load(fh.read())
-    except:
-        traceback.print_exc()
-        raise CX("/etc/cobbler/settings.yaml is not a valid YAML file")
+    data = settings.read_settings_file()
     return "http://%s:%s" % ("127.0.0.1", data.get("xmlrpc_port", "25151"))
 
 

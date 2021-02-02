@@ -329,6 +329,11 @@ def autodect_bind_chroot():
         parse_bind_config(bind_config_filename)
 
 
+def __migrate_settingsfile_name():
+    if os.path.exists("/etc/cobbler/settings"):
+        os.rename("/etc/cobbler/settings", "/etc/cobbler/settings.yaml")
+
+
 def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
     """
     Reads the settings file from the default location or the given one. This method then also recursively includes all
@@ -341,6 +346,7 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
     :raises CX: If the YAML file is not syntactically valid or could not be read.
     :raises FileNotFoundError: If the file handed to the function does not exist.
     """
+    __migrate_settingsfile_name()
     if not os.path.exists(filepath):
         raise FileNotFoundError("Given path \"%s\" does not exist." % filepath)
     try:
@@ -357,14 +363,16 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
     return filecontent
 
 
-def update_settings_file(data):
+def update_settings_file(data, filepath="/etc/cobbler/settings.yaml"):
     """
     Write data handed to this function into the settings file of Cobbler. This function overwrites the existing content.
 
     :param data: The data to put into the settings file.
+    :param filepath: This sets the path of the settingsfile to write.
     :return: True if the action succeeded. Otherwise return nothing.
     """
-    with open("/etc/cobbler/settings.yaml", "w") as settings_file:
+    __migrate_settingsfile_name()
+    with open(filepath, "w") as settings_file:
         yaml.safe_dump(data, settings_file)
 
 
