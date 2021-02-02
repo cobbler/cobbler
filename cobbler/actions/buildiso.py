@@ -22,22 +22,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import str
-from builtins import object
 import os
 import os.path
 import re
 import shutil
+from typing import Optional
 
 from cobbler import clogger
 from cobbler import utils
 
 
-class BuildIso(object):
+class BuildIso:
     """
     Handles conversion of internal state to the isolinux tree layout
     """
-    def __init__(self, collection_mgr, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose: bool = False, logger=None):
         """
         Constructor
         """
@@ -60,14 +59,12 @@ class BuildIso(object):
         self.iso_template = header_src.read()
         header_src.close()
 
-    def add_remaining_kopts(self, koptdict):
+    def add_remaining_kopts(self, koptdict: dict) -> str:
         """
         Add remaining kernel_options to append_line
 
         :param koptdict: The kernel options which are not present in append_line.
-        :type koptdict: dict
         :return: A single line with all kernel options
-        :rtype: str
         """
         append_line = ""
         for (k, v) in list(koptdict.items()):
@@ -90,14 +87,12 @@ class BuildIso(object):
         append_line += "\n"
         return append_line
 
-    def make_shorter(self, distname):
+    def make_shorter(self, distname: str) -> str:
         """
         Return A short distro identifier.
 
-        :param distname: The distro name to return a identifieer for.
-        :type distname: str
+        :param distname: The distro name to return a identifier for.
         :return: A short distro identifier
-        :rtype: str
         """
         if distname in self.distmap:
             return self.distmap[distname]
@@ -106,14 +101,13 @@ class BuildIso(object):
             self.distmap[distname] = str(self.distctr)
             return str(self.distctr)
 
-    def copy_boot_files(self, distro, destdir, prefix=None):
+    def copy_boot_files(self, distro, destdir, prefix: Optional[str] = None):
         """
         Copy kernel/initrd to destdir with (optional) newfile prefix
 
         :param distro: Distro object to return the boot files for.
         :param destdir: The destionation direcotry.
         :param prefix: The file prefix.
-        :type prefix: str
         """
         if not os.path.exists(distro.kernel):
             utils.die(self.logger, "path does not exist: %s" % distro.kernel)
@@ -126,16 +120,14 @@ class BuildIso(object):
             shutil.copyfile(distro.kernel, os.path.join(destdir, "%s.krn" % prefix))
             shutil.copyfile(distro.initrd, os.path.join(destdir, "%s.img" % prefix))
 
-    def filter_systems_or_profiles(self, selected_items, list_type):
+    def filter_systems_or_profiles(self, selected_items, list_type: str) -> list:
         """
         Return a list of valid profile or system objects selected from all profiles or systems by name, or everything if
         selected_items is empty.
 
         :param selected_items: The filter to match certain objects with. The filter will be applied to the object name.
         :param list_type: Must be "profile" or "system".
-        :type list_type: str
         :return: A list of valid profiles OR systems.
-        :rtype: list
         """
         if list_type == 'profile':
             all_objs = [profile for profile in self.api.profiles()]
@@ -165,7 +157,8 @@ class BuildIso(object):
 
         return which_objs
 
-    def generate_netboot_iso(self, imagesdir, isolinuxdir, profiles=None, systems=None, exclude_dns=None):
+    def generate_netboot_iso(self, imagesdir, isolinuxdir, profiles=None, systems=None,
+                             exclude_dns: Optional[bool] = None):
         """
         Create bootable CD image to be used for network installations
 
@@ -176,7 +169,6 @@ class BuildIso(object):
         :param systems: The filter to generate a netboot iso for. You may specify multiple systems on the CLI space
                         separated.
         :param exclude_dns: If this is True then the dns server is skipped. None or False will set it.
-        :type exclude_dns: bool or None
         """
         which_profiles = self.filter_systems_or_profiles(profiles, 'profile')
         which_systems = self.filter_systems_or_profiles(systems, 'system')
@@ -477,7 +469,7 @@ class BuildIso(object):
         cfg.write("MENU END\n")
         cfg.close()
 
-    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped, profiles):
+    def generate_standalone_iso(self, imagesdir, isolinuxdir, distname, filesource, airgapped: bool, profiles):
         """
         Create bootable CD image to be used for handsoff CD installtions
 
@@ -486,7 +478,6 @@ class BuildIso(object):
         :param distname: The name of the Cobbler distribution.
         :param filesource: Not clear what this exactly does
         :param airgapped: Whether the repositories have to be locally available or the internet is reachable.
-        :type airgapped: bool
         :param profiles: The list of profiles to include.
         """
         # Get the distro object for the requested distro and then get all of its descendants (profiles/sub-profiles/
@@ -632,8 +623,9 @@ class BuildIso(object):
         if rc:
             utils.die(self.logger, "rsync of distro files failed")
 
-    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None, standalone=None, airgapped=None,
-            source=None, exclude_dns=None, xorrisofs_opts=None):
+    def run(self, iso=None, buildisodir=None, profiles=None, systems=None, distro=None,
+            standalone: Optional[bool] = None, airgapped: Optional[bool] = None, source=None,
+            exclude_dns: Optional[bool] = None, xorrisofs_opts: Optional[str] = None):
         """
         A
 

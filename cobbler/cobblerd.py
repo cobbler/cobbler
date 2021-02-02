@@ -64,7 +64,7 @@ def regen_ss_file():
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
 
-def do_xmlrpc_rw(cobbler_api, settings, port):
+def do_xmlrpc_rw(cobbler_api: CobblerAPI, settings, port):
     """
     This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
 

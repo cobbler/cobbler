@@ -23,16 +23,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import hashlib
 import os
+from typing import List
 
 from cobbler.module_loader import get_module_name
 
 
-def hashfun(text):
+def hashfun(text: str) -> str:
     """
     Converts a str object to a hash which was configured in modules.conf of the Cobbler settings.
 
     :param text: The text to hash.
-    :type text: str
     :return: The hash of the text. This should output the same hash when entered the same text.
     """
     hashfunction = get_module_name("authentication", "hash_algorithm", "sha3_512")
@@ -59,19 +59,18 @@ def hashfun(text):
     return hashalgorithm.hexdigest()
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "authn"
 
 
-def __parse_storage():
+def __parse_storage() -> List[List[str]]:
     """
     Parse the users.digest file and return all users.
 
     :return: A list of all users. A user is a sublist which has three elements: username, realm and passwordhash.
-    :rtype: list
     """
     if not os.path.exists("/etc/cobbler/users.digest"):
         return []
@@ -89,7 +88,7 @@ def __parse_storage():
     return results
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username: str, password: str) -> bool:
     """
     Validate a username/password combo.
 
@@ -97,19 +96,14 @@ def authenticate(api_handle, username, password):
 
     :param api_handle: Unused in this implementation.
     :param username: The username to log in with. Must be contained in /etc/cobbler/users.digest
-    :type username: str
     :param password: The password to log in with. Must be contained hashed in /etc/cobbler/users.digest
-    :type password: str
     :return: A boolean which contains the information if the username/password combination is correct.
-    :rtype: bool
     """
 
     userlist = __parse_storage()
     for (user, realm, passwordhash) in userlist:
         if user == username and realm == "Cobbler":
             calculated_passwordhash = hashfun(password)
-            print("Passwordhash: %s" % passwordhash)
-            print("Calculated Passwordhash: %s" % calculated_passwordhash)
             if calculated_passwordhash == passwordhash:
                 return True
     return False

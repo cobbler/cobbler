@@ -13,6 +13,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import fnmatch
 import pprint
+from typing import Optional
 
 from cobbler import utils
 from cobbler import validate
@@ -168,7 +169,7 @@ class Item:
 
     TYPE_NAME = "generic"
 
-    def __init__(self, collection_mgr, is_subobject=False):
+    def __init__(self, collection_mgr, is_subobject: bool = False):
         """
         Constructor.  Requires a back reference to the CollectionManager object.
 
@@ -215,7 +216,7 @@ class Item:
         Get serializable fields
         Must be defined in any subclass
         """
-        raise NotImplementedException()
+        raise NotImplementedException("Must be implemented in a specific Item")
 
     def clear(self, is_subobject=False):
         """
@@ -229,7 +230,7 @@ class Item:
         """
         Must be defined in any subclass
         """
-        raise NotImplementedException()
+        raise NotImplementedException("Must be implemented in a specific Item")
 
     def from_dict(self, _dict):
         """
@@ -239,7 +240,7 @@ class Item:
         """
         utils.from_dict_from_fields(self, _dict, self.get_fields())
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         This converts everything in this object to a dictionary.
 
@@ -254,7 +255,7 @@ class Item:
         self.set_cache(self, value)
         return value
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Convert an item into a string.
 
@@ -278,13 +279,12 @@ class Item:
         """
         self.uid = uid
 
-    def get_children(self, sorted=False):
+    def get_children(self, sorted: bool = False) -> list:
         """
         Get direct children of this object.
 
         :param sorted: If the list has to be sorted or not.
         :return: The list with the children. If no childrens are present an emtpy list is returned.
-        :rtype: list
         """
         keys = list(self.children.keys())
         if sorted:
@@ -294,7 +294,7 @@ class Item:
             results.append(self.children[k])
         return results
 
-    def get_descendants(self, sort=False):
+    def get_descendants(self, sort: bool = False) -> list:
         """
         Get objects that depend on this object, i.e. those that would be affected by a cascading delete, etc.
 
@@ -344,7 +344,7 @@ class Item:
         """
         self.name = validate.object_name(name, self.parent)
 
-    def set_comment(self, comment):
+    def set_comment(self, comment: str):
         """
         Setter for the comment of the item.
 
@@ -452,7 +452,7 @@ class Item:
         else:
             self.boot_files = value
 
-    def set_fetchable_files(self, fetchable_files):
+    def set_fetchable_files(self, fetchable_files) -> Optional[bool]:
         """
         A comma seperated list of virt_name=path_to_template that should be fetchable via tftp or a webserver
 
@@ -465,7 +465,7 @@ class Item:
         else:
             self.fetchable_files = value
 
-    def sort_key(self, sort_fields=[]):
+    def sort_key(self, sort_fields: list = []):
         """
         Convert the item to a dict and sort the data after specific given fields.
 
@@ -496,7 +496,7 @@ class Item:
 
         return True
 
-    def find_match_single_key(self, data, key, value, no_errors=False):
+    def find_match_single_key(self, data, key, value, no_errors: bool = False) -> bool:
         """
         Look if the data matches or not. This is an alternative for ``find_match()``.
 
@@ -505,7 +505,6 @@ class Item:
         :param value: The value for the key.
         :param no_errors: How strict this matching is.
         :return: Whether the data matches or not.
-        :rtype: bool
         """
         # special case for systems
         key_found_already = False
@@ -537,7 +536,7 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, data, format=True):
+    def dump_vars(self, data, format: bool = True):
         """
         Dump all variables.
 
@@ -589,5 +588,3 @@ class Item:
         """
         if not self.name:
             raise CX("Name is required")
-
-# EOF

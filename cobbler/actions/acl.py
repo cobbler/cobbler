@@ -24,13 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import object
 from cobbler.cexceptions import CX
 from cobbler import clogger
 from cobbler import utils
 
 
-class AclConfig(object):
+class AclConfig:
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -72,14 +71,12 @@ class AclConfig(object):
         if not ok:
             raise CX("no arguments specified, nothing to do")
 
-    def modacl(self, isadd, isuser, who):
+    def modacl(self, isadd: bool, isuser: bool, who):
         """
         Modify the acls for Cobbler on the filesystem.
 
         :param isadd: If true then the ``who`` will be added. If false then ``who`` will be removed.
-        :type isadd: bool
         :param isuser: If true then the ``who`` may be a user. If false then ``who`` may be a group.
-        :type isuser: bool
         :param who: The user or group to be added or removed.
         """
         snipdir = self.settings.autoinstall_snippets_dir

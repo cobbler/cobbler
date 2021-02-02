@@ -13,7 +13,7 @@ import cobbler.templar as templar
 import cobbler.utils as utils
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 
@@ -24,7 +24,7 @@ def register():
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     This is the mandatory Cobbler module run trigger hook.
 

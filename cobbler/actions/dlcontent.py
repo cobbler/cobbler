@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import os
 
 from cobbler import clogger
 from cobbler import download_manager
 
 
-class ContentDownloader(object):
+class ContentDownloader:
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -42,7 +41,7 @@ class ContentDownloader(object):
             logger = clogger.Logger()
         self.logger = logger
 
-    def run(self, force=False):
+    def run(self, force: bool = False):
         """
         Download bootloader content for all of the latest bootloaders, since the user has chosen to not supply their
         own. You may ask "why not get this from yum", we also want this to be able to work on Debian and further do not
@@ -50,7 +49,6 @@ class ContentDownloader(object):
         their cross-arch bootloader content manually.
 
         :param force: If the target path should be overwritten, even if there are already files present.
-        :type force: bool
         """
 
         content_server = "https://cobbler.github.io/loaders"
@@ -70,7 +68,8 @@ class ContentDownloader(object):
         dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
         for src, dst in files:
             if os.path.exists(dst) and not force:
-                self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish to update" % dst)
+                self.logger.info("path %s already exists, not overwriting existing content, use --force if you wish "
+                                 "to update" % dst)
                 continue
             self.logger.info("downloading %s to %s" % (src, dst))
             dlmgr.download_file(src, dst)

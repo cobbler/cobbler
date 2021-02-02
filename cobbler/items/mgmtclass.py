@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Union
 
 from cobbler.items import item
 from cobbler import utils
@@ -95,7 +96,7 @@ class Mgmtclass(item.Item):
         """
         self.packages = utils.input_string_or_list(packages)
 
-    def set_files(self, files):
+    def set_files(self, files: Union[str, list]):
         """
         Setter for the files of the object.
 
@@ -115,7 +116,7 @@ class Mgmtclass(item.Item):
         else:
             self.params = value
 
-    def set_is_definition(self, isdef):
+    def set_is_definition(self, isdef: bool):
         """
         Setter for property ``is_defintion``.
 
@@ -123,12 +124,11 @@ class Mgmtclass(item.Item):
         """
         self.is_definition = utils.input_boolean(isdef)
 
-    def set_class_name(self, name):
+    def set_class_name(self, name: str):
         """
         Setter for the name of the managementclass.
 
         :param name: The new name of the class. This must not contain "_", "-", ".", ":" or "+".
-        :type name: str
         """
         if not isinstance(name, str):
             raise CX("class name must be a string")
@@ -136,5 +136,3 @@ class Mgmtclass(item.Item):
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
                 raise CX("invalid characters in class name: '%s'" % name)
         self.class_name = name
-
-# EOF

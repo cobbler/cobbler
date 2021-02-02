@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import simplejson
 import time
 import xmlrpc.client
@@ -31,7 +29,7 @@ from cobbler.cobbler_collections import manager
 from cobbler import download_manager
 
 
-class CobblerSvc(object):
+class CobblerSvc:
     """
     Interesting mod python functions are all keyed off the parameter mode, which defaults to index. All options are
     passed as parameters into the function.
@@ -58,7 +56,7 @@ class CobblerSvc(object):
         if self.remote is None:
             self.remote = xmlrpc.client.Server(self.server, allow_none=True)
 
-    def index(self, **args):
+    def index(self, **args) -> str:
         """
         Just a placeholder method as an entry point.
 
@@ -156,14 +154,13 @@ class CobblerSvc(object):
         data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
         return "%s" % data
 
-    def events(self, user="", **rest):
+    def events(self, user="", **rest) -> str:
         """
         If no user is given then all events are returned. Otherwise only event associated to a user are returned.
 
         :param user: Filter the events for a given user.
         :param rest: This parameter is unused.
         :return: A JSON object which contains all events.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         if user == "":
@@ -182,7 +179,7 @@ class CobblerSvc(object):
                 results.append([k, data[k][0], data[k][1], data[k][2]])
         return simplejson.dumps(results)
 
-    def template(self, profile=None, system=None, path=None, **rest):
+    def template(self, profile=None, system=None, path=None, **rest) -> str:
         """
         Generate a templated file for the system. Either specify a profile OR a system.
 
@@ -191,7 +188,6 @@ class CobblerSvc(object):
         :param path: The path to the template.
         :param rest: This parameter is unused.
         :return: The rendered template.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         if path is not None:
@@ -208,7 +204,7 @@ class CobblerSvc(object):
             data = "# must specify profile or system name"
         return data
 
-    def yum(self, profile=None, system=None, **rest):
+    def yum(self, profile=None, system=None, **rest) -> str:
         """
         Generate a repo config. Either specify a profile OR a system.
 
@@ -216,7 +212,6 @@ class CobblerSvc(object):
         :param system: The system to provide for the generation of the template.
         :param rest: This parameter is unused.
         :return: The generated repository config.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         if profile is not None:
@@ -248,26 +243,24 @@ class CobblerSvc(object):
             rc = self.remote.run_install_triggers(mode, "system", system, ip)
         return str(rc)
 
-    def nopxe(self, system=None, **rest):
+    def nopxe(self, system=None, **rest) -> str:
         """
         Disables the network boot for the given system.
 
         :param system: The system to disable netboot for.
         :param rest: This parameter is unused.
         :return: A boolean status if the action succeed or not.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         return str(self.remote.disable_netboot(system))
 
-    def list(self, what="systems", **rest):
+    def list(self, what="systems", **rest) -> str:
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
         :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages" or "files"
         :param rest: This parameter is unused.
         :return: The list of object names.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         buf = ""
@@ -293,14 +286,13 @@ class CobblerSvc(object):
             buf += "%s\n" % x["name"]
         return buf
 
-    def autodetect(self, **rest):
+    def autodetect(self, **rest) -> str:
         """
         This tries to autodect the system with the given information. If more than one candidate is found an error
         message is returned.
 
         :param rest: The keys "REMOTE_MACS", "REMOTE_ADDR" or "interfaces".
         :return: The name of the possible object or an error message.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         systems = self.remote.get_systems()
@@ -332,12 +324,11 @@ class CobblerSvc(object):
         elif len(candidates) == 1:
             return candidates[0]["name"]
 
-    def look(self, **rest):
+    def look(self, **rest) -> str:
         """
         Debug only: Show the handed dict via repr to the requester.
         :param rest: The dict to represent.
         :return: The dict reformated with repr()
-        :rtype; str
         """
 
         return repr(rest)
@@ -402,14 +393,13 @@ class CobblerSvc(object):
         except:
             return "# kickstart retrieval failed (%s)" % url
 
-    def puppet(self, hostname=None, **rest):
+    def puppet(self, hostname=None, **rest) -> str:
         """
         Dump the puppet data which is available for Cobbler.
 
         :param hostname: The hostname for the system which should the puppet data be dumped for.
         :param rest: This parameter is unused.
         :return: The yaml for the host.
-        :rtype: str
         """
         self.__xmlrpc_setup()
 

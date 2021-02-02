@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import time
 
 import cobbler.templar as templar
@@ -31,7 +29,7 @@ import cobbler.utils as utils
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler modules registration hook.
 
@@ -40,18 +38,17 @@ def register():
     return "manage"
 
 
-class DnsmasqManager(object):
+class DnsmasqManager:
     """
     Handles conversion of internal state to the tftpboot tree layout.
     """
 
-    def __init__(self, collection_mgr, logger, dhcp=None):
+    def __init__(self, collection_mgr, logger):
         """
         Constructor
 
         :param collection_mgr: The collection manager to resolve all information with.
         :param logger: The logger to audit all actions with.
-        :param dhcp: This parameter is unused currently.
         """
         self.logger = logger
         self.collection_mgr = collection_mgr
@@ -63,7 +60,7 @@ class DnsmasqManager(object):
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
 
-    def what(self):
+    def what(self) -> str:
         """
         This identifies the module.
 

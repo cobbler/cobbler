@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import optparse
 import os
 import sys
 import time
 import traceback
 import xmlrpc.client
+from typing import Optional
 
 from cobbler import field_info
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
@@ -61,7 +60,7 @@ DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync v
 ####################################################
 
 
-def report_items(remote, otype):
+def report_items(remote, otype: str):
     """
     Return all items for a given collection.
 
@@ -104,7 +103,7 @@ def report_items(remote, otype):
             report_item(remote, otype, item=x)
 
 
-def report_item(remote, otype, item=None, name=None):
+def report_item(remote, otype: str, item=None, name=None):
     """
     Return a single item in a given collection. Either this is an item object or this method searches for a name.
 
@@ -300,7 +299,7 @@ def add_options_from_fields(object_type, parser, fields, network_interface_field
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
 
 
-class CobblerCLI(object):
+class CobblerCLI:
 
     def __init__(self, cliargs):
         """
@@ -316,28 +315,24 @@ class CobblerCLI(object):
         self.shared_secret = utils.get_shared_secret()
         self.args = cliargs
 
-    def start_task(self, name, options):
+    def start_task(self, name: str, options: dict) -> str:
         r"""
         Start an asynchronous task in the background.
 
         :param name: "background\_" % name function must exist in remote.py. This function will be called in a subthread.
-        :type name: str
         :param options: Dictionary of options passed to the newly started thread
-        :type options: dict
         :return: Id of the newly started task
-        :rtype: str
         """
         options = utils.strip_none(vars(options), omit_none=True)
         fn = getattr(self.remote, "background_%s" % name)
         return fn(options, self.token)
 
-    def get_object_type(self, args):
+    def get_object_type(self, args) -> Optional[str]:
         """
         If this is a CLI command about an object type, e.g. "cobbler distro add", return the type, like "distro"
 
         :param args: The args from the CLI.
         :return: The object type or None
-        :rtype: None or str
         """
         if len(args) < 2:
             return None
@@ -345,14 +340,13 @@ class CobblerCLI(object):
             return args[1]
         return None
 
-    def get_object_action(self, object_type, args):
+    def get_object_action(self, object_type, args) -> Optional[str]:
         """
         If this is a CLI command about an object type, e.g. "cobbler distro add", return the action, like "add"
 
         :param object_type: The object type.
         :param args: The args from the CLI.
         :return: The action or None.
-        :rtype: None or str
         """
         if object_type is None or len(args) < 3:
             return None
@@ -360,14 +354,13 @@ class CobblerCLI(object):
             return args[2]
         return None
 
-    def get_direct_action(self, object_type, args):
+    def get_direct_action(self, object_type, args) -> Optional[str]:
         """
         If this is a general command, e.g. "cobbler hardlink", return the action, like "hardlink"
 
         :param object_type: Must be None or None is returned.
         :param args: The arg from the CLI.
         :return: The action key, "version" or None.
-        :rtype: None or strs
         """
         if object_type is not None:
             return None
@@ -441,14 +434,13 @@ class CobblerCLI(object):
                 print(err.faultString)
                 return 1
 
-    def cleanup_fault_string(self, str):
+    def cleanup_fault_string(self, str) -> str:
         """
         Make a remote exception nicely readable by humans so it's not evident that is a remote fault. Users should not
         have to understand tracebacks.
 
         :param str: The stacktrace to niceify.
         :return: A nicer error messsage.
-        :rtype: str
         """
         if str.find(">:") != -1:
             (first, rest) = str.split(">:", 1)
@@ -460,13 +452,12 @@ class CobblerCLI(object):
         else:
             return str
 
-    def get_fields(self, object_type):
+    def get_fields(self, object_type: str) -> Optional[list]:
         """
         For a given name of an object type, return the FIELDS data structure.
 
         :param object_type: The object to return the fields of.
         :return: The fields or None
-        :rtype: None or list
         """
         # FIXME: this should be in utils, or is it already?
         if object_type == "distro":
@@ -488,7 +479,7 @@ class CobblerCLI(object):
         elif object_type == "setting":
             return settings.FIELDS
 
-    def object_command(self, object_type, object_action):
+    def object_command(self, object_type: str, object_action: str):
         """
         Process object-based commands such as "distro add" or "profile rename"
 
@@ -609,7 +600,7 @@ class CobblerCLI(object):
             self.print_task(task_id)
             self.follow_task(task_id)
 
-    def direct_command(self, action_name):
+    def direct_command(self, action_name: str):
         """
         Process non-object based commands like "sync" and "hardlink".
 
@@ -827,7 +818,7 @@ class CobblerCLI(object):
                     line = line.split(" | ")[-1]
                 print(line, end='')
 
-    def print_object_help(self, object_type):
+    def print_object_help(self, object_type) -> int:
         """
         Prints the subcommands for a given object, e.g. "cobbler distro --help"
 
@@ -840,7 +831,7 @@ class CobblerCLI(object):
             print("cobbler %s %s" % (object_type, c))
         return 2
 
-    def print_help(self):
+    def print_help(self) -> int:
         """
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """

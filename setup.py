@@ -6,7 +6,6 @@ import time
 import logging
 import glob as _glob
 
-from builtins import str
 from setuptools import setup
 from setuptools import Command
 from setuptools.command.install import install as _install
@@ -24,7 +23,6 @@ import pwd
 import shutil
 import subprocess
 
-from builtins import OSError
 
 VERSION = "3.2.0"
 OUTPUT_DIR = "config"

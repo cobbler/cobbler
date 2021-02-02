@@ -6,25 +6,23 @@ server.
 Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
-from builtins import str
 import re
 
 import cobbler.utils as utils
 
 
-def register():
+def register() -> str:
     """
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type.
 
-    :return: Always: "/var/lib/cobbler/triggers/install/pre/\*"
-    :rtype: str
+    :return: Always: "/var/lib/cobbler/triggers/install/pre/*"
     """
 
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     This method runs the trigger, meaning in this case that old puppet certs are automatically removed via puppetca.
 

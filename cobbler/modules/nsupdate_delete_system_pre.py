@@ -10,7 +10,6 @@
 #   - python-dnspython (Debian)
 #   - python-dns (RH/CentOS)
 
-from builtins import str
 import dns.query
 import dns.tsigkeyring
 import dns.update
@@ -32,7 +31,7 @@ def nslog(msg):
         logf.write(msg)
 
 
-def register():
+def register() -> str:
     """
     This method is the obligatory Cobbler registration hook.
 

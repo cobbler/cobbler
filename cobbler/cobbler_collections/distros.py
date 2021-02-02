@@ -49,7 +49,8 @@ class Distros(collection.Collection):
         new_distro.from_dict(item_dict)
         return new_distro
 
-    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
+    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
+               recursive: bool = False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -111,6 +112,3 @@ class Distros(collection.Collection):
                         found = True
                 if not found:
                     utils.rmtree(path)
-
-
-# EOF

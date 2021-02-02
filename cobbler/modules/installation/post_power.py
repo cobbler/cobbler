@@ -20,7 +20,7 @@ class reboot(Thread):
         self.api.reboot(self.target)
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
@@ -29,7 +29,7 @@ def register():
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     Obligatory trigger hook.
 

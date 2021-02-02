@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import object
 import glob
 import os
 import re
@@ -28,7 +27,7 @@ from cobbler import clogger
 from cobbler import utils
 
 
-class CobblerCheck(object):
+class CobblerCheck:
     """
     Validates whether the system is reasonably well configured for
     serving up content. This is the code behind 'cobbler check'.
@@ -141,16 +140,18 @@ class CobblerCheck(object):
         return_code = 0
         if self.checked_family in ("redhat", "suse"):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
-                return_code = utils.subprocess_call(self.logger, "/sbin/service %s status > /dev/null 2>/dev/null" % which,
-                                           shell=True)
+                return_code = utils.subprocess_call(self.logger,
+                                                    "/sbin/service %s status > /dev/null 2>/dev/null" % which,
+                                                    shell=True)
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
                 return
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
-                return_code = utils.subprocess_call(self.logger, "/etc/init.d/%s status /dev/null 2>/dev/null" % which,
-                                           shell=True)
+                return_code = utils.subprocess_call(self.logger,
+                                                    "/etc/init.d/%s status /dev/null 2>/dev/null" % which,
+                                                    shell=True)
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
                 return
@@ -167,7 +168,9 @@ class CobblerCheck(object):
         :param status: The status list with possible problems.
         """
         if os.path.exists("/etc/rc.d/init.d/iptables"):
-            return_code = utils.subprocess_call(self.logger, "/sbin/service iptables status >/dev/null 2>/dev/null", shell=True)
+            return_code = utils.subprocess_call(self.logger,
+                                                "/sbin/service iptables status >/dev/null 2>/dev/null",
+                                                shell=True)
             if return_code == 0:
                 status.append("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked"
                               % {"xmlrpc": self.settings.xmlrpc_port})

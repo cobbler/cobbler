@@ -21,11 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import fnmatch
 import os
 import xmlrpc.client
+from typing import Optional
 
 from cobbler import clogger
 from cobbler import utils
@@ -33,7 +32,7 @@ from cobbler import utils
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 
 
-class Replicate(object):
+class Replicate:
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -51,7 +50,7 @@ class Replicate(object):
             logger = clogger.Logger()
         self.logger = logger
 
-    def rsync_it(self, from_path, to_path, type=None):
+    def rsync_it(self, from_path, to_path, type: Optional[str] = None):
         """
         Rsync from a source to a destination with the rsync options Cobbler was configured with.
 
@@ -197,7 +196,8 @@ class Replicate(object):
                             self.logger.error("Failed to rsync distro %s" % distro)
                             continue
                     else:
-                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror" % distro)
+                        self.logger.warning("Skipping distro %s, as it doesn't appear to live under distro_mirror"
+                                            % distro)
 
             self.logger.info("Rsyncing repos")
             for repo in list(self.must_include["repo"].keys()):
@@ -328,9 +328,10 @@ class Replicate(object):
 
     # -------------------------------------------------------
 
-    def run(self, cobbler_master=None, port="80", distro_patterns=None, profile_patterns=None, system_patterns=None,
-            repo_patterns=None, image_patterns=None, mgmtclass_patterns=None, package_patterns=None, file_patterns=None,
-            prune=False, omit_data=False, sync_all=False, use_ssl=False):
+    def run(self, cobbler_master=None, port: str = "80", distro_patterns=None, profile_patterns=None,
+            system_patterns=None, repo_patterns=None, image_patterns=None, mgmtclass_patterns=None,
+            package_patterns=None, file_patterns=None, prune: bool = False, omit_data=False, sync_all: bool = False,
+            use_ssl: bool = False):
         """
         Get remote profiles and distros and sync them locally
 

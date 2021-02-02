@@ -16,6 +16,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Union
 
 import netaddr
 import re
@@ -36,16 +37,13 @@ VIRT_DISK_DRIVERS = ["<<inherit>>", "raw", "qcow2", "qed", "vdi", "vmdk"]
 AUTOINSTALL_REPO_BLACKLIST = ['enabled', 'gpgcheck', 'gpgkey']
 
 
-def object_name(name, parent):
+def object_name(name: str, parent: str) -> str:
     """
     Validate the object name.
 
     :param name: object name
-    :type name: str
     :param parent: Parent object name
-    :type parent: str
     :returns: name or CX
-    :rtype: str
     """
     if not isinstance(name, str) or not isinstance(parent, str):
         raise CX("Invalid input, name and parent must be strings")
@@ -62,15 +60,13 @@ def object_name(name, parent):
     return name
 
 
-def hostname(dnsname):
+def hostname(dnsname: str) -> str:
     """
     Validate the dns name.
 
     :param dnsname: Hostname or FQDN
-    :type dnsname: str
     :returns: dnsname
     :raises CX: If the Hostname/FQDN is not a string or in an invalid format.
-    :rtype: str
     """
     if not isinstance(dnsname, str):
         raise CX("Invalid input, dnsname must be a string")
@@ -87,12 +83,12 @@ def hostname(dnsname):
     return dnsname
 
 
-def mac_address(mac, for_item=True):
+def mac_address(mac: str, for_item=True) -> str:
     """
     Validate as an Eternet mac address.
 
     :param mac: mac address
-    :type mac: str
+    :param for_item: If the check should be performed for an item or not.
     :returns: str mac or CX
     """
     if not isinstance(mac, str):
@@ -116,12 +112,11 @@ def mac_address(mac, for_item=True):
     return mac
 
 
-def ipv4_address(addr):
+def ipv4_address(addr: str) -> str:
     """
     Validate an IPv4 address.
 
-    :param addr: (ipv4 address)
-    :type addr: str
+    :param addr: IPv4 address
     :returns: str addr or CX
     """
     if not isinstance(addr, str):
@@ -141,12 +136,11 @@ def ipv4_address(addr):
     return addr
 
 
-def ipv4_netmask(addr):
+def ipv4_netmask(addr: str) -> str:
     """
     Validate an IPv4 netmask.
 
     :param addr: ipv4 netmask
-    :type addr: str
     :returns: str addr or CX
     """
     if not isinstance(addr, str):
@@ -166,14 +160,12 @@ def ipv4_netmask(addr):
     return addr
 
 
-def ipv6_address(addr):
+def ipv6_address(addr: str) -> str:
     """
     Validate an IPv6 address.
 
     :param addr: ipv6 address
-    :type addr: str
     :returns: The ipv6 address.
-    :rtype: str
     """
     if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
@@ -189,15 +181,13 @@ def ipv6_address(addr):
     return addr
 
 
-def name_servers(nameservers, for_item=True):
+def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[str, list]:
     """
     Validate nameservers IP addresses, works for IPv4 and IPv6
 
-    :param nameservers: (string or list of nameserver addresses)
-    :type nameservers: str or list
-    :param for_item: (enable/disable special handling for Item objects)
+    :param nameservers: string or list of nameserver addresses
+    :param for_item: enable/disable special handling for Item objects
     :return: The list of valid nameservers.
-    :type for_item: bool
     """
     if isinstance(nameservers, str):
         nameservers = nameservers.strip()
@@ -225,15 +215,13 @@ def name_servers(nameservers, for_item=True):
     return nameservers
 
 
-def name_servers_search(search, for_item=True):
+def name_servers_search(search: Union[str, list], for_item: bool = True) -> Union[str, list]:
     """
     Validate nameservers search domains.
 
     :param search: One or more search domains to validate.
-    :type search: str or list
     :param for_item: (enable/disable special handling for Item objects)
     :return: The list of valid nameservers.
-    :type for_item: bool
     """
     if isinstance(search, str):
         search = search.strip()

@@ -21,27 +21,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
-from builtins import object
 import time
 import copy
 
-import cobbler.templar as templar
-import cobbler.utils as utils
+from cobbler import templar
+from cobbler import utils
 
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage"
 
 
-class IscManager(object):
+class IscManager:
 
-    def what(self):
+    def what(self) -> str:
         """
         Static method to identify the manager.
 
@@ -65,7 +63,7 @@ class IscManager(object):
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
-        self.settings_file = utils.dhcpconf_location(self.api)
+        self.settings_file = utils.dhcpconf_location()
 
     def write_dhcp_file(self):
         """
@@ -138,7 +136,9 @@ class IscManager(object):
 
                     if ip is None or ip == "":
                         for (nam2, int2) in list(system.interfaces.items()):
-                            if (nam2.startswith(interface["interface_master"] + ".") and int2["ip_address"] is not None and int2["ip_address"] != ""):
+                            if nam2.startswith(interface["interface_master"] + ".") \
+                                    and int2["ip_address"] is not None \
+                                    and int2["ip_address"] != "":
                                 ip = int2["ip_address"]
                                 break
 
@@ -188,7 +188,7 @@ class IscManager(object):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch == "ppc" or  distro.arch == "ppc64":
+                    if distro.arch == "ppc" or distro.arch == "ppc64":
                         interface["filename"] = yaboot
                     elif distro.arch == "ppc64le":
                         interface["filename"] = "grub/grub.ppc64le"
@@ -240,7 +240,7 @@ class IscManager(object):
         """
         This syncs the dhcp server with it's new config files. Basically this restarts the service to apply the changes.
         """
-        service_name = utils.dhcp_service_name(self.api)
+        service_name = utils.dhcp_service_name()
         if self.settings.restart_dhcp:
             rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
             if rc != 0:

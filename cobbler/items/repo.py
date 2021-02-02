@@ -17,8 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Union
 
-from builtins import str
 from cobbler.items import item
 from cobbler import utils
 from cobbler import validate
@@ -143,7 +143,7 @@ class Repo(item.Item):
                 self.set_arch("i386")
         self._guess_breed()
 
-    def set_mirror_type(self, mirror_type):
+    def set_mirror_type(self, mirror_type: str):
         """
         Override the mirror_type used for reposync
 
@@ -151,7 +151,7 @@ class Repo(item.Item):
         """
         return utils.set_mirror_type(self, mirror_type)
 
-    def set_keep_updated(self, keep_updated):
+    def set_keep_updated(self, keep_updated: bool):
         """
         This allows the user to disable updates to a particular repo for whatever reason.
 
@@ -159,7 +159,7 @@ class Repo(item.Item):
         """
         self.keep_updated = utils.input_boolean(keep_updated)
 
-    def set_yumopts(self, options):
+    def set_yumopts(self, options: Union[str, dict]):
         """
         Kernel options are a space delimited list.
 
@@ -171,7 +171,7 @@ class Repo(item.Item):
         else:
             self.yumopts = value
 
-    def set_rsyncopts(self, options):
+    def set_rsyncopts(self, options: Union[str, dict]):
         """
         rsync options are a space delimited list
 
@@ -183,7 +183,7 @@ class Repo(item.Item):
         else:
             self.rsyncopts = value
 
-    def set_environment(self, options):
+    def set_environment(self, options: Union[str, dict]):
         """
         Yum can take options from the environment. This puts them there before each reposync.
 
@@ -195,7 +195,7 @@ class Repo(item.Item):
         else:
             self.environment = value
 
-    def set_priority(self, priority):
+    def set_priority(self, priority: int):
         """
         Set the priority of the repository. Only works if host is using priorities plugin for yum.
 
@@ -207,7 +207,7 @@ class Repo(item.Item):
             raise CX("invalid priority level: %s" % priority)
         self.priority = priority
 
-    def set_rpm_list(self, rpms):
+    def set_rpm_list(self, rpms: Union[str, list]):
         """
         Rather than mirroring the entire contents of a repository (Fedora Extras, for instance, contains games, and we
         probably don't want those), make it possible to list the packages one wants out of those repos, so only those
@@ -228,7 +228,7 @@ class Repo(item.Item):
             createrepo_flags = ""
         self.createrepo_flags = createrepo_flags
 
-    def set_breed(self, breed):
+    def set_breed(self, breed: str):
         """
         Setter for the operating system breed.
 
@@ -247,7 +247,7 @@ class Repo(item.Item):
         if os_version:
             return utils.set_repo_os_version(self, os_version)
 
-    def set_arch(self, arch):
+    def set_arch(self, arch: str):
         """
         Override the arch used for reposync
 
@@ -255,7 +255,7 @@ class Repo(item.Item):
         """
         return utils.set_arch(self, arch, repo=True)
 
-    def set_mirror_locally(self, value):
+    def set_mirror_locally(self, value: bool):
         """
         Setter for the local mirror property.
 
@@ -263,7 +263,7 @@ class Repo(item.Item):
         """
         self.mirror_locally = utils.input_boolean(value)
 
-    def set_apt_components(self, value):
+    def set_apt_components(self, value: Union[str, list]):
         """
         Setter for the apt command property.
 
@@ -271,7 +271,7 @@ class Repo(item.Item):
         """
         self.apt_components = utils.input_string_or_list(value)
 
-    def set_apt_dists(self, value):
+    def set_apt_dists(self, value: Union[str, list]):
         """
         Setter for the apt dists.
 
@@ -290,6 +290,3 @@ class Repo(item.Item):
         """
         self.proxy = value
         return True
-
-
-# EOF

@@ -17,29 +17,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import glob
 import os.path
 import shutil
 
-import cobbler.clogger as clogger
-import cobbler.templar as templar
-import cobbler.utils as utils
-import cobbler.tftpgen as tftpgen
+from cobbler import clogger
+from cobbler import templar
+from cobbler import utils
+from cobbler import tftpgen
 
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage"
 
 
-class InTftpdManager(object):
+class InTftpdManager:
 
-    def what(self):
+    def what(self) -> str:
         """
         Static method to identify the manager.
 
@@ -47,7 +46,7 @@ class InTftpdManager(object):
         """
         return "in_tftpd"
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr, logger: clogger.Logger):
         """
         Constructor
 
@@ -151,7 +150,7 @@ class InTftpdManager(object):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
-    def sync(self, verbose=True):
+    def sync(self, verbose: bool = True):
         """
         Write out all files to /tftpdboot
 
@@ -185,7 +184,7 @@ class InTftpdManager(object):
         self.tftpgen.make_pxe_menu()
 
 
-def get_manager(collection_mgr, logger):
+def get_manager(collection_mgr, logger: clogger.Logger):
     """
     Creates a manager object to manage an in_tftp server.
 

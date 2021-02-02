@@ -2,7 +2,7 @@ import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
 
-def register():
+def register() -> str:
     """
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type
@@ -14,7 +14,7 @@ def register():
     return "/var/lib/cobbler/triggers/sync/post/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     Run the trigger via this method, meaning in this case that depending on the settings dns and/or dhcp services are
     restarted.
@@ -23,7 +23,6 @@ def run(api, args, logger):
     :param args: This parameter is not used currently.
     :param logger: The logger to audit the action with.
     :return: The return code of the service restarts.
-    :rtype: int
     """
     settings = api.settings()
 
@@ -41,7 +40,7 @@ def run(api, args, logger):
                 if rc != 0:
                     logger.error("dhcpd -t failed")
                     return 1
-                dhcp_service_name = utils.dhcp_service_name(api)
+                dhcp_service_name = utils.dhcp_service_name()
                 dhcp_restart_command = "service %s restart" % dhcp_service_name
                 rc = utils.subprocess_call(logger, dhcp_restart_command, shell=True)
         elif which_dhcp_module == "managers.dnsmasq":
@@ -54,7 +53,7 @@ def run(api, args, logger):
 
     if settings.manage_dns and settings.restart_dns:
         if which_dns_module == "managers.bind":
-            named_service_name = utils.named_service_name(api)
+            named_service_name = utils.named_service_name()
             dns_restart_command = "service %s restart" % named_service_name
             rc = utils.subprocess_call(logger, dns_restart_command, shell=True)
         elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:

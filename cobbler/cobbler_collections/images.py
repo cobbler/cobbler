@@ -40,7 +40,8 @@ class Images(collection.Collection):
         new_image.from_dict(item_dict)
         return new_image
 
-    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=True, logger=None):
+    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
+               recursive: bool = True, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -87,5 +88,3 @@ class Images(collection.Collection):
             return
 
         raise CX("cannot delete an object that does not exist: %s" % name)
-
-# EOF

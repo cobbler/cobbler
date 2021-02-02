@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Union
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
@@ -133,7 +134,7 @@ class Profile(item.Item):
         # distro validation
         distro = self.get_conceptual_parent()
         if distro is None:
-            raise CX("Error with profile %s - distro is required" % (self.name))
+            raise CX("Error with profile %s - distro is required" % self.name)
 
     #
     # specific methods for item.Profile
@@ -211,7 +212,7 @@ class Profile(item.Item):
         """
         self.proxy = proxy
 
-    def set_enable_gpxe(self, enable_gpxe):
+    def set_enable_gpxe(self, enable_gpxe: bool):
         """
         Sets whether or not the profile will use gPXE for booting.
 
@@ -219,7 +220,7 @@ class Profile(item.Item):
         """
         self.enable_gpxe = utils.input_boolean(enable_gpxe)
 
-    def set_enable_menu(self, enable_menu):
+    def set_enable_menu(self, enable_menu: bool):
         """
         Sets whether or not the profile will be listed in the default PXE boot menu. This is pretty forgiving for
         YAML's sake.
@@ -269,18 +270,17 @@ class Profile(item.Item):
         else:
             self.filename = filename.strip()
 
-    def set_autoinstall(self, autoinstall):
+    def set_autoinstall(self, autoinstall: str):
         """
         Set the automatic OS installation template file path, this must be a local file.
 
         :param autoinstall: local automatic installation template path
-        :type autoinstall: str
         """
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
         self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
-    def set_virt_auto_boot(self, num):
+    def set_virt_auto_boot(self, num: int):
         """
         Setter for booting a virtual machine automatically.
 
@@ -288,7 +288,7 @@ class Profile(item.Item):
         """
         utils.set_virt_auto_boot(self, num)
 
-    def set_virt_cpus(self, num):
+    def set_virt_cpus(self, num: Union[int, str]):
         """
         Setter for the number of virtual CPU cores to assign to the virtual machine.
 
@@ -296,7 +296,7 @@ class Profile(item.Item):
         """
         utils.set_virt_cpus(self, num)
 
-    def set_virt_file_size(self, num):
+    def set_virt_file_size(self, num: Union[str, int, float]):
         """
         Setter for the size of the virtual image size.
 
@@ -304,7 +304,7 @@ class Profile(item.Item):
         """
         utils.set_virt_file_size(self, num)
 
-    def set_virt_disk_driver(self, driver):
+    def set_virt_disk_driver(self, driver: str):
         """
         Setter for the virtual disk driver that will be used.
 
@@ -312,7 +312,7 @@ class Profile(item.Item):
         """
         utils.set_virt_disk_driver(self, driver)
 
-    def set_virt_ram(self, num):
+    def set_virt_ram(self, num: Union[int, float]):
         """
         Setter for the virtual RAM used for the VM.
 
@@ -320,7 +320,7 @@ class Profile(item.Item):
         """
         utils.set_virt_ram(self, num)
 
-    def set_virt_type(self, vtype):
+    def set_virt_type(self, vtype: str):
         """
         Setter for the virtual machine type.
 
@@ -336,7 +336,7 @@ class Profile(item.Item):
         """
         utils.set_virt_bridge(self, vbridge)
 
-    def set_virt_path(self, path):
+    def set_virt_path(self, path: str):
         """
         Setter of the path to the place where the image will be stored.
 
@@ -344,7 +344,7 @@ class Profile(item.Item):
         """
         utils.set_virt_path(self, path)
 
-    def set_repos(self, repos, bypass_check=False):
+    def set_repos(self, repos, bypass_check: bool = False):
         """
         Setter of the repositories for the profile.
 
@@ -381,4 +381,3 @@ class Profile(item.Item):
         if parent:
             return parent.get_arch()
         return None
-# EOF

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import requests
 
 
-class DownloadManager(object):
+class DownloadManager:
 
     def __init__(self, collection_mgr, logger=None):
         """

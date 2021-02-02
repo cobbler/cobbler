@@ -23,27 +23,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import os
 import os.path
+from typing import Optional
 
 from cobbler import clogger
 from cobbler import module_loader
 from cobbler import utils
 
 
-class CobblerLiteSync(object):
+class CobblerLiteSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, collection_mgr, verbose=False, logger=None):
+    def __init__(self, collection_mgr, verbose: bool = False, logger=None):
         """
         Constructor
 
         :param collection_mgr: The collection manager which has all information.
         :param verbose: Whether the action should be logged verbose.
-        :type verbose: bool
         :param logger: The logger to audit all action with.
         """
         self.verbose = verbose
@@ -133,14 +132,12 @@ class CobblerLiteSync(object):
         bootloc = self.settings.tftpboot_location
         utils.rmfile(os.path.join(bootloc, "images2", name))
 
-    def add_single_profile(self, name, rebuild_menu=True):
+    def add_single_profile(self, name: str, rebuild_menu: bool = True) -> Optional[bool]:
         """
         Sync adding a single profile.
 
         :param name: The name of the profile.
-        :type name: str
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
-        :type rebuild_menu: bool
         :return: ``True`` if this succeeded.
         """
         # get the profile object:
@@ -162,7 +159,7 @@ class CobblerLiteSync(object):
             self.sync.tftpgen.make_pxe_menu()
         return True
 
-    def remove_single_profile(self, name, rebuild_menu=True):
+    def remove_single_profile(self, name: str, rebuild_menu: bool = True):
         """
         Sync removing a single profile.
 
@@ -178,21 +175,19 @@ class CobblerLiteSync(object):
         if rebuild_menu:
             self.sync.tftpgen.make_pxe_menu()
 
-    def update_system_netboot_status(self, name):
+    def update_system_netboot_status(self, name: str):
         """
         Update the netboot status of a system.
 
         :param name: The name of the system.
-        :type name: str
         """
         self.tftpd.update_netboot(name)
 
-    def add_single_system(self, name):
+    def add_single_system(self, name: str):
         """
         Sync adding a single system.
 
         :param name: The name of the system.
-        :type name: str
         """
         # get the system object:
         system = self.systems.find(name=name)
@@ -206,12 +201,11 @@ class CobblerLiteSync(object):
         # write the PXE files for the system
         self.tftpd.add_single_system(system)
 
-    def remove_single_system(self, name):
+    def remove_single_system(self, name: str):
         """
         Sync removing a single system.
 
         :param name: The name of the system.
-        :type name: str
         """
         bootloc = self.settings.tftpboot_location
         # delete contents of autoinsts_sys/$name in webdir

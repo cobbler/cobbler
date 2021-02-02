@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 
@@ -32,7 +32,7 @@ def register():
     return "authn"
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username: str, password: str) -> bool:
     """
     Validate a username/password combo, returning True/False
 
@@ -42,7 +42,6 @@ def authenticate(api_handle, username, password):
     :param username: The username which should be checked.
     :param password: The password which should be checked.
     :return: True if username is "testing" and password is "testing". Otherwise False.
-    :rtype: bool
     """
 
     if username == "testing" and password == "testing":

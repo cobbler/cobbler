@@ -20,17 +20,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import str
 import traceback
 
-# We'll import this just a bit later to keep it from being a requirement
-# import ldap
-
-import cobbler.api as cobbler_api
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 
@@ -41,7 +36,7 @@ def register():
     return "authn"
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username, password) -> bool:
     """
     Validate an LDAP bind, returning whether the authentication was successful or not.
 
@@ -73,7 +68,7 @@ def authenticate(api_handle, username, password):
 
     # to get ldap working with Active Directory
     ldap.set_option(ldap.OPT_REFERRALS, 0)
-    
+
     if tls_cacertfile:
         ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
     if tls_keyfile:
@@ -139,10 +134,3 @@ def authenticate(api_handle, username, password):
     except:
         # traceback.print_exc()
         return False
-    # catch-all
-    return False
-
-
-if __name__ == "__main__":
-    api_handle = cobbler_api.CobblerAPI()
-    print((authenticate(api_handle, "guest", "guest")))

@@ -49,7 +49,8 @@ class Repos(collection.Collection):
         new_repo.from_dict(item_dict)
         return new_repo
 
-    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
+    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
+               recursive: bool = False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -84,5 +85,3 @@ class Repos(collection.Collection):
             return
 
         raise CX("cannot delete an object that does not exist: %s" % name)
-
-# EOF

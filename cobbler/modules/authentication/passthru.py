@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from cobbler import utils
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 

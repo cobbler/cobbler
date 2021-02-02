@@ -70,7 +70,7 @@ ifeq ($(strip $(PYCODESTYLE)),)
 	@echo "No pycodestyle found"
 else
 	@echo "checking: pycodestyle"
-	@${PYCODESTYLE} -r --ignore E501,E402,E722,W504 \
+	@${PYCODESTYLE} -r --ignore E501,E402,E722,W503 \
 			*.py \
 		cobbler/*.py \
 		cobbler/modules/*.py \

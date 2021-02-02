@@ -18,20 +18,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import range
-from builtins import object
-from cobbler import utils
 import time
 import os
 from threading import Lock
+from typing import Optional
 
+from cobbler import utils
 from cobbler.actions import litesync
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
 
 from cobbler.cexceptions import CX, NotImplementedException
 
 
-class Collection(object):
+class Collection:
     """
     Base class for any serializable list of things.
     """
@@ -66,28 +65,24 @@ class Collection(object):
         Must override in subclass. Factory_produce returns an Item object from dict.
 
         :param collection_mgr: The collection manager to resolve all information with.
-        :param seed_data:
+        :param seed_data: Unused Parameter in the base collection.
         """
         raise NotImplementedException()
 
-    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
+    def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
+               recursive: bool = False, logger=None):
         """
         Remove an item from collection. This method must be overriden in any subclass.
 
-        :param name: (item name)
-        :type name: str
-        :param with_delete: (sync and run triggers)
-        :type with_delete: bool
-        :param with_sync: (sync to server file system)
-        :type with_sync: bool
-        :param with_triggers: (run "on delete" triggers)
-        :type with_triggers: bool
-        :param recursive: (recursively delete children)
-        :type recursive: bool
-        :param logger: (logger object)
+        :param name: Item Name
+        :param with_delete: sync and run triggers
+        :param with_sync: sync to server file system
+        :param with_triggers: run "on delete" triggers
+        :param recursive: recursively delete children
+        :param logger: logger object
         :returns: NotImplementedException
         """
-        raise NotImplementedException()
+        raise NotImplementedException("Please implement this in a child class of this class.")
 
     def get(self, name):
         """
@@ -98,14 +93,13 @@ class Collection(object):
         """
         return self.listing.get(name.lower(), None)
 
-    def find(self, name=None, return_list=False, no_errors=False, **kargs):
+    def find(self, name: Optional[str] = None, return_list: bool = False, no_errors=False, **kargs):
         """
         Return first object in the collection that maches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
         that case.
 
         :param name: The object name which should be found.
-        :type name: str
         :param return_list: If a list should be returned or the first match.
         :param no_errors: If errors which are possibly thrown while searching should be ignored or not.
         :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
@@ -167,7 +161,7 @@ class Collection(object):
         'netboot-enabled': 'netboot_enabled',
     }
 
-    def __rekey(self, _dict):
+    def __rekey(self, _dict: dict) -> dict:
         """
         Find calls from the command line ("cobbler system find") don't always match with the keys from the datastructs
         and this makes them both line up without breaking compatibility with either. Thankfully we don't have a LOT to
@@ -175,7 +169,6 @@ class Collection(object):
 
         :param _dict: The dict which should be remapped.
         :return: The dict which can now be understood by the cli.
-        :rtype: dict
         """
         new_dict = {}
         for x in list(_dict.keys()):
@@ -186,22 +179,19 @@ class Collection(object):
                 new_dict[x] = _dict[x]
         return new_dict
 
-    def to_list(self):
+    def to_list(self) -> list:
         """
         Serialize the collection
 
-        :rtype: list
         :return: All elements of the collection as a list.
         """
-        _list = [x.to_dict() for x in list(self.listing.values())]
-        return _list
+        return [x.to_dict() for x in list(self.listing.values())]
 
-    def from_list(self, _list):
+    def from_list(self, _list: list):
         """
         Create all collection object items from ``_list``.
 
         :param _list: The list with all item dictionaries.
-        :type _list: list
         """
         if _list is None:
             return
@@ -233,7 +223,7 @@ class Collection(object):
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
 
-    def rename(self, ref, newname, with_sync=True, with_triggers=True, logger=None):
+    def rename(self, ref, newname, with_sync: bool = True, with_triggers: bool = True, logger=None):
         """
         Allows an object "ref" to be given a newname without affecting the rest of the object tree.
 
@@ -317,8 +307,9 @@ class Collection(object):
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
         return
 
-    def add(self, ref, save=False, with_copy=False, with_triggers=True, with_sync=True, quick_pxe_update=False,
-            check_for_duplicate_names=False, check_for_duplicate_netinfo=False, logger=None):
+    def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
+            quick_pxe_update: bool = False, check_for_duplicate_names: bool = False,
+            check_for_duplicate_netinfo: bool = False, logger=None):
         """
         Add an object to the collection
 
@@ -428,17 +419,15 @@ class Collection(object):
         if parent is not None:
             parent.children[ref.name] = ref
 
-    def __duplication_checks(self, ref, check_for_duplicate_names, check_for_duplicate_netinfo):
+    def __duplication_checks(self, ref, check_for_duplicate_names: bool, check_for_duplicate_netinfo: bool):
         """
         Prevents adding objects with the same name. Prevents adding or editing to provide the same IP, or MAC.
         Enforcement is based on whether the API caller requests it.
 
         :param ref: The refernce to the object.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
-        :type check_for_duplicate_names: bool
         :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
                                             systems.
-        :type check_for_duplicate_netinfo: bool
         :raises CX: If a duplicate is found
         """
         # ToDo: Use return bool type to indicate duplicates and only throw CX in real error case.
@@ -498,7 +487,7 @@ class Collection(object):
                     if x.name != ref.name:
                         raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)" % (ref.name, intf["dns_name"], x.name, name))
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Creates a printable representation of the collection suitable for reading by humans or parsing from scripts.
         Actually scripts would be better off reading the JSON in the cobbler_collections files directly.
@@ -521,13 +510,11 @@ class Collection(object):
         """
         Returns the string key for the name of the collection (used by serializer etc)
         """
-        return NotImplementedException()
+        raise NotImplementedException("Please implement the method \"collection_type\" in your Collection!")
 
     @staticmethod
     def collection_types() -> str:
         """
         Returns the string key for the plural name of the collection (used by serializer)
         """
-        return NotImplementedException()
-
-# EOF
+        raise NotImplementedException("Please implement the method \"collection_types\" in your Collection!")

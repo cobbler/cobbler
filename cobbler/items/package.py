@@ -98,5 +98,3 @@ class Package(resource.Resource):
         :type version: str
         """
         self.version = version
-
-# EOF

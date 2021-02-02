@@ -24,26 +24,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import re
 import socket
 import time
-from builtins import object
-from builtins import range
-from builtins import str
 
-import cobbler.clogger as clogger
-import cobbler.templar as templar
-import cobbler.utils as utils
+from cobbler import clogger
+from cobbler import templar
+from cobbler import utils
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage"
 
 
-class BindManager(object):
+class BindManager:
 
-    def what(self):
+    def what(self) -> str:
         """
         Identifies what this class is managing.
 
@@ -51,7 +48,7 @@ class BindManager(object):
         """
         return "bind"
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr, logger: clogger.Logger):
         """
         Constructor to create a default BindManager object.
 
@@ -70,8 +67,8 @@ class BindManager(object):
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
-        self.settings_file = utils.namedconf_location(self.api)
-        self.zonefile_base = utils.zonefile_base(self.api)
+        self.settings_file = utils.namedconf_location()
+        self.zonefile_base = utils.zonefile_base()
 
     def regen_hosts(self):
         """
@@ -111,7 +108,7 @@ class BindManager(object):
                 fullAddress = fullAddress[:-1]
         groups = fullAddress.split(":")
         for group in groups:
-            while (len(group) < validGroupSize):
+            while len(group) < validGroupSize:
                 group = "0" + group
             expandedAddress += group + ":"
         if expandedAddress[-1] == ":":
@@ -397,12 +394,11 @@ zone "%(arpa)s." {
             self.logger.info("generating %s" % settings_file)
         self.templar.render(template_data, metadata, settings_file, None)
 
-    def __ip_sort(self, ips):
+    def __ip_sort(self, ips: list):
         """
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
         :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
-        :type ips: list
         :return: The list with sorted IP addresses.
         """
         quartets = []
@@ -427,7 +423,7 @@ zone "%(arpa)s." {
         #
         return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
-    def __pretty_print_host_records(self, hosts, rectype='A', rclass='IN'):
+    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN'):
         """
         Format host records by order and with consistent indentation
 
@@ -478,7 +474,7 @@ zone "%(arpa)s." {
                 s += "%s  %s  %s  %s;\n" % (my_name, rclass, my_rectype, my_host)
         return s
 
-    def __pretty_print_cname_records(self, hosts, rectype='CNAME'):
+    def __pretty_print_cname_records(self, hosts, rectype: str = 'CNAME'):
         """
         Format CNAMEs and with consistent indentation
 
@@ -501,7 +497,8 @@ zone "%(arpa)s." {
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
                     else:
-                        self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing cname records") % system.name)
+                        self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing "
+                                          "cname records") % system.name)
                         continue
                 except:
                     pass
@@ -627,7 +624,7 @@ zone "%(arpa)s." {
         self.__write_zone_files()
 
 
-def get_manager(collection_mgr, logger):
+def get_manager(collection_mgr, logger: clogger.Logger):
     """
     This returns the object to manage a BIND server located locally on the Cobbler server.
 

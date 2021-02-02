@@ -47,7 +47,8 @@ class Systems(collection.Collection):
         new_system.from_dict(item_dict)
         return new_system
 
-    def remove(self, name, with_delete=True, with_sync=True, with_triggers=True, recursive=False, logger=None):
+    def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
+               recursive: bool = False, logger=None):
         """
         Remove element named 'name' from the collection
         """
@@ -76,5 +77,3 @@ class Systems(collection.Collection):
             return
 
         raise CX("cannot delete an object that does not exist: %s" % name)
-
-# EOF

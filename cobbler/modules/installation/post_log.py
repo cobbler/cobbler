@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import time
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
@@ -31,7 +31,7 @@ def register():
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
 
     :param api: This parameter is unused currently.
@@ -45,8 +45,7 @@ def run(api, args, logger):
     name = args[1]      # name of system or profile
     ip = args[2]        # ip or "?"
 
-    fd = open("/var/log/cobbler/install.log", "a+")
-    fd.write("%s\t%s\t%s\tstop\t%s\n" % (objtype, name, ip, time.time()))
-    fd.close()
+    with open("/var/log/cobbler/install.log", "a+") as fd:
+        fd.write("%s\t%s\t%s\tstop\t%s\n" % (objtype, name, ip, time.time()))
 
     return 0
