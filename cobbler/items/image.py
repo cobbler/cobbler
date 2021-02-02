@@ -193,7 +193,7 @@ class Image(item.Item):
         :param image_type: One of the four options from above.
         """
         if image_type not in self.get_valid_image_types():
-            raise CX("image type must be on of the following: %s" % string.join(self.get_valid_image_types(), ", "))
+            raise CX("image type must be on of the following: %s" % ", ".join(self.get_valid_image_types()))
         self.image_type = image_type
 
     def set_virt_cpus(self, num):
