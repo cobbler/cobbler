@@ -1,0 +1,5 @@
+item return$menu_name Return to $menu_label menu.
+choose --default \${menu-default} --timeout \${submenu-timeout} target && goto \${target}
+
+:return$menu_name
+goto $parent_menu_name

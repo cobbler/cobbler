@@ -1,0 +1,1 @@
+submenu '$menu_name' --class gnu-linux --class gnu --class os {

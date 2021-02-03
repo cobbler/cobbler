@@ -1,0 +1,6 @@
+:$profile_name
+kernel $kernel_path $kernel_options
+#for $init in $initrd
+initrd $init
+#end for
+boot

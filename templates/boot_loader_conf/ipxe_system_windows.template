@@ -1,0 +1,19 @@
+#!ipxe
+#
+# This is a generic Windows ipxe script.
+# You may need to modify this for your environment.
+#
+# This expects a autoinstall_meta value to be set for initrd multiple times
+# e.g. autoinstall_meta = bootmgr=bootmgr bcd=bcd initrd=boot.sdi winpe=boot.wim
+#
+# You will need to either place the files manually or use multiple 
+# 'cobbler distro edit' commands to have cobbler automatically link the
+# files appropriately
+#
+# See http://ipxe.org/wimboot for more details
+#
+kernel $kernel_path
+#for $init in $initrd_path
+initrd $init
+#end for
+boot

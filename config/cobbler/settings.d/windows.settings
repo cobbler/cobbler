@@ -1,0 +1,5 @@
+# location of templates used for windows
+windows_template_dir: "/etc/cobbler/windows"
+
+# location of templates used for windows
+samba_distro_share: "DISTRO"

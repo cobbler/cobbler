@@ -1,0 +1,4 @@
+LABEL return$menu_name
+	MENU LABEL Return to $menu_label menu.
+	MENU EXIT
+MENU END
