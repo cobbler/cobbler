@@ -1,0 +1,11 @@
+:$menu_name
+menu $menu_name $menu_label
+#for $label in $menu_labels
+item $label["name"] $label["display_name"]
+#end for
+item return$menu_name Return to $menu_label menu.
+choose --default \${menu-default} --timeout \${submenu-timeout} target && goto \${target}
+
+$menu_items
+:return$menu_name
+goto $parent_menu_name

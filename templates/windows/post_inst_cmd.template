@@ -1,0 +1,15 @@
+Echo on
+
+##%systemdrive%
+##CD %systemdrive%\TMP >nul 2>&1
+##$SNIPPET('my/win_wait_network_online')
+##wget.exe http://@@http_server@@/cblr/svc/op/autoinstall/profile/%1 -O install.cmd
+##todos.exe install.cmd
+##start /wait install.cmd
+##DEL /F /Q libeay32.dll >nul 2>&1
+##DEL /F /Q libiconv2.dll >nul 2>&1
+##DEL /F /Q libintl3.dll >nul 2>&1
+##DEL /F /Q libssl32.dll >nul 2>&1
+##DEL /F /Q wget.exe >nul 2>&1
+##DEL /F /Q %0 >nul 2>&1
+

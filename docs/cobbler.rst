@@ -33,7 +33,7 @@ If you want to remove a specific object, use the remove command with the name th
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file remove --name=string
+    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu remove --name=string
 
 Editing
 =======
@@ -44,7 +44,7 @@ object, preserving settings not mentioned.
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file edit --name=string [parameterlist]
+    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu edit --name=string [parameterlist]
 
 Copying
 =======
@@ -53,7 +53,7 @@ Objects can also be copied:
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file copy --name=oldname --newname=newname
+    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu copy --name=oldname --newname=newname
 
 Renaming
 ========
@@ -62,7 +62,7 @@ Objects can also be renamed, as long as other objects don't reference them.
 
 .. code-block:: shell
 
-    cobbler distro|profile|system|repo|image|mgmtclass|package|file rename --name=oldname --newname=newname
+    cobbler distro|profile|system|repo|image|mgmtclass|package|file|menu rename --name=oldname --newname=newname
 
 CLI-Commands
 ############
@@ -73,7 +73,7 @@ Long Usage:
 
 .. code-block:: shell
 
-    cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
+    cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]
     cobbler <aclsetup|buildiso|import|list|replicate|report|reposync|sync|validate-autoinstalls|version|signature|hardlink> [options|--help]
 
 Cobbler distro
@@ -115,8 +115,8 @@ If you want to be explicit with distribution definition, however, here's how it 
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | boot-files      | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                              |
 +-----------------+-----------------------------------------------------------------------------------------------------+
-| boot-loader     | Boot loader (Network installation boot loader).                                                     |
-|                 | Valid options are <<inherit>>, `grub`, `pxelinux`, `yaboot`, `ipxe`.                                |
+| boot-loaders    | Boot loader space delimited list (Network installation boot loaders).                               |
+|                 | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                      |
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | breed           | Controls how various physical and virtual parameters, including kernel arguments for automatic      |
 |                 | installation, are to be treated. Defaults to ``redhat``, which is a suitable value for Fedora and   |
@@ -222,13 +222,16 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
 +---------------------+------------------------------------------------------------------------------------------------+
+| boot-loaders        | Boot loader space delimited list (Network installation boot loaders).                          |
+|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                 |
++---------------------+------------------------------------------------------------------------------------------------+
 | comment             | Simple attach a description (Free form text) to your distro.                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
 | dhcp-tag            | DHCP Tag (see description in system).                                                          |
 +---------------------+------------------------------------------------------------------------------------------------+
 | **distro**          | The name of a previously defined Cobbler distribution. This value is required.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
-| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
+| enable-ipxe         | Enable iPXE? (Use iPXE instead of PXELINUX for advanced booting options)                       |
 +---------------------+------------------------------------------------------------------------------------------------+
 | enable-menu         | Enable PXE Menu? (Show this profile in the PXE menu?)                                          |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -237,6 +240,9 @@ listed below:
 | filename            | This parameter can be used to select the bootloader for network boot. If specified, this must  |
 |                     | be a path relative to the TFTP servers root directory. (e.g. grub/grubx64.efi)                 |
 |                     | For most use cases the default bootloader is correct and this can be omitted                   |
++---------------------+------------------------------------------------------------------------------------------------+
+| menu                | This is a way of organizing profiles and images in an automatically generated boot menu for    |
+|                     | `grub`, `pxe` and `ipxe` boot loaders. Menu created with ``cobbler menu add`` command.         |
 +---------------------+------------------------------------------------------------------------------------------------+
 | **name**            | A descriptive name. This could be something like ``rhel5webservers`` or ``f9desktops``.        |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -385,8 +391,8 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 +---------------------+------------------------------------------------------------------------------------------------+
 | boot-files          | TFTP Boot Files (Files copied into tftpboot beyond the kernel/initrd).                         |
 +---------------------+------------------------------------------------------------------------------------------------+
-| boot-loader         | Boot loader (Network installation boot loader).                                                |
-|                     | Valid options are <<inherit>>, `grub`, `pxelinux`, `yaboot`, `ipxe`.                           |
+| boot-loaders        | Boot loader space delimited list (Network installation boot loaders).                          |
+|                     | Valid options for list items are <<inherit>>, `grub`, `pxe`, `ipxe`, `yaboot`.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
 | comment             | Simple attach a description (Free form text) to your distro.                                   |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -412,7 +418,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | This is a per-interface parameter. If you have multiple interfaces, it may be different for    |
 |                     | each interface, for example, assume a DMZ / dual-homed setup.                                  |
 +---------------------+------------------------------------------------------------------------------------------------+
-| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
+| enable-ipxe         | Enable iPXE? (Use iPXE instead of PXELINUX for advanced booting options)                       |
 +---------------------+------------------------------------------------------------------------------------------------+
 | fetchable-files     | Fetchable Files (Templates for tftp or wget/curl)                                              |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -892,6 +898,30 @@ Example:
 
     $ cobbler file add --name=string --comment=string [--action=string] --mode=string --group=string --owner=string --path=string [--template=string]
 
+Cobbler menu
+============
+
+By default, Cobbler builds a single-level boot menu for profiles and images. To simplify navigation through a large number
+of OS boot items, you can create `menu` objects and place any number of submenus, profiles, and images there. The menu is
+hierarchical, to indicate the nesting of one submenu in another, you can use the `parent` property. If the `parent` property
+for a submenu, or the `menu` property for a profile or images are not set or have an empty value, then the corresponding
+element will be displayed in the top-level menu. If a submenu does not have descendants in the form of profiles or images,
+then such a submenu will not be displayed in the boot menu.
+
+.. code-block:: shell
+
+    $ cobbler menu add --name=string [--display-name=string] [--parent=string]
+
++------------------+---------------------------------------------------------------------------------------------------+
+| Name             | Description                                                                                       |
++==================+===================================================================================================+
+| display-name     | This is a human-readable name to display in the boot menu.                                        |
++------------------+---------------------------------------------------------------------------------------------------+
+| **name**         | This name can be used as a `--parent` for a submenu, or as a `--menu` for a profile or image.     |
++------------------+---------------------------------------------------------------------------------------------------+
+| parent           | This value can be set to indicate the nesting of this submenu in another.                         |
++------------------+---------------------------------------------------------------------------------------------------+
+
 cobbler aclsetup
 ================
 
@@ -969,7 +999,7 @@ Cobbler report
 =================
 
 This lists all configuration which Cobbler can obtain from the saved data. There are also ``report`` subcommands for
-most of the other Cobbler commands (currently: distro, profile, system, repo, image, mgmtclass, package, file).
+most of the other Cobbler commands (currently: distro, profile, system, repo, image, mgmtclass, package, file, menu).
 
 .. code-block:: shell
 

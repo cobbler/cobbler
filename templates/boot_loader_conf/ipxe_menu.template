@@ -1,0 +1,20 @@
+#!ipxe
+
+set menu-timeout 20000
+set submenu-timeout \${menu-timeout}
+
+# Set Menu Default to Exit after timeout
+isset \${menu-default} || set menu-default $pxe_timeout_profile
+
+:Cobbler
+menu Cobbler | https://cobbler.github.io
+item local (local)
+#for $label in $menu_labels
+item $label["name"] $label["display_name"]
+#end for
+choose --default \${menu-default} --timeout \${menu-timeout} target && goto \${target}
+
+$menu_items
+:local
+iseq \${smbios/manufacturer} HP && exit ||
+sanboot --no-describe --drive 0x80

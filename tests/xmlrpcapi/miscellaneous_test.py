@@ -94,7 +94,7 @@ class TestMiscellaneous:
         # Example output
         # {'items': [{'ctime': 1589386486.9040322, 'depth': 0, 'mtime': 1589386486.9040322, 'source_repos': [],
         # 'tree_build_time': 0, 'uid': 'cbf288465c724c439cf2ede6c94de4e8', 'arch': 'x86_64', 'autoinstall_meta': {},
-        # 'boot_files': {}, 'boot_loader': '<<inherit>>', 'breed': 'suse', 'comment': '', 'fetchable_files': {},
+        # 'boot_files': {}, 'boot_loaders': '<<inherit>>', 'breed': 'suse', 'comment': '', 'fetchable_files': {},
         # 'initrd': '/var/log/cobbler/cobbler.log', 'kernel': '/var/log/cobbler/cobbler.log', 'remote_boot_initrd': '~',
         # 'remote_boot_kernel': '~', 'kernel_options': {}, 'kernel_options_post': {}, 'mgmt_classes': [],
         # 'name': 'distro_items_paged_1', 'os_version': 'virtio26', 'owners': ['admin'], 'redhat_management_key': '',

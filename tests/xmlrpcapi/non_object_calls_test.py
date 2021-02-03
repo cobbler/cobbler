@@ -100,13 +100,13 @@ class TestNonObjectCalls:
         if TEST_SYSTEM:
             remote.generate_autoinstall(None, TEST_SYSTEM)
 
-    def test_generate_gpxe(self, remote):
+    def test_generate_ipxe(self, remote):
         """
-        Test: generate GPXE file content
+        Test: generate iPXE file content
         """
 
         if TEST_SYSTEM:
-            remote.generate_gpxe(None, TEST_SYSTEM)
+            remote.generate_ipxe(None, TEST_SYSTEM)
 
     def test_generate_bootcfg(self, remote):
         """

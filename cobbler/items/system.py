@@ -41,9 +41,9 @@ FIELDS = [
     ["autoinstall", "<<inherit>>", 0, "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Linux installation boot loader", utils.get_supported_system_boot_loaders(), "str"],
+    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["enable_gpxe", "<<inherit>>", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
+    ["enable_ipxe", "<<inherit>>", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["gateway", "", 0, "Gateway", True, "", 0, "str"],
     ["hostname", "", 0, "Hostname", True, "", 0, "str"],
@@ -121,7 +121,6 @@ class System(Item):
     A Cobbler system object.
     """
 
-    TYPE_NAME = "system"
     COLLECTION_TYPE = "system"
 
     def __init__(self, *args, **kwargs):
@@ -221,10 +220,45 @@ class System(Item):
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
 
-    def set_boot_loader(self, name: str):
-        if name not in utils.get_supported_system_boot_loaders():
-            raise CX("Invalid boot loader name: %s" % name)
-        self.boot_loader = name
+    def set_boot_loaders(self, boot_loaders: str):
+        """
+        Setter of the boot loaders.
+
+        :param boot_loaders: The boot loaders for the system.
+        """
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
+
+        if boot_loaders:
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+
+            if self.profile and self.profile != "":
+                profile = self.collection_mgr.profiles().find(name=self.profile)
+                parent_boot_loaders = profile.get_boot_loaders()
+            elif self.image and self.image != "":
+                image = self.collection_mgr.images().find(name=self.image)
+                parent_boot_loaders = image.get_boot_loaders()
+            if not set(boot_loaders_split).issubset(parent_boot_loaders):
+                raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
+                         (self.name, boot_loaders_split, parent_boot_loaders))
+            self.boot_loaders = boot_loaders_split
+        else:
+            self.boot_loaders = []
+
+    def get_boot_loaders(self):
+        """
+        :return: The bootloaders.
+        """
+        boot_loaders = self.boot_loaders
+        if boot_loaders == '<<inherit>>':
+            if self.profile and self.profile != "":
+                profile = self.collection_mgr.profiles().find(name=self.profile)
+                return profile.get_boot_loaders()
+            if self.image and self.image != "":
+                image = self.collection_mgr.images().find(name=self.image)
+                return image.get_boot_loaders()
+        return boot_loaders
 
     def set_server(self, server):
         """
@@ -541,11 +575,11 @@ class System(Item):
         intf = self.__get_interface(interface)
         intf["connected_mode"] = utils.input_boolean(truthiness)
 
-    def set_enable_gpxe(self, enable_gpxe: bool):
+    def set_enable_ipxe(self, enable_ipxe: bool):
         """
-        Sets whether or not the system will use gPXE for booting.
+        Sets whether or not the system will use iPXE for booting.
         """
-        self.enable_gpxe = utils.input_boolean(enable_gpxe)
+        self.enable_ipxe = utils.input_boolean(enable_ipxe)
 
     def set_profile(self, profile_name):
         """
@@ -792,8 +826,12 @@ class System(Item):
         :param loader: Bootloader type.
         """
 
+        boot_loaders = self.get_boot_loaders()
         if loader is None:
-            loader = self.boot_loader
+            if "grub" in boot_loaders or len(boot_loaders) < 1:
+                loader = "grub"
+            else:
+                loader = boot_loaders[0]
 
         if interface not in self.interfaces:
             return None

@@ -353,11 +353,11 @@ Current valid values are:
 
 default: ``xenpv``
 
-enable_gpxe
+enable_ipxe
 ===========
 
-Enable gPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
-directory, and if a profile/system is configured to boot via gPXE it will chain load off ``pxelinux.0``.
+Enable iPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
+directory, and if a profile/system is configured to boot via iPXE it will chain load off ``pxelinux.0``.
 
 .. note:: We now gPXE is not active anymore and try to transition the code, settings and guide we have to iPXE.
 
@@ -998,3 +998,30 @@ Choices:
 - manage_in_tftpd -- default, uses the system's TFTP server
 
 default: ``manage_in_tftpd``
+
+windows_enabled
+===============
+
+Set to true to enable the generation of Windows boot files in Cobbler.
+
+default: ``False``
+
+For more information see :ref:`wingen`.
+
+windows_template_dir
+====================
+
+Location of templates used for Windows.
+
+default: ``/etc/cobbler/windows``
+
+For more information see :ref:`wingen`.
+
+samba_distro_share
+==================
+
+Samba share name for distros
+
+default: ``DISTRO``
+
+For more information see :ref:`wingen`.

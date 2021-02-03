@@ -1,8 +1,0 @@
-default linux
-prompt 0
-timeout 1
-label linux
-        kernel $kernel_path
-        ipappend 2
-        $append_line
-

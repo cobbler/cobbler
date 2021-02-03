@@ -602,6 +602,7 @@ if __name__ == "__main__":
             ("%s/ppc" % tftproot, []),
             ("%s/s390x" % tftproot, []),
             ("%s/pxelinux.cfg" % tftproot, []),
+            ("%s/ipxe" % tftproot, []),
             ("%s/grub/system" % tftproot, []),
             ("%s/grub/system_link" % tftproot, []),
             ("%s/grub_config/grub/system" % libpath, []),
@@ -622,6 +623,8 @@ if __name__ == "__main__":
             ("%s/triggers/add/package/post" % libpath, []),
             ("%s/triggers/add/file/pre" % libpath, []),
             ("%s/triggers/add/file/post" % libpath, []),
+            ("%s/triggers/add/menu/pre" % libpath, []),
+            ("%s/triggers/add/menu/post" % libpath, []),
             ("%s/triggers/delete/distro/pre" % libpath, []),
             ("%s/triggers/delete/distro/post" % libpath, []),
             ("%s/triggers/delete/profile/pre" % libpath, []),
@@ -636,6 +639,8 @@ if __name__ == "__main__":
             ("%s/triggers/delete/package/post" % libpath, []),
             ("%s/triggers/delete/file/pre" % libpath, []),
             ("%s/triggers/delete/file/post" % libpath, []),
+            ("%s/triggers/delete/menu/pre" % libpath, []),
+            ("%s/triggers/delete/menu/post" % libpath, []),
             ("%s/triggers/install/pre" % libpath, []),
             ("%s/triggers/install/post" % libpath, []),
             ("%s/triggers/install/firstboot" % libpath, []),
@@ -656,6 +661,8 @@ if __name__ == "__main__":
             ("%s/triggers/task/package/post" % libpath, []),
             ("%s/triggers/task/file/pre" % libpath, []),
             ("%s/triggers/task/file/post" % libpath, []),
+            ("%s/triggers/task/menu/pre" % libpath, []),
+            ("%s/triggers/task/menu/post" % libpath, []),
             # Build empty directories to hold the database
             ("%s/collections" % libpath, []),
             ("%s/collections/distros" % libpath, []),
@@ -666,6 +673,7 @@ if __name__ == "__main__":
             ("%s/collections/mgmtclasses" % libpath, []),
             ("%s/collections/packages" % libpath, []),
             ("%s/collections/files" % libpath, []),
+            ("%s/collections/menus" % libpath, []),
             # logfiles
             ("%s/cobbler/kicklog" % logpath, []),
             ("%s/cobbler/syslog" % logpath, []),
@@ -686,6 +694,8 @@ if __name__ == "__main__":
             ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
+            # windows-specific templates directory
+            ("%s/windows" % etcpath, glob("templates/windows/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),

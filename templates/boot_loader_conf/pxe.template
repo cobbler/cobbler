@@ -1,0 +1,34 @@
+#if $breed == "vmware"
+#set $append_line="append -c " + $img_path + "/cobbler-boot.cfg" + $append_line
+#end if
+#set $system_local=False
+#if $varExists('system_name')
+#if not $netboot_enabled
+#set $system_local=True
+totaltimeout 0
+#else
+timeout 1
+#if $breed == "vmware"
+#set $append_line=$append_line + " " + $img_path + "/vmkboot.gz --- " + $img_path + "/vmkernel.gz --- " + $img_path + "/sys.vgz --- " + $img_path + "/cim.vgz --- " + $img_path + "/ienviron.vgz --- " + $img_path + "/install.vgz"
+#end if
+#end if
+prompt 0
+default $menu_name
+ontimeout $menu_name
+#end if
+#if not ($arch in ["ppc", "ppc64"] and $system_local)
+LABEL $menu_name
+	MENU LABEL $menu_label
+#if $system_local
+	localboot -1
+#else
+	kernel $kernel_path
+#if $initrd_path and ($arch in ["ppc", "ppc64"] or $arch.startswith("arm"))
+	initrd $initrd_path
+	$append_line
+#elif $breed != "windows"
+	$append_line
+	ipappend 2
+#end if
+#end if
+#end if

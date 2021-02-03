@@ -38,10 +38,11 @@ FIELDS = [
     ["autoinstall", "SETTINGS:default_autoinstall", '<<inherit>>', "Automatic Installation Template", True, "Path to automatic installation template", 0, "str"],
     ["autoinstall_meta", {}, '<<inherit>>', "Automatic Installation Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
+    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
     ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
     ["dhcp_tag", "default", '<<inherit>>', "DHCP Tag", True, "See manpage or leave blank", 0, "str"],
     ["distro", None, '<<inherit>>', "Distribution", True, "Parent distribution", [], "str"],
-    ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
+    ["enable_ipxe", "SETTINGS:enable_ipxe", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["enable_menu", "SETTINGS:enable_menu", '<<inherit>>', "Enable PXE Menu?", True, "Show this profile in the PXE menu?", 0, "bool"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["kernel_options", {}, '<<inherit>>', "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
@@ -60,6 +61,7 @@ FIELDS = [
     ["repos", [], '<<inherit>>', "Repos", True, "Repos to auto-assign to this profile", [], "list"],
     ["server", "<<inherit>>", '<<inherit>>', "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
+    ["menu", None, None, "Parent boot menu", True, "", 0, "str"],
     ["virt_auto_boot", "SETTINGS:virt_auto_boot", '<<inherit>>', "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ["virt_bridge", "SETTINGS:default_virt_bridge", '<<inherit>>', "Virt Bridge", True, "", 0, "str"],
     ["virt_cpus", 1, '<<inherit>>', "Virt CPUs", True, "integer", 0, "int"],
@@ -219,13 +221,13 @@ class Profile(item.Item):
         """
         self.proxy = proxy
 
-    def set_enable_gpxe(self, enable_gpxe: bool):
+    def set_enable_ipxe(self, enable_ipxe: bool):
         """
-        Sets whether or not the profile will use gPXE for booting.
+        Sets whether or not the profile will use iPXE for booting.
 
-        :param enable_gpxe: New boolean value for enabling gPXE.
+        :param enable_ipxe: New boolean value for enabling iPXE.
         """
-        self.enable_gpxe = utils.input_boolean(enable_gpxe)
+        self.enable_ipxe = utils.input_boolean(enable_ipxe)
 
     def set_enable_menu(self, enable_menu: bool):
         """
@@ -388,3 +390,52 @@ class Profile(item.Item):
         if parent:
             return parent.get_arch()
         return None
+
+    def set_boot_loaders(self, boot_loaders):
+        """
+        Setter of the boot loaders.
+
+        :param boot_loaders: The boot loaders for the profile.
+        """
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
+
+        if boot_loaders:
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            distro = self.get_conceptual_parent()
+
+            if distro:
+                distro_boot_loaders = distro.get_boot_loaders()
+            else:
+                distro_boot_loaders = utils.get_supported_system_boot_loaders()
+            if not set(boot_loaders_split).issubset(distro_boot_loaders):
+                raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
+                         (self.name, boot_loaders_split, distro_boot_loaders))
+            self.boot_loaders = boot_loaders_split
+        else:
+            self.boot_loaders = []
+
+    def get_boot_loaders(self):
+        """
+        :return: The bootloaders.
+        """
+        if self.boot_loaders == '<<inherit>>':
+            parent = self.get_parent()
+
+            if parent:
+                return parent.get_boot_loaders()
+            return None
+        return self.boot_loaders
+
+    def set_menu(self, menu):
+        """
+        :param menu: The menu for the profile.
+        """
+
+        if menu and menu != "":
+            menu_list = self.collection_mgr.menus()
+            if not menu_list.find(name=menu):
+                raise CX("menu %s not found" % menu)
+
+        self.menu = menu

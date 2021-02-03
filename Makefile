@@ -181,3 +181,5 @@ eraseconfig: ## Deletes the cobbler data jsons which are created when using the 
 	-rm /var/lib/cobbler/cobbler_collections/mgmtclasses/*
 	-rm /var/lib/cobbler/cobbler_collections/files/*
 	-rm /var/lib/cobbler/cobbler_collections/packages/*
+	-rm /var/lib/cobbler/cobbler_collections/menus/*
+

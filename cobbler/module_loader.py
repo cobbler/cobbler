@@ -103,7 +103,7 @@ def __import_module(module_path: str, modname: str):
         MODULES_BY_CATEGORY[category][modname] = blip
     except Exception:
         logger.info('Exception raised when loading module %s' % modname)
-        log_exc(logger)
+        log_exc()
 
 
 def get_module_by_name(name: str):

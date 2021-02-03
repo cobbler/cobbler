@@ -1,0 +1,44 @@
+wpeinit
+
+ping 127.0.0.1 -n 10 >nul
+#set $distro_dir = '\\\\' + $http_server + '\\' + $samba_distro_share + '\\' + $distro_name
+net use z: $distro_dir
+set exit_code=%ERRORLEVEL%
+IF %exit_code% EQU 0 GOTO INSTALL
+echo "Can't mount network drive"
+pause
+goto EXIT
+
+:INSTALL
+#if $os_version in ('XP', '2003' )
+#if "clean_disk" in $autoinstall_meta
+echo select disk 0 >disk.scr
+echo clean >>disk.scr
+echo create partition primary >>disk.scr
+echo select partition 1 >>disk.scr
+echo active >>disk.scr
+echo format fs=ntfs quick >>disk.scr
+echo assign letter=C >>disk.scr
+diskpart.exe /s disk.scr
+bootsect.exe /nt52 c: /force /mbr
+#end if
+xcopy z:\\$OEM\$\\$1 c: /y /s /e
+#end if
+#set $unattended = ""
+#if "answerfile" in $autoinstall_meta
+#set $unattended = "/unattend:Z:\\" + $autoinstall_meta["answerfile"]
+#end if
+
+#if $os_version in ('XP', '2003' )
+#if $arch == 'x86_64'
+        #set $win_arch = 'amd64'
+#else if $arch == 'i386'
+        #set $win_arch = 'i386'
+#end if
+#set $winnt = 'z:\\' + $win_arch + '\\winnt32.exe'
+$winnt /syspart:c: /tempdrive:c: /makelocalsource $unattended
+#else
+z:\sources\setup.exe $unattended
+#end if
+:EXIT
+exit

@@ -1,7 +1,11 @@
 bootstate=0
 title=Loading ESXi installer
 prefix=$img_path
+#if $os_version in ['esxi5', 'esxi51', 'esxi55', 'esxi60', 'esxi65']
+kernel=tboot.b00
+#else
 kernel=b.b00
+#end if
 #if $getVar('system_name','') != ''
 #set $what = "system"
 #else

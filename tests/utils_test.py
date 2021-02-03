@@ -100,6 +100,7 @@ def test_find_matching_files():
 
     # Act
     results = utils.find_matching_files(directory, re.compile(r'.*_test.py'))
+    results.sort()
 
     # Assert
     assert expected.sort() == results.sort()
@@ -938,6 +939,26 @@ def test_subprocess_get():
     # Assert
     # The newline makes sense in my (@SchoolGuy) eyes since we want to have multiline output also in a single string.
     assert result == "Test\n"
+
+
+def test_get_supported_system_boot_loaders():
+    # Arrange
+
+    # Act
+    result = utils.get_supported_system_boot_loaders()
+
+    # Assert
+    assert result == ["grub", "pxe", "yaboot", "ipxe"]
+
+
+def test_get_supported_distro_boot_loaders():
+    # Arrange
+
+    # Act
+    result = utils.get_supported_distro_boot_loaders(None)
+
+    # Assert
+    assert result == ["grub", "pxe", "yaboot", "ipxe"]
 
 
 def test_clear_from_fields():

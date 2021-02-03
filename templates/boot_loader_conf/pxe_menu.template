@@ -9,7 +9,5 @@ LABEL local
         MENU LABEL (local)
         MENU DEFAULT
         LOCALBOOT -1
-
-$pxe_menu_items
-
+$menu_items
 MENU end
