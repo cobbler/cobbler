@@ -23,7 +23,6 @@ import os
 from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 from cobbler import grub
 
 # this data structure is described in item.py
@@ -64,7 +63,7 @@ class Distro(item.Item):
     A Cobbler distribution object
     """
 
-    TYPE_NAME = _("distro")
+    TYPE_NAME = "distro"
     COLLECTION_TYPE = "distro"
 
     def __init__(self, *args, **kwargs):
@@ -217,7 +216,7 @@ class Distro(item.Item):
         if utils.find_initrd(initrd):
             self.initrd = initrd
             return
-        raise CX(_("initrd not found"))
+        raise CX("initrd not found")
 
     def set_remote_boot_initrd(self, remote_boot_initrd):
         """
@@ -273,7 +272,7 @@ class Distro(item.Item):
         :param supported_boot_loaders: The bootloaders which are available for being set.
         """
         if len(supported_boot_loaders) < 1:
-            raise CX(_("No valid supported boot loaders specified for distro '%s'" % self.name))
+            raise CX("No valid supported boot loaders specified for distro '%s'" % self.name)
         self.supported_boot_loaders = supported_boot_loaders
         self.boot_loaders = supported_boot_loaders
 
@@ -301,8 +300,8 @@ class Distro(item.Item):
         supported_distro_boot_loaders = self.get_supported_boot_loaders()
 
         if names != "<<inherit>>" and not set(names_split).issubset(supported_distro_boot_loaders):
-            raise CX(_("Invalid boot loader names: %s. Supported boot loaders are: %s" %
-                       (names, ' '.join(supported_distro_boot_loaders))))
+            raise CX("Invalid boot loader names: %s. Supported boot loaders are: %s" %
+                       (names, ' '.join(supported_distro_boot_loaders)))
         self.boot_loaders = names_split
 
     def get_boot_loaders(self):

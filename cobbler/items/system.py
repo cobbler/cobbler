@@ -24,7 +24,6 @@ from cobbler import power_manager
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -121,7 +120,7 @@ class System(item.Item):
     A Cobbler system object.
     """
 
-    TYPE_NAME = _("system")
+    TYPE_NAME = "system"
     COLLECTION_TYPE = "system"
 
     def __init__(self, *args, **kwargs):
@@ -199,7 +198,7 @@ class System(item.Item):
                 # no interface here to delete
                 pass
             else:
-                raise CX(_("At least one interface needs to be defined."))
+                raise CX("At least one interface needs to be defined.")
 
     def rename_interface(self, names):
         """
@@ -207,9 +206,9 @@ class System(item.Item):
         """
         (name, newname) = names
         if name not in self.interfaces:
-            raise CX(_("Interface %s does not exist" % name))
+            raise CX("Interface %s does not exist" % name)
         if newname in self.interfaces:
-            raise CX(_("Interface %s already exists" % newname))
+            raise CX("Interface %s already exists" % newname)
         else:
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
@@ -471,7 +470,7 @@ class System(item.Item):
     def set_interface_type(self, type, interface):
         interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", "infiniband", ""]
         if type not in interface_types:
-            raise CX(_("interface type value must be one of: %s or blank" % ",".join(interface_types)))
+            raise CX("interface type value must be one of: %s or blank" % ",".join(interface_types))
         if type == "na":
             type = ""
         intf = self.__get_interface(interface)
@@ -530,7 +529,7 @@ class System(item.Item):
             if address == "" or utils.is_ip(address):
                 secondaries.append(address)
             else:
-                raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+                raise CX("invalid format for IPv6 IP address (%s)" % address)
 
         intf["ipv6_secondaries"] = secondaries
 
@@ -539,7 +538,7 @@ class System(item.Item):
         if address == "" or utils.is_ip(address):
             intf["ipv6_default_gateway"] = address.strip()
             return
-        raise CX(_("invalid format for IPv6 IP address (%s)") % address)
+        raise CX("invalid format for IPv6 IP address (%s)" % address)
 
     def set_ipv6_static_routes(self, routes, interface):
         intf = self.__get_interface(interface)
@@ -588,7 +587,7 @@ class System(item.Item):
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
             return
-        raise CX(_("invalid profile name: %s") % profile_name)
+        raise CX("invalid profile name: %s" % profile_name)
 
     def set_image(self, image_name):
         """
@@ -615,7 +614,7 @@ class System(item.Item):
             if isinstance(new_parent, item.Item):
                 new_parent.children[self.name] = self
             return
-        raise CX(_("invalid image name (%s)") % image_name)
+        raise CX("invalid image name (%s)" % image_name)
 
     def set_virt_cpus(self, num):
         return utils.set_virt_cpus(self, num)
