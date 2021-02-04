@@ -539,6 +539,31 @@ def remove_mgmtclass(remote, token):
     remote.remove_mgmtclass("mgmtclass0", token, False)
 
 
+@pytest.fixture()
+def create_testmenu(remote, token):
+    """
+    Create a menu with the name "testmenu0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+
+    menu = remote.new_menu(token)
+    remote.modify_menu(menu, "name", "testmenu0", token)
+    remote.save_menu(menu, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testmenu(remote, token):
+    """
+    Remove a menu "testmenu0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_menu("testmenu0", token, False)
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base", "remove_fakefiles")
 class TestDistroProfileSystem:
     """
@@ -935,6 +960,17 @@ class TestDistroProfileSystem:
         # Assert
         assert "ks_meta" not in file
         assert "kickstart" not in file
+
+    @pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
+    def test_get_menu_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        menu = remote.get_menu_for_koan("testmenu0")
+
+        # Assert
+        assert "ks_meta" not in menu
+        assert "kickstart" not in menu
 
     def test_find_distro(self, remote, token):
         """

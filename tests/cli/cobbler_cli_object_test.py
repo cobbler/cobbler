@@ -96,7 +96,7 @@ files:
         assert outputstd == expected
 
     @pytest.mark.parametrize("object_type", ["distro", "profile", "system", "image", "repo", "package", "mgmtclass",
-                                             "file"])
+                                             "file", "menu"])
     def test_report_with_type(self, run_cmd, object_type):
         # Arrange
 
@@ -107,7 +107,7 @@ files:
         assert outputstd is None or not outputstd
 
     @pytest.mark.parametrize("object_type", ["distro", "profile", "system", "image", "repo", "package", "mgmtclass",
-                                             "file"])
+                                             "file", "menu"])
     def test_report_with_type_and_name(self, run_cmd, object_type):
         # Arrange
         name = "notexisting"
@@ -133,6 +133,7 @@ files:
         ("mgmtclass", {"name": "testmgmtclassedit"}, ["comment", "Testcomment"], "Comment"),
         ("file", {"name": "testfileedit", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
                   "is-dir": "True"}, ["path", "/test_dir"], "Path"),
+        ("menu", {"name": "testmenuedit"}, ["comment", "Testcomment"], "Comment"),
     ])
     def test_edit(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes, to_change,
                   attr_long_name):
@@ -183,7 +184,8 @@ files:
         ("package", {"name": "testpackagefind"}),
         ("mgmtclass", {"name": "testmgmtclassfind"}),
         ("file", {"name": "testfilefind", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"})
+                  "is-dir": "True"}),
+        ("menu", {"name": "testmenufind"}),
     ])
     def test_find(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
         # Arrange
@@ -224,7 +226,8 @@ files:
         ("package", {"name": "testpackagecopy"}),
         ("mgmtclass", {"name": "testmgmtclasscopy"}),
         ("file", {"name": "testfilecopy", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"})
+                  "is-dir": "True"}),
+        ("menu", {"name": "testmenucopy"}),
     ])
     def test_copy(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
         # Arrange
@@ -267,7 +270,8 @@ files:
         ("package", {"name": "testpackagerename"}),
         ("mgmtclass", {"name": "testmgmtclassrename"}),
         ("file", {"name": "testfilerename", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"})
+                  "is-dir": "True"}),
+        ("menu", {"name": "testmenurename"}),
     ])
     def test_rename(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
         # Arrange
@@ -309,7 +313,8 @@ files:
         ("package", {"name": "testpackageadd"}),
         ("mgmtclass", {"name": "testmgmtclassadd"}),
         ("file", {"name": "testfileadd", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"})
+                  "is-dir": "True"}),
+        ("menu", {"name": "testmenuadd"}),
     ])
     def test_add(self, run_cmd, remove_object_via_cli, generate_run_cmd_array, object_type, attributes,
                  add_object_via_cli):
@@ -353,7 +358,8 @@ files:
         ("package", {"name": "testpackageremove"}),
         ("mgmtclass", {"name": "testmgmtclassremove"}),
         ("file", {"name": "testfileremove", "path": "/tmp", "owner": "root", "group": "root", "mode": "600",
-                  "is-dir": "True"})
+                  "is-dir": "True"}),
+        ("menu", {"name": "testmenuremove"}),
     ])
     def test_remove(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
         # Arrange

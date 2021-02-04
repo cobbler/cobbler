@@ -12,8 +12,8 @@
 #
 # See http://ipxe.org/wimboot for more details
 #
-kernel http://$server:$http_port/cobbler/images/$distro/wimboot
-#for $init in $initrd
-initrd http://$server:$http_port/cobbler/images/$distro/$init	$init
+kernel $kernel_path
+#for $init in $initrd_path
+initrd $init
 #end for
-boot 
+boot

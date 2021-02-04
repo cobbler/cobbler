@@ -26,7 +26,7 @@ import os
 from threading import Lock
 
 from cobbler.actions import litesync
-from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
 
 from cobbler.utils import _
 from cobbler.cexceptions import CX, NotImplementedException
@@ -265,6 +265,14 @@ class Collection(object):
                             item.mgmt_classes[i] = newname
                     self.api.add_item(what, item, save=True)
 
+        # for menus, update all objects that use it
+        if ref.COLLECTION_TYPE == "menu":
+            for what in ["profile", "image"]:
+                items = self.api.find_items(what, {"menu": oldname})
+                for item in items:
+                    item.menu = newname
+                    self.api.add_item(what, item, save=True)
+
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
             path = "/var/www/cobbler/repo_mirror/%s" % ref.name
@@ -306,6 +314,9 @@ class Collection(object):
                 else:
                     k.set_distro(newname)
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "menu":
+                k.set_parent(newname)
+                self.api.menus().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "system":
                 k.set_profile(newname)
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
@@ -413,6 +424,8 @@ class Collection(object):
                     pass
                 elif isinstance(ref, file.File):
                     pass
+                elif isinstance(ref, menu.Menu):
+                    pass
                 else:
                     print(_("Internal error. Object type not recognized: %s") % type(ref))
             if not with_sync and quick_pxe_update:
@@ -462,6 +475,8 @@ class Collection(object):
                 match = self.api.find_package(ref.name)
             elif isinstance(ref, file.File):
                 match = self.api.find_file(ref.name)
+            elif isinstance(ref, menu.Menu):
+                match = self.api.find_menu(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 

@@ -142,10 +142,12 @@ class InTftpdManager(object):
         :param system: The system to be added.
         """
         # write the PXE files for the system
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        self.tftpgen.write_all_system_files(system, menu_items)
-        # generate any templates listed in the distro
-        self.tftpgen.write_templates(system)
+        all_menu_items = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menu_items:
+            menu_items = all_menu_items['pxe']
+            self.tftpgen.write_all_system_files(system, menu_items)
+            # generate any templates listed in the distro
+            self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)

@@ -35,7 +35,7 @@ import time
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler import configgen
-from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -804,6 +804,18 @@ class CobblerXMLRPCInterface(object):
         """
         return self.get_item("file", name, flatten=flatten)
 
+    def get_menu(self, name, flatten=False, token=None, **rest):
+        """
+        Get a menu.
+
+        :param name: The name of the file to get.
+        :param flatten: If the item should be flattened.
+        :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
+        :param rest: Not used with this method currently.
+        :return: The item or None.
+        """
+        return self.get_item("menu", name, flatten=flatten)
+
     def get_items(self, what):
         """
         Individual list elements are the same for get_item.
@@ -930,6 +942,18 @@ class CobblerXMLRPCInterface(object):
         """
         return self.get_items("file")
 
+    def get_menus(self, page=None, results_per_page=None, token=None, **rest):
+        """
+        This returns all menus.
+
+        :param page: This parameter is not used currently.
+        :param results_per_page: This parameter is not used currently.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: The list of all files.
+        """
+        return self.get_items("menu")
+
     def find_items(self, what, criteria=None, sort_field=None, expand=True):
         """Works like get_items but also accepts criteria as a dict to search on.
 
@@ -1049,6 +1073,18 @@ class CobblerXMLRPCInterface(object):
         :return: All files which have matched the criteria.
         """
         return self.find_items("file", criteria, expand=expand)
+
+    def find_menu(self, criteria=None, expand=False, token=None, **rest):
+        """
+        Find a menu matching certain criteria.
+
+        :param criteria: The criteria a distribution needs to match.
+        :param expand: Not only get the names but also the complete object in form of a dict.
+        :param token: The API-token obtained via the login() method.
+        :param rest: This parameter is not used currently.
+        :return: All files which have matched the criteria.
+        """
+        return self.find_items("menu", criteria, expand=expand)
 
     def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
         """
@@ -1186,6 +1222,16 @@ class CobblerXMLRPCInterface(object):
         """
         return self.get_item_handle("file", name, token)
 
+    def get_menu_handle(self, name, token):
+        """
+        Get a handle for a menu which allows you to use the functions ``modify_*`` or ``save_*`` to manipulate it.
+
+        :param name: The name of the item.
+        :param token: The API-token obtained via the login() method.
+        :return: The handle of the desired object.
+        """
+        return self.get_item_handle("menu", name, token)
+
     def remove_item(self, what, name, token, recursive=True):
         """
         Deletes an item from a collection.
@@ -1300,6 +1346,18 @@ class CobblerXMLRPCInterface(object):
         """
         return self.remove_item("file", name, token, recursive)
 
+    def remove_menu(self, name, token, recursive=True):
+        """
+        Deletes a menu from Cobbler.
+
+        :param name: The name of the item to remove.
+        :param token: The API-token obtained via the login() method.
+        :param recursive: If items which are depending on this one should be erased too.
+        :type recursive: bool
+        :return: True if the action was successful.
+        """
+        return self.remove_item("menu", name, token, recursive)
+
     def copy_item(self, what, object_id, newname, token=None):
         """
         Creates a new object that matches an existing object, as specified by an id.
@@ -1404,6 +1462,17 @@ class CobblerXMLRPCInterface(object):
         """
         return self.copy_item("file", object_id, newname, token)
 
+    def copy_menu(self, object_id, newname, token=None):
+        """
+        Copies a menu and rename it afterwards.
+
+        :param object_id: The object id of the item in question.
+        :param newname: The new name for the copied object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.copy_item("menu", object_id, newname, token)
+
     def rename_item(self, what, object_id, newname, token=None):
         """
         Renames an object specified by object_id to a new name.
@@ -1507,13 +1576,25 @@ class CobblerXMLRPCInterface(object):
         """
         return self.rename_item("file", object_id, newname, token)
 
+    def rename_menu(self, object_id, newname, token=None):
+        """
+        Renames a menu specified by object_id to a new name.
+
+        :param object_id: The id which refers to the object.
+        :param newname: The new name for the object.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action succeeded.
+        """
+        return self.rename_item("menu", object_id, newname, token)
+
     def new_item(self, what, token, is_subobject=False):
         """Creates a new (unconfigured) object, returning an object handle that can be used.
 
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
         then finally ``save_*`` methods. The handle only exists in memory until saved.
 
-        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, or ``image``
+        :param what: specifies the type of object: ``distro``, ``profile``, ``system``, ``repo``, ``image``
+                                                   ``mgmtclass``, ``package``, ``file`` or ``menu``
         :param token: The API-token obtained via the login() method.
         :param is_subobject: If the object is a subobject of an already existing object or not.
         :return: The object id for the newly created object.
@@ -1536,6 +1617,8 @@ class CobblerXMLRPCInterface(object):
             d = package.Package(self.api._collection_mgr, is_subobject=is_subobject)
         elif what == "file":
             d = file.File(self.api._collection_mgr, is_subobject=is_subobject)
+        elif what == "menu":
+            d = menu.Menu(self.api._collection_mgr, is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what, self.__get_random(25))
@@ -1622,6 +1705,15 @@ class CobblerXMLRPCInterface(object):
         :return: The object id for the newly created object.
         """
         return self.new_item("file", token)
+
+    def new_menu(self, token):
+        """
+        See ``new_item()``.
+
+        :param token: The API-token obtained via the login() method.
+        :return: The object id for the newly created object.
+        """
+        return self.new_item("menu", token)
 
     def modify_item(self, what, object_id, attribute, arg, token):
         """
@@ -1743,6 +1835,18 @@ class CobblerXMLRPCInterface(object):
         :return: True if the action was successful. Otherwise False.
         """
         return self.modify_item("file", object_id, attribute, arg, token)
+
+    def modify_menu(self, object_id, attribute, arg, token):
+        """
+        Modify a single attribute of a menu.
+
+        :param object_id: The id of the object which shall be modified.
+        :param attribute: The attribute name which shall be edited.
+        :param arg: The new value for the arguement.
+        :param token: The API-token obtained via the login() method.
+        :return: True if the action was successful. Otherwise False.
+        """
+        return self.modify_item("menu", object_id, attribute, arg, token)
 
     def modify_setting(self, setting_name, value, token):
         """
@@ -1888,7 +1992,7 @@ class CobblerXMLRPCInterface(object):
         else:
             # remove item
             recursive = attributes.get("recursive", False)
-            if object_type == "profile" and recursive is False:
+            if object_type in ["profile", "menu"] and recursive is False:
                 childs = len(self.api.find_items(object_type, criteria={'parent': attributes['name']}))
                 if childs > 0:
                     raise CX("Can't delete this profile there are %s subprofiles and 'recursive' is set to 'False'" % childs)
@@ -2016,6 +2120,18 @@ class CobblerXMLRPCInterface(object):
         """
         return self.save_item("file", object_id, token, editmode=editmode)
 
+    def save_menu(self, object_id, token, editmode="bypass"):
+        """
+        Saves a newly created or modified object to disk. Calling save is required for any changes to persist.
+
+        :param object_id: The id of the object to save.
+        :param token: The API-token obtained via the login() method.
+        :param editmode: The mode which shall be used to persist the changes. Currently "new" and "bypass" are
+                         supported.
+        :return: True if the action succeeded.
+        """
+        return self.save_item("menu", object_id, token, editmode=editmode)
+
     def get_autoinstall_templates(self, token=None, **rest):
         """
         Returns all of the automatic OS installation templates that are in use by the system.
@@ -2102,6 +2218,18 @@ class CobblerXMLRPCInterface(object):
         """
         self._log("generate_gpxe")
         return self.api.generate_gpxe(profile, system)
+
+    def generate_ipxe(self, profile=None, system=None, **rest):
+        """
+        Generate the ipxe configuration.
+
+        :param profile: The profile to generate iPXE config for.
+        :param system: The system to generate iPXE config for.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The configuration as a str representation.
+        """
+        self._log("generate_ipxe")
+        return self.api.generate_ipxe(profile, system)
 
     def generate_bootcfg(self, profile=None, system=None, **rest):
         """
@@ -2635,6 +2763,16 @@ class CobblerXMLRPCInterface(object):
         data = self.api.get_files_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
+    def get_menus_since(self, mtime):
+        """
+        See documentation for get_distros_since
+
+        :param mtime: The time after which all items should be included. Everything before this will be excluded.
+        :return: The list of items which were modified after ``mtime``.
+        """
+        data = self.api.get_menus_since(mtime, collapse=True)
+        return self.xmlrpc_hacks(data)
+
     def get_repos_compatible_with_profile(self, profile=None, token=None, **rest):
         """
         Get repos that can be used with a given profile name.
@@ -2862,6 +3000,24 @@ class CobblerXMLRPCInterface(object):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
+    def get_menu_as_rendered(self, name, token=None, **rest):
+        """
+        Get menu after passing through Cobbler's inheritance engine
+
+        :param name: menu name
+        :type name: str
+        :param token: authentication token
+        :type token: str
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: Get a template rendered as a file.
+        """
+
+        self._log("get_menu_as_rendered", name=name, token=token)
+        obj = self.api.find_menu(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
+
     def get_distro_for_koan(self, name, token=None, **rest):
         """
         This is a legacy function for 2.6.6 releases.
@@ -3017,6 +3173,20 @@ class CobblerXMLRPCInterface(object):
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
+    def get_menu_for_koan(self, name, token=None, **rest):
+        """
+        This is a legacy function for 2.6.6 releases.
+        :param name: Name of the menu to get.
+        :param token: Auth token to authenticate against the api.
+        :param rest: This is dropped in this method since it is not needed here.
+        :return: The desired file or '~'.
+        """
+        self._log("get_menu_for_koan", name=name, token=token)
+        obj = self.api.find_menu(name=name)
+        if obj is not None:
+            return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
+        return self.xmlrpc_hacks({})
+
     def get_random_mac(self, virt_type="xenpv", token=None, **rest):
         """
         Wrapper for ``utils.get_random_mac()``. Used in the webui.
@@ -3153,6 +3323,8 @@ class CobblerXMLRPCInterface(object):
             return self.api.find_package(name)
         if resource.find("file") != -1:
             return self.api.find_file(name)
+        if resource.find("menu") != -1:
+            return self.api.find_menu(name)
         return None
 
     def check_access_no_fail(self, token, resource, arg1=None, arg2=None):

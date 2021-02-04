@@ -2776,40 +2776,40 @@
     },
     "windows": {
      "2003": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub"]}
+      "supported_arches":["i386","x86_64"],
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "2008": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "supported_arches":["i386","x86_64"],
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "2012": {
       "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "2016": {
       "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "2019": {
       "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "XP": {
       "supported_arches":["i386","x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub"]}
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "7": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "supported_arches":["i386","x86_64"],
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "8": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "supported_arches":["i386","x86_64"],
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      },
      "10": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
+      "supported_arches":["i386","x86_64"],
+      "boot_loaders":{"x86_64":["pxe","ipxe"]}
      }
     },
     "powerkvm": {
@@ -2838,7 +2838,7 @@
         "boot_files": [],
         "boot_loaders": {
           "ppc64": [
-            "pxelinux"
+            "pxe"
           ]
         }
       }

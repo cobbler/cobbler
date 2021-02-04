@@ -2032,7 +2032,7 @@ def get_supported_system_boot_loaders():
     :return: The list of currently supported bootloaders.
     :rtype: list
     """
-    return ["<<inherit>>", "grub", "pxelinux", "yaboot", "ipxe"]
+    return ["<<inherit>>", "grub", "pxe", "yaboot", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):
@@ -2054,12 +2054,12 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub", "pxelinux", "yaboot"],
+                return {"ppc64": ["grub", "pxe", "ipxe", "yaboot"],
                         "ppc64le": ["grub"],
                         "ppc64el": ["grub"],
                         "aarch64": ["grub"],
-                        "i386": ["grub", "pxelinux"],
-                        "x86_64": ["grub", "pxelinux"]}[distro.arch]
+                        "i386": ["grub", "pxe", "ipxe"],
+                        "x86_64": ["grub", "pxe", "ipxe"]}[distro.arch]
             except:
                 # Else return the globally known list
                 return get_supported_system_boot_loaders()

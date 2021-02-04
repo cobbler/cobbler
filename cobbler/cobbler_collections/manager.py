@@ -26,7 +26,7 @@ import weakref
 import uuid
 
 from cobbler.cexceptions import CX
-from cobbler.cobbler_collections import files, systems, mgmtclasses, distros, profiles, repos, packages, images
+from cobbler.cobbler_collections import files, systems, mgmtclasses, distros, profiles, repos, packages, images, menus
 from cobbler import settings
 from cobbler import serializer
 
@@ -64,6 +64,7 @@ class CollectionManager(object):
         self._mgmtclasses = mgmtclasses.Mgmtclasses(weakref.proxy(self))
         self._packages = packages.Packages(weakref.proxy(self))
         self._files = files.Files(weakref.proxy(self))
+        self._menus = menus.Menus(weakref.proxy(self))
         self._settings = settings.Settings()         # not a true collection
 
     def generate_uid(self):
@@ -129,6 +130,12 @@ class CollectionManager(object):
         """
         return self._files
 
+    def menus(self):
+        """
+        Return the definitive copy of the Menus collection
+        """
+        return self._menus
+
     def serialize(self):
         """
         Save all cobbler_collections to disk
@@ -142,6 +149,7 @@ class CollectionManager(object):
         serializer.serialize(self._mgmtclasses)
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
+        serializer.serialize(self._menus)
 
     def serialize_item(self, collection, item):
         """
@@ -180,6 +188,7 @@ class CollectionManager(object):
             self._mgmtclasses,
             self._packages,
             self._files,
+            self._menus,
         ):
             try:
                 serializer.deserialize(collection)
@@ -213,6 +222,8 @@ class CollectionManager(object):
             result = self._packages
         elif collection_type == "file":
             result = self._files
+        elif collection_type == "menu":
+            result = self._menus
         elif collection_type == "settings":
             result = self._settings
         else:

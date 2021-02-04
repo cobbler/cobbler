@@ -436,12 +436,27 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_windows.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grublocal.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubmenubegin.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubmenuend.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubprofile.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubsystem.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxedefault.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxemenubegin.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxemenuend.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxeprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_esxi5.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_esxi6.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_esxi7.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_freebsd.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_linux.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_local.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_system_windows.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxedefault.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal_ia64.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxemenubegin.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxemenuend.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_arm.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_esxi.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem.template
@@ -472,6 +487,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/windows.settings
 %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
@@ -480,6 +496,10 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
+%dir %{_sysconfdir}/cobbler/windows
+%config(noreplace) %{_sysconfdir}/cobbler/windows/answerfile.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd

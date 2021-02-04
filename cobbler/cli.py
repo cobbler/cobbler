@@ -30,7 +30,7 @@ import traceback
 import xmlrpc.client
 
 from cobbler import field_info
-from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import settings
 from cobbler import utils
 from cobbler.cexceptions import NotImplementedException
@@ -46,6 +46,7 @@ OBJECT_ACTIONS_MAP = {
     "mgmtclass": "add copy edit find list remove rename report".split(" "),
     "package": "add copy edit find list remove rename report".split(" "),
     "file": "add copy edit find list remove rename report".split(" "),
+    "menu": "add copy edit find list remove rename report".split(" "),
     "setting": "edit report".split(" "),
     "signature": "reload report update".split(" ")
 }
@@ -166,6 +167,8 @@ def report_item(remote, otype, item=None, name=None):
         data = utils.to_string_from_fields(item, package.FIELDS)
     elif otype == "file":
         data = utils.to_string_from_fields(item, file.FIELDS)
+    elif otype == "menu":
+        data = utils.to_string_from_fields(item, menu.FIELDS)
     elif otype == "setting":
         data = "%-40s: %s" % (item['name'], item['value'])
     print(data)
@@ -485,6 +488,8 @@ class CobblerCLI(object):
             return package.FIELDS
         elif object_type == "file":
             return file.FIELDS
+        elif object_type == "menu":
+            return menu.FIELDS
         elif object_type == "setting":
             return settings.FIELDS
 
@@ -751,6 +756,8 @@ class CobblerCLI(object):
             report_items(self.remote, "package")
             print("\nfiles:\n==========")
             report_items(self.remote, "file")
+            print("\nmenus:\n==========")
+            report_items(self.remote, "menu")
         elif action_name == "list":
             # no tree view like 1.6?  This is more efficient remotely
             # for large configs and prevents xfering the whole config
@@ -772,6 +779,8 @@ class CobblerCLI(object):
             list_items(self.remote, "package")
             print("\nfiles:")
             list_items(self.remote, "file")
+            print("\nmenus:")
+            list_items(self.remote, "menu")
         else:
             print("No such command: %s" % action_name)
             return 1
@@ -845,7 +854,7 @@ class CobblerCLI(object):
         Prints general-top level help, e.g. "cobbler --help" or "cobbler" or "cobbler command-does-not-exist"
         """
         print("usage\n=====")
-        print("cobbler <distro|profile|system|repo|image|mgmtclass|package|file> ... ")
+        print("cobbler <distro|profile|system|repo|image|mgmtclass|package|file|menu> ... ")
         print("        [add|edit|copy|get-autoinstall*|list|remove|rename|report] [options|--help]")
         print("cobbler setting [edit|report]")
         print("cobbler <%s> [options|--help]" % "|".join(DIRECT_ACTIONS))

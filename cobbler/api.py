@@ -30,7 +30,7 @@ from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replica
 from cobbler import autoinstall_manager
 from cobbler import clogger
 from cobbler.cobbler_collections import manager
-from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import module_loader
 from cobbler import power_manager
 from cobbler import tftpgen
@@ -323,6 +323,12 @@ class CobblerAPI(object):
         """
         return self.get_items("file")
 
+    def menus(self):
+        """
+        Return the current list of menus
+        """
+        return self.get_items("menu")
+
     # =======================================================================
 
     def copy_item(self, what, ref, newname, logger=None):
@@ -408,6 +414,15 @@ class CobblerAPI(object):
         :param newname: The new name of the newly created object.
         """
         self.copy_item("file", ref, newname, logger=None)
+
+    def copy_menu(self, ref, newname):
+        """
+        This method copies a file which is just different in the name of the object.
+
+        :param ref: The object itself which gets copied.
+        :param newname: The new name of the newly created object.
+        """
+        self.copy_item("menu", ref, newname, logger=None)
 
     # ==========================================================================
 
@@ -527,6 +542,18 @@ class CobblerAPI(object):
         """
         self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
 
+    def remove_menu(self, ref, recursive=False, delete=True, with_triggers=True, logger=None):
+        """
+        Remove a menu from Cobbler.
+
+        :param ref: The internal unique handle for the item.
+        :param recursive: If the item should recursively should delete dependencies on itself.
+        :param delete: Not known what this parameter does exactly.
+        :param with_triggers: Whether you would like to have the removal triggers executed or not.
+        :param logger: The logger to audit the removal with.
+        """
+        self.remove_item("menu", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+
     # ==========================================================================
 
     def rename_item(self, what, ref, newname, logger=None):
@@ -621,6 +648,16 @@ class CobblerAPI(object):
         :param logger: The logger to audit the removal with.
         """
         self.rename_item("file", ref, newname, logger=logger)
+
+    def rename_menu(self, ref, newname, logger=None):
+        """
+        Rename a menu to a new name.
+
+        :param ref: The internal unique handle for the item.
+        :param newname: The new name for the item.
+        :param logger: The logger to audit the removal with.
+        """
+        self.rename_item("menu", ref, newname, logger=logger)
 
     # ==========================================================================
 
@@ -721,6 +758,18 @@ class CobblerAPI(object):
         """
         self.log("new_file", [is_subobject])
         return file.File(self._collection_mgr, is_subobject=is_subobject)
+
+    def new_menu(self, is_subobject=False):
+        """
+        Returns a new empty menu object. This file is not automatically persisted. Persistence is achieved via
+        ``save()``.
+
+        :param is_subobject: If the object created is a subobject or not.
+        :type is_subobject: bool
+        :return: An empty File object.
+        """
+        self.log("new_menu", [is_subobject])
+        return menu.Menu(self._collection_mgr, is_subobject=is_subobject)
 
     # ==========================================================================
 
@@ -827,6 +876,17 @@ class CobblerAPI(object):
         :param logger: The logger to audit the removal with.
         """
         self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+
+    def add_menu(self, ref, check_for_duplicate_names=False, save=True, logger=None):
+        """
+        Add a submenu to Cobbler.
+
+        :param ref: The identifier for the object to add to a collection.
+        :param check_for_duplicate_names: If the name should be unique or can be present multiple times.
+        :param save: If the item should be persisted.
+        :param logger: The logger to audit the removal with.
+        """
+        self.add_item("menu", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
 
     # ==========================================================================
 
@@ -949,6 +1009,18 @@ class CobblerAPI(object):
         """
         return self._collection_mgr.files().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
 
+    def find_menu(self, name=None, return_list=False, no_errors=False, **kargs):
+        """
+        Find a menu via a name or keys specified in the ``**kargs``.
+
+        :param name: The name to search for.
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
+        :param kargs: Additional key-value pairs which may help in finding the desired objects.
+        :return: A single object or a list of all search results.
+        """
+        return self._collection_mgr.menus().find(name=name, return_list=return_list, no_errors=no_errors, **kargs)
+
     # ==========================================================================
 
     def __since(self, mtime, collector, collapse=False):
@@ -1066,6 +1138,18 @@ class CobblerAPI(object):
         :rtype: list
         """
         return self.__since(mtime, self.files, collapse=collapse)
+
+    def get_menus_since(self, mtime, collapse=False):
+        """
+        Return files modified since a certain time (in seconds since Epoch)
+
+        :param mtime: The timestamp which marks the gate if an object is included or not.
+        :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
+                         objects.
+        :return: The list of files which are newer then the given timestamp.
+        :rtype: list
+        """
+        return self.__since(mtime, self.menus, collapse=collapse)
 
     # ==========================================================================
 
@@ -1237,6 +1321,26 @@ class CobblerAPI(object):
             return self.tftpgen.generate_gpxe("system", system)
         else:
             return self.tftpgen.generate_gpxe("profile", profile)
+
+    def generate_ipxe(self, profile, system):
+        """
+        Generate the ipxe configuration files. The system wins over the profile.
+
+        :param profile: The profile to return the configuration for.
+        :param system: The system to return the configuration for.
+        :return: The generated configuration file.
+        """
+        self.log("generate_ipxe")
+        data = ""
+        if profile is None and system is None:
+            boot_menu = self.tftpgen.make_pxe_menu()
+            if 'ipxe' in boot_menu:
+                data = boot_menu['ipxe']
+        elif system:
+            data = self.tftpgen.generate_gpxe("system", system, 'ipxe')
+        else:
+            data = self.tftpgen.generate_gpxe("profile", profile, 'ipxe')
+        return data
 
     # ==========================================================================
 

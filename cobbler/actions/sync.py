@@ -77,6 +77,7 @@ class CobblerSync(object):
         self.images_dir = os.path.join(self.bootloc, "images")
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
+        self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
 
     def run(self):
@@ -160,6 +161,8 @@ class CobblerSync(object):
             utils.mkdir(self.yaboot_bin_dir, logger=self.logger)
         if not os.path.exists(self.yaboot_cfg_dir):
             utils.mkdir(self.yaboot_cfg_dir, logger=self.logger)
+        if not os.path.exists(self.ipxe_dir):
+            utils.mkdir(self.ipxe_dir, logger=self.logger)
 
     def clean_trees(self):
         """
@@ -191,6 +194,7 @@ class CobblerSync(object):
         utils.rmtree_contents(self.images_dir, logger=self.logger)
         utils.rmtree_contents(self.yaboot_bin_dir, logger=self.logger)
         utils.rmtree_contents(self.yaboot_cfg_dir, logger=self.logger)
+        utils.rmtree_contents(self.ipxe_dir, logger=self.logger)
         utils.rmtree_contents(self.rendered_dir, logger=self.logger)
 
     def write_dhcp(self):

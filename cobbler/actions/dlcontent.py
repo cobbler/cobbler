@@ -54,7 +54,7 @@ class ContentDownloader(object):
         """
 
         content_server = "https://cobbler.github.io/loaders"
-        dest = "/var/lib/cobbler/loaders"
+        dest = self.settings.bootloaders_dir
 
         files = (
             ("%s/README" % content_server, "%s/README" % dest),

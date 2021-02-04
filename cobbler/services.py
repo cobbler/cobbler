@@ -127,6 +127,29 @@ class CobblerSvc(object):
         data = self.remote.generate_gpxe(profile, system)
         return "%s" % data
 
+    def ipxe(self, profile=None, system=None, mac=None, **rest):
+        """
+        Generate a iPXE config
+
+        :param profile:
+        :param image
+        :param system:
+        :param mac:
+        :param rest: This parameter is unused.
+        :return:
+        """
+        self.__xmlrpc_setup()
+        if not system and mac:
+            query = {"mac_address": mac}
+            if profile:
+                query["profile"] = profile
+            found = self.remote.find_system(query)
+            if found:
+                system = found[0]
+
+        data = self.remote.generate_ipxe(profile, system)
+        return "%s" % data
+
     def bootcfg(self, profile=None, system=None, **rest):
         """
         Generate a boot.cfg config file. Used primarily for VMware ESXi.
@@ -264,7 +287,7 @@ class CobblerSvc(object):
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
-        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages" or "files"
+        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages", "files" or "menus"
         :param rest: This parameter is unused.
         :return: The list of object names.
         :rtype: str
@@ -287,6 +310,8 @@ class CobblerSvc(object):
             listing = self.remote.get_packages()
         elif what == "files":
             listing = self.remote.get_files()
+        elif what == "menus":
+            listing = self.remote.get_menus()
         else:
             return "?"
         for x in listing:

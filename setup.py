@@ -610,6 +610,7 @@ if __name__ == "__main__":
             ("%s/ppc" % tftproot, []),
             ("%s/s390x" % tftproot, []),
             ("%s/pxelinux.cfg" % tftproot, []),
+            ("%s/ipxe" % tftproot, []),
             ("%s/grub/system" % tftproot, []),
             ("%s/grub/system_link" % tftproot, []),
             ("%s/grub_config/grub/system" % libpath, []),
@@ -674,6 +675,7 @@ if __name__ == "__main__":
             ("%s/collections/mgmtclasses" % libpath, []),
             ("%s/collections/packages" % libpath, []),
             ("%s/collections/files" % libpath, []),
+            ("%s/collections/menus" % libpath, []),
             # logfiles
             ("%s/cobbler/kicklog" % logpath, []),
             ("%s/cobbler/syslog" % logpath, []),
@@ -696,6 +698,8 @@ if __name__ == "__main__":
             ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
+            # windows-specific templates directory
+            ("%s/windows" % etcpath, glob("templates/windows/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),
             # man pages
             ("%s/man1" % docpath, glob("build/sphinx/man/*.1")),
