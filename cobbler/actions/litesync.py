@@ -222,7 +222,7 @@ class CobblerLiteSync(object):
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
 
-    def add_single_menu(self, name, rebuild_menu=True):
+    def add_single_menu(self, rebuild_menu=True):
         """
         Sync adding a single menu.
 
@@ -234,7 +234,7 @@ class CobblerLiteSync(object):
         if rebuild_menu:
             self.sync.tftpgen.make_pxe_menu()
 
-    def remove_single_menu(self, name, rebuild_menu=True):
+    def remove_single_menu(self, rebuild_menu=True):
         """
         Sync removing a single menu.
 

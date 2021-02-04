@@ -11,10 +11,11 @@ from hivex.hive_types import REG_MULTI_SZ
 import cobbler.utils as utils
 import cobbler.templar as templar
 import cobbler.tftpgen as tftpgen
+from cobbler.cexceptions import CX
 
-answerfile_template_name = "answerfile.template"
-post_inst_cmd_template_name = "post_inst_cmd.template"
-startnet_template_name = "startnet.template"
+af_template_name = "answerfile.template"
+pic_template_name = "post_inst_cmd.template"
+sn_template_name = "startnet.template"
 wimupdate = "/usr/bin/wimupdate"
 
 
@@ -105,15 +106,15 @@ def run(api, args, logger):
     templ = templar.Templar(api._collection_mgr)
     tgen = tftpgen.TFTPGen(api._collection_mgr, logger)
 
-    template_win = open(os.path.join(settings.windows_template_dir, post_inst_cmd_template_name))
+    template_win = open(os.path.join(settings.windows_template_dir, pic_template_name))
     post_tmpl_data = template_win.read()
     template_win.close()
 
-    template_win = open(os.path.join(settings.windows_template_dir, answerfile_template_name))
+    template_win = open(os.path.join(settings.windows_template_dir, af_template_name))
     tmpl_data = template_win.read()
     template_win.close()
 
-    template_start = open(os.path.join(settings.windows_template_dir, startnet_template_name))
+    template_start = open(os.path.join(settings.windows_template_dir, sn_template_name))
     tmplstart_data = template_start.read()
     template_start.close()
 
@@ -176,19 +177,17 @@ def run(api, args, logger):
                 tl_file_name = os.path.join(kernel_path, "setupldr.exe")
 
                 if len(meta["bootmgr"]) != 5:
-                    logger.error("The loader name should be EXACTLY 5 character")
-                    return 1
+                    raise CX("The loader name should be EXACTLY 5 character")
 
                 pat1 = re.compile(br'NTLDR', re.IGNORECASE)
                 pat2 = re.compile(br'winnt\.sif', re.IGNORECASE)
-                f = open(tl_file_name, 'rb')
-                out = data = f.read()
-                f.close()
+                fd = open(tl_file_name, 'rb')
+                out = data = fd.read()
+                fd.close()
 
                 if "answerfile" in meta:
                     if len(meta["answerfile"]) != 9:
-                        logger.error("The response file name should be EXACTLY 9 character")
-                        return 1
+                        raise CX("The response file name should be EXACTLY 9 character")
 
                     out = pat2.sub(bytes(meta["answerfile"], 'utf-8'), data)
                     win_arch = "amd64" if distro.arch == "x86_64" else "i386"
@@ -199,27 +198,24 @@ def run(api, args, logger):
                     utils.subprocess_call(logger, cmd, shell=True)
             else:
                 if len(meta["bootmgr"]) != 11:
-                    logger.error("The Boot manager file name should be EXACTLY 11 character")
-                    return 1
+                    raise CX("The Boot manager file name should be EXACTLY 11 character")
 
                 bcd_name = "bcd"
                 if is_bcd:
                     bcd_name = meta["bcd"]
                     if len(bcd_name) != 3:
-                        logger.error("The BCD file name should be EXACTLY 3 character")
-                        return 1
+                        raise CX("The BCD file name should be EXACTLY 3 character")
 
                 if not os.path.isfile(tl_file_name):
-                    logger.error("File not found: %s" % tl_file_name)
-                    return 1
+                    raise CX("File not found: %s" % tl_file_name)
 
                 pat1 = re.compile(br'bootmgr\.exe', re.IGNORECASE)
                 pat2 = re.compile(br'(\\.B.o.o.t.\\.)(B)(.)(C)(.)(D)', re.IGNORECASE)
 
                 bcd_name = bytes("\\g<1>" + bcd_name[0] + "\\g<3>" + bcd_name[1] + "\\g<5>" + bcd_name[2], 'utf-8')
-                f = open(tl_file_name, 'rb')
-                out = f.read()
-                f.close()
+                fd = open(tl_file_name, 'rb')
+                out = fd.read()
+                fd.close()
 
                 if not is_wimboot:
                     logger.info('Patching build Loader: %s' % wl_file_name)
@@ -227,9 +223,9 @@ def run(api, args, logger):
 
             if tl_file_name != wl_file_name:
                 logger.info('Build Loader: %s from %s' % (wl_file_name, tl_file_name))
-                f = open(wl_file_name, 'wb+')
-                f.write(out)
-                f.close()
+                fd = open(wl_file_name, 'wb+')
+                fd.write(out)
+                fd.close()
                 tgen.copy_single_distro_file(wl_file_name, web_dir, True)
 
             if not is_wimboot:
@@ -238,16 +234,16 @@ def run(api, args, logger):
                     pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
                     pe.write(filename=wl_file_name)
 
-                f = open(distro.kernel, 'rb')
-                data = f.read()
-                f.close()
+                fd = open(distro.kernel, 'rb')
+                data = fd.read()
+                fd.close()
                 out = pat1.sub(bytes(meta["bootmgr"], 'utf-8'), data)
 
                 if wk_file_name != distro.kernel:
                     logger.info("Build PXEBoot: %s from %s" % (wk_file_name, distro.kernel))
-                    f = open(wk_file_name, 'wb+')
-                    f.write(out)
-                    f.close()
+                    fd = open(wk_file_name, 'wb+')
+                    fd.write(out)
+                    fd.close()
                     tgen.copy_single_distro_file(wk_file_name, web_dir, True)
 
         if is_bcd:
@@ -256,8 +252,7 @@ def run(api, args, logger):
             wim_file_name = 'winpe.wim'
 
             if not os.path.isfile(obcd_file_name):
-                logger.error("File not found: %s" % obcd_file_name)
-                return 1
+                raise CX("File not found: %s" % obcd_file_name)
 
             if is_winpe:
                 wim_file_name = meta["winpe"]
@@ -277,8 +272,8 @@ def run(api, args, logger):
             ps_file_name = os.path.join(distro_dir, meta["winpe"])
             wim_pl_name = os.path.join(kernel_path, "winpe.wim")
 
-            cmd = "/usr/bin/cp --reflink=auto " + wim_pl_name + " " + ps_file_name
-            utils.subprocess_call(logger, cmd, shell=True)
+            cmd = ["/usr/bin/cp", "--reflink=auto", wim_pl_name, ps_file_name]
+            utils.subprocess_call(logger, cmd, shell=False)
             tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
             if os.path.exists(wimupdate):
@@ -286,8 +281,8 @@ def run(api, args, logger):
                 pi_file = tempfile.NamedTemporaryFile()
                 pi_file.write(bytes(data, 'utf-8'))
                 pi_file.flush()
-                cmd = wimupdate + ' ' + ps_file_name + ' --command="add ' + pi_file.name + ' /Windows/System32/startnet.cmd"'
-                utils.subprocess_call(logger, cmd, shell=True)
+                cmd = [wimupdate, ps_file_name, "--command=add " + pi_file.name + " /Windows/System32/startnet.cmd"]
+                utils.subprocess_call(logger, cmd, shell=False)
                 pi_file.close()
 
     for profile in profiles:

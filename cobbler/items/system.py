@@ -120,7 +120,6 @@ class System(item.Item):
     A Cobbler system object.
     """
 
-    TYPE_NAME = "system"
     COLLECTION_TYPE = "system"
 
     def __init__(self, *args, **kwargs):
@@ -132,6 +131,7 @@ class System(item.Item):
         self.fetchable_files = {}
         self.boot_files = {}
         self.template_files = {}
+        self.boot_loaders = []
 
     #
     # override some base class methods first (item.Item)
@@ -214,20 +214,26 @@ class System(item.Item):
             del self.interfaces[name]
 
     def set_boot_loaders(self, boot_loaders):
+        """
+        Setter of the boot loaders.
+
+        :param boot_loaders: The boot loaders for the system.
+        """
         boot_loaders = boot_loaders.strip()
         boot_loaders_split = utils.input_string_or_list(boot_loaders)
-        distro = self.get_conceptual_parent()
 
         if boot_loaders is None or boot_loaders == "":
             self.boot_loaders = []
         elif self.profile and self.profile != "":
             parent_boot_loaders = self.profile.get_boot_loaders()
             if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with system %s - not all boot_loaders %s are supported %s" % (self.name, boot_loaders_split, parent_boot_loaders))
+                raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
+                         (self.name, boot_loaders_split, parent_boot_loaders))
         elif self.image and self.image != "":
             parent_boot_loaders = self.image.get_boot_loaders()
             if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with system %s - not all boot_loaders %s are supported %s" % (self.name, boot_loaders_split, parent_boot_loaders))
+                raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
+                         (self.name, boot_loaders_split, parent_boot_loaders))
         self.boot_loaders = boot_loaders_split
 
     def get_boot_loaders(self):

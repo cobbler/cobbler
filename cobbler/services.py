@@ -287,7 +287,8 @@ class CobblerSvc(object):
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
-        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages", "files" or "menus"
+        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages",
+                                       "files" or "menus"
         :param rest: This parameter is unused.
         :return: The list of object names.
         :rtype: str

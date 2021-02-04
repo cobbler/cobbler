@@ -342,7 +342,8 @@ class TFTPGen(object):
 
         :param arch: The processor architecture to generate the menu items for. (Optional)
         :type arch: str
-        :returns: A dictionary with the pxe and grub menu items. It has the keys from utils.get_supported_system_boot_loaders().
+        :returns: A dictionary with the pxe, ipxe and grub menu items. It has the keys from
+                  utils.get_supported_system_boot_loaders().
         :rtype: dict
         """
         return self.get_menu_level(None, arch)
@@ -353,7 +354,8 @@ class TFTPGen(object):
 
         :param arch: The processor architecture to generate the menu items for. (Optional)
         :type arch: str
-        :returns: A dictionary with the pxe and grub menu items. It has the keys from utils.get_supported_system_boot_loaders().
+        :returns: A dictionary with the pxe, ipxe and grub menu items. It has the keys from
+                  utils.get_supported_system_boot_loaders().
         :rtype: dict
         """
         menu_items = {}
@@ -371,7 +373,9 @@ class TFTPGen(object):
                 template_fh.close()
                 if menu:
                     metadata["menu_name"] = menu.name
-                    metadata["menu_label"] = menu.display_name if menu.display_name and menu.display_name != "" else menu.name
+                    metadata["menu_label"] = menu.name
+                    if menu.display_name and menu.display_name != "":
+                        metadata["menu_label"] = menu.display_name
                     begin_menu_item[boot_loader] = self.templar.render(template_data, metadata, None)
             template = os.path.join(self.settings.boot_loader_conf_template_dir, boot_loader + "menuend.template")
             if os.path.exists(template):
@@ -383,7 +387,9 @@ class TFTPGen(object):
                     parent_menu = menu.get_parent()
                     if parent_menu:
                         metadata["parent_menu_name"] = parent_menu.name
-                        metadata["menu_label"] = parent_menu.display_name if parent_menu.display_name and parent_menu.display_name != "" else parent_menu.name
+                        metadata["menu_label"] = parent_menu.name
+                        if parent_menu.display_name and parent_menu.display_name != "":
+                            metadata["menu_label"] = parent_menu.display_name
                     else:
                         metadata["parent_menu_name"] = "Cobbler"
                         metadata["menu_label"] = "Cobbler"

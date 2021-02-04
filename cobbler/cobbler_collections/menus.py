@@ -19,11 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from cobbler.actions import litesync
-from cobbler.items import menu as menu
+from cobbler.items import menu
 from cobbler.cobbler_collections import collection
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 class Menus(collection.Collection):
@@ -39,7 +38,6 @@ class Menus(collection.Collection):
     def collection_types() -> str:
         return "menus"
 
-
     def factory_produce(self, collection_mgr, item_dict):
         """
         Return a Menu forged from item_dict
@@ -54,9 +52,9 @@ class Menus(collection.Collection):
         """
         name = name.lower()
         if not recursive:
-            for v in self.collection_mgr.systems():
-                if v.profile is not None and v.profile.lower() == name:
-                    raise CX(_("removal would orphan system: %s") % v.name)
+            for system in self.collection_mgr.systems():
+                if system.profile is not None and system.profile.lower() == name:
+                    raise CX("removal would orphan system: %s" % system.name)
 
         obj = self.find(name=name)
         if obj is not None:
@@ -80,9 +78,9 @@ class Menus(collection.Collection):
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
                 if with_sync:
                     lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
-                    lite_sync.remove_single_menu(name)
+                    lite_sync.remove_single_menu()
             return
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        raise CX("cannot delete an object that does not exist: %s" % name)
 
 # EOF

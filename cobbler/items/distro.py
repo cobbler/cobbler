@@ -63,7 +63,6 @@ class Distro(item.Item):
     A Cobbler distribution object
     """
 
-    TYPE_NAME = "distro"
     COLLECTION_TYPE = "distro"
 
     def __init__(self, *args, **kwargs):
@@ -83,6 +82,7 @@ class Distro(item.Item):
         self.template_files = {}
         self.remote_grub_kernel = ""
         self.remote_grub_initrd = ""
+        self.boot_loaders = []
 
     #
     # override some base class methods first (item.Item)
@@ -297,11 +297,19 @@ class Distro(item.Item):
         """
         names = names.strip()
         names_split = utils.input_string_or_list(names)
-        supported_distro_boot_loaders = self.get_supported_boot_loaders()
+
+        try:
+            # If we have already loaded the supported boot loaders from
+            # the signature, use that data
+            supported_distro_boot_loaders = self.supported_boot_loaders
+        except:
+            # otherwise, refresh from the signatures / defaults
+            self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            supported_distro_boot_loaders = self.supported_boot_loaders
 
         if names != "<<inherit>>" and not set(names_split).issubset(supported_distro_boot_loaders):
             raise CX("Invalid boot loader names: %s. Supported boot loaders are: %s" %
-                       (names, ' '.join(supported_distro_boot_loaders)))
+                     (names, ' '.join(supported_distro_boot_loaders)))
         self.boot_loaders = names_split
 
     def get_boot_loaders(self):

@@ -18,12 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from cobbler import autoinstall_manager
 from cobbler.items import item
-from cobbler import utils
-from cobbler import validate
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -47,11 +43,12 @@ class Menu(item.Item):
     A Cobbler menu object.
     """
 
-    TYPE_NAME = _("menu")
+    TYPE_NAME = "menu"
     COLLECTION_TYPE = "menu"
 
     def __init__(self, *args, **kwargs):
-        super(Menu, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        self.display_name = ""
 
     #
     # override some base class methods first (item.Item)
@@ -82,9 +79,8 @@ class Menu(item.Item):
         """
         if not self.parent or self.parent == '':
             return None
-        else:
-            result = self.collection_mgr.menus().find(name=self.parent)
-        return result
+
+        return  self.collection_mgr.menus().find(name=self.parent)
 
     def check_if_valid(self):
         """
@@ -123,10 +119,10 @@ class Menu(item.Item):
         if parent_name == self.name:
             # check must be done in two places as set_parent could be called before/after
             # set_name...
-            raise CX(_("self parentage is weird"))
+            raise CX("self parentage is weird")
         found = self.collection_mgr.menus().find(name=parent_name)
         if found is None:
-            raise CX(_("menu %s not found") % parent_name)
+            raise CX("menu %s not found" % parent_name)
         self.parent = parent_name
         self.depth = found.depth + 1
         parent = self.get_parent()
