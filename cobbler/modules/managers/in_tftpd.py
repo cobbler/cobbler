@@ -179,9 +179,11 @@ class InTftpdManager(object):
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        for x in self.systems:
-            self.tftpgen.write_all_system_files(x, menu_items)
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
+            for x in self.systems:
+                self.tftpgen.write_all_system_files(x, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
