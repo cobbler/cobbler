@@ -23,7 +23,6 @@ from cobbler.items import item
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -62,7 +61,7 @@ class Repo(item.Item):
     A Cobbler repo object.
     """
 
-    TYPE_NAME = _("repo")
+    TYPE_NAME = "repo"
     COLLECTION_TYPE = "repo"
 
     def __init__(self, *args, **kwargs):
@@ -168,7 +167,7 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX(_("invalid yum options"))
+            raise CX("invalid yum options")
         else:
             self.yumopts = value
 
@@ -180,7 +179,7 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX(_("invalid rsync options"))
+            raise CX("invalid rsync options")
         else:
             self.rsyncopts = value
 
@@ -192,7 +191,7 @@ class Repo(item.Item):
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=False)
         if not success:
-            raise CX(_("invalid environment options"))
+            raise CX("invalid environment options")
         else:
             self.environment = value
 
@@ -205,7 +204,7 @@ class Repo(item.Item):
         try:
             priority = int(str(priority))
         except:
-            raise CX(_("invalid priority level: %s") % priority)
+            raise CX("invalid priority level: %s" % priority)
         self.priority = priority
 
     def set_rpm_list(self, rpms):

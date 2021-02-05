@@ -39,7 +39,6 @@ from cobbler import yumgen
 from cobbler import autoinstallgen
 from cobbler import download_manager
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 ERROR = 100
@@ -1214,7 +1213,7 @@ class CobblerAPI(object):
         try:
             import dnf
         except:
-            raise CX(_("dnf is not installed"))
+            raise CX("dnf is not installed")
 
         base = dnf.Base()
         base.read_all_repos()

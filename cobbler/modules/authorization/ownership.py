@@ -30,7 +30,6 @@ from configparser import ConfigParser
 import os
 
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 def register():
@@ -52,7 +51,7 @@ def __parse_config():
     """
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
-        raise CX(_("/etc/cobbler/users.conf does not exist"))
+        raise CX("/etc/cobbler/users.conf does not exist")
     # Make users case sensitive to handle kerberos
     config = ConfigParser()
     config.optionxform = str

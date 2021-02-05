@@ -24,7 +24,6 @@ from cobbler import autoinstall_manager
 from cobbler.items import item
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -66,7 +65,7 @@ class Image(item.Item):
     file (autoinst) led installation.
     """
 
-    TYPE_NAME = _("image")
+    TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
     def __init__(self, *args, **kwargs):
@@ -159,17 +158,17 @@ class Image(item.Item):
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != '/':
-            raise CX(_("invalid file: %s" % filename))
+            raise CX("invalid file: %s" % filename)
         # raise an exception if we don't have a valid path
         if len(filename) > 0 and filename[0] != '/':
-            raise CX(_("file contains an invalid path: %s" % filename))
+            raise CX("file contains an invalid path: %s" % filename)
         if filename.find("/") != -1:
             path, filename = filename.rsplit("/", 1)
 
         if len(filename) == 0:
-            raise CX(_("missing filename"))
+            raise CX("missing filename")
         if len(auth) > 0 and len(hostname) == 0:
-            raise CX(_("a hostname must be specified with authentication details"))
+            raise CX("a hostname must be specified with authentication details")
 
         self.file = uri
 
@@ -200,7 +199,7 @@ class Image(item.Item):
         :param image_type: One of the four options from above.
         """
         if image_type not in self.get_valid_image_types():
-            raise CX(_("image type must be on of the following: %s") % string.join(self.get_valid_image_types(), ", "))
+            raise CX("image type must be on of the following: %s" % ", ".join(self.get_valid_image_types()))
         self.image_type = image_type
 
     def set_virt_cpus(self, num):

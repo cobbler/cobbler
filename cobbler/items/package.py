@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 from cobbler import resource
 
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -44,7 +43,7 @@ FIELDS = [
 
 class Package(resource.Resource):
 
-    TYPE_NAME = _("package")
+    TYPE_NAME = "package"
     COLLECTION_TYPE = "package"
 
     #

@@ -28,7 +28,6 @@ import time
 import cobbler.templar as templar
 import cobbler.utils as utils
 
-from cobbler.utils import _
 from cobbler.cexceptions import CX
 
 
@@ -102,9 +101,8 @@ class DnsmasqManager(object):
 
         try:
             f2 = open(template_file, "r")
-        except:
-            raise CX(_("error writing template to file: %s") % template_file)
-        template_data = ""
+        except Exception:
+            raise CX("error writing template to file: %s" % template_file)
         template_data = f2.read()
         f2.close()
 

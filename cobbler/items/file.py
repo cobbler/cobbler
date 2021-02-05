@@ -22,7 +22,6 @@ from cobbler import resource
 
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -52,7 +51,7 @@ class File(resource.Resource):
     A Cobbler file object.
     """
 
-    TYPE_NAME = _("file")
+    TYPE_NAME = "file"
     COLLECTION_TYPE = "file"
 
     #

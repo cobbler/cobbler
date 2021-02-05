@@ -19,16 +19,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-from builtins import str
-from builtins import object
 import glob
 import os.path
 import re
 
 from cobbler import utils
-from cobbler.utils import _
-
-TESTMODE = False
 
 # defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
@@ -233,9 +228,8 @@ class Settings(object):
         :return: The multiline string with the kernel options.
         :rtype: str
         """
-        buf = ""
-        buf += _("defaults\n")
-        buf += _("kernel options  : %s\n") % self.__dict__['kernel_options']
+        buf = "defaults\n"
+        buf += "kernel options  : %s\n" % self.__dict__['kernel_options']
         return buf
 
     def to_dict(self):
@@ -257,7 +251,7 @@ class Settings(object):
         :return: Returns the settings instance this method was called from.
         """
         if _dict is None:
-            print(_("warning: not loading empty structure for %s") % self.filename())
+            print("warning: not loading empty structure for %s" % self.filename())
             return
 
         self._clear()

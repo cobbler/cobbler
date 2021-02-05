@@ -3,7 +3,6 @@ import sys
 import os
 import time
 import cobbler.templar
-from cobbler.utils import _
 from cobbler.cexceptions import CX
 
 plib = distutils.sysconfig.get_python_lib()
@@ -36,7 +35,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     try:
         f2 = open(template_file, "r")
     except:
-        raise CX(_("error reading template: %s") % template_file)
+        raise CX("error reading template: %s" % template_file)
     template_data = ""
     template_data = f2.read()
     f2.close()
