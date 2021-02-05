@@ -69,6 +69,10 @@ class Image(item.Item):
     TYPE_NAME = _("image")
     COLLECTION_TYPE = "image"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.boot_loaders = []
+        self.menu = ""
     #
     # override some base class methods first (item.Item)
     #
@@ -299,6 +303,11 @@ class Image(item.Item):
         self.menu = menu
 
     def set_boot_loaders(self, boot_loaders):
+        """
+        Setter of the boot loaders.
+
+        :param boot_loaders: The boot loaders for the image.
+        """
         boot_loaders = boot_loaders.strip()
         boot_loaders_split = utils.input_string_or_list(boot_loaders)
 
@@ -307,7 +316,8 @@ class Image(item.Item):
         else:
             supported_boot_loaders = utils.get_supported_system_boot_loaders()
             if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(supported_boot_loaders):
-                raise CX("Error with image %s - not all boot_loaders %s are supported %s" % (self.name, boot_loaders_split, supported_boot_loaders))
+                raise CX("Error with image %s - not all boot_loaders %s are supported %s" %
+                         (self.name, boot_loaders_split, supported_boot_loaders))
         self.boot_loaders = boot_loaders_split
 
     def get_boot_loaders(self):

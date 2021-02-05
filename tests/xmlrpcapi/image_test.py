@@ -98,7 +98,7 @@ class TestImage:
         result = remote.rename_image(image, name, token)
 
         # Cleanup
-        remove_item("image", name)
+        remote.remove_item("image", name, token)
 
         # Assert
         assert result

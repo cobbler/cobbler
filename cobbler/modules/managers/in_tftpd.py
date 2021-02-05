@@ -130,8 +130,10 @@ class InTftpdManager(object):
         system = self.systems.find(name=name)
         if system is None:
             utils.die(self.logger, "error in system lookup for %s" % name)
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        self.tftpgen.write_all_system_files(system, menu_items)
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
+            self.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the system
         self.tftpgen.write_templates(system)
 

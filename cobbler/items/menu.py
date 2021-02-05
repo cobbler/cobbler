@@ -43,7 +43,6 @@ class Menu(item.Item):
     A Cobbler menu object.
     """
 
-    TYPE_NAME = "menu"
     COLLECTION_TYPE = "menu"
 
     def __init__(self, *args, **kwargs):
@@ -80,7 +79,7 @@ class Menu(item.Item):
         if not self.parent or self.parent == '':
             return None
 
-        return  self.collection_mgr.menus().find(name=self.parent)
+        return self.collection_mgr.menus().find(name=self.parent)
 
     def check_if_valid(self):
         """

@@ -87,6 +87,9 @@ packages:
 
 files:
 ==========
+
+menus:
+==========
 """
 
         # Act
