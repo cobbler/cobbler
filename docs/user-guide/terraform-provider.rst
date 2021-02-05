@@ -101,7 +101,7 @@ You should include the lock file in your version control repository to ensure th
 uses the same provider versions across your team and in ephemeral remote execution environments.
 
 Repository setup & configurations
----------------------------
+---------------------------------
 
 Create a git repository (for example ``tf_cobbler``) and use a phased approach
 of software testing and deployment in the `DTAP <https://en.wikipedia.org/wiki/Development,_testing,_acceptance_and_production>`__-style:

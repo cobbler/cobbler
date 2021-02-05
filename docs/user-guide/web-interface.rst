@@ -55,7 +55,7 @@ Basic Setup
 
 2.  Your ``/etc/httpd/conf.d/cobbler_web.conf`` should look something like this:
 
-.. code-block:: none
+.. code::
 
         # This configuration file enables the cobbler web interface (django version)
         # Force everything to go to https
@@ -80,7 +80,7 @@ Basic Setup
 
 3.  Your ``/etc/cobbler/modules.conf`` should look something like this:
 
-.. code-block:: none
+.. code::
 
     [authentication]
     module = authn_configfile
@@ -116,7 +116,7 @@ Basic setup (2.2.x and higher)
 In addition to the steps above, cobbler 2.2.x has a requirement for ``mod_wsgi`` which, when installed via EPEL, will be
 disabled by default. Attempting to start httpd will result in:
 
-.. code-block:: none
+.. code::
 
     Invalid command 'WSGIScriptAliasMatch', perhaps misspelled \
       or defined by a module not included in the server configuration
@@ -129,7 +129,7 @@ Next steps
 
 It should be ready to go. From your web browser visit the URL on your bootserver that resembles:
 
-.. code-block:: none
+.. code::
 
     https://bootserver.example.com/cobbler_web
 
@@ -137,7 +137,7 @@ and log in with the username (usually cobbler) and password that you set earlier
 
 Should you ever need to debug things, see the following log files:
 
-.. code-block:: none
+.. code::
 
     /var/log/httpd/error_log
     /var/log/cobbler/cobbler.log
@@ -198,7 +198,7 @@ Rewrite Rule for secure-http
 To redirect access to the WebUI via HTTPS on an Apache webserver, you can use the following rewrite rule, probably at
 the end of Apache's ``ssl.conf``:
 
-.. code-block:: none
+.. code::
 
     ### Force SSL only on the WebUI
     <VirtualHost *:80>
