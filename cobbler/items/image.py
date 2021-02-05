@@ -65,10 +65,6 @@ class Image(item.Item):
     file (autoinst) led installation.
     """
 
-<<<<<<< HEAD
-=======
-    TYPE_NAME = "image"
->>>>>>> refs/remotes/origin/master
     COLLECTION_TYPE = "image"
 
     def __init__(self, *args, **kwargs):
