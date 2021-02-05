@@ -23,7 +23,6 @@ from cobbler.items import item
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 # this data structure is described in item.py
@@ -78,7 +77,6 @@ class Profile(item.Item):
     A Cobbler profile object.
     """
 
-    TYPE_NAME = _("profile")
     COLLECTION_TYPE = "profile"
 
     def __init__(self, *args, **kwargs):
@@ -163,10 +161,10 @@ class Profile(item.Item):
         if parent_name == self.name:
             # check must be done in two places as set_parent could be called before/after
             # set_name...
-            raise CX(_("self parentage is weird"))
+            raise CX("self parentage is weird")
         found = self.collection_mgr.profiles().find(name=parent_name)
         if found is None:
-            raise CX(_("profile %s not found, inheritance not possible") % parent_name)
+            raise CX("profile %s not found, inheritance not possible" % parent_name)
         self.parent = parent_name
         self.depth = found.depth + 1
         parent = self.get_parent()
@@ -186,7 +184,7 @@ class Profile(item.Item):
             self.depth = d.depth + 1    # reset depth if previously a subprofile and now top-level
             d.children[self.name] = self
             return
-        raise CX(_("distribution not found"))
+        raise CX("distribution not found")
 
     def set_name_servers(self, data):
         """
@@ -428,7 +426,7 @@ class Profile(item.Item):
         if menu and menu != "":
             menu_list = self.collection_mgr.menus()
             if not menu_list.find(name=menu):
-                raise CX(_("menu %s not found") % menu)
+                raise CX("menu %s not found" % menu)
 
         self.menu = menu
 # EOF
