@@ -22,7 +22,6 @@ from cobbler.cobbler_collections import collection
 from cobbler.items import mgmtclass as mgmtclass
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 class Mgmtclasses(collection.Collection):
@@ -72,6 +71,6 @@ class Mgmtclasses(collection.Collection):
 
             return
 
-        raise CX(_("cannot delete an object that does not exist: %s") % name)
+        raise CX("cannot delete an object that does not exist: %s" % name)
 
 # EOF

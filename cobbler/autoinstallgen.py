@@ -29,7 +29,6 @@ from cobbler import templar
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import FileNotFoundException, CX
-from cobbler.utils import _
 
 
 class AutoInstallationGen(object):
@@ -270,7 +269,7 @@ class AutoInstallationGen(object):
 
         p = s.get_conceptual_parent()
         if p is None:
-            raise CX(_("system %(system)s references missing profile %(profile)s") % {"system": s.name, "profile": s.profile})
+            raise CX("system %(system)s references missing profile %(profile)s" % {"system": s.name, "profile": s.profile})
 
         distro = p.get_conceptual_parent()
         if distro is None:
@@ -355,7 +354,7 @@ class AutoInstallationGen(object):
 
         distro = g.get_conceptual_parent()
         if distro is None:
-            raise CX(_("profile %(profile)s references missing distro %(distro)s")
+            raise CX("profile %(profile)s references missing distro %(distro)s"
                      % {"profile": g.name, "distro": g.distro})
 
         return self.generate_autoinstall(profile=g)

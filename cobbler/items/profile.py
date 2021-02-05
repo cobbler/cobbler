@@ -77,6 +77,10 @@ class Profile(item.Item):
     A Cobbler profile object.
     """
 
+<<<<<<< HEAD
+=======
+    TYPE_NAME = "profile"
+>>>>>>> refs/remotes/origin/master
     COLLECTION_TYPE = "profile"
 
     def __init__(self, *args, **kwargs):

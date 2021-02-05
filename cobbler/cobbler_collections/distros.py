@@ -26,7 +26,6 @@ from cobbler.cobbler_collections import collection
 from cobbler.items import distro as distro
 from cobbler import utils
 from cobbler.cexceptions import CX
-from cobbler.utils import _
 
 
 class Distros(collection.Collection):
@@ -60,7 +59,7 @@ class Distros(collection.Collection):
         if not recursive:
             for v in self.collection_mgr.profiles():
                 if v.distro and v.distro.lower() == name:
-                    raise CX(_("removal would orphan profile: %s") % v.name)
+                    raise CX("removal would orphan profile: %s" % v.name)
 
         obj = self.find(name=name)
 
