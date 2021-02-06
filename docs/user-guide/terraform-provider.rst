@@ -225,7 +225,7 @@ File ``variables.tf``
    and it’ll make their (and your) life a lot easier if every variable has a clear description.
    Comments are fun too.
 
-   Excerpt from: James Turnbull, `The Terraform Book.`
+   Excerpt from: James Turnbull, "The Terraform Book."
 
 .. code::
 
@@ -413,7 +413,7 @@ File ``set_links.sh``
 The file ``set_links.sh`` is used to symlink to the default variables.
 We need these in every subdirectory.
 
-.. code::
+.. code:: shell
 
   #!/bin/sh
 
@@ -426,7 +426,7 @@ We need these in every subdirectory.
 Adding a new system
 ~~~~~~~~~~~~~~~~~~~
 
-.. code:: bash
+.. code::
 
    git pull --rebase <-- Refresh the repository
 

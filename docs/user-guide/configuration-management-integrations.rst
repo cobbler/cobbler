@@ -1,8 +1,8 @@
 .. _configuration-management:
 
-**************************************
+*************************************
 Configuration Management Integrations
-**************************************
+*************************************
 
 Cobbler contains features for integrating an installation environment with a configuration management system, which
 handles the configuration of the system after it is installed by allowing changes to configuration files and settings.
@@ -203,10 +203,10 @@ Possible future developments
 Terraform Provider
 ##################
 
-This is developed and maintained by the Terraform community. You will find more information in the docs under
-https://www.terraform.io/docs/providers/cobbler/index.html.
+This is developed and maintained by the Cobbler community. You will find more information in the docs under
+https://registry.terraform.io/providers/cobbler/cobbler/latest/docs.
 
-The code for the Terraform-Provider can be found at: https://github.com/terraform-providers/terraform-provider-cobbler
+The code for the Terraform-Provider can be found at: https://github.com/cobbler/terraform-provider-cobbler
 
 Ansible
 #######
