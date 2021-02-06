@@ -26,17 +26,17 @@ Most of the day-to-day actions in cobbler's command line can be performed in Cob
 
 With the web user interface (WebUI), you can:
 
-  * View all of the cobbler objects and the settings
-  * Add and delete a system, distro, profile, or system
-  * Run the equivalent of a ``cobbler sync``
-  * Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
+* View all of the cobbler objects and the settings
+* Add and delete a system, distro, profile, or system
+* Run the equivalent of a ``cobbler sync``
+* Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
 
 You cannot (yet):
 
-  * Auto-Import media
-  * Auto-Import a rsync mirror of install trees
-  * Do a ``cobbler reposync`` to mirror or update yum content
-  * Do a ``cobbler validateks``
+* Auto-Import media
+* Auto-Import a rsync mirror of install trees
+* Do a ``cobbler reposync`` to mirror or update yum content
+* Do a ``cobbler validateks``
 
 The WebUI can be very good for day-to-day configuring activities, but the CLI is still required for basic bootstrapping
 and certain other activities.
@@ -96,7 +96,7 @@ Basic Setup
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
-6.  Now restart Apache and `cobblerd`.
+6.  Now restart Apache and ``cobblerd``.
 
 .. code-block:: shell
 
@@ -149,12 +149,12 @@ Cobbler authenticates all WebUI logins through ``cobblerd``, which uses a config
 wish to adjust that for your environment. For instance, if in ``modules.conf`` above you choose to stay with the
 ``authentication.configfile`` module, you may want to add your system administrator usernames to the digest file.
 
-Because the generated password isn't supported by the `htdigest` command you have to generate the entries yourself, and
+Because the generated password isn't supported by the ``htdigest`` command you have to generate the entries yourself, and
 to generate the password hashes it is recommended to use either ``openssl`` or Python directly.
 
-The entry format should be, where `Cobbler` is the realm:
+The entry format should be, where ``Cobbler`` is the realm:
 
-..code-block:: none
+.. code::
 
     username:realm:hash
 

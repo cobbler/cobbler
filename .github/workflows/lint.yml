@@ -1,10 +1,10 @@
-name: Lint docs
+name: Linting docs
 
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  run_linters:
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -12,6 +12,8 @@ jobs:
       with:
         python-version: 3.9
     - name: Install dependencies
-      run:  pip install -U rstcheck
+      run:  pip install -U rstcheck doc8
     - name: Run rstcheck
       run:  rstcheck -r docs
+    - name: Run doc8
+      run: doc8 --ignore D001 docs
