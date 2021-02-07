@@ -3340,7 +3340,7 @@ class CobblerXMLRPCInterface(object):
         :rtype: bool
         """
         need_remap = False
-        for x in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]:
+        for x in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]:
             if arg1 is not None and resource.find(x) != -1:
                 need_remap = True
                 break

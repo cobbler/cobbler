@@ -82,7 +82,6 @@ class Distro(item.Item):
         self.template_files = {}
         self.remote_grub_kernel = ""
         self.remote_grub_initrd = ""
-        self.boot_loaders = []
 
     #
     # override some base class methods first (item.Item)

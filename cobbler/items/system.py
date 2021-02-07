@@ -131,7 +131,6 @@ class System(item.Item):
         self.fetchable_files = {}
         self.boot_files = {}
         self.template_files = {}
-        self.boot_loaders = []
 
     #
     # override some base class methods first (item.Item)
@@ -224,13 +223,13 @@ class System(item.Item):
 
         if boot_loaders is None or boot_loaders == "":
             self.boot_loaders = []
-        elif self.profile and self.profile != "":
-            parent_boot_loaders = self.profile.get_boot_loaders()
-            if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(parent_boot_loaders):
-                raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
-                         (self.name, boot_loaders_split, parent_boot_loaders))
-        elif self.image and self.image != "":
-            parent_boot_loaders = self.image.get_boot_loaders()
+        else:
+            if self.profile and self.profile != "":
+                profile = self.collection_mgr.profiles().find(name=self.profile)
+                parent_boot_loaders = profile.get_boot_loaders()
+            elif self.image and self.image != "":
+                image = self.collection_mgr.images().find(name=self.image)
+                parent_boot_loaders = image.get_boot_loaders()
             if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(parent_boot_loaders):
                 raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
                          (self.name, boot_loaders_split, parent_boot_loaders))
@@ -243,9 +242,11 @@ class System(item.Item):
         boot_loaders = self.boot_loaders
         if boot_loaders == '<<inherit>>':
             if self.profile and self.profile != "":
-                return self.profile.get_boot_loaders()
+                profile = self.collection_mgr.profiles().find(name=self.profile)
+                return profile.get_boot_loaders()
             if self.image and self.image != "":
-                return self.image.get_boot_loaders()
+                image = self.collection_mgr.images().find(name=self.image)
+                return image.get_boot_loaders()
         return boot_loaders
 
     def set_server(self, server):

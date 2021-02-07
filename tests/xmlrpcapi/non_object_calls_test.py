@@ -108,6 +108,14 @@ class TestNonObjectCalls:
         if TEST_SYSTEM:
             remote.generate_gpxe(None, TEST_SYSTEM)
 
+    def test_generate_ipxe(self, remote):
+        """
+        Test: generate iPXE file content
+        """
+
+        if TEST_SYSTEM:
+            remote.generate_ipxe(None, TEST_SYSTEM)
+
     def test_generate_bootcfg(self, remote):
         """
         Test: generate boot loader configuration file content

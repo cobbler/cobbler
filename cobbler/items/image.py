@@ -67,10 +67,6 @@ class Image(item.Item):
 
     COLLECTION_TYPE = "image"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.boot_loaders = []
-        self.menu = ""
     #
     # override some base class methods first (item.Item)
     #

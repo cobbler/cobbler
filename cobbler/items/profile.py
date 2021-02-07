@@ -87,8 +87,6 @@ class Profile(item.Item):
         self.fetchable_files = {}
         self.boot_files = {}
         self.template_files = {}
-        self.boot_loaders = []
-        self.menu = ""
 
     #
     # override some base class methods first (item.Item)
@@ -397,11 +395,10 @@ class Profile(item.Item):
 
         if boot_loaders is None or boot_loaders == "":
             self.boot_loaders = []
-        elif distro:
-            distro_boot_loaders = distro.get_boot_loaders()
-            if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(distro_boot_loaders):
-                raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
-                         (self.name, boot_loaders_split, distro_boot_loaders))
+        distro_boot_loaders = distro.get_boot_loaders()
+        if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(distro_boot_loaders):
+            raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
+                     (self.name, boot_loaders_split, distro_boot_loaders))
         self.boot_loaders = boot_loaders_split
 
     def get_boot_loaders(self):
