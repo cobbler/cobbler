@@ -1,6 +1,6 @@
-***********************************
+**********
 Quickstart
-***********************************
+**********
 
 Cobbler can be a somewhat complex system to get started with, due to the wide variety of technologies it is designed to
 manage, but it does support a great deal of functionality immediately after installation with little to no customization
@@ -13,7 +13,7 @@ guide will focus only on the CLI application.
 
 
 Preparing your OS
-##################
+#################
 
 SELinux
 =======
@@ -29,7 +29,7 @@ TBD
 
 
 Changing settings
-##################
+#################
 
 Before starting the `cobblerd` service, there are a few things you should modify.
 
@@ -42,7 +42,7 @@ Default encrypted password
 
 This setting controls the root password that is set for new systems during the handsoff installation.
 
-.. code-block:: none
+.. code::
 
     default_password_crypted: "$1$bfI7WLZz$PxXetL97LkScqJFxnW7KS1"
 
@@ -61,14 +61,14 @@ The ``server`` option sets the IP that will be used for the address of the Cobbl
 is not the listening address. This should be set to the IP you want hosts that are being built to contact the Cobbler
 server on for such protocols as HTTP and TFTP.
 
-.. code-block:: none
+.. code::
 
     server: 127.0.0.1
 
 The ``next_server`` option is used for DHCP/PXE as the IP of the TFTP server from which network boot files are
 downloaded. Usually, this will be the same IP as the server setting.
 
-.. code-block:: none
+.. code::
 
     next_server: 127.0.0.1
 
@@ -79,7 +79,7 @@ DHCP management and DHCP server template
 In order to PXE boot, you need a DHCP server to hand out addresses and direct the booting system to the TFTP server
 where it can download the network boot files. Cobbler can manage this for you, via the ``manage_dhcp`` setting:
 
-.. code-block:: none
+.. code::
 
     manage_dhcp: 0
 
@@ -92,7 +92,7 @@ included with Cobbler. This template will most likely need to be modified as wel
 
 For most uses, you'll only need to modify this block:
 
-.. code-block:: none
+.. code::
 
     subnet 192.168.1.0 netmask 255.255.255.0 {
         option routers             192.168.1.1;
@@ -108,7 +108,7 @@ No matter what, make sure you do not modify the ``next-server $next_server;`` li
 setting is pulled into the configuration. This file is a cheetah template, so be sure not to modify anything starting
 after this line:
 
-.. code-block:: none
+.. code::
 
     #for dhcp_tag in $dhcp_tags.keys():
 

@@ -1,12 +1,12 @@
-***********************************
+*********************
 Cobbler Configuration
-***********************************
+*********************
 
 There are two main settings files: settings and modules.conf. Both files can be found under ``/etc/cobbler/`` and both are
 written in YAML.
 
 settings
-##################
+########
 
 allow_duplicate_hostnames
 =========================
@@ -92,7 +92,7 @@ Email out a report when Cobbler finishes installing a system.
 
 defaults:
 
-.. code-block:: none
+.. code::
 
     build_reporting_enabled: 0
     build_reporting_sender: ""
@@ -144,7 +144,7 @@ configurations you probably do /not/ want to supply this.
 
 defaults:
 
-.. code-block:: none
+.. code::
 
     default_name_servers: []
     default_name_servers_search: []
@@ -243,7 +243,7 @@ using LDAP for WebUI/XML-RPC authentication.
 
 defaults:
 
-.. code-block:: none
+.. code::
 
     ldap_server: "ldap.example.com"
     ldap_base_dn: "DC=example,DC=com"
@@ -372,7 +372,7 @@ which zones are managed. See :ref:`dns-management` for more information.
 
 defaults:
 
-.. code-block:: none
+.. code::
 
     manage_forward_zones: []
     manage_reverse_zones: []
@@ -480,7 +480,7 @@ need to change this.
 
 defaults:
 
-.. code-block:: none
+.. code::
 
     restart_dns: 1
     restart_dhcp: 1
@@ -502,7 +502,7 @@ purposes. Git and Mercurial are currently supported, but Git is the recommend SC
 
 default:
 
-.. code-block:: none
+.. code::
 
     scm_track_enabled: 0
     scm_track_mode: "git"
@@ -552,7 +552,7 @@ Directories that will not get wiped and recreated on a ``cobbler sync``.
 
 default:
 
-.. code-block:: none
+.. code::
 
     webdir_whitelist:
       - misc
@@ -632,7 +632,7 @@ External proxy - used by: get-loaders, reposync, signature update. Per default c
 
 defaults:
 
-.. code-block:: none
+.. code::
 
   http: http://192.168.1.1:8080
   https: https://192.168.1.1:8443

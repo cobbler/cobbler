@@ -1,27 +1,27 @@
-***********************************
+*******************************************
 Automatic Windows installation with Cobbler
-***********************************
+*******************************************
 
 One of the challenges for creating your own Windows network installation scenario with Cobbler is preparing the necessary files in a Linux environment. However, generating the necessary binaries can be greatly simplified by using the cobbler post trigger on the sync command. Below is an example of such a trigger, which prepares the necessary files for legacy BIOS mode boot. Boot to UEFI Mode with iPXE is simpler and can be implemented by replacing the first 2 steps and several others with creating an iPXE boot menu.
 
-Trigger `sync_post_wingen.py`:
+Trigger ``sync_post_wingen.py``:
 
 - some of the files are created from standard ones (pxeboot.n12, bootmgr.exe) by directly replacing one string with another directly in the binary
-- in the process of changing the `bootmgr.exe` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with `python-pefile`
-- `python3-hivex` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to `winpe.wim` and `boot.sdi` are generated as `/winos/<distro_name>/boot`, and for iPXE - `\Boot`.
-- uses `wimlib-tools` to replace `startnet.cmd startup` script in WIM image
+- in the process of changing the ``bootmgr.exe`` file, the checksum of the PE file will change and it needs to be recalculated. The trigger does this with ``python-pefile``
+- ``python3-hivex`` is used to modify Windows boot configuration data (BCD). For pxelinux distro boot_loader in BCD, paths to ``winpe.wim`` and ``boot.sdi`` are generated as ``/winos/<distro_name>/boot``, and for iPXE - ``\Boot``.
+- uses ``wimlib-tools`` to replace ``startnet.cmd startup`` script in WIM image
 
-Windows answer files (`autounattended.xml`) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
+Windows answer files (``autounattended.xml``) are generated using Cobbler templates, with all of its conditional code generation capabilities, depending on the Windows version, architecture (32 or 64 bit), installation profile, etc.
 
-startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (`post_install.cmd`) are also generated from templates
+startup scripts for WIM images (startnet.cmd) and a script that is launched after OS installation (``post_install.cmd``) are also generated from templates
 
-Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (`win.ks`).
+Post-installation actions such as installing additional software, etc., are performed using the Automatic Installation Template (``win.ks``).
 
 A logically automatic network installation of Windows 7 and newer can be represented as follows:
 
 PXE + Legacy BIOS Boot
 
-.. code-block:: none
+.. code::
 
     Original files: pxeboot.n12 → bootmgr.exe → BCD → winpe.wim → startnet.cmd → autounattended.xml
     Cobbler profile 1: pxeboot.001 → boot001.exe → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
@@ -29,13 +29,15 @@ PXE + Legacy BIOS Boot
 
 iPXE + UEFI BIOS Boot
 
+.. code::
+
     Original files: ipxe-x86_64.efi → wimboot → bootx64.efi → BCD → winpe.wim → startnet.cmd → autounattended.xml
     Cobbler profile 1: ipxe-x86_64.efi → wimboot → bootx64.efi → 001 → wi001.wim → startnet.cmd → autounatten001.xml → post_install.cmd profile_name
     ...
 
 For older versions (Windows XP, 2003):
 
-.. code-block:: none
+.. code::
 
     Original files: pxeboot.n12 → setupldr.exe → winnt.sif → post_install.cmd profile_name
     Cobbler profile <xxx>: pxeboot.<xxx> → setup<xxx>.exe → wi<xxx>.sif → post_install.cmd profile_name
@@ -43,7 +45,7 @@ For older versions (Windows XP, 2003):
 Preparing for an unattended network installation of Windows
 ===========================================================
 
-- `dnf install python3-pefile python3-hivex wimlib-utils`
+- ``dnf install python3-pefile python3-hivex wimlib-utils``
 - In the server's tftp directory, create a directory winos
 
 .. code-block:: shell
@@ -52,7 +54,7 @@ Preparing for an unattended network installation of Windows
 
 and copy the Windows distributions there:
 
-.. code-block:: none
+.. code::
 
     dr-xr-xr-x. 1 root   root         200 Mar 23  2017 Win10_EN-x64
     dr-xr-xr-x. 1 root   root         238 Aug  7  2015 Win2012-Server_EN-x64
@@ -80,7 +82,7 @@ iPXE + UEFI BIOS Boot
     - boot/BCD
     - boot/boot.sdi
 
-- Share `/var/lib/tftpboot/winos` via Samba:
+- Share ``/var/lib/tftpboot/winos`` via Samba:
 
 .. code-block:: shell
 
@@ -94,15 +96,15 @@ iPXE + UEFI BIOS Boot
             printable = no
 
 
-- You can use `tftpd.rules` to indicate the actual locations of the bootmgr.exe and BCD files generated by the trigger.
+- You can use ``tftpd.rules`` to indicate the actual locations of the bootmgr.exe and BCD files generated by the trigger.
 
 .. code-block:: shell
 
     cp /usr/lib/systemd/system/tftp.service /etc/systemd/system
 
-Replace the line in the `/etc/systemd/system/tftp.service`
+Replace the line in the ``/etc/systemd/system/tftp.service``
 
-.. code-block:: none
+.. code::
 
     ExecStart=/usr/sbin/in.tftpd -s /var/lib/tftpboot
         to:
@@ -116,41 +118,41 @@ Create a file /etc/tftpd.rules:
     rg	\\					/ # Convert backslashes to slashes
     r	(BOOTFONT\.BIN)			/winos/\1
     r	(/Boot/Fonts/)(.*)			/winos/Fonts/\2
-    
+
     r	(ntdetect\....)			/winos/\1
-    
+
     r	(wine.\.sif)				/WinXp_EN-i386/\1
     r	(xple.)					/WinXp_EN-i386/\1
     r	(/WinXp...-i386/)(.*)			/winos\1\L\2
-    
+
     r	(wi2k.\.sif)				/Win2k3-Server_EN-x64/\1
     r	(w2k3.)					/Win2K3-Server_EN-x64/\1
     r	(/Win2k3-Server_EN-x64/)(.*)		/winos\1\L\2
-    
+
     r	(boot7e.\.exe)				/winos/Win7_EN-x64/\1
     r	(/Boot/)(7E.)				/winos/Win7_EN-x64/boot/\2
-    
+
     r	(boot28.\.exe)				/winos/Win2k8-Server_EN-x64/\1
     r	(/Boot/)(28.)				/winos/Win2k8-Server_EN-x64/boot/\2
-    
+
     r   (boot9r.\.exe)				/winos/Win2019-Server_EN-x64/\1
     r   (/Boot/)(9r.)				/winos/Win2019-Server_EN-x64/boot/\2
-    
+
     r	(boot6e.\.exe)				/winos/Win2016-Server_EN-x64/\1
     r	(/Boot/)(6e.)				/winos/Win2016-Server_EN-x64/boot/\2
-    
+
     r	(boot2e.\.exe)				/winos/Win2012-Server_EN-x64/\1
     r	(/Boot/)(2e.)				/winos/Win2012-Server_EN-x64/boot/\2
-    
+
     r	(boot81.\.exe)				/winos/Win8_EN-x64/\1
     r	(/Boot/)(B8.)				/winos/Win8_EN-x64/boot/\2
-    
+
     r	(boot1e.\.exe)				/winos/Win10_EN-x64/\1
     r	(/Boot/)(1E.)				/winos/Win10_EN-x64/boot/\2
 
-- Add information about Windows distributions to the `distro_signatures.json` file
+- Add information about Windows distributions to the ``distro_signatures.json`` file
 
-.. code-block:: none
+.. code::
 
   "windows": {
    "2003": {
@@ -196,13 +198,14 @@ Create a file /etc/tftpd.rules:
 Cobbler Windows Templates
 =========================
 
-- `/var/lib/tftpboot/winos/startnet.template` is used to generate /Windows/System32/startnet.cmd script in WIM image.
+- ``/var/lib/tftpboot/winos/startnet.template`` is used to generate /Windows/System32/startnet.cmd script in WIM image.
+
 Example:
 
 .. code-block:: shell
 
     wpeinit
-    
+
     ping 127.0.0.1 -n 10 >nul
     md \tmp
     cd \tmp
@@ -211,7 +214,7 @@ Example:
     FOR /F "eol=- tokens=2 delims=:" %%i in (dhcp) do set dhcp=%%i
     FOR  %%i in (%dhcp%) do set dhcp=%%i
     FOR /F "eol=- tokens=2 delims=:(" %%i in (ipaddr) do set ipaddr=%%i
-    
+
     net use y: \\@@http_server@@\Public /user:install install
     #set $distro_dir = '\\\\' + $http_server + '\\WINOS\\' + $distro_name
     net use z: $distro_dir /user:install install
@@ -219,17 +222,17 @@ Example:
     IF %exit_code% EQU 0 GOTO GETNAME
     echo "Can't mount network drive"
     goto EXIT
-    
+
     :GETNAME
     y:\windows\bind\nslookup.exe %ipaddr% | find "name =" > wsname
     for /f "eol=- tokens=2 delims==" %%i in (wsname) do echo %%i > ws
     for /f "eol=- tokens=1 delims=." %%i in (ws) do set wsname=%%i
     FOR  %%i in (%wsname%) do set wsname=%%i
-    
+
     #set $unattended = "set UNATTENDED_ORIG=Z:\\sources\\" + $kernel_options["sif"]
     $unattended
     set UNATTENDED=X:\tmp\autounattended.xml
-    
+
     echo off
     FOR /F "tokens=1 delims=!" %%l in (%UNATTENDED_ORIG%) do (
        IF "%%l"=="            <ComputerName>*</ComputerName>" (
@@ -239,31 +242,32 @@ Example:
        )
     )
     echo on
-    
+
     :INSTALL
     set n=0
     z:\sources\setup.exe /unattend:%UNATTENDED%
     set /a n=n+1
     ping 127.0.0.1 -n 5 >nul
     IF %n% lss 20 goto INSTALL
-    
+
     :EXIT
 
-- Templates `/var/lib/tftpboot/winos/{winpe7,winpe8 }.template` are standard or customized WIM PE images. The trigger copies to the directory of the corresponding distro and changes the contents of `startnet.cmd` based on the corresponding template and Cobbler profile. winpe7 is used for Windows 7 and Windows 2008 Server, and winpe8 for newer versions.
-- `/var/lib/tftpboot/winos/win_sif.template` is used to generate `/var/lib/tftpboot/winos/<distro_name>/sources/autounattended.xml` in case of Windows 7 and newer or winnt.sif for  Windows XP, 2003
+- Templates ``/var/lib/tftpboot/winos/{winpe7,winpe8 }.template`` are standard or customized WIM PE images. The trigger copies to the directory of the corresponding distro and changes the contents of ``startnet.cmd`` based on the corresponding template and Cobbler profile. winpe7 is used for Windows 7 and Windows 2008 Server, and winpe8 for newer versions.
+- ``/var/lib/tftpboot/winos/win_sif.template`` is used to generate ``/var/lib/tftpboot/winos/<distro_name>/sources/autounattended.xml`` in case of Windows 7 and newer or winnt.sif for  Windows XP, 2003
+
 Example:
 
-.. code-block:: none
+.. code::
 
     #if $arch == 'x86_64'
             #set $win_arch = 'amd64'
     #else if $arch == 'i386'
             #set $win_arch = 'i386'
     #end if
-    
+
     #set $OriSrc = '\\\\' + $http_server + '\\WINOS\\' + $distro_name + '\\' + $win_arch
     #set $DevSrc = '\\Device\\LanmanRedirector\\' + $http_server + '\\WINOS\\' + $distro_name
-    
+
     #if $distro_name in ( 'WinXp_EN-i386', 'Win2k3-Server_EN-x64' )
     [Data]
     floppyless = "1"
@@ -317,10 +321,11 @@ Example:
                 </FirstLogonCommands>
     <..>
 
-- The `post_inst_cmd.template` is used to generate a script that is launched after OS installation in the <FirstLogonCommands> `autounattended.xml` section, or [GuiRunOnce] in `winnt.sif`
+- The ``post_inst_cmd.template`` is used to generate a script that is launched after OS installation in the <FirstLogonCommands> ``autounattended.xml`` section, or [GuiRunOnce] in ``winnt.sif``
+
 Example:
 
-.. code-block:: none
+.. code::
 
     %systemdrive%
     CD %systemdrive%\TMP >nul 2>&1
@@ -350,62 +355,63 @@ For the script to work, you need to place the following files in the /var/lib/tf
     -rwxr-xr-x. 1 root root   52736 Oct 27  2013 todos.exe
     -rwxr-xr-x. 1 root root  449024 Dec 31  2008 wget.exe
 
-The `win_wait_network_online` snippet might look something like this:
+The ``win_wait_network_online`` snippet might look something like this:
 
-.. code-block:: none
+.. code::
 
     :wno10
     set n=0
-    
+
     :wno20
     ping @@http_server@@ -n 3
     set exit_code=%ERRORLEVEL%
-    
+
     IF %exit_code% EQU 0 GOTO wno_exit
     set /a n=n+1
     IF %n% lss 30 goto wno20
     pause
     goto wno10
-    
+
     :wno_exit
 
-- `win.ks` - Automatic Installation Template, which is specified for the Cobbler profile in `"cobbler profile add/edit --autoinstall=win.ks .."` command.
+- ``win.ks`` - Automatic Installation Template, which is specified for the Cobbler profile in ``cobbler profile add/edit --autoinstall=win.ks ..`` command.
+
 Example:
 
-.. code-block:: none
+.. code::
 
     $SNIPPET('my/win_wait_network_online')
-    
+
     set n=0
-    
+
     :mount_y
     net use y: \\@@http_server@@\Public /user:install install
     set exit_code=%ERRORLEVEL%
-    
+
     IF %exit_code% EQU 0 GOTO mount_z
     set /a n=n+1
     IF %n% lss 20 goto mount_y
     PAUSE
     goto mount_y
-    
+
     set n=0
-    
+
     :mount_z
     net use z: \\@@http_server@@\winos /user:install install
     set exit_code=%ERRORLEVEL%
-    
+
     IF %exit_code% EQU 0 GOTO mount_exit
     set /a n=n+1
     IF %n% lss 20 goto mount_z
     PAUSE
     goto mount_z
-    
+
     :mount_exit
     if exist %systemdrive%\TMP\stage.dat goto flag005
     echo 0 > %systemdrive%\TMP\stage.dat
-    
+
     $SNIPPET('my/win_check_virt')
-    
+
     #if $distro_name in ( 'WinXp_EN-i386', 'Win2k3-Server_EN-x64' )
     z:\Drivers\wsname.exe /N:$DNS /NOREBOOT
     #else
@@ -415,7 +421,7 @@ Example:
     echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\RunOnce] >> %systemdrive%\TMP\install.reg
     echo "DD"="C:\\TMP\\install.cmd" >> %systemdrive%\TMP\install.reg
     $SNIPPET('my/win_install_drivers')
-    
+
     #if $distro_name == 'Win2k3-Server_EN-x64'
     start /wait z:\Win2K3-Server_EN-x64\cmpnents\r2\setup2.exe /q /a /sr
     start /wait y:\Windows\Win2003\IE8-WindowsServer2003-x64-ENU.exe /passive /update-no /norestart
@@ -426,7 +432,7 @@ Example:
     net use Z: /delete
     %systemdrive%\TMP\sleep.exe 10
     exit
-    
+
     :flag005
     for /f "tokens=*" %%i in (%systemdrive%\TMP\stage.dat) do set stage=%%i
     echo 1 > %systemdrive%\TMP\stage.dat
@@ -436,11 +442,11 @@ Example:
     net use Z: /delete
     shutdown -r -f -t 5
     exit
-    
+
     :flag010
     if %stage% gtr 1 goto flag020
     echo 2 > %systemdrive%\TMP\stage.dat
-    
+
     $SNIPPET('my/winzip')
     $SNIPPET('my/winrar')
     $SNIPPET('my/win_install_chrome')
@@ -450,9 +456,9 @@ Example:
     $SNIPPET('my/win_install_office_2007')
     #else if $distro_name in (  'Win7_EN-x64', 'Win8_EN-x64' )
     $SNIPPET('my/win_install_office_2010')
-    
+
     < .. >
-    
+
     Title Cleaning Temp files
     DEL "%systemroot%\*.bmp" >nul 2>&1
     DEL "%systemroot%\Web\Wallpaper\*.jpg" >nul 2>&1
@@ -466,16 +472,16 @@ Example:
     REM %systemdrive%\TMP\sleep.exe 60
     net use Y: /delete
     net use Z: /delete
-    
+
     shutdown -r -f -t 30
     RD /S /Q %systemdrive%\DRIVERS\ >nul 2>&1
     if not defined stage DEL /F /Q %systemdrive%\post_install.cmd
     DEL /F /S /Q %systemdrive%\TMP\*.*
     exit
 
-- Add Windows to the network installation menu in the `/etc/cobbler/boot_loader_conf/pxedefault.template` file:
+- Add Windows to the network installation menu in the ``/etc/cobbler/boot_loader_conf/pxedefault.template`` file:
 
-.. code-block:: none
+.. code::
 
     menu begin Windows
     MENU TITLE Windows
@@ -502,6 +508,8 @@ Example:
     menu end
 
 Or create an iPXE boot menu
+
+.. code-block:: shell
 
     #!ipxe
     < .. >
@@ -542,10 +550,10 @@ Final steps
 
     cobbler profile add --name=Win10_EN-x64 --distro=Win10_EN-x64 --autoinstall=win.ks \
     --kernel-options='pxeboot=win10a.0, bootmgr=boot1ea.exe, bcd=1Ea,winpe=winpe.wim, sif=autounattended.xml'
-    
+
     cobbler profile add --name=Win10-profile1 --parent=Win10_EN-x64 \
     --kernel-options='pxeboot=win10b.0, bootmgr=boot1eb.exe, bcd=1Eb,winpe=winp1.wim, sif=autounattende1.xml'
-    
+
     cobbler profile add --name=Win10-profile2 --parent=Win10_EN-x64 \
     --kernel-options='pxeboot=win10c.0, bootmgr=boot1ec.exe, bcd=1Ec,winpe=winp2.wim, sif=autounattende2.xml'
 
