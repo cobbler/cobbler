@@ -1088,7 +1088,7 @@ class TFTPGen(object):
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg_%s_%s.template" % (what.lower(), distro.os_version))
+        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg_%s.template" % distro.os_version)
         if not os.path.exists(template):
             return "# boot.cfg template not found for the %s named %s (filename=%s)" % (what, name, template)
 
