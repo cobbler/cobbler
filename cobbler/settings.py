@@ -23,6 +23,7 @@ import glob
 import os.path
 import re
 import traceback
+from typing import Union, Dict, Hashable, Any
 
 import yaml
 
@@ -149,6 +150,9 @@ FIELDS = [
 
 
 class Settings:
+    """
+    This class contains all app-wide settings of Cobbler. It should only exist once in a Cobbler instance.
+    """
 
     @staticmethod
     def collection_type() -> str:
@@ -287,7 +291,13 @@ class Settings:
                 raise AttributeError(f"no settings attribute named '{name}' found")
 
 
-def parse_bind_config(configpath):
+def parse_bind_config(configpath: str):
+    """
+    Parse the Bind9 configuration file and adjust the Cobbler default settings according to the readings.
+
+    :param configpath: The path in the filesystem where the file can be read.
+    """
+    # pylint: disable=global-statement
     global DEFAULTS
     bind_config = {}
     # When running as a webapp we can't access this, but don't need it
@@ -334,7 +344,7 @@ def __migrate_settingsfile_name():
         os.rename("/etc/cobbler/settings", "/etc/cobbler/settings.yaml")
 
 
-def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
+def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hashable, Any], list, None]:
     """
     Reads the settings file from the default location or the given one. This method then also recursively includes all
     files in the ``include`` directory. Any key may be overwritten in a later loaded settings file. The last loaded file
@@ -357,9 +367,9 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml"):
                 for ifile in glob.glob(ival):
                     with open(ifile, 'r') as extra_settingsfile:
                         filecontent.update(yaml.safe_load(extra_settingsfile.read()))
-    except Exception:
+    except yaml.YAMLError as e:
         traceback.print_exc()
-        raise CX("\"%s\" is not a valid YAML file" % filepath)
+        raise CX("\"%s\" is not a valid YAML file" % filepath) from e
     return filecontent
 
 

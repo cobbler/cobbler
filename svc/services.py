@@ -43,7 +43,6 @@ def application(environ, start_response):
         site.addsitedir(distutils.sysconfig.get_python_lib(prefix=environ['VIRTUALENV']))
         # Now all modules are available even under a virtualenv
 
-    import yaml
     from cobbler.services import CobblerSvc
 
     my_uri = urllib.parse.unquote(environ['REQUEST_URI'])

@@ -29,11 +29,11 @@ from cobbler.cexceptions import CX
 
 try:
     from pymongo import MongoClient
+    from pymongo.errors import ConnectionFailure, ConfigurationError
     pymongo_loaded = True
 except ModuleNotFoundError:
     # FIXME: log message
     pymongo_loaded = False
-    pass
 
 mongodb: MongoClient
 
@@ -47,13 +47,17 @@ def __connect(configfile="/etc/cobbler/mongodb.conf"):
 
     host = cp.get("connection", "host")
     port = int(cp.get("connection", "port"))
-    # TODO: detect connection error
+    # pylint: disable=global-statement
     global mongodb
+    mongodb = MongoClient(host, port)['cobbler']
     try:
-        mongodb = MongoClient(host, port)['cobbler']
-    except Exception:
+        # The ismaster command is cheap and doesn't require auth.
+        mongodb.admin.command('ismaster')
+    except ConnectionFailure as e:
         # FIXME: log error
-        raise CX("Unable to connect to Mongo database or get database \"cobbler\"")
+        raise CX("Unable to connect to Mongo database or get database \"cobbler\"") from e
+    except ConfigurationError as e:
+        raise CX("The configuration of the MongoDB connection isn't correct, please check the Cobbler settings.") from e
 
 
 def register() -> str:

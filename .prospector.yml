@@ -43,6 +43,8 @@ pep8:
 
 pyflakes:
   run: true
+  disable:
+    - F401
 
 pylint:
   run: false
