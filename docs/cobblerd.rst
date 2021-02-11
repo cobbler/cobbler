@@ -53,8 +53,8 @@ Any problems detected should be corrected, with the potential exception of DHCP 
 use your judgement as to whether they apply to your environment. Run ``cobbler sync`` after making any changes to the
 configuration files to ensure those changes are applied to the environment.
 
-It is especially important that the server name field be accurate in ``/etc/cobbler/settings``, without this field being
-correct, automatic installation trees will not be found, and automated installations will fail.
+It is especially important that the server name field be accurate in ``/etc/cobbler/settings.yaml``, without this field
+being correct, automatic installation trees will not be found, and automated installations will fail.
 
 For PXE, if DHCP is to be run from the cobbler server, the DHCP configuration file should be changed as suggested by
 ``cobbler check``. If DHCP is not run locally, the ``next-server`` field on the DHCP server should at minimum point to

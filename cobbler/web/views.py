@@ -1071,12 +1071,11 @@ def hardlink(request):
 @csrf_protect
 def replicate(request):
     """
-    Replicate configuration from the central Cobbler server, configured
-    in /etc/cobbler/settings (note: this is uni-directional!)
+    Replicate configuration from the central Cobbler server.
 
-    FIXME: this is disabled because we really need a web page to provide options for
-    this command.
+    Note: This is uni-directional!
 
+    FIXME: this is disabled because we really need a web page to provide options for this command.
     """
     # settings = remote.get_settings()
     # options = settings # just load settings from file until we decide to ask user (later?)

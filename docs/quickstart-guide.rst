@@ -33,8 +33,8 @@ Changing settings
 
 Before starting the `cobblerd` service, there are a few things you should modify.
 
-Settings are stored in ``/etc/cobbler/settings``. This file is a YAML formatted data file, so be sure to take care when
-editing this file as an incorrectly formatted file will prevent `cobblerd` from running.
+Settings are stored in ``/etc/cobbler/settings.yaml``. This file is a YAML formatted data file, so be sure to take care
+when editing this file as an incorrectly formatted file will prevent `cobblerd` from running.
 
 
 Default encrypted password

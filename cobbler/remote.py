@@ -2150,7 +2150,7 @@ class CobblerXMLRPCInterface(object):
 
     def get_settings(self, token=None, **rest):
         """
-        Return the contents of /etc/cobbler/settings, which is a dict.
+        Return the contents of our settings file, which is a dict.
 
         :param token: The API-token obtained via the login() method.
         :param rest: Unused parameter.
@@ -2400,7 +2400,7 @@ class CobblerXMLRPCInterface(object):
     def upload_log_data(self, sys_name, file, size, offset, data, token=None, **rest):
         """
         This is a logger function used by the "anamon" logging system to upload all sorts of misc data from Anaconda.
-        As it's a bit of a potential log-flooder, it's off by default and needs to be enabled in /etc/cobbler/settings.
+        As it's a bit of a potential log-flooder, it's off by default and needs to be enabled in our settings.
 
         :param sys_name: The name of the system for which to upload log data.
         :param file: The file where the log data should be put.

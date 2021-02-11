@@ -619,7 +619,7 @@ zone "%(arpa)s." {
 
     def write_dns_files(self):
         """
-        BIND files are written when manage_dns is set in ``/var/lib/cobbler/settings``.
+        BIND files are written when manage_dns is set in our settings.
         """
 
         self.__write_named_conf()

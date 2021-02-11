@@ -21,7 +21,7 @@ RUN ["zypper", "-n", "in", "make", "gzip", "sed", "git", "hg"]
 RUN ["useradd", "-p", "$(perl -e 'print crypt(\"test\", \"password\")", "test"]
 
 # Set tftpboot location correctly for SUSE distributions
-# RUN ["sed", "-e", "\"s|/var/lib/tftpboot|/srv/tftpboot|g\"", "-i", "cobbler/settings.py", "config/cobbler/settings"]
+# RUN ["sed", "-e", "\"s|/var/lib/tftpboot|/srv/tftpboot|g\"", "-i", "cobbler/settings.py", "config/cobbler/settings.yaml"]
 
 # Install and setup testing framework
 RUN ["pip3", "install", "pytest-django"]

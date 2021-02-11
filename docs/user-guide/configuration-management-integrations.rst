@@ -306,7 +306,7 @@ Where do the parameters come from? Everything that cobbler tracks in ``--ks-meta
 easily add parameters as easily as you can add classes, and keep things all organized in one place.
 
 What if you have global parameters or classes to add? No problem. You can also add more classes by editing the following
-fields in ``/etc/cobbler/settings``:
+fields in ``/etc/cobbler/settings.yaml``:
 
 .. code::
 

@@ -208,11 +208,11 @@ Relocating your installation
 Often folks don't have a very large ``/var`` partition, which is what Cobbler uses by default for mirroring install
 trees and the like.
 
-You'll notice you can reconfigure the webdir location just by going into ``/etc/cobbler/settings``, but it's not the
-best way to do things -- especially as the packaging process does include some files and directories in the stock path.
-This means that, for upgrades and the like, you'll be breaking things somewhat. Rather than attempting to reconfigure
-Cobbler, your Apache configuration, your file permissions, and your SELinux rules, the recommended course of action is
-very simple.
+You'll notice you can reconfigure the webdir location just by going into ``/etc/cobbler/settings.yaml``, but it's not
+the best way to do things -- especially as the packaging process does include some files and directories in the stock
+path. This means that, for upgrades and the like, you'll be breaking things somewhat. Rather than attempting to
+reconfigure Cobbler, your Apache configuration, your file permissions, and your SELinux rules, the recommended course of
+action is very simple.
 
 1. Copy everything you have already in ``/var/www/cobbler`` to another location -- for instance, ``/opt/cobbler_data``
 2. Now just create a symlink or bind mount at ``/var/www/cobbler`` that points to ``/opt/cobbler_data``.
