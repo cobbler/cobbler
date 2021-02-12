@@ -552,7 +552,6 @@ if __name__ == "__main__":
         data_files=[
             # tftpd, hide in /usr/sbin
             ("sbin", ["bin/tftpd.py"]),
-            ("sbin", ["bin/fence_ipmitool"]),
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
             ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s/templates" % libpath, glob("autoinstall_templates/*")),

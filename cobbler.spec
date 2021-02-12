@@ -484,7 +484,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
 %{_sbindir}/tftpd.py
-%{_sbindir}/fence_ipmitool
 %dir %{_datadir}/cobbler
 %{_datadir}/cobbler/bin
 %{_mandir}/man1/cobbler.1*
