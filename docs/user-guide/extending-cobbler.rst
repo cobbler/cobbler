@@ -107,6 +107,7 @@ On the Cobbler box: ``/var/lib/cobbler/triggers/install/post/clientkeys.py``
 .. code-block:: python
 
     #!/usr/bin/python
+
     import socket
     import xmlrpclib
     import sys
@@ -123,16 +124,21 @@ file):
 .. code-block:: python
 
     #!/usr/bin/python
+
     import SimpleXMLRPCServer
     import os
+
+
     class Keys(object):
-         def update(self, ip):
-             try:
+        def update(self, ip):
+            try:
                 os.unlink('/var/cfengine/ppkeys/root-%s.pub' % ip)
             except OSError:
                 pass
+
+
     keys = Keys()
-    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("cfengine",9000))
+    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("cfengine", 9000))
     server.register_instance(keys)
     server.serve_forever()
 

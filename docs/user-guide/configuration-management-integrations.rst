@@ -1,8 +1,8 @@
 .. _configuration-management:
 
-**************************************
+*************************************
 Configuration Management Integrations
-**************************************
+*************************************
 
 Cobbler contains features for integrating an installation environment with a configuration management system, which
 handles the configuration of the system after it is installed by allowing changes to configuration files and settings.
@@ -90,7 +90,7 @@ Set up Cobbler to include a package repository that contains your chosen CMS:
 
 Then (illustrating a Red Hat/Puppet combination) set up the kickstart file to say something like:
 
-.. code-block:: none
+.. code::
 
     %packages
     puppet
@@ -203,10 +203,10 @@ Possible future developments
 Terraform Provider
 ##################
 
-This is developed and maintained by the Terraform community. You will find more information in the docs under
-https://www.terraform.io/docs/providers/cobbler/index.html.
+This is developed and maintained by the Cobbler community. You will find more information in the docs under
+https://registry.terraform.io/providers/cobbler/cobbler/latest/docs.
 
-The code for the Terraform-Provider can be found at: https://github.com/terraform-providers/terraform-provider-cobbler
+The code for the Terraform-Provider can be found at: https://github.com/cobbler/terraform-provider-cobbler
 
 Ansible
 #######
@@ -267,14 +267,14 @@ For more documentation on Puppet's external nodes feature, see https://docs.pupp
 
 Cobbler provides one, so configure puppet to use ``/usr/bin/cobbler-ext-nodes``:
 
-.. code-block:: none
+.. code::
 
     [main]
     external_nodes = /usr/bin/cobbler-ext-nodes
 
 Note: if you are using puppet 0.24 or later then you will want to also add the following to your configuration file.
 
-.. code-block:: none
+.. code::
 
     node_terminus = exec
 
@@ -283,7 +283,7 @@ URL that always returns a YAML document in the way that Puppet expects it to be 
 parameters and classes that are to be assigned to the node in question. The magic URL being visited is powered by
 Cobbler.
 
-.. code-block:: none
+.. code::
 
     http://cobbler/cblr/svc/op/puppet/hostname/foo
 
@@ -291,7 +291,7 @@ Cobbler.
 
 And this will return data such as:
 
-.. code-block:: none
+.. code::
 
     ---
     classes:
@@ -306,9 +306,9 @@ Where do the parameters come from? Everything that cobbler tracks in ``--ks-meta
 easily add parameters as easily as you can add classes, and keep things all organized in one place.
 
 What if you have global parameters or classes to add? No problem. You can also add more classes by editing the following
-fields in ``/etc/cobbler/settings``:
+fields in ``/etc/cobbler/settings.yaml``:
 
-.. code-block:: none
+.. code::
 
     # cobbler has a feature that allows for integration with config management
     # systems such as Puppet.  The following parameters work in conjunction with
@@ -327,7 +327,7 @@ repository (at ``/etc/puppet/manifests/``) and networking information from cobbl
 the puppet side, and then looks for ``/etc/puppet/external_node.yaml`` for cobbler side configuration.
 The configuration is as follows.
 
-.. code-block:: none
+.. code::
 
     base: /etc/puppet/manifests/nodes
     cobbler: <%= cobbler_host %>

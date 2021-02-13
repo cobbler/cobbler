@@ -26,17 +26,17 @@ Most of the day-to-day actions in cobbler's command line can be performed in Cob
 
 With the web user interface (WebUI), you can:
 
-  * View all of the cobbler objects and the settings
-  * Add and delete a system, distro, profile, or system
-  * Run the equivalent of a ``cobbler sync``
-  * Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
+* View all of the cobbler objects and the settings
+* Add and delete a system, distro, profile, or system
+* Run the equivalent of a ``cobbler sync``
+* Edit kickstart files (which must be in ``/etc/cobbler`` and ``/var/lib/cobbler/kickstarts``)
 
 You cannot (yet):
 
-  * Auto-Import media
-  * Auto-Import a rsync mirror of install trees
-  * Do a ``cobbler reposync`` to mirror or update yum content
-  * Do a ``cobbler validateks``
+* Auto-Import media
+* Auto-Import a rsync mirror of install trees
+* Do a ``cobbler reposync`` to mirror or update yum content
+* Do a ``cobbler validateks``
 
 The WebUI can be very good for day-to-day configuring activities, but the CLI is still required for basic bootstrapping
 and certain other activities.
@@ -55,7 +55,7 @@ Basic Setup
 
 2.  Your ``/etc/httpd/conf.d/cobbler_web.conf`` should look something like this:
 
-.. code-block:: none
+.. code::
 
         # This configuration file enables the cobbler web interface (django version)
         # Force everything to go to https
@@ -80,7 +80,7 @@ Basic Setup
 
 3.  Your ``/etc/cobbler/modules.conf`` should look something like this:
 
-.. code-block:: none
+.. code::
 
     [authentication]
     module = authn_configfile
@@ -96,7 +96,7 @@ Basic Setup
 
     cp /etc/httpd/conf.d/cobbler.conf.rpmnew /etc/httpd/conf.d/cobbler.conf
 
-6.  Now restart Apache and `cobblerd`.
+6.  Now restart Apache and ``cobblerd``.
 
 .. code-block:: shell
 
@@ -116,7 +116,7 @@ Basic setup (2.2.x and higher)
 In addition to the steps above, cobbler 2.2.x has a requirement for ``mod_wsgi`` which, when installed via EPEL, will be
 disabled by default. Attempting to start httpd will result in:
 
-.. code-block:: none
+.. code::
 
     Invalid command 'WSGIScriptAliasMatch', perhaps misspelled \
       or defined by a module not included in the server configuration
@@ -129,7 +129,7 @@ Next steps
 
 It should be ready to go. From your web browser visit the URL on your bootserver that resembles:
 
-.. code-block:: none
+.. code::
 
     https://bootserver.example.com/cobbler_web
 
@@ -137,7 +137,7 @@ and log in with the username (usually cobbler) and password that you set earlier
 
 Should you ever need to debug things, see the following log files:
 
-.. code-block:: none
+.. code::
 
     /var/log/httpd/error_log
     /var/log/cobbler/cobbler.log
@@ -149,12 +149,12 @@ Cobbler authenticates all WebUI logins through ``cobblerd``, which uses a config
 wish to adjust that for your environment. For instance, if in ``modules.conf`` above you choose to stay with the
 ``authentication.configfile`` module, you may want to add your system administrator usernames to the digest file.
 
-Because the generated password isn't supported by the `htdigest` command you have to generate the entries yourself, and
+Because the generated password isn't supported by the ``htdigest`` command you have to generate the entries yourself, and
 to generate the password hashes it is recommended to use either ``openssl`` or Python directly.
 
-The entry format should be, where `Cobbler` is the realm:
+The entry format should be, where ``Cobbler`` is the realm:
 
-..code-block:: none
+.. code::
 
     username:realm:hash
 
@@ -198,7 +198,7 @@ Rewrite Rule for secure-http
 To redirect access to the WebUI via HTTPS on an Apache webserver, you can use the following rewrite rule, probably at
 the end of Apache's ``ssl.conf``:
 
-.. code-block:: none
+.. code::
 
     ### Force SSL only on the WebUI
     <VirtualHost *:80>

@@ -69,7 +69,7 @@ class IscManager(object):
 
     def write_dhcp_file(self):
         """
-        DHCP files are written when ``manage_dhcp`` is set in ``/etc/cobbler/settings``.
+        DHCP files are written when ``manage_dhcp`` is set in our settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"

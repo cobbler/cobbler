@@ -290,7 +290,7 @@ Unit test files from the Cobbler project
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
-sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings
+sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings.yaml
 %endif
 
 %build
@@ -475,7 +475,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.exclude
 %config(noreplace) %{_sysconfdir}/cobbler/rsync.template
 %config(noreplace) %{_sysconfdir}/cobbler/secondary.template
-%config(noreplace) %{_sysconfdir}/cobbler/settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.yaml
 %dir %{_sysconfdir}/cobbler/settings.d
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings

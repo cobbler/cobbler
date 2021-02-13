@@ -333,7 +333,7 @@ PXE boot loop prevention
 ========================
 
 If you have your machines set to PXE first in the boot order (ahead of hard drives), change the ``pxe_just_once`` flag
-in ``/etc/cobbler/settings`` to 1. This will set the machines to not PXE on successive boots once they complete one
+in ``/etc/cobbler/settings.yaml`` to 1. This will set the machines to not PXE on successive boots once they complete one
 install. To re-enable PXE for a specific system, run the following command:
 
 .. code-block:: shell
@@ -368,7 +368,7 @@ DHCP Management
 Cobbler can optionally help you manage DHCP server. This feature is off by default.
 
 Choose either ``management = isc_and_bind`` in ``/etc/cobbler/dhcp.template`` or ``management = "dnsmasq"`` in
-``/etc/cobbler/modules.conf``.  Then set ``manage_dhcp=1`` in ``/etc/cobbler/settings``.
+``/etc/cobbler/modules.conf``.  Then set ``manage_dhcp=1`` in ``/etc/cobbler/settings.yaml``.
 
 This allows DHCP to be managed via "cobbler system add" commands, when you specify the mac address and IP address for
 systems you add into Cobbler.
@@ -384,7 +384,7 @@ configuration.
 By default, the DHCP configuration file will be updated each time ``cobbler sync`` is run, and not until then, so it is
 important to remember to use ``cobbler sync`` when using this feature.
 
-If omapi_enabled is set to 1 in ``/etc/cobbler/settings``, the need to sync when adding new system records can be
+If omapi_enabled is set to 1 in ``/etc/cobbler/settings.yaml``, the need to sync when adding new system records can be
 eliminated. However, the OMAPI feature is experimental and is not recommended for most users.
 
 .. _dns-management:
@@ -395,7 +395,7 @@ DNS configuration management
 Cobbler can optionally manage DNS configuration using BIND and dnsmasq.
 
 Choose either ``management = isc_and_bind`` or ``management = dnsmasq`` in ``/etc/cobbler/modules.conf`` and then enable
-``manage_dns`` in ``/etc/cobbler/settings``.
+``manage_dns`` in ``/etc/cobbler/settings.yaml``.
 
 This feature is off by default. If using BIND, you must define the zones to be managed with the options
 ``manage_forward_zones`` and ``manage_reverse_zones``.  (See the Wiki for more information on this).

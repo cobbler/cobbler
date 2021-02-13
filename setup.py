@@ -434,7 +434,7 @@ class restorestate(statebase):
         self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
-        self._copy(os.path.join(self.statepath, 'settings'), etcpath)
+        self._copy(os.path.join(self.statepath, 'settings.yaml'), etcpath)
         self._copy(os.path.join(self.statepath, 'users.conf'), etcpath)
         self._copy(os.path.join(self.statepath, 'users.digest'), etcpath)
         self._copy(os.path.join(self.statepath, 'dhcp.template'), etcpath)
@@ -466,7 +466,7 @@ class savestate(statebase):
         self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
-        self._copy(os.path.join(etcpath, 'settings'), self.statepath)
+        self._copy(os.path.join(etcpath, 'settings.yaml'), self.statepath)
         self._copy(os.path.join(etcpath, 'users.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'users.digest'), self.statepath)
         self._copy(os.path.join(etcpath, 'dhcp.template'), self.statepath)
@@ -539,7 +539,7 @@ if __name__ == "__main__":
             'httpd_service': httpd_service,
         },
         configure_files=[
-            "config/cobbler/settings",
+            "config/cobbler/settings.yaml",
             "config/apache/cobbler.conf",
             "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
@@ -572,7 +572,7 @@ if __name__ == "__main__":
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
                               "build/config/apache/cobbler_web.conf",
                               "build/config/service/cobblerd.service",
-                              "build/config/cobbler/settings"]),
+                              "build/config/cobbler/settings.yaml"]),
             ("%s/settings.d" % etcpath, glob("config/cobbler/settings.d/*")),
             ("%s" % etcpath, ["config/cobbler/auth.conf",
                               "config/cobbler/modules.conf",

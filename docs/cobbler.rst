@@ -548,8 +548,8 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | addresses in Cobbler if you're using static addressing with multiple interfaces, or if you are |
 |                     | using any of the advanced networking features like bonding, bridges or VLANs.                  |
 |                     |                                                                                                |
-|                     | Cobbler does contain a feature (enabled in /etc/cobbler/settings) that can automatically add   |
-|                     | new system records when it finds profiles being provisioned on hardware it has seen before.    |
+|                     | Cobbler does contain a feature (enabled in /etc/cobbler/settings.yaml) that can automatically  |
+|                     | add new system records when it finds profiles being provisioned on hardware it has seen before.|
 |                     | This may help if you do not have a report of all the MAC addresses in your datacenter/lab      |
 |                     | configuration.                                                                                 |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -584,7 +584,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 | netboot-enabled     | If set false, the system will be provisionable through Koan but not through standard PXE.      |
 |                     | This will allow the system to fall back to default PXE boot behavior without deleting the      |
 |                     | Cobbler system object. The default value allows PXE. Cobbler contains a PXE boot loop          |
-|                     | prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings) that can           |
+|                     | prevention feature (pxe_just_once, can be enabled in /etc/cobbler/settings.yaml) that can      |
 |                     | automatically trip off this value after a system gets done installing. This can prevent        |
 |                     | installs from appearing in an endless loop when the system is set to PXE first in the BIOS     |
 |                     | order.                                                                                         |

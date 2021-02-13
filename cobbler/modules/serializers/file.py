@@ -25,11 +25,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import glob
 import simplejson
-import yaml
 
 import cobbler.api as capi
+from cobbler import settings
 from cobbler.cexceptions import CX
-
 
 libpath = "/var/lib/cobbler/collections"
 
@@ -72,11 +71,9 @@ def serialize_item(collection, item):
         indent = None
 
     _dict = item.to_dict()
-    fd = open(filename, "w+")
-    data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
-    fd.write(data)
-
-    fd.close()
+    with open(filename, "w+") as fd:
+        data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
+        fd.write(data)
 
 
 def serialize_delete(collection, item):
@@ -115,18 +112,8 @@ def deserialize_raw(collection_types):
     :param collection_types: The type of collection to load.
     :return: The loaded dictionary.
     """
-    # FIXME: code to load settings file should not be replicated in all serializer subclasses.
     if collection_types == "settings":
-        with open("/etc/cobbler/settings") as fd:
-            _dict = yaml.safe_load(fd.read())
-
-        # include support
-        for ival in _dict.get("include", []):
-            for ifile in glob.glob(ival):
-                with open(ifile, 'r') as fd:
-                    _dict.update(yaml.safe_load(fd.read()))
-
-        return _dict
+        return settings.read_settings_file()
     else:
         results = []
 
@@ -134,11 +121,10 @@ def deserialize_raw(collection_types):
         all_files = glob.glob("%s/*.json" % path)
 
         for f in all_files:
-            fd = open(f)
-            json_data = fd.read()
-            _dict = simplejson.loads(json_data, encoding='utf-8')
-            results.append(_dict)
-            fd.close()
+            with open(f) as fd:
+                json_data = fd.read()
+                _dict = simplejson.loads(json_data, encoding='utf-8')
+                results.append(_dict)
         return results
 
 
@@ -174,10 +160,8 @@ def deserialize(collection, topological=True):
 
     datastruct = deserialize_raw(collection.collection_types())
     if topological and type(datastruct) == list:
-        datastruct.sort(key = lambda x: x["depth"])
+        datastruct.sort(key=lambda x: x["depth"])
     if type(datastruct) == dict:
         collection.from_dict(datastruct)
     elif type(datastruct) == list:
         collection.from_list(datastruct)
-
-# EOF

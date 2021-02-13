@@ -1,6 +1,6 @@
-***********************************
+***************
 Developer Guide
-***********************************
+***************
 
 
 Patch process
@@ -140,5 +140,5 @@ Debugging
 #########
 
 If you need to debug a remote process, rpdb provides some very nice capabilities beyond the standard python debugger,
-just insert a `import rpdb; rpdb.set_trace()` on the desired line run cobbler and then do a `nc 127.0.0.1 4444`.
+just insert a ``import rpdb; rpdb.set_trace()`` on the desired line run cobbler and then do a ``nc 127.0.0.1 4444``.
 

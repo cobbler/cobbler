@@ -124,7 +124,7 @@
         "signatures": [
           "BaseOS"
         ],
-        "version_file": "(redhat|sl|slf|centos|centos-linux|centos-stream|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*8[\\.-]+(.*)\\.rpm",
+        "version_file": "(redhat|sl|slf|almalinux|centos|centos-linux|centos-stream|oraclelinux|vzlinux)-release-(?!notes)([\\w]*-)*8[\\.-]+(.*)\\.rpm",
         "version_file_regex": null,
         "kernel_arch": "kernel-(.*).rpm",
         "kernel_arch_regex": null,

@@ -49,10 +49,9 @@ DEBUG = 5
 RSYNC_CMD = "rsync -a %s '%s' %s --progress"
 
 # notes on locking:
-# CobblerAPI is a singleton object
-# the XMLRPC variants allow 1 simultaneous request
-# therefore we flock on /etc/cobbler/settings for now
-# on a request by request basis.
+# - CobblerAPI is a singleton object
+# - The XMLRPC variants allow 1 simultaneous request, therefore we flock on our settings file for now on a request by
+#   request basis.
 
 
 class CobblerAPI(object):
