@@ -231,7 +231,7 @@ class BuildIso(object):
             if dist.breed == "redhat":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " ks=%s" % data["autoinstall"]
+                append_line += " inst.ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s" % data["autoinstall"]
@@ -281,7 +281,7 @@ class BuildIso(object):
             if dist.breed == "redhat":
                 if "proxy" in data and data["proxy"] != "":
                     append_line += " proxy=%s http_proxy=%s" % (data["proxy"], data["proxy"])
-                append_line += " ks=%s" % data["autoinstall"]
+                append_line += " inst.ks=%s" % data["autoinstall"]
 
             if dist.breed in ["ubuntu", "debian"]:
                 append_line += " auto-install/enable=true url=%s netcfg/disable_autoconfig=true" % data["autoinstall"]
@@ -549,7 +549,7 @@ class BuildIso(object):
 
             append_line = "  append initrd=%s" % os.path.basename(distro.initrd)
             if distro.breed == "redhat":
-                append_line += " ks=cdrom:/isolinux/%s.cfg" % descendant.name
+                append_line += " inst.ks=cdrom:/isolinux/%s.cfg" % descendant.name
             if distro.breed == "suse":
                 append_line += " autoyast=file:///isolinux/%s.cfg install=cdrom:///" % descendant.name
                 if "install" in data["kernel_options"]:
