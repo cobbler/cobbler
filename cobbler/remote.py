@@ -2205,20 +2205,6 @@ class CobblerXMLRPCInterface(object):
         """
         return self.generate_autoinstall(system=system)
 
-    def generate_gpxe(self, profile=None, system=None, **rest):
-        """
-        Generate the gpx configuration.
-
-        Note: gPXE is deprecated and it is recommended to change to iPXE.
-
-        :param profile: The profile to generate gPXE config for.
-        :param system: The system to generate gPXE config for.
-        :param rest: This is dropped in this method since it is not needed here.
-        :return: The configuration as a str representation.
-        """
-        self._log("generate_gpxe")
-        return self.api.generate_gpxe(profile, system)
-
     def generate_ipxe(self, profile=None, system=None, **rest):
         """
         Generate the ipxe configuration.

@@ -228,7 +228,7 @@ listed below:
 +---------------------+------------------------------------------------------------------------------------------------+
 | **distro**          | The name of a previously defined Cobbler distribution. This value is required.                 |
 +---------------------+------------------------------------------------------------------------------------------------+
-| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
+| enable-ipxe         | Enable iPXE? (Use iPXE instead of PXELINUX for advanced booting options)                       |
 +---------------------+------------------------------------------------------------------------------------------------+
 | enable-menu         | Enable PXE Menu? (Show this profile in the PXE menu?)                                          |
 +---------------------+------------------------------------------------------------------------------------------------+
@@ -412,7 +412,7 @@ Adds a Cobbler System to the configuration. Arguments are specified as per "prof
 |                     | This is a per-interface parameter. If you have multiple interfaces, it may be different for    |
 |                     | each interface, for example, assume a DMZ / dual-homed setup.                                  |
 +---------------------+------------------------------------------------------------------------------------------------+
-| enable-gpxe         | Enable gPXE? (Use gPXE instead of PXELINUX for advanced booting options)                       |
+| enable-ipxe         | Enable iPXE? (Use iPXE instead of PXELINUX for advanced booting options)                       |
 +---------------------+------------------------------------------------------------------------------------------------+
 | fetchable-files     | Fetchable Files (Templates for tftp or wget/curl)                                              |
 +---------------------+------------------------------------------------------------------------------------------------+

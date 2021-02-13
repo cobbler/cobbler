@@ -64,7 +64,7 @@ USES_SELECT = [
 # fields that should use the checkbox in the web app
 
 USES_CHECKBOX = [
-    "enable_gpxe",
+    "enable_ipxe",
     "enable_menu",
     "ipv6_autoconfiguration",
     "is_definition",
@@ -126,7 +126,7 @@ PROFILE_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "distro", "parent", "enable_menu",
                  "autoinstall", "kernel_options", "kernel_options_post",
                  "autoinstall_meta", "proxy", "repos", "comment"]},
-    {"Advanced": ["enable_gpxe", "dhcp_tag", "server", "next_server", "filename"]},
+    {"Advanced": ["enable_ipxe", "dhcp_tag", "server", "next_server", "filename"]},
     {"Networking Global": ["name_servers", "name_servers_search"]},
     {"Management": ["mgmt_classes", "mgmt_parameters", "boot_files",
                     "fetchable_files", "template_files"]},
@@ -147,7 +147,7 @@ SYSTEM_UI_FIELDS_MAPPING = [
                  "kernel_options", "kernel_options_post",
                  "autoinstall_meta", "boot_loader", "proxy",
                  "netboot_enabled", "autoinstall", "comment"]},
-    {"Advanced": ["enable_gpxe", "server", "next_server", "filename"]},
+    {"Advanced": ["enable_ipxe", "server", "next_server", "filename"]},
     {"Networking (Global)": ["hostname", "gateway", "name_servers",
                              "name_servers_search", "ipv6_default_device",
                              "ipv6_autoconfiguration"]},

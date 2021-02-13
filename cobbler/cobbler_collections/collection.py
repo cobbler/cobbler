@@ -165,6 +165,7 @@ class Collection(object):
         'virt-group': 'virt_group',
         'dhcp-tag': 'dhcp_tag',
         'netboot-enabled': 'netboot_enabled',
+        'enable_gpxe': 'enable_ipxe',
     }
 
     def __rekey(self, _dict):

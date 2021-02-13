@@ -55,7 +55,7 @@ def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["comment", ["test comment"], []],
         ["dhcp_tag", ["", "foo"], []],
         ["distro", ["testdistro0"], ["baddistro", ]],
-        ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
+        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
         ["enable_menu", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
@@ -96,7 +96,7 @@ def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     # TODO: include fields with dependencies: fetchable files, boot files, template files, images
     return [
         ["comment", ["test comment"], []],
-        ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
+        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],

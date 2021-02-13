@@ -207,10 +207,10 @@ Current valid values are: xenpv, xenfv, qemu, vmware
 
 default: ``xenpv``
 
-enable_gpxe
+enable_ipxe
 ===========
-Enable gPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
-directory, and if a profile/system is configured to boot via gPXE it will chain load off ``pxelinux.0``.
+Enable iPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
+directory, and if a profile/system is configured to boot via iPXE it will chain load off ``pxelinux.0``.
 
 default: ``0``
 

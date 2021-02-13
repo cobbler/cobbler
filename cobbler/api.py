@@ -1307,20 +1307,6 @@ class CobblerAPI(object):
 
     # ==========================================================================
 
-    def generate_gpxe(self, profile, system):
-        """
-        Generate the gpxe configuration files. The system wins over the profile.
-
-        :param profile: The profile to return the configuration for.
-        :param system: The system to return the configuration for.
-        :return: The generated configuration file.
-        """
-        self.log("generate_gpxe")
-        if system:
-            return self.tftpgen.generate_gpxe("system", system)
-        else:
-            return self.tftpgen.generate_gpxe("profile", profile)
-
     def generate_ipxe(self, profile, system):
         """
         Generate the ipxe configuration files. The system wins over the profile.
@@ -1336,9 +1322,9 @@ class CobblerAPI(object):
             if 'ipxe' in boot_menu:
                 data = boot_menu['ipxe']
         elif system:
-            data = self.tftpgen.generate_gpxe("system", system, 'ipxe')
+            data = self.tftpgen.generate_ipxe("system", system)
         else:
-            data = self.tftpgen.generate_gpxe("profile", profile, 'ipxe')
+            data = self.tftpgen.generate_ipxe("profile", profile)
         return data
 
     # ==========================================================================

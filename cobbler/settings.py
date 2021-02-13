@@ -66,7 +66,7 @@ DEFAULTS = {
     "default_virt_file_size": [5, "int"],
     "default_virt_ram": [512, "int"],
     "default_virt_type": ["auto", "str"],
-    "enable_gpxe": [0, "bool"],
+    "enable_ipxe": [0, "bool"],
     "enable_menu": [1, "bool"],
     "http_port": [80, "int"],
     "include": [["/etc/cobbler/settings.d/*.settings"], "list"],

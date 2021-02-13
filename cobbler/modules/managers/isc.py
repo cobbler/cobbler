@@ -181,7 +181,7 @@ class IscManager(object):
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
                 interface["owner"] = blended_system["name"]
-                interface["enable_gpxe"] = blended_system["enable_gpxe"]
+                interface["enable_ipxe"] = blended_system["enable_ipxe"]
                 interface["name_servers"] = blended_system["name_servers"]
                 interface["mgmt_parameters"] = blended_system["mgmt_parameters"]
 

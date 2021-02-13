@@ -42,7 +42,7 @@ FIELDS = [
     ["boot_files", {}, '<<inherit>>', "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
     ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
-    ["enable_gpxe", "<<inherit>>", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
+    ["enable_ipxe", "<<inherit>>", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["gateway", "", 0, "Gateway", True, "", 0, "str"],
     ["hostname", "", 0, "Hostname", True, "", 0, "str"],
@@ -564,11 +564,11 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["connected_mode"] = utils.input_boolean(truthiness)
 
-    def set_enable_gpxe(self, enable_gpxe):
+    def set_enable_ipxe(self, enable_ipxe):
         """
-        Sets whether or not the system will use gPXE for booting.
+        Sets whether or not the system will use iPXE for booting.
         """
-        self.enable_gpxe = utils.input_boolean(enable_gpxe)
+        self.enable_ipxe = utils.input_boolean(enable_ipxe)
 
     def set_profile(self, profile_name):
         """

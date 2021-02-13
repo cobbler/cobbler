@@ -956,6 +956,26 @@ def test_subprocess_get():
     assert result == "Test\n"
 
 
+def test_get_supported_system_boot_loaders():
+    # Arrange
+
+    # Act
+    result = utils.get_supported_system_boot_loaders()
+
+    # Assert
+    assert result == ["<<inherit>>", "grub", "pxe", "yaboot", "ipxe"]
+
+
+def test_get_supported_distro_boot_loaders():
+    # Arrange
+
+    # Act
+    result = utils.get_supported_distro_boot_loaders(None)
+
+    # Assert
+    assert result == ["<<inherit>>", "grub", "pxe", "yaboot", "ipxe"]
+
+
 def test_clear_from_fields():
     # Arrange
     test_api = CobblerAPI()

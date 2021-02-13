@@ -41,7 +41,7 @@ FIELDS = [
     ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
     ["dhcp_tag", "default", '<<inherit>>', "DHCP Tag", True, "See manpage or leave blank", 0, "str"],
     ["distro", None, '<<inherit>>', "Distribution", True, "Parent distribution", [], "str"],
-    ["enable_gpxe", "SETTINGS:enable_gpxe", 0, "Enable gPXE?", True, "Use gPXE instead of PXELINUX for advanced booting options", 0, "bool"],
+    ["enable_ipxe", "SETTINGS:enable_ipxe", 0, "Enable iPXE?", True, "Use iPXE instead of PXELINUX for advanced booting options", 0, "bool"],
     ["enable_menu", "SETTINGS:enable_menu", '<<inherit>>', "Enable PXE Menu?", True, "Show this profile in the PXE menu?", 0, "bool"],
     ["fetchable_files", {}, '<<inherit>>', "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "dict"],
     ["kernel_options", {}, '<<inherit>>', "Kernel Options", True, "Ex: selinux=permissive", 0, "dict"],
@@ -212,13 +212,13 @@ class Profile(item.Item):
         """
         self.proxy = proxy
 
-    def set_enable_gpxe(self, enable_gpxe):
+    def set_enable_ipxe(self, enable_ipxe):
         """
-        Sets whether or not the profile will use gPXE for booting.
+        Sets whether or not the profile will use iPXE for booting.
 
-        :param enable_gpxe: New boolean value for enabling gPXE.
+        :param enable_ipxe: New boolean value for enabling iPXE.
         """
-        self.enable_gpxe = utils.input_boolean(enable_gpxe)
+        self.enable_ipxe = utils.input_boolean(enable_ipxe)
 
     def set_enable_menu(self, enable_menu):
         """

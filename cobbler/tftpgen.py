@@ -885,8 +885,8 @@ class TFTPGen(object):
 
                 append_line += " kssendmac"
                 append_line = "%s ks=%s" % (append_line, autoinstall_path)
-                gpxe = blended["enable_gpxe"]
-                if gpxe:
+                ipxe = blended["enable_ipxe"]
+                if ipxe:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
@@ -1102,21 +1102,19 @@ class TFTPGen(object):
 
         return results
 
-    def generate_gpxe(self, what, name, format='gpxe'):
+    def generate_ipxe(self, what, name):
         """
-        Generate the gpxe files.
+        Generate the ipxe files.
 
         :param what: either "profile" or "system". All other item types not valdi.
         :type what: str
         :param name: The name of the profile or system.
         :type name: str
-        :param format: May be "gpxe" or "ipxe".
-        :type format: str
         :return: The rendered template.
         :rtype: str
         """
         if what.lower() not in ("profile", "system"):
-            return "# gpxe is only valid for profiles and systems"
+            return "# ipxe is only valid for profiles and systems"
 
         distro = None
         if what == "profile":
@@ -1163,47 +1161,47 @@ class TFTPGen(object):
         if not utils.file_is_remote(initrd_path):
             initrd_path = os.path.join("/images", distro.name, blended['initrd_name'])
         blended['kernel_path'] = kernel_path
-        blended['initrd_path'] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, format)
+        blended['initrd_path'] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, 'ipxe')
 
         template = None
         if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
-            # all of these use a standard kernel/initrd setup so they all use the same gPXE template
+            # all of these use a standard kernel/initrd setup so they all use the same iPXE template
             template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "%s_%s_linux.template" % (format, what.lower()))
+                                    "ipxe_%s_linux.template" % what.lower())
         elif distro.breed == 'vmware':
             if distro.os_version == 'esx4':
                 # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_linux.template" % (format, what.lower()))
+                                        "ipxe_%s_linux.template" % what.lower())
             elif distro.os_version == 'esxi4':
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_esxi4.template" % (format, what.lower()))
+                                        "ipxe_%s_esxi4.template" % what.lower())
             elif distro.os_version.startswith('esxi5'):
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_esxi5.template" % (format, what.lower()))
+                                        "ipxe_%s_esxi5.template" % what.lower())
             elif distro.os_version.startswith('esxi6'):
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_esxi6.template" % (format, what.lower()))
+                                        "ipxe_%s_esxi6.template" % what.lower())
             elif distro.os_version.startswith('esxi7'):
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_esxi7.template" % (format, what.lower()))
+                                        "ipxe_%s_esxi7.template" % what.lower())
         elif distro.breed == 'freebsd':
             template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "%s_%s_freebsd.template" % (format, what.lower()))
+                                    "ipxe_%s_freebsd.template" % what.lower())
         elif distro.breed == 'windows':
             template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "%s_%s_windows.template" % (format, what.lower()))
+                                    "ipxe_%s_windows.template" % what.lower())
 
         if what == "system":
             if not netboot_enabled:
                 template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "%s_%s_local.template" % (format, what.lower()))
+                                        "ipxe_%s_local.template" % what.lower())
 
         if not template:
             return "# unsupported breed/os version"
 
         if not os.path.exists(template):
-            return "# %s template not found for the %s named %s (filename=%s)" % (format, what, name, template)
+            return "# ipxe template not found for the %s named %s (filename=%s)" % (what, name, template)
 
         template_fh = open(template)
         template_data = template_fh.read()
@@ -1252,7 +1250,7 @@ class TFTPGen(object):
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
-        if obj.enable_gpxe:
+        if obj.enable_ipxe:
             blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port, distro.name)
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
@@ -1302,7 +1300,7 @@ class TFTPGen(object):
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board
-        if obj.enable_gpxe:
+        if obj.enable_ipxe:
             blended['img_path'] = 'http://%s:%s/cobbler/links/%s' % (self.settings.server, self.settings.http_port, distro.name)
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
@@ -1332,11 +1330,8 @@ class TFTPGen(object):
         """
         initrd_line = custom_loader_name
 
-        if format in ["gpxe", "ipxe"]:
-            initrd_line = "-name " + loader_name + " " + custom_loader_name + " " + loader_name
-
-            if format == "ipxe":
-                initrd_line = "-" + initrd_line
+        if format == "ipxe":
+            initrd_line = "--name " + loader_name + " " + custom_loader_name + " " + loader_name
 
         return initrd_line
 
