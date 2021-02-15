@@ -95,7 +95,7 @@ def gen_build_version():
                                stdout=subprocess.PIPE)
         data = cmd.communicate()[0].strip()
         if cmd.returncode == 0:
-            gitstamp, gitdate = data.split(b"\n")
+            gitstamp, gitdate = data.decode("utf8").split("\n")
 
     fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
     config = ConfigParser()
