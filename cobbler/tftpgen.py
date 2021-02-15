@@ -1073,10 +1073,10 @@ class TFTPGen(object):
         blended = utils.blender(self.api, False, obj)
 
         if distro.os_version.startswith("esxi"):
-            realbootcfg = open(os.path.join(os.path.dirname(distro.kernel), 'boot.cfg')).read()
-            bootmodules = re.findall(r'modules=(.*)', realbootcfg)
-            for modules in bootmodules:
-                blended['esx_modules'] = modules.replace('/', '')
+            with open(os.path.join(os.path.dirname(distro.kernel), 'boot.cfg')) as f:
+                bootmodules = re.findall(r'modules=(.*)', f.read())
+                for modules in bootmodules:
+                    blended['esx_modules'] = modules.replace('/', '')
 
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
