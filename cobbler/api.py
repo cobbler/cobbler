@@ -25,6 +25,7 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
+from typing import Optional
 
 from cobbler.actions import status, dlcontent, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
@@ -1401,15 +1402,15 @@ class CobblerAPI(object):
 
     # ==========================================================================
 
-    def import_tree(self, mirror_url, mirror_name, network_root=None, autoinstall_file=None, rsync_flags=None,
-                    arch=None, breed=None, os_version=None, logger=None):
+    def import_tree(self, mirror_url: str, mirror_name: str, network_root=None, autoinstall_file=None, rsync_flags=None,
+                    arch=None, breed=None, os_version=None, logger: Optional[clogger.Logger] = None) -> Optional[bool]:
         """
         Automatically import a directory tree full of distribution files.
 
         :param mirror_url: Can be a string that represents a path, a user@host syntax for SSH, or an rsync:// address.
                            If mirror_url is a filesystem path and mirroring is not desired, set network_root to
                            something like "nfs://path/to/mirror_url/root"
-        :param mirror_name:
+        :param mirror_name: The name of the mirror.
         :param network_root:
         :param autoinstall_file:
         :param rsync_flags:
