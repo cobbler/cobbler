@@ -33,14 +33,14 @@ from cobbler.cexceptions import CX
 libpath = "/var/lib/cobbler/collections"
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "serializer"
 
 
-def what():
+def what() -> str:
     """
     Module identification function
     """
@@ -145,7 +145,7 @@ def deserialize_raw(collection_types):
         return results
 
 
-def filter_upgrade_duplicates(file_list):
+def filter_upgrade_duplicates(file_list) -> list:
     """
     In a set of files, some ending with .json, some not, return the list of files with the .json ones taking priority
     over the ones that are not.
