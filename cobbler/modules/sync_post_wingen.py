@@ -1,6 +1,5 @@
 import os
 import re
-import pefile
 import binascii
 import tempfile
 import cobbler.utils as utils
@@ -9,6 +8,7 @@ import logging
 
 HAS_HIVEX = True
 try:
+    import pefile
     import hivex
     from hivex.hive_types import REG_DWORD
     from hivex.hive_types import REG_BINARY
@@ -111,7 +111,8 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
 def run(api, args, logger):
     if not HAS_HIVEX:
-        logger.info("python3-hivex not found. If you need Automatic Windows Installation support, please install.")
+        logger.info("python3-hivex or python3-pefile not found. If you need Automatic Windows Installation support, "
+                    "please install.")
         return 0
 
     distros = api.distros()
