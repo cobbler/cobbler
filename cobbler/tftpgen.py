@@ -1080,6 +1080,12 @@ class TFTPGen(object):
 
         blended = utils.blender(self.api, False, obj)
 
+        if distro.os_version.startswith("esxi"):
+            with open(os.path.join(os.path.dirname(distro.kernel), 'boot.cfg')) as f:
+                bootmodules = re.findall(r'modules=(.*)', f.read())
+                for modules in bootmodules:
+                    blended['esx_modules'] = modules.replace('/', '')
+
         autoinstall_meta = blended.get("autoinstall_meta", {})
         try:
             del blended["autoinstall_meta"]
@@ -1096,7 +1102,7 @@ class TFTPGen(object):
         else:
             blended['img_path'] = os.path.join("/images", distro.name)
 
-        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg_%s_%s.template" % (what.lower(), distro.os_version))
+        template = os.path.join(self.settings.boot_loader_conf_template_dir, "bootcfg_%s.template" % distro.os_version)
         if not os.path.exists(template):
             return "# boot.cfg template not found for the %s named %s (filename=%s)" % (what, name, template)
 
