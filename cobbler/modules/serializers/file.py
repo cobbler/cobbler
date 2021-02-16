@@ -47,6 +47,21 @@ def what():
     return "serializer/file"
 
 
+def __find_double_json_files(filename: str):
+    """
+    Finds a file with duplicate .json ending and renames it.
+    :param filename: Filename to be checked
+    :raises FileExistsError: If both JSON files exist
+    """
+
+    if not os.path.isfile(filename):
+        if os.path.isfile(filename + ".json"):
+            os.rename(filename + ".json", filename)
+    else:
+        if os.path.isfile(filename + ".json"):
+            raise FileExistsError("Both JSON files exist!")
+
+
 def serialize_item(collection, item):
     """
     Save a collection item to file system
@@ -60,6 +75,7 @@ def serialize_item(collection, item):
 
     collection_types = collection.collection_types()
     filename = os.path.join(libpath, collection_types, item.name + ".json")
+    __find_double_json_files(filename)
 
     _dict = item.to_dict()
 
@@ -86,6 +102,7 @@ def serialize_delete(collection, item):
 
     collection_types = collection.collection_types()
     filename = os.path.join(libpath, collection_types, item.name + ".json")
+    __find_double_json_files(filename)
 
     if os.path.exists(filename):
         os.remove(filename)
