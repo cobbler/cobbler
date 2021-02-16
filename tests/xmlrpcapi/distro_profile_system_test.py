@@ -151,7 +151,7 @@ def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["virt_bridge-eth0", [], []],
 
         # power management
-        ["power_type", ["ipmitool"], ["bla"]],
+        ["power_type", ["ipmilan"], ["bla"]],
         ["power_address", ["127.0.0.1"], []],
         ["power_id", ["pmachine:lpar1"], []],
         ["power_pass", ["pass"], []],

@@ -3,13 +3,19 @@ import re
 import pefile
 import binascii
 import tempfile
-import hivex
-from hivex.hive_types import REG_DWORD
-from hivex.hive_types import REG_BINARY
-from hivex.hive_types import REG_SZ
-from hivex.hive_types import REG_MULTI_SZ
 import cobbler.utils as utils
 import cobbler.templar as templar
+import logging
+
+HAS_HIVEX = True
+try:
+    import hivex
+    from hivex.hive_types import REG_DWORD
+    from hivex.hive_types import REG_BINARY
+    from hivex.hive_types import REG_SZ
+    from hivex.hive_types import REG_MULTI_SZ
+except Exception:
+    HAS_HIVEX = False
 
 template_dir = "/var/lib/tftpboot/winos/"
 sif_template_name = template_dir + "win_sif.template"
@@ -28,6 +34,9 @@ def register():
     :return: Always ``/var/lib/cobbler/triggers/sync/post/*``
     :rtype: str
     """
+    if not HAS_HIVEX:
+        logging.info("python3-hivex not found. If you need Automatic Windows Installation support, please install.")
+        return
 
     return "/var/lib/cobbler/triggers/sync/post/*"
 
@@ -101,6 +110,10 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
 
 
 def run(api, args, logger):
+    if not HAS_HIVEX:
+        logger.info("python3-hivex not found. If you need Automatic Windows Installation support, please install.")
+        return 0
+
     distros = api.distros()
     profiles = api.profiles()
     templ = templar.Templar(api._collection_mgr)

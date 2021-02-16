@@ -339,7 +339,7 @@ name and profile are the only two required fields:
     Power Management Address       :
     Power Management ID            :
     Power Management Password      :
-    Power Management Type          : ipmitool
+    Power Management Type          : ipmilanplus
     Power Management Username      :
     Profile                        : fedora17-x86_64
     Proxy                          : <<inherit>>

@@ -398,13 +398,13 @@ Choices (refer to codes.py):
 - ilo
 - integrity
 - ipmilan
-- ipmitool
+- ipmilanplus
 - lpar
 - rsa
 - virsh
 - wti
 
-default: ``ipmitool``
+default: ``ipmilanplus``
 
 pxe_just_once
 =============

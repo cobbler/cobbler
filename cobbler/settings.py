@@ -102,7 +102,7 @@ DEFAULTS = {
     "mgmt_parameters": [{}, "dict"],
     "next_server": ["127.0.0.1", "str"],
     "nsupdate_enabled": [0, "bool"],
-    "power_management_default_type": ["ipmitool", "str"],
+    "power_management_default_type": ["ipmilan", "str"],
     "proxy_url_ext": ["", "str"],
     "proxy_url_int": ["", "str"],
     "puppet_auto_setup": [0, "bool"],
