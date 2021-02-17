@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from typing import List, Callable, Any
+
 import glob
 import gzip
 import os
@@ -29,6 +31,14 @@ import stat
 
 import magic
 
+from cobbler import clogger
+from cobbler import templar
+from cobbler.items import profile, distro
+from cobbler.cexceptions import CX
+from cobbler import utils
+
+import cobbler.items.repo as item_repo
+
 # Import aptsources module if available to obtain repo mirror.
 try:
     from aptsources import distro as debdistro
@@ -38,22 +48,15 @@ try:
 except:
     apt_available = False
 
-from cobbler.items import profile, distro
-from cobbler.cexceptions import CX
 
-import cobbler.templar as templar
-import cobbler.utils as utils
-import cobbler.items.repo as item_repo
-
-
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage/import"
 
 
-def import_walker(top, func, arg):
+def import_walker(top: str, func: Callable, arg: Any):
     """
     Directory tree walk with callback function.
 
@@ -84,11 +87,15 @@ def import_walker(top, func, arg):
             import_walker(name, func, arg)
 
 
-class ImportSignatureManager(object):
+class ImportSignatureManager:
+    """
+    This class contains most of the magic behind the ``cobbler import`` command. It uses the signatures as a data source
+    and then automatically adds the detected distro to Cobbler.
+    """
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr, logger: clogger.Logger):
         """
-        Constructor
+        Main constructor for our class.
 
         :param collection_mgr: This is the collection manager which has every information in Cobbler available.
         :param logger: This is the logger to audit all actions with.
@@ -107,7 +114,7 @@ class ImportSignatureManager(object):
         self.found_repos = {}
 
     # required function for import modules
-    def what(self):
+    def what(self) -> str:
         """
         Identifies what service this manages.
 
@@ -115,7 +122,7 @@ class ImportSignatureManager(object):
         """
         return "import/signatures"
 
-    def get_file_lines(self, filename):
+    def get_file_lines(self, filename: str):
         """
         Get lines from a file, which may or may not be compressed. If compressed then it will be uncompressed using
         ``gzip`` as the algorithm.
@@ -138,7 +145,8 @@ class ImportSignatureManager(object):
                              filename)
             return []
 
-    def run(self, path, name, network_root=None, autoinstall_file=None, arch=None, breed=None, os_version=None):
+    def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch=None, breed=None,
+            os_version=None):
         """
         This is the main entry point in a manager. It is a required function for import modules.
 
@@ -245,7 +253,7 @@ class ImportSignatureManager(object):
         return None
 
     # required function for import modules
-    def get_valid_arches(self):
+    def get_valid_arches(self) -> list:
         """
         Get all valid architectures from the signature file.
 
@@ -255,7 +263,7 @@ class ImportSignatureManager(object):
             return sorted(self.signature["supported_arches"], key=lambda s: -1 * len(s))
         return []
 
-    def get_valid_repo_breeds(self):
+    def get_valid_repo_breeds(self) -> list:
         """
         Get all valid repository architectures from the signatures file.
 
@@ -325,7 +333,7 @@ class ImportSignatureManager(object):
             for adtl in adtls:
                 distros_added.extend(adtl)
 
-    def add_entry(self, dirname, kernel, initrd):
+    def add_entry(self, dirname: str, kernel, initrd):
         """
         When we find a directory with a valid kernel/initrd in it, create the distribution objects as appropriate and
         save them. This includes creating xen and rescue distros/profiles if possible.
@@ -421,7 +429,7 @@ class ImportSignatureManager(object):
 
         return distros_added
 
-    def learn_arch_from_tree(self):
+    def learn_arch_from_tree(self) -> list:
         """
         If a distribution is imported from DVD, there is a good chance the path doesn't contain the arch and we should
         add it back in so that it's part of the meaningful name ... so this code helps figure out the arch name.  This
@@ -447,13 +455,12 @@ class ImportSignatureManager(object):
 
         return list(result.keys())
 
-    def arch_walker(self, foo, dirname, fnames):
+    def arch_walker(self, foo: dict, dirname: str, fnames: list):
         """
         Function for recursively searching through a directory for a kernel file matching a given architecture, called
         by ``learn_arch_from_tree()``
 
         :param foo: Into this dict there will be put additional meta information.
-        :type foo: dict
         :param dirname: The directory name where the kernel can be found.
         :param fnames: This should be a list like object which will be looped over.
         """
@@ -483,7 +490,7 @@ class ImportSignatureManager(object):
                             foo[arch] = 1
                             break
 
-    def get_proposed_name(self, dirname, kernel=None):
+    def get_proposed_name(self, dirname: str, kernel=None) -> str:
         """
         Given a directory name where we have a kernel/initrd pair, try to autoname the distribution (and profile) object
         based on the contents of that path.
@@ -522,20 +529,20 @@ class ImportSignatureManager(object):
 
         return name
 
-    def configure_tree_location(self, distro):
+    def configure_tree_location(self, distribution: distro.Distro):
         """
         Once a distribution is identified, find the part of the distribution that has the URL in it that we want to use
         for automating the Linux distribution installation, and create a autoinstall_meta variable $tree that contains
         this.
 
-        :param distro: The distribution object for that the tree should be configured.
+        :param distribution: The distribution object for that the tree should be configured.
         """
 
         base = self.rootdir
 
         # how we set the tree depends on whether an explicit network_root was specified
         if self.network_root is None:
-            dest_link = os.path.join(self.settings.webdir, "links", distro.name)
+            dest_link = os.path.join(self.settings.webdir, "links", distribution.name)
             # create the links directory only if we are mirroring because with SELinux Apache can't symlink to NFS
             # (without some doing)
             if not os.path.exists(dest_link):
@@ -546,29 +553,29 @@ class ImportSignatureManager(object):
                     # FIXME: This shouldn't happen but I've seen it ... debug ...
                     self.logger.warning(
                         "symlink creation failed: %(base)s, %(dest)s" % {"base": base, "dest": dest_link})
-            tree = "http://@@http_server@@/cblr/links/%s" % distro.name
-            self.set_install_tree(distro, tree)
+            tree = "http://@@http_server@@/cblr/links/%s" % distribution.name
+            self.set_install_tree(distribution, tree)
         else:
             # Where we assign the automated installation file source is relative to our current directory and the input
             # start directory in the crawl. We find the path segments between and tack them on the network source
             # path to find the explicit network path to the distro that Anaconda can digest.
             tail = utils.path_tail(self.path, base)
             tree = self.network_root[:-1] + tail
-            self.set_install_tree(distro, tree)
+            self.set_install_tree(distribution, tree)
 
-    def set_install_tree(self, distro, url):
+    def set_install_tree(self, distribution: distro.Distro, url: str):
         """
         Simple helper function to set the tree automated installation metavariable.
 
-        :param distro: The distribution object for which the install tree should be set.
+        :param distribution: The distribution object for which the install tree should be set.
         :param url: The url for the tree.
         """
-        distro.autoinstall_meta["tree"] = url
+        distribution.autoinstall_meta["tree"] = url
 
     # ==========================================================================
     # Repo Functions
 
-    def repo_finder(self, distros_added):
+    def repo_finder(self, distros_added: List[distro.Distro]):
         """
         This routine looks through all distributions and tries to find any applicable repositories in those
         distributions for post-install usage.
@@ -636,14 +643,14 @@ class ImportSignatureManager(object):
                     self.logger.info("directory %s is missing xml comps file, skipping" % dirname)
                     continue
 
-    def yum_process_comps_file(self, comps_path, distro):
+    def yum_process_comps_file(self, comps_path: str, distribution: distro.Distro):
         """
         When importing Fedora/EL certain parts of the install tree can also be used as yum repos containing packages
         that might not yet be available via updates in yum. This code identifies those areas. Existing repodata will be
         used as-is, but repodate is created for earlier, non-yum based, installers.
 
         :param comps_path: Not know what this is exactly for.
-        :param distro: The distributions to check.
+        :param distribution: The distributions to check.
         """
 
         if os.path.exists(os.path.join(comps_path, "repodata")):
@@ -668,18 +675,19 @@ class ImportSignatureManager(object):
             # Store the yum configs on the filesystem so we can use them later. And configure them in the automated
             # installation file post section, etc.
 
-            counter = len(distro.source_repos)
+            counter = len(distribution.source_repos)
 
             # find path segment for yum_url (changing filesystem path to http:// trailing fragment)
             seg = comps_path.rfind("distro_mirror")
             urlseg = comps_path[(seg + len("distro_mirror") + 1):]
 
-            fname = os.path.join(self.settings.webdir, "distro_mirror", "config", "%s-%s.repo" % (distro.name, counter))
+            fname = os.path.join(self.settings.webdir,
+                                 "distro_mirror", "config", "%s-%s.repo" % (distribution.name, counter))
 
-            repo_url = "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo" % (distro.name, counter)
+            repo_url = "http://@@http_server@@/cobbler/distro_mirror/config/%s-%s.repo" % (distribution.name, counter)
             repo_url2 = "http://@@http_server@@/cobbler/distro_mirror/%s" % urlseg
 
-            distro.source_repos.append([repo_url, repo_url2])
+            distribution.source_repos.append([repo_url, repo_url2])
 
             config_dir = os.path.dirname(fname)
             if not os.path.exists(config_dir):
@@ -721,37 +729,38 @@ class ImportSignatureManager(object):
     # ==========================================================================
     # apt-specific
 
-    def apt_repo_adder(self, distro):
+    def apt_repo_adder(self, distribution: distro.Distro):
         """
         Automatically import apt repositories when importing signatures.
 
-        :param distro: The distribution to scan for apt repositories.
+        :param distribution: The distribution to scan for apt repositories.
         """
-        self.logger.info("adding apt repo for %s" % distro.name)
+        self.logger.info("adding apt repo for %s" % distribution.name)
         # Obtain repo mirror from APT if available
-        mirror = False
+        mirror = ""
         if apt_available:
             # Example returned URL: http://us.archive.ubuntu.com/ubuntu
             mirror = self.get_repo_mirror_from_apt()
-        if not mirror:
+        # If the mirror is only whitespace then use the default one.
+        if mirror.isspace():
             mirror = "http://archive.ubuntu.com/ubuntu"
 
         repo = item_repo.Repo(self.collection_mgr)
         repo.set_breed("apt")
-        repo.set_arch(distro.arch)
+        repo.set_arch(distribution.arch)
         repo.set_keep_updated(True)
         repo.set_apt_components("main universe")  # TODO: make a setting?
-        repo.set_apt_dists("%s %s-updates %s-security" % ((distro.os_version,) * 3))
-        repo.set_name(distro.name)
-        repo.set_os_version(distro.os_version)
+        repo.set_apt_dists("%s %s-updates %s-security" % ((distribution.os_version,) * 3))
+        repo.set_name(distribution.name)
+        repo.set_os_version(distribution.os_version)
 
-        if distro.breed == "ubuntu":
+        if distribution.breed == "ubuntu":
             repo.set_mirror(mirror)
         else:
             # NOTE : The location of the mirror should come from timezone
-            repo.set_mirror("http://ftp.%s.debian.org/debian/dists/%s" % ('us', distro.os_version))
+            repo.set_mirror("http://ftp.%s.debian.org/debian/dists/%s" % ('us', distribution.os_version))
 
-        self.logger.info("Added repos for %s" % distro.name)
+        self.logger.info("Added repos for %s" % distribution.name)
         repos = self.collection_mgr.repos()
         repos.add(repo, save=True)
         # FIXME: Add the found/generated repos to the profiles that were created during the import process
@@ -777,22 +786,22 @@ class ImportSignatureManager(object):
     # ==========================================================================
     # rhn-specific
 
-    def rhn_repo_adder(self, distro):
+    def rhn_repo_adder(self, distribution: distro.Distro):
         """
         Not currently used.
 
-        :param distro: Not used currently.
+        :param distribution: Not used currently.
         """
         return
 
     # ==========================================================================
     # rsync-specific
 
-    def rsync_repo_adder(self, distro):
+    def rsync_repo_adder(self, distribution: distro.Distro):
         """
         Not currently used.
 
-        :param distro: Not used currently.
+        :param distribution: Not used currently.
         """
         return
 
