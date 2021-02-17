@@ -145,26 +145,6 @@ def deserialize_raw(collection_types):
         return results
 
 
-def filter_upgrade_duplicates(file_list) -> list:
-    """
-    In a set of files, some ending with .json, some not, return the list of files with the .json ones taking priority
-    over the ones that are not.
-
-    :param file_list: The list of files to remove duplicates from.
-    :return: The filtered list of files. Normally this should only return ``.json``-Files.
-    """
-    bases = {}
-    for f in file_list:
-        basekey = f.replace(".json", "")
-        if f.endswith(".json"):
-            bases[basekey] = f
-        else:
-            lookup = bases.get(basekey, "")
-            if not lookup.endswith(".json"):
-                bases[basekey] = f
-    return list(bases.values())
-
-
 def deserialize(collection, topological=True):
     """
     Load a collection from file system.
