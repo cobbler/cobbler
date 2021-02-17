@@ -59,7 +59,7 @@ def __find_double_json_files(filename: str):
             os.rename(filename + ".json", filename)
     else:
         if os.path.isfile(filename + ".json"):
-            raise FileExistsError("Both JSON files exist!")
+            raise FileExistsError("Both JSON files (%s) exist!" % filename)
 
 
 def serialize_item(collection, item):
