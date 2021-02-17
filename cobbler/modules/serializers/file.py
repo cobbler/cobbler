@@ -33,18 +33,33 @@ from cobbler.cexceptions import CX
 libpath = "/var/lib/cobbler/collections"
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "serializer"
 
 
-def what():
+def what() -> str:
     """
     Module identification function
     """
     return "serializer/file"
+
+
+def __find_double_json_files(filename: str):
+    """
+    Finds a file with duplicate .json ending and renames it.
+    :param filename: Filename to be checked
+    :raises FileExistsError: If both JSON files exist
+    """
+
+    if not os.path.isfile(filename):
+        if os.path.isfile(filename + ".json"):
+            os.rename(filename + ".json", filename)
+    else:
+        if os.path.isfile(filename + ".json"):
+            raise FileExistsError("Both JSON files (%s) exist!" % filename)
 
 
 def serialize_item(collection, item):
@@ -60,6 +75,7 @@ def serialize_item(collection, item):
 
     collection_types = collection.collection_types()
     filename = os.path.join(libpath, collection_types, item.name + ".json")
+    __find_double_json_files(filename)
 
     _dict = item.to_dict()
 
@@ -86,6 +102,7 @@ def serialize_delete(collection, item):
 
     collection_types = collection.collection_types()
     filename = os.path.join(libpath, collection_types, item.name + ".json")
+    __find_double_json_files(filename)
 
     if os.path.exists(filename):
         os.remove(filename)
@@ -126,26 +143,6 @@ def deserialize_raw(collection_types):
                 _dict = simplejson.loads(json_data, encoding='utf-8')
                 results.append(_dict)
         return results
-
-
-def filter_upgrade_duplicates(file_list):
-    """
-    In a set of files, some ending with .json, some not, return the list of files with the .json ones taking priority
-    over the ones that are not.
-
-    :param file_list: The list of files to remove duplicates from.
-    :return: The filtered list of files. Normally this should only return ``.json``-Files.
-    """
-    bases = {}
-    for f in file_list:
-        basekey = f.replace(".json", "")
-        if f.endswith(".json"):
-            bases[basekey] = f
-        else:
-            lookup = bases.get(basekey, "")
-            if not lookup.endswith(".json"):
-                bases[basekey] = f
-    return list(bases.values())
 
 
 def deserialize(collection, topological=True):
