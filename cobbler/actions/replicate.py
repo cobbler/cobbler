@@ -108,7 +108,7 @@ class Replicate(object):
             if not rdata["uid"] in locals:
                 creator = getattr(self.api, "new_%s" % obj_type)
                 newobj = creator()
-                newobj.from_dict(rdata)
+                newobj.from_dict(utils.revert_strip_none(rdata))
                 try:
                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
                     if not self.api.add_item(obj_type, newobj, logger=self.logger):
@@ -141,7 +141,7 @@ class Replicate(object):
                         self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
                     creator = getattr(self.api, "new_%s" % obj_type)
                     newobj = creator()
-                    newobj.from_dict(rdata)
+                    newobj.from_dict(utils.revert_strip_none(rdata))
                     try:
                         self.logger.info("updating %s %s" % (obj_type, rdata["name"]))
                         if not self.api.add_item(obj_type, newobj):
@@ -216,7 +216,7 @@ class Replicate(object):
         else:
             self.logger.info("*NOT* Rsyncing Data")
 
-        self.logger.info("Removing Objects Not Stored On Local")
+        self.logger.info("Adding Objects Not Stored On Local")
         for what in OBJ_TYPES:
             self.add_objects_not_on_local(what)
 
