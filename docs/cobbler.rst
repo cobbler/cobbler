@@ -1006,13 +1006,14 @@ When updating repos by name, a repo will be updated even if it is set to be not 
 operation (ex: ``cobbler repo edit –name=reponame1 –keep-updated=0``).
 Note that if a cobbler import provides enough information to use the boot server as a yum mirror for core packages,
 cobbler can set up automatic installation files to use the cobbler server as a mirror instead of the outside world. If
-this feature is desirable, it can be turned on by ``setting yum_post_install_mirror`` to 1 in /etc/settings (and running
-``cobbler sync``). You should not use this feature if machines are provisioned on a different VLAN/network than
-production, or if you are provisioning laptops that will want to acquire updates on multiple networks.
+this feature is desirable, it can be turned on by ``setting yum_post_install_mirror`` to ``True`` in
+``/etc/cobbler/settings.yaml`` (and running ``cobbler sync``). You should not use this feature if machines are
+provisioned on a different VLAN/network than production, or if you are provisioning laptops that will want to acquire
+updates on multiple networks.
 
-The flags --tries=N (for example, ``--tries=3``) and ``--no-fail`` should likely be used when putting re-posync on a crontab.
-They ensure network glitches in one repo can be retried and also that a failure to synchronize
-one repo does not stop other repositories from being synchronized.
+The flags ``--tries=N`` (for example, ``--tries=3``) and ``--no-fail`` should likely be used when putting re-posync on a
+crontab. They ensure network glitches in one repo can be retried and also that a failure to synchronize one repo does
+not stop other repositories from being synchronized.
 
 Cobbler sync
 ============
