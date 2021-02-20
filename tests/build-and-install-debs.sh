@@ -38,8 +38,8 @@ docker exec -it cobbler bash -c 'a2enconf cobbler cobbler_web'
 echo "==> Start Supervisor"
 docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
-echo "==> Wait 3 sec. and show Cobbler version ..."
-docker exec -it cobbler bash -c 'sleep 3 && cobbler --version'
+echo "==> Wait 5 sec. and show Cobbler version ..."
+docker exec -it cobbler bash -c 'sleep 5 && cobbler --version'
 
 if $RUN_TESTS
 then

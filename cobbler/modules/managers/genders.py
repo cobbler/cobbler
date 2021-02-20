@@ -23,7 +23,7 @@ def register():
 
 def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_genders):
     """
-    Genders file is over-written when manage_genders is set in our settings.
+    Genders file is over-written when ``manage_genders`` is set in our settings.
 
     :param config: The config file to template with the data.
     :param profiles_genders: The profiles which should be included.
@@ -60,7 +60,7 @@ def run(api, args, logger):
     :return: ``0`` or ``1``, depending on the outcome of the operation.
     """
     # do not run if we are not enabled.
-    if(not api.settings().manage_genders):
+    if not api.settings().manage_genders:
         return 0
 
     profiles_genders = dict()

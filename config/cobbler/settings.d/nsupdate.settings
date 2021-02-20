@@ -1,6 +1,5 @@
-
-# set to 1 to enable Cobbler's dynamic DNS updates.
-nsupdate_enabled: 0
+# Set to "true" to enable Cobbler's dynamic DNS updates.
+nsupdate_enabled: false
 
 # define tsig key
 # please don't use this one, instead generate your own:

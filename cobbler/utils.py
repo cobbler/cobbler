@@ -567,14 +567,12 @@ def input_string_or_dict(options, allow_multiples=True):
         raise CX("invalid input type")
 
 
-def input_boolean(value):
+def input_boolean(value: str) -> bool:
     """
     Convert a str to a boolean. If this is not possible or the value is false return false.
 
     :param value: The value to convert to boolean.
-    :type value: str
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
-    :rtype: bool
     """
     value = str(value)
     if value.lower() in ["true", "1", "on", "yes", "y"]:
@@ -1582,8 +1580,11 @@ def set_virt_auto_boot(self, num):
     # num is a non-negative integer (0 means default)
     try:
         inum = int(num)
-        if (inum == 0) or (inum == 1):
-            self.virt_auto_boot = inum
+        if inum == 0:
+            self.virt_auto_boot = False
+            return
+        elif inum == 1:
+            self.virt_auto_boot = True
             return
         raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % inum)
     except:

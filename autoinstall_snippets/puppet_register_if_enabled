@@ -1,5 +1,5 @@
 # start puppet registration 
-#if $str($getVar('puppet_auto_setup','')) == "1"
+#if $str($getVar('puppet_auto_setup','')) == "True"
 # generate puppet certificates and trigger a signing request, but
 # don't wait for signing to complete
 #if $int($getVar('puppet_version',2)) >= 3

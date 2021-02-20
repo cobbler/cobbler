@@ -2367,7 +2367,7 @@ class CobblerXMLRPCInterface(object):
 
     def disable_netboot(self, name, token=None, **rest):
         """
-        This is a feature used by the pxe_just_once support, see manpage. Sets system named "name" to no-longer PXE.
+        This is a feature used by the ``pxe_just_once`` support, see manpage. Sets system named "name" to no-longer PXE.
         Disabled by default as this requires public API access and is technically a read-write operation.
 
         :param name: The name of the system to disable netboot for.
@@ -2380,7 +2380,7 @@ class CobblerXMLRPCInterface(object):
         if not self.api.settings().pxe_just_once:
             # feature disabled!
             return False
-        if str(self.api.settings().nopxe_with_triggers).upper() in ["1", "Y", "YES", "TRUE"]:
+        if self.api.settings().nopxe_with_triggers:
             # triggers should be enabled when calling nopxe
             triggers_enabled = True
         else:

@@ -58,8 +58,6 @@ def authenticate(api_handle, username, password):
     server = api_handle.settings().ldap_server
     basedn = api_handle.settings().ldap_base_dn
     port = str(api_handle.settings().ldap_port)
-    tls = api_handle.settings().ldap_tls
-    anon_bind = api_handle.settings().ldap_anonymous_bind
     prefix = api_handle.settings().ldap_search_prefix
 
     # Support for LDAP client certificates
@@ -100,9 +98,8 @@ def authenticate(api_handle, username, password):
     dir = ldap.initialize(uri)
 
     # start_tls if tls is 'on', 'true' or 'yes' and we're not already using old-SSL
-    tls = str(tls).lower()
     if port != '636':
-        if tls in ["on", "true", "yes", "1"]:
+        if api_handle.settings().ldap_tls:
             try:
                 dir.start_tls_s()
             except:
@@ -110,8 +107,7 @@ def authenticate(api_handle, username, password):
                 return False
 
     # if we're not allowed to search anonymously, grok the search bind settings and attempt to bind
-    anon_bind = str(anon_bind).lower()
-    if anon_bind not in ["on", "true", "yes", "1"]:
+    if api_handle.settings().ldap_anonymous_bind:
         searchdn = api_handle.settings().ldap_search_bind_dn
         searchpw = api_handle.settings().ldap_search_passwd
 

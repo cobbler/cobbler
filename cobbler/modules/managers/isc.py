@@ -240,9 +240,8 @@ class IscManager(object):
         """
         This syncs the dhcp server with it's new config files. Basically this restarts the service to apply the changes.
         """
-        restart_dhcp = str(self.settings.restart_dhcp).lower()
         service_name = utils.dhcp_service_name(self.api)
-        if restart_dhcp != "0":
+        if self.settings.restart_dhcp:
             rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
             if rc != 0:
                 error_msg = "dhcpd -t failed"
