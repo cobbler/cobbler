@@ -535,11 +535,11 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
     try:
         validate_settings(filecontent)
     except SchemaMissingKeyError:
-        logging.exception("Settingsfile was not returned due to missing Keys.")
+        logging.exception("Settings file was not returned due to missing keys.")
         logging.debug("The settings to read were: \"%s\"", filecontent)
         return {}
     except SchemaError:
-        logging.exception("Settingsfile was returned due to an error in the schema.")
+        logging.exception("Settings file was returned due to an error in the schema.")
         logging.debug("The settings to read were: \"%s\"", filecontent)
         return {}
     return filecontent
@@ -567,11 +567,11 @@ def update_settings_file(data: dict, filepath="/etc/cobbler/settings.yaml") -> b
             settings_file.write(yaml_dump)
         return True
     except SchemaMissingKeyError:
-        logging.exception("Settingsfile was not written to the disc due to missing Keys.")
+        logging.exception("Settings file was not written to the disc due to missing keys.")
         logging.debug("The settings to write were: \"%s\"", data)
         return False
     except SchemaError:
-        logging.exception("Settingsfile was not written to the disc due to an error in the schema.")
+        logging.exception("Settings file was not written to the disc due to an error in the schema.")
         logging.debug("The settings to write were: \"%s\"", data)
         return False
 

@@ -15,7 +15,7 @@ There are two main settings files which are located per default at ``/etc/cobble
              change due to the fact that PyYAML doesn't support comments
              (`Source <https://github.com/yaml/pyyaml/issues/90>`_)
 
-There are additional configuration files location which need to follow the YAML Syntax. These are loaded from the
+There are additional configuration file locations which need to follow the YAML Syntax. These are loaded from the
 ``include`` directory in the ``settings.yaml`` file. Any key specified in one of these files overwrites values from the
 main file.
 
@@ -30,12 +30,12 @@ Starting with 3.2.1:
 
 - We require the extension ``.yaml`` on our settings file to indicate the format of the file to editors and comply to
   standards of the YAML specification.
-- We require the usage of Booleans in the format of ``True`` and ``False``. If you have old integer style booleans with
-  ``1`` and ``0`` this is fine but may should convert them as soon as possible. We may decide in a future version to
+- We require the usage of booleans in the format of ``True`` and ``False``. If you have old integer style booleans with
+  ``1`` and ``0`` this is fine but you may should convert them as soon as possible. We may decide in a future version to
   enforce our new way in a stricter manner. Automatic conversion is only done on a best-effort/available-resources
   basis.
 - We enforce the types of values to the keys. Additional unexpected keys will throw errors. If you have those used in
-  Cobbler please report this in our Issue Tracker. We have decided to go this way to be able to rely on the existence
+  Cobbler please report this in our issue tracker. We have decided to go this way to be able to rely on the existence
   of the values. This gives us the freedom to write less access checks to the settings without loosing stability.
 
 ``settings.yaml``
@@ -52,7 +52,7 @@ default: ``False``
 allow_duplicate_ips
 ===================
 
-If "True", Cobbler will allow insertions of system records that duplicate the IP address information of other system
+If ``True``, Cobbler will allow insertions of system records that duplicate the IP address information of other system
 records. In general, this is undesirable and should be left False.
 
 default: ``False``
@@ -155,7 +155,7 @@ default: ``/var/lib/cobbler/loaders``
 grubconfig_dir
 ==============
 
-The location where Cobbler searches for Grub configuration files.
+The location where Cobbler searches for GRUB configuration files.
 
 default: ``/var/lib/cobbler/grub_config``
 
@@ -164,10 +164,10 @@ build_reporting_*
 
 Email out a report when Cobbler finishes installing a system.
 
-- enabled: set to ``True`` to turn this feature on
+- enabled: Set to ``true`` to turn this feature on
 - email: Which addresses to email
 - ignorelist: TODO
-- sender: optional
+- sender: Optional
 - smtp_server: Used to specify another server for an MTA.
 - subject: Use the default subject unless overridden.
 
@@ -175,7 +175,7 @@ defaults:
 
 .. code:: YAML
 
-    build_reporting_enabled: False
+    build_reporting_enabled: false
     build_reporting_sender: ""
     build_reporting_email: [ 'root@localhost' ]
     build_reporting_smtp_server: "localhost"
@@ -185,8 +185,8 @@ defaults:
 buildisodir
 ===========
 
-Used for caching the intermediate files for ISO-Building. You may want to use an SSD, a tmpfs or something which is not
-persisted across reboots and can be easily thrown away but is also fast.
+Used for caching the intermediate files for ISO-Building. You may want to use a SSD, a tmpfs or something which does not
+persist across reboots and can be easily thrown away but is also fast.
 
 default: ``/var/cache/cobbler/buildiso``
 
@@ -226,7 +226,7 @@ client_use_localhost
 ====================
 
 If set to ``True``, all commands will be forced to use the localhost address instead of using the above value which can
-force commands like Cobbler sync to open a connection to a remote address if one is in the configuration and would
+force commands like ``cobbler sync`` to open a connection to a remote address if one is in the configuration and would
 traceback.
 
 default: ``False``
@@ -241,7 +241,7 @@ default: ``""``
 convert_server_to_ip
 ====================
 
-Convert hostnames to IP-addresses (where possible) so DNS isn't a requirement for various tasks to work correctly.
+Convert hostnames to IP addresses (where possible) so DNS isn't a requirement for various tasks to work correctly.
 
 default: ``False``
 
@@ -300,7 +300,7 @@ following template engine to parse the templates.
 
 .. note:: Over time we will try to deprecate and remove Cheetah3 as a template engine. It is hard to package and there
           are fewer guides then with Jinja2. Making the templating independent of the engine is a task which complicates
-          the code. Thus please try to use Jinja2. We will try to support a seamless transition on a best-effort basis.
+          the code. Thus, please try to use Jinja2. We will try to support a seamless transition on a best-effort basis.
 
 Current valid values are: ``cheetah``, ``jinja2``
 
@@ -422,8 +422,8 @@ defaults:
     ldap_server: "ldap.example.com"
     ldap_base_dn: "DC=example,DC=com"
     ldap_port: 389
-    ldap_tls: True
-    ldap_anonymous_bind: True
+    ldap_tls: true
+    ldap_anonymous_bind: true
     ldap_search_bind_dn: ''
     ldap_search_passwd: ''
     ldap_search_prefix: 'uid='
@@ -434,7 +434,7 @@ defaults:
 bind_manage_ipmi
 ================
 
-When using the Bind9 DNS Server, you can enable or disable if the BMCs should receive own DNS entries.
+When using the Bind9 DNS server, you can enable or disable if the BMCs should receive own DNS entries.
 
 default: ``False``
 
@@ -470,7 +470,7 @@ defaults:
 manage_genders
 ==============
 
-Whether or not to manage the Genders file. For more information on that visit:
+Whether or not to manage the genders file. For more information on that visit:
 `github.com/chaos/genders <https://github.com/chaos/genders>`_
 
 default: ``False``
@@ -497,11 +497,11 @@ Cobbler has a feature that allows for integration with config management systems
 parameters work in conjunction with ``--mgmt-classes`` and are described in further detail at
 :ref:`configuration-management`.
 
-.. code-block:: Yaml
+.. code-block:: YAML
 
     mgmt_classes: []
     mgmt_parameters:
-        from_cobbler: True
+        from_cobbler: true
 
 next_server
 ===========
@@ -514,7 +514,7 @@ default: ``127.0.0.1``
 nsupdate_enabled
 ================
 
-This enabled or disables the replacement (or removal) of records in the DNS zone for systems created (or removed) by
+This enables or disables the replacement (or removal) of records in the DNS zone for systems created (or removed) by
 Cobbler.
 
 .. note:: There are additional settings needed when enabling this. Due to the limited number of resources, this won't
@@ -665,7 +665,7 @@ default: ``False``
 redhat_management_server
 ========================
 
-This setting is only used by the code that supports using Spacewalk/Satellite authentication within Cobbler Web and
+This setting is only used by the code that supports using Uyuni/SUSE Manager/Spacewalk/Satellite authentication within Cobbler Web and
 Cobbler XML-RPC.
 
 default: ``"xmlrpc.rhn.redhat.com"``
@@ -739,10 +739,10 @@ need to change this.
 
 defaults:
 
-.. code::
+.. code:: YAML
 
-    restart_dns: True
-    restart_dhcp: True
+    restart_dns: true
+    restart_dhcp: true
 
 run_install_triggers
 ====================
@@ -752,7 +752,7 @@ sections. Any executable script in those directories is run. They can be used to
 They are currently run as root so if you do not need this functionality you can disable it, though this will also
 disable ``cobbler status`` which uses a logging trigger to audit install progress.
 
-default: ``True``
+default: ``true``
 
 scm_track_*
 ===========
@@ -763,9 +763,9 @@ purposes. Git and Mercurial are currently supported, but Git is the recommend SC
 
 default:
 
-.. code::
+.. code:: YAML
 
-    scm_track_enabled: False
+    scm_track_enabled: false
     scm_track_mode: "git"
     scm_track_author: "cobbler <cobbler@localhost>"
     scm_push_script: "/bin/true"
@@ -794,12 +794,12 @@ When puppet starts on a system after installation it needs to have its certifica
 Enabling the following feature will ensure that the puppet server signs the certificate after installation if the puppet
 master server is running on the same machine as Cobbler. This requires ``puppet_auto_setup`` above to be enabled.
 
-default: ``False``
+default: ``false``
 
 signature_path
 ==============
 
-The Cobbler Import workflow is powered by this file. Its location can be set with this config option.
+The ``cobbler import`` workflow is powered by this file. Its location can be set with this config option.
 
 default: ``/var/lib/cobbler/distro_signatures.json``
 
@@ -824,7 +824,7 @@ virt_auto_boot
 Should new profiles for virtual machines default to auto booting with the physical host when the physical host reboots?
 This can be overridden on each profile or system object.
 
-default: ``True``
+default: ``true``
 
 webdir
 ======
@@ -873,7 +873,7 @@ yum_distro_priority
 The default yum priority for all the distros. This is only used if yum-priorities plugin is used. 1 is the maximum
 value. Tweak with caution.
 
-default: ``True``
+default: ``true``
 
 yum_post_install_mirror
 =======================
@@ -883,7 +883,7 @@ automatically set up in the Cobbler autoinstall templates. By default, these are
 make these repositories usable on installed systems (since Cobbler makes a very convenient mirror) set this to ``True``.
 Most users can safely set this to ``True``. Users who have a dual homed Cobbler server, or are installing laptops that
 will not always have access to the Cobbler server may wish to leave this as ``False``. In that case, the Cobbler
-mirrored yum repos are still accessible at ``http://cobbler.example.org/cblr/repo_mirror`` and yum configuration can
+mirrored yum repos are still accessible at ``http://cobbler.example.org/cblr/repo_mirror`` and YUM configuration can
 still be done manually. This is just a shortcut.
 
 default: ``True``
@@ -990,7 +990,7 @@ default: ``manage_isc``
 tftpd
 =====
 
-Chooses the TFTP management engine if ``manage_tftpd`` is enabled in ``/etc/cobbler/settings.yaml``, which is ON by
+Chooses the TFTP management engine if ``manage_tftpd`` is enabled in ``/etc/cobbler/settings.yaml``, which is **on** by
 default.
 
 Choices:
