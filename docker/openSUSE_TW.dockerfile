@@ -10,8 +10,9 @@ RUN ["zypper", "-n", "update"]
 
 # Install runtime dependencies for Cobbler
 RUN ["zypper", "-n", "in", "python3", "python3-devel", "python3-pip", "python3-setuptools", "python3-wheel", \
-    "python3-distro", "python3-coverage", "apache2", "apache2-devel", "acl", "apache2-mod_wsgi-python3", "ipmitool", \
-    "rsync", "fence-agents", "genders", "xorriso", "python3-ldap", "tftp", "python3-Sphinx", "hardlink", "supervisor"]
+    "python3-distro", "python3-coverage", "python3-schema", "apache2", "apache2-devel", "acl", "ipmitool", \
+    "rsync", "fence-agents", "genders", "xorriso", "python3-ldap", "tftp", "python3-Sphinx", "hardlink", "supervisor", \
+    "apache2-mod_wsgi-python3"]
 RUN ["pip3", "install", "pykickstart"]
 
 # Packages for building & installing cobbler from source

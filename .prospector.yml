@@ -28,11 +28,11 @@ pep257:
 
 pep8:
   options:
-    max-line-length: 120
     disable:
       - E304
       - E265
       - E266
+      - E501 # Covered by pylint
       - W291
       - W292
       - W391

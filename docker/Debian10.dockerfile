@@ -44,6 +44,7 @@ RUN apt-get update -qq && \
     python3-tornado \
     python3-tz \
     python3-yaml \
+    python3-schema \
     liblocale-gettext-perl \
     lsb-release \
     xz-utils \

@@ -11,8 +11,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
 
-from builtins import object
-from builtins import str
 import fnmatch
 import pprint
 
@@ -83,7 +81,7 @@ from cobbler.cexceptions import CX, NotImplementedException
 # must operate as normal with the default value for all fields and not choke on the default values.
 
 
-class Item(object):
+class Item:
     """
     An Item is a serializable thing that can appear in a Collection
     """

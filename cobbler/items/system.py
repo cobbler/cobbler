@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 from cobbler import autoinstall_manager
-from cobbler.items import item
+from cobbler.items.item import Item
 from cobbler import power_manager
 from cobbler import utils
 from cobbler import validate
@@ -115,7 +115,7 @@ NETWORK_INTERFACE_FIELDS = [
 ]
 
 
-class System(item.Item):
+class System(Item):
     """
     A Cobbler system object.
     """
@@ -330,7 +330,7 @@ class System(item.Item):
         @returns: True or CX
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_hostnames) is False:
+        if dns_name != "" and self.collection_mgr.settings().allow_duplicate_hostnames is False:
             matched = self.collection_mgr.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
@@ -357,7 +357,7 @@ class System(item.Item):
         @returns: True or CX
         """
         address = validate.ipv4_address(address)
-        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+        if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
             matched = self.collection_mgr.api.find_items("system", {"ip_address": address})
             for x in matched:
                 if x.name != self.name:
@@ -377,7 +377,7 @@ class System(item.Item):
         address = validate.mac_address(address)
         if address == "random":
             address = utils.get_random_mac(self.collection_mgr.api)
-        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_macs) is False:
+        if address != "" and self.collection_mgr.settings().allow_duplicate_macs is False:
             matched = self.collection_mgr.api.find_items("system", {"mac_address": address})
             for x in matched:
                 if x.name != self.name:
@@ -481,7 +481,7 @@ class System(item.Item):
         @returns: True or CX
         """
         address = validate.ipv6_address(address)
-        if address != "" and utils.input_boolean(self.collection_mgr._settings.allow_duplicate_ips) is False:
+        if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
             matched = self.collection_mgr.api.find_items("system", {"ipv6_address": address})
             for x in matched:
                 if x.name != self.name:
@@ -533,7 +533,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["connected_mode"] = utils.input_boolean(truthiness)
 
-    def set_enable_gpxe(self, enable_gpxe):
+    def set_enable_gpxe(self, enable_gpxe: bool):
         """
         Sets whether or not the system will use gPXE for booting.
         """
@@ -547,7 +547,7 @@ class System(item.Item):
         old_parent = self.get_parent()
         if profile_name in ["delete", "None", "~", ""] or profile_name is None:
             self.profile = ""
-            if isinstance(old_parent, item.Item):
+            if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             return
 
@@ -557,10 +557,10 @@ class System(item.Item):
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1            # subprofiles have varying depths.
-            if isinstance(old_parent, item.Item):
+            if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             new_parent = self.get_parent()
-            if isinstance(new_parent, item.Item):
+            if isinstance(new_parent, Item):
                 new_parent.children[self.name] = self
             return
         raise CX("invalid profile name: %s" % profile_name)

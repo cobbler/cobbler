@@ -1,4 +1,3 @@
-from builtins import str
 import cobbler.module_loader as module_loader
 import cobbler.utils as utils
 
@@ -28,11 +27,6 @@ def run(api, args, logger):
     """
     settings = api.settings()
 
-    manage_dhcp = str(settings.manage_dhcp).lower()
-    manage_dns = str(settings.manage_dns).lower()
-    restart_dhcp = str(settings.restart_dhcp).lower()
-    restart_dns = str(settings.restart_dns).lower()
-
     which_dhcp_module = module_loader.get_module_name("dhcp", "module").strip()
     which_dns_module = module_loader.get_module_name("dns", "module").strip()
 
@@ -40,9 +34,9 @@ def run(api, args, logger):
     has_restarted_dnsmasq = False
 
     rc = 0
-    if manage_dhcp != "0":
+    if settings.manage_dhcp:
         if which_dhcp_module == "managers.isc":
-            if restart_dhcp != "0":
+            if settings.restart_dhcp:
                 rc = utils.subprocess_call(logger, "dhcpd -t -q", shell=True)
                 if rc != 0:
                     logger.error("dhcpd -t failed")
@@ -51,14 +45,14 @@ def run(api, args, logger):
                 dhcp_restart_command = "service %s restart" % dhcp_service_name
                 rc = utils.subprocess_call(logger, dhcp_restart_command, shell=True)
         elif which_dhcp_module == "managers.dnsmasq":
-            if restart_dhcp != "0":
+            if settings.restart_dhcp:
                 rc = utils.subprocess_call(logger, "service dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
             rc = 411
 
-    if manage_dns != "0" and restart_dns != "0":
+    if settings.manage_dns and settings.restart_dns:
         if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name(api)
             dns_restart_command = "service %s restart" % named_service_name

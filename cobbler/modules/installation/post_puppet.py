@@ -39,10 +39,10 @@ def run(api, args, logger):
 
     settings = api.settings()
 
-    if not str(settings.puppet_auto_setup).lower() in ["1", "yes", "y", "true"]:
+    if not settings.puppet_auto_setup:
         return 0
 
-    if not str(settings.sign_puppet_certs_automatically).lower() in ["1", "yes", "y", "true"]:
+    if not settings.sign_puppet_certs_automatically:
         return 0
 
     system = api.find_system(name)

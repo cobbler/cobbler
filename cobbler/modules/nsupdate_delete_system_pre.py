@@ -68,7 +68,7 @@ def run(api, args, logger):
 
     settings = api.settings()
 
-    if not str(settings.nsupdate_enabled).lower() in ["1", "yes", "y", "true"]:
+    if not settings.nsupdate_enabled:
         return 0
 
     # Read our settings

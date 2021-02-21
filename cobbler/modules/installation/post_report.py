@@ -41,7 +41,7 @@ def run(api, args, logger):
     settings = api.settings()
 
     # go no further if this feature is turned off
-    if not str(settings.build_reporting_enabled).lower() in ["1", "yes", "y", "true"]:
+    if not settings.build_reporting_enabled:
         return 0
 
     objtype = args[0]
@@ -86,22 +86,21 @@ def run(api, args, logger):
     }
     metadata.update(target)
 
-    input_template = open("/etc/cobbler/reporting/build_report_email.template")
-    input_data = input_template.read()
-    input_template.close()
+    with open("/etc/cobbler/reporting/build_report_email.template") as input_template:
+        input_data = input_template.read()
 
-    message = templar.Templar(api._config).render(input_data, metadata, None)
+        message = templar.Templar(api._collection_mgr).render(input_data, metadata, None)
 
-    sendmail = True
-    for prefix in settings.build_reporting_ignorelist:
-        if prefix != '' and name.lower().startswith(prefix):
-            sendmail = False
+        sendmail = True
+        for prefix in settings.build_reporting_ignorelist:
+            if prefix != '' and name.lower().startswith(prefix):
+                sendmail = False
 
-    if sendmail:
-        # Send the mail
-        # FIXME: on error, return non-zero
-        server_handle = smtplib.SMTP(smtp_server)
-        server_handle.sendmail(from_addr, to_addr.split(','), message)
-        server_handle.quit()
+        if sendmail:
+            # Send the mail
+            # FIXME: on error, return non-zero
+            server_handle = smtplib.SMTP(smtp_server)
+            server_handle.sendmail(from_addr, to_addr.split(','), message)
+            server_handle.quit()
 
     return 0

@@ -741,8 +741,8 @@ def test_set_virt_auto_boot(test_autoboot, expectation):
         utils.set_virt_auto_boot(testprofile, test_autoboot)
 
         # Assert
-        assert isinstance(testprofile.virt_auto_boot, int)
-        assert testprofile.virt_auto_boot == 1 or testprofile.virt_auto_boot == 0
+        assert isinstance(testprofile.virt_auto_boot, bool)
+        assert testprofile.virt_auto_boot is True or testprofile.virt_auto_boot is False
 
 
 @pytest.mark.parametrize("test_input,expected_exception", [

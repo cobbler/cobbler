@@ -1,4 +1,4 @@
-#if $str($getVar('anamon_enabled','')) == "1"
+#if $str($getVar('anamon_enabled','')) == "True"
 
 ## install anamon script
 curl -o /usr/local/sbin/anamon "http://$server:$http_port/cobbler/misc/anamon"

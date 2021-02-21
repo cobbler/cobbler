@@ -164,8 +164,8 @@ class BindManager(object):
                 host = re.sub(r'\.%s$' % best_match, '', host)
 
                 # if we are to manage ipmi hosts, add that too
-                if (self.settings.bind_manage_ipmi):
-                    if (system.power_address != ""):
+                if self.settings.bind_manage_ipmi:
+                    if system.power_address != "":
                         power_address_is_ip = False
                         # see if the power address is an IP
                         try:
@@ -176,7 +176,7 @@ class BindManager(object):
 
                         # if the power address is an IP, then add it to the DNS with the host suffix of "-ipmi"
                         # TODO: Perhpas the suffix can be configurable through settings?
-                        if (power_address_is_ip):
+                        if power_address_is_ip:
                             ipmi_host = host + "-ipmi"
                             ipmi_ips = []
                             ipmi_ips.append(system.power_address)
@@ -619,7 +619,7 @@ zone "%(arpa)s." {
 
     def write_dns_files(self):
         """
-        BIND files are written when manage_dns is set in our settings.
+        BIND files are written when ``manage_dns`` is set in our settings.
         """
 
         self.__write_named_conf()

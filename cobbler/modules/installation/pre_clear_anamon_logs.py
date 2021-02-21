@@ -56,7 +56,6 @@ def run(api, args, logger):
     name = args[1]
 
     settings = api.settings()
-    anamon_enabled = str(settings.anamon_enabled)
 
     # Remove any files matched with the given glob pattern
     def unlink_files(globex):
@@ -67,7 +66,7 @@ def run(api, args, logger):
                 except OSError:
                     pass
 
-    if str(anamon_enabled) in ["true", "1", "y", "yes"]:
+    if settings.anamon_enabled:
         dirname = "/var/log/cobbler/anamon/%s" % name
         if os.path.isdir(dirname):
             unlink_files(os.path.join(dirname, "*"))

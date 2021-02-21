@@ -398,7 +398,7 @@ class Collection(object):
                 elif isinstance(ref, profile.Profile):
                     # we don't need openvz containers to be network bootable
                     if ref.virt_type == "openvz":
-                        ref.enable_menu = 0
+                        ref.enable_menu = False
                     self.lite_sync.add_single_profile(ref.name)
                 elif isinstance(ref, distro.Distro):
                     self.lite_sync.add_single_distro(ref.name)
