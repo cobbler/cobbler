@@ -77,8 +77,6 @@ def serialize_item(collection, item):
     filename = os.path.join(libpath, collection_types, item.name + ".json")
     __find_double_json_files(filename)
 
-    _dict = item.to_dict()
-
     if capi.CobblerAPI().settings().serializer_pretty_json:
         sort_keys = True
         indent = 4
@@ -116,13 +114,12 @@ def serialize(collection):
     """
 
     # do not serialize settings
-    ctype = collection.collection_type()
-    if ctype != "settings":
+    if collection.collection_type() != "setting":
         for x in collection:
             serialize_item(collection, x)
 
 
-def deserialize_raw(collection_types):
+def deserialize_raw(collection_types: str):
     """
     Loads a collection from the disk.
 
@@ -145,20 +142,19 @@ def deserialize_raw(collection_types):
         return results
 
 
-def deserialize(collection, topological=True):
+def deserialize(collection, topological: bool = True):
     """
     Load a collection from file system.
 
     :param collection: The collection to deserialize.
     :param topological: If the collection list should be sorted by the
-                        collection dict depth value or not.
-    :type topological: bool
+                        collection dict key 'depth' value or not.
     """
 
     datastruct = deserialize_raw(collection.collection_types())
-    if topological and type(datastruct) == list:
-        datastruct.sort(key=lambda x: x["depth"])
-    if type(datastruct) == dict:
+    if topological and isinstance(datastruct, list):
+        datastruct.sort(key=lambda x: x.get("depth", 1))
+    if isinstance(datastruct, dict):
         collection.from_dict(datastruct)
-    elif type(datastruct) == list:
+    elif isinstance(datastruct, list):
         collection.from_list(datastruct)
