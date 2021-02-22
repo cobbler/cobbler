@@ -527,7 +527,10 @@ if __name__ == "__main__":
             "file-magic",
             "schema"
         ],
-        extras_require={"lint": ["pyflakes", "pycodestyle"], "test": ["pytest", "pytest-cov", "codecov"]},
+        extras_require={
+            "lint": ["pyflakes", "pycodestyle"],
+            "test": ["pytest", "pytest-cov", "codecov", "pytest-mock"]
+        },
         packages=find_packages(exclude=["*tests*"]),
         scripts=[
             "bin/cobbler",
