@@ -300,6 +300,9 @@ def add_options_from_fields(object_type, parser, fields, network_interface_field
 
 
 class CobblerCLI:
+    """
+    Main CLI Class which contains the logic to communicate with the Cobbler Server.
+    """
 
     def __init__(self, cliargs):
         """
