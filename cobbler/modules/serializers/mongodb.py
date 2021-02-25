@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     # FIXME: log message
     pymongo_loaded = False
 
-mongodb: MongoClient
+mongodb = None
 
 
 def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
