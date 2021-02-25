@@ -33,6 +33,9 @@ OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "packa
 
 
 class Replicate:
+    """
+    This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
+    """
 
     def __init__(self, collection_mgr, logger=None):
         """
