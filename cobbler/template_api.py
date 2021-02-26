@@ -192,23 +192,26 @@ class Template(cheetah_template.Template):
 
         return result
 
-    # This function is used by several cheetah methods in cheetah_macros. It can be used by the end user as well.
-    # Ex: Replace all instances of '/etc/banner' with a value stored in
-    # $new_banner
-    #
-    # sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
-    #
-    def sedesc(self, value):
+    # pylint: disable=R0201
+    def sedesc(self, value: str) -> str:
         """
         Escape a string for use in sed.
+
+        This function is used by several cheetah methods in cheetah_macros. It can be used by the end user as well.
+
+        Example: Replace all instances of ``/etc/banner`` with a value stored in ``$new_banner``
+
+        ..code::
+
+           sed 's/$sedesc("/etc/banner")/$sedesc($new_banner)/'
 
         :param value: The phrase to escape.
         :return: The escaped phrase.
         """
 
-        def escchar(c):
-            if c in '/^.[]$()|*+?{}\\':
-                return '\\' + c
-            else:
-                return c
+        def escchar(character: str) -> str:
+            if character in '/^.[]$()|*+?{}\\':
+                return '\\' + character
+            return character
+
         return ''.join([escchar(c) for c in value])
