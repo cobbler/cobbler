@@ -60,6 +60,7 @@ def test_render_cheetah():
 
 
 @pytest.mark.usefixtures("setup_cheetah_macros_file")
+@pytest.mark.skip("Macros only work if we restart cobblerd")
 def test_cheetah_macros():
     # Arrange
     test_api = CobblerAPI()
