@@ -3,7 +3,7 @@ Cheetah3
 django
 simplejson
 dnspython
-pyyaml
+pyyaml==5.4.1
 distro
 sphinx_rtd_theme
 file-magic
