@@ -1,18 +1,17 @@
 import time
 
 
-def register():
+def register() -> str:
     """
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type.
 
-    :return: Always: "/var/lib/cobbler/triggers/install/pre/\*"
-    :rtype: str
+    :return: Always: "/var/lib/cobbler/triggers/install/pre/*"
     """
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args, logger):
+def run(api, args: list, logger) -> int:
     """
     The method runs the trigger, meaning this logs that an installation has started.
 
@@ -23,7 +22,6 @@ def run(api, args, logger):
 
     :param api: This parameter is currently unused.
     :param args: Already described above.
-    :type args: list
     :param logger: This parameter is currently unused.
     :return: A "0" on success.
     """

@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import glob
 import time
 import gzip
@@ -38,7 +37,7 @@ SEEN_STOP = 4
 STATE = 5
 
 
-class CobblerStatusReport(object):
+class CobblerStatusReport:
 
     def __init__(self, collection_mgr, mode, logger=None):
         """
@@ -94,17 +93,14 @@ class CobblerStatusReport(object):
 
     # ------------------------------------------------------
 
-    def catalog(self, profile_or_system, name, ip, start_or_stop, ts):
+    def catalog(self, profile_or_system: str, name: str, ip, start_or_stop: str, ts: float):
         """
         Add a system to ``cobbler status``.
 
         :param profile_or_system: This can be ``system`` or ``profile``.
-        :type profile_or_system: str
         :param name: The name of the object.
-        :type name: str
         :param ip: The ip of the system to watch.
         :param start_or_stop: This parameter may be ``start`` or ``stop``
-        :type start_or_stop: str
         :param ts: Don't know what this does.
         """
         ip_data = self.ip_data

@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Optional
 
 import glob
 import gzip
@@ -145,8 +145,8 @@ class ImportSignatureManager:
                              filename)
             return []
 
-    def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch=None, breed=None,
-            os_version=None):
+    def run(self, path: str, name: str, network_root=None, autoinstall_file=None, arch: Optional[str] = None,
+            breed=None, os_version=None):
         """
         This is the main entry point in a manager. It is a required function for import modules.
 
@@ -273,7 +273,7 @@ class ImportSignatureManager:
             return self.signature["supported_repo_breeds"]
         return []
 
-    def distro_adder(self, distros_added, dirname, fnames):
+    def distro_adder(self, distros_added, dirname: str, fnames):
         """
         This is an import_walker routine that finds distributions in the directory to be scanned and then creates them.
 
@@ -597,17 +597,17 @@ class ImportSignatureManager:
                 self.logger.warning("skipping unknown/unsupported repo breed: %s" % repo_breed)
                 continue
 
-            for distro in distros_added:
-                if distro.kernel.find("distro_mirror") != -1:
-                    repo_adder(distro)
-                    self.distros.add(distro, save=True, with_triggers=False)
+            for current_distro_added in distros_added:
+                if current_distro_added.kernel.find("distro_mirror") != -1:
+                    repo_adder(current_distro_added)
+                    self.distros.add(current_distro_added, save=True, with_triggers=False)
                 else:
-                    self.logger.info("skipping distro %s since it isn't mirrored locally" % distro.name)
+                    self.logger.info("skipping distro %s since it isn't mirrored locally" % current_distro_added.name)
 
     # ==========================================================================
     # yum-specific
 
-    def yum_repo_adder(self, distro):
+    def yum_repo_adder(self, distro: distro.Distro):
         """
         For yum, we recursively scan the rootdir for repos to add
 
@@ -616,7 +616,7 @@ class ImportSignatureManager:
         self.logger.info("starting descent into %s for %s" % (self.rootdir, distro.name))
         import_walker(self.rootdir, self.yum_repo_scanner, distro)
 
-    def yum_repo_scanner(self, distro, dirname, fnames):
+    def yum_repo_scanner(self, distro: distro.Distro, dirname: str, fnames):
         """
         This is an import_walker routine that looks for potential yum repositories to be added to the configuration for
         post-install usage.

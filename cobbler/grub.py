@@ -9,7 +9,7 @@ def parse_grub_remote_file(file_location: str) -> Optional[str]:
     Parses a URI which grub would try to load from the network.
 
     :param file_location: The location which grub would try to load from the network.
-    :return: In case
+    :return: In case the URL could be parsed it is returned in the converted format. Otherwise None is returned.
     :raises TypeError: In case file_location is not of type ``str``.
     :raises ValueError: In case the file location does not contain a valid IPv4 or IPv6 address
     """

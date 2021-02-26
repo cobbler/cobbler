@@ -20,26 +20,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import time
 import weakref
 import uuid
+from typing import Union, Dict, Any
 
 from cobbler.cexceptions import CX
-from cobbler.cobbler_collections import files, systems, mgmtclasses, distros, profiles, repos, packages, images
 from cobbler import settings
 from cobbler import serializer
+from cobbler.cobbler_collections.distros import Distros
+from cobbler.cobbler_collections.files import Files
+from cobbler.cobbler_collections.images import Images
+from cobbler.cobbler_collections.mgmtclasses import Mgmtclasses
+from cobbler.cobbler_collections.packages import Packages
+from cobbler.cobbler_collections.profiles import Profiles
+from cobbler.cobbler_collections.repos import Repos
+from cobbler.cobbler_collections.systems import Systems
+from cobbler.settings import Settings
 
 
-class CollectionManager(object):
+class CollectionManager:
+    """
+    Manages a definitive copy of all data cobbler_collections with weakrefs pointing back into the class so they can
+    understand each other's contents.
+    """
 
     has_loaded = False
-    __shared_state = {}
+    __shared_state: Dict[str, Any] = {}
 
     def __init__(self, api):
         """
-        Constructor. Manages a definitive copy of all data cobbler_collections with weakrefs
-        pointing back into the class so they can understand each other's contents
+        Constructor which loads all content if this action was not performed before.
         """
         self.__dict__ = CollectionManager.__shared_state
         if not CollectionManager.has_loaded:
@@ -56,15 +67,16 @@ class CollectionManager(object):
         self.init_time = time.time()
         self.current_id = 0
         self.api = api
-        self._distros = distros.Distros(weakref.proxy(self))
-        self._repos = repos.Repos(weakref.proxy(self))
-        self._profiles = profiles.Profiles(weakref.proxy(self))
-        self._systems = systems.Systems(weakref.proxy(self))
-        self._images = images.Images(weakref.proxy(self))
-        self._mgmtclasses = mgmtclasses.Mgmtclasses(weakref.proxy(self))
-        self._packages = packages.Packages(weakref.proxy(self))
-        self._files = files.Files(weakref.proxy(self))
-        self._settings = settings.Settings()         # not a true collection
+        self._distros = Distros(weakref.proxy(self))
+        self._repos = Repos(weakref.proxy(self))
+        self._profiles = Profiles(weakref.proxy(self))
+        self._systems = Systems(weakref.proxy(self))
+        self._images = Images(weakref.proxy(self))
+        self._mgmtclasses = Mgmtclasses(weakref.proxy(self))
+        self._packages = Packages(weakref.proxy(self))
+        self._files = Files(weakref.proxy(self))
+        # Not a true collection
+        self._settings = settings.Settings()
 
     def generate_uid(self):
         """
@@ -81,49 +93,49 @@ class CollectionManager(object):
         """
         return self._distros
 
-    def profiles(self):
+    def profiles(self) -> Profiles:
         """
         Return the definitive copy of the Profiles collection
         """
         return self._profiles
 
-    def systems(self):
+    def systems(self) -> Systems:
         """
         Return the definitive copy of the Systems collection
         """
         return self._systems
 
-    def settings(self):
+    def settings(self) -> Settings:
         """
         Return the definitive copy of the application settings
         """
         return self._settings
 
-    def repos(self):
+    def repos(self) -> Repos:
         """
         Return the definitive copy of the Repos collection
         """
         return self._repos
 
-    def images(self):
+    def images(self) -> Images:
         """
         Return the definitive copy of the Images collection
         """
         return self._images
 
-    def mgmtclasses(self):
+    def mgmtclasses(self) -> Mgmtclasses:
         """
         Return the definitive copy of the Mgmtclasses collection
         """
         return self._mgmtclasses
 
-    def packages(self):
+    def packages(self) -> Packages:
         """
         Return the definitive copy of the Packages collection
         """
         return self._packages
 
-    def files(self):
+    def files(self) -> Files:
         """
         Return the definitive copy of the Files collection
         """
@@ -143,6 +155,7 @@ class CollectionManager(object):
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
 
+    # pylint: disable=R0201
     def serialize_item(self, collection, item):
         """
         Save a collection item to disk
@@ -153,6 +166,7 @@ class CollectionManager(object):
 
         return serializer.serialize_item(collection, item)
 
+    # pylint: disable=R0201
     def serialize_delete(self, collection, item):
         """
         Delete a collection item from disk
@@ -184,9 +198,11 @@ class CollectionManager(object):
             try:
                 serializer.deserialize(collection)
             except Exception as e:
-                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf" % (collection.collection_type(), e))
+                raise CX("serializer: error loading collection %s: %s. Check /etc/cobbler/modules.conf"
+                         % (collection.collection_type(), e)) from e
 
-    def get_items(self, collection_type):
+    def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
+                                                       Files, Settings]:
         """
         Get a full collection of a single type.
 
@@ -197,6 +213,7 @@ class CollectionManager(object):
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
+        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Settings]
         if collection_type == "distro":
             result = self._distros
         elif collection_type == "profile":

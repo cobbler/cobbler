@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 
@@ -31,7 +31,7 @@ def register():
     return "authz"
 
 
-def authorize(api_handle, user, resource, arg1=None, arg2=None):
+def authorize(api_handle, user, resource, arg1=None, arg2=None) -> bool:
     """
     Validate a user against a resource.
     NOTE: acls are not enforced as there is no group support in this module

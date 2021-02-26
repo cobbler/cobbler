@@ -14,33 +14,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import str
 from configparser import SafeConfigParser
 
 import os
+from typing import Dict
 
 CONFIG_FILE = '/etc/cobbler/users.conf'
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
 
     :return: Always "authz".
-    :rtype: str
     """
     return "authz"
 
 
-def __parse_config():
+def __parse_config() -> Dict[str, dict]:
     """
     Parse the the users.conf file.
 
     :return: The data of the config file.
-    :rtype: dict
     """
     if not os.path.exists(CONFIG_FILE):
-        return []
+        return {}
     config = SafeConfigParser()
     config.read(CONFIG_FILE)
     alldata = {}
@@ -53,7 +51,7 @@ def __parse_config():
     return alldata
 
 
-def authorize(api_handle, user, resource, arg1=None, arg2=None):
+def authorize(api_handle, user, resource, arg1=None, arg2=None) -> int:
     """
     Validate a user against a resource. All users in the file are permitted by this module.
 
@@ -71,7 +69,3 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None):
         if user.lower() in data[g]:
             return 1
     return 0
-
-
-if __name__ == "__main__":
-    print((__parse_config()))

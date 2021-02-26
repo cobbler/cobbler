@@ -12,7 +12,7 @@ template_file = "/etc/cobbler/genders.template"
 settings_file = "/etc/genders"
 
 
-def register():
+def register() -> str:
     """
     We should run anytime something inside of Cobbler changes.
 
@@ -50,7 +50,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     templar_inst.render(template_data, metadata, settings_file, None)
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     Mandatory Cobbler trigger hook.
 

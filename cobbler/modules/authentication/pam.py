@@ -36,7 +36,6 @@ a user against the Pluggable Authentication Modules (PAM) on the system.
 Implemented using ctypes, so no compilation is necessary.
 """
 
-from builtins import range
 from ctypes import CDLL, POINTER, Structure, CFUNCTYPE, cast, pointer, sizeof
 from ctypes import c_void_p, c_uint, c_char_p, c_char, c_int
 from ctypes.util import find_library
@@ -59,7 +58,7 @@ PAM_ERROR_MSG = 3
 PAM_TEXT_INFO = 4
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
@@ -116,15 +115,12 @@ PAM_AUTHENTICATE.restype = c_int
 PAM_AUTHENTICATE.argtypes = [PamHandle, c_int]
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username: str, password: str) -> bool:
     """
     :param api_handle: Used for resolving the the pam service name and getting the Logger.
     :param username:The username to log in with.
-    :type username: str
     :param password: The password to log in with.
-    :type password: str
     :returns: True if the given username and password authenticate for the given service. Otherwise False
-    :rtype: bool
     """
 
     @CONV_FUNC

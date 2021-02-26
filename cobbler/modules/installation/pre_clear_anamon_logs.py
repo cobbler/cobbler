@@ -19,25 +19,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import str
 import glob
 import os
 
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
-        This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
-        indicates the trigger type.
+    This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
+    indicates the trigger type.
 
-        :return: Always: "/var/lib/cobbler/triggers/install/pre/\*"
-        :rtype: str
-        """
+    :return: Always: "/var/lib/cobbler/triggers/install/pre/*"
+    """
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     The list of args should have one element:
         - 1: the name of the system or profile

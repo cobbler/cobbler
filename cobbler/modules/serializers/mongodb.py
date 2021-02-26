@@ -35,10 +35,10 @@ except ModuleNotFoundError:
     # FIXME: log message
     pymongo_loaded = False
 
-mongodb: MongoClient
+mongodb = None
 
 
-def __connect(configfile="/etc/cobbler/mongodb.conf"):
+def __connect(configfile: str = "/etc/cobbler/mongodb.conf"):
     """
     Reads the config file for mongodb and then connects to the mongodb.
     """
@@ -121,7 +121,7 @@ def serialize(collection):
             serialize_item(collection, x)
 
 
-def deserialize_raw(collection_type):
+def deserialize_raw(collection_type: str):
     """
     Get a collection from mongodb and parse it into an object.
 
@@ -136,14 +136,12 @@ def deserialize_raw(collection_type):
         return collection.find()
 
 
-def deserialize(collection, topological=True):
+def deserialize(collection, topological: bool = True):
     """
     Load a collection from the database.
 
     :param collection: The collection to deserialize.
-    :param topological: If the collection list should be sorted by the
-                        collection dict depth value or not.
-    :type topological: bool
+    :param topological: If the collection list should be sorted by the collection dict depth value or not.
     """
 
     datastruct = deserialize_raw(collection.collection_type())

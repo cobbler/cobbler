@@ -23,22 +23,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import object
 import os
 import subprocess
 
-import cobbler.clogger as clogger
-import cobbler.templar as templar
+from cobbler import clogger
+from cobbler import templar
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage"
 
 
-def get_manager(config, logger):
+def get_manager(config, logger: clogger.Logger):
     """
     Get the DNS Manger object.
 
@@ -49,9 +48,9 @@ def get_manager(config, logger):
     return NDjbDnsManager(config, logger)
 
 
-class NDjbDnsManager(object):
+class NDjbDnsManager:
 
-    def __init__(self, config, logger):
+    def __init__(self, config, logger: clogger.Logger):
         """
         This class can manage a New-DJBDNS server.
 
@@ -66,7 +65,7 @@ class NDjbDnsManager(object):
         self.systems = config.systems()
         self.templar = templar.Templar(config)
 
-    def what(self):
+    def what(self) -> str:
         """
         Static method to identify the manager.
 

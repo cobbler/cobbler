@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import object
 import os
 import os.path
 
@@ -30,7 +29,7 @@ from cobbler import templar
 from cobbler import utils
 
 
-class YumGen(object):
+class YumGen:
 
     def __init__(self, collection_mgr):
         """
@@ -47,15 +46,13 @@ class YumGen(object):
         self.repos = collection_mgr.repos()
         self.templar = templar.Templar(collection_mgr)
 
-    def get_yum_config(self, obj, is_profile):
+    def get_yum_config(self, obj, is_profile: bool) -> str:
         """
         Return one large yum repo config blob suitable for use by any target system that requests it.
 
         :param obj: The object to generate the yumconfig for.
         :param is_profile: If the requested object is a profile. (Parameter not used currently)
-        :type is_profile: bool
         :return: The generated yumconfig or the errors.
-        :rtype: str
         """
 
         totalbuf = ""

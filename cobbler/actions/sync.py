@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import glob
 import os
 import time
@@ -33,12 +32,12 @@ from cobbler import tftpgen
 from cobbler import utils
 
 
-class CobblerSync(object):
+class CobblerSync:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, collection_mgr, verbose=True, dhcp=None, dns=None, logger=None, tftpd=None):
+    def __init__(self, collection_mgr, verbose: bool = True, dhcp=None, dns=None, logger=None, tftpd=None):
         """
         Constructor
 

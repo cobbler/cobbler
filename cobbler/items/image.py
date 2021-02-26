@@ -17,8 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
-import string
+from typing import List
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
@@ -204,12 +203,11 @@ class Image(item.Item):
         """
         return utils.set_virt_cpus(self, num)
 
-    def set_network_count(self, num):
+    def set_network_count(self, num: int):
         """
         Setter for the number of networks.
 
         :param num: If None or emtpy will be set to one. Otherwise will be cast to int and then set.
-        :type num: int
         """
         if num is None or num == "":
             num = 1
@@ -251,7 +249,7 @@ class Image(item.Item):
         """
         return utils.set_virt_ram(self, num)
 
-    def set_virt_type(self, vtype):
+    def set_virt_type(self, vtype: str):
         """
         Setter for the virtual type
 
@@ -275,12 +273,10 @@ class Image(item.Item):
         """
         return utils.set_virt_path(self, path)
 
-    def get_valid_image_types(self):
+    def get_valid_image_types(self) -> List[str]:
         """
         Get all valid image types.
 
         :return: A list currently with the values: "direct", "iso", "memdisk", "virt-clone"
         """
         return ["direct", "iso", "memdisk", "virt-clone"]
-
-# EOF

@@ -34,7 +34,7 @@ if os.geteuid() == 0:
     logging.config.fileConfig('/etc/cobbler/logging_config.conf')
 
 
-class Logger(object):
+class Logger:
     """
     Logger class for Cobbler which is wrapped around the Python3 standard logger.
 
@@ -54,58 +54,52 @@ class Logger(object):
             self.logger.propagate = False
             self.logger.addHandler(logging.FileHandler(filename=logfile))
 
-    def critical(self, msg):
+    def critical(self, msg: str):
         """
         A critical message which is related to a problem which will halt Cobbler.
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         self.logger.critical(msg)
 
-    def error(self, msg):
+    def error(self, msg: str):
         """
         An error message which means that Cobbler will not halt but the future actions may not be executed correctly.
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         self.logger.error(msg)
 
-    def warning(self, msg):
+    def warning(self, msg: str):
         """
         A warning message which could possibly indicate performance or functional problems.
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         self.logger.warning(msg)
 
-    def info(self, msg):
+    def info(self, msg: str):
         """
         An informational message which should be written to the target log.
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         self.logger.info(msg)
 
-    def debug(self, msg):
+    def debug(self, msg: str):
         """
         A message which is useful for finding errors or performance problems. Should not be visible in the production
         usage of Cobbler.
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         self.logger.debug(msg)
 
-    def flat(self, msg):
+    def flat(self, msg: str):
         """
         This uses the print function from the std library. Avoid using this. This is only used for the report command
         in ``cobbler/actions/report.py``
 
         :param msg: The message to be logged.
-        :type msg: str
         """
         print(msg)

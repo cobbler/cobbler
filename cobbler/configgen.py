@@ -23,7 +23,6 @@ module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
 
-from builtins import object
 import simplejson as json
 import string
 
@@ -35,7 +34,7 @@ import cobbler.utils
 from cobbler import utils
 
 
-class ConfigGen(object):
+class ConfigGen:
     """
     Generate configuration data for Cobbler's management resources: repos, files and packages.
     Mainly used by Koan to configure systems.
@@ -56,27 +55,24 @@ class ConfigGen(object):
 
     # ----------------------------------------------------------------------
 
-    def resolve_resource_var(self, string_data):
+    def resolve_resource_var(self, string_data) -> str:
         """
         Substitute variables in strings.
 
         :param string_data: The string with the data to substitute.
         :return: A str with the substituted data.
-        :rtype: str
         """
         data = string.Template(string_data).substitute(self.host_vars)
         return data
 
     # ----------------------------------------------------------------------
 
-    def resolve_resource_list(self, list_data):
+    def resolve_resource_list(self, list_data: list) -> list:
         """
         Substitute variables in lists. Return new list.
 
         :param list_data: The list with the data to substitute.
-        :type list_data: list
         :return: A list with the substituted data.
-        :rtype: list
         """
         new_list = []
         for item in list_data:
@@ -96,12 +92,11 @@ class ConfigGen(object):
 
     # ----------------------------------------------------------------------
 
-    def gen_config_data(self):
+    def gen_config_data(self) -> dict:
         """
         Generate configuration data for repos, files and packages.
 
         :return: A dict which has all config data in it.
-        :rtype: dict
         """
         config_data = {
             'repo_data': self.handle.get_repo_config_for_system(self.system),
@@ -163,7 +158,7 @@ class ConfigGen(object):
 
     # ----------------------------------------------------------------------
 
-    def gen_config_data_for_koan(self):
+    def gen_config_data_for_koan(self) -> str:
         """
         Encode configuration data. Return json object for Koan.
 

@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+from typing import Optional, Union
 
 from cobbler import autoinstall_manager
 from cobbler.items.item import Item
@@ -146,7 +147,7 @@ class System(Item):
         cloned.from_dict(_dict)
         return cloned
 
-    def from_dict(self, seed_data):
+    def from_dict(self, seed_data: dict):
         # FIXME: most definitely doesn't grok interfaces yet.
         return utils.from_dict_from_fields(self, seed_data, FIELDS)
 
@@ -213,7 +214,7 @@ class System(Item):
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
 
-    def set_boot_loader(self, name):
+    def set_boot_loader(self, name: str):
         if name not in utils.get_supported_system_boot_loaders():
             raise CX("Invalid boot loader name: %s" % name)
         self.boot_loader = name
@@ -276,10 +277,9 @@ class System(Item):
         else:
             return ""
 
-    def is_management_supported(self, cidr_ok=True):
+    def is_management_supported(self, cidr_ok: bool = True):
         """
-        Can only add system PXE records if a MAC or IP address is available, else it's a koan
-        only record.
+        Can only add system PXE records if a MAC or IP address is available, else it's a koan only record.
         """
         if self.name == "default":
             return True
@@ -321,13 +321,13 @@ class System(Item):
 
 # ---
 
-    def set_dns_name(self, dns_name, interface):
+    def set_dns_name(self, dns_name: str, interface: str):
         """
         Set DNS name for interface.
 
-        @param: str dns_name (dns name)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param dns_name: DNS name
+        :param interface: interface name
+        :returns: True or CX
         """
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and self.collection_mgr.settings().allow_duplicate_hostnames is False:
@@ -339,22 +339,22 @@ class System(Item):
         intf = self.__get_interface(interface)
         intf["dns_name"] = dns_name
 
-    def set_hostname(self, hostname):
+    def set_hostname(self, hostname: str):
         """
         Set hostname.
 
-        @param: str hostname (hostname for system)
-        @returns: True or CX
+        :param hostname: hostname for system
+        :returns: True or CX
         """
         self.hostname = validate.hostname(hostname)
 
-    def set_ip_address(self, address, interface):
+    def set_ip_address(self, address: str, interface: str):
         """
         Set IPv4 address on interface.
 
-        @param: str address (ip address)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param address: IP address
+        :param interface: interface name
+        :returns: True or CX
         """
         address = validate.ipv4_address(address)
         if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
@@ -366,13 +366,13 @@ class System(Item):
         intf = self.__get_interface(interface)
         intf["ip_address"] = address
 
-    def set_mac_address(self, address, interface):
+    def set_mac_address(self, address: str, interface: str):
         """
-        Set mac address on interface.
+        Set MAC address on interface.
 
-        @param: str address (mac address)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param address: MAC address
+        :param interface: interface name
+        :returns: True or CX
         """
         address = validate.mac_address(address)
         if address == "random":
@@ -386,51 +386,51 @@ class System(Item):
         intf = self.__get_interface(interface)
         intf["mac_address"] = address
 
-    def set_gateway(self, gateway):
+    def set_gateway(self, gateway: str):
         """
         Set a gateway IPv4 address.
 
-        @param: str gateway (ip address)
-        @returns: True or CX
+        :param gateway: IP address
+        :returns: True or CX
         """
         self.gateway = validate.ipv4_address(gateway)
 
-    def set_name_servers(self, data):
+    def set_name_servers(self, data: Union[str, list]):
         """
         Set the DNS servers.
 
-        @param: str/list data (string or list of nameservers)
-        @returns: True or CX
+        :param data: string or list of nameservers
+        :returns: True or CX
         """
         self.name_servers = validate.name_servers(data)
 
-    def set_name_servers_search(self, data):
+    def set_name_servers_search(self, data: Union[str, list]):
         """
         Set the DNS search paths.
 
-        @param: str/list data (string or list of search domains)
-        @returns: True or CX
+        :param data: string or list of search domains
+        :returns: True or CX
         """
         self.name_servers_search = validate.name_servers_search(data)
 
-    def set_netmask(self, netmask, interface):
+    def set_netmask(self, netmask: str, interface: str):
         """
         Set the netmask for given interface.
 
-        @param: str netmask (netmask)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param netmask: netmask
+        :param interface: interface name
+        :returns: True or CX
         """
         intf = self.__get_interface(interface)
         intf["netmask"] = validate.ipv4_netmask(netmask)
 
-    def set_if_gateway(self, gateway, interface):
+    def set_if_gateway(self, gateway: str, interface: str):
         """
         Set the per-interface gateway.
 
-        @param: str gateway (ipv4 address for the gateway)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param gateway: IPv4 address for the gateway
+        :param interface: interface name
+        :returns: True or CX
         """
         intf = self.__get_interface(interface)
         intf["if_gateway"] = validate.ipv4_address(gateway)
@@ -443,8 +443,9 @@ class System(Item):
         intf = self.__get_interface(interface)
         intf["virt_bridge"] = bridge
 
-    def set_interface_type(self, type, interface):
-        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na", "infiniband", ""]
+    def set_interface_type(self, type: str, interface):
+        interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na",
+                           "infiniband", ""]
         if type not in interface_types:
             raise CX("interface type value must be one of: %s or blank" % ",".join(interface_types))
         if type == "na":
@@ -472,13 +473,13 @@ class System(Item):
             interface_name = ""
         self.ipv6_default_device = interface_name
 
-    def set_ipv6_address(self, address, interface):
+    def set_ipv6_address(self, address: str, interface: str):
         """
         Set IPv6 address on interface.
 
-        @param: str address (ip address)
-        @param: str interface (interface name)
-        @returns: True or CX
+        :param address: IP address
+        :param interface: interface name
+        :returns: True or CX
         """
         address = validate.ipv6_address(address)
         if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
@@ -541,8 +542,8 @@ class System(Item):
 
     def set_profile(self, profile_name):
         """
-        Set the system to use a certain named profile. The profile
-        must have already been loaded into the Profiles collection.
+        Set the system to use a certain named profile. The profile must have already been loaded into the profiles
+        collection.
         """
         old_parent = self.get_parent()
         if profile_name in ["delete", "None", "~", ""] or profile_name is None:
@@ -567,13 +568,13 @@ class System(Item):
 
     def set_image(self, image_name):
         """
-        Set the system to use a certain named image.  Works like set_profile
-        but cannot be used at the same time.  It's one or the other.
+        Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time. It's
+        one or the other.
         """
         old_parent = self.get_parent()
         if image_name in ["delete", "None", "~", ""] or image_name is None:
             self.image = ""
-            if isinstance(old_parent, item.Item):
+            if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             return
 
@@ -584,10 +585,10 @@ class System(Item):
         if img is not None:
             self.image = image_name
             self.depth = img.depth + 1
-            if isinstance(old_parent, item.Item):
+            if isinstance(old_parent, Item):
                 old_parent.children.pop(self.name, 'pass')
             new_parent = self.get_parent()
-            if isinstance(new_parent, item.Item):
+            if isinstance(new_parent, Item):
                 new_parent.children[self.name] = self
             return
         raise CX("invalid image name (%s)" % image_name)
@@ -616,7 +617,7 @@ class System(Item):
     def set_virt_path(self, path):
         return utils.set_virt_path(self, path, for_system=True)
 
-    def set_netboot_enabled(self, netboot_enabled):
+    def set_netboot_enabled(self, netboot_enabled: bool):
         """
         If true, allows per-system PXE files to be generated on sync (or add).  If false,
         these files are not generated, thus eliminating the potential for an infinite install
@@ -632,11 +633,11 @@ class System(Item):
         """
         self.netboot_enabled = utils.input_boolean(netboot_enabled)
 
-    def set_autoinstall(self, autoinstall):
+    def set_autoinstall(self, autoinstall: str):
         """
         Set the automatic installation template filepath, this must be a local file.
 
-        @param str local automatic installation template file path
+        :param autoinstall: local automatic installation template file path
         """
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
@@ -684,7 +685,7 @@ class System(Item):
         utils.safe_filter(power_id)
         self.power_id = power_id
 
-    def modify_interface(self, _dict):
+    def modify_interface(self, _dict: dict):
         """
         Used by the WUI to modify an interface more-efficiently
         """
@@ -762,16 +763,16 @@ class System(Item):
             if field == "virtbridge":
                 self.set_virt_bridge(value, interface)
 
-    def set_repos_enabled(self, repos_enabled):
+    def set_repos_enabled(self, repos_enabled: bool):
         self.repos_enabled = utils.input_boolean(repos_enabled)
 
-    def set_serial_device(self, device_number):
+    def set_serial_device(self, device_number: int):
         return utils.set_serial_device(self, device_number)
 
-    def set_serial_baud_rate(self, baud_rate):
+    def set_serial_baud_rate(self, baud_rate: int):
         return utils.set_serial_baud_rate(self, baud_rate)
 
-    def get_config_filename(self, interface, loader=None):
+    def get_config_filename(self, interface: str, loader: Optional[str] = None):
         """
         The configuration file for each system pxe uses is either
         a form of the MAC address of the hex version of the IP.  If none
@@ -780,10 +781,8 @@ class System(Item):
         system.is_management_supported()). This same file is used to store
         system config information in the Apache tree, so it's still relevant.
 
-        :param loader: Bootloader type.
-        :type loader: str
         :param interface: Name of the interface.
-        :type interface: str
+        :param loader: Bootloader type.
         """
 
         if loader is None:
@@ -808,5 +807,3 @@ class System(Item):
             return utils.get_host_ip(ip)
         else:
             return self.name
-
-# EOF

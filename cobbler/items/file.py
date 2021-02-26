@@ -99,12 +99,10 @@ class File(resource.Resource):
     # specific methods for item.File
     #
 
-    def set_is_dir(self, is_dir):
+    def set_is_dir(self, is_dir: bool):
         """
         If true, treat file resource as a directory. Templates are ignored.
 
         :param is_dir: This is the path to check if it is a directory.
         """
         self.is_dir = utils.input_boolean(is_dir)
-
-# EOF

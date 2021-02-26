@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import urllib.parse
 import xml.dom.minidom
 
@@ -31,7 +30,7 @@ from cobbler import validate
 from cobbler.cexceptions import FileNotFoundException, CX
 
 
-class AutoInstallationGen(object):
+class AutoInstallationGen:
     """
     Handles conversion of internal state to the tftpboot tree layout
     """
@@ -169,7 +168,7 @@ class AutoInstallationGen(object):
 
         return document.toxml()
 
-    def generate_repo_stanza(self, obj, is_profile=True):
+    def generate_repo_stanza(self, obj, is_profile: bool = True) -> str:
         """
         Automatically attaches yum repos to profiles/systems in automatic installation files (template files) that
         contain the magic $yum_repo_stanza variable. This includes repo objects as well as the yum repos that are part
@@ -179,7 +178,6 @@ class AutoInstallationGen(object):
         :param is_profile: If True then obj is a profile, otherwise obj has to be a system. Otherwise this method will
                            silently fail.
         :return: The string with the attached yum repos.
-        :rtype: str
         """
 
         buf = ""
@@ -234,7 +232,7 @@ class AutoInstallationGen(object):
 
         return buf
 
-    def generate_config_stanza(self, obj, is_profile=True):
+    def generate_config_stanza(self, obj, is_profile: bool = True):
         """
         Add in automatic to configure /etc/yum.repos.d on the remote system if the automatic installation file
         (template file) contains the magic $yum_config_stanza.
@@ -255,7 +253,7 @@ class AutoInstallationGen(object):
 
         return "curl \"%s\" --output /etc/yum.repos.d/cobbler-config.repo\n" % (url)
 
-    def generate_autoinstall_for_system(self, sys_name):
+    def generate_autoinstall_for_system(self, sys_name) -> str:
         """
         Generate an autoinstall config or script for a system.
 
@@ -269,7 +267,8 @@ class AutoInstallationGen(object):
 
         p = s.get_conceptual_parent()
         if p is None:
-            raise CX("system %(system)s references missing profile %(profile)s" % {"system": s.name, "profile": s.profile})
+            raise CX("system %(system)s references missing profile %(profile)s"
+                     % {"system": s.name, "profile": s.profile})
 
         distro = p.get_conceptual_parent()
         if distro is None:
@@ -340,13 +339,12 @@ class AutoInstallationGen(object):
             self.api.logger.warning(error_msg)
             return "# %s" % error_msg
 
-    def generate_autoinstall_for_profile(self, g):
+    def generate_autoinstall_for_profile(self, g) -> str:
         """
         Generate an autoinstall config or script for a profile.
 
         :param g: The Profile to generate the script/config for.
         :return: The generated output or an error message with a human readable description.
-        :rtype: str
         """
         g = self.api.find_profile(name=g)
         if g is None:

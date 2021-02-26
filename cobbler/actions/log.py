@@ -19,8 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import filter
-from builtins import object
 import glob
 import os
 import os.path
@@ -29,7 +27,7 @@ import logging
 from cobbler import clogger
 
 
-class LogTool(object):
+class LogTool:
     """
     Helpers for dealing with System logs, anamon, etc..
     """

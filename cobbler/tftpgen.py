@@ -26,13 +26,14 @@ import os.path
 import re
 import socket
 from time import sleep
+from typing import Optional
 
 from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
 
 
-class TFTPGen(object):
+class TFTPGen:
     """
     Generate files provided by TFTP server
     """
@@ -329,14 +330,12 @@ class TFTPGen(object):
                 fd.write(arch_menu_items['grub'])
                 fd.close()
 
-    def get_menu_items(self, arch=None):
+    def get_menu_items(self, arch: Optional[str] = None) -> dict:
         """
         Generates menu items for pxe and grub. Grub menu items are grouped into submenus by profile.
 
         :param arch: The processor architecture to generate the menu items for. (Optional)
-        :type arch: str
         :returns: A dictionary with the pxe and grub menu items. It has the keys "pxe" and "grub".
-        :rtype: dict
         """
         # sort the profiles
         profile_list = [profile for profile in self.profiles]
@@ -366,8 +365,7 @@ class TFTPGen(object):
 
             contents = self.write_pxe_file(
                 filename=None,
-                system=None, profile=profile, distro=distro, arch=distro.arch,
-                include_header=False)
+                system=None, profile=profile, distro=distro, arch=distro.arch)
             if contents is not None:
                 pxe_menu_items += contents + "\n"
 
@@ -377,7 +375,7 @@ class TFTPGen(object):
                 grub_contents = self.write_pxe_file(
                     filename=None,
                     system=None, profile=profile, distro=distro, arch=distro.arch,
-                    include_header=False, format="grub")
+                    format="grub")
                 if grub_contents is not None:
                     grub_menu_items += grub_contents + "\n"
             grub_menu_items += "}\n"
@@ -394,8 +392,8 @@ class TFTPGen(object):
 
         return {'pxe': pxe_menu_items, 'grub': grub_menu_items}
 
-    def write_pxe_file(self, filename, system, profile, distro, arch,
-                       image=None, include_header=True, metadata=None, format="pxe"):
+    def write_pxe_file(self, filename, system, profile, distro, arch: str, image=None, metadata=None,
+                       format: str = "pxe") -> str:
         """
         Write a configuration file for the boot loader(s).
 
@@ -410,15 +408,10 @@ class TFTPGen(object):
         :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
                        the templates.
         :param arch: The processor architecture to generate the pxefile for.
-        :type arch: str
         :param image: If you want to be able to deploy an image, supply this parameter.
-        :param include_header: Not used parameter currently.
-        :type include_header: bool
         :param metadata: Pass additional parameters to the ones being collected during the method.
         :param format: May be "grub" or "pxe".
-        :type format: str
         :return: The generated filecontent for the required item.
-        :rtype: str
         """
 
         if arch is None:
@@ -634,7 +627,7 @@ class TFTPGen(object):
                     fd.write(buffer)
         return buffer
 
-    def build_kernel_options(self, system, profile, distro, image, arch, autoinstall_path):
+    def build_kernel_options(self, system, profile, distro, image, arch: str, autoinstall_path) -> str:
         """
         Builds the full kernel options line.
 
@@ -643,11 +636,9 @@ class TFTPGen(object):
         :param distro: Although the profile contains the distribution please specify it explicitly here.
         :param image: The image to generate the kernel options for.
         :param arch: The processor architecture to generate the kernel options for.
-        :type arch: str
         :param autoinstall_path: The autoinstallation path. Normally this will be a URL because you want to pass a link
                                  to an autoyast, preseed or kickstart file.
-        :return: The generated kernal line options.
-        :rtype: str
+        :return: The generated kernel line options.
         """
 
         management_interface = None
@@ -733,7 +724,8 @@ class TFTPGen(object):
                 if system is not None:
                     autoinstall_path = "http://%s/cblr/svc/op/autoinstall/system/%s" % (httpserveraddress, system.name)
                 else:
-                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" % (httpserveraddress, profile.name)
+                    autoinstall_path = "http://%s/cblr/svc/op/autoinstall/profile/%s" \
+                                       % (httpserveraddress, profile.name)
 
             if distro.breed is None or distro.breed == "redhat":
 
@@ -747,7 +739,8 @@ class TFTPGen(object):
                 if management_mac and not distro.arch.startswith("s390"):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" % (append_line, autoinstall_path)
+                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s"\
+                              % (append_line, autoinstall_path)
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
             elif distro.breed == "freebsd":
@@ -775,19 +768,19 @@ class TFTPGen(object):
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
-                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1,vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
+                    append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1," \
+                                  "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- " \
+                                  "%s/install.img" % (img_path, img_path, autoinstall_path, img_path)
                     return append_line
             elif distro.breed == "powerkvm":
                 append_line += " kssendmac"
                 append_line = "%s kvmp.inst.auto=%s" % (append_line, autoinstall_path)
 
         if distro is not None and (distro.breed in ["debian", "ubuntu"]):
-            # Hostname is required as a parameter, the one in the preseed is
-            # not respected, so calculate if we have one here.
-            # We're trying: first part of FQDN in hostname field, then system
-            # name, then profile name.
-            # In Ubuntu, this is at least used for the volume group name when
-            # using LVM.
+            # Hostname is required as a parameter, the one in the preseed is not respected, so calculate if we have one
+            # here.
+            # We're trying: first part of FQDN in hostname field, then system name, then profile name.
+            # In Ubuntu, this is at least used for the volume group name when using LVM.
             domain = "local.lan"
             if system is not None:
                 if system.hostname is not None and system.hostname != "":
@@ -805,13 +798,13 @@ class TFTPGen(object):
                 # forbidden in hostnames
                 hostname = profile.name.replace("_", "")
 
-            # At least for debian deployments configured for DHCP networking
-            # this values are not used, but specifying here avoids questions
+            # At least for debian deployments configured for DHCP networking this values are not used, but specifying
+            # here avoids questions
             append_line = "%s hostname=%s" % (append_line, hostname)
             append_line = "%s domain=%s" % (append_line, domain)
 
-            # A similar issue exists with suite name, as installer requires
-            # the existence of "stable" in the dists directory
+            # A similar issue exists with suite name, as installer requires the existence of "stable" in the dists
+            # directory
             append_line = "%s suite=%s" % (append_line, distro.os_version)
 
         # append necessary kernel args for arm architectures
@@ -847,7 +840,7 @@ class TFTPGen(object):
 
         return append_line
 
-    def write_templates(self, obj, write_file=False, path=None):
+    def write_templates(self, obj, write_file: bool = False, path=None):
         """
         A semi-generic function that will take an object with a template_files dict {source:destiation}, and generate a
         rendered file. The write_file option allows for generating of the rendered output without actually creating any
@@ -855,7 +848,6 @@ class TFTPGen(object):
 
         :param obj: The object to write the template files for.
         :param write_file: If the generated template should be written to the disk.
-        :type write_file: bool
         :param path: TODO: A useless parameter?
         :return: A dict of the destination file names (after variable substitution is done) and the data in the file.
         """
@@ -956,16 +948,13 @@ class TFTPGen(object):
 
         return results
 
-    def generate_gpxe(self, what, name):
+    def generate_gpxe(self, what: str, name: str) -> str:
         """
         Generate the gpxe files.
 
         :param what: either "profile" or "system". All other item types not valdi.
-        :type what: str
         :param name: The name of the profile or system.
-        :type name: str
         :return: The rendered template.
-        :rtype: str
         """
         if what.lower() not in ("profile", "system"):
             return "# gpxe is only valid for profiles and systems"
@@ -1050,16 +1039,13 @@ class TFTPGen(object):
 
         return self.templar.render(template_data, blended, None)
 
-    def generate_bootcfg(self, what, name):
+    def generate_bootcfg(self, what: str, name: str) -> str:
         """
         Generate a bootcfg for a system of profile.
 
         :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
-        :type what: str
         :param name: The name of the item which the bootcfg should be generated for.
-        :type name: str
         :return: The fully rendered bootcfg as a string.
-        :rtype: str
         """
         if what.lower() not in ("profile", "system"):
             return "# bootcfg is only valid for profiles and systems"
@@ -1112,17 +1098,14 @@ class TFTPGen(object):
 
         return self.templar.render(template_data, blended, None)
 
-    def generate_script(self, what, objname, script_name):
+    def generate_script(self, what: str, objname: str, script_name) -> str:
         """
         Generate a script from a autoinstall script template for a given profile or system.
 
         :param what: The type for what the bootcfg is generated for. Must be "profile" or "system".
-        :type what: str
         :param objname: The name of the item which the bootcfg should be generated for.
-        :type objname: str
         :param script_name: The name of the template which should be rendered for the system or profile.
         :return: The fully rendered script as a string.
-        :rtype: str
         """
         if what == "profile":
             obj = self.api.find_profile(name=objname)

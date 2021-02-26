@@ -6,12 +6,11 @@ server.
 Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
-from builtins import str
 import re
 import cobbler.utils as utils
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
@@ -20,7 +19,7 @@ def register():
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger):
+def run(api, args, logger) -> int:
     """
     The obligatory Cobbler modules hook.
 

@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import str
 import os
 
 import cobbler.utils as utils
@@ -27,7 +26,7 @@ import cobbler.utils as utils
 from cobbler.cexceptions import CX
 
 
-def register():
+def register() -> str:
     """
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type
@@ -48,9 +47,8 @@ def run(api, args, logger):
     :return: 0 on success, otherwise an exception is risen.
     """
     settings = api.settings()
-    scm_track_enabled = str(settings.scm_track_enabled).lower()
 
-    if scm_track_enabled not in ["y", "yes", "1", "true"]:
+    if not settings.scm_track_enabled:
         # feature disabled
         return 0
 

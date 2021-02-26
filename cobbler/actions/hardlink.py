@@ -20,22 +20,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from builtins import object
 import os
 from cobbler import utils
 
 from cobbler import clogger
 
 
-class HardLinker(object):
+class HardLinker:
 
     def __init__(self, collection_mgr, logger=None):
         """
         Constructor
         """
-        # self.collection_mgr   = collection_mgr
-        # self.api      = collection_mgr.api
-        # self.settings = collection_mgr.settings()
         self.hardlink = None
         if logger is None:
             logger = clogger.Logger()
@@ -76,6 +72,8 @@ class HardLinker(object):
         if os.path.exists("/srv/www"):
             webdir = "/srv/www/cobbler"
 
-        rc = utils.subprocess_call(self.logger, self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror", shell=True)
+        rc = utils.subprocess_call(self.logger,
+                                   self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror",
+                                   shell=True)
 
         return rc

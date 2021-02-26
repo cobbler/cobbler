@@ -22,14 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-def register():
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "authn"
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username, password) -> bool:
     """
     Validate a username/password combo, returning True/False
 

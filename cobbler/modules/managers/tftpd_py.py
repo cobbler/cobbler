@@ -18,26 +18,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 
-from builtins import object
-import cobbler.clogger as clogger
-import cobbler.tftpgen as tftpgen
-import cobbler.templar as templar
+from cobbler import clogger
+from cobbler import tftpgen
+from cobbler import templar
 
 # TODO: Deprecate and remove the Python TFTP Server which is delivered with Cobbler.
 
-def register():
+
+def register() -> str:
     """
     The mandatory Cobbler module registration hook.
     """
     return "manage"
 
 
-class TftpdPyManager(object):
+class TftpdPyManager:
 
-    def what(self):
+    def what(self) -> str:
         return "tftpd"
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr, logger: clogger.Logger):
         """
         Constructor
 
@@ -106,7 +106,7 @@ class TftpdPyManager(object):
         pass
 
 
-def get_manager(collection_mgr, logger):
+def get_manager(collection_mgr, logger: clogger.Logger):
     """
     Get the manager object for the tftp server.
 
