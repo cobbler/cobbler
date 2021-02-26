@@ -62,7 +62,7 @@ def object_name(name: str, parent: str) -> str:
 
 def hostname(dnsname: str) -> str:
     """
-    Validate the dns name.
+    Validate the DNS name.
 
     :param dnsname: Hostname or FQDN
     :returns: dnsname
@@ -85,9 +85,9 @@ def hostname(dnsname: str) -> str:
 
 def mac_address(mac: str, for_item=True) -> str:
     """
-    Validate as an Eternet mac address.
+    Validate as an Eternet MAC address.
 
-    :param mac: mac address
+    :param mac: MAC address
     :param for_item: If the check should be performed for an item or not.
     :returns: str mac or CX
     """
@@ -140,7 +140,7 @@ def ipv4_netmask(addr: str) -> str:
     """
     Validate an IPv4 netmask.
 
-    :param addr: ipv4 netmask
+    :param addr: IPv4 netmask
     :returns: str addr or CX
     """
     if not isinstance(addr, str):
@@ -164,8 +164,8 @@ def ipv6_address(addr: str) -> str:
     """
     Validate an IPv6 address.
 
-    :param addr: ipv6 address
-    :returns: The ipv6 address.
+    :param addr: IPv6 address
+    :returns: The IPv6 address.
     """
     if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")

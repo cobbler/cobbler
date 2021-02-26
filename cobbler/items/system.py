@@ -352,7 +352,7 @@ class System(Item):
         """
         Set IPv4 address on interface.
 
-        :param address: ip address
+        :param address: IP address
         :param interface: interface name
         :returns: True or CX
         """
@@ -368,9 +368,9 @@ class System(Item):
 
     def set_mac_address(self, address: str, interface: str):
         """
-        Set mac address on interface.
+        Set MAC address on interface.
 
-        :param address: mac address
+        :param address: MAC address
         :param interface: interface name
         :returns: True or CX
         """
@@ -390,7 +390,7 @@ class System(Item):
         """
         Set a gateway IPv4 address.
 
-        :param gateway: ip address
+        :param gateway: IP address
         :returns: True or CX
         """
         self.gateway = validate.ipv4_address(gateway)
@@ -428,7 +428,7 @@ class System(Item):
         """
         Set the per-interface gateway.
 
-        :param gateway: ipv4 address for the gateway
+        :param gateway: IPv4 address for the gateway
         :param interface: interface name
         :returns: True or CX
         """
@@ -477,7 +477,7 @@ class System(Item):
         """
         Set IPv6 address on interface.
 
-        :param address: ip address
+        :param address: IP address
         :param interface: interface name
         :returns: True or CX
         """
@@ -542,7 +542,7 @@ class System(Item):
 
     def set_profile(self, profile_name):
         """
-        Set the system to use a certain named profile. The profile must have already been loaded into the Profiles
+        Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
         """
         old_parent = self.get_parent()
@@ -568,7 +568,7 @@ class System(Item):
 
     def set_image(self, image_name):
         """
-        Set the system to use a certain named image. Works like set_profile but cannot be used at the same time. It's
+        Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time. It's
         one or the other.
         """
         old_parent = self.get_parent()
