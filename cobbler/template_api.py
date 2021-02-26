@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 import os.path
 import re
-from typing import Optional, TextIO, Tuple, Union, Match
+from typing import Match, Optional, TextIO, Tuple, Union
 
 from Cheetah.Template import Template
 
@@ -35,7 +35,21 @@ from cobbler.cexceptions import FileNotFoundException
 # a Python class. This class will allow us to define the cheetah builtins.
 
 
-class CobblerTemplate(Template):
+def read_macro_file(location='/etc/cobbler/cheetah_macros'):
+    if not os.path.exists(location):
+        raise FileNotFoundException("Cobbler Cheetah Macros File must exist!")
+    with open(location, "r") as macro_file:
+        return macro_file.read()
+
+
+def generate_cheetah_macros():
+    return Template.compile(
+        source=read_macro_file(),
+        moduleName="cobbler.template_api",
+        className="CheetahMacros")
+
+
+class CobblerTemplate(generate_cheetah_macros()):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
@@ -61,7 +75,7 @@ class CobblerTemplate(Template):
         # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
         # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
         # substituted.
-        self.BuiltinTemplate = CobblerTemplate.compile(source="\n".join([
+        self.BuiltinTemplate = Template.compile(source="\n".join([
             "#def SNIPPET($file)",
             "#set $snippet = $read_snippet($file)",
             "#if $snippet",
@@ -115,10 +129,6 @@ class CobblerTemplate(Template):
         if 'preprocessors' in kwargs:
             preprocessors.extend(kwargs['preprocessors'])
         kwargs['preprocessors'] = preprocessors
-
-        # Instruct Cheetah to use this class as the base for all cheetah templates
-        if 'baseclass' not in kwargs:
-            kwargs['baseclass'] = CobblerTemplate
 
         # Now let Cheetah do the actual compilation
         return super().compile(*args, **kwargs)

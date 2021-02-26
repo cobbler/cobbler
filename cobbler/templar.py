@@ -22,14 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import functools
 import os
 import os.path
 import pprint
 import re
 from typing import Optional, Union, TextIO
-
-import Cheetah
 
 from cobbler import clogger, utils
 from cobbler.cexceptions import CX
@@ -43,8 +40,6 @@ except ModuleNotFoundError:
     # FIXME: log a message here
     jinja2_available = False
     pass
-
-CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
 
 class Templar:
@@ -211,23 +206,13 @@ class Templar:
         })
 
         # Now do full templating scan, where we will also templatify the snippet insertions
-        with open(CHEETAH_MACROS_FILE, "r") as macro_file:
-            cheetah_macros_content = macro_file.read()
-        cheetah_macros = CobblerTemplate.compile(
-            source=cheetah_macros_content,
+        template = CobblerTemplate.compile(
             moduleName="cobbler.template_api",
-            className="CheetahMacros")
-        template = CobblerTemplate().compile(
+            className="CobblerDynamicTemplate",
             source=raw_data,
             compilerSettings={'useStackFrame': False},
-            baseclass=cheetah_macros
+            baseclass=CobblerTemplate
         )
-
-        major, minor, release = Cheetah.Version.split('.')[0:3]
-
-        if (int(major), int(minor), int(release)) >= (2, 4, 2):
-            template.SNIPPET = functools.partial(template.SNIPPET, template)
-            template.read_snippet = functools.partial(template.read_snippet, template)
 
         try:
             generated_template_class = template(searchList=[search_table])
