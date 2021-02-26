@@ -22,33 +22,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import re
-import Cheetah
 import functools
 import os
 import os.path
 import pprint
+import re
+from typing import Optional, Union, TextIO
 
-jinja2_available = False
+import Cheetah
+
+from cobbler import clogger, utils
+from cobbler.cexceptions import CX
+from cobbler.template_api import CobblerTemplate
+
 try:
     import jinja2
+
     jinja2_available = True
-except:
-    """ FIXME: log a message here """
+except ModuleNotFoundError:
+    # FIXME: log a message here
+    jinja2_available = False
     pass
-
-from .cexceptions import CX
-from . import clogger
-from .template_api import Template
-from . import utils
-
-major, minor, release = Cheetah.Version.split('.')[0:3]
-fix_cheetah_class = (int(major), int(minor), int(release)) >= (2, 4, 2)
 
 CHEETAH_MACROS_FILE = '/etc/cobbler/cheetah_macros'
 
 
 class Templar:
+    """
+    Wrapper to encapsulate all logic of Cheetah vs. Jinja2. This also enables us to remove and add templating as desired
+    via our self-defined API in this class.
+    """
 
     def __init__(self, collection_mgr, logger=None):
         """
@@ -70,7 +73,7 @@ class Templar:
             logger = clogger.Logger()
         self.logger = logger
 
-    def check_for_invalid_imports(self, data):
+    def check_for_invalid_imports(self, data: str):
         """
         Ensure that Cheetah code is not importing Python modules that may allow for advanced privileges by ensuring we
         whitelist the imports that we allow.
@@ -84,19 +87,16 @@ class Templar:
                 if self.settings and rest not in self.settings.cheetah_import_whitelist:
                     raise CX("potentially insecure import in template: %s" % rest)
 
-    def render(self, data_input, search_table, out_path, subject=None, template_type=None):
+    def render(self, data_input: Union[TextIO, str], search_table: dict, out_path: Optional[str],
+               template_type="default") -> str:
         """
         Render data_input back into a file.
 
-        :param data_input: is either a string or a filename
-        :param search_table: is a dict of metadata keys and values out_path if not-none writes the results to a file
-                             (though results are always returned)
+        :param data_input: is either a str or a TextIO object.
+        :param search_table: is a dict of metadata keys and values.
         :param out_path: Optional parameter which (if present), represents the target path to write the result into.
-        :param subject: is a profile or system object, if available (for snippet eval)
-        :param template_type: May currently be "cheetah" or "jinja2".
-        :type template_type: str
+        :param template_type: May currently be "cheetah" or "jinja2". "default" looks in the settings.
         :return: The rendered template.
-        :rtype: str
         """
 
         if not isinstance(data_input, str):
@@ -105,9 +105,16 @@ class Templar:
             raw_data = data_input
         lines = raw_data.split('\n')
 
-        if not template_type:
-            # Assume we're using the default template type, if set in the settinigs file or use cheetah as the last
-            # resort
+        if template_type is None:
+            raise ValueError('"template_type" can\'t be "None"!')
+
+        if not isinstance(template_type, str):
+            raise TypeError('"template_type" must be of type "str"!')
+
+        if template_type not in ("default", "jinja2", "cheetah"):
+            return "# ERROR: Unsupported template type selected!"
+
+        if template_type == "default":
             if self.settings and self.settings.default_template_type:
                 template_type = self.settings.default_template_type
             else:
@@ -121,10 +128,10 @@ class Templar:
             raw_data = "\n".join(lines)
 
         if template_type == "cheetah":
-            data_out = self.render_cheetah(raw_data, search_table, subject)
+            data_out = self.render_cheetah(raw_data, search_table)
         elif template_type == "jinja2":
             if jinja2_available:
-                data_out = self.render_jinja2(raw_data, search_table, subject)
+                data_out = self.render_jinja2(raw_data, search_table)
             else:
                 return "# ERROR: JINJA2 NOT AVAILABLE. Maybe you need to install python-jinja2?\n"
         else:
@@ -154,19 +161,17 @@ class Templar:
         # if requested, write the data out to a file
         if out_path is not None:
             utils.mkdir(os.path.dirname(out_path))
-            fd = open(out_path, "w+")
-            fd.write(data_out)
-            fd.close()
+            with open(out_path, "w+") as file_descriptor:
+                file_descriptor.write(data_out)
 
         return data_out
 
-    def render_cheetah(self, raw_data, search_table, subject=None):
+    def render_cheetah(self, raw_data, search_table: dict) -> str:
         """
         Render data_input back into a file.
 
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values (though results are always returned)
-        :param subject: is a profile or system object, if available (for snippet eval)
         :return: The rendered Cheetah Template.
         """
 
@@ -181,12 +186,12 @@ class Templar:
         if "tree" in search_table and search_table["tree"].startswith("nfs://"):
             for line in raw_data.split("\n"):
                 if line.find("--url") != -1 and line.find("url ") != -1:
-                    rest = search_table["tree"][6:]        # strip off "nfs://" part
+                    rest = search_table["tree"][6:]  # strip off "nfs://" part
                     try:
-                        (server, dir) = rest.split(":", 2)
-                    except:
-                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"])
-                    line = "nfs --server %s --dir %s" % (server, dir)
+                        (server, directory) = rest.split(":", 2)
+                    except Exception as e:
+                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"]) from e
+                    line = "nfs --server %s --dir %s" % (server, directory)
                     # But put the URL part back in so koan can still see what the original value was
                     line += "\n" + "#url --url=%s" % search_table["tree"]
                 newdata += line + "\n"
@@ -206,18 +211,26 @@ class Templar:
         })
 
         # Now do full templating scan, where we will also templatify the snippet insertions
-        t = Template().compile(
+        with open(CHEETAH_MACROS_FILE, "r") as macro_file:
+            cheetah_macros_content = macro_file.read()
+        cheetah_macros = CobblerTemplate.compile(
+            source=cheetah_macros_content,
+            moduleName="cobbler.template_api",
+            className="CheetahMacros")
+        template = CobblerTemplate().compile(
             source=raw_data,
             compilerSettings={'useStackFrame': False},
-            baseclass=Template.compile(file=CHEETAH_MACROS_FILE)
+            baseclass=cheetah_macros
         )
 
-        if fix_cheetah_class:
-            t.SNIPPET = functools.partial(t.SNIPPET, t)
-            t.read_snippet = functools.partial(t.read_snippet, t)
+        major, minor, release = Cheetah.Version.split('.')[0:3]
+
+        if (int(major), int(minor), int(release)) >= (2, 4, 2):
+            template.SNIPPET = functools.partial(template.SNIPPET, template)
+            template.read_snippet = functools.partial(template.read_snippet, template)
 
         try:
-            generated_template_class = t(searchList=[search_table])
+            generated_template_class = template(searchList=[search_table])
             data_out = str(generated_template_class)
             self.last_errors = generated_template_class.errorCatcher().listErrors()
             if self.last_errors:
@@ -229,19 +242,20 @@ class Templar:
 
         return data_out
 
-    def render_jinja2(self, raw_data, search_table, subject=None):
+    def render_jinja2(self, raw_data: str, search_table: dict) -> str:
         """
         Render data_input back into a file.
 
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values
-        :param subject: is a profile or system object, if available (for snippet eval)
         :return: The rendered Jinja2 Template.
         """
 
         try:
             if self.settings and self.settings.jinja2_includedir:
-                template = jinja2.Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)).from_string(raw_data)
+                template = jinja2 \
+                    .Environment(loader=jinja2.FileSystemLoader(self.settings.jinja2_includedir)) \
+                    .from_string(raw_data)
             else:
                 template = jinja2.Template(raw_data)
             data_out = template.render(search_table)

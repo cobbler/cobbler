@@ -161,7 +161,7 @@ def run(api, args, logger):
             meta = utils.blender(api, False, distro)
 
             if "post_install" in distro.kernel_options:
-                data = templ.render(tmpl_data, meta, None, distro)
+                data = templ.render(tmpl_data, meta, None)
                 pi_file = open(distro.kernel_options["post_install"], "w+")
                 pi_file.write(data)
                 pi_file.close()
@@ -185,7 +185,7 @@ def run(api, args, logger):
             (distro_path, pxeboot_name) = os.path.split(distro.kernel)
 
             if "sif" in profile.kernel_options:
-                data = templ.render(tmpl_data, meta, None, profile)
+                data = templ.render(tmpl_data, meta, None)
 
                 if distro.os_version in ("7", "2008", "8", "2012", "2016", "2019", "10"):
                     sif_file_name = os.path.join(distro_path, 'sources', profile.kernel_options["sif"])
@@ -287,7 +287,7 @@ def run(api, args, logger):
                 utils.subprocess_call(logger, cmd, shell=True)
 
                 if os.path.exists(wimupdate):
-                    data = templ.render(tmplstart_data, meta, None, profile)
+                    data = templ.render(tmplstart_data, meta, None)
                     pi_file = tempfile.NamedTemporaryFile()
                     pi_file.write(bytes(data, 'utf-8'))
                     pi_file.flush()

@@ -148,7 +148,7 @@ class ConfigGen:
             if not _file.is_dir:
                 file_data[file]['template'] = self.resolve_resource_var(_file.template)
                 try:
-                    t = template_api.Template(file=file_data[file]['template'], searchList=[self.host_vars])
+                    t = template_api.CobblerTemplate(file=file_data[file]['template'], searchList=[self.host_vars])
                     file_data[file]['content'] = t.respond()
                 except:
                     utils.die(self.logger, "Missing template for this file resource %s" % (file_data[file]))

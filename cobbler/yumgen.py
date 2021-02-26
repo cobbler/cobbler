@@ -89,7 +89,7 @@ class YumGen:
             infile_data = infile_h.read()
             infile_h.close()
             outfile = None  # disk output only
-            totalbuf += self.templar.render(infile_data, blended, outfile, None)
+            totalbuf += self.templar.render(infile_data, blended, outfile)
             totalbuf += "\n\n"
 
         return totalbuf

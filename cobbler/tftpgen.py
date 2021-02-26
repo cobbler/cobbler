@@ -318,7 +318,7 @@ class TFTPGen:
         outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
         template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
         template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile, None)
+        self.templar.render(template_data, metadata, outfile)
         template_src.close()
 
         # Write the grub menu:
@@ -1143,4 +1143,4 @@ class TFTPGen:
         template_data = template_fh.read()
         template_fh.close()
 
-        return self.templar.render(template_data, blended, None, obj)
+        return self.templar.render(template_data, blended, None)

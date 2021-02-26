@@ -25,7 +25,7 @@ import os.path
 import re
 from typing import Optional, TextIO, Tuple, Union, Match
 
-from Cheetah.Template import Template as cheetah_template
+from Cheetah.Template import Template
 
 from cobbler import utils
 from cobbler.cexceptions import FileNotFoundException
@@ -34,7 +34,8 @@ from cobbler.cexceptions import FileNotFoundException
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
 # a Python class. This class will allow us to define the cheetah builtins.
 
-class Template(cheetah_template.Template):
+
+class CobblerTemplate(Template):
     """
     This class will allow us to include any pure python builtin functions.
     It derives from the cheetah-compiled class above. This way, we can include both types (cheetah and pure python) of
@@ -60,7 +61,7 @@ class Template(cheetah_template.Template):
         # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
         # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
         # substituted.
-        self.BuiltinTemplate = Template.compile(source="\n".join([
+        self.BuiltinTemplate = CobblerTemplate.compile(source="\n".join([
             "#def SNIPPET($file)",
             "#set $snippet = $read_snippet($file)",
             "#if $snippet",
@@ -117,7 +118,7 @@ class Template(cheetah_template.Template):
 
         # Instruct Cheetah to use this class as the base for all cheetah templates
         if 'baseclass' not in kwargs:
-            kwargs['baseclass'] = Template
+            kwargs['baseclass'] = CobblerTemplate
 
         # Now let Cheetah do the actual compilation
         return super().compile(*args, **kwargs)

@@ -47,7 +47,7 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
         "mgmtcls_genders": mgmtcls_genders
     }
 
-    templar_inst.render(template_data, metadata, settings_file, None)
+    templar_inst.render(template_data, metadata, settings_file)
 
 
 def run(api, args, logger) -> int:
