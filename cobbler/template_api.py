@@ -21,18 +21,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
-import Cheetah.Template as cheetah_template
 import os.path
 import re
+from typing import Optional, TextIO, Tuple, Union, Match
 
-from cobbler.cexceptions import FileNotFoundException
+from Cheetah.Template import Template as cheetah_template
+
 from cobbler import utils
+from cobbler.cexceptions import FileNotFoundException
 
-# This class is defined using the Cheetah language. Using the 'compile' function
-# we can compile the source directly into a Python class. This class will allow
-# us to define the cheetah builtins.
 
+# This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
+# a Python class. This class will allow us to define the cheetah builtins.
 
 class Template(cheetah_template.Template):
     """
@@ -47,29 +47,20 @@ class Template(cheetah_template.Template):
 
         :param kwargs: These arguments get passed to the super constructor of this class.
         """
+        # This part (see 'Template' below for the other part) handles the actual inclusion of the file contents. We
+        # still need to make the snippet's namespace (searchList) available to the template calling SNIPPET (done in
+        # the other part).
+
+        # This function can be used in two ways:
+        # Cheetah syntax:
+        # - $SNIPPET('my_snippet')
+        # - SNIPPET syntax:
+        # - SNIPPET::my_snippet
+
+        # This follows all of the rules of snippets and advanced snippets. First it searches for a per-system snippet,
+        # then a per-profile snippet, then a general snippet. If none is found, a comment explaining the error is
+        # substituted.
         self.BuiltinTemplate = Template.compile(source="\n".join([
-
-            # This part (see 'Template' below
-            # for the other part) handles the actual inclusion of the file contents. We
-            # still need to make the snippet's namespace (searchList) available to the
-            # template calling SNIPPET (done in the other part).
-
-            # Moved the other functions into /etc/cobbler/cheetah_macros
-            # Left SNIPPET here since it is very important.
-
-            # This function can be used in two ways:
-            # Cheetah syntax:
-            #
-            # $SNIPPET('my_snippet')
-            #
-            # SNIPPET syntax:
-            #
-            # SNIPPET::my_snippet
-            #
-            # This follows all of the rules of snippets and advanced snippets. First it
-            # searches for a per-system snippet, then a per-profile snippet, then a
-            # general snippet. If none is found, a comment explaining the error is
-            # substituted.
             "#def SNIPPET($file)",
             "#set $snippet = $read_snippet($file)",
             "#if $snippet",
@@ -79,7 +70,7 @@ class Template(cheetah_template.Template):
             "#end if",
             "#end def",
         ]) + "\n")
-        super(Template, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     # OK, so this function gets called by Cheetah.Template.Template.__init__ to compile the template into a class. This
     # is probably a kludge, but it add a baseclass argument to the standard compile (see Cheetah's compile docstring)
@@ -87,7 +78,7 @@ class Template(cheetah_template.Template):
     # in the base class above) will be accessible to all cheetah templates compiled by Cobbler.
 
     @classmethod
-    def compile(cls, *args, **kwargs):
+    def compile(cls, *args, **kwargs) -> bytes:
         """
         Compile a cheetah template with Cobbler modifications. Modifications include ``SNIPPET::`` syntax replacement
         and inclusion of Cobbler builtin methods. Please be aware that you cannot use the ``baseclass`` attribute of
@@ -96,12 +87,12 @@ class Template(cheetah_template.Template):
         :param args: These just get passed right to Cheetah.
         :param kwargs: We just execute our own preprocessors and remove them and let afterwards handle Cheetah the rest.
         :return: The compiled template.
-        :rtype: bytes
         """
-        def replacer(match):
+
+        def replacer(match: Match):
             return "$SNIPPET('%s')" % match.group(1)
 
-        def preprocess(source, file):
+        def preprocess(source: Optional[str], file: Union[TextIO, str]) -> Tuple[str, Union[TextIO, str]]:
             # Normally, the cheetah compiler worries about this, but we need to preprocess the actual source.
             if source is None:
                 if hasattr(file, 'read'):
@@ -112,11 +103,13 @@ class Template(cheetah_template.Template):
                             source = "#errorCatcher Echo\n" + f.read()
                     else:
                         source = "# Unable to read %s\n" % file
-                file = None     # Stop Cheetah from throwing a fit.
+                # Stop Cheetah from throwing a fit.
+                file = None
 
-            rx = re.compile(r'SNIPPET::([A-Za-z0-9_\-\/\.]+)')
-            results = rx.sub(replacer, source)
+            snippet_regex = re.compile(r'SNIPPET::([A-Za-z0-9_\-/.]+)')
+            results = snippet_regex.sub(replacer, source)
             return results, file
+
         preprocessors = [preprocess]
         if 'preprocessors' in kwargs:
             preprocessors.extend(kwargs['preprocessors'])
@@ -127,38 +120,39 @@ class Template(cheetah_template.Template):
             kwargs['baseclass'] = Template
 
         # Now let Cheetah do the actual compilation
-        return super(Template, cls).compile(*args, **kwargs)
+        return super().compile(*args, **kwargs)
 
-    def read_snippet(self, file):
+    def read_snippet(self, file: str) -> Optional[str]:
         """
         Locate the appropriate snippet for the current system and profile and read it's contents.
 
         This file could be located in a remote location.
 
         This will first check for a per-system snippet, a per-profile snippet, a distro snippet, and a general snippet.
-        If no snippet is located, it returns None.
 
-        :param file: The file to read-
+        :param file: The name of the file to read. Depending on the context this gets expanded automatically.
         :return: None (if the snippet file was not found) or the string with the read snippet.
-        :rtype: str
         """
-        for snipclass in ('system', 'profile', 'distro'):
-            if self.varExists('%s_name' % snipclass):
-                fullpath = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'),
-                                                snipclass, file,
-                                                self.getVar('%s_name' % snipclass))
+        if not self.varExists('autoinstall_snippets_dir'):
+            raise AttributeError("\"autoinstall_snippets_dir\" is required to find Snippets")
+
+        for snippet_class in ('system', 'profile', 'distro'):
+            if self.varExists('%s_name' % snippet_class):
+                full_path = '%s/per_%s/%s/%s' % (self.getVar('autoinstall_snippets_dir'), snippet_class, file,
+                                                 self.getVar('%s_name' % snippet_class))
                 try:
-                    contents = utils.read_file_contents(fullpath, fetch_if_remote=True)
+                    contents = utils.read_file_contents(full_path, fetch_if_remote=True)
                     return contents
                 except FileNotFoundException:
                     pass
 
         try:
-            return "#errorCatcher ListErrors\n" + utils.read_file_contents('%s/%s' % (self.getVar('autoinstall_snippets_dir'), file), fetch_if_remote=True)
+            full_path = '%s/%s' % (self.getVar('autoinstall_snippets_dir'), file)
+            return "#errorCatcher ListErrors\n" + utils.read_file_contents(full_path, fetch_if_remote=True)
         except FileNotFoundException:
             return None
 
-    def SNIPPET(self, file):
+    def SNIPPET(self, file: str):
         """
         Include the contents of the named snippet here. This is equivalent to the #include directive in Cheetah, except
         that it searches for system and profile specific snippets, and it includes the snippet's namespace.
