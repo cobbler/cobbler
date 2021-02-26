@@ -6,4 +6,4 @@ dnspython
 pyyaml
 distro
 sphinx_rtd_theme
-file-magic
+file-magic==0.4.0
