@@ -4,6 +4,6 @@ django
 simplejson
 dnspython
 pyyaml
-distro
+distro==1.5.0
 sphinx_rtd_theme
 file-magic
