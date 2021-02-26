@@ -43,6 +43,8 @@ COPY ./tests/setup_files/supervisord/conf.d /etc/supervisord/conf.d
 # set SECRET_KEY for django tests
 #RUN ["sed", "-i", "s/SECRET_KEY.*/'SECRET_KEY\ =\ \"qwertyuiopasdfghl;\"'/", "cobbler/web/settings.py"]
 
+# Install optional stuff
+RUN ["pip3", "install", "pymongo", "Jinja2" ]
 # Install and upgrade all dependencies
 RUN ["pip3", "install", "--upgrade", "pip"]
 RUN ["pip3", "install", ".[lint,test]"]

@@ -228,7 +228,7 @@ class IscManager:
 
         if self.logger is not None:
             self.logger.info("generating %s" % self.settings_file)
-        self.templar.render(template_data, metadata, self.settings_file, None)
+        self.templar.render(template_data, metadata, self.settings_file)
 
     def regen_ethers(self):
         """

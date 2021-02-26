@@ -251,4 +251,4 @@ class CobblerSync:
             "webdir": self.settings.webdir
         }
 
-        self.templar.render(template_data, metadata, "/etc/rsyncd.conf", None)
+        self.templar.render(template_data, metadata, "/etc/rsyncd.conf")

@@ -170,7 +170,7 @@ class DnsmasqManager:
                 continue
             metadata["insert_cobbler_system_definitions_%s" % x] = system_definitions[x]
 
-        self.templar.render(template_data, metadata, settings_file, None)
+        self.templar.render(template_data, metadata, settings_file)
 
     def regen_ethers(self):
         """
