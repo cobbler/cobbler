@@ -5,5 +5,5 @@ simplejson
 dnspython
 pyyaml
 distro
-sphinx_rtd_theme
+sphinx_rtd_theme==0.5.1
 file-magic
