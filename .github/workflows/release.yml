@@ -33,9 +33,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      - name: Update package cache
+        run: sudo apt-get -yq update
       - name: Install all dependencies
         run: >-
-          sudo apt-get install wget \
+          sudo apt-get -yq install wget \
           pycodestyle \
           pyflakes3 \
           python-django-common \

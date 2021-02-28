@@ -1,4 +1,4 @@
-name: Publish Python distributions to PyPI and TestPyPI
+name: Publish Python distributions to TestPyPI
 
 on:
   push:
@@ -25,7 +25,7 @@ env:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python distributions to PyPI and TestPyPI
+    name: Build and publish Python distributions to TestPyPI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -33,9 +33,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      - name: Update package cache
+        run: sudo apt-get -yq update
       - name: Install all dependencies
         run: >-
-          sudo apt-get install wget \
+          sudo apt-get -yq install wget \
           pycodestyle \
           pyflakes3 \
           python-django-common \
