@@ -23,6 +23,8 @@ env:
   HTTP_USER: "www-data"
   APACHE_GROUP: "www-data"
 
+# FIXME: We removed createrepo_c due to: https://answers.launchpad.net/createrepo/+question/690448
+
 jobs:
   build-n-publish:
     name: Build and publish Python distributions to PyPI and TestPyPI
@@ -70,7 +72,6 @@ jobs:
           bzip2
           dpkg-dev
           tftpd-hpa
-          createrepo
           rsync
           xorriso
           fence-agents
