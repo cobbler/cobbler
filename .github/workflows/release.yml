@@ -58,6 +58,7 @@ jobs:
           git
           hardlink
           apache2
+          apache2-dev
           libapache2-mod-wsgi-py3
           systemd
       - name: Install Deps for installing project
