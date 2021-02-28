@@ -74,6 +74,13 @@ def glob(*args, **kwargs):
                 results.append(elem)
     return results
 
+
+def read_readme_file():
+    # read the contents of your README file
+    this_directory = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+        return f.read()
+
 #####################################################################
 
 
@@ -493,12 +500,8 @@ if __name__ == "__main__":
         name="cobbler",
         version=VERSION,
         description="Network Boot and Update Server",
-        long_description="Cobbler is a network install server. Cobbler supports PXE, virtualized installs, "
-                         "and reinstalling existing Linux machines. The last two modes use a helper tool, 'koan', "
-                         "that integrates with cobbler. There is also a web interface 'cobbler-web'. Cobbler's "
-                         "advanced features include importing distributions from DVDs and rsync mirrors, automatic OS "
-                         "installation templating, integrated yum mirroring, and built-in DHCP/DNS Management. "
-                         "Cobbler has a XMLRPC API for integration with other applications.",
+        long_description=read_readme_file(),
+        long_description_content_type='text/markdown',
         author="Team Cobbler",
         author_email="cobbler.project@gmail.com",
         url="https://cobbler.github.io",
