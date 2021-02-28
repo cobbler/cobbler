@@ -15,7 +15,7 @@ env:
   STATEPATH: "/tmp/cobbler_settings/devinstall"
   HTTPD_SERVICE: "apache2.service"
   WEBROOT: "/var/www"
-  WEBCONFIG: "/etc/apache2/vhosts.d"
+  WEBCONFIG: "/etc/apache2/sites-available"
   WEBROOTCONFIG: "/etc/apache2"
   TFTPROOT: "/srv/tftpboot"
   DEFAULTPATH: "etc/sysconfig"
@@ -62,7 +62,7 @@ jobs:
           libapache2-mod-wsgi-py3
           systemd
       - name: Install Deps for installing project
-        run: pip install Sphinx coverage
+        run: pip install Sphinx coverage wheel
       - name: Install Deps with pip
         run: pip install .
       - name: Install pypa/build
