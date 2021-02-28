@@ -61,7 +61,7 @@ jobs:
           libapache2-mod-wsgi-py3
           systemd
       - name: Install Deps for installing project
-        run: pip install Sphinx
+        run: pip install Sphinx coverage
       - name: Install Deps with pip
         run: pip install .
       - name: Install pypa/build
