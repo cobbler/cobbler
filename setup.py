@@ -102,16 +102,15 @@ def gen_build_version():
         if cmd.returncode == 0:
             gitstamp, gitdate = data.decode("utf8").split("\n")
 
-    fd = open(os.path.join(OUTPUT_DIR, "version"), "w+")
-    config = ConfigParser()
-    config.add_section("cobbler")
-    config.set("cobbler", "gitdate", str(gitdate))
-    config.set("cobbler", "gitstamp", str(gitstamp))
-    config.set("cobbler", "builddate", builddate)
-    config.set("cobbler", "version", VERSION)
-    config.set("cobbler", "version_tuple", str([int(x) for x in VERSION.split(".")]))
-    config.write(fd)
-    fd.close()
+    with open(os.path.join(OUTPUT_DIR, "version"), "w+") as version_file:
+        config = ConfigParser()
+        config.add_section("cobbler")
+        config.set("cobbler", "gitdate", str(gitdate))
+        config.set("cobbler", "gitstamp", str(gitstamp))
+        config.set("cobbler", "builddate", builddate)
+        config.set("cobbler", "version", VERSION)
+        config.set("cobbler", "version_tuple", str([int(x) for x in VERSION.split(".")]))
+        config.write(version_file)
 
 #####################################################################
 # # Custom Distribution Class ########################################
