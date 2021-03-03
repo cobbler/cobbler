@@ -36,6 +36,7 @@ from cobbler.cobbler_collections.packages import Packages
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
+from cobbler.cobbler_collections.menus import Menus
 from cobbler.settings import Settings
 
 class CollectionManager(object):
