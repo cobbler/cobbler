@@ -222,7 +222,7 @@ def run(api, args, logger):
                 tl_file_name = os.path.join(kernel_path, "setupldr.exe")
 
                 if len(meta["bootmgr"]) != 5:
-                    raise CX("The loader name should be EXACTLY 5 character")
+                    logger.error("The loader name should be EXACTLY 5 character")
 
                 pat1 = re.compile(br'NTLDR', re.IGNORECASE)
                 pat2 = re.compile(br'winnt\.sif', re.IGNORECASE)
