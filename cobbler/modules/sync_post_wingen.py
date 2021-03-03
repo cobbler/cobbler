@@ -223,6 +223,7 @@ def run(api, args, logger):
 
                 if len(meta["bootmgr"]) != 5:
                     logger.error("The loader name should be EXACTLY 5 character")
+                    return 1
 
                 pat1 = re.compile(br'NTLDR', re.IGNORECASE)
                 pat2 = re.compile(br'winnt\.sif', re.IGNORECASE)
