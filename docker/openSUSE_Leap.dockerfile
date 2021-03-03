@@ -25,6 +25,7 @@ RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 # RUN ["sed", "-e", "\"s|/var/lib/tftpboot|/srv/tftpboot|g\"", "-i", "cobbler/settings.py", "config/cobbler/settings.yaml"]
 
 # Install and setup testing framework
+RUN ["pip3", "install", "--upgrade", "pip"]
 RUN ["pip3", "install", "pytest-django"]
 RUN ["pip3", "install", "pytest-pythonpath"]
 
