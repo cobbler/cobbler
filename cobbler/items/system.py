@@ -218,22 +218,25 @@ class System(item.Item):
 
         :param boot_loaders: The boot loaders for the system.
         """
-        boot_loaders = boot_loaders.strip()
-        boot_loaders_split = utils.input_string_or_list(boot_loaders)
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
 
-        if boot_loaders is None or boot_loaders == "":
-            self.boot_loaders = []
-        else:
+        if boot_loaders:
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+
             if self.profile and self.profile != "":
                 profile = self.collection_mgr.profiles().find(name=self.profile)
                 parent_boot_loaders = profile.get_boot_loaders()
             elif self.image and self.image != "":
                 image = self.collection_mgr.images().find(name=self.image)
                 parent_boot_loaders = image.get_boot_loaders()
-            if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(parent_boot_loaders):
+            if not set(boot_loaders_split).issubset(parent_boot_loaders):
                 raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
                          (self.name, boot_loaders_split, parent_boot_loaders))
-        self.boot_loaders = boot_loaders_split
+            self.boot_loaders = boot_loaders_split
+        else:
+            self.boot_loaders = []
 
     def get_boot_loaders(self):
         """

@@ -1,5 +1,0 @@
-LABEL $profile_name
-        $menu_label
-        kernel $kernel_path
-        $append_line
-        ipappend 2

@@ -33,7 +33,7 @@ FIELDS = [
     # editable in UI
     ["comment", "", "", "Comment", True, "Free form text description", 0, "str"],
     ["name", "", None, "Name", True, "Ex: Systems", 0, "str"],
-    ["display_name", "", "", "Name", True, "Ex: Systems menu", [], "str"],
+    ["display_name", "", "", "Display Name", True, "Ex: Systems menu", [], "str"],
     ["parent", '', '', "Parent Menu", True, "", [], "str"],
 ]
 
@@ -43,6 +43,7 @@ class Menu(item.Item):
     A Cobbler menu object.
     """
 
+    TYPE_NAME = "menu"
     COLLECTION_TYPE = "menu"
 
     def __init__(self, *args, **kwargs):

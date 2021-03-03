@@ -47,7 +47,7 @@ FIELDS = [
     ['os_version', '', 0, "OS Version", True, "ex: rhel4", utils.get_valid_os_versions(), "str"],
     ['owners', "SETTINGS:default_ownership", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", [], "list"],
     ["menu", '', '', "Parent boot menu", True, "", [], "str"],
-    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Linux installation boot loaders", 0, "list"],
+    ["boot_loaders", '<<inherit>>', '<<inherit>>', "Boot loaders", True, "Network installation boot loaders", 0, "list"],
     ['virt_auto_boot', "SETTINGS:virt_auto_boot", 0, "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ['virt_bridge', "SETTINGS:default_virt_bridge", 0, "Virt Bridge", True, "", 0, "str"],
     ['virt_cpus', 1, 0, "Virt CPUs", True, "", 0, "int"],
@@ -296,23 +296,40 @@ class Image(item.Item):
 
         self.menu = menu
 
+    def get_supported_boot_loaders(self):
+        """
+        :return: The bootloaders which are available for being set.
+        """
+        try:
+            # If we have already loaded the supported boot loaders from
+            # the signature, use that data
+            return self.supported_boot_loaders
+        except:
+            # otherwise, refresh from the signatures / defaults
+            self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
+            return self.supported_boot_loaders
+
     def set_boot_loaders(self, boot_loaders):
         """
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the image.
         """
-        boot_loaders = boot_loaders.strip()
-        boot_loaders_split = utils.input_string_or_list(boot_loaders)
+        # allow the magic inherit string to persist
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
 
-        if boot_loaders is None or boot_loaders == "":
-            self.boot_loaders = []
-        else:
-            supported_boot_loaders = utils.get_supported_system_boot_loaders()
-            if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(supported_boot_loaders):
+        if boot_loaders:
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            supported_boot_loaders = self.get_supported_boot_loaders()
+
+            if not set(boot_loaders_split).issubset(supported_boot_loaders):
                 raise CX("Error with image %s - not all boot_loaders %s are supported %s" %
                          (self.name, boot_loaders_split, supported_boot_loaders))
-        self.boot_loaders = boot_loaders_split
+            self.boot_loaders = boot_loaders_split
+        else:
+            self.boot_loaders = []
 
     def get_boot_loaders(self):
         """
@@ -321,5 +338,5 @@ class Image(item.Item):
         boot_loaders = self.boot_loaders
 
         if boot_loaders == '<<inherit>>':
-            return utils.get_supported_system_boot_loaders()
+            return self.get_supported_boot_loaders()
         return boot_loaders

@@ -166,6 +166,7 @@ class Collection(object):
         'dhcp-tag': 'dhcp_tag',
         'netboot-enabled': 'netboot_enabled',
         'enable_gpxe': 'enable_ipxe',
+        'boot_loader': 'boot_loaders',
     }
 
     def __rekey(self, _dict):

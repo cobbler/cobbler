@@ -173,7 +173,7 @@ class TFTPGen(object):
                 image_based = True
                 image = profile
 
-        pxe_metadata = {'pxe_menu_items': menu_items}
+        pxe_metadata = {'menu_items': menu_items}
 
         # hack: s390 generates files per system not per interface
         if not image_based and distro.arch.startswith("s390"):
@@ -312,29 +312,46 @@ class TFTPGen(object):
             timeout_action = default.profile
 
         boot_menu = {}
-        menu_items = self.get_menu_items()
+        metadata = self.get_menu_items()
+        loader_metadata = metadata
+        menu_items = metadata["menu_items"]
+        menu_labels = metadata["menu_labels"]
+        loader_metadata["pxe_timeout_profile"] = timeout_action
 
         # Write the PXE menu:
-        metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
-        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
-        template_data = template_src.read()
-        self.templar.render(template_data, metadata, outfile)
-        template_src.close()
+        if 'pxe' in menu_items:
+            loader_metadata["menu_items"] = menu_items['pxe']
+            loader_metadata["menu_labels"] = {}
+            outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxe_menu.template"))
+            template_data = template_src.read()
+            boot_menu['pxe'] = self.templar.render(template_data, loader_metadata, outfile, None)
+            template_src.close()
+
+        # Write the iPXE menu:
+        if 'ipxe' in menu_items:
+            loader_metadata["menu_items"] = menu_items['ipxe']
+            loader_metadata["menu_labels"] = menu_labels['ipxe']
+            outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
+            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "ipxe_menu.template"))
+            template_data = template_src.read()
+            boot_menu['ipxe'] = self.templar.render(template_data, loader_metadata, outfile, None)
+            template_src.close()
 
         # Write the grub menu:
         for arch in utils.get_valid_archs():
-            arch_menu_items = self.get_menu_items(arch)
+            arch_metadata = self.get_menu_items(arch)
+            arch_menu_items = arch_metadata["menu_items"]
 
             if 'grub' in arch_menu_items:
-                boot_menu['grub'] = arch_menu_items
+                boot_menu["grub"] = arch_menu_items
                 outfile = os.path.join(self.bootloc, "grub", "{0}_menu_items.cfg".format(arch))
                 fd = open(outfile, "w+")
-                fd.write(arch_menu_items['grub'])
+                fd.write(arch_menu_items["grub"])
                 fd.close()
         return boot_menu
 
-    def get_menu_items(self, arch=None):
+    def get_menu_items(self, arch=None) -> dict:
         """
         Generates menu items for pxe, ipxe and grub. Grub menu items are grouped into submenus by profile.
 
@@ -346,62 +363,27 @@ class TFTPGen(object):
         """
         return self.get_menu_level(None, arch)
 
-    def get_menu_level(self, menu=None, arch=None):
+    def get_submenus(self, menu, metadata, arch):
         """
-        Generates menu items for pxe, ipxe and grub. Grub menu items are grouped into submenus by profile.
+        Generates submenus metatdata for pxe, ipxe and grub.
 
+        :param menu: The menu for which boot files are generated. (Optional)
+        :param metadata: Pass additional parameters to the ones being collected during the method.
         :param arch: The processor architecture to generate the menu items for. (Optional)
         :type arch: str
-        :returns: A dictionary with the pxe, ipxe and grub menu items. It has the keys from
-                  utils.get_supported_system_boot_loaders().
-        :rtype: dict
         """
-        menu_items = {}
-        metadata = {}
-        begin_menu_item = {}
-        end_menu_item = {}
-        boot_loaders = utils.get_supported_system_boot_loaders()
-        boot_loaders.remove("<<inherit>>")
-
-        for boot_loader in boot_loaders:
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, boot_loader + "menubegin.template")
-            if os.path.exists(template):
-                template_fh = open(template)
-                template_data = template_fh.read()
-                template_fh.close()
-                if menu:
-                    metadata["menu_name"] = menu.name
-                    metadata["menu_label"] = menu.name
-                    if menu.display_name and menu.display_name != "":
-                        metadata["menu_label"] = menu.display_name
-                    begin_menu_item[boot_loader] = self.templar.render(template_data, metadata, None)
-            template = os.path.join(self.settings.boot_loader_conf_template_dir, boot_loader + "menuend.template")
-            if os.path.exists(template):
-                template_fh = open(template)
-                template_data = template_fh.read()
-                template_fh.close()
-                if menu:
-                    metadata["menu_name"] = menu.name
-                    parent_menu = menu.get_parent()
-                    if parent_menu:
-                        metadata["parent_menu_name"] = parent_menu.name
-                        metadata["menu_label"] = parent_menu.name
-                        if parent_menu.display_name and parent_menu.display_name != "":
-                            metadata["menu_label"] = parent_menu.display_name
-                    else:
-                        metadata["parent_menu_name"] = "Cobbler"
-                        metadata["menu_label"] = "Cobbler"
-                    end_menu_item[boot_loader] = self.templar.render(template_data, metadata, None)
-
         if menu:
             childs = menu.get_children(sorted=True)
         else:
             childs = [child for child in self.menus if child.get_parent() is None]
 
-        temp_items = {}
         nested_menu_items = {}
+        menu_labels = {}
+        boot_loaders = utils.get_supported_system_boot_loaders()
+
         for child in childs:
-            temp_items = self.get_menu_level(child, arch)
+            temp_metadata = self.get_menu_level(child, arch)
+            temp_items = temp_metadata["menu_items"]
 
             for boot_loader in boot_loaders:
                 if boot_loader in temp_items:
@@ -410,11 +392,27 @@ class TFTPGen(object):
                     else:
                         nested_menu_items[boot_loader] = temp_items[boot_loader]
 
-            if menu is None and "ipxe" in temp_items:
-                if "ipxe" not in menu_items:
-                    menu_items["ipxe"] = ""
-                menu_items["ipxe"] += "item %s %s\n" % (child.name, (child.display_name if child.display_name and child.display_name != "" else child.name))
+            if "ipxe" in temp_items:
+                if "ipxe" not in menu_labels:
+                    menu_labels["ipxe"] = []
+                menu_labels["ipxe"].append({"name": child.name, "display_name": (child.display_name if child.display_name and child.display_name != "" else child.name)})
 
+        for boot_loader in boot_loaders:
+            if boot_loader in nested_menu_items and nested_menu_items[boot_loader] != "":
+                nested_menu_items[boot_loader] = nested_menu_items[boot_loader][:-1]
+
+        metadata["menu_items"] = nested_menu_items
+        metadata["menu_labels"] = menu_labels
+
+    def get_profiles_menu(self, menu, metadata, arch):
+        """
+        Generates profiles metadata for pxe, ipxe and grub.
+
+        :param menu: The menu for which boot files are generated. (Optional)
+        :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param arch: The processor architecture to generate the menu items for. (Optional)
+        :type arch: str
+        """
         if menu:
             profile_list = [profile for profile in self.profiles if profile.menu == menu.name]
         else:
@@ -423,20 +421,16 @@ class TFTPGen(object):
         if arch:
             profile_list = [profile for profile in profile_list if profile.get_arch() == arch]
 
-        if menu:
-            image_list = [image for image in self.images if image.menu == menu.name]
-        else:
-            image_list = [image for image in self.images if image.menu is None or image.menu == ""]
-        image_list = sorted(image_list, key=lambda image: image.name)
-
-        ipxe_menu_items = ""
         current_menu_items = {}
+        menu_labels = metadata["menu_labels"]
+
         for profile in profile_list:
             if not profile.enable_menu:
                 # This profile has been excluded from the menu
                 continue
             arch = None
             distro = profile.get_conceptual_parent()
+            boot_loaders = profile.get_boot_loaders()
 
             if distro:
                 arch = distro.arch
@@ -447,7 +441,7 @@ class TFTPGen(object):
                 contents = self.write_pxe_file(
                     filename=None,
                     system=None, profile=profile, distro=distro, arch=arch,
-                    include_header=False, format=boot_loader)
+                    image=None, format=boot_loader)
 
                 if contents and contents != "":
                     if boot_loader not in current_menu_items:
@@ -457,12 +451,36 @@ class TFTPGen(object):
                     # iPXE Level menu
                     if boot_loader == "ipxe":
                         current_menu_items[boot_loader] += "\n"
-                        ipxe_menu_items += "item %s %s\n" % (profile.name, (profile.comment if profile.comment and profile.comment != "" else profile.name))
+                        if "ipxe" not in menu_labels:
+                            menu_labels["ipxe"] = []
+                        menu_labels["ipxe"].append({"name": profile.name, "display_name": profile.name})
+
+        metadata["menu_items"] = current_menu_items
+        metadata["menu_labels"] = menu_labels
+
+    def get_images_menu(self, menu, metadata, arch):
+        """
+        Generates profiles metadata for pxe, ipxe and grub.
+
+        :param menu: The menu for which boot files are generated. (Optional)
+        :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param arch: The processor architecture to generate the menu items for. (Optional)
+        :type arch: str
+        """
+        if menu:
+            image_list = [image for image in self.images if image.menu == menu.name]
+        else:
+            image_list = [image for image in self.images if image.menu is None or image.menu == ""]
+        image_list = sorted(image_list, key=lambda image: image.name)
+
+        current_menu_items = metadata["menu_items"]
+        menu_labels = metadata["menu_labels"]
 
         # image names towards the bottom
         for image in image_list:
             if os.path.exists(image.file):
                 arch = image.arch
+                boot_loaders = image.get_boot_loaders()
 
                 for boot_loader in boot_loaders:
                     if boot_loader not in image.get_boot_loaders():
@@ -479,47 +497,99 @@ class TFTPGen(object):
                         # iPXE Level menu
                         if boot_loader == "ipxe":
                             current_menu_items[boot_loader] += "\n"
-                            ipxe_menu_items += "item %s %s\n" % (image.name, (image.comment if image.comment and image.comment != "" else image.name))
+                            if "ipxe" not in menu_labels:
+                                menu_labels["ipxe"] = []
+                            menu_labels["ipxe"].append({"name": image.name, "display_name": image.name})
 
+        boot_loaders = utils.get_supported_system_boot_loaders()
+        for boot_loader in boot_loaders:
+            if boot_loader in current_menu_items and current_menu_items[boot_loader] != "":
+                current_menu_items[boot_loader] = current_menu_items[boot_loader][:-1]
+
+        metadata["menu_items"] = current_menu_items
+        metadata["menu_labels"] = menu_labels
+
+    def get_menu_level(self, menu=None, arch=None) -> dict:
+        """
+        Generates menu items for submenus, pxe, ipxe and grub.
+
+        :param menu: The menu for which boot files are generated. (Optional)
+        :param arch: The processor architecture to generate the menu items for. (Optional)
+        :type arch: str
+        :returns: A dictionary with the pxe and grub menu items. It has the keys from utils.get_supported_system_boot_loaders().
+        :rtype: dict
+        """
+        metadata = {}
+        template_data = {}
+        boot_loaders = utils.get_supported_system_boot_loaders()
+
+        for boot_loader in boot_loaders:
+            template = os.path.join(self.settings.boot_loader_conf_template_dir, "%s_submenu.template" % boot_loader)
+            if os.path.exists(template):
+                template_fh = open(template)
+                template_data[boot_loader] = template_fh.read()
+                template_fh.close()
+                if menu:
+                    parent_menu = menu.get_parent()
+                    metadata["menu_name"] = menu.name
+                    metadata["menu_label"] = menu.display_name if menu.display_name and menu.display_name != "" else menu.name
+                    if parent_menu:
+                        metadata["parent_menu_name"] = parent_menu.name
+                        metadata["parent_menu_label"] = parent_menu.display_name if parent_menu.display_name and parent_menu.display_name != "" else parent_menu.name
+                    else:
+                        metadata["parent_menu_name"] = "Cobbler"
+                        metadata["parent menu_label"] = "Cobbler"
+
+
+        self.get_submenus(menu, metadata, arch)
+        nested_menu_items = metadata["menu_items"]
+        self.get_profiles_menu(menu, metadata, arch)
+        current_menu_items = metadata["menu_items"]
+        self.get_images_menu(menu, metadata, arch)
+        current_menu_items = metadata["menu_items"]
+
+        menu_items = {}
+        menu_labels = metadata["menu_labels"]
         line_pat = re.compile(r"^(.+)$", re.MULTILINE)
         line_sub = "\t\\g<1>"
 
         for boot_loader in boot_loaders:
             if boot_loader not in nested_menu_items and boot_loader not in current_menu_items:
                 continue
-            if boot_loader not in menu_items:
-                menu_items[boot_loader] = ""
-            if menu:
-                if boot_loader in begin_menu_item:
-                    menu_items[boot_loader] += begin_menu_item[boot_loader]
-            if boot_loader == "ipxe":
-                menu_items[boot_loader] += ipxe_menu_items
 
+            menu_items[boot_loader] = ""
+            if boot_loader == "ipxe":
                 if menu:
-                    if boot_loader in end_menu_item:
-                        menu_items[boot_loader] += end_menu_item[boot_loader] + "\n"
                     if boot_loader in current_menu_items:
-                        menu_items[boot_loader] += current_menu_items[boot_loader]
+                        menu_items[boot_loader] = current_menu_items[boot_loader]
                     if boot_loader in nested_menu_items:
                         menu_items[boot_loader] += nested_menu_items[boot_loader]
                 else:
-                    menu_items[boot_loader] += "choose --default ${menu-default} --timeout ${menu-timeout} target && goto ${target}\n\n"
                     if boot_loader in nested_menu_items:
-                        menu_items[boot_loader] += nested_menu_items[boot_loader]
+                        menu_items[boot_loader] = nested_menu_items[boot_loader]
                     if boot_loader in current_menu_items:
-                        menu_items[boot_loader] += current_menu_items[boot_loader]
+                        menu_items[boot_loader] += '\n' + current_menu_items[boot_loader]
             else:
                 if boot_loader in nested_menu_items:
-                    # Indentation for nested pxe and grub menu items.
-                    if boot_loader != "grub" or menu:
-                        nested_menu_items[boot_loader] = line_pat.sub(line_sub, nested_menu_items[boot_loader])
-                    menu_items[boot_loader] += nested_menu_items[boot_loader]
+                    menu_items[boot_loader] = nested_menu_items[boot_loader]
                 if boot_loader in current_menu_items:
+                    if menu is None:
+                        menu_items[boot_loader] += '\n'
                     menu_items[boot_loader] += current_menu_items[boot_loader]
+                # Indentation for nested pxe and grub menu items.
                 if menu:
-                    if boot_loader in end_menu_item:
-                        menu_items[boot_loader] += end_menu_item[boot_loader]
-        return menu_items
+                    menu_items[boot_loader] = line_pat.sub(line_sub, menu_items[boot_loader])
+
+            if menu and boot_loader in template_data:
+                metadata["menu_items"] = menu_items[boot_loader]
+                if boot_loader in menu_labels:
+                    metadata["menu_labels"] = menu_labels[boot_loader]
+                menu_items[boot_loader] = self.templar.render(template_data[boot_loader], metadata, None)
+                if boot_loader == "ipxe":
+                    menu_items[boot_loader] += '\n'
+        metadata["menu_items"] = menu_items
+        metadata["menu_labels"] = menu_labels
+        return metadata
 
     def write_pxe_file(self, filename, system, profile, distro, arch,
                        image=None, include_header=True, metadata=None, format="pxe"):
@@ -557,158 +627,57 @@ class TFTPGen(object):
         if metadata is None:
             metadata = {}
 
+        boot_loaders = None
+        if system:
+            boot_loaders = system.get_boot_loaders()
+            metadata["menu_label"] = system.name
+            metadata["menu_name"] = system.name
+        elif profile:
+            boot_loaders = profile.get_boot_loaders()
+            metadata["menu_label"] = profile.name
+            metadata["menu_name"] = profile.name
+        elif image:
+            boot_loaders = image.get_boot_loaders()
+            metadata["menu_label"] = image.name
+            metadata["menu_name"] = image.name
+        if boot_loaders is None or format not in boot_loaders:
+            return None
+
         (rval, settings) = utils.input_string_or_dict(self.settings.to_dict())
         if rval:
             for key in list(settings.keys()):
                 metadata[key] = settings[key]
         # ---
         # just some random variables
-        template = None
         buffer = ""
 
-        # ---
-        autoinstall_path = None
-        autoinstall_meta = {}
-        kernel_path = None
-        initrd_path = None
-        img_path = None
+        if system and format in ['pxe', 'yaboot'] and not system.netboot_enabled and arch in ['ppc', 'ppc64']:
+            # local booting on ppc requires removing the system-specific dhcpd.conf filename
+            if arch is not None and (arch == "ppc" or arch == "ppc64"):
+                # Disable yaboot network booting for all interfaces on the system
+                for (name, interface) in list(system.interfaces.items()):
 
-        if image is None:
-            # not image based, it's something normalish
-            img_path = os.path.join("/images", distro.name)
-            if format == "grub":
-                if distro.remote_grub_kernel:
-                    kernel_path = distro.remote_grub_kernel
-                if distro.remote_grub_initrd:
-                    initrd_path = distro.remote_grub_initrd
+                    filename = "%s" % system.get_config_filename(interface=name).lower()
 
-            if 'http' in distro.kernel and 'http' in distro.initrd:
-                if not kernel_path:
-                    kernel_path = distro.kernel
-                if not initrd_path:
-                    initrd_path = distro.initrd
+                    # Remove symlink to the yaboot binary
+                    f3 = os.path.join(self.bootloc, "ppc", filename)
+                    if os.path.lexists(f3):
+                        utils.rmfile(f3)
+                    f3 = os.path.join(self.bootloc, "etc", filename)
+                    if os.path.lexists(f3):
+                        utils.rmfile(f3)
 
-            if not kernel_path:
-                kernel_path = os.path.join("/images", distro.name, os.path.basename(distro.kernel))
-            if not initrd_path:
-                initrd_path = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
+                # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
+                # to do
+                return None
 
-            # Find the automatic installation file if we inherit from another profile
-            if system:
-                blended = utils.blender(self.api, True, system)
-                meta_blended = utils.blender(self.api, False, system)
-            else:
-                blended = utils.blender(self.api, True, profile)
-                meta_blended = utils.blender(self.api, False, profile)
-            autoinstall_path = blended.get("autoinstall", "")
-            autoinstall_meta = meta_blended.get("autoinstall_meta", {})
-
-            # update metadata with all known information this allows for more powerful templating
-            metadata.update(blended)
-
-        else:
-            # this is an image we are making available, not kernel+initrd
-            if image.image_type == "direct":
-                kernel_path = os.path.join("/images2", image.name)
-            elif image.image_type == "memdisk":
-                kernel_path = "/memdisk"
-                initrd_path = os.path.join("/images2", image.name)
-            else:
-                # CD-ROM ISO or virt-clone image? We can't PXE boot it.
-                kernel_path = None
-                initrd_path = None
-
-        if img_path is not None and "img_path" not in metadata:
-            metadata["img_path"] = img_path
-        if kernel_path is not None and "kernel_path" not in metadata:
-            metadata["kernel_path"] = kernel_path
-        if initrd_path is not None and "initrd_path" not in metadata:
-            metadata["initrd_path"] = initrd_path
-
-        # ---
-        # choose a template
-        if system:
-            if format == "grub":
-                if system.netboot_enabled:
-                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubsystem.template")
-                    buffer += 'set system="{system}"\n'.format(system=system.name)
-                else:
-                    local = os.path.join(self.settings.boot_loader_conf_template_dir, "grublocal.template")
-                    if os.path.exists(local):
-                        template = local
-            else:   # pxe
-                if system.netboot_enabled:
-                    template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem.template")
-
-                    if arch == "ppc" or arch == "ppc64":
-                        # to inherit the distro and system's boot_loader values correctly
-                        blended_system = utils.blender(self.api, False, system)
-                        if blended_system["boot_loader"] == "pxe":
-                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_ppc.template")
-                        else:
-                            template = os.path.join(self.settings.boot_loader_conf_template_dir, "yaboot_ppc.template")
-                    elif arch.startswith("arm"):
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_arm.template")
-                    elif distro and distro.os_version.startswith("esxi"):
-                        # ESXi uses a very different pxe method, using more files than a standard automatic installation
-                        # file and different options - so giving it a dedicated PXE template makes more sense than
-                        # shoe-horning it into the existing templates
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxesystem_esxi.template")
-                else:
-                    # local booting on ppc requires removing the system-specific dhcpd.conf filename
-                    if arch is not None and (arch == "ppc" or arch == "ppc64"):
-                        # Disable yaboot network booting for all interfaces on the system
-                        for (name, interface) in list(system.interfaces.items()):
-
-                            filename = "%s" % system.get_config_filename(interface=name).lower()
-
-                            # Remove symlink to the yaboot binary
-                            f3 = os.path.join(self.bootloc, "ppc", filename)
-                            if os.path.lexists(f3):
-                                utils.rmfile(f3)
-                            f3 = os.path.join(self.bootloc, "etc", filename)
-                            if os.path.lexists(f3):
-                                utils.rmfile(f3)
-
-                        # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
-                        # to do
-                        return None
-                    else:
-                        template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxelocal.template")
-        else:
-            # not a system record, so this is a profile record or an image
-            if arch.startswith("arm"):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_arm.template")
-            elif format == "grub":
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "grubprofile.template")
-            elif format == "ipxe":
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "ipxeprofile.template")
-            elif distro and distro.os_version.startswith("esxi"):
-                # ESXi uses a very different pxe method, see comment above in the system section
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile_esxi.template")
-            else:
-                template = os.path.join(self.settings.boot_loader_conf_template_dir, "pxeprofile.template")
-
-        if kernel_path is not None:
-            metadata["kernel_path"] = kernel_path
-        if initrd_path is not None:
-            metadata["initrd_path"] = initrd_path
-
-        if "kernel" in autoinstall_meta:
-            kernel_path = autoinstall_meta["kernel"]
-
-            if not utils.file_is_remote(kernel_path):
-                kernel_path = os.path.join("/images" if image is None else "/images2", distro.name, os.path.basename(kernel_path))
-            metadata["kernel_path"] = kernel_path
-
-        if "wimboot" in kernel_path and format != "ipxe":
-            return None
+        template = os.path.join(self.settings.boot_loader_conf_template_dir, format + ".template")
+        self.build_kernel(metadata, system, profile, distro, image, format)
 
         # generate the kernel options and append line:
         kernel_options = self.build_kernel_options(system, profile, distro,
-                                                   image, arch, autoinstall_path)
+                                                   image, arch, metadata["autoinstall"])
         metadata["kernel_options"] = kernel_options
-        metadata["initrd"] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, format)
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
@@ -726,15 +695,6 @@ class TFTPGen(object):
         metadata["append_line"] = append_line
 
         # store variables for templating
-        metadata["menu_label"] = ""
-        if profile:
-            if arch not in ["ppc", "ppc64"]:
-                metadata["menu_label"] = "MENU LABEL %s" % profile.name
-                metadata["profile_name"] = profile.name
-        elif image:
-            metadata["menu_label"] = "MENU LABEL %s" % image.name
-            metadata["profile_name"] = image.name
-
         if system:
             if system.serial_device or system.serial_baud_rate:
                 if system.serial_device:
@@ -752,7 +712,7 @@ class TFTPGen(object):
                     buffer += "set serial_console=true\nset serial_baud={baud}\nset serial_line={device}\n".format(baud=serial_baud_rate, device=serial_device)
 
         # get the template
-        if kernel_path is not None:
+        if metadata["kernel_path"] is not None:
             template_fh = open(template)
             template_data = template_fh.read()
             template_fh.close()
@@ -777,6 +737,92 @@ class TFTPGen(object):
                 with open(filename, "w") as fd:
                     fd.write(buffer)
         return buffer
+
+    def build_kernel(self, metadata, system, profile, distro, image=None, boot_loader="pxe"):
+        """
+        Generates kernel and initrd metadata.
+
+        :param metadata: Pass additional parameters to the ones being collected during the method.
+        :param profile: The profile to generate the pxe-file for.
+        :param distro: If you don't ship an image, this is needed. Otherwise this just supplies information needed for
+                       the templates.
+        :param image: If you want to be able to deploy an image, supply this parameter.
+        :param boot_loader: Can be any of those returned by utils.get_supported_system_boot_loaders().
+        :type boot_loader: str
+        """
+        kernel_path = None
+        initrd_path = None
+        img_path = None
+
+        # ---
+        autoinstall_path = None
+        autoinstall_meta = {}
+
+        if system:
+            blended = utils.blender(self.api, True, system)
+            meta_blended = utils.blender(self.api, False, system)
+        elif profile:
+            blended = utils.blender(self.api, True, profile)
+            meta_blended = utils.blender(self.api, False, profile)
+        elif image:
+            blended = utils.blender(self.api, True, image)
+            meta_blended = utils.blender(self.api, False, image)
+
+        autoinstall_path = blended.get("autoinstall", "")
+        autoinstall_meta = meta_blended.get("autoinstall_meta", {})
+        metadata.update(blended)
+
+        if image is None:
+            # not image based, it's something normalish
+            img_path = os.path.join("/images", distro.name)
+            if boot_loader == "grub":
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_grub_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_grub_initrd
+            if boot_loader == "ipxe":
+                if distro.remote_grub_kernel:
+                    kernel_path = distro.remote_boot_kernel
+                if distro.remote_grub_initrd:
+                    initrd_path = distro.remote_boot_initrd
+
+            if 'http' in distro.kernel and 'http' in distro.initrd:
+                if not kernel_path:
+                    kernel_path = distro.kernel
+                if not initrd_path:
+                    initrd_path = distro.initrd
+
+            if not kernel_path:
+                kernel_path = os.path.join(img_path, os.path.basename(distro.kernel))
+            if not initrd_path:
+                initrd_path = os.path.join(img_path, os.path.basename(distro.initrd))
+        else:
+            # this is an image we are making available, not kernel+initrd
+            if image.image_type == "direct":
+                kernel_path = os.path.join("/images2", image.name)
+            elif image.image_type == "memdisk":
+                kernel_path = "/memdisk"
+                initrd_path = os.path.join("/images2", image.name)
+            else:
+                # CD-ROM ISO or virt-clone image? We can't PXE boot it.
+                kernel_path = None
+                initrd_path = None
+
+        if "img_path" not in metadata:
+            metadata["img_path"] = img_path
+        if "kernel_path" not in metadata:
+            metadata["kernel_path"] = kernel_path
+        if "initrd_path" not in metadata:
+            metadata["initrd_path"] = initrd_path
+
+        if "kernel" in autoinstall_meta:
+            kernel_path = autoinstall_meta["kernel"]
+
+            if not utils.file_is_remote(kernel_path):
+                kernel_path = os.path.join(img_path, os.path.basename(kernel_path))
+            metadata["kernel_path"] = kernel_path
+
+        metadata["initrd"] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, boot_loader)
 
     def build_kernel_options(self, system, profile, distro, image, arch, autoinstall_path):
         """
@@ -1111,101 +1157,39 @@ class TFTPGen(object):
         :return: The rendered template.
         :rtype: str
         """
-        if what.lower() not in ("profile", "system"):
-            return "# ipxe is only valid for profiles and systems"
+        if what.lower() not in ("profile", "image", "system"):
+            return "# ipxe is only valid for profiles, images and systems"
 
         distro = None
+        image = None
+        profile = None
+        system = None
+        arch = None
         if what == "profile":
-            obj = self.api.find_profile(name=name)
-            distro = obj.get_conceptual_parent()
+            profile = self.api.find_profile(name=name)
+            if profile:
+                distro = profile.get_conceptual_parent()
+        elif what == "image":
+            image = self.api.find_image(name=name)
         else:
-            obj = self.api.find_system(name=name)
-            distro = obj.get_conceptual_parent().get_conceptual_parent()
-            netboot_enabled = obj.netboot_enabled
+            system = self.api.find_system(name=name)
+            if system:
+                profile = system.get_conceptual_parent()
+            if profile and profile.COLLECTION_TYPE == "profile":
+                distro = profile.get_conceptual_parent()
+            else:
+                image = profile
+                profile = None
 
-        # For multi-arch distros, the distro name in distro_mirror may not contain the arch string, so we need to figure
-        # out the path based on where the kernel is stored. We do this because some distros base future downloads on the
-        # initial URL passed in, so all of the files need to be at this location (which is why we can't use the images
-        # link, which just contains the kernel and initrd).
-        distro_mirror_name = ''.join(distro.kernel.split('/')[-2:-1])
-
-        blended = utils.blender(self.api, False, obj)
-
-        autoinstall_meta = blended.get("autoinstall_meta", {})
-        try:
-            del blended["autoinstall_meta"]
-        except:
-            pass
-        blended.update(autoinstall_meta)      # make available at top level
-
-        blended['distro'] = distro.name
-        blended['distro_mirror_name'] = distro_mirror_name
-        blended['kernel_name'] = os.path.basename(distro.kernel)
-        blended['initrd_name'] = os.path.basename(distro.initrd)
-        kernel_path = distro.kernel
-        initrd_path = distro.initrd
-
-        if what == "profile":
-            blended['append_line'] = self.build_kernel_options(None, obj, distro, None, None, blended['autoinstall'])
+        if distro:
+            arch = distro.arch
+        elif image:
+            arch = image.arch
         else:
-            blended['append_line'] = self.build_kernel_options(obj, None, distro, None, None, blended['autoinstall'])
+            return ""
 
-        if 'kernel' in autoinstall_meta:
-            kernel_path = autoinstall_meta['kernel']
-            blended['kernel_name'] = os.path.basename(kernel_path)
-
-        if not utils.file_is_remote(kernel_path):
-            kernel_path = os.path.join("/images", distro.name, blended['kernel_name'])
-        if not utils.file_is_remote(initrd_path):
-            initrd_path = os.path.join("/images", distro.name, blended['initrd_name'])
-        blended['kernel_path'] = kernel_path
-        blended['initrd_path'] = self._generate_initrd(autoinstall_meta, kernel_path, initrd_path, 'ipxe')
-
-        template = None
-        if distro.breed in ['redhat', 'debian', 'ubuntu', 'suse']:
-            # all of these use a standard kernel/initrd setup so they all use the same iPXE template
-            template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "ipxe_%s_linux.template" % what.lower())
-        elif distro.breed == 'vmware':
-            if distro.os_version == 'esx4':
-                # older ESX is pretty much RHEL, so it uses the standard kernel/initrd setup
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_linux.template" % what.lower())
-            elif distro.os_version == 'esxi4':
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_esxi4.template" % what.lower())
-            elif distro.os_version.startswith('esxi5'):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_esxi5.template" % what.lower())
-            elif distro.os_version.startswith('esxi6'):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_esxi6.template" % what.lower())
-            elif distro.os_version.startswith('esxi7'):
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_esxi7.template" % what.lower())
-        elif distro.breed == 'freebsd':
-            template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "ipxe_%s_freebsd.template" % what.lower())
-        elif distro.breed == 'windows':
-            template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                    "ipxe_%s_windows.template" % what.lower())
-
-        if what == "system":
-            if not netboot_enabled:
-                template = os.path.join(self.settings.boot_loader_conf_template_dir,
-                                        "ipxe_%s_local.template" % what.lower())
-
-        if not template:
-            return "# unsupported breed/os version"
-
-        if not os.path.exists(template):
-            return "# ipxe template not found for the %s named %s (filename=%s)" % (what, name, template)
-
-        template_fh = open(template)
-        template_data = template_fh.read()
-        template_fh.close()
-
-        return self.templar.render(template_data, blended, None)
+        result = self.write_pxe_file(None, system, profile, distro, arch, image, format='ipxe')
+        return "" if not result else result
 
     def generate_bootcfg(self, what, name):
         """

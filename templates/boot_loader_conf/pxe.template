@@ -1,0 +1,28 @@
+#set $system_local=False
+#if $varExists('system_name')
+#if not $netboot_enabled
+#set $system_local=True
+totaltimeout 0
+#else
+timeout 1
+#end if
+prompt 0
+default $menu_name
+ontimeout $menu_name
+#end if
+#if not ($arch in ["ppc", "ppc64"] and $system_local)
+LABEL $menu_name
+	MENU LABEL $menu_label
+#if $system_local
+	localboot -1
+#else
+	kernel $kernel_path
+#if $initrd_path and ($arch in ["ppc", "ppc64"] or $arch.startswith("arm"))
+	initrd $initrd_path
+	$append_line
+#elif $breed != "windows"
+	$append_line
+	ipappend 2
+#end if
+#end if
+#end if

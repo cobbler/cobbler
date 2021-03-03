@@ -39,8 +39,7 @@ FIELDS = [
     ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Network installation boot loader",
-     utils.get_supported_system_boot_loaders(), "str"],
+    ["boot_loaders", "<<inherit>>", "<<inherit>>", "Boot loaders", True, "Network installation boot loaders", 0, "list"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "list"],
@@ -289,33 +288,35 @@ class Distro(item.Item):
             self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             return self.supported_boot_loaders
 
-    def set_boot_loader(self, name):
+    def set_boot_loaders(self, boot_loaders):
         """
         Set the bootloader for the distro.
+
         :param name: The name of the bootloader. Must be one of the supported ones.
         """
-        try:
-            # If we have already loaded the supported boot loaders from
-            # the signature, use that data
-            supported_distro_boot_loaders = self.supported_boot_loaders
-        except:
-            # otherwise, refresh from the signatures / defaults
-            self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
-            supported_distro_boot_loaders = self.supported_boot_loaders
-        if name not in supported_distro_boot_loaders:
-            raise CX("Invalid boot loader name: %s. Supported boot loaders are: %s"
-                     % (name, ' '.join(supported_distro_boot_loaders)))
-        self.boot_loader = name
+        # allow the magic inherit string to persist
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
+
+        if boot_loaders:
+            names_split = utils.input_string_or_list(boot_loaders)
+            supported_distro_boot_loaders = self.get_supported_boot_loaders()
+
+            if not set(names_split).issubset(supported_distro_boot_loaders):
+                raise CX("Invalid boot loader names: %s. Supported boot loaders are: %s" %
+                         (boot_loaders, ' '.join(supported_distro_boot_loaders)))
+            self.boot_loaders = names_split
+        else:
+            self.boot_loaders = []
 
     def get_boot_loaders(self):
         """
         :return: The bootloaders.
         """
         boot_loaders = self.boot_loaders
-        if boot_loaders is None or boot_loaders == [] or boot_loaders == '<<inherit>>':
+        if boot_loaders == '<<inherit>>':
             boot_loaders = self.get_supported_boot_loaders()
-            if self.boot_loaders != '<<inherit>>':
-                self.boot_loaders = boot_loaders
         return boot_loaders
 
     def set_redhat_management_key(self, management_key):

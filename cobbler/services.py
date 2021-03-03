@@ -105,7 +105,7 @@ class CobblerSvc(object):
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
         return "%s" % data
 
-    def ipxe(self, profile=None, system=None, mac=None, **rest):
+    def ipxe(self, profile=None, image=None, system=None, mac=None, **rest):
         """
         Generate a iPXE config
 
@@ -121,11 +121,13 @@ class CobblerSvc(object):
             query = {"mac_address": mac}
             if profile:
                 query["profile"] = profile
+            elif image:
+                query["image"] = image
             found = self.remote.find_system(query)
             if found:
                 system = found[0]
 
-        data = self.remote.generate_ipxe(profile, system)
+        data = self.remote.generate_ipxe(profile, image, system)
         return "%s" % data
 
     def bootcfg(self, profile=None, system=None, **rest):
@@ -266,7 +268,7 @@ class CobblerSvc(object):
         Return a list of objects of a desired category. Defaults to "systems".
 
         :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages",
-                                       "files" or "menus"
+                            "files" or "menus"
         :param rest: This parameter is unused.
         :return: The list of object names.
         :rtype: str

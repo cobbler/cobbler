@@ -1306,24 +1306,27 @@ class CobblerAPI(object):
 
     # ==========================================================================
 
-    def generate_ipxe(self, profile, system):
+    def generate_ipxe(self, profile, image, system):
         """
         Generate the ipxe configuration files. The system wins over the profile.
 
         :param profile: The profile to return the configuration for.
+        :param image: The image to return the configuration for.
         :param system: The system to return the configuration for.
         :return: The generated configuration file.
         """
         self.log("generate_ipxe")
         data = ""
-        if profile is None and system is None:
+        if profile is None and image is None and system is None:
             boot_menu = self.tftpgen.make_pxe_menu()
             if 'ipxe' in boot_menu:
                 data = boot_menu['ipxe']
         elif system:
             data = self.tftpgen.generate_ipxe("system", system)
-        else:
+        elif profile:
             data = self.tftpgen.generate_ipxe("profile", profile)
+        elif image:
+            data = self.tftpgen.generate_ipxe("image", image)
         return data
 
     # ==========================================================================
@@ -1842,3 +1845,15 @@ class CobblerAPI(object):
         :param logger: The logger to audit the log clearing with.
         """
         log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
+
+    # ==========================================================================
+
+    def get_valid_obj_boot_loaders(self, obj):
+        """
+        Return the list of valid boot loaders for the object
+
+        :param token: The API-token obtained via the login() method.
+        :param obj: The object for which the boot loaders should be looked up.
+        :return: Get a list of all valid boot loaders.
+        """
+        return obj.get_supported_boot_loaders()

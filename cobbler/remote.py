@@ -1086,7 +1086,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.find_items("menu", criteria, expand=expand)
 
- def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page: int = None, token=None):
+    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page: int = None, token=None):
         """
         Returns a list of dicts as with find_items but additionally supports returning just a portion of the total
         list, for instance in supporting a web app that wants to show a limited amount of items per page.
@@ -2205,17 +2205,18 @@ class CobblerXMLRPCInterface(object):
         """
         return self.generate_autoinstall(system=system)
 
-    def generate_ipxe(self, profile=None, system=None, **rest):
+    def generate_ipxe(self, profile=None, image=None, system=None, **rest):
         """
         Generate the ipxe configuration.
 
         :param profile: The profile to generate iPXE config for.
+        :param image: The image to generate iPXE config for.
         :param system: The system to generate iPXE config for.
         :param rest: This is dropped in this method since it is not needed here.
         :return: The configuration as a str representation.
         """
         self._log("generate_ipxe")
-        return self.api.generate_ipxe(profile, system)
+        return self.api.generate_ipxe(profile, image, system)
 
     def generate_bootcfg(self, profile=None, system=None, **rest):
         """
@@ -2338,6 +2339,75 @@ class CobblerXMLRPCInterface(object):
         results = utils.get_valid_archs()
         results.sort()
         return self.xmlrpc_hacks(results)
+
+    def get_valid_distro_boot_loaders(self, distro_name, token=None):
+        """
+        Return the list of valid boot loaders for the distro
+
+        :param token: The API-token obtained via the login() method.
+        :param distro_name: The name of the distro for which the boot loaders should be looked up.
+        :return: Get a list of all valid boot loaders.
+        """
+        self._log("get_valid_distro_boot_loaders", token=token)
+        if distro_name is None:
+            return utils.get_supported_system_boot_loaders()
+        obj = self.api.find_distro(distro_name)
+        if obj is None:
+            return "# object not found: %s" % distro_name
+        return self.api.get_valid_obj_boot_loaders(obj)
+
+    def get_valid_image_boot_loaders(self, image_name, token=None):
+        """
+        Return the list of valid boot loaders for the image
+
+        :param token: The API-token obtained via the login() method.
+        :param distro_name: The name of the image for which the boot loaders should be looked up.
+        :return: Get a list of all valid boot loaders.
+        """
+        self._log("get_valid_image_boot_loaders", token=token)
+        if image_name is None:
+            return utils.get_supported_system_boot_loaders()
+        obj = self.api.find_image(image_name)
+        if obj is None:
+            return "# object not found: %s" % image_name
+        return self.api.get_valid_obj_boot_loaders(obj)
+
+    def get_valid_profile_boot_loaders(self, profile_name, token=None):
+        """
+        Return the list of valid boot loaders for the profile
+
+        :param token: The API-token obtained via the login() method.
+        :param profile_name: The name of the profile for which the boot loaders should be looked up.
+        :return: Get a list of all valid boot loaders.
+        """
+        self._log("get_valid_profile_boot_loaders", token=token)
+        if profile_name is None:
+            return utils.get_supported_system_boot_loaders()
+        obj = self.api.find_profile(profile_name)
+        if obj is None:
+            return "# object not found: %s" % profile_name
+        distro = obj.get_conceptual_parent()
+        return self.api.get_valid_obj_boot_loaders(distro)
+
+    def get_valid_system_boot_loaders(self, system_name, token=None):
+        """
+        Return the list of valid boot loaders for the system
+
+        :param token: The API-token obtained via the login() method.
+        :param system_name: The name of the system for which the boot loaders should be looked up.
+        :return: Get a list of all valid boot loaders.
+        """
+        self._log("get_valid_system_boot_loaders", token=token)
+        if system_name is None:
+            return utils.get_supported_system_boot_loaders()
+        obj = self.api.find_system(system_name)
+        if obj is None:
+            return "# object not found: %s" % system_name
+        parent = obj.get_conceptual_parent()
+
+        if parent and parent.COLLECTION_TYPE == "profile":
+            return parent.get_boot_loaders()
+        return self.api.get_valid_obj_boot_loaders(parent)
 
     def get_repo_config_for_profile(self, profile_name, **rest):
         """

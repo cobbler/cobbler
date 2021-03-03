@@ -60,7 +60,7 @@ FIELDS = [
     ["repos", [], '<<inherit>>', "Repos", True, "Repos to auto-assign to this profile", [], "list"],
     ["server", "<<inherit>>", '<<inherit>>', "Server Override", True, "See manpage or leave blank", 0, "str"],
     ["template_files", {}, '<<inherit>>', "Template Files", True, "File mappings for built-in config management", 0, "dict"],
-    ["menu", '', '', "Parent boot menu", True, "", [], "str"],
+    ["menu", None, None, "Parent boot menu", True, "", 0, "str"],
     ["virt_auto_boot", "SETTINGS:virt_auto_boot", '<<inherit>>', "Virt Auto Boot", True, "Auto boot this VM?", 0, "bool"],
     ["virt_bridge", "SETTINGS:default_virt_bridge", '<<inherit>>', "Virt Bridge", True, "", 0, "str"],
     ["virt_cpus", 1, '<<inherit>>', "Virt CPUs", True, "integer", 0, "int"],
@@ -389,31 +389,34 @@ class Profile(item.Item):
 
         :param boot_loaders: The boot loaders for the profile.
         """
-        boot_loaders = boot_loaders.strip()
-        boot_loaders_split = utils.input_string_or_list(boot_loaders)
-        distro = self.get_conceptual_parent()
+        if boot_loaders == "<<inherit>>":
+            self.boot_loaders = "<<inherit>>"
+            return
 
-        if boot_loaders is None or boot_loaders == "":
+        if boot_loaders:
+            boot_loaders_split = utils.input_string_or_list(boot_loaders)
+            distro = self.get_conceptual_parent()
+
+            if distro:
+                distro_boot_loaders = distro.get_boot_loaders()
+                if not set(boot_loaders_split).issubset(distro_boot_loaders):
+                    raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
+                             (self.name, boot_loaders_split, distro_boot_loaders))
+            self.boot_loaders = boot_loaders_split
+        else:
             self.boot_loaders = []
-        distro_boot_loaders = distro.get_boot_loaders()
-        if boot_loaders != "<<inherit>>" and not set(boot_loaders_split).issubset(distro_boot_loaders):
-            raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
-                     (self.name, boot_loaders_split, distro_boot_loaders))
-        self.boot_loaders = boot_loaders_split
 
     def get_boot_loaders(self):
         """
         :return: The bootloaders.
         """
-        boot_loaders = self.boot_loaders
-        if boot_loaders == '<<inherit>>':
-            distro = self.get_conceptual_parent()
+        if self.boot_loaders == '<<inherit>>':
+            parent = self.get_parent()
 
-            if distro:
-                boot_loaders = distro.get_boot_loaders()
-            else:
-                return utils.get_supported_system_boot_loaders()
-        return boot_loaders
+            if parent:
+                return parent.get_boot_loaders()
+            return None
+        return self.boot_loaders
 
     def set_menu(self, menu):
         """

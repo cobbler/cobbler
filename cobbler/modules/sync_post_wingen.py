@@ -6,6 +6,7 @@ from typing import Optional
 
 import cobbler.utils as utils
 import cobbler.templar as templar
+import cobbler.tftpgen as tftpgen
 import logging
 
 HAS_HIVEX = True
@@ -19,12 +20,9 @@ try:
 except Exception:
     HAS_HIVEX = False
 
-template_dir = "/var/lib/tftpboot/winos/"
-sif_template_name = template_dir + "win_sif.template"
-post_inst_cmd_template_name = template_dir + "post_inst_cmd.template"
-startnet_template_name = template_dir + "startnet.template"
-wim7_template_name = template_dir + "winpe7.template"
-wim8_template_name = template_dir + "winpe8.template"
+answerfile_template_name = "answerfile.template"
+post_inst_cmd_template_name = "post_inst_cmd.template"
+startnet_template_name = "startnet.template"
 wimupdate = "/usr/bin/wimupdate"
 
 
@@ -141,157 +139,224 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
                                    b"\x00\x00\x00\x00\x00\x00\x00\x00"})
     h.commit(new_bcd)
 
-
 def run(api, args, logger):
     if not HAS_HIVEX:
         logger.info("python3-hivex or python3-pefile not found. If you need Automatic Windows Installation support, "
                     "please install.")
         return 0
 
-    distros = api.distros()
     profiles = api.profiles()
+    systems = api.systems()
+    settings = api.settings()
     templ = templar.Templar(api._collection_mgr)
-    template_win = open(post_inst_cmd_template_name)
+    tgen = tftpgen.TFTPGen(api._collection_mgr, logger)
+
+    template_win = open(os.path.join(settings.windows_template_dir, post_inst_cmd_template_name))
+    post_tmpl_data = template_win.read()
+    template_win.close()
+
+    template_win = open(os.path.join(settings.windows_template_dir, answerfile_template_name))
     tmpl_data = template_win.read()
     template_win.close()
 
-    for distro in distros:
-        if distro.breed == "windows":
-            meta = utils.blender(api, False, distro)
-
-            if "post_install" in distro.kernel_options:
-                data = templ.render(tmpl_data, meta, None)
-                pi_file = open(distro.kernel_options["post_install"], "w+")
-                pi_file.write(data)
-                pi_file.close()
-
-    template_win = open(sif_template_name)
-    tmpl_data = template_win.read()
-    template_win.close()
-
-    template_start = open(startnet_template_name)
+    template_start = open(os.path.join(settings.windows_template_dir, startnet_template_name))
     tmplstart_data = template_start.read()
     template_start.close()
 
-    logger.info("\nWindows profiles:")
+    def gen_win_files(distro, obj, meta):
+        (kernel_path, kernel_name) = os.path.split(distro.kernel)
+        distro_path = utils.find_distro_path(settings, distro)
+        distro_dir = wim_file_name = os.path.join(settings.tftpboot_location, "images", distro.name)
+        web_dir = os.path.join(settings.webdir, "images", distro.name)
+        is_winpe = "winpe" in meta and meta['winpe'] != ""
+        is_bcd = "bcd" in meta and meta['bcd'] != ""
 
-    for profile in profiles:
-        distro = profile.get_conceptual_parent()
+        if "kernel" in meta:
+            kernel_name = meta["kernel"]
 
-        if distro.breed == "windows":
-            logger.info('Profile: ' + profile.name)
-            meta = utils.blender(api, False, profile)
-            (distro_path, pxeboot_name) = os.path.split(distro.kernel)
+        kernel_name = os.path.basename(kernel_name)
+        is_wimboot = "wimboot" in kernel_name
 
-            if "sif" in profile.kernel_options:
-                data = templ.render(tmpl_data, meta, None)
+        if is_wimboot:
+            distro_path = os.path.join(settings.webdir, "distro_mirror", distro.name)
+            kernel_path = os.path.join(distro_path, "Boot")
 
-                if distro.os_version in ("7", "2008", "8", "2012", "2016", "2019", "10"):
-                    sif_file_name = os.path.join(distro_path, 'sources', profile.kernel_options["sif"])
-                else:
-                    sif_file_name = os.path.join(distro_path, profile.kernel_options["sif"])
+            if "kernel" in meta and "wimboot" not in distro.kernel:
+                tgen.copy_single_distro_file(os.path.join(settings.tftpboot_location, kernel_name), distro_dir, False)
+                tgen.copy_single_distro_file(os.path.join(distro_dir, kernel_name), web_dir, True)
 
-                sif_file = open(sif_file_name, "w+")
-                sif_file.write(data)
-                sif_file.close()
-                logger.info('Build answer file: ' + sif_file_name)
+        if "post_install_script" in meta:
+            post_install_dir = distro_path
 
-            if "pxeboot" in profile.kernel_options and "bootmgr" in profile.kernel_options:
-                wk_file_name = os.path.join(distro_path, profile.kernel_options["pxeboot"])
-                wl_file_name = os.path.join(distro_path, profile.kernel_options["bootmgr"])
-                logger.info("Build PXEBoot: " + wk_file_name)
+            if distro.os_version not in ("XP", "2003"):
+                post_install_dir = os.path.join(post_install_dir, "sources")
 
-                if distro.os_version in ("7", "2008", "8", "2012", "2016", "2019", "10"):
-                    if len(profile.kernel_options["bootmgr"]) != 11:
-                        logger.error("The loader  name should be EXACTLY 11 character")
+            post_install_dir = os.path.join(post_install_dir, "$OEM$", "$1")
+
+            if not os.path.exists(post_install_dir):
+                utils.mkdir(post_install_dir, logger=logger)
+
+            data = templ.render(post_tmpl_data, meta, None, obj)
+            post_install_script = os.path.join(post_install_dir, meta["post_install_script"])
+            logger.info('Build post install script: ' + post_install_script)
+            pi_file = open(post_install_script, "w+")
+            pi_file.write(data)
+            pi_file.close()
+
+        if "answerfile" in meta:
+            data = templ.render(tmpl_data, meta, None, obj)
+            answerfile_name = os.path.join(distro_dir, meta["answerfile"])
+            logger.info('Build answer file: ' + answerfile_name)
+            answerfile = open(answerfile_name, "w+")
+            answerfile.write(data)
+            answerfile.close()
+            tgen.copy_single_distro_file(answerfile_name, distro_path, False)
+            tgen.copy_single_distro_file(answerfile_name, web_dir, True)
+
+        if "kernel" in meta and "bootmgr" in meta:
+            wk_file_name = os.path.join(distro_dir, kernel_name)
+            wl_file_name = os.path.join(distro_dir, meta["bootmgr"])
+            tl_file_name = os.path.join(kernel_path, "bootmgr.exe")
+
+            if distro.os_version in ("XP", "2003") and not is_winpe:
+                tl_file_name = os.path.join(kernel_path, "setupldr.exe")
+
+                if len(meta["bootmgr"]) != 5:
+                    raise CX("The loader name should be EXACTLY 5 character")
+
+                pat1 = re.compile(br'NTLDR', re.IGNORECASE)
+                pat2 = re.compile(br'winnt\.sif', re.IGNORECASE)
+                f = open(tl_file_name, 'rb')
+                out = data = f.read()
+                f.close()
+
+                if "answerfile" in meta:
+                    if len(meta["answerfile"]) != 9:
+                        logger.error("The response file name should be EXACTLY 9 character")
                         return 1
 
-                    if "bcd" in profile.kernel_options:
-                        if len(profile.kernel_options["bcd"]) != 3:
-                            logger.error("The BCD name should be EXACTLY 5 character")
-                            return 1
+                    out = pat2.sub(bytes(meta["answerfile"], 'utf-8'), data)
+                    win_arch = "amd64" if distro.arch == "x86_64" else "i386"
+                    src = os.path.join(distro_path, win_arch)
+                    dst = os.path.join(distro_dir, win_arch)
+                    utils.mkdir(dst, logger=logger)
+                    cmd = "rsync -a --no-recursive %s/* %s/" % (src, dst)
+                    utils.subprocess_call(logger, cmd, shell=True)
+            else:
+                if len(meta["bootmgr"]) != 11:
+                    logger.error("The Boot manager file name should be EXACTLY 11 character")
+                    return 1
 
-                    tl_file_name = os.path.join(distro_path, 'bootmgr.exe')
-                    pat1 = re.compile(br'bootmgr\.exe', re.IGNORECASE)
-                    pat2 = re.compile(br'(\\.B.o.o.t.\\.)(B)(.)(C)(.)(D)', re.IGNORECASE)
-                    bcd_name = 'BCD'
-
-                    if "bcd" in profile.kernel_options:
-                        bcd_name = profile.kernel_options["bcd"]
-
-                    bcd_name = bytes("\\g<1>" + bcd_name[0] + "\\g<3>" + bcd_name[1] + "\\g<5>" + bcd_name[2], 'utf-8')
-                    data = open(tl_file_name, 'rb').read()
-                    out = pat2.sub(bcd_name, data)
-                else:
-                    if len(profile.kernel_options["bootmgr"]) != 5:
-                        logger.error("The loader name should be EXACTLY 5 character")
+                bcd_name = "bcd"
+                if is_bcd:
+                    bcd_name = meta["bcd"]
+                    if len(bcd_name) != 3:
+                        logger.error("The BCD file name should be EXACTLY 3 character")
                         return 1
 
-                    if len(profile.kernel_options["sif"]) != 9:
-                        logger.error("The response should be EXACTLY 9 character")
-                        return 1
+                if not os.path.isfile(tl_file_name):
+                    logger.error("File not found: %s" % tl_file_name)
+                    return 1
 
-                    tl_file_name = os.path.join(distro_path, 'setupldr.exe')
-                    pat1 = re.compile(br'NTLDR', re.IGNORECASE)
-                    pat2 = re.compile(br'winnt\.sif', re.IGNORECASE)
+                pat1 = re.compile(br'bootmgr\.exe', re.IGNORECASE)
+                pat2 = re.compile(br'(\\.B.o.o.t.\\.)(B)(.)(C)(.)(D)', re.IGNORECASE)
 
-                    data = open(tl_file_name, 'rb').read()
-                    out = pat2.sub(bytes(profile.kernel_options["sif"], 'utf-8'), data)
+                bcd_name = bytes("\\g<1>" + bcd_name[0] + "\\g<3>" + bcd_name[1] + "\\g<5>" + bcd_name[2], 'utf-8')
+                f = open(tl_file_name, 'rb')
+                out = f.read()
+                f.close()
 
-                logger.info('Build Loader: ' + wl_file_name)
+                if not is_wimboot:
+                    logger.info('Patching build Loader: %s' % wl_file_name)
+                    out = pat2.sub(bcd_name, out)
 
-                if out != data:
-                    open(wl_file_name, 'wb+').write(out)
+            if tl_file_name != wl_file_name:
+                logger.info('Build Loader: %s from %s' % (wl_file_name, tl_file_name))
+                f = open(wl_file_name, 'wb+')
+                f.write(out)
+                f.close()
+                tgen.copy_single_distro_file(wl_file_name, web_dir, True)
 
-                if distro.os_version in ("7", "2008", "8", "2012", "2016", "2019", "10"):
+            if not is_wimboot:
+                if distro.os_version not in ("XP", "2003") or is_winpe:
                     pe = pefile.PE(wl_file_name, fast_load=True)
                     pe.OPTIONAL_HEADER.CheckSum = pe.generate_checksum()
                     pe.write(filename=wl_file_name)
 
-                data = open(distro.kernel, 'rb').read()
-                out = pat1.sub(bytes(profile.kernel_options["bootmgr"], 'utf-8'), data)
+                f = open(distro.kernel, 'rb')
+                data = f.read()
+                f.close()
+                out = pat1.sub(bytes(meta["bootmgr"], 'utf-8'), data)
 
-                if out != data:
-                    open(wk_file_name, 'wb+').write(out)
+                if wk_file_name != distro.kernel:
+                    logger.info("Build PXEBoot: %s from %s" % (wk_file_name, distro.kernel))
+                    f = open(wk_file_name, 'wb+')
+                    f.write(out)
+                    f.close()
+                    tgen.copy_single_distro_file(wk_file_name, web_dir, True)
 
-            if "bcd" in profile.kernel_options:
-                obcd_file_name = os.path.join(distro_path, 'boot', 'BCD')
-                bcd_file_name = os.path.join(distro_path, 'boot', profile.kernel_options["bcd"])
-                wim_file_name = 'winpe.wim'
+        if is_bcd:
+            obcd_file_name = os.path.join(kernel_path, "bcd")
+            bcd_file_name = os.path.join(distro_dir, meta["bcd"])
+            wim_file_name = 'winpe.wim'
 
-                if "winpe" in profile.kernel_options:
-                    wim_file_name = profile.kernel_options["winpe"]
+            if not os.path.isfile(obcd_file_name):
+                logger.error("File not found: %s" % obcd_file_name)
+                return 1
 
-                if distro.boot_loader == "ipxe":
-                    wim_file_name = '\\Boot\\' + wim_file_name
-                    sdi_file_name = '\\Boot\\' + 'boot.sdi'
-                else:
-                    wim_file_name = os.path.join('/winos', distro.name, 'boot', wim_file_name)
-                    sdi_file_name = os.path.join('/winos', distro.name, 'boot', 'boot.sdi')
+            if is_winpe:
+                wim_file_name = meta["winpe"]
 
-                logger.info('Build BCD: ' + bcd_file_name + ' for ' + wim_file_name)
-                bcdedit(obcd_file_name, bcd_file_name, wim_file_name, sdi_file_name)
+            if is_wimboot:
+                wim_file_name = '\\Boot\\' + wim_file_name
+                sdi_file_name = '\\Boot\\' + 'boot.sdi'
+            else:
+                wim_file_name = os.path.join("/images", distro.name, wim_file_name)
+                sdi_file_name = os.path.join("/images", distro.name, os.path.basename(distro.initrd))
 
-            if "winpe" in profile.kernel_options:
-                ps_file_name = os.path.join(distro_path, "boot", profile.kernel_options["winpe"])
+            logger.info('Build BCD: %s from %s for %s' % (bcd_file_name, obcd_file_name, wim_file_name))
+            bcdedit(obcd_file_name, bcd_file_name, wim_file_name, sdi_file_name)
+            tgen.copy_single_distro_file(bcd_file_name, web_dir, True)
 
-                if distro.os_version in ("7", "2008"):
-                    wim_pl_name = wim7_template_name
-                elif distro.os_version in ("8", "2012", "2016", "2019", "10"):
-                    wim_pl_name = wim8_template_name
-                else:
-                    raise ValueError("You are trying to use an unsupported distro!")
+        if is_winpe:
+            ps_file_name = os.path.join(distro_dir, meta["winpe"])
+            wim_pl_name = os.path.join(kernel_path, "winpe.wim")
 
-                cmd = "/usr/bin/cp --reflink=auto " + wim_pl_name + " " + ps_file_name
-                utils.subprocess_call(logger, cmd, shell=True)
+            cmd = ["/usr/bin/cp", wim_pl_name, ps_file_name]
+            utils.subprocess_call(logger, cmd, shell=False)
+            tgen.copy_single_distro_file(ps_file_name, web_dir, True)
 
-                if os.path.exists(wimupdate):
-                    data = templ.render(tmplstart_data, meta, None)
-                    pi_file = tempfile.NamedTemporaryFile()
-                    pi_file.write(bytes(data, 'utf-8'))
-                    pi_file.flush()
-                    cmd = wimupdate + ' ' + ps_file_name + ' --command="add ' + pi_file.name
-                    cmd += ' /Windows/System32/startnet.cmd"'
-                    utils.subprocess_call(logger, cmd, shell=True)
-                    pi_file.close()
+            if os.path.exists(wimupdate):
+                data = templ.render(tmplstart_data, meta, None, obj)
+                pi_file = tempfile.NamedTemporaryFile()
+                pi_file.write(bytes(data, 'utf-8'))
+                pi_file.flush()
+                cmd = [wimupdate, ps_file_name, "--command=add " + pi_file.name + " /Windows/System32/startnet.cmd"]
+                utils.subprocess_call(logger, cmd, shell=False)
+                pi_file.close()
+
+    for profile in profiles:
+        distro = profile.get_conceptual_parent()
+
+        if distro and distro.breed == "windows":
+            logger.info('Profile: ' + profile.name)
+            meta = utils.blender(api, False, profile)
+            autoinstall_meta = meta.get("autoinstall_meta", {})
+            meta.update(autoinstall_meta)
+            gen_win_files(distro, profile, meta)
+
+    for system in systems:
+        profile = system.get_conceptual_parent()
+        autoinstall_meta = system.autoinstall_meta
+
+        if not profile or not autoinstall_meta or autoinstall_meta == {}:
+            continue
+
+        distro = profile.get_conceptual_parent()
+
+        if distro and distro.breed == "windows":
+            logger.info('System: ' + system.name)
+            meta = utils.blender(api, False, system)
+            gen_win_files(distro, system, autoinstall_meta)
+
     return 0

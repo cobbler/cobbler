@@ -2012,7 +2012,7 @@ def get_supported_system_boot_loaders():
     :return: The list of currently supported bootloaders.
     :rtype: list
     """
-    return ["<<inherit>>", "grub", "pxe", "yaboot", "ipxe"]
+    return ["grub", "pxe", "yaboot", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):

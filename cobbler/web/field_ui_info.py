@@ -38,6 +38,7 @@ USES_MULTI_SELECT = [
     "mgmt_classes",
     "packages",
     "repos",
+    "boot_loaders",
 ]
 
 # fields that use a select in the web app
@@ -45,7 +46,6 @@ USES_MULTI_SELECT = [
 USES_SELECT = [
     "arch",
     "autoinstall",
-    "boot_loader",
     "breed",
     "distro",
     "image",
@@ -56,6 +56,7 @@ USES_SELECT = [
     "profile",
     "status",
     "virt_type",
+    "menu",
 
     # network interface specific
     "interface_type",
@@ -93,7 +94,8 @@ USES_RADIO = [
 DISTRO_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "kernel", "initrd", "kernel_options",
                  "kernel_options_post", "autoinstall_meta", "arch", "breed",
-                 "os_version", "boot_loader", "comment"]},
+                 "os_version", "boot_loaders", "comment"]},
+    {"Advanced": ["remote_boot_kernel", "remote_boot_initrd"]},
     {"Management": ["mgmt_classes", "boot_files", "fetchable_files",
                     "template_files"]},
 ]
@@ -105,7 +107,7 @@ FILE_UI_FIELDS_MAPPING = [
 
 IMAGE_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "arch", "breed", "file", "image_type",
-                 "network_count", "os_version", "autoinstall", "comment"]},
+                 "network_count", "os_version", "autoinstall", "boot_loaders", "menu", "comment"]},
     {"Virtualization": ["virt_auto_boot", "virt_bridge", "virt_cpus",
                         "virt_file_size", "virt_disk_driver", "virt_path",
                         "virt_ram", "virt_type"]}
@@ -125,8 +127,8 @@ PACKAGE_UI_FIELDS_MAPPING = [
 PROFILE_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "distro", "parent", "enable_menu",
                  "autoinstall", "kernel_options", "kernel_options_post",
-                 "autoinstall_meta", "proxy", "repos", "comment"]},
-    {"Advanced": ["enable_ipxe", "dhcp_tag", "server", "next_server", "filename"]},
+                 "autoinstall_meta", "boot_loaders", "proxy", "repos", "comment"]},
+    {"Advanced": ["enable_ipxe", "dhcp_tag", "server", "next_server", "menu", "filename"]},
     {"Networking Global": ["name_servers", "name_servers_search"]},
     {"Management": ["mgmt_classes", "mgmt_parameters", "boot_files",
                     "fetchable_files", "template_files"]},
@@ -145,7 +147,7 @@ REPO_UI_FIELDS_MAPPING = [
 SYSTEM_UI_FIELDS_MAPPING = [
     {"General": ["name", "owners", "profile", "image", "status",
                  "kernel_options", "kernel_options_post",
-                 "autoinstall_meta", "boot_loader", "proxy",
+                 "autoinstall_meta", "boot_loaders", "proxy",
                  "netboot_enabled", "autoinstall", "comment"]},
     {"Advanced": ["enable_ipxe", "server", "next_server", "filename"]},
     {"Networking (Global)": ["hostname", "gateway", "name_servers",
@@ -165,6 +167,10 @@ SYSTEM_UI_FIELDS_MAPPING = [
                         "virt_auto_boot", "virt_pxe_boot"]},
     {"Power management": ["power_type", "power_address", "power_user",
                           "power_pass", "power_id"]}
+]
+
+MENU_UI_FIELDS_MAPPING = [
+    {"General": ["name", "parent", "display_name", "comment"]}
 ]
 
 SETTING_UI_FIELDS_MAPPING = [

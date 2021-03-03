@@ -17,6 +17,7 @@ import cobbler.items.package as item_package
 import cobbler.items.profile as item_profile
 import cobbler.items.repo as item_repo
 import cobbler.items.system as item_system
+import cobbler.items.menu as item_menu
 import cobbler.settings as item_settings
 import cobbler.utils as utils
 from cobbler.web import field_ui_info
@@ -123,6 +124,8 @@ def get_fields(what, is_subobject, seed_item=None):
         fields = item_package.FIELDS
     if what == "file":
         fields = item_file.FIELDS
+    if what == "menu":
+        fields = item_menu.FIELDS
     if what == "setting":
         fields = item_settings.FIELDS
 
@@ -327,7 +330,7 @@ def __format_items(items, column_names):
         for fieldname in column_names:
             if fieldname == "name":
                 html_element = "name"
-            elif fieldname in ["system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file"]:
+            elif fieldname in ["system", "repo", "distro", "profile", "image", "mgmtclass", "package", "file", "menu"]:
                 html_element = "editlink"
             elif fieldname in field_ui_info.USES_CHECKBOX:
                 html_element = "checkbox"
@@ -405,6 +408,8 @@ def genlist(request, what, page=None):
         columns = ["name", "installer"]
     if what == "file":
         columns = ["name"]
+    if what == "menu":
+        columns = ["name", "parent"]
 
     # render the list
     html = render(request, 'generic_list.tmpl', {
@@ -1147,6 +1152,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
     for autoinstall in autoinstalls:
         autoinstall_list.append(autoinstall)
 
+    boot_loaders = None
+
     # populate some select boxes
     if what == "profile":
         if (obj and obj["parent"] not in (None, "")) or child:
@@ -1156,12 +1163,15 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "autoinstall", "choices", autoinstall_list)
         __tweak_field(fields, "repos", "choices", __names_from_dicts(remote.get_repos()))
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
+        __tweak_field(fields, "menu", "choices", __names_from_dicts(remote.get_menus()))
+        boot_loaders = remote.get_valid_profile_boot_loaders(obj_name)
 
     elif what == "system":
         __tweak_field(fields, "profile", "choices", __names_from_dicts(remote.get_profiles()))
         __tweak_field(fields, "image", "choices", __names_from_dicts(remote.get_images(), optional=True))
         __tweak_field(fields, "autoinstall", "choices", autoinstall_list)
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
+        boot_loaders = remote.get_valid_system_boot_loaders(obj_name)
 
     elif what == "mgmtclass":
         __tweak_field(fields, "packages", "choices", __names_from_dicts(remote.get_packages()))
@@ -1172,12 +1182,23 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
         __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
         __tweak_field(fields, "mgmt_classes", "choices", __names_from_dicts(remote.get_mgmtclasses(), optional=False))
+        boot_loaders = remote.get_valid_distro_boot_loaders(obj_name)
 
     elif what == "image":
         __tweak_field(fields, "arch", "choices", remote.get_valid_archs())
         __tweak_field(fields, "breed", "choices", remote.get_valid_breeds())
         __tweak_field(fields, "os_version", "choices", remote.get_valid_os_versions())
-        __tweak_field(fields, "autoinst", "choices", autoinstall_list)
+        __tweak_field(fields, "autoinstall", "choices", autoinstall_list)
+        __tweak_field(fields, "menu", "choices", __names_from_dicts(remote.get_menus()))
+        boot_loaders = remote.get_valid_image_boot_loaders(obj_name)
+
+    if what == "menu":
+        __tweak_field(fields, "parent", "choices", __names_from_dicts(remote.get_menus()))
+
+    # create the boot loaders pulldown list
+    if boot_loaders:
+        boot_loaders.insert(0, "<<inherit>>")
+        __tweak_field(fields, "boot_loaders", "choices", boot_loaders)
 
     # if editing save the fields in the session for comparison later
     if editmode == "edit":
@@ -1200,6 +1221,8 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         sections_data = field_ui_info.REPO_UI_FIELDS_MAPPING
     elif what == "system":
         sections_data = field_ui_info.SYSTEM_UI_FIELDS_MAPPING
+    elif what == "menu":
+        sections_data = field_ui_info.MENU_UI_FIELDS_MAPPING
     sections = _create_sections_metadata(what, sections_data, fields)
 
     inames = list(interfaces.keys())

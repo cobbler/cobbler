@@ -1,3 +1,7 @@
+MENU BEGIN $menu_name
+MENU TITLE $menu_label
+MENU LABEL $menu_name
+$menu_items
 LABEL return$menu_name
 	MENU LABEL Return to $menu_label menu.
 	MENU EXIT

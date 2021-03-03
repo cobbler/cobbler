@@ -9,9 +9,12 @@ isset \${menu-default} || set menu-default $pxe_timeout_profile
 :Cobbler
 menu Cobbler | https://cobbler.github.io
 item local (local)
-$pxe_menu_items
+#for $label in $menu_labels
+item $label["name"] $label["display_name"]
+#end for
+choose --default \${menu-default} --timeout \${menu-timeout} target && goto \${target}
+
+$menu_items
 :local
-iseq ${smbios/manufacturer} HP && exit ||
+iseq \${smbios/manufacturer} HP && exit ||
 sanboot --no-describe --drive 0x80
-
-

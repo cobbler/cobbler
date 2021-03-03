@@ -1,6 +1,0 @@
-image=$kernel_path
-	label=netinstall
-	append="$append_line"
-	initrd=$initrd_path
-	read-only
-	root=/dev/ram

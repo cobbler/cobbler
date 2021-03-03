@@ -134,8 +134,8 @@ class InTftpdManager(object):
         if 'pxe' in all_menus:
             menu_items = all_menus['pxe']
             self.tftpgen.write_all_system_files(system, menu_items)
-        # generate any templates listed in the system
-        self.tftpgen.write_templates(system)
+            # generate any templates listed in the system
+            self.tftpgen.write_templates(system)
 
     def add_single_system(self, system):
         """
@@ -144,9 +144,9 @@ class InTftpdManager(object):
         :param system: The system to be added.
         """
         # write the PXE files for the system
-        all_menu_items = self.tftpgen.get_menu_items()
-        if 'pxe' in all_menu_items:
-            menu_items = all_menu_items['pxe']
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
             self.tftpgen.write_all_system_files(system, menu_items)
             # generate any templates listed in the distro
             self.tftpgen.write_templates(system)
