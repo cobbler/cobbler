@@ -315,22 +315,12 @@ class TFTPGen(object):
         menu_items = self.get_menu_items()
 
         # Write the PXE menu:
-        if 'pxe' in menu_items:
-            metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
-            outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
-            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
-            template_data = template_src.read()
-            boot_menu['pxe'] = self.templar.render(template_data, metadata, outfile, None)
-            template_src.close()
-
-        # Write the iPXE menu:
-        if 'ipxe' in menu_items:
-            metadata = {"pxe_menu_items": menu_items['ipxe'], "pxe_timeout_profile": timeout_action}
-            outfile = os.path.join(self.bootloc, "ipxe", "default.ipxe")
-            template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "ipxedefault.template"))
-            template_data = template_src.read()
-            boot_menu['ipxe'] = self.templar.render(template_data, metadata, outfile, None)
-            template_src.close()
+        metadata = {"pxe_menu_items": menu_items['pxe'], "pxe_timeout_profile": timeout_action}
+        outfile = os.path.join(self.bootloc, "pxelinux.cfg", "default")
+        template_src = open(os.path.join(self.settings.boot_loader_conf_template_dir, "pxedefault.template"))
+        template_data = template_src.read()
+        self.templar.render(template_data, metadata, outfile)
+        template_src.close()
 
         # Write the grub menu:
         for arch in utils.get_valid_archs():

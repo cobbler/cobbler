@@ -26,10 +26,17 @@ import weakref
 import uuid
 
 from cobbler.cexceptions import CX
-from cobbler.cobbler_collections import files, systems, mgmtclasses, distros, profiles, repos, packages, images, menus
 from cobbler import settings
 from cobbler import serializer
-
+from cobbler.cobbler_collections.distros import Distros
+from cobbler.cobbler_collections.files import Files
+from cobbler.cobbler_collections.images import Images
+from cobbler.cobbler_collections.mgmtclasses import Mgmtclasses
+from cobbler.cobbler_collections.packages import Packages
+from cobbler.cobbler_collections.profiles import Profiles
+from cobbler.cobbler_collections.repos import Repos
+from cobbler.cobbler_collections.systems import Systems
+from cobbler.settings import Settings
 
 class CollectionManager(object):
 
@@ -56,16 +63,17 @@ class CollectionManager(object):
         self.init_time = time.time()
         self.current_id = 0
         self.api = api
-        self._distros = distros.Distros(weakref.proxy(self))
-        self._repos = repos.Repos(weakref.proxy(self))
-        self._profiles = profiles.Profiles(weakref.proxy(self))
-        self._systems = systems.Systems(weakref.proxy(self))
-        self._images = images.Images(weakref.proxy(self))
-        self._mgmtclasses = mgmtclasses.Mgmtclasses(weakref.proxy(self))
-        self._packages = packages.Packages(weakref.proxy(self))
-        self._files = files.Files(weakref.proxy(self))
-        self._menus = menus.Menus(weakref.proxy(self))
-        self._settings = settings.Settings()         # not a true collection
+        self._distros = Distros(weakref.proxy(self))
+        self._repos = Repos(weakref.proxy(self))
+        self._profiles = Profiles(weakref.proxy(self))
+        self._systems = Systems(weakref.proxy(self))
+        self._images = Images(weakref.proxy(self))
+        self._mgmtclasses = Mgmtclasses(weakref.proxy(self))
+        self._packages = Packages(weakref.proxy(self))
+        self._files = Files(weakref.proxy(self))
+        self._menus = Menus(weakref.proxy(self))
+        # Not a true collection
+        self._settings = settings.Settings()
 
     def generate_uid(self):
         """

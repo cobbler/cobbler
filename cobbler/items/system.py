@@ -212,7 +212,7 @@ class System(item.Item):
             self.interfaces[newname] = self.interfaces[name]
             del self.interfaces[name]
 
-    def set_boot_loaders(self, boot_loaders):
+    def set_boot_loaders(self, boot_loaders: str):
         """
         Setter of the boot loaders.
 
@@ -564,7 +564,7 @@ class System(item.Item):
         intf = self.__get_interface(interface)
         intf["connected_mode"] = utils.input_boolean(truthiness)
 
-    def set_enable_ipxe(self, enable_ipxe):
+    def set_enable_ipxe(self, enable_ipxe: bool):
         """
         Sets whether or not the system will use iPXE for booting.
         """

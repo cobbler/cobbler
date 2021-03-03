@@ -323,5 +323,3 @@ class Image(item.Item):
         if boot_loaders == '<<inherit>>':
             return utils.get_supported_system_boot_loaders()
         return boot_loaders
-
-# EOF

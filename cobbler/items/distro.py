@@ -39,7 +39,8 @@ FIELDS = [
     ["arch", 'x86_64', 0, "Architecture", True, "", utils.get_valid_archs(), "str"],
     ["autoinstall_meta", {}, 0, "Automatic Installation Template Metadata", True, "Ex: dog=fang agent=86", 0, "dict"],
     ["boot_files", {}, 0, "TFTP Boot Files", True, "Files copied into tftpboot beyond the kernel/initrd", 0, "list"],
-    ["boot_loaders", "<<inherit>>", 0, "Boot loaders", True, "Network installation boot loaders", 0, "list"],
+    ["boot_loader", "<<inherit>>", 0, "Boot loader", True, "Network installation boot loader",
+     utils.get_supported_system_boot_loaders(), "str"],
     ["breed", 'redhat', 0, "Breed", True, "What is the type of distribution?", utils.get_valid_breeds(), "str"],
     ["comment", "", 0, "Comment", True, "Free form text description", 0, "str"],
     ["fetchable_files", {}, 0, "Fetchable Files", True, "Templates for tftp or wget/curl", 0, "list"],
@@ -288,15 +289,11 @@ class Distro(item.Item):
             self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             return self.supported_boot_loaders
 
-    def set_boot_loaders(self, names):
+    def set_boot_loader(self, name):
         """
         Set the bootloader for the distro.
-
         :param name: The name of the bootloader. Must be one of the supported ones.
         """
-        names = names.strip()
-        names_split = utils.input_string_or_list(names)
-
         try:
             # If we have already loaded the supported boot loaders from
             # the signature, use that data
@@ -305,11 +302,10 @@ class Distro(item.Item):
             # otherwise, refresh from the signatures / defaults
             self.supported_boot_loaders = utils.get_supported_distro_boot_loaders(self)
             supported_distro_boot_loaders = self.supported_boot_loaders
-
-        if names != "<<inherit>>" and not set(names_split).issubset(supported_distro_boot_loaders):
-            raise CX("Invalid boot loader names: %s. Supported boot loaders are: %s" %
-                     (names, ' '.join(supported_distro_boot_loaders)))
-        self.boot_loaders = names_split
+        if name not in supported_distro_boot_loaders:
+            raise CX("Invalid boot loader name: %s. Supported boot loaders are: %s"
+                     % (name, ' '.join(supported_distro_boot_loaders)))
+        self.boot_loader = name
 
     def get_boot_loaders(self):
         """

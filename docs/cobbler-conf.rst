@@ -212,7 +212,7 @@ enable_ipxe
 Enable iPXE booting? Enabling this option will cause Cobbler to copy the ``undionly.kpxe`` file to the TFTP root
 directory, and if a profile/system is configured to boot via iPXE it will chain load off ``pxelinux.0``.
 
-default: ``0``
+default: ``False``
 
 enable_menu
 ===========

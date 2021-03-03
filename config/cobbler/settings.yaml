@@ -150,8 +150,8 @@ default_virt_type: xenpv
 # to copy the undionly.kpxe file to the tftp root directory,
 # and if a profile/system is configured to boot via ipxe it will
 # chain load off pxelinux.0.
-# Default: 0
-enable_ipxe: 0
+# Default: false
+enable_ipxe: false
 
 # controls whether cobbler will add each new profile entry to the default
 # PXE boot menu.  This can be over-ridden on a per-profile

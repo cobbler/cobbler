@@ -212,7 +212,7 @@ class Profile(item.Item):
         """
         self.proxy = proxy
 
-    def set_enable_ipxe(self, enable_ipxe):
+    def set_enable_ipxe(self, enable_ipxe: bool):
         """
         Sets whether or not the profile will use iPXE for booting.
 
@@ -426,4 +426,3 @@ class Profile(item.Item):
                 raise CX("menu %s not found" % menu)
 
         self.menu = menu
-# EOF

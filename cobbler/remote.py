@@ -1086,7 +1086,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.find_items("menu", criteria, expand=expand)
 
-    def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page=None, token=None):
+ def find_items_paged(self, what, criteria=None, sort_field=None, page=None, items_per_page: int = None, token=None):
         """
         Returns a list of dicts as with find_items but additionally supports returning just a portion of the total
         list, for instance in supporting a web app that wants to show a limited amount of items per page.
@@ -1232,7 +1232,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.get_item_handle("menu", name, token)
 
-    def remove_item(self, what, name, token, recursive=True):
+    def remove_item(self, what, name, token, recursive: bool = True):
         """
         Deletes an item from a collection.
         Note that this requires the name of the distro, not an item handle.
@@ -1587,7 +1587,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.rename_item("menu", object_id, newname, token)
 
-    def new_item(self, what, token, is_subobject=False):
+    def new_item(self, what, token, is_subobject: bool = False):
         """Creates a new (unconfigured) object, returning an object handle that can be used.
 
         Creates a new (unconfigured) object, returning an object handle that can be used with ``modify_*`` methods and
@@ -1715,7 +1715,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.new_item("menu", token)
 
-    def modify_item(self, what, object_id, attribute, arg, token):
+    def modify_item(self, what, object_id, attribute, arg, token) -> bool:
         """
         Adjusts the value of a given field, specified by 'what' on a given object id. Allows modification of certain
         attributes on newly created or existing distro object handle.
@@ -1848,7 +1848,7 @@ class CobblerXMLRPCInterface(object):
         """
         return self.modify_item("menu", object_id, attribute, arg, token)
 
-    def modify_setting(self, setting_name, value, token):
+    def modify_setting(self, setting_name: str, value, token) -> int:
         """
         Modify a single attribute of a setting.
 
@@ -2759,7 +2759,7 @@ class CobblerXMLRPCInterface(object):
         data = self.api.get_menus_since(mtime, collapse=True)
         return self.xmlrpc_hacks(data)
 
-    def get_repos_compatible_with_profile(self, profile=None, token=None, **rest):
+    def get_repos_compatible_with_profile(self, profile=None, token=None, **rest) -> list:
         """
         Get repos that can be used with a given profile name.
 
