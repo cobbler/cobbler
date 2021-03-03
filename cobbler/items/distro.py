@@ -86,6 +86,11 @@ class Distro(item.Item):
         self.remote_grub_kernel = ""
         self.remote_grub_initrd = ""
 
+    def __getattr__(self, name):
+        if name == "ks_meta":
+            return self.autoinstall_meta
+        return self[name]
+
     #
     # override some base class methods first (item.Item)
     #

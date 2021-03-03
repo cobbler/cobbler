@@ -134,6 +134,13 @@ class System(Item):
         self.boot_files = {}
         self.template_files = {}
 
+    def __getattr__(self, name):
+        if name == "kickstart":
+            return self.autoinstall
+        elif name == "ks_meta":
+            return self.autoinstall_meta
+        return self[name]
+
     #
     # override some base class methods first (item.Item)
     #

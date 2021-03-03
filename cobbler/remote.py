@@ -791,17 +791,6 @@ class CobblerXMLRPCInterface:
         :return: This returns a list of dicts.
         """
         items = [x.to_dict() for x in self.api.get_items(what)]
-
-        for item in items:
-            if "autoinstall" in item:
-                self._log("autoinstall legacy field added as kickstart")
-                kick_dict = {"kickstart": item.get("autoinstall")}
-                item.update(kick_dict)
-            if "autoinstall_meta" in item:
-                self._log("autoinstall_meta legacy field added as ks_meta")
-                kick_meta_dict = {"ks_meta": item.get("autoinstall_meta")}
-                item.update(kick_meta_dict)
-
         return self.xmlrpc_hacks(items)
 
     def get_item_names(self, what):

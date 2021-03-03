@@ -91,9 +91,9 @@ class Item:
     @classmethod
     def get_from_cache(cls, ref):
         """
-        Get an object from the cache. This is may potentially contain not persisted changes.
+        Get an object from the cache. This may potentially contain not persisted changes.
 
-        :param ref: The id of the object which is in the cache.
+        :param ref: The object which is in the cache.
         :return: The object if present or an empty dict.
         """
         return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.name)
@@ -253,6 +253,10 @@ class Item:
         if value is None:
             value = utils.to_dict_from_fields(self, self.get_fields())
         self.set_cache(self, value)
+        if "autoinstall" in value:
+            value.update({"kickstart": value["autoinstall"]})
+        if "autoinstall_meta" in value:
+            value.update({"ks_meta": value["autoinstall_meta"]})
         return value
 
     def to_string(self) -> str:
