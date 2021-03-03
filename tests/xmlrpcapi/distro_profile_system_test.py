@@ -841,12 +841,15 @@ class TestDistroProfileSystem:
         systems = remote.get_systems()
 
         # Assert
+        # TODO Test more attributes
         for system in systems:
-            assert "ks_meta" in system
-            assert "kickstart" in system
-            assert system.get("kickstart") == system.get("autoinstall")
-            assert system.get("ks_meta") == system.get("autoinstall_meta")
-
+            if "autoinstall_meta" in system:
+                assert "ks_meta" in system
+                assert system.get("ks_meta") == system.get("autoinstall_meta")
+            if "autoinstall" in system:
+                assert "kickstart" in system
+                assert system.get("kickstart") == system.get("autoinstall")
+                
     @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
                              "remove_testprofile", "remove_testsystem")
     def test_get_system_for_koan(self, remote):
