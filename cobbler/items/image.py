@@ -65,6 +65,11 @@ class Image(item.Item):
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
+    def __getattr__(self, name):
+        if name == "kickstart":
+            return self.autoinstall
+        return self[name]
+
     #
     # override some base class methods first (item.Item)
     #

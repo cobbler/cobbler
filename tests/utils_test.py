@@ -893,6 +893,7 @@ def test_get_file_device_path():
     result = utils.get_file_device_path("/etc/os-release")
 
     # Assert
+    # TODO Does not work in all environments (e.g. openSUSE TW with BTRFS)
     assert result == ("overlay", "/usr/lib/os-release")
 
 
