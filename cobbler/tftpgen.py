@@ -755,7 +755,6 @@ class TFTPGen(object):
         img_path = None
 
         # ---
-        autoinstall_path = None
         autoinstall_meta = {}
 
         if system:
