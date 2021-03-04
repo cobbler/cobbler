@@ -70,7 +70,7 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.date.outputs.date }}
       - name: Replace version in setup.py
-        run: sed -i 's/VERSION = "3.2.0"/VERSION = "3.2.0.$NEW_VERSION"/g' setup.py
+        run: sed -i '/VERSION = "[0-9].[0-9].[0-9]/s/.$/.'$NEW_VERSION'"/g' setup.py
       - name: Install Deps with pip
         run: pip install .
       - name: Install pypa/build
