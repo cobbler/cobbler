@@ -400,7 +400,7 @@ class Profile(item.Item):
             if distro:
                 distro_boot_loaders = distro.get_boot_loaders()
             else:
-                distro_boot_loaders = get_supported_system_boot_loaders()
+                distro_boot_loaders = utils.get_supported_system_boot_loaders()
             if not set(boot_loaders_split).issubset(distro_boot_loaders):
                 raise CX("Error with profile %s - not all boot_loaders %s are supported %s" %
                          (self.name, boot_loaders_split, distro_boot_loaders))

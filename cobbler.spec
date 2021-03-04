@@ -420,13 +420,7 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %dir %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/auth.conf
 %dir %{_sysconfdir}/cobbler/boot_loader_conf
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi5.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi51.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi55.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi60.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi65.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi67.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi70.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_menu.template
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_submenu.template
