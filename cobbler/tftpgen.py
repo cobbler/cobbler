@@ -540,7 +540,6 @@ class TFTPGen(object):
                         metadata["parent_menu_name"] = "Cobbler"
                         metadata["parent menu_label"] = "Cobbler"
 
-
         self.get_submenus(menu, metadata, arch)
         nested_menu_items = metadata["menu_items"]
         self.get_profiles_menu(menu, metadata, arch)
@@ -767,7 +766,6 @@ class TFTPGen(object):
             blended = utils.blender(self.api, True, image)
             meta_blended = utils.blender(self.api, False, image)
 
-        autoinstall_path = blended.get("autoinstall", "")
         autoinstall_meta = meta_blended.get("autoinstall_meta", {})
         metadata.update(blended)
 
