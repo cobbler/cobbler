@@ -24,7 +24,7 @@ import shutil
 import subprocess
 
 
-VERSION = "3.2.0"
+VERSION = "3.2.1"
 OUTPUT_DIR = "config"
 
 log = logging.getLogger("setup.py")
