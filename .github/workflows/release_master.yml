@@ -63,6 +63,14 @@ jobs:
           systemd
       - name: Install Deps for installing project
         run: pip install Sphinx coverage wheel
+      - name: Fetch date for version bump
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+      - name: Set env variable for version bump
+        env:
+          NEW_VERSION: ${{ steps.date.outputs.date }}
+      - name: Replace version in setup.py
+        run: sed -i '/VERSION = "[0-9].[0-9].[0-9]/s/.$/.'$NEW_VERSION'"/g' setup.py
       - name: Install Deps with pip
         run: pip install .
       - name: Install pypa/build
