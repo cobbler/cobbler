@@ -64,7 +64,7 @@ jobs:
       - name: Install Deps for installing project
         run: pip install Sphinx coverage wheel
       - name: Fetch date for version bump
-        run: echo "new_version=date::$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
+        run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
       - name: Replace version in setup.py
         run: sed -i '/VERSION = "[0-9].[0-9].[0-9]/s/.$/.'${{ env.new_version }}'"/g' setup.py
       - name: Install Deps with pip
