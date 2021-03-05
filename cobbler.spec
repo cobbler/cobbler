@@ -215,7 +215,6 @@ Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
 Requires:       python%{python3_pkgversion}-simplejson
-Requires:       python%{python3_pkgversion}-tornado
 Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
 Requires:       %{py3_module_file}
@@ -484,7 +483,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd
-%{_sbindir}/tftpd.py
 %dir %{_datadir}/cobbler
 %{_datadir}/cobbler/bin
 %{_mandir}/man1/cobbler.1*

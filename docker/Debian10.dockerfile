@@ -41,7 +41,6 @@ RUN apt-get update -qq && \
     python3-setuptools \
     python3-simplejson  \
     python3-sphinx \
-    python3-tornado \
     python3-tz \
     python3-yaml \
     python3-schema \

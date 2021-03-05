@@ -996,6 +996,5 @@ default.
 Choices:
 
 - manage_in_tftpd -- default, uses the system's TFTP server
-- manage_tftpd_py -- uses Cobbler's TFTP server
 
 default: ``manage_in_tftpd``

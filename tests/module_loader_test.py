@@ -103,7 +103,7 @@ def test_get_module_from_file(module_section, fallback_name, expected_exception)
                                                  "cobbler.modules.installation.pre_puppet"]),
     ("manage", ["cobbler.modules.managers.bind", "cobbler.modules.managers.dnsmasq",
                 "cobbler.modules.managers.in_tftpd", "cobbler.modules.managers.isc",
-                "cobbler.modules.managers.ndjbdns", "cobbler.modules.managers.tftpd_py"]),
+                "cobbler.modules.managers.ndjbdns"]),
     ("manage/import", ["cobbler.modules.managers.import_signatures"]),
     ("serializer", ["cobbler.modules.serializers.file", "cobbler.modules.serializers.mongodb"]),
     ("authz", ["cobbler.modules.authorization.allowall", "cobbler.modules.authorization.configfile",
