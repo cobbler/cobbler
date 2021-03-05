@@ -35,6 +35,7 @@ of the following packages:
 - python-netaddr
 - python-simplejson
 - python-librepo
+- python-schema
 - PyYAML / python-yaml
 - rsync
 - syslinux
