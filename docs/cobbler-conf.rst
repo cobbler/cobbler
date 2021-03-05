@@ -577,7 +577,7 @@ default: ``ipmilanplus``
 proxy_url_ext
 =============
 
-External proxy which is used by the following commands: ``get-loaders``, ``reposync``, ``signature update``
+External proxy which is used by the following commands: ``reposync``, ``signature update``
 
 defaults:
 

@@ -55,7 +55,7 @@ OBJECT_ACTIONS = []
 for actions in list(OBJECT_ACTIONS_MAP.values()):
     OBJECT_ACTIONS += actions
 DIRECT_ACTIONS = "aclsetup buildiso import list replicate report reposync sync validate-autoinstalls version " \
-                 "signature get-loaders hardlink".split()
+                 "signature hardlink".split()
 
 ####################################################
 
@@ -687,10 +687,6 @@ class CobblerCLI:
         elif action_name == "validate-autoinstalls":
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("validate_autoinstall_files", options)
-        elif action_name == "get-loaders":
-            self.parser.add_option("--force", dest="force", action="store_true", help="overwrite any existing content in /var/lib/cobbler/loaders")
-            (options, args) = self.parser.parse_args(self.args)
-            task_id = self.start_task("dlcontent", options)
         elif action_name == "import":
             self.parser.add_option("--arch", dest="arch", help="OS architecture being imported")
             self.parser.add_option("--breed", dest="breed", help="the breed being imported")

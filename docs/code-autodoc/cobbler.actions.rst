@@ -28,14 +28,6 @@ cobbler.actions.check module
     :undoc-members:
     :show-inheritance:
 
-cobbler.actions.dlcontent module
---------------------------------
-
-.. automodule:: cobbler.actions.dlcontent
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 cobbler.actions.hardlink module
 -------------------------------
 

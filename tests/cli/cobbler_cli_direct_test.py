@@ -148,11 +148,6 @@ class TestCobblerCliTestDirect:
         i = assert_report_section(lines, i, "packages")
         i = assert_report_section(lines, i, "files")
 
-    def test_cobbler_getloaders(self, run_cmd, get_last_line):
-        (outputstd, outputerr) = run_cmd(cmd=["get-loaders"])
-        lines = outputstd.split("\n")
-        assert "*** TASK COMPLETE ***" == get_last_line(lines)
-
     def test_cobbler_hardlink(self, run_cmd, get_last_line):
         (outputstd, outputerr) = run_cmd(cmd=["hardlink"])
         lines = outputstd.split("\n")
