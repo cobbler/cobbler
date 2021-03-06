@@ -10,4 +10,3 @@ recursive-include templates *
 recursive-include autoinstall_snippets *
 recursive-include autoinstall_templates *
 recursive-include autoinstall_scripts *
-recursive-include web *

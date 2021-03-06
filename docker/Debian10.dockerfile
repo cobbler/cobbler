@@ -22,13 +22,11 @@ RUN apt-get update -qq && \
     wget \
     pycodestyle \
     pyflakes3 \
-    python-django-common \
     python3-cheetah  \
     python3-coverage \
     python3-wheel   \
     python3-distro \
     python3-distutils \
-    python3-django \
     python3-dnspython \
     python3-dns  \
     python3-dnsq  \

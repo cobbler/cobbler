@@ -11,7 +11,6 @@ Subpackages
     cobbler.cobbler_collections
     cobbler.items
     cobbler.modules
-    cobbler.web
 
 Submodules
 ----------

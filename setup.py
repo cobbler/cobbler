@@ -43,9 +43,6 @@ webconfig = os.environ.get('WEBCONFIG', "/etc/apache2/vhosts.d")
 webroot = os.environ.get('WEBROOT', "/srv/www")
 tftproot = os.environ.get('TFTPROOT', "/srv/tftpboot")
 
-webcontent = webroot + "/cobbler_webui_content"
-webimages = webcontent + "/images"
-
 
 #####################################################################
 # # Helper Functions #################################################
@@ -435,7 +432,6 @@ class restorestate(statebase):
             self.warn("%s does not exist. Skipping" % self.statepath)
             return
         self._copy(os.path.join(self.statepath, 'collections'), libpath)
-        self._copy(os.path.join(self.statepath, 'cobbler_web.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'cobbler.conf'), webconfig)
         self._copy(os.path.join(self.statepath, 'modules.conf'), etcpath)
         self._copy(os.path.join(self.statepath, 'settings.yaml'), etcpath)
@@ -467,7 +463,6 @@ class savestate(statebase):
         if not self.dry_run:
             os.makedirs(self.statepath)
         self._copy(os.path.join(libpath, 'collections'), self.statepath)
-        self._copy(os.path.join(webconfig, 'cobbler_web.conf'), self.statepath)
         self._copy(os.path.join(webconfig, 'cobbler.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'modules.conf'), self.statepath)
         self._copy(os.path.join(etcpath, 'settings.yaml'), self.statepath)
@@ -518,7 +513,6 @@ if __name__ == "__main__":
             "simplejson",
             "netaddr",
             "Cheetah3",
-            "Django",
             "pymongo",
             "distro",
             "ldap3",
@@ -544,7 +538,6 @@ if __name__ == "__main__":
         configure_files=[
             "config/cobbler/settings.yaml",
             "config/apache/cobbler.conf",
-            "config/apache/cobbler_web.conf",
             "config/service/cobblerd.service",
         ],
         man_pages=[
@@ -554,15 +547,11 @@ if __name__ == "__main__":
         ],
         data_files=[
             ("%s" % webconfig, ["build/config/apache/cobbler.conf"]),
-            ("%s" % webconfig, ["build/config/apache/cobbler_web.conf"]),
             ("%s/templates" % libpath, glob("autoinstall_templates/*")),
             ("%s/templates/install_profiles" % libpath, glob("autoinstall_templates/install_profiles/*")),
             ("%s/snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
             ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
-            ("share/cobbler/web", glob("web/*.*")),
-            ("%s" % webcontent, glob("web/static/*")),
-            ("%s" % webimages, glob("web/static/images/*")),
             ("share/cobbler/bin", glob("scripts/*.sh")),
             ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%s/webui_sessions" % libpath, []),
@@ -570,7 +559,6 @@ if __name__ == "__main__":
             ("%s/cobbler/misc" % webroot, glob("misc/*")),
             # Configuration
             ("%s" % etcpath, ["build/config/apache/cobbler.conf",
-                              "build/config/apache/cobbler_web.conf",
                               "build/config/service/cobblerd.service",
                               "build/config/cobbler/settings.yaml"]),
             ("%s/settings.d" % etcpath, glob("config/cobbler/settings.d/*")),
@@ -692,8 +680,6 @@ if __name__ == "__main__":
             ("%s/cobbler/images" % webroot, []),
             # A script that isn't really data, wsgi script
             ("%s/cobbler/svc/" % webroot, ["svc/services.py"]),
-            # A script that isn't really data, wsgi script
-            ("share/cobbler/web/", ["cobbler/web/settings.py"]),
             # zone-specific templates directory
             ("%s/zone_templates" % etcpath, glob("templates/zone_templates/*")),
             ("%s" % etcpath, ["config/cobbler/logging_config.conf"]),

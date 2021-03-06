@@ -25,7 +25,6 @@ RUN ["useradd", "-p", "$(perl -e 'print crypt(\"test\", \"password\")", "test"]
 # RUN ["sed", "-e", "\"s|/var/lib/tftpboot|/srv/tftpboot|g\"", "-i", "cobbler/settings.py", "config/cobbler/settings.yaml"]
 
 # Install and setup testing framework
-RUN ["pip3", "install", "pytest-django"]
 RUN ["pip3", "install", "pytest-pythonpath"]
 
 # Enable the Apache Modules
@@ -40,9 +39,6 @@ COPY ./tests/setup_files/pam/login /etc/pam.d/login
 COPY ./tests/setup_files/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./tests/setup_files/supervisord/conf.d /etc/supervisord/conf.d
 
-# set SECRET_KEY for django tests
-#RUN ["sed", "-i", "s/SECRET_KEY.*/'SECRET_KEY\ =\ \"qwertyuiopasdfghl;\"'/", "cobbler/web/settings.py"]
-
 # Install and upgrade all dependencies
 RUN ["pip3", "install", "--upgrade", "pip"]
 RUN ["pip3", "install", ".[lint,test]"]
@@ -50,9 +46,6 @@ RUN ["pip3", "install", ".[lint,test]"]
 # Install cobbler
 RUN ["make", "install"]
 RUN ["cp", "/etc/cobbler/cobbler.conf", "/etc/apache2/vhosts.d/"]
-
-# Run rest of the setup script
-RUN ["/bin/bash", "-c", "tests/setup-test-docker.sh"]
 
 # Set this as an entrypoint
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

@@ -46,7 +46,6 @@
 
 # py3 modules
 %define py3_module_cheetah python%{python3_pkgversion}-cheetah
-%define py3_module_django python%{python3_pkgversion}-django
 %define py3_module_dns python%{python3_pkgversion}-dns
 %define py3_module_pyyaml python%{python3_pkgversion}-yaml
 %define py3_module_sphinx python%{python3_pkgversion}-sphinx
@@ -73,7 +72,6 @@
 
 # Python module package names that differ between SUSE and everybody else.
 %define py3_module_cheetah python%{python3_pkgversion}-Cheetah3
-%define py3_module_django python%{python3_pkgversion}-Django
 %define py3_module_dns python%{python3_pkgversion}-dnspython
 %define py3_module_pyyaml python%{python3_pkgversion}-PyYAML
 %define py3_module_sphinx python%{python3_pkgversion}-Sphinx
@@ -251,32 +249,10 @@ Obsoletes:      cobbler-nsupdate < 3.0.99
 Provides:       cobbler-nsupdate = %{version}-%{release}
 
 %description
-Cobbler is a network install server. Cobbler supports PXE, ISO
-virtualized installs, and re-installing existing Linux machines.
-The last two modes use a helper tool, 'koan', that integrates with
-cobbler. There is also a web interface 'cobbler-web'. Cobbler's
-advanced features include importing distributions from DVDs and rsync
-mirrors, kickstart templating, integrated yum mirroring, and built-in
-DHCP/DNS Management. Cobbler has a XML-RPC API for integration with
-other applications.
-
-
-%package web
-Summary:        Web interface for Cobbler
-Requires:       cobbler = %{version}-%{release}
-%if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
-Requires:       %{py3_module_django}
-Requires:       %{apache_mod_wsgi}
-%endif
-%if 0%{?fedora} || 0%{?rhel}
-Requires:       mod_ssl
-%endif
-Requires(post): coreutils
-Requires(post): sed
-
-%description web
-Web interface for Cobbler that allows visiting
-http://server/cobbler_web to configure the install server.
+Cobbler is a network install server. Cobbler supports PXE, ISO virtualized installs, and re-installing existing Linux
+machines. The last two modes use a helper tool, 'koan', that integrates with cobbler. Cobbler's advanced features
+include importing distributions from DVDs and rsync mirrors, kickstart templating, integrated yum mirroring, and
+built-in DHCP/DNS Management. Cobbler has a XML-RPC API for integration with other applications.
 
 %package tests
 Summary:        Unit tests for cobbler
@@ -291,7 +267,7 @@ Unit test files from the Cobbler project
 
 %if 0%{?suse_version}
 # Set tftpboot location correctly for SUSE distributions
-sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i cobbler/settings.py config/cobbler/settings.yaml
+sed -e "s|/var/lib/tftpboot|%{tftpboot_dir}|g" -i config/cobbler/settings.yaml
 %endif
 
 %build
@@ -328,13 +304,6 @@ mv %{buildroot}%{_sysconfdir}/cobbler/cobblerd.service %{buildroot}%{_unitdir}
 %if 0%{?suse_version}
 ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 %endif
-
-# cobbler-web
-rm %{buildroot}%{_sysconfdir}/cobbler/cobbler_web.conf
-
-# ghosted files
-touch %{buildroot}%{_sharedstatedir}/cobbler/web.ss
-chmod 0600 %{buildroot}%{_sharedstatedir}/cobbler/web.ss
 
 
 %pre
@@ -396,23 +365,6 @@ fi
 %endif
 %systemd_postun_with_restart cobblerd.service
 %endif
-
-%post web
-%if "%{_vendor}" == "debbuild"
-# Work around broken attr support
-# Cf. https://github.com/debbuild/debbuild/issues/160
-chown %{apache_user}:%{apache_group} %{_datadir}/cobbler/web
-mkdir -p %{_sharedstatedir}/cobbler/webui_sessions
-chown %{apache_user}:root %{_sharedstatedir}/cobbler/webui_sessions
-chmod 700 %{_sharedstatedir}/cobbler/webui_sessions
-chown %{apache_user}:%{apache_group} %{apache_dir}/cobbler_webui_content/
-%endif
-# Change the SECRET_KEY option in the Django settings.py file
-# required for security reasons, should be unique on all systems
-# Choose from letters and numbers only, so no special chars like ampersand (&).
-RAND_SECRET=$(head /dev/urandom | tr -dc 'A-Za-z0-9!' | head -c 50 ; echo '')
-sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler/web/settings.py
-
 
 %files
 %license COPYING
@@ -500,24 +452,6 @@ sed -i -e "s/SECRET_KEY = ''/SECRET_KEY = \'$RAND_SECRET\'/" %{_datadir}/cobbler
 %{_sharedstatedir}/cobbler
 %exclude %{_sharedstatedir}/cobbler/webui_sessions
 %{_localstatedir}/log/cobbler
-
-%files web
-%license COPYING
-%doc AUTHORS.in README.md
-%config(noreplace) %{apache_webconfigdir}/cobbler_web.conf
-%if "%{_vendor}" == "debbuild"
-# Work around broken attr support
-# Cf. https://github.com/debbuild/debbuild/issues/160
-%{_datadir}/cobbler/web
-%ghost %{_sharedstatedir}/cobbler/web.ss
-%dir %{_sharedstatedir}/cobbler/webui_sessions
-%{apache_dir}/cobbler_webui_content/
-%else
-%attr(-,%{apache_user},%{apache_group}) %{_datadir}/cobbler/web
-%ghost %attr(0660,%{apache_user},root) %{_sharedstatedir}/cobbler/web.ss
-%dir %attr(700,%{apache_user},root) %{_sharedstatedir}/cobbler/webui_sessions
-%attr(-,%{apache_user},%{apache_group}) %{apache_dir}/cobbler_webui_content/
-%endif
 
 %files tests
 %dir %{_datadir}/cobbler/tests
