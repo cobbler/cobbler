@@ -98,7 +98,7 @@ def test_find_matching_files():
 
     # Act
     results = utils.find_matching_files(directory, re.compile(r'.*_test.py'))
-    resutts.sort()
+    results.sort()
 
     # Assert
     assert expected == results
