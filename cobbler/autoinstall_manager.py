@@ -1,7 +1,12 @@
+"""
+This module contains code in order to create the automatic installation files. For example kickstarts, autoyast files
+or preseed files.
+"""
+
+import logging
 import os
 
 from cobbler import autoinstallgen
-from cobbler import clogger
 from cobbler import utils
 from cobbler.cexceptions import CX
 
@@ -14,22 +19,18 @@ class AutoInstallationManager:
     Manage automatic installation templates, snippets and final files
     """
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor for the autoinstall manager.
 
         :param collection_mgr: The collection manager which has all objects.
-        :param logger: The logger object which logs to the desired target. If this argument is None then a default
-                       Cobbler logger is created.
         """
 
         self.collection_mgr = collection_mgr
         self.snippets_base_dir = self.collection_mgr.settings().autoinstall_snippets_dir
         self.templates_base_dir = self.collection_mgr.settings().autoinstall_templates_dir
         self.autoinstallgen = autoinstallgen.AutoInstallationGen(self.collection_mgr)
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
 
     def validate_autoinstall_template_file_path(self, autoinstall: str, for_item: bool = True,
                                                 new_autoinstall: bool = False) -> str:
@@ -313,14 +314,13 @@ class AutoInstallationManager:
         else:
             return [True, 0, ()]
 
-    def validate_autoinstall_files(self, logger=None) -> bool:
+    def validate_autoinstall_files(self) -> bool:
         """
         Determine if Cobbler automatic OS installation files will be accepted by corresponding Linux distribution
         installers. The presence of an error does not imply that the automatic installation file is bad, only that the
         possibility exists. Automatic installation file validators are not available for all automatic installation file
         types and on all operating systems in which Cobbler may be installed.
 
-        :param logger: The logger which watches the validation
         :return: True if all automatic installation files are valid, otherwise false.
         """
         overall_success = True

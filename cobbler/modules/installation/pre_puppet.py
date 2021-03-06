@@ -6,9 +6,12 @@ server.
 Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
+import logging
 import re
 
 import cobbler.utils as utils
+
+logger = logging.getLogger()
 
 
 def register() -> str:
@@ -22,7 +25,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     This method runs the trigger, meaning in this case that old puppet certs are automatically removed via puppetca.
 
@@ -32,7 +35,6 @@ def run(api, args, logger) -> int:
 
     :param api: The api to resolve external information with.
     :param args: Already described above.
-    :param logger: The logger to audit the action with.
     :return: "0" on success. If unsuccessful this raises an exception.
     """
     objtype = args[0]
@@ -66,13 +68,11 @@ def run(api, args, logger) -> int:
     rc = 0
 
     try:
-        rc = utils.subprocess_call(logger, cmd, shell=False)
+        rc = utils.subprocess_call(cmd, shell=False)
     except:
-        if logger is not None:
-            logger.warning("failed to execute %s" % puppetca_path)
+        logger.warning("failed to execute %s", puppetca_path)
 
     if rc != 0:
-        if logger is not None:
-            logger.warning("puppet cert removal for %s failed" % name)
+        logger.warning("puppet cert removal for %s failed", name)
 
     return 0

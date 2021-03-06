@@ -18,10 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import glob
+import logging
 import os.path
 import shutil
 
-from cobbler import clogger
 from cobbler import templar
 from cobbler import utils
 from cobbler import tftpgen
@@ -46,20 +46,17 @@ class InTftpdManager:
         """
         return "in_tftpd"
 
-    def __init__(self, collection_mgr, logger: clogger.Logger):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager to resolve all information with.
-        :param logger: The logger to audit all actions with.
         """
-        self.logger = logger
-        if self.logger is None:
-            self.logger = clogger.Logger()
+        self.logger = logging.getLogger()
 
         self.collection_mgr = collection_mgr
         self.templar = templar.Templar(collection_mgr)
-        self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(collection_mgr)
         self.systems = collection_mgr.systems()
         self.bootloc = collection_mgr.settings().tftpboot_location
 
@@ -128,7 +125,7 @@ class InTftpdManager:
         """
         system = self.systems.find(name=name)
         if system is None:
-            utils.die(self.logger, "error in system lookup for %s" % name)
+            utils.die("error in system lookup for %s" % name)
         menu_items = self.tftpgen.get_menu_items()['pxe']
         self.tftpgen.write_all_system_files(system, menu_items)
         # generate any templates listed in the system
@@ -184,12 +181,11 @@ class InTftpdManager:
         self.tftpgen.make_pxe_menu()
 
 
-def get_manager(collection_mgr, logger: clogger.Logger):
+def get_manager(collection_mgr):
     """
     Creates a manager object to manage an in_tftp server.
 
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
-    :param logger: The logger to audit all actions with.
     :return: The object to manage the server with.
     """
-    return InTftpdManager(collection_mgr, logger)
+    return InTftpdManager(collection_mgr)

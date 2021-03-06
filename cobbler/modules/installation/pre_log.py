@@ -11,7 +11,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args: list, logger) -> int:
+def run(api, args: list) -> int:
     """
     The method runs the trigger, meaning this logs that an installation has started.
 
@@ -22,7 +22,6 @@ def run(api, args: list, logger) -> int:
 
     :param api: This parameter is currently unused.
     :param args: Already described above.
-    :param logger: This parameter is currently unused.
     :return: A "0" on success.
     """
     objtype = args[0]

@@ -21,13 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import binascii
+import logging.config
 import os
 import pwd
 import time
 
-from cobbler import remote
-from cobbler import utils
+from cobbler import remote, utils
 from cobbler.api import CobblerAPI
+
+# FIXME: Fix the absolute path and logging dependency on it.
+if os.geteuid() == 0:
+    logging.config.fileConfig('/etc/cobbler/logging_config.conf')
+
+
+logger = logging.getLogger()
 
 
 def core(cobbler_api: CobblerAPI):
@@ -40,7 +47,7 @@ def core(cobbler_api: CobblerAPI):
     xmlrpc_port = settings.xmlrpc_port
 
     regen_ss_file()
-    do_xmlrpc_rw(cobbler_api, settings, xmlrpc_port)
+    do_xmlrpc_rw(cobbler_api, xmlrpc_port)
 
 
 def regen_ss_file():
@@ -64,23 +71,22 @@ def regen_ss_file():
     os.lchown("/var/lib/cobbler/web.ss", pwd.getpwnam(http_user)[2], -1)
 
 
-def do_xmlrpc_rw(cobbler_api: CobblerAPI, settings, port):
+def do_xmlrpc_rw(cobbler_api: CobblerAPI, port):
     """
     This trys to bring up the Cobbler xmlrpc_api and restart it if it fails.
 
     :param cobbler_api: The cobbler_api instance which is used for this method.
-    :param settings: The Cobbler settings instance which is used for this method.
     :param port: The port where the xmlrpc api should run on.
     """
     xinterface = remote.ProxiedXMLRPCInterface(cobbler_api, remote.CobblerXMLRPCInterface)
     server = remote.CobblerXMLRPCServer(('127.0.0.1', port))
     server.logRequests = 0      # don't print stuff
-    xinterface.logger.debug("XMLRPC running on %s" % port)
+    logger.debug("XMLRPC running on %s" % port)
     server.register_instance(xinterface)
 
     while True:
         try:
-            print("SERVING!")
+            logger.info("Cobbler startup complete")
             server.serve_forever()
         except IOError:
             # interrupted? try to serve again

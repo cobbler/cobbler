@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import glob
+import logging
 import os
 import time
 
 from cobbler.cexceptions import CX
-from cobbler import clogger
 from cobbler import templar
 from cobbler import tftpgen
 from cobbler import utils
@@ -37,7 +37,7 @@ class CobblerSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, collection_mgr, verbose: bool = True, dhcp=None, dns=None, logger=None, tftpd=None):
+    def __init__(self, collection_mgr, verbose: bool = True, dhcp=None, dns=None, tftpd=None):
         """
         Constructor
 
@@ -45,12 +45,9 @@ class CobblerSync:
         :param verbose: Whether to log the actions performed in this module verbose or not.
         :param dhcp: The DHCP manager which can update the DHCP config.
         :param dns: The DNS manager which can update the DNS config.
-        :param logger: The logger to audit all action with.
         :param tftpd: The TFTP manager which can update the TFTP config.
         """
-        self.logger = logger
-        if logger is None:
-            self.logger = clogger.Logger()
+        self.logger = logging.getLogger()
 
         self.verbose = verbose
         self.collection_mgr = collection_mgr
@@ -60,8 +57,8 @@ class CobblerSync:
         self.systems = collection_mgr.systems()
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr, self.logger)
-        self.tftpgen = tftpgen.TFTPGen(collection_mgr, self.logger)
+        self.templar = templar.Templar(collection_mgr)
+        self.tftpgen = tftpgen.TFTPGen(collection_mgr)
         self.dns = dns
         self.dhcp = dhcp
         self.tftpd = tftpd
@@ -83,7 +80,7 @@ class CobblerSync:
         Using the ``Check().run_`` functions previously is recommended
         """
         if not os.path.exists(self.bootloc):
-            utils.die(self.logger, "cannot find directory: %s" % self.bootloc)
+            utils.die("cannot find directory: %s" % self.bootloc)
 
         self.logger.info("running pre-sync triggers")
 
@@ -136,28 +133,28 @@ class CobblerSync:
 
         # run post-triggers
         self.logger.info("running post-sync triggers")
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*", logger=self.logger)
-        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*", logger=self.logger)
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*")
 
     def make_tftpboot(self):
         """
         Make directories for tftpboot images
         """
         if not os.path.exists(self.pxelinux_dir):
-            utils.mkdir(self.pxelinux_dir, logger=self.logger)
+            utils.mkdir(self.pxelinux_dir)
         if not os.path.exists(self.grub_dir):
-            utils.mkdir(self.grub_dir, logger=self.logger)
+            utils.mkdir(self.grub_dir)
         grub_images_link = os.path.join(self.grub_dir, "images")
         if not os.path.exists(grub_images_link):
             os.symlink("../images", grub_images_link)
         if not os.path.exists(self.images_dir):
-            utils.mkdir(self.images_dir, logger=self.logger)
+            utils.mkdir(self.images_dir)
         if not os.path.exists(self.rendered_dir):
-            utils.mkdir(self.rendered_dir, logger=self.logger)
+            utils.mkdir(self.rendered_dir)
         if not os.path.exists(self.yaboot_bin_dir):
-            utils.mkdir(self.yaboot_bin_dir, logger=self.logger)
+            utils.mkdir(self.yaboot_bin_dir)
         if not os.path.exists(self.yaboot_cfg_dir):
-            utils.mkdir(self.yaboot_cfg_dir, logger=self.logger)
+            utils.mkdir(self.yaboot_cfg_dir)
 
     def clean_trees(self):
         """
@@ -174,22 +171,22 @@ class CobblerSync:
             path = os.path.join(self.settings.webdir, x)
             if os.path.isfile(path):
                 if not x.endswith(".py"):
-                    utils.rmfile(path, logger=self.logger)
+                    utils.rmfile(path)
             if os.path.isdir(path):
                 if x not in self.settings.webdir_whitelist:
                     # delete directories that shouldn't exist
-                    utils.rmtree(path, logger=self.logger)
+                    utils.rmtree(path)
                 if x in ["autoinstall_templates", "autoinstall_templates_sys", "images", "systems", "distros", "profiles", "repo_profile", "repo_system", "rendered"]:
                     # clean out directory contents
-                    utils.rmtree_contents(path, logger=self.logger)
+                    utils.rmtree_contents(path)
         #
         self.make_tftpboot()
-        utils.rmtree_contents(self.pxelinux_dir, logger=self.logger)
-        utils.rmtree_contents(self.grub_dir, logger=self.logger)
-        utils.rmtree_contents(self.images_dir, logger=self.logger)
-        utils.rmtree_contents(self.yaboot_bin_dir, logger=self.logger)
-        utils.rmtree_contents(self.yaboot_cfg_dir, logger=self.logger)
-        utils.rmtree_contents(self.rendered_dir, logger=self.logger)
+        utils.rmtree_contents(self.pxelinux_dir)
+        utils.rmtree_contents(self.grub_dir)
+        utils.rmtree_contents(self.images_dir)
+        utils.rmtree_contents(self.yaboot_bin_dir)
+        utils.rmtree_contents(self.yaboot_cfg_dir)
+        utils.rmtree_contents(self.rendered_dir)
 
     def write_dhcp(self):
         """
@@ -215,7 +212,7 @@ class CobblerSync:
             cachedir = os.path.join(dirtree, '.link_cache')
             if os.path.isdir(cachedir):
                 cmd = "find %s -maxdepth 1 -type f -links 1 -exec rm -f '{}' ';'" % cachedir
-                utils.subprocess_call(self.logger, cmd)
+                utils.subprocess_call(cmd)
 
     def rsync_gen(self):
         """

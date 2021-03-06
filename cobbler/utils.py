@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import copy
 import errno
 import glob
+import logging
 import os
 import random
 import re
@@ -41,7 +42,7 @@ import distro
 import netaddr
 import json
 
-from cobbler import clogger, settings
+from cobbler import settings
 from cobbler import field_info
 from cobbler import validate
 from cobbler.cexceptions import FileNotFoundException, CX
@@ -75,39 +76,30 @@ _re_is_ibmac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
-main_logger = None  # the logger will be lazy loaded later
+logger = logging.getLogger()
 
 
-def die(logger, msg: str):
+def die(msg: str):
     """
     This method let's Cobbler crash with an exception. Log the exception once in the per-task log or the main log if
     this is not a background op.
 
-    :param logger: The logger to audit the action with
     :param msg: The message to send for raising the exception
     """
-    global main_logger
-    if main_logger is None:
-        main_logger = clogger.Logger()
 
     # log the exception once in the per-task log or the main log if this is not a background op.
     try:
         raise CX(msg)
     except:
-        if logger is not None:
-            log_exc(logger)
-        else:
-            log_exc(main_logger)
+        log_exc()
 
     # now re-raise it so the error can fail the operation
     raise CX(msg)
 
 
-def log_exc(logger):
+def log_exc():
     """
     Log an exception.
-
-    :param logger: The logger to audit all action.
     """
     (t, v, tb) = sys.exc_info()
     logger.info("Exception occurred: %s" % t)
@@ -351,12 +343,11 @@ def find_kernel(path):
     return None
 
 
-def remove_yum_olddata(path, logger=None):
+def remove_yum_olddata(path):
     """
     Delete .olddata folders that might be present from a failed run of createrepo.
 
     :param path: The path to check for .olddata files.
-    :param logger: The logger to audit this action with.
     """
     # FIXME: If the folder is actually a file this method fails wonderfully.
     directories_to_try = [
@@ -368,8 +359,7 @@ def remove_yum_olddata(path, logger=None):
     for pathseg in directories_to_try:
         olddata = os.path.join(path, pathseg)
         if os.path.exists(olddata):
-            if logger is not None:
-                logger.info("removing: %s" % olddata)
+            logger.info("removing: %s" % olddata)
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)
 
 
@@ -404,12 +394,11 @@ def find_initrd(path: str) -> Optional[str]:
     return None
 
 
-def read_file_contents(file_location, logger=None, fetch_if_remote=False) -> Optional[str]:
+def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
     """
     Reads the contents of a file, which could be referenced locally or as a URI.
 
     :param file_location: The location of the file to read.
-    :param logger: The logger to autdit this action with.
     :param fetch_if_remote: If True a remote file will be tried to read, otherwise remote files are skipped and None is
                             returned.
     :return: Returns None if file is remote and templating of remote files is disabled.
@@ -420,8 +409,7 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False) -> Opt
     if file_location.startswith("/"):
 
         if not os.path.exists(file_location):
-            if logger:
-                logger.warning("File does not exist: %s" % file_location)
+            logger.warning("File does not exist: %s", file_location)
             raise FileNotFoundException("%s: %s" % ("File not found", file_location))
 
         try:
@@ -429,8 +417,7 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False) -> Opt
                 data = f.read()
             return data
         except:
-            if logger:
-                log_exc(logger)
+            log_exc()
             raise
 
     # Remote files:
@@ -445,8 +432,7 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False) -> Opt
             return data
         except urllib.error.HTTPError:
             # File likely doesn't exist
-            if logger:
-                logger.warning("File does not exist: %s" % file_location)
+            logger.warning("File does not exist: %s", file_location)
             raise FileNotFoundException("%s: %s" % ("File not found", file_location))
 
 
@@ -833,14 +819,13 @@ def dict_to_string(_dict: dict) -> Union[str, dict]:
     return buffer
 
 
-def rsync_files(src: str, dst: str, args: str, logger=None, quiet: bool = True):
+def rsync_files(src: str, dst: str, args: str, quiet: bool = True):
     r"""
     Sync files from src to dst. The extra arguments specified by args are appended to the command.
 
     :param src: The source for the copy process.
     :param dst: The destination for the copy process.
     :param args: The extra arguments are appended to our standard arguments.
-    :param logger: The logger to audit the action with.
     :param quiet: If ``True`` no progress is reported. If ``False`` then progress will be reported by rsync.
     :return: ``True`` on success, otherwise ``False``.
     """
@@ -866,31 +851,30 @@ def rsync_files(src: str, dst: str, args: str, logger=None, quiet: bool = True):
 
     rsync_cmd = RSYNC_CMD % (spacer, src, dst)
     try:
-        res = subprocess_call(logger, rsync_cmd)
+        res = subprocess_call(rsync_cmd)
         if res != 0:
-            die(logger, "Failed to run the rsync command: '%s'" % rsync_cmd)
+            die("Failed to run the rsync command: '%s'" % rsync_cmd)
     except:
         return False
 
     return True
 
 
-def run_this(cmd: str, args: str, logger):
+def run_this(cmd: str, args: str):
     """
     A simple wrapper around subprocess calls.
 
     :param cmd: The command to run in a shell process.
     :param args: The arguments to attach to the command.
-    :param logger: The logger to audit the shell call with.
     """
 
     my_cmd = cmd % args
-    rc = subprocess_call(logger, my_cmd, shell=True)
+    rc = subprocess_call(my_cmd, shell=True)
     if rc != 0:
-        die(logger, "Command failed")
+        die("Command failed")
 
 
-def run_triggers(api, ref, globber, additional: list = [], logger=None):
+def run_triggers(api, ref, globber, additional: list = []):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
@@ -903,11 +887,9 @@ def run_triggers(api, ref, globber, additional: list = [], logger=None):
                 will be called with no argumenets.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
-    :param logger: The logger to audit the action with.
     """
 
-    if logger is not None:
-        logger.debug("running python triggers from %s" % globber)
+    logger.debug("running python triggers from %s", globber)
     modules = api.get_modules_in_category(globber)
     for m in modules:
         arglist = []
@@ -915,17 +897,15 @@ def run_triggers(api, ref, globber, additional: list = [], logger=None):
             arglist.append(ref.name)
         for x in additional:
             arglist.append(x)
-        if logger is not None:
-            logger.debug("running python trigger %s" % m.__name__)
-        rc = m.run(api, arglist, logger)
+        logger.debug("running python trigger %s", m.__name__)
+        rc = m.run(api, arglist)
         if rc != 0:
             raise CX("Cobbler trigger failed: %s" % m.__name__)
 
     # Now do the old shell triggers, which are usually going to be slower, but are easier to write and support any
     # language.
 
-    if logger is not None:
-        logger.debug("running shell triggers from %s" % globber)
+    logger.debug("running shell triggers from %s", globber)
     triggers = glob.glob(globber)
     triggers.sort()
     for file in triggers:
@@ -940,22 +920,18 @@ def run_triggers(api, ref, globber, additional: list = [], logger=None):
             for x in additional:
                 if x:
                     arglist.append(x)
-            if logger is not None:
-                logger.debug("running shell trigger %s" % file)
-            rc = subprocess_call(logger, arglist, shell=False)  # close_fds=True)
+            logger.debug("running shell trigger %s", file)
+            rc = subprocess_call(arglist, shell=False)  # close_fds=True)
         except:
-            if logger is not None:
-                logger.warning("failed to execute trigger: %s" % file)
+            logger.warning("failed to execute trigger: %s", file)
             continue
 
         if rc != 0:
             raise CX("Cobbler trigger failed: %(file)s returns %(code)d" % {"file": file, "code": rc})
 
-        if logger is not None:
-            logger.debug("shell trigger %s finished successfully" % file)
+        logger.debug("shell trigger %s finished successfully", file)
 
-    if logger is not None:
-        logger.debug("shell triggers finished successfully")
+    logger.debug("shell triggers finished successfully")
 
 
 def get_family() -> str:
@@ -1047,14 +1023,13 @@ def is_safe_to_hardlink(src: str, dst: str, api) -> bool:
     return False
 
 
-def hashfile(fn, lcache=None, logger=None):
+def hashfile(fn, lcache=None):
     r"""
     Returns the sha1sum of the file
 
     :param fn: The file to get the sha1sum of.
     :param lcache: This is a directory where Cobbler would store its ``link_cache.json`` file to speed up the return
                    of the hash. The hash looked up would be checked against the Cobbler internal mtime of the object.
-    :param logger: The logger to audit the action with.
     :return: The sha1 sum or None if the file doesn't exist.
     """
     db = {}
@@ -1074,7 +1049,7 @@ def hashfile(fn, lcache=None, logger=None):
     if os.path.exists(fn):
         # TODO: Replace this with the follwing: https://stackoverflow.com/a/22058673
         cmd = '/usr/bin/sha1sum %s' % fn
-        key = subprocess_get(logger, cmd).split(' ')[0]
+        key = subprocess_get(cmd).split(' ')[0]
         if lcache is not None:
             db[fn] = (mtime, key)
             # TODO: Safeguard this against above mentioned directory does not exist error.
@@ -1084,30 +1059,28 @@ def hashfile(fn, lcache=None, logger=None):
         return None
 
 
-def cachefile(src: str, dst: str, api=None, logger=None):
+def cachefile(src: str, dst: str):
     """
     Copy a file into a cache and link it into place. Use this with caution, otherwise you could end up copying data
     twice if the cache is not on the same device as the destination.
 
     :param src: The sourcefile for the copy action.
     :param dst: The destination for the copy action.
-    :param api: The api to resolve basic information with.
-    :param logger: The logger to audit the action with.
     """
     lcache = os.path.join(os.path.dirname(os.path.dirname(dst)), '.link_cache')
     if not os.path.isdir(lcache):
         os.mkdir(lcache)
-    key = hashfile(src, lcache=lcache, logger=logger)
+    key = hashfile(src, lcache=lcache)
     cachefile = os.path.join(lcache, key)
     if not os.path.exists(cachefile):
-        logger.info("trying to create cache file %s" % cachefile)
-        copyfile(src, cachefile, api=api, logger=logger)
+        logger.info("trying to create cache file %s", cachefile)
+        copyfile(src, cachefile)
 
-    logger.debug("trying cachelink %s -> %s -> %s" % (src, cachefile, dst))
+    logger.debug("trying cachelink %s -> %s -> %s", src, cachefile, dst)
     os.link(cachefile, dst)
 
 
-def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None, logger=None):
+def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None):
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
@@ -1120,8 +1093,6 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None, logger=
     :type cache: bool
     :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
                 not present.
-    :param logger: If a logger instance is present, then it is used to audit what this method is doing to the
-                   filesystem.
     """
 
     if api is None:
@@ -1133,22 +1104,19 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None, logger=
         if os.path.samefile(src, dst):
             if not is_safe_to_hardlink(src, dst, api):
                 # may have to remove old hardlinks for SELinux reasons as previous implementations were not complete
-                if logger is not None:
-                    logger.info("removing: %s" % dst)
+                logger.info("removing: %s", dst)
                 os.remove(dst)
             else:
                 return
         elif os.path.islink(dst):
             # existing path exists and is a symlink, update the symlink
-            if logger is not None:
-                logger.info("removing: %s" % dst)
+            logger.info("removing: %s", dst)
             os.remove(dst)
 
     if is_safe_to_hardlink(src, dst, api):
         # we can try a hardlink if the destination isn't to NFS or Samba this will help save space and sync time.
         try:
-            if logger is not None:
-                logger.info("trying hardlink %s -> %s" % (src, dst))
+            logger.info("trying hardlink %s -> %s", src, dst)
             os.link(src, dst)
             return
         except (IOError, OSError):
@@ -1158,8 +1126,7 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None, logger=
     if symlink_ok:
         # we can symlink anywhere except for /tftpboot because that is run chroot, so if we can symlink now, try it.
         try:
-            if logger is not None:
-                logger.info("trying symlink %s -> %s" % (src, dst))
+            logger.info("trying symlink %s -> %s", src, dst)
             os.symlink(src, dst)
             return
         except (IOError, OSError):
@@ -1167,27 +1134,24 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None, logger=
 
     if cache:
         try:
-            cachefile(src, dst, api=api, logger=logger)
+            cachefile(src, dst)
             return
         except (IOError, OSError):
             pass
 
     # we couldn't hardlink and we couldn't symlink so we must copy
-    copyfile(src, dst, api=api, logger=logger)
+    copyfile(src, dst)
 
 
-def copyfile(src: str, dst: str, api=None, logger=None):
+def copyfile(src: str, dst: str):
     """
     Copy a file from source to the destination.
 
     :param src: The source file. This may also be a folder.
     :param dst: The destination for the file or folder.
-    :param api: This parameter is not used currently.
-    :param logger: The logger to audit the action with.
     """
     try:
-        if logger is not None:
-            logger.info("copying: %s -> %s" % (src, dst))
+        logger.info("copying: %s -> %s", src, dst)
         if os.path.isdir(src):
             shutil.copytree(src, dst)
         else:
@@ -1203,18 +1167,16 @@ def copyfile(src: str, dst: str, api=None, logger=None):
             # raise CX("Error copying %(src)s to %(dst)s" % { "src" : src, "dst" : dst})
 
 
-def copyremotefile(src: str, dst1: str, api=None, logger=None):
+def copyremotefile(src: str, dst1: str, api=None):
     """
     Copys a file from a remote place to the local destionation.
 
     :param src: The remote file URI.
     :param dst1: The copy destination on the local filesystem.
     :param api: This parameter is not used currently.
-    :param logger: The logger to audit the action with.
     """
     try:
-        if logger is not None:
-            logger.info("copying: %s -> %s" % (src, dst1))
+        logger.info("copying: %s -> %s", src, dst1)
         srcfile = urllib.request.urlopen(src)
         with open(dst1, 'wb') as output:
             output.write(srcfile.read())
@@ -1222,7 +1184,7 @@ def copyremotefile(src: str, dst1: str, api=None, logger=None):
         raise CX("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
 
 
-def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None, logger=None):
+def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None):
     """
     Copy 1 or more files with a pattern into a destination.
 
@@ -1235,102 +1197,90 @@ def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=T
     :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
     :type cache: bool
     :param api:
-    :param logger: The logger to audit the action with.
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
         raise CX("Could not find files matching %s" % pattern)
     for file in files:
         dst1 = os.path.join(dst, os.path.basename(file))
-        linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api, logger=logger)
+        linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api)
 
 
-def rmfile(path: str, logger=None):
+def rmfile(path: str):
     """
     Delete a single file.
 
     :param path: The file to delete.
-    :param logger: The logger to audit the action with.
     :return: True if the action succeeded.
     :rtype: bool
     """
     try:
-        if logger is not None:
-            logger.info("removing: %s" % path)
+        logger.info("removing: %s", path)
         os.unlink(path)
         return True
     except OSError as ioe:
         # doesn't exist
         if not ioe.errno == errno.ENOENT:
-            if logger is not None:
-                log_exc(logger)
+            log_exc()
             raise CX("Error deleting %s" % path)
         return True
 
 
-def rmtree_contents(path: str, logger=None):
+def rmtree_contents(path: str):
     """
     Delete the content of a folder with a glob pattern.
 
     :param path: This parameter presents the glob pattern of what should be deleted.
-    :param logger: The logger to audit the action with.
     """
     what_to_delete = glob.glob("%s/*" % path)
     for x in what_to_delete:
-        rmtree(x, logger=logger)
+        rmtree(x)
 
 
-def rmtree(path: str, logger=None) -> Optional[bool]:
+def rmtree(path: str) -> Optional[bool]:
     """
     Delete a complete directory or just a single file.
 
     :param path: The directory or folder to delete.
-    :param logger: The logger to audit the action with.
     :return: May possibly return true on success or may return None on success.
     """
     try:
         if os.path.isfile(path):
-            return rmfile(path, logger=logger)
+            return rmfile(path)
         else:
-            if logger is not None:
-                logger.info("removing: %s" % path)
+            logger.info("removing: %s", path)
             return shutil.rmtree(path, ignore_errors=True)
     except OSError as ioe:
-        if logger is not None:
-            log_exc(logger)
+        log_exc()
         if not ioe.errno == errno.ENOENT:  # doesn't exist
             raise CX("Error deleting %s" % path)
         return True
 
 
-def mkdir(path, mode=0o755, logger=None):
+def mkdir(path, mode=0o755):
     """
     Create directory with a given mode.
 
     :param path: The path to create the directory at.
     :param mode: The mode to create the directory with.
-    :param logger: The logger to audit the action with.
     """
     try:
-        if logger is not None:
-            logger.info("mkdir: %s" % path)
+        logger.info("mkdir: %s", path)
         return os.makedirs(path, mode)
     except OSError as oe:
         # already exists (no constant for 17?)
         if not oe.errno == 17:
-            if logger is not None:
-                log_exc(logger)
+            log_exc()
             raise CX("Error creating %s" % path)
 
 
-def path_tail(apath, bpath):
+def path_tail(apath, bpath) -> str:
     """
     Given two paths (B is longer than A), find the part in B not in A
 
     :param apath: The first path.
     :param bpath: The second path.
     :return: If the paths are not starting at the same location this function returns an empty string.
-    :rtype: str
     """
     position = bpath.find(apath)
     if position != 0:
@@ -1706,8 +1656,7 @@ def is_selinux_enabled() -> bool:
     """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
-    cmd = "/usr/sbin/selinuxenabled"
-    selinuxenabled = subprocess_call(None, cmd)
+    selinuxenabled = subprocess_call("/usr/sbin/selinuxenabled")
     if selinuxenabled == 0:
         return True
     else:
@@ -1911,18 +1860,16 @@ def is_remote_file(file) -> bool:
         return False
 
 
-def subprocess_sp(logger, cmd, shell: bool = True, input=None):
+def subprocess_sp(cmd, shell: bool = True, input=None):
     """
     Call a shell process and redirect the output for internal usage.
 
-    :param logger: The logger to audit the action with.
     :param cmd: The command to execute in a subprocess call.
     :param shell: Whether to use a shell or not for the execution of the command.
     :param input: If there is any input needed for that command to stdin.
     :return: A tuple of the output and the return code.
     """
-    if logger is not None:
-        logger.info("running: %s" % cmd)
+    logger.info("running: %s", cmd)
 
     stdin = None
     if input:
@@ -1932,44 +1879,40 @@ def subprocess_sp(logger, cmd, shell: bool = True, input=None):
         sp = subprocess.Popen(cmd, shell=shell, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                               encoding="utf-8", close_fds=True)
     except OSError:
-        if logger is not None:
-            log_exc(logger)
-        die(logger, "OS Error, command not found?  While running: %s" % cmd)
+        log_exc()
+        die("OS Error, command not found?  While running: %s" % cmd)
 
     (out, err) = sp.communicate(input)
     rc = sp.returncode
-    if logger is not None:
-        logger.info("received on stdout: %s" % out)
-        logger.debug("received on stderr: %s" % err)
+    logger.info("received on stdout: %s", out)
+    logger.debug("received on stderr: %s", err)
     return out, rc
 
 
-def subprocess_call(logger, cmd, shell: bool = True, input=None):
+def subprocess_call(cmd, shell: bool = True, input=None):
     """
     A simple subprocess call with no output capturing.
 
-    :param logger: The logger to audit the action with.
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the commmand.
     :param input: If there is any input needed for that command to stdin.
     :return: The return code of the process
     """
-    _, rc = subprocess_sp(logger, cmd, shell=shell, input=input)
+    _, rc = subprocess_sp(cmd, shell=shell, input=input)
     return rc
 
 
-def subprocess_get(logger, cmd, shell=True, input=None):
+def subprocess_get(cmd, shell=True, input=None):
     """
     A simple subprocess call with no return code capturing.
 
-    :param logger: The logger to audit the action with.
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the commmand.
     :type shell: bool
     :param input: If there is any input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
-    data, _ = subprocess_sp(logger, cmd, shell=shell, input=input)
+    data, _ = subprocess_sp(cmd, shell=shell, input=input)
     return data
 
 
@@ -2442,11 +2385,10 @@ def dhcp_service_name() -> str:
         return "dhcpd"
 
 
-def named_service_name(logger=None) -> str:
+def named_service_name() -> str:
     """
     Determine the named service which is normally different on various distros.
 
-    :param logger: The logger to audit the action with.
     :return: This will return for debian/ubuntu bind9 and on other distros named-chroot or named.
     """
     (dist, _) = os_release()
@@ -2454,7 +2396,7 @@ def named_service_name(logger=None) -> str:
         return "bind9"
     else:
         if is_systemd():
-            rc = subprocess_call(logger, ["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False)
+            rc = subprocess_call(["/usr/bin/systemctl", "is-active", "named-chroot"], shell=False)
             if rc == 0:
                 return "named-chroot"
         return "named"

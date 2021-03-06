@@ -24,7 +24,7 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     This is the mandatory Cobbler module run trigger hook.
 
@@ -33,7 +33,6 @@ def run(api, args, logger) -> int:
                  0: "target" or "profile"
                  1: name of target or profile
                  2: ip or "?"
-    :param logger: In this module not used.
     :return: ``0`` or ``1``.
     """
     # FIXME: make everything use the logger

@@ -48,7 +48,7 @@ class Systems(collection.Collection):
         return new_system
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False, logger=None):
+               recursive: bool = False):
         """
         Remove element named 'name' from the collection
         """
@@ -59,9 +59,9 @@ class Systems(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [])
                 if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
                     lite_sync.remove_single_system(name)
             self.lock.acquire()
             try:
@@ -71,8 +71,8 @@ class Systems(collection.Collection):
             self.collection_mgr.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [], logger)
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [])
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             return
 

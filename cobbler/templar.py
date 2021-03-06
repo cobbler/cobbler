@@ -21,14 +21,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import os
 import os.path
 import pprint
 import re
 from typing import Optional, Union, TextIO
 
-from cobbler import clogger, utils
+from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.template_api import CobblerTemplate
 
@@ -48,12 +48,11 @@ class Templar:
     via our self-defined API in this class.
     """
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The main collection manager instance which is used by the current running server.
-        :param logger: The logger which audits the actions of the object instance.
         """
 
         self.collection_mgr = None
@@ -64,9 +63,7 @@ class Templar:
 
         self.last_errors = []
 
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
 
     def check_for_invalid_imports(self, data: str):
         """

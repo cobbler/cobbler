@@ -1,4 +1,5 @@
 import distutils.sysconfig
+import logging
 import sys
 import os
 import time
@@ -10,6 +11,8 @@ mod_path = "%s/cobbler" % plib
 sys.path.insert(0, mod_path)
 template_file = "/etc/cobbler/genders.template"
 settings_file = "/etc/genders"
+
+logger = logging.getLogger()
 
 
 def register() -> str:
@@ -50,13 +53,12 @@ def write_genders_file(config, profiles_genders, distros_genders, mgmtcls_gender
     templar_inst.render(template_data, metadata, settings_file)
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     Mandatory Cobbler trigger hook.
 
     :param api: The api to resolve information with.
     :param args: For this implementation unused.
-    :param logger: The logger to audit all actions with.
     :return: ``0`` or ``1``, depending on the outcome of the operation.
     """
     # do not run if we are not enabled.
@@ -81,7 +83,7 @@ def run(api, args, logger) -> int:
             profiles_genders[prof.name] += system.name + ","
         # remove a trailing comma
         profiles_genders[prof.name] = profiles_genders[prof.name][:-1]
-        if(profiles_genders[prof.name] == ""):
+        if profiles_genders[prof.name] == "":
             profiles_genders.pop(prof.name, None)
 
     # distros
@@ -92,7 +94,7 @@ def run(api, args, logger) -> int:
             distros_genders[dist.name] += system.name + ","
         # remove a trailing comma
         distros_genders[dist.name] = distros_genders[dist.name][:-1]
-        if(distros_genders[dist.name] == ""):
+        if distros_genders[dist.name] == "":
             distros_genders.pop(dist.name, None)
 
     # mgmtclasses
@@ -103,11 +105,11 @@ def run(api, args, logger) -> int:
             mgmtcls_genders[mgmtcls.name] += system.name + ","
         # remove a trailing comma
         mgmtcls_genders[mgmtcls.name] = mgmtcls_genders[mgmtcls.name][:-1]
-        if(mgmtcls_genders[mgmtcls.name] == ""):
+        if mgmtcls_genders[mgmtcls.name] == "":
             mgmtcls_genders.pop(mgmtcls.name, None)
     # The file doesn't exist and for some reason the template engine won't create it, so spit out an error and tell the
     # user what to do.
-    if(not os.path.isfile(settings_file)):
+    if not os.path.isfile(settings_file):
         logger.info("Error: " + settings_file + " does not exist.")
         logger.info("Please run: touch " + settings_file + " as root and try again.")
         return 1

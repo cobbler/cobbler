@@ -22,11 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import glob
-import time
 import gzip
 import re
-
-from cobbler import clogger
+import time
 
 # ARRAY INDEXES
 MOST_RECENT_START = 0
@@ -39,22 +37,18 @@ STATE = 5
 
 class CobblerStatusReport:
 
-    def __init__(self, collection_mgr, mode, logger=None):
+    def __init__(self, collection_mgr, mode):
         """
         Constructor
 
         :param collection_mgr: The collection manager which holds all information.
         :param mode: This describes how Cobbler should report. Currently there only the option ``text`` can be set
                      explicitly.
-        :param logger: The logger to audit all actions with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
         self.ip_data = {}
         self.mode = mode
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
 
     # -------------------------------------------------------
 

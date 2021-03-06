@@ -138,5 +138,3 @@ def __get_storage_module(collection_type):
     :returns: A Python module.
     """
     return module_loader.get_module_from_file("serializers", collection_type, "serializers.file")
-
-# EOF

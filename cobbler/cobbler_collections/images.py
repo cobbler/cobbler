@@ -41,7 +41,7 @@ class Images(collection.Collection):
         return new_image
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = True, logger=None):
+               recursive: bool = True):
         """
         Remove element named 'name' from the collection
         """
@@ -64,13 +64,13 @@ class Images(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.collection_mgr.api.remove_system(k, recursive=True, logger=logger)
+                    self.collection_mgr.api.remove_system(k, recursive=True)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/pre/*", [])
                 if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
                     lite_sync.remove_single_image(name)
 
             self.lock.acquire()
@@ -82,8 +82,8 @@ class Images(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [], logger)
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/image/post/*", [])
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             return
 

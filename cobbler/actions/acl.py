@@ -23,27 +23,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-
-from cobbler.cexceptions import CX
-from cobbler import clogger
 from cobbler import utils
+from cobbler.cexceptions import CX
 
 
 class AclConfig:
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager which holds all information about Cobbler.
-        :param logger: The logger to audit actions with.
         """
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
         self.settings = collection_mgr.settings()
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
 
     def run(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
         """
@@ -113,9 +107,9 @@ class AclConfig:
                 cmd2 = cmd
 
             cmd2 = "%s %s" % (cmd2, d)
-            rc = utils.subprocess_call(self.logger, "setfacl -d %s" % cmd2, shell=True)
+            rc = utils.subprocess_call("setfacl -d %s" % cmd2, shell=True)
             if not rc == 0:
-                utils.die(self.logger, "command failed")
-            rc = utils.subprocess_call(self.logger, "setfacl %s" % cmd2, shell=True)
+                utils.die("command failed")
+            rc = utils.subprocess_call("setfacl %s" % cmd2, shell=True)
             if not rc == 0:
-                utils.die(self.logger, "command failed")
+                utils.die("command failed")

@@ -25,8 +25,9 @@ import json
 import time
 import xmlrpc.client
 import yaml
-from cobbler.cobbler_collections import manager
+
 from cobbler import download_manager
+from cobbler.cobbler_collections import manager
 
 
 class CobblerSvc:
@@ -46,8 +47,7 @@ class CobblerSvc:
         self.remote = None
         self.req = req
         self.collection_mgr = manager.CollectionManager(self)
-        self.logger = None
-        self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
+        self.dlmgr = download_manager.DownloadManager(self.collection_mgr)
 
     def __xmlrpc_setup(self):
         """

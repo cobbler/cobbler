@@ -19,23 +19,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import os
 from cobbler import utils
-
-from cobbler import clogger
 
 
 class HardLinker:
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self):
         """
         Constructor
         """
         self.hardlink = None
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.family = utils.get_family()
 
         # Getting the path to hardlink
@@ -43,7 +39,7 @@ class HardLinker:
             if os.path.exists(possible_location):
                 self.hardlink = possible_location
         if not self.hardlink:
-            utils.die(self.logger, "please install 'hardlink' to use this feature")
+            utils.die("please install 'hardlink' to use this feature")
 
         # Setting the args for hardlink accodring to the distribution
         if self.family == "debian":
@@ -66,14 +62,13 @@ class HardLinker:
 
         self.logger.info("now hardlinking to save space, this may take some time.")
 
-        rc = utils.subprocess_call(self.logger, self.hardlink_cmd, shell=True)
+        rc = utils.subprocess_call(self.hardlink_cmd, shell=True)
         # FIXME: how about settings? (self.settings.webdir)
         webdir = "/var/www/cobbler"
         if os.path.exists("/srv/www"):
             webdir = "/srv/www/cobbler"
 
-        rc = utils.subprocess_call(self.logger,
-                                   self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror",
+        rc = utils.subprocess_call(self.hardlink + " -c -v " + webdir + "/distro_mirror /var/www/cobbler/repo_mirror",
                                    shell=True)
 
         return rc

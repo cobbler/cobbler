@@ -20,23 +20,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import os
 import os.path
 import pipes
 import stat
 import shutil
 
+from cobbler import utils
+from cobbler import download_manager
+from cobbler.utils import os_release
+
 HAS_LIBREPO = True
 try:
     import librepo
 except:
     HAS_LIBREPO = False
-
-from cobbler import clogger
-from cobbler import utils
-from cobbler import download_manager
-from cobbler.utils import os_release
 
 
 def repo_walker(top, func, arg):
@@ -77,7 +76,7 @@ class RepoSync:
 
     # ==================================================================================
 
-    def __init__(self, collection_mgr, tries: int = 1, nofail: bool = False, logger=None):
+    def __init__(self, collection_mgr, tries: int = 1, nofail: bool = False):
         """
         Constructor
 
@@ -97,11 +96,8 @@ class RepoSync:
         self.rflags = self.settings.reposync_flags
         self.tries = tries
         self.nofail = nofail
-        self.logger = logger
-        self.dlmgr = download_manager.DownloadManager(self.collection_mgr, self.logger)
-
-        if logger is None:
-            self.logger = clogger.Logger()
+        self.logger = logging.getLogger()
+        self.dlmgr = download_manager.DownloadManager(self.collection_mgr)
 
         self.logger.info("hello, reposync")
 
@@ -120,7 +116,7 @@ class RepoSync:
         try:
             self.tries = int(self.tries)
         except:
-            utils.die(self.logger, "retry value must be an integer")
+            utils.die("retry value must be an integer")
 
         self.verbose = verbose
 
@@ -162,7 +158,7 @@ class RepoSync:
                     success = True
                     break
                 except:
-                    utils.log_exc(self.logger)
+                    utils.log_exc()
                     self.logger.warning("reposync failed, tries left: %s" % (x - 2))
 
             # Cleanup/restore any environment variables that were added or changed above.
@@ -179,14 +175,14 @@ class RepoSync:
             if not success:
                 report_failure = True
                 if not self.nofail:
-                    utils.die(self.logger, "reposync failed, retry limit reached, aborting")
+                    utils.die("reposync failed, retry limit reached, aborting")
                 else:
                     self.logger.error("reposync failed, retry limit reached, skipping")
 
             self.update_permissions(repo_path)
 
         if report_failure:
-            utils.die(self.logger, "overall reposync failed, at least one repo failed to synchronize")
+            utils.die("overall reposync failed, at least one repo failed to synchronize")
 
     # ==================================================================================
 
@@ -209,8 +205,7 @@ class RepoSync:
         elif repo.breed == "wget":
             self.wget_sync(repo)
         else:
-            utils.die(self.logger, "unable to sync repo (%s), unknown or unsupported repo type (%s)"
-                      % (repo.name, repo.breed))
+            utils.die("unable to sync repo (%s), unknown or unsupported repo type (%s)" % (repo.name, repo.breed))
 
     # ====================================================================================
 
@@ -226,7 +221,7 @@ class RepoSync:
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
-            utils.die(self.logger, "librepo error: " + dirname + " - " + e.args[1])
+            utils.die("librepo error: " + dirname + " - " + e.args[1])
 
         rmd = r.getinfo(librepo.LRR_RPMMD_REPOMD)['records']
         return rmd
@@ -259,10 +254,10 @@ class RepoSync:
                     # need createrepo >= 0.9.7 to add deltas
                     if utils.get_family() in ("redhat", "suse"):
                         cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo"
-                        createrepo_ver = utils.subprocess_get(self.logger, cmd)
+                        createrepo_ver = utils.subprocess_get(cmd)
                         if not createrepo_ver[0:1].isdigit():
                             cmd = "/usr/bin/rpmquery --queryformat=%{VERSION} createrepo_c"
-                            createrepo_ver = utils.subprocess_get(self.logger, cmd)
+                            createrepo_ver = utils.subprocess_get(cmd)
                         if utils.compare_versions_gt(createrepo_ver, "0.9.7"):
                             mdoptions.append("--deltas")
                         else:
@@ -273,9 +268,9 @@ class RepoSync:
             flags = blended.get("createrepo_flags", "(ERROR: FLAGS)")
             try:
                 cmd = "createrepo %s %s %s" % (" ".join(mdoptions), flags, pipes.quote(dirname))
-                utils.subprocess_call(self.logger, cmd)
+                utils.subprocess_call(cmd)
             except:
-                utils.log_exc(self.logger)
+                utils.log_exc()
                 self.logger.error("createrepo failed.")
             del fnames[:]  # we're in the right place
 
@@ -299,10 +294,10 @@ class RepoSync:
 
         # FIXME: wrapper for subprocess that logs to logger
         cmd = "wget -N -np -r -l inf -nd -P %s %s" % (pipes.quote(dest_path), pipes.quote(repo_mirror))
-        rc = utils.subprocess_call(self.logger, cmd)
+        rc = utils.subprocess_call(cmd)
 
         if rc != 0:
-            utils.die(self.logger, "cobbler reposync failed")
+            utils.die("cobbler reposync failed")
         repo_walker(dest_path, self.createrepo_walker, repo)
         self.create_local_file(dest_path, repo)
 
@@ -317,7 +312,7 @@ class RepoSync:
         """
 
         if not repo.mirror_locally:
-            utils.die(self.logger, "rsync:// urls must be mirrored locally, yum cannot access them directly")
+            utils.die("rsync:// urls must be mirrored locally, yum cannot access them directly")
 
         if repo.rpm_list != "" and repo.rpm_list != []:
             self.logger.warning("--rpm-list is not supported for rsync'd repositories")
@@ -343,10 +338,10 @@ class RepoSync:
 
         cmd = "rsync %s --delete-after %s --delete --exclude-from=/etc/cobbler/rsync.exclude %s %s" \
               % (flags, spacer, pipes.quote(repo.mirror), pipes.quote(dest_path))
-        rc = utils.subprocess_call(self.logger, cmd)
+        rc = utils.subprocess_call(cmd)
 
         if rc != 0:
-            utils.die(self.logger, "cobbler reposync failed")
+            utils.die("cobbler reposync failed")
 
         # If ran in archive mode then repo should already contain all repodata and does not need createrepo run
         archive = False
@@ -385,7 +380,7 @@ class RepoSync:
         else:
             # Warn about not having yum-utils.  We don't want to require it in the package because Fedora 22+ has moved
             # to dnf.
-            utils.die(self.logger, "no /usr/bin/reposync found, please install yum-utils")
+            utils.die("no /usr/bin/reposync found, please install yum-utils")
         return cmd
 
     # ====================================================================================
@@ -422,7 +417,7 @@ class RepoSync:
         # This is the somewhat more-complex RHN case.
         # NOTE: this requires that you have entitlements for the server and you give the mirror as rhn://$channelname
         if not repo.mirror_locally:
-            utils.die(self.logger, "rhn:// repos do not work with --mirror-locally=1")
+            utils.die("rhn:// repos do not work with --mirror-locally=1")
 
         if has_rpm_list:
             self.logger.warning("warning: --rpm-list is not supported for RHN content")
@@ -433,8 +428,8 @@ class RepoSync:
                                          pipes.quote(self.settings.webdir + "/repo_mirror"))
         if repo.name != rest:
             args = {"name": repo.name, "rest": rest}
-            utils.die(self.logger, "ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the "
-                                   "cobbler repository must match the name of the RHN channel" % args)
+            utils.die("ERROR: repository %(name)s needs to be renamed %(rest)s as the name of the cobbler repository "
+                      "must match the name of the RHN channel" % args)
 
         if repo.arch == "i386":
             # Counter-intuitive, but we want the newish kernels too
@@ -560,7 +555,7 @@ class RepoSync:
 
         rc = utils.subprocess_call(self.logger, cmd)
         if rc != 0:
-            utils.die(self.logger, "cobbler reposync failed")
+            utils.die("cobbler reposync failed")
 
         # download any metadata we can use
         proxy = None
@@ -589,7 +584,7 @@ class RepoSync:
             try:
                 h.perform(r)
             except librepo.LibrepoException as e:
-                utils.die(self.logger, "librepo error: " + temp_path + " - " + e.args[1])
+                utils.die("librepo error: " + temp_path + " - " + e.args[1])
 
             h.setopt(librepo.LRO_LOCAL, False)
             h.setopt(librepo.LRO_URLS, [])
@@ -621,7 +616,7 @@ class RepoSync:
         try:
             h.perform(r)
         except librepo.LibrepoException as e:
-            utils.die(self.logger, "librepo error: " + temp_path + " - " + e.args[1])
+            utils.die("librepo error: " + temp_path + " - " + e.args[1])
 
         # now run createrepo to rebuild the index
         if repo.mirror_locally:
@@ -639,17 +634,17 @@ class RepoSync:
         # Warn about not having mirror program.
         mirror_program = "/usr/bin/debmirror"
         if not os.path.exists(mirror_program):
-            utils.die(self.logger, "no %s found, please install it" % (mirror_program))
+            utils.die("no %s found, please install it" % (mirror_program))
 
         # command to run
         cmd = ""
 
         # detect cases that require special handling
         if repo.rpm_list != "" and repo.rpm_list != []:
-            utils.die(self.logger, "has_rpm_list not yet supported on apt repos")
+            utils.die("has_rpm_list not yet supported on apt repos")
 
         if not repo.arch:
-            utils.die(self.logger, "Architecture is required for apt repositories")
+            utils.die("Architecture is required for apt repositories")
 
         # built destination path for the repo
         dest_path = os.path.join("/var/www/cobbler/repo_mirror", repo.name)
@@ -698,9 +693,9 @@ class RepoSync:
             # FIXME: might this break anything? So far it doesn't
             os.putenv("HOME", "/var/lib/cobbler")
 
-            rc = utils.subprocess_call(self.logger, cmd)
+            rc = utils.subprocess_call(cmd)
             if rc != 0:
-                utils.die(self.logger, "cobbler reposync failed")
+                utils.die("cobbler reposync failed")
 
     def create_local_file(self, dest_path: str, repo, output: bool = True):
         """
@@ -813,7 +808,7 @@ class RepoSync:
 
         cmd1 = "chown -R " + owner + " %s" % repo_path
 
-        utils.subprocess_call(self.logger, cmd1)
+        utils.subprocess_call(cmd1)
 
         cmd2 = "chmod -R 755 %s" % repo_path
-        utils.subprocess_call(self.logger, cmd2)
+        utils.subprocess_call(cmd2)

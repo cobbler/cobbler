@@ -46,13 +46,12 @@ def register() -> str:
         return ''
 
 
-def run(api, args, logger):
+def run(api, args):
     """
     This method executes the trigger, meaning in this case that it updates the dns configuration.
 
     :param api: The api to read metadata from.
     :param args: Metadata to log.
-    :param logger: The logger to audit the action with.
     :return: "0" on success or a skipped task. If the task failed or problems occurred then an exception is raised.
     """
     global logf

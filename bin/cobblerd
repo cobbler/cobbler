@@ -13,6 +13,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
+import logging
 import sys
 import os
 import traceback
@@ -21,9 +22,12 @@ import cobbler.cobblerd as app
 import cobbler.api as cobbler_api
 
 
+logger = logging.getLogger()
+
+
 def daemonize_self():
     # daemonizing code:  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
-    # logger.info("cobblerd started")
+    logger.info("cobblerd started")
     try:
         pid = os.fork()
         if pid > 0:
@@ -80,8 +84,6 @@ def main():
             # FIXME: log this too
             traceback.print_exc()
             return 1
-
-    logger = api.logger
 
     if options.daemonize:
         daemonize_self()

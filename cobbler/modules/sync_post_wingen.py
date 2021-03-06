@@ -27,6 +27,8 @@ wim7_template_name = template_dir + "winpe7.template"
 wim8_template_name = template_dir + "winpe8.template"
 wimupdate = "/usr/bin/wimupdate"
 
+logger = logging.getLogger()
+
 
 def register() -> Optional[str]:
     """
@@ -143,7 +145,7 @@ def bcdedit(orig_bcd, new_bcd, wim, sdi, startoptions=None):
     h.commit(new_bcd)
 
 
-def run(api, args, logger):
+def run(api, args):
     if not HAS_HIVEX:
         logger.info("python3-hivex or python3-pefile not found. If you need Automatic Windows Installation support, "
                     "please install.")
@@ -284,7 +286,7 @@ def run(api, args, logger):
                     raise ValueError("You are trying to use an unsupported distro!")
 
                 cmd = "/usr/bin/cp --reflink=auto " + wim_pl_name + " " + ps_file_name
-                utils.subprocess_call(logger, cmd, shell=True)
+                utils.subprocess_call(cmd, shell=True)
 
                 if os.path.exists(wimupdate):
                     data = templ.render(tmplstart_data, meta, None)
@@ -293,6 +295,6 @@ def run(api, args, logger):
                     pi_file.flush()
                     cmd = wimupdate + ' ' + ps_file_name + ' --command="add ' + pi_file.name
                     cmd += ' /Windows/System32/startnet.cmd"'
-                    utils.subprocess_call(logger, cmd, shell=True)
+                    utils.subprocess_call(cmd, shell=True)
                     pi_file.close()
     return 0

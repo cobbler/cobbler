@@ -21,12 +21,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
-
 import os
 import subprocess
 
-from cobbler import clogger
 from cobbler import templar
 
 
@@ -37,29 +34,24 @@ def register() -> str:
     return "manage"
 
 
-def get_manager(config, logger: clogger.Logger):
+def get_manager(config):
     """
     Get the DNS Manger object.
 
     :param config: Unused parameter.
-    :param logger: The logger to audit the actions with.
     :return: The manager object.
     """
-    return NDjbDnsManager(config, logger)
+    return NDjbDnsManager(config)
 
 
 class NDjbDnsManager:
 
-    def __init__(self, config, logger: clogger.Logger):
+    def __init__(self, config):
         """
         This class can manage a New-DJBDNS server.
 
         :param config: Currently an usused parameter.
-        :param logger: The logger to audit the actions with.
         """
-        self.logger = logger
-        if self.logger is None:
-            self.logger = clogger.Logger()
 
         self.config = config
         self.systems = config.systems()
