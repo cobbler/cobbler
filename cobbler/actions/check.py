@@ -386,12 +386,11 @@ class CobblerCheck:
                 not_found.append(loader_name)
 
         if len(not_found) > 0:
-            status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler "
-                          "get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, "
-                          "you may ensure that you have installed a *recent* version of the syslinux package "
-                          "installed and can ignore this message entirely.  Files in this directory, should you want "
-                          "to support all architectures, should include pxelinux.0, menu.c32, and yaboot. The "
-                          "'cobbler get-loaders' command is the easiest way to resolve these requirements.")
+            status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders. If you only want to "
+                          "handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version "
+                          "of the syslinux package installed and can ignore this message entirely. Files in this "
+                          "directory, should you want to support all architectures, should include pxelinux.0, "
+                          "menu.c32, and yaboot.")
 
     def check_tftpd_dir(self, status):
         """
