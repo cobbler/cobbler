@@ -1,6 +1,6 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: 🐜 Bug report
+about: Create a bug report to help us improve
 title: ''
 labels: Bug Report
 assignees: ''
@@ -13,20 +13,29 @@ assignees: ''
 
 <!--- HINT: You can paste gist.github.com links for long logs or larger files -->
 
-### To Reproduce
+### Steps to reproduce
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1.
+2.
+3.
 
 ### Expected behavior
 
 <!--- A clear and concise description of what you expected to happen. -->
 
-### Version
+### Cobbler version
 
 <!--- Paste output from `cobbler version` -->
+````paste below
+````
+
+### Operating system
+
+<!--- On which operating system do you use Cobbler? -->
+
+### Cobbler log
+
+<!--- Paste (partial) output from `/var/log/cobbler/cobbler.log` -->
 ````paste below
 ````
 
@@ -34,6 +43,6 @@ assignees: ''
 
 <!--- If applicable, add screenshots to help explain your problem. -->
 
-### Additional context
+### Additional information
 
 <!--- Add any other context about the problem here. -->

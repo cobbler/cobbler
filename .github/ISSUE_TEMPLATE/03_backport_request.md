@@ -1,6 +1,6 @@
 ---
-name: Backport Request
-about: Any request for backport something specific
+name: 🔙 Backport request
+about: Request a backport of something specific
 title: "[Backport] Your title"
 labels: ''
 assignees: ''
@@ -9,14 +9,13 @@ assignees: ''
 
 ### Original feature issue
 
-<!--- (if present): Describe the fearture --->
+<!--- (if present): Describe the feature --->
 <!--- Is there an PR number for that feature? --->
 
-### Target Release Series
+### Target release
 
+- [ ] release32
 - [ ] release30
-- [ ] release28
-- [ ] release26
 
 ### Reason
 
