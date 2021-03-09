@@ -566,7 +566,7 @@ if __name__ == "__main__":
             ("share/cobbler/web", glob("web/*.*")),
             ("%s" % webcontent, glob("web/static/*")),
             ("%s" % webimages, glob("web/static/images/*")),
-            ("share/cobbler/bin", glob("scripts/*.sh")),
+            ("share/cobbler/bin", glob("scripts/*")),
             ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%s/webui_sessions" % libpath, []),
             ("%s/loaders" % libpath, []),
