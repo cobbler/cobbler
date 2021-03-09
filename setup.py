@@ -552,7 +552,7 @@ if __name__ == "__main__":
             ("%s/snippets" % libpath, glob("autoinstall_snippets/*", recursive=True)),
             ("%s/scripts" % libpath, glob("autoinstall_scripts/*")),
             ("%s" % libpath, ["config/cobbler/distro_signatures.json"]),
-            ("share/cobbler/bin", glob("scripts/*.sh")),
+            ("share/cobbler/bin", glob("scripts/*")),
             ("share/cobbler/web/templates", glob("web/templates/*")),
             ("%s/webui_sessions" % libpath, []),
             ("%s/loaders" % libpath, []),
