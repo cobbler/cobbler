@@ -24,6 +24,7 @@ import fcntl
 import os
 import random
 import xmlrpc.server
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 from socketserver import ThreadingMixIn
 import stat
 from threading import Thread
@@ -3348,6 +3349,19 @@ class CobblerXMLRPCInterface:
 # *********************************************************************************
 
 
+class RequestHandler(SimpleXMLRPCRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
+
+    # Add these headers to all responses
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Headers",
+                         "Origin, X-Requested-With, Content-Type, Accept")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        SimpleXMLRPCRequestHandler.end_headers(self)
+
+
 class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
     """
     This is the class for the main Cobbler XMLRPC Server. This class does not directly contain all XMLRPC methods. It
@@ -3361,7 +3375,7 @@ class CobblerXMLRPCServer(ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer):
         :param args: Arguments which are handed to the Python XMLRPC server.
         """
         self.allow_reuse_address = True
-        xmlrpc.server.SimpleXMLRPCServer.__init__(self, args)
+        xmlrpc.server.SimpleXMLRPCServer.__init__(self, args, requestHandler=RequestHandler)
 
 # *********************************************************************************
 
