@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build Docker Test Container
-        run: docker build -t cobbler -f docker/openSUSE_Leap.dockerfile .
+        run: docker build -t cobbler -f docker/testing/testing.dockerfile .
       - name: Run previously built Docker Container
         run: docker run -d --name cobbler cobbler
       - name: Wait for startup
