@@ -699,4 +699,3 @@ if __name__ == "__main__":
             ("%s/tests/xmlrpcapi" % datadir, glob("tests/xmlrpcapi/*.py")),
         ],
     )
-
