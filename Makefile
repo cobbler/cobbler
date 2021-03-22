@@ -93,9 +93,6 @@ release: clean qa authors sdist ## Creates the full release.
 	@cp distro_build_configs.sh release/
 	@cp cobbler.spec release/
 
-test-centos7: ## Executes the testscript for testing cobbler in a docker container on CentOS7.
-	./tests/build-and-install-rpms.sh --with-tests el7 dockerfiles/CentOS7.dockerfile
-
 test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
 	./tests/build-and-install-rpms.sh --with-tests el8 dockerfiles/CentOS8.dockerfile
 
