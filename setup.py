@@ -510,7 +510,6 @@ if __name__ == "__main__":
             "mod_wsgi",
             "requests",
             "pyyaml",
-            "simplejson",
             "netaddr",
             "Cheetah3",
             "pymongo",

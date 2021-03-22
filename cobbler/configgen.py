@@ -23,7 +23,7 @@ module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
 
-import simplejson as json
+import json
 import string
 
 from cobbler.cexceptions import CX

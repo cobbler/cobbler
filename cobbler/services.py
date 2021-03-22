@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import simplejson
+import json
 import time
 import xmlrpc.client
 import yaml
@@ -177,7 +177,7 @@ class CobblerSvc:
             nowtime = time.time()
             if ((nowtime - etime) < 30):
                 results.append([k, data[k][0], data[k][1], data[k][2]])
-        return simplejson.dumps(results)
+        return json.dumps(results)
 
     def template(self, profile=None, system=None, path=None, **rest) -> str:
         """
