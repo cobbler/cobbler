@@ -1,6 +1,5 @@
 netaddr
 Cheetah3
-simplejson
 dnspython
 pyyaml
 distro
