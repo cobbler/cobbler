@@ -33,7 +33,6 @@ of the following packages:
 - mod_ssl / libapache2-mod-ssl
 - python-cheetah
 - python-netaddr
-- python-simplejson
 - python-librepo
 - python-schema
 - PyYAML / python-yaml
@@ -70,7 +69,6 @@ Installation from source requires the following additional software:
 - make
 - python3-devel (on Debian based distributions ``python3-dev``)
 - python3-Cheetah3
-- python3-future
 - python3-Sphinx
 - python3-coverage
 - openssl

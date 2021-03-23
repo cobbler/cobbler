@@ -39,7 +39,7 @@ from typing import List, Optional, Union
 
 import distro
 import netaddr
-import simplejson
+import json
 
 from cobbler import clogger, settings
 from cobbler import field_info
@@ -1062,7 +1062,7 @@ def hashfile(fn, lcache=None, logger=None):
     dbfile = os.path.join(lcache, 'link_cache.json')
     try:
         if os.path.exists(dbfile):
-            db = simplejson.load(open(dbfile, 'r'))
+            db = json.load(open(dbfile, 'r'))
     except:
         pass
 
@@ -1078,7 +1078,7 @@ def hashfile(fn, lcache=None, logger=None):
         if lcache is not None:
             db[fn] = (mtime, key)
             # TODO: Safeguard this against above mentioned directory does not exist error.
-            simplejson.dump(db, open(dbfile, 'w'))
+            json.dump(db, open(dbfile, 'w'))
         return key
     else:
         return None
@@ -2175,7 +2175,7 @@ def load_signatures(filename, cache: bool = True):
 
     with open(filename, "r") as f:
         sigjson = f.read()
-    sigdata = simplejson.loads(sigjson)
+    sigdata = json.loads(sigjson)
     if cache:
         SIGNATURE_CACHE = sigdata
 

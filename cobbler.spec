@@ -212,7 +212,6 @@ Requires:       %{apache_mod_wsgi}
 Requires:       python%{python3_pkgversion}-netaddr
 Requires:       %{py3_module_pyyaml}
 Requires:       python%{python3_pkgversion}-requests
-Requires:       python%{python3_pkgversion}-simplejson
 Requires:       python%{python3_pkgversion}-distro
 Requires:       python%{python3_pkgversion}-schema
 Requires:       %{py3_module_file}

@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import os
 import glob
-import simplejson
+import json
 
 import cobbler.api as capi
 from cobbler import settings
@@ -86,7 +86,7 @@ def serialize_item(collection, item):
 
     _dict = item.to_dict()
     with open(filename, "w+") as file_descriptor:
-        data = simplejson.dumps(_dict, encoding="utf-8", sort_keys=sort_keys, indent=indent)
+        data = json.dumps(_dict, sort_keys=sort_keys, indent=indent)
         file_descriptor.write(data)
 
 
@@ -137,7 +137,7 @@ def deserialize_raw(collection_types: str):
         for f in all_files:
             with open(f) as file_descriptor:
                 json_data = file_descriptor.read()
-                _dict = simplejson.loads(json_data, encoding='utf-8')
+                _dict = json.loads(json_data)
                 results.append(_dict)
         return results
 
