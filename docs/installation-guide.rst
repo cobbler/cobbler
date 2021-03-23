@@ -2,7 +2,7 @@
 Install Guide
 ***********************************
 
-Setting up and running `cobblerd` is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts,
+Setting up and running `cobblerd` is not a easy task. Knowledge in Apache2 configuration (setting up ssl, virtual hosts,
 apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
 
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or
@@ -45,9 +45,7 @@ If you decide to use the LDAP authentication, please also install manually in an
 
 - python3-ldap3 (or via PyPi: ldap3)
 
-Koan can be installed apart from Cobbler, and has only the following requirement (besides python itself of course):
-
-- python-simplejson
+Koan can be installed apart from Cobbler. Please go to `Koan RTD <https://koan.readthedocs.io/en/latest/>`_ for details.
 
 .. note::
    Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
@@ -88,7 +86,7 @@ Packages
 We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
 However we provide docker files for
 
-- CentOS 7
+- Fedora 34
 - CentOS 8
 - Debian 10 Buster
 
