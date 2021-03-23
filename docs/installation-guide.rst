@@ -2,7 +2,7 @@
 Install Guide
 ***********************************
 
-Setting up and running `cobblerd` is not a easy task. Knowledge in Apache2 configuration (setting up ssl, virtual hosts,
+Setting up and running `cobblerd` is not a easy task. Knowledge in Apache2 configuration (setting up SSL, virtual hosts,
 apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
 
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or
@@ -23,8 +23,8 @@ four sources or from source with Git Tags.
     - ``dnf module enable cobbler``
     - ``dnf install cobbler``
 - `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
-- `openSUSE Leap 15.X <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
-  --> This gives you Cobbler 2.8.X sadly for now.
+- `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
+  --> This gives you Cobbler 2.8.x sadly for now.
 
 
 Prerequisites
@@ -60,7 +60,7 @@ If you decide to use the LDAP authentication, please also install manually in an
 
 - python3-ldap3 (or via PyPi: ldap3)
 
-Koan can be installed apart from Cobbler. Please go to `Koan RTD <https://koan.readthedocs.io/en/latest/>`_ for details.
+Koan can be installed apart from Cobbler. Please visit the `Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
 
 .. note::
    Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
@@ -185,8 +185,8 @@ Source
 ######
 
 .. warning:: Cobbler is not suited to be run outside of custom paths or being installed into a virtual environment. We
-             are working hard to get there but it is not possible yet. If you try this and it works please report to our
-             Github Repository and tell us what is left to support this conveniently.
+             are working hard to get there but it is not possible yet. If you try this and it works, please report to our
+             GitHub repository and tell us what is left to support this conveniently.
 
 The latest source code is available through git:
 
@@ -217,7 +217,7 @@ To preserve your existing configuration files, snippets and automatic installati
 
     $ make devinstall
 
-To install finish the installation in any of both cases, use these steps:
+To install Cobbler, finish the installation in any of both cases, use these steps:
 
 #. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory
    (``/etc/systemd/system``) and adjust ``ExecStart`` from ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd``.

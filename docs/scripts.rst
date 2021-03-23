@@ -1,6 +1,6 @@
-***********************************
+*******
 Scripts
-***********************************
+*******
 
 .. warning:: All execution examples are not meant to be copy&pasted! Cobbler instances are very custom and each command
              needs to be adjusted to your environment.
@@ -11,7 +11,7 @@ migrate-data-v2-to-v3.py
 Description
 ===========
 
-This script tries to convert your old Cobbler 2.X.X data to Cobbler 3.X.X data. It won't make backups and can't rollback
+This script tries to convert your old Cobbler 2.x.x data to Cobbler 3.x.x data. It won't make backups and can't rollback
 the changes it did.
 
 Execution examples
@@ -32,7 +32,7 @@ mkgrub.sh
 Description
 ===========
 
-This script will try generate UEFI bootable Bootloaders for your Cobbler installation. The script was written for Bash
+This script will try to generate UEFI bootable bootloaders for your Cobbler installation. The script was written for Bash
 but should be POSIX compliant. Be advised that only executing this script won't make your Cobbler installation UEFI
 ready.
 
@@ -56,7 +56,7 @@ settings-migration-v1-to-v2.sh
 Description
 ===========
 
-This script will try to replace your old ``modules.conf`` file (pre 3.0.1) to a new one (past or equal 3.0.1).
+This script will try to replace your old ``modules.conf`` file (< 3.0.1) to a new one (>= 3.0.1).
 
 Execution examples
 ==================

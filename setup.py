@@ -498,8 +498,8 @@ if __name__ == "__main__":
         author="Team Cobbler",
         author_email="cobbler.project@gmail.com",
         project_urls={
-            'Website': 'https://cobbler.github.io/',
-            'Documentation (Users)': 'https://cobbler.readthedocs.io/en/latest/',
+            'Website': 'https://cobbler.github.io',
+            'Documentation (Users)': 'https://cobbler.readthedocs.io/en/latest',
             'Documentation (Devs)': 'https://github.com/cobbler/cobbler/wiki',
             'Source': 'https://github.com/cobbler/cobbler',
             'Tracker': 'https://github.com/cobbler/cobbler/issues'
