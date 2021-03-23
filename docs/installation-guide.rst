@@ -11,6 +11,21 @@ directly from source.
 Cobbler has both definite and optional prerequisites, based on the features you'd like to use. This section documents
 the definite prerequisites for both a basic installation and when building/installing from source.
 
+Known packages by distros
+#########################
+
+This is the most convenient way and should be the default for most people. Production usage is advised only from these
+four sources or from source with Git Tags.
+
+- `Fedora 34 <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
+- `CentOS 8 <https://src.fedoraproject.org/rpms/cobbler>`_:
+    - ``dnf install epel-release``
+    - ``dnf module enable cobbler``
+    - ``dnf install cobbler``
+- `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
+- `openSUSE Leap 15.X <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
+  --> This gives you Cobbler 2.8.X sadly for now.
+
 
 Prerequisites
 #############
