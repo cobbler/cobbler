@@ -163,6 +163,23 @@ Init script:
 - add Required-Stop line
 - path needs to be ``/usr/local/...`` or fix the install location
 
+Multi-Build
+###########
+
+In the repository root there is a file called ``docker-compose.yml``. If you have ``docker-compose`` installed you may
+use that to build packages for multiple distros on a single run. Just execute:
+
+.. code-block:: shell
+
+   $ docker-compose up -d
+
+After some time all containers expect one should be exited and you should see two new folders owned by ``root`` called
+``rpm-build`` and ``deb-build``. The leftover docker container is meant to be used for testing and playing, if you don't
+require this playground you may just clean up with:
+
+.. code-block:: shell
+
+   $ docker-compose down
 
 Source
 ######
