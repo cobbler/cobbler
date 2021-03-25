@@ -1,9 +1,9 @@
-name: Linting docs
+name: Linting
 
 on: [push, pull_request]
 
 jobs:
-  run_linters:
+  lint_docs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
@@ -17,3 +17,11 @@ jobs:
       run:  rstcheck -r docs
     - name: Run doc8
       run: doc8 --ignore D001 docs
+  lint_shellscripts:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'

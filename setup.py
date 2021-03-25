@@ -478,7 +478,6 @@ class savestate(statebase):
 
 
 if __name__ == "__main__":
-
     setup(
         distclass=Distribution,
         cmdclass={
@@ -498,7 +497,13 @@ if __name__ == "__main__":
         long_description_content_type='text/markdown',
         author="Team Cobbler",
         author_email="cobbler.project@gmail.com",
-        url="https://cobbler.github.io",
+        project_urls={
+            'Website': 'https://cobbler.github.io',
+            'Documentation (Users)': 'https://cobbler.readthedocs.io/en/latest',
+            'Documentation (Devs)': 'https://github.com/cobbler/cobbler/wiki',
+            'Source': 'https://github.com/cobbler/cobbler',
+            'Tracker': 'https://github.com/cobbler/cobbler/issues'
+        },
         license="GPLv2+",
         setup_requires=[
             "coverage",

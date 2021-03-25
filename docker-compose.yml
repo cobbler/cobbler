@@ -5,7 +5,7 @@ services:
     image: local/cobbler-test-opensuse-leap
     build:
       context: .
-      dockerfile: docker/openSUSE_Leap.dockerfile
+      dockerfile: docker/rpms/opensuse_Leap_153/openSUSE_Leap.dockerfile
     container_name: cobbler-test-openSUSE-Leap
 
   centos8-build:
@@ -13,7 +13,7 @@ services:
     container_name: cobbler-centos8
     build:
       context: .
-      dockerfile: docker/CentOS8.dockerfile
+      dockerfile: docker/rpms/CentOS_8/CentOS8.dockerfile
     volumes:
       - ./rpm-build/el8:/usr/src/cobbler/rpm-build
 
@@ -22,6 +22,6 @@ services:
     container_name: cobbler-fedora33
     build:
       context: .
-      dockerfile: docker/Fedora33.dockerfile
+      dockerfile: docker/rpms/Fedora_34/Fedora34.dockerfile
     volumes:
       - ./rpm-build/f33:/usr/src/cobbler/rpm-build

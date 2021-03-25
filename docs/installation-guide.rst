@@ -2,7 +2,7 @@
 Install Guide
 ***********************************
 
-Setting up and running `cobblerd` is not a easy task. Knowledge in apache configuration (setting up ssl, virtual hosts,
+Setting up and running `cobblerd` is not a easy task. Knowledge in Apache2 configuration (setting up SSL, virtual hosts,
 apache module and wsgi) is needed. Certificates and some server administration knowledge is required too.
 
 Cobbler is available for installation in several different ways, through packaging systems for each distribution or
@@ -10,6 +10,21 @@ directly from source.
 
 Cobbler has both definite and optional prerequisites, based on the features you'd like to use. This section documents
 the definite prerequisites for both a basic installation and when building/installing from source.
+
+Known packages by distros
+#########################
+
+This is the most convenient way and should be the default for most people. Production usage is advised only from these
+four sources or from source with Git Tags.
+
+- `Fedora 34 <https://src.fedoraproject.org/rpms/cobbler>`_ - ``dnf install cobbler``
+- `CentOS 8 <https://src.fedoraproject.org/rpms/cobbler>`_:
+    - ``dnf install epel-release``
+    - ``dnf module enable cobbler``
+    - ``dnf install cobbler``
+- `openSUSE Tumbleweed <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
+- `openSUSE Leap 15.x <https://software.opensuse.org/package/cobbler>`_ - ``zypper in cobbler``
+  --> This gives you Cobbler 2.8.x sadly for now.
 
 
 Prerequisites
@@ -45,9 +60,7 @@ If you decide to use the LDAP authentication, please also install manually in an
 
 - python3-ldap3 (or via PyPi: ldap3)
 
-Koan can be installed apart from Cobbler, and has only the following requirement (besides python itself of course):
-
-- python-simplejson
+Koan can be installed apart from Cobbler. Please visit the `Koan documentation <https://koan.readthedocs.io/en/latest/>`_ for details.
 
 .. note::
    Not installing all required dependencies will lead to stacktraces in your Cobbler installation.
@@ -88,11 +101,24 @@ Packages
 We leave packaging to downstream; this means you have to check the repositories provided by your distribution vendor.
 However we provide docker files for
 
-- CentOS 7
+- Fedora 34
 - CentOS 8
 - Debian 10 Buster
 
 which will give you packages which will work better then building from source yourself.
+
+.. note:: If you have a close look at our ``docker`` folder you may see more folders and files but they are meant for
+          testing or other purposes. Please ignore them, this page is always aligned and up to date.
+
+To build the packages you to need to execute the following in the root folder of the cloned repository:
+
+- Fedora 34: ``./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile``
+- CentOS 8: ``./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile``
+- Debian 10: ``./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile``
+
+After executing the scripts you should have one folder owned by ``root`` which was created during the build. It is
+either called ``rpm-build`` or ``deb-build``. In these directories you should find the built packages. They are
+obviously unsigned and thus will generate warnings in relation to that fact.
 
 Packages from source
 ====================
@@ -122,13 +148,6 @@ To install Cobbler from source on a Debian-Based system, the following steps nee
 
 .. code-block:: shell
 
-    $ apt-get -y install make git
-    $ apt-get -y install python3-yaml python3-cheetah python3-netaddr python3-simplejson
-    $ apt-get -y install python3-future python3-distro python3-setuptools python3-sphinx python3-coverage
-    $ apt-get -y install pyflakes3 python3-pycodestyle
-    $ apt-get -y install apache2 libapache2-mod-wsgi-py3
-    $ apt-get -y install atftpd
-
     $ a2enmod proxy
     $ a2enmod proxy_http
     $ a2enmod rewrite
@@ -136,15 +155,38 @@ To install Cobbler from source on a Debian-Based system, the following steps nee
     $ ln -s /srv/tftp /var/lib/tftpboot
 
     $ systemctl restart apache2
+    $ make debs
 
 Change all ``/var/www/cobbler`` in ``/etc/apache2/conf.d/cobbler.conf`` to ``/usr/share/cobbler/webroot/``
 Init script:
+
 - add Required-Stop line
 - path needs to be ``/usr/local/...`` or fix the install location
 
+Multi-Build
+###########
+
+In the repository root there is a file called ``docker-compose.yml``. If you have ``docker-compose`` installed you may
+use that to build packages for multiple distros on a single run. Just execute:
+
+.. code-block:: shell
+
+   $ docker-compose up -d
+
+After some time all containers expect one should be exited and you should see two new folders owned by ``root`` called
+``rpm-build`` and ``deb-build``. The leftover docker container is meant to be used for testing and playing, if you don't
+require this playground you may just clean up with:
+
+.. code-block:: shell
+
+   $ docker-compose down
 
 Source
 ######
+
+.. warning:: Cobbler is not suited to be run outside of custom paths or being installed into a virtual environment. We
+             are working hard to get there but it is not possible yet. If you try this and it works, please report to our
+             GitHub repository and tell us what is left to support this conveniently.
 
 The latest source code is available through git:
 
@@ -157,8 +199,9 @@ The release30 branch corresponds to the official release version for the 3.0.x s
 development series, and always uses an odd number for the minor version (for example, 3.1.0).
 
 When building from source, make sure you have the correct prerequisites. The Makefile uses a script called
-`distro_build_configs.sh` which sets the correct environment variables. Be sure to source it if you do not
-use the Makefile.
+`distro_build_configs.sh` which sets the correct environment variables. Be sure to source it if you do not use the
+Makefile.
+
 If all prerequisites are met, you can install Cobbler with the following command:
 
 .. code-block:: shell
@@ -174,22 +217,18 @@ To preserve your existing configuration files, snippets and automatic installati
 
     $ make devinstall
 
-To install the Cobbler web GUI, use these steps:
+To install Cobbler, finish the installation in any of both cases, use these steps:
 
 #. Copy the systemd service file for `cobblerd` from ``/etc/cobbler/cobblerd.service`` to your systemd unit directory
    (``/etc/systemd/system``) and adjust ``ExecStart`` from ``/usr/bin/cobblerd`` to ``/usr/local/bin/cobblerd``.
 #. Install ``apache2-mod_wsgi-python3`` or the package responsible for your distro. (On Debian:
    ``libapache2-mod-wsgi-py3``)
 #. Enable the proxy module of Apache2 (``a2enmod proxy`` or something similar) if not enabled.
-#. ``make webtest``
-#. Copy ``templates`` and ``cobbler.wsgi`` from the ``web`` folder to ``/usr/share/cobbler/web``.
-#. Copy  ``settings.py`` from ``cobbler/web`` to ``/usr/share/cobbler/web`` and adjust the ``SECRET_KEY`` there.
 #. Restart Apache and ``cobblerd``.
 
-This will do a full install, not just the web GUI. ``make webtest`` is a wrapper around ``make devinstall``, so your
-configuration files will also be saved when running this command. Be adviced that we don't copy the service file into
-the correct directory and that the path to the binary may be wrong depending on the location of the binary on your
-system. Do this manually and then you should be good to go. The same is valid for the Apache webserver config.
+Be advised that we don't copy the service file into the correct directory and that the path to the binary may be wrong
+depending on the location of the binary on your system. Do this manually and then you should be good to go. The same is
+valid for the Apache webserver config.
 
 .. _relocating-your-installation:
 

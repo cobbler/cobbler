@@ -1,5 +1,5 @@
 # WARNING! This is not in any way production ready. It is just for testing!
-FROM registry.opensuse.org/opensuse/tumbleweed:latest
+FROM registry.opensuse.org/opensuse/leap:15.3
 
 # ENV Variables we are using.
 ENV container docker
@@ -15,16 +15,17 @@ RUN ["zypper", "-n", "in", "python3", "python3-devel", "python3-pip", "python3-s
     "apache2-mod_wsgi-python3"]
 RUN ["pip3", "install", "pykickstart"]
 
-# Packages for building & installing cobbler from source
+# Packages for building & installing cobbler from sourceless
 RUN ["zypper", "-n", "in", "make", "gzip", "sed", "git", "hg"]
 
 # Add Testuser for the PAM tests
-RUN ["useradd", "-p", "$(perl -e 'print crypt(\"test\", \"password\")", "test"]
+RUN useradd -p $(perl -e 'print crypt("test", "password")') test
 
 # Set tftpboot location correctly for SUSE distributions
 # RUN ["sed", "-e", "\"s|/var/lib/tftpboot|/srv/tftpboot|g\"", "-i", "cobbler/settings.py", "config/cobbler/settings.yaml"]
 
 # Install and setup testing framework
+RUN ["pip3", "install", "--upgrade", "pip"]
 RUN ["pip3", "install", "pytest-pythonpath"]
 
 # Enable the Apache Modules
@@ -34,11 +35,13 @@ RUN ["a2enmod", "proxy_http"]
 RUN ["a2enmod", "wsgi"]
 
 WORKDIR /test_dir
-COPY . /test_dir
+COPY ../.. /test_dir
 COPY ./tests/setup_files/pam/login /etc/pam.d/login
 COPY ./tests/setup_files/supervisord/supervisord.conf /etc/supervisord.conf
 COPY ./tests/setup_files/supervisord/conf.d /etc/supervisord/conf.d
 
+# Install optional stuff
+RUN ["pip3", "install", "pymongo", "Jinja2" ]
 # Install and upgrade all dependencies
 RUN ["pip3", "install", "--upgrade", "pip"]
 RUN ["pip3", "install", ".[lint,test]"]

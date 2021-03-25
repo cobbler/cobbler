@@ -93,17 +93,14 @@ release: clean qa authors sdist ## Creates the full release.
 	@cp distro_build_configs.sh release/
 	@cp cobbler.spec release/
 
-test-centos7: ## Executes the testscript for testing cobbler in a docker container on CentOS7.
-	./tests/build-and-install-rpms.sh --with-tests el7 dockerfiles/CentOS7.dockerfile
-
 test-centos8: ## Executes the testscript for testing cobbler in a docker container on CentOS8.
-	./tests/build-and-install-rpms.sh --with-tests el8 dockerfiles/CentOS8.dockerfile
+	./docker/rpms/build-and-install-rpms.sh el8 docker/rpms/CentOS_8/CentOS8.dockerfile
 
-test-fedora33: ## Executes the testscript for testing cobbler in a docker container on Fedora 33.
-	./tests/build-and-install-rpms.sh --with-tests fc33 dockerfiles/Fedora33.dockerfile
+test-fedora34: ## Executes the testscript for testing cobbler in a docker container on Fedora 33.
+	./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile
 
 test-debian10: ## Executes the testscript for testing cobbler in a docker container on Debian 10.
-	./tests/build-and-install-debs.sh --with-tests deb10 dockerfiles/Debian10.dockerfile
+	./docker/debs/build-and-install-debs.sh deb10 docker/debs/Debian_10/Debian10.dockerfile
 
 build: ## Runs the Python Build.
 	@source distro_build_configs.sh; \

@@ -1,6 +1,6 @@
 # vim: ft=dockerfile
 
-FROM fedora:33
+FROM fedora:34
 
 RUN dnf makecache
 
@@ -50,8 +50,8 @@ RUN yum install -y          \
     fence-agents            \
     supervisor
 
-COPY ./docker/Fedora33/supervisord/supervisord.conf /etc/supervisord.conf
-COPY ./docker/Fedora33/supervisord/conf.d /etc/supervisord/conf.d
+COPY ./docker/rpms/Fedora_34/supervisord/supervisord.conf /etc/supervisord.conf
+COPY ./docker/rpms/Fedora_34/supervisord/conf.d /etc/supervisord/conf.d
 
 COPY . /usr/src/cobbler
 WORKDIR /usr/src/cobbler
