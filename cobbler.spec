@@ -1,19 +1,22 @@
+#
+# spec file for package cobbler
+#
+# Copyright (c) 2021 SUSE LLC
 # Copyright (c) 2006 Michael DeHaan <mdehaan@redhat.com>
 #
-# RPM spec file for all Cobbler packages
-#
-# Supported/tested build targets:
-# - Fedora: 30, 31, Rawhide
-# - CentOS + EPEL: 7, 8
-# - SLE: 15sp1
-# - openSUSE: Leap 15.1, Tumbleweed
-# - Debian: 10
-# - Ubuntu: 18.04
-#
-# If it doesn't build on the Open Build Service (OBS) it's a bug.
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
-# Force bash instead of Debian dash
+
 %global _buildshell /bin/bash
 
 # Stop mangling shebangs. It breaks CI.
@@ -152,24 +155,24 @@ License:        GPL-2.0-or-later
 Source:         %{name}-%{version}.tar.gz
 BuildArch:      noarch
 
-BuildRequires:  git-core
 BuildRequires:  %{system_release_pkg}
+BuildRequires:  git-core
 BuildRequires:  python%{python3_pkgversion}-%{devsuffix}
 %if 0%{?suse_version}
 BuildRequires:  python-rpm-macros
 %endif
 %if "%{_vendor}" == "debbuild"
-BuildRequires:  python3-deb-macros
 BuildRequires:  apache2-deb-macros
+BuildRequires:  python3-deb-macros
 
 %endif
+BuildRequires:  %{py3_module_cheetah}
 BuildRequires:  %{py3_module_coverage}
+BuildRequires:  %{py3_module_sphinx}
 BuildRequires:  python%{python3_pkgversion}-distro
-BuildRequires:  python%{python3_pkgversion}-setuptools
 BuildRequires:  python%{python3_pkgversion}-netaddr
 BuildRequires:  python%{python3_pkgversion}-schema
-BuildRequires:  %{py3_module_cheetah}
-BuildRequires:  %{py3_module_sphinx}
+BuildRequires:  python%{python3_pkgversion}-setuptools
 %if 0%{?suse_version}
 # Make post-build-checks happy by including these in the buildroot
 BuildRequires:  bash-completion
@@ -191,37 +194,36 @@ BuildRequires:  systemd-rpm-macros
 BuildRequires:  systemd-deb-macros
 Requires:       systemd-sysv
 Requires(post): python3-minimal
-Requires(preun): python3-minimal
+Requires(preun):python3-minimal
 %endif
 Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
+Requires(preun):systemd
+Requires(postun):systemd
 
 
 Requires:       %{apache_pkg}
-Requires:       %{tftpsrv_pkg}
 Requires:       %{createrepo_pkg}
+Requires:       %{tftpsrv_pkg}
 Requires:       fence-agents
 Requires:       rsync
 Requires:       xorriso
 %{?python_enable_dependency_generator}
 %if ! (%{defined python_enable_dependency_generator} || %{defined python_disable_dependency_generator})
+Requires:       %{apache_mod_wsgi}
 Requires:       %{py3_module_cheetah}
 Requires:       %{py3_module_dns}
-Requires:       %{apache_mod_wsgi}
-Requires:       python%{python3_pkgversion}-netaddr
-Requires:       %{py3_module_pyyaml}
-Requires:       python%{python3_pkgversion}-requests
-Requires:       python%{python3_pkgversion}-distro
-Requires:       python%{python3_pkgversion}-schema
 Requires:       %{py3_module_file}
+Requires:       %{py3_module_pyyaml}
+Requires:       python%{python3_pkgversion}-distro
+Requires:       python%{python3_pkgversion}-netaddr
+Requires:       python%{python3_pkgversion}-requests
+Requires:       python%{python3_pkgversion}-schema
 %if 0%{?suse_version}
 Recommends:     python%{python3_pkgversion}-ldap3
 %else
 Requires:       python%{python3_pkgversion}-ldap3
 %endif
 %endif
-
 
 %if 0%{?fedora} || 0%{?rhel}
 Requires:       dnf-plugins-core
@@ -259,7 +261,6 @@ Requires:       cobbler = %{version}-%{release}
 
 %description tests
 Unit test files from the Cobbler project
-
 
 %prep
 %setup
@@ -305,7 +306,6 @@ mkdir -p %{buildroot}%{_sbindir}
 ln -sf service %{buildroot}%{_sbindir}/rccobblerd
 %endif
 
-
 %pre
 %if "%{_vendor}" == "debbuild"
 if [ "$1" = "upgrade" ]; then
@@ -341,6 +341,7 @@ fi
 %{systemd_postun_with_restart cobblerd.service}
 
 %else
+
 %post
 %if 0%{?suse_version}
 # Create bootloders into /var/lib/cobbler/loaders
@@ -458,5 +459,3 @@ fi
 %{_datadir}/cobbler/tests/*
 
 %changelog
-* Thu Dec 19 2019 Neal Gompa <ngompa13@gmail.com>
-- Initial rewrite of packaging
