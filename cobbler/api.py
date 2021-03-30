@@ -23,6 +23,7 @@ from configparser import ConfigParser
 import os
 import random
 import tempfile
+import threading
 from typing import Optional
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
@@ -79,6 +80,9 @@ class CobblerAPI:
 
             random.seed()
             self.is_cobblerd = is_cobblerd
+            if is_cobblerd:
+                main_thread = threading.main_thread()
+                main_thread.setName("Daemon")
 
             try:
                 self.logger = logging.getLogger()

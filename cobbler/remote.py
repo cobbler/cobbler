@@ -59,13 +59,13 @@ class CobblerThread(Thread):
         """
         This constructor creates a Cobbler thread which then may be run by calling ``run()``.
 
-        :param event_id: The event-id which is associated with this thread.
+        :param event_id: The event-id which is associated with this thread. Also used as thread name
         :param remote: The Cobbler remote object to execute actions with.
         :param options: Additional options which can be passed into the Thread.
-        :param task_name: The name of the task which will be visible in the logger.
+        :param task_name: The high level task name which is used to trigger pre and post task triggers
         :param api: The Cobbler api object to resolve information with.
         """
-        Thread.__init__(self)
+        Thread.__init__(self, name=event_id)
         self.event_id = event_id
         self.remote = remote
         self.logger = logging.getLogger()

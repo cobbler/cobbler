@@ -788,11 +788,11 @@ class CobblerCLI:
 
     def follow_task(self, task_id):
         """
-        Follow a task which is remotely executed on the Cobbler-server.
+        Parse out this task's specific messages from the global log
 
         :param task_id: The id of the task to follow.
         """
-        logfile = "/var/log/cobbler/tasks/%s.log" % task_id
+        logfile = "/var/log/cobbler/cobbler.log"
         # adapted from:  http://code.activestate.com/recipes/157035/
         file = open(logfile, 'r')
         # Find the size of the file and move to the end
@@ -803,6 +803,8 @@ class CobblerCLI:
         while 1:
             where = file.tell()
             line = file.readline()
+            if not line.startswith("[" + task_id + "]"):
+                continue
             if line.find("### TASK COMPLETE ###") != -1:
                 print("*** TASK COMPLETE ***")
                 return 0
