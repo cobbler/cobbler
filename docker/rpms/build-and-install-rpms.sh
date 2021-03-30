@@ -32,10 +32,19 @@ docker run -t -d --name cobbler -v "$PWD/rpm-build:/usr/src/cobbler/rpm-build" "
 echo "==> Install fresh RPMs ..."
 docker exec -it cobbler bash -c 'rpm -Uvh rpm-build/cobbler-*.noarch.rpm'
 
-echo "==> Remove httpd SSL default config which is automatically loaded normally"
-docker exec -it cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
+# openSUSE does not have this file so skip it
+if test "${TAG#*opensuse}" == "$TAG"
+then
+    echo "==> Remove httpd SSL default config which is automatically loaded normally"
+    docker exec -it cobbler bash -c 'rm /etc/httpd/conf.d/ssl.conf'
+fi
 
 echo "==> Start Supervisor ..."
+if docker exec -it cobbler bash -c 'test ! -d "/var/log/supervisor"'
+then
+    echo "==> /var/log/supervisor does not exist, create it"
+    docker exec -it cobbler bash -c 'mkdir -p /var/log/supervisor'
+fi
 docker exec -it cobbler bash -c 'supervisord -c /etc/supervisord.conf'
 
 echo "==> Show Logs ..."
