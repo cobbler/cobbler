@@ -24,15 +24,13 @@ import os
 import os.path
 import logging
 
-from cobbler import clogger
-
 
 class LogTool:
     """
     Helpers for dealing with System logs, anamon, etc..
     """
 
-    def __init__(self, collection_mgr, system, api, logger=None):
+    def __init__(self, collection_mgr, system, api):
         """
         Log library constructor requires a Cobbler system object.
         """
@@ -40,9 +38,7 @@ class LogTool:
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
         self.api = api
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
 
     def clear(self):
         """

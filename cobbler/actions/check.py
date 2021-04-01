@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 
 import glob
+import logging
 import os
 import re
 
-from cobbler import clogger
 from cobbler import utils
 
 
@@ -33,18 +33,15 @@ class CobblerCheck:
     serving up content. This is the code behind 'cobbler check'.
     """
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager which holds all information.
-        :param logger: The logger to audit all actions with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.checked_family = ""
 
     def run(self):
@@ -140,8 +137,7 @@ class CobblerCheck:
         return_code = 0
         if self.checked_family in ("redhat", "suse"):
             if os.path.exists("/etc/rc.d/init.d/%s" % which):
-                return_code = utils.subprocess_call(self.logger,
-                                                    "/sbin/service %s status > /dev/null 2>/dev/null" % which,
+                return_code = utils.subprocess_call("/sbin/service %s status > /dev/null 2>/dev/null" % which,
                                                     shell=True)
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
@@ -149,8 +145,7 @@ class CobblerCheck:
         elif self.checked_family == "debian":
             # we still use /etc/init.d
             if os.path.exists("/etc/init.d/%s" % which):
-                return_code = utils.subprocess_call(self.logger,
-                                                    "/etc/init.d/%s status /dev/null 2>/dev/null" % which,
+                return_code = utils.subprocess_call("/etc/init.d/%s status /dev/null 2>/dev/null" % which,
                                                     shell=True)
             if return_code != 0:
                 status.append("service %s is not running%s" % (which, notes))
@@ -168,8 +163,7 @@ class CobblerCheck:
         :param status: The status list with possible problems.
         """
         if os.path.exists("/etc/rc.d/init.d/iptables"):
-            return_code = utils.subprocess_call(self.logger,
-                                                "/sbin/service iptables status >/dev/null 2>/dev/null",
+            return_code = utils.subprocess_call("/sbin/service iptables status >/dev/null 2>/dev/null",
                                                 shell=True)
             if return_code == 0:
                 status.append("since iptables may be running, ensure 69, 80/443, and %(xmlrpc)s are unblocked"
@@ -322,7 +316,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call(self.logger, "dnsmasq --help")
+        return_code = utils.subprocess_call("dnsmasq --help")
         if return_code != 0:
             status.append("dnsmasq is not installed and/or in path")
 
@@ -332,7 +326,7 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        return_code = utils.subprocess_call(self.logger, "named -v")
+        return_code = utils.subprocess_call("named -v")
         # it should return something like "BIND 9.6.1-P1-RedHat-9.6.1-6.P1.fc11"
         if return_code != 0:
             status.append("named is not installed and/or in path")
@@ -343,8 +337,8 @@ class CobblerCheck:
 
         :param status: The status list with possible problems.
         """
-        rc_wget = utils.subprocess_call(self.logger, "wget --help")
-        rc_curl = utils.subprocess_call(self.logger, "curl --help")
+        rc_wget = utils.subprocess_call("wget --help")
+        rc_curl = utils.subprocess_call("curl --help")
         if rc_wget != 0 and rc_curl != 0:
             status.append("Neither wget nor curl are installed and/or available in $PATH. Cobbler requires that one "
                           "of these utilities be installed.")

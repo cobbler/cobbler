@@ -35,14 +35,13 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/pre/*"
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     The list of args should have one element:
         - 1: the name of the system or profile
 
     :param api: The api to resolve metadata with.
     :param args: This should be a list as described above.
-    :param logger: This parameter is unused currently.
     :return: "0" on success.
     """
 

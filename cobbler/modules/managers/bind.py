@@ -20,12 +20,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import re
 import socket
 import time
 
-from cobbler import clogger
 from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
@@ -48,16 +47,13 @@ class BindManager:
         """
         return "bind"
 
-    def __init__(self, collection_mgr, logger: clogger.Logger):
+    def __init__(self, collection_mgr):
         """
         Constructor to create a default BindManager object.
 
         :param collection_mgr: The collection manager to resolve all information with.
-        :param logger: This is used to audit all actions with.
         """
-        self.logger = logger
-        if self.logger is None:
-            self.logger = clogger.Logger()
+        self.logger = logging.getLogger()
 
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
@@ -325,8 +321,7 @@ zone "%(arpa)s." {
         template_data = f2.read()
         f2.close()
 
-        if self.logger is not None:
-            self.logger.info("generating %s" % settings_file)
+        self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
 
     def __write_secondary_conf(self):
@@ -390,8 +385,7 @@ zone "%(arpa)s." {
         template_data = f2.read()
         f2.close()
 
-        if self.logger is not None:
-            self.logger.info("generating %s" % settings_file)
+        self.logger.info("generating %s", settings_file)
         self.templar.render(template_data, metadata, settings_file)
 
     def __ip_sort(self, ips: list):
@@ -440,8 +434,8 @@ zone "%(arpa)s." {
         for system in self.systems:
             for (name, interface) in list(system.interfaces.items()):
                 if interface["dns_name"] == "":
-                    self.logger.info("Warning: dns_name unspecified in the system: %s, while writing host records"
-                                     % system.name)
+                    self.logger.info("Warning: dns_name unspecified in the system: %s, while writing host records",
+                                     system.name)
 
         names = [k for k, v in list(hosts.items())]
         if not names:
@@ -497,8 +491,8 @@ zone "%(arpa)s." {
                         for cname in cnames:
                             s += "%s  %s  %s;\n" % (cname.split('.')[0], rectype, dnsname)
                     else:
-                        self.logger.info(("Warning: dns_name unspecified in the system: %s, Skipped!, while writing "
-                                          "cname records") % system.name)
+                        self.logger.info("Warning: dns_name unspecified in the system: %s, Skipped!, while writing "
+                                         "cname records", system.name)
                         continue
                 except:
                     pass
@@ -584,8 +578,7 @@ zone "%(arpa)s." {
             metadata['host_record'] = self.__pretty_print_host_records(hosts)
 
             zonefilename = zonefileprefix + zone
-            if self.logger is not None:
-                self.logger.info("generating (forward) %s" % zonefilename)
+            self.logger.info("generating (forward) %s", zonefilename)
             self.templar.render(template_data, metadata, zonefilename)
 
         for (zone, hosts) in list(reverse.items()):
@@ -610,8 +603,7 @@ zone "%(arpa)s." {
             metadata['host_record'] = self.__pretty_print_host_records(hosts, rectype='PTR')
 
             zonefilename = zonefileprefix + zone
-            if self.logger is not None:
-                self.logger.info("generating (reverse) %s" % zonefilename)
+            self.logger.info("generating (reverse) %s", zonefilename)
             self.templar.render(template_data, metadata, zonefilename)
 
     def write_dns_files(self):
@@ -624,12 +616,11 @@ zone "%(arpa)s." {
         self.__write_zone_files()
 
 
-def get_manager(collection_mgr, logger: clogger.Logger):
+def get_manager(collection_mgr):
     """
     This returns the object to manage a BIND server located locally on the Cobbler server.
 
     :param collection_mgr: The collection manager to resolve all information with.
-    :param logger: The logger to audit all actions with.
     :return: The BindManger object to manage bind with.
     """
-    return BindManager(collection_mgr, logger)
+    return BindManager(collection_mgr)

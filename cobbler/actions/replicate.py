@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import fnmatch
+import logging
 import os
 import xmlrpc.client
 from typing import Optional
 
-from cobbler import clogger
 from cobbler import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
@@ -37,21 +37,18 @@ class Replicate:
     This class contains the magic to replicate a Cobbler instance to another Cobbler instance.
     """
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager which holds all information available in Cobbler.
-        :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
         self.api = collection_mgr.api
         self.remote = None
         self.uri = None
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
+        self.logger = logging.getLogger()
 
     def rsync_it(self, from_path, to_path, type: Optional[str] = None):
         """
@@ -67,7 +64,7 @@ class Replicate:
         else:
             cmd = "rsync %s %s %s" % (self.settings.replicate_rsync_options, from_path, to_path)
 
-        rc = utils.subprocess_call(self.logger, cmd, shell=True)
+        rc = utils.subprocess_call(cmd, shell=True)
         if rc != 0:
             self.logger.info("rsync failed")
 
@@ -86,9 +83,9 @@ class Replicate:
             if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
-                    self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
+                    self.api.remove_item(obj_type, ldata["name"], recursive=True)
                 except Exception:
-                    utils.log_exc(self.logger)
+                    utils.log_exc()
 
     # -------------------------------------------------------
 
@@ -113,10 +110,10 @@ class Replicate:
                 newobj.from_dict(utils.revert_strip_none(rdata))
                 try:
                     self.logger.info("adding %s %s" % (obj_type, rdata["name"]))
-                    if not self.api.add_item(obj_type, newobj, logger=self.logger):
+                    if not self.api.add_item(obj_type, newobj):
                         self.logger.error("failed to add %s %s" % (obj_type, rdata["name"]))
                 except Exception:
-                    utils.log_exc(self.logger)
+                    utils.log_exc()
 
     # -------------------------------------------------------
 
@@ -140,7 +137,7 @@ class Replicate:
 
                     if ldata["name"] != rdata["name"]:
                         self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
-                        self.api.remove_item(obj_type, ldata["name"], recursive=True, logger=self.logger)
+                        self.api.remove_item(obj_type, ldata["name"], recursive=True)
                     creator = getattr(self.api, "new_%s" % obj_type)
                     newobj = creator()
                     newobj.from_dict(utils.revert_strip_none(rdata))
@@ -149,7 +146,7 @@ class Replicate:
                         if not self.api.add_item(obj_type, newobj):
                             self.logger.error("failed to update %s %s" % (obj_type, rdata["name"]))
                     except Exception:
-                        utils.log_exc(self.logger)
+                        utils.log_exc()
 
     # -------------------------------------------------------
 
@@ -378,7 +375,7 @@ class Replicate:
         elif len(self.settings.cobbler_master) > 0:
             self.master = self.settings.cobbler_master
         else:
-            utils.die(self.logger, 'No Cobbler master specified, try --master.')
+            utils.die('No Cobbler master specified, try --master.')
 
         self.uri = '%s://%s:%s/cobbler_api' % (protocol, self.master, self.port)
 
@@ -407,5 +404,5 @@ class Replicate:
         self.replicate_data()
         self.link_distros()
         self.logger.info("Syncing")
-        self.api.sync(logger=self.logger)
+        self.api.sync()
         self.logger.info("Done")

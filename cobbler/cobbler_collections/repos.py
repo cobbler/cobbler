@@ -17,11 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
 import os.path
 
 from cobbler.cobbler_collections import collection
-from cobbler.items import repo as repo
+from cobbler.items import repo
 from cobbler import utils
 from cobbler.cexceptions import CX
 
@@ -50,7 +49,7 @@ class Repos(collection.Collection):
         return new_repo
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False, logger=None):
+               recursive: bool = False):
         """
         Remove element named 'name' from the collection
         """
@@ -61,7 +60,7 @@ class Repos(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
 
             self.lock.acquire()
             try:
@@ -72,8 +71,8 @@ class Repos(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [], logger)
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
                 # FIXME: better use config.settings() webdir?
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name

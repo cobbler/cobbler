@@ -382,7 +382,7 @@ def test_run_this():
     test_args = "Test"
 
     # Act
-    utils.run_this(test_cmd, test_args, None)
+    utils.run_this(test_cmd, test_args)
 
     # Assert - If above method get's a zero exitcode it counts as successfully completed. Otherwise we die.
     assert True
@@ -463,7 +463,7 @@ def test_cachefile():
     api = None
 
     # Act
-    utils.cachefile(cache_src, cache_dst, api=api)
+    utils.cachefile(cache_src, cache_dst)
 
     # Assert
     # TODO: Check .link_cache folder exists and the link cache file in it
@@ -492,7 +492,7 @@ def test_copyfile():
     test_destination = ""
 
     # Act
-    utils.copyfile(test_source, test_destination, None)
+    utils.copyfile(test_source, test_destination)
 
     # Assert
     assert False
@@ -911,7 +911,7 @@ def test_subprocess_sp():
     # Arrange
 
     # Act
-    result_out, result_rc = utils.subprocess_sp(None, "echo Test")
+    result_out, result_rc = utils.subprocess_sp("echo Test")
 
     # Assert
     # The newline makes sense in my (@SchoolGuy) eyes since we want to have multiline output also in a single string.
@@ -923,7 +923,7 @@ def test_subprocess_call():
     # Arrange
 
     # Act
-    result = utils.subprocess_call(None, "echo Test")
+    result = utils.subprocess_call("echo Test")
 
     # Assert
     assert result == 0
@@ -933,7 +933,7 @@ def test_subprocess_get():
     # Arrange
 
     # Act
-    result = utils.subprocess_get(None, "echo Test")
+    result = utils.subprocess_get("echo Test")
 
     # Assert
     # The newline makes sense in my (@SchoolGuy) eyes since we want to have multiline output also in a single string.

@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 from configparser import ConfigParser
 from importlib import import_module
 
@@ -29,7 +29,6 @@ import os
 from typing import Optional, Dict, Any
 
 from cobbler.cexceptions import CX
-from cobbler import clogger
 from cobbler.utils import log_exc
 
 # add cobbler/modules to python path
@@ -41,6 +40,9 @@ MODULE_CACHE: Dict[str, Any] = {}
 MODULES_BY_CATEGORY: Dict[str, Dict[str, Any]] = {}
 
 
+logger = logging.getLogger()
+
+
 def load_modules(module_path: str = mod_path):
     """
     Load the modules from the path handed to the function into Cobbler.
@@ -48,7 +50,6 @@ def load_modules(module_path: str = mod_path):
     :param module_path: The path which should be considered as the root module path.
     :return: Two dictionary's with the dynamically loaded modules.
     """
-    logger = clogger.Logger()
 
     filenames = glob.glob("%s/*.py" % module_path)
     filenames += glob.glob("%s/*.pyc" % module_path)
@@ -75,18 +76,17 @@ def load_modules(module_path: str = mod_path):
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
-        __import_module(mod_path, modname, logger)
+        __import_module(mod_path, modname)
 
     return MODULE_CACHE, MODULES_BY_CATEGORY
 
 
-def __import_module(module_path: str, modname: str, logger: clogger.Logger):
+def __import_module(module_path: str, modname: str):
     """
     Import a module which is not part of the core functionality of Cobbler.
 
     :param module_path: The path to the module.
     :param modname: The name of the module.
-    :param logger: The logger to audit the action with.
     """
     try:
         blip = import_module("cobbler.modules.%s" % modname)

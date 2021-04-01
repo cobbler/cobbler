@@ -1,5 +1,13 @@
+"""
+Restarts the DHCP and/or DNS after a Cobbler sync to apply changes to the configuration files.
+"""
+
+import logging
+
 import cobbler.module_loader as module_loader
 import cobbler.utils as utils
+
+logger = logging.getLogger()
 
 
 def register() -> str:
@@ -14,14 +22,13 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/sync/post/*"
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     Run the trigger via this method, meaning in this case that depending on the settings dns and/or dhcp services are
     restarted.
 
     :param api: The api to resolve settings.
     :param args: This parameter is not used currently.
-    :param logger: The logger to audit the action with.
     :return: The return code of the service restarts.
     """
     settings = api.settings()
@@ -36,16 +43,16 @@ def run(api, args, logger) -> int:
     if settings.manage_dhcp:
         if which_dhcp_module == "managers.isc":
             if settings.restart_dhcp:
-                rc = utils.subprocess_call(logger, "dhcpd -t -q", shell=True)
+                rc = utils.subprocess_call("dhcpd -t -q", shell=True)
                 if rc != 0:
                     logger.error("dhcpd -t failed")
                     return 1
                 dhcp_service_name = utils.dhcp_service_name()
                 dhcp_restart_command = "service %s restart" % dhcp_service_name
-                rc = utils.subprocess_call(logger, dhcp_restart_command, shell=True)
+                rc = utils.subprocess_call(dhcp_restart_command, shell=True)
         elif which_dhcp_module == "managers.dnsmasq":
             if settings.restart_dhcp:
-                rc = utils.subprocess_call(logger, "service dnsmasq restart")
+                rc = utils.subprocess_call("service dnsmasq restart")
                 has_restarted_dnsmasq = True
         else:
             logger.error("unknown DHCP engine: %s" % which_dhcp_module)
@@ -55,9 +62,9 @@ def run(api, args, logger) -> int:
         if which_dns_module == "managers.bind":
             named_service_name = utils.named_service_name()
             dns_restart_command = "service %s restart" % named_service_name
-            rc = utils.subprocess_call(logger, dns_restart_command, shell=True)
+            rc = utils.subprocess_call(dns_restart_command, shell=True)
         elif which_dns_module == "managers.dnsmasq" and not has_restarted_dnsmasq:
-            rc = utils.subprocess_call(logger, "service dnsmasq restart", shell=True)
+            rc = utils.subprocess_call("service dnsmasq restart", shell=True)
         elif which_dns_module == "managers.dnsmasq" and has_restarted_dnsmasq:
             rc = 0
         elif which_dns_module == "managers.ndjbdns":

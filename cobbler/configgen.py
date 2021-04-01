@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 module for generating configuration manifest using autoinstall_meta data,
 mgmtclasses, resources, and templates for a given system (hostname)
 """
+import logging
 
 import json
 import string
 
 from cobbler.cexceptions import CX
-from cobbler import clogger
 from cobbler import template_api
 import cobbler.api as capi
 import cobbler.utils
@@ -50,7 +50,7 @@ class ConfigGen:
         self.handle = capi.CobblerAPI()
         self.system = self.handle.find_system(hostname=self.hostname)
         self.host_vars = self.get_cobbler_resource('autoinstall_meta')
-        self.logger = clogger.Logger()
+        self.logger = logging.getLogger()
         self.mgmtclasses = self.get_cobbler_resource('mgmt_classes')
 
     # ----------------------------------------------------------------------

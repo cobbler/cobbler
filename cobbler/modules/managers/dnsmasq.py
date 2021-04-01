@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import time
 
 import cobbler.templar as templar
@@ -43,14 +43,13 @@ class DnsmasqManager:
     Handles conversion of internal state to the tftpboot tree layout.
     """
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager to resolve all information with.
-        :param logger: The logger to audit all actions with.
         """
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
         self.distros = collection_mgr.distros()
@@ -227,19 +226,18 @@ class DnsmasqManager:
         This restarts the dhcp server and thus applied the newly written config files.
         """
         if self.settings.restart_dhcp:
-            rc = utils.subprocess_call(self.logger, "service dnsmasq restart")
+            rc = utils.subprocess_call("service dnsmasq restart")
             if rc != 0:
                 error_msg = "service dnsmasq restart failed"
                 self.logger.error(error_msg)
                 raise CX(error_msg)
 
 
-def get_manager(collection_mgr, logger):
+def get_manager(collection_mgr):
     """
     Creates a manager object to manage a dnsmasq server.
 
     :param collection_mgr: The collection manager to resolve all information with.
-    :param logger: The logger to audit all actions with.
     :return: The object generated from the class.
     """
-    return DnsmasqManager(collection_mgr, logger)
+    return DnsmasqManager(collection_mgr)

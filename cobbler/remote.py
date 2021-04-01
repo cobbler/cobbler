@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import base64
 import errno
 import fcntl
+import logging
 import os
 import random
 import xmlrpc.server
@@ -31,7 +32,6 @@ from threading import Thread
 import time
 
 from cobbler import autoinstall_manager
-from cobbler import clogger
 from cobbler import configgen
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import tftpgen
@@ -55,21 +55,20 @@ class CobblerThread(Thread):
     """
     Code for Cobbler's XMLRPC API.
     """
-    def __init__(self, event_id, remote, logatron, options, task_name, api):
+    def __init__(self, event_id, remote, options, task_name, api):
         """
         This constructor creates a Cobbler thread which then may be run by calling ``run()``.
 
-        :param event_id: The event-id which is associated with this thread.
+        :param event_id: The event-id which is associated with this thread. Also used as thread name
         :param remote: The Cobbler remote object to execute actions with.
-        :param logatron: The logger to audit all actions with.
         :param options: Additional options which can be passed into the Thread.
-        :param task_name: The name of the task which will be visible in the logger.
+        :param task_name: The high level task name which is used to trigger pre and post task triggers
         :param api: The Cobbler api object to resolve information with.
         """
-        Thread.__init__(self)
+        Thread.__init__(self, name=event_id)
         self.event_id = event_id
         self.remote = remote
-        self.logger = logatron
+        self.logger = logging.getLogger()
         if options is None:
             options = {}
         self.options = options
@@ -90,7 +89,7 @@ class CobblerThread(Thread):
         """
         time.sleep(1)
         try:
-            if utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name, self.options, self.logger):
+            if utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name, self.options):
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
                 return False
             rc = self._run(self)
@@ -99,10 +98,10 @@ class CobblerThread(Thread):
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
                 self.on_done()
-                utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name, self.options, self.logger)
+                utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name, self.options)
             return rc
         except:
-            utils.log_exc(self.logger)
+            utils.log_exc()
             self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
             return False
 
@@ -129,7 +128,7 @@ class CobblerXMLRPCInterface:
         self.events = {}
         self.shared_secret = utils.get_shared_secret()
         random.seed(time.time())
-        self.tftpgen = tftpgen.TFTPGen(api._collection_mgr, self.logger)
+        self.tftpgen = tftpgen.TFTPGen(api._collection_mgr)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
 
     def check(self, token):
@@ -143,7 +142,7 @@ class CobblerXMLRPCInterface:
         :rtype: None or list
         """
         self.check_access(token, "check")
-        return self.api.check(logger=self.logger)
+        return self.api.check()
 
     def background_buildiso(self, options, token):
         """
@@ -171,7 +170,6 @@ class CobblerXMLRPCInterface:
                 self.options.get("source", None),
                 self.options.get("exclude_dns", False),
                 self.options.get("xorrisofs_opts", None),
-                self.logger
             )
 
         def on_done(self):
@@ -194,7 +192,6 @@ class CobblerXMLRPCInterface:
                 self.options.get("addgroup", None),
                 self.options.get("removeuser", None),
                 self.options.get("removegroup", None),
-                self.logger
             )
         return self.__start_task(runner, token, "aclsetup", "(CLI) ACL Configuration", options)
 
@@ -207,7 +204,7 @@ class CobblerXMLRPCInterface:
         :return: The id of the task which was started.
         """
         def runner(self):
-            self.remote.api.sync(self.options.get("verbose", False), logger=self.logger)
+            self.remote.api.sync(self.options.get("verbose", False))
         return self.__start_task(runner, token, "sync", "Sync", options)
 
     def background_hardlink(self, options, token) -> str:
@@ -219,7 +216,7 @@ class CobblerXMLRPCInterface:
         :return: The id of the task which was started.
         """
         def runner(self):
-            self.remote.api.hardlink(logger=self.logger)
+            self.remote.api.hardlink()
         return self.__start_task(runner, token, "hardlink", "Hardlink", options)
 
     def background_validate_autoinstall_files(self, options, token) -> str:
@@ -231,7 +228,7 @@ class CobblerXMLRPCInterface:
         :return: The id of the task which was started.
         """
         def runner(self):
-            return self.remote.api.validate_autoinstall_files(logger=self.logger)
+            return self.remote.api.validate_autoinstall_files()
         return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation", options)
 
     def background_replicate(self, options, token) -> str:
@@ -259,7 +256,6 @@ class CobblerXMLRPCInterface:
                 self.options.get("omit_data", False),
                 self.options.get("sync_all", False),
                 self.options.get("use_ssl", False),
-                self.logger
             )
         return self.__start_task(runner, token, "replicate", "Replicate", options)
 
@@ -281,7 +277,6 @@ class CobblerXMLRPCInterface:
                 self.options.get("arch", None),
                 self.options.get("breed", None),
                 self.options.get("os_version", None),
-                self.logger
             )
         return self.__start_task(runner, token, "import", "Media import", options)
 
@@ -305,11 +300,11 @@ class CobblerXMLRPCInterface:
                 for name in repos:
                     self.remote.api.reposync(
                         tries=self.options.get("tries", 3),
-                        name=name, nofail=nofail, logger=self.logger)
+                        name=name, nofail=nofail)
             else:
                 self.remote.api.reposync(
                     tries=self.options.get("tries", 3),
-                    name=None, nofail=nofail, logger=self.logger)
+                    name=None, nofail=nofail)
         return self.__start_task(runner, token, "reposync", "Reposync", options)
 
     def background_power_system(self, options, token) -> str:
@@ -325,7 +320,7 @@ class CobblerXMLRPCInterface:
                 try:
                     system_id = self.remote.get_system_handle(x, token)
                     system = self.remote.__get_object(system_id)
-                    self.remote.api.power_system(system, self.options.get("power", ""), logger=self.logger)
+                    self.remote.api.power_system(system, self.options.get("power", ""))
                 except Exception as e:
                     self.logger.warning("failed to execute power task on %s, exception: %s" % (str(x), str(e)))
         self.check_access(token, "power_system")
@@ -344,7 +339,7 @@ class CobblerXMLRPCInterface:
         """
         system = self.__get_object(system_id)
         self.check_access(token, "power_system", system)
-        result = self.api.power_system(system, power, logger=self.logger)
+        result = self.api.power_system(system, power)
         return True if result is None else result
 
     def background_signature_update(self, options, token) -> str:
@@ -356,7 +351,7 @@ class CobblerXMLRPCInterface:
         :return: The id of the task which was started.
         """
         def runner(self):
-            self.remote.api.signature_update(self.logger)
+            self.remote.api.signature_update()
         self.check_access(token, "sigupdate")
         return self.__start_task(runner, token, "sigupdate", "Updating Signatures", options)
 
@@ -443,9 +438,8 @@ class CobblerXMLRPCInterface:
         self.events[event_id] = [float(time.time()), str(name), EVENT_RUNNING, []]
 
         self._log("start_task(%s); event_id(%s)" % (name, event_id))
-        logatron = clogger.Logger("/var/log/cobbler/tasks/%s.log" % event_id)
 
-        thr_obj = CobblerThread(event_id, self, logatron, args, role_name, self.api)
+        thr_obj = CobblerThread(event_id, self, args, role_name, self.api)
         thr_obj._run = thr_obj_fn
         if on_done is not None:
             thr_obj.on_done = on_done.__get__(thr_obj, CobblerThread)
@@ -555,12 +549,11 @@ class CobblerXMLRPCInterface:
 
         # log to the correct logger
         if error:
-            logger = self.logger.error
+            self.logger.error(msg)
         elif debug:
-            logger = self.logger.debug
+            self.logger.debug(msg)
         else:
-            logger = self.logger.info
-        logger(msg)
+            self.logger.info(msg)
 
     def __sort(self, data, sort_field=None):
         """
@@ -1157,7 +1150,7 @@ class CobblerXMLRPCInterface:
         self._log("remove_item (%s, recursive=%s)" % (what, recursive), name=name, token=token)
         obj = self.api.get_item(what, name)
         self.check_access(token, "remove_%s" % what, obj)
-        self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive, logger=self.logger)
+        self.api.remove_item(what, name, delete=True, with_triggers=True, recursive=recursive)
         return True
 
     def remove_distro(self, name, token, recursive: bool = True):
@@ -1261,7 +1254,7 @@ class CobblerXMLRPCInterface:
         self._log("copy_item(%s)" % what, object_id=object_id, token=token)
         self.check_access(token, "copy_%s" % what)
         obj = self.__get_object(object_id)
-        self.api.copy_item(what, obj, newname, logger=self.logger)
+        self.api.copy_item(what, obj, newname)
         return True
 
     def copy_distro(self, object_id, newname, token=None):
@@ -1364,7 +1357,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("rename_item(%s)" % what, object_id=object_id, token=token)
         obj = self.__get_object(object_id)
-        self.api.rename_item(what, obj, newname, logger=self.logger)
+        self.api.rename_item(what, obj, newname)
         return True
 
     def rename_distro(self, object_id, newname, token=None):
@@ -1866,9 +1859,9 @@ class CobblerXMLRPCInterface:
         obj = self.__get_object(object_id)
         self.check_access(token, "save_%s" % what, obj)
         if editmode == "new":
-            self.api.add_item(what, obj, check_for_duplicate_names=True, logger=self.logger)
+            self.api.add_item(what, obj, check_for_duplicate_names=True)
         else:
-            self.api.add_item(what, obj, logger=self.logger)
+            self.api.add_item(what, obj)
         return True
 
     def save_distro(self, object_id, token, editmode: str = "bypass"):
@@ -2019,7 +2012,7 @@ class CobblerXMLRPCInterface:
         try:
             return self.autoinstall_mgr.generate_autoinstall(profile, system)
         except Exception:
-            utils.log_exc(self.logger)
+            utils.log_exc()
             return "# This automatic OS installation file had errors that prevented it from being rendered " \
                    "correctly.\n# The cobbler.log should have information relating to this failure."
 
@@ -2313,7 +2306,7 @@ class CobblerXMLRPCInterface:
                 obj.set_ip_address(ip, iname)
             if netmask != "" and netmask != "?":
                 obj.set_netmask(netmask, iname)
-        self.api.add_system(obj, logger=self.logger)
+        self.api.add_system(obj)
         return 0
 
     def disable_netboot(self, name, token=None, **rest) -> bool:
@@ -2345,7 +2338,7 @@ class CobblerXMLRPCInterface:
         # disabling triggers and sync to make this extremely fast.
         systems.add(obj, save=True, with_triggers=triggers_enabled, with_sync=False, quick_pxe_update=True)
         # re-generate dhcp configuration
-        self.api.sync_dhcp(logger=self.logger)
+        self.api.sync_dhcp()
         return True
 
     def upload_log_data(self, sys_name, file, size, offset, data, token=None, **rest):
@@ -2480,7 +2473,7 @@ class CobblerXMLRPCInterface:
         # because they are rather expensive at install time if reinstalling all of a cluster all at once.
         # We can do that at "cobbler check" time.
         utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/install/%s/*" % mode,
-                           additional=[objtype, name, ip], logger=self.logger)
+                           additional=[objtype, name, ip])
         return True
 
     def version(self, token=None, **rest):
@@ -2990,7 +2983,7 @@ class CobblerXMLRPCInterface:
         :return: The human or machine readable status of the status of Cobbler.
         """
         self.check_access(token, "sync")
-        return self.api.status(mode=mode, logger=self.logger)
+        return self.api.status(mode=mode)
 
     def __get_random(self, length: int) -> str:
         """
@@ -3116,7 +3109,7 @@ class CobblerXMLRPCInterface:
             self.check_access(token, resource, arg1, arg2)
             return True
         except:
-            utils.log_exc(self.logger)
+            utils.log_exc()
             return False
 
     def check_access(self, token, resource, arg1=None, arg2=None):
@@ -3165,7 +3158,7 @@ class CobblerXMLRPCInterface:
             if login_password == self.shared_secret:
                 return self.__make_token("<DIRECT>")
             else:
-                utils.die(self.logger, "login failed")
+                utils.die("login failed")
 
         # This should not log to disk OR make events as we're going to call it like crazy in CobblerWeb. Just failed
         # attempts.
@@ -3173,7 +3166,7 @@ class CobblerXMLRPCInterface:
             token = self.__make_token(login_user)
             return token
         else:
-            utils.die(self.logger, "login failed (%s)" % login_user)
+            utils.die("login failed (%s)" % login_user)
 
     def logout(self, token) -> bool:
         """
@@ -3207,7 +3200,7 @@ class CobblerXMLRPCInterface:
         """
         self._log("sync_dhcp", token=token)
         self.check_access(token, "sync")
-        self.api.sync_dhcp(logger=self.logger)
+        self.api.sync_dhcp()
         return True
 
     def sync(self, token):
@@ -3221,7 +3214,7 @@ class CobblerXMLRPCInterface:
         # FIXME: performance
         self._log("sync", token=token)
         self.check_access(token, "sync")
-        self.api.sync(logger=self.logger)
+        self.api.sync()
         return True
 
     def read_autoinstall_template(self, file_path: str, token) -> str:
@@ -3332,18 +3325,17 @@ class CobblerXMLRPCInterface:
         obj = configgen.ConfigGen(hostname)
         return obj.gen_config_data_for_koan()
 
-    def clear_system_logs(self, object_id, token=None, logger=None):
+    def clear_system_logs(self, object_id, token=None):
         """
         clears console logs of a system
 
         :param object_id: The object id of the system to clear the logs of.
         :param token: The API-token obtained via the login() method.
-        :param logger: The logger to audit all actions with.
         :return: True if the operation succeeds.
         """
         obj = self.__get_object(object_id)
         self.check_access(token, "clear_system_logs", obj)
-        self.api.clear_logs(obj, logger=logger)
+        self.api.clear_logs(obj)
         return True
 
 # *********************************************************************************
@@ -3414,5 +3406,5 @@ class ProxiedXMLRPCInterface:
         try:
             return method_handle(*params)
         except Exception as e:
-            utils.log_exc(self.logger)
+            utils.log_exc()
             raise e

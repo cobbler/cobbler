@@ -36,8 +36,4 @@ def authenticate(api_handle, username, password) -> bool:
     Thanks to http://trac.edgewall.org/ticket/845 for supplying
     the algorithm info.
     """
-
-    # debugging only (not safe to enable)
-    # api_handle.logger.debug("backend authenticate (%s,%s)" % (username,password))
-
     return False

@@ -22,12 +22,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import os
 import os.path
 from typing import Optional
 
-from cobbler import clogger
 from cobbler import module_loader
 from cobbler import utils
 
@@ -37,13 +36,12 @@ class CobblerLiteSync:
     Handles conversion of internal state to the tftpboot tree layout
     """
 
-    def __init__(self, collection_mgr, verbose: bool = False, logger=None):
+    def __init__(self, collection_mgr, verbose: bool = False):
         """
         Constructor
 
         :param collection_mgr: The collection manager which has all information.
         :param verbose: Whether the action should be logged verbose.
-        :param logger: The logger to audit all action with.
         """
         self.verbose = verbose
         self.collection_mgr = collection_mgr
@@ -53,11 +51,9 @@ class CobblerLiteSync:
         self.images = collection_mgr.images()
         self.settings = collection_mgr.settings()
         self.repos = collection_mgr.repos()
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
-        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(collection_mgr, logger)
-        self.sync = collection_mgr.api.get_sync(verbose, logger=self.logger)
+        self.logger = logging.getLogger()
+        self.tftpd = module_loader.get_module_from_file("tftpd", "module", "in_tftpd").get_manager(collection_mgr)
+        self.sync = collection_mgr.api.get_sync(verbose)
         self.sync.make_tftpboot()
 
     def add_single_distro(self, name):

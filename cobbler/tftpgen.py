@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import os
 import os.path
 import re
@@ -38,12 +38,12 @@ class TFTPGen:
     Generate files provided by TFTP server
     """
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr):
         """
         Constructor
         """
         self.collection_mgr = collection_mgr
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.api = collection_mgr.api
         self.distros = collection_mgr.distros()
         self.profiles = collection_mgr.profiles()
@@ -64,13 +64,11 @@ class TFTPGen:
         # Unfortunately using shutils copy_tree the dest directory must not exist, but we must not delete an already
         # partly synced /srv/tftp dir here. rsync is very convenient here, being very fast on an already copied folder.
         utils.subprocess_call(
-            self.logger,
             ["rsync", "-rpt", "--copy-links", "--exclude=.cobbler_postun_cleanup", "{src}/".format(src=src), dest],
             shell=False
         )
         src = self.settings.grubconfig_dir
         utils.subprocess_call(
-            self.logger,
             ["rsync", "-rpt", "--copy-links", "--exclude=README.grubconfig", "{src}/".format(src=src), dest],
             shell=False
         )
@@ -113,11 +111,11 @@ class TFTPGen:
         if not utils.file_is_remote(full_path):
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api, logger=self.logger)
+            utils.linkfile(full_path, dst, symlink_ok=symlink_ok, api=self.api)
         else:
             b_file = os.path.basename(full_path)
             dst = os.path.join(distro_dir, b_file)
-            utils.copyremotefile(full_path, dst, api=None, logger=self.logger)
+            utils.copyremotefile(full_path, dst, api=None)
 
     def copy_single_distro_files(self, d, dirtree, symlink_ok):
         """
@@ -149,7 +147,7 @@ class TFTPGen:
         if not os.path.exists(images_dir):
             os.makedirs(images_dir)
         newfile = os.path.join(images_dir, img.name)
-        utils.linkfile(filename, newfile, api=self.api, logger=self.logger)
+        utils.linkfile(filename, newfile, api=self.api)
 
     def write_all_system_files(self, system, menu_items):
         """

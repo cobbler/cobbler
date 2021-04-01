@@ -6,8 +6,11 @@ server.
 Based on:
 http://www.ithiriel.com/content/2010/03/29/writing-install-triggers-cobbler
 """
+import logging
 import re
 import cobbler.utils as utils
+
+logger = logging.getLogger()
 
 
 def register() -> str:
@@ -19,14 +22,13 @@ def register() -> str:
     return "/var/lib/cobbler/triggers/install/post/*"
 
 
-def run(api, args, logger) -> int:
+def run(api, args) -> int:
     """
     The obligatory Cobbler modules hook.
 
     :param api: The api to resolve all information with.
     :param args: This is an array with two items. The first may be ``system`` or ``profile`` and the second is the name
                  of this system or profile.
-    :param logger: The logger to audit all actions with.
     :return: ``0`` or nothing.
     """
     objtype = args[0]
@@ -57,13 +59,11 @@ def run(api, args, logger) -> int:
     rc = 0
 
     try:
-        rc = utils.subprocess_call(logger, cmd, shell=False)
+        rc = utils.subprocess_call(cmd, shell=False)
     except:
-        if logger is not None:
-            logger.warning("failed to execute %s" % puppetca_path)
+        logger.warning("failed to execute %s", puppetca_path)
 
     if rc != 0:
-        if logger is not None:
-            logger.warning("signing of puppet cert for %s failed" % name)
+        logger.warning("signing of puppet cert for %s failed", name)
 
     return 0

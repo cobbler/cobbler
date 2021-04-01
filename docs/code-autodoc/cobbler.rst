@@ -55,14 +55,6 @@ cobbler.cli module
     :undoc-members:
     :show-inheritance:
 
-cobbler.clogger module
-----------------------
-
-.. automodule:: cobbler.clogger
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 cobbler.cobblerd module
 -----------------------
 

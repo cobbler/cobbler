@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 from typing import List, Callable, Any, Optional
 
 import glob
@@ -31,7 +31,6 @@ import stat
 
 import magic
 
-from cobbler import clogger
 from cobbler import templar
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
@@ -93,14 +92,13 @@ class ImportSignatureManager:
     and then automatically adds the detected distro to Cobbler.
     """
 
-    def __init__(self, collection_mgr, logger: clogger.Logger):
+    def __init__(self, collection_mgr):
         """
         Main constructor for our class.
 
         :param collection_mgr: This is the collection manager which has every information in Cobbler available.
-        :param logger: This is the logger to audit all actions with.
         """
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
         self.distros = collection_mgr.distros()
@@ -186,7 +184,7 @@ class ImportSignatureManager:
             self.network_root = None
 
         if self.os_version and not self.breed:
-            utils.die(self.logger, "OS version can only be specified when a specific breed is selected")
+            utils.die("OS version can only be specified when a specific breed is selected")
 
         self.signature = self.scan_signatures()
         if not self.signature:
@@ -353,7 +351,7 @@ class ImportSignatureManager:
             archs.append(self.arch)
         else:
             if self.arch and self.arch not in archs:
-                utils.die(self.logger, "Given arch (%s) not found on imported tree %s" % (self.arch, self.path))
+                utils.die("Given arch (%s) not found on imported tree %s" % (self.arch, self.path))
 
         if len(archs) == 0:
             self.logger.error("No arch could be detected in %s, and none was specified via the --arch option" % dirname)
@@ -714,7 +712,7 @@ class ImportSignatureManager:
                 utils.remove_yum_olddata(comps_path)
                 cmd = "createrepo %s --groupfile %s %s" % (
                     self.settings.createrepo_flags, os.path.join(comps_path, masterdir, comps_file), comps_path)
-                utils.subprocess_call(self.logger, cmd, shell=True)
+                utils.subprocess_call(cmd, shell=True)
                 self.found_repos[comps_path] = 1
                 # For older distros, if we have a "base" dir parallel with "repodata", we need to copy comps.xml up
                 # one...
@@ -724,7 +722,7 @@ class ImportSignatureManager:
                     shutil.copyfile(p1, p2)
         except:
             self.logger.error("error launching createrepo (not installed?), ignoring")
-            utils.log_exc(self.logger)
+            utils.log_exc()
 
     # ==========================================================================
     # apt-specific
@@ -809,12 +807,11 @@ class ImportSignatureManager:
 # ==========================================================================
 
 
-def get_import_manager(config, logger):
+def get_import_manager(config):
     """
     Get an instance of the import manager which enables you to import various things.
 
     :param config: The configuration for the import manager.
-    :param logger: The logger to audit all actions with.
     :return: The object to import data with.
     """
-    return ImportSignatureManager(config, logger)
+    return ImportSignatureManager(config)

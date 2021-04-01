@@ -17,17 +17,17 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 from configparser import ConfigParser
 
 import os
 import random
 import tempfile
+import threading
 from typing import Optional
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
-from cobbler import clogger
 from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file
 from cobbler import module_loader
@@ -80,9 +80,12 @@ class CobblerAPI:
 
             random.seed()
             self.is_cobblerd = is_cobblerd
+            if is_cobblerd:
+                main_thread = threading.main_thread()
+                main_thread.setName("Daemon")
 
             try:
-                self.logger = clogger.Logger()
+                self.logger = logging.getLogger()
             except CX:
                 # return to CLI/other but perms are not valid
                 # perms_ok is False
@@ -128,7 +131,7 @@ class CobblerAPI:
 
             self.autoinstallgen = autoinstallgen.AutoInstallationGen(self._collection_mgr)
             self.yumgen = yumgen.YumGen(self._collection_mgr)
-            self.tftpgen = tftpgen.TFTPGen(self._collection_mgr, logger=self.logger)
+            self.tftpgen = tftpgen.TFTPGen(self._collection_mgr)
             self.power_mgr = power_manager.PowerManager(self, self._collection_mgr)
             self.logger.debug("API handle initialized")
             self.perms_ok = True
@@ -312,17 +315,16 @@ class CobblerAPI:
 
     # =======================================================================
 
-    def copy_item(self, what, ref, newname, logger=None):
+    def copy_item(self, what, ref, newname):
         """
         General copy method which is called by the specific methods.
 
         :param what: The collection type which gets copied.
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
-        :param logger: The logger which is used for auditing the copy task.
         """
         self.log("copy_item(%s)" % what, [ref.name, newname])
-        self.get_items(what).copy(ref, newname, logger=logger)
+        self.get_items(what).copy(ref, newname)
 
     def copy_distro(self, ref, newname):
         """
@@ -331,7 +333,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("distro", ref, newname, logger=None)
+        self.copy_item("distro", ref, newname)
 
     def copy_profile(self, ref, newname):
         """
@@ -340,7 +342,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("profile", ref, newname, logger=None)
+        self.copy_item("profile", ref, newname)
 
     def copy_system(self, ref, newname):
         """
@@ -349,7 +351,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("system", ref, newname, logger=None)
+        self.copy_item("system", ref, newname)
 
     def copy_repo(self, ref, newname):
         """
@@ -358,7 +360,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("repo", ref, newname, logger=None)
+        self.copy_item("repo", ref, newname)
 
     def copy_image(self, ref, newname):
         """
@@ -367,7 +369,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("image", ref, newname, logger=None)
+        self.copy_item("image", ref, newname)
 
     def copy_mgmtclass(self, ref, newname):
         """
@@ -376,7 +378,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("mgmtclass", ref, newname, logger=None)
+        self.copy_item("mgmtclass", ref, newname)
 
     def copy_package(self, ref, newname):
         """
@@ -385,7 +387,7 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("package", ref, newname, logger=None)
+        self.copy_item("package", ref, newname)
 
     def copy_file(self, ref, newname):
         """
@@ -394,12 +396,11 @@ class CobblerAPI:
         :param ref: The object itself which gets copied.
         :param newname: The new name of the newly created object.
         """
-        self.copy_item("file", ref, newname, logger=None)
+        self.copy_item("file", ref, newname)
 
     # ==========================================================================
 
-    def remove_item(self, what: str, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                    logger=None):
+    def remove_item(self, what: str, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         remove_<itemtype> methods.
@@ -409,7 +410,6 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
         if isinstance(what, str):
             if isinstance(ref, str):
@@ -417,11 +417,9 @@ class CobblerAPI:
                 if ref is None:
                     return      # nothing to remove
         self.log("remove_item(%s)" % what, [ref.name])
-        self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers,
-                                    logger=logger)
+        self.get_items(what).remove(ref.name, recursive=recursive, with_delete=delete, with_triggers=with_triggers)
 
-    def remove_distro(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                      logger=None):
+    def remove_distro(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a distribution from Cobbler.
 
@@ -429,12 +427,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("distro", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_profile(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                       logger=None):
+    def remove_profile(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a profile from Cobbler.
 
@@ -442,12 +438,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("profile", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_system(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                      logger=None):
+    def remove_system(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a system from Cobbler.
 
@@ -455,12 +449,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("system", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_repo(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                    logger=None):
+    def remove_repo(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a repository from Cobbler.
 
@@ -468,12 +460,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("repo", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_image(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                     logger=None):
+    def remove_image(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a image from Cobbler.
 
@@ -481,12 +471,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("image", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_mgmtclass(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                         logger=None):
+    def remove_mgmtclass(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a management class from Cobbler.
 
@@ -494,12 +482,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("mgmtclass", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_package(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                       logger=None):
+    def remove_package(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a package from Cobbler.
 
@@ -507,12 +493,10 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("package", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
-    def remove_file(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True,
-                    logger=None):
+    def remove_file(self, ref: str, recursive: bool = False, delete: bool = True, with_triggers: bool = True):
         """
         Remove a file from Cobbler.
 
@@ -520,13 +504,12 @@ class CobblerAPI:
         :param recursive: If the item should recursively should delete dependencies on itself.
         :param delete: Not known what this parameter does exactly.
         :param with_triggers: Whether you would like to have the removal triggers executed or not.
-        :param logger: The logger to audit the removal with.
         """
-        self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers, logger=logger)
+        self.remove_item("file", ref, recursive=recursive, delete=delete, with_triggers=with_triggers)
 
     # ==========================================================================
 
-    def rename_item(self, what, ref, newname, logger=None):
+    def rename_item(self, what, ref, newname):
         """
         Remove a general item. This method should not be used by an external api. Please use the specific
         rename_<itemtype> methods.
@@ -537,9 +520,9 @@ class CobblerAPI:
         :param logger: The logger to audit the removal with.
         """
         self.log("rename_item(%s)" % what, [ref.name, newname])
-        self.get_items(what).rename(ref, newname, logger=logger)
+        self.get_items(what).rename(ref, newname)
 
-    def rename_distro(self, ref, newname, logger=None):
+    def rename_distro(self, ref, newname):
         """
         Rename a distro to a new name.
 
@@ -547,9 +530,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("distro", ref, newname, logger=logger)
+        self.rename_item("distro", ref, newname)
 
-    def rename_profile(self, ref, newname, logger=None):
+    def rename_profile(self, ref, newname):
         """
         Rename a profile to a new name.
 
@@ -557,9 +540,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("profile", ref, newname, logger=logger)
+        self.rename_item("profile", ref, newname)
 
-    def rename_system(self, ref, newname, logger=None):
+    def rename_system(self, ref, newname):
         """
         Rename a system to a new name.
 
@@ -567,9 +550,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("system", ref, newname, logger=logger)
+        self.rename_item("system", ref, newname)
 
-    def rename_repo(self, ref, newname, logger=None):
+    def rename_repo(self, ref, newname):
         """
         Rename a repository to a new name.
 
@@ -577,9 +560,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("repo", ref, newname, logger=logger)
+        self.rename_item("repo", ref, newname)
 
-    def rename_image(self, ref, newname, logger=None):
+    def rename_image(self, ref, newname):
         """
         Rename an image to a new name.
 
@@ -587,9 +570,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("image", ref, newname, logger=logger)
+        self.rename_item("image", ref, newname)
 
-    def rename_mgmtclass(self, ref, newname, logger=None):
+    def rename_mgmtclass(self, ref, newname):
         """
         Rename a management class to a new name.
 
@@ -597,9 +580,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("mgmtclass", ref, newname, logger=logger)
+        self.rename_item("mgmtclass", ref, newname)
 
-    def rename_package(self, ref, newname, logger=None):
+    def rename_package(self, ref, newname):
         """
         Rename a package to a new name.
 
@@ -607,9 +590,9 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("package", ref, newname, logger=logger)
+        self.rename_item("package", ref, newname)
 
-    def rename_file(self, ref, newname, logger=None):
+    def rename_file(self, ref, newname):
         """
         Rename a file to a new name.
 
@@ -617,7 +600,7 @@ class CobblerAPI:
         :param newname: The new name for the item.
         :param logger: The logger to audit the removal with.
         """
-        self.rename_item("file", ref, newname, logger=logger)
+        self.rename_item("file", ref, newname)
 
     # ==========================================================================
 
@@ -713,7 +696,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def add_item(self, what, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_item(self, what, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add an abstract item to a collection of its specific items. This is not meant for external use. Please reefer
         to one of the specific methods ``add_<type>``.
@@ -725,9 +708,9 @@ class CobblerAPI:
         :param logger: The logger to audit the removal with.
         """
         self.log("add_item(%s)" % what, [ref.name])
-        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.get_items(what).add(ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_distro(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_distro(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a distribution to Cobbler.
 
@@ -736,9 +719,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("distro", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_profile(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_profile(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a profile to Cobbler.
 
@@ -747,10 +730,10 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("profile", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
     def add_system(self, ref, check_for_duplicate_names: bool = False, check_for_duplicate_netinfo=False,
-                   save: bool = True, logger=None):
+                   save: bool = True):
         """
         Add a system to Cobbler.
 
@@ -761,9 +744,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("system", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_repo(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_repo(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a repository to Cobbler.
 
@@ -772,9 +755,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("repo", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_image(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_image(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add an image to Cobbler.
 
@@ -783,9 +766,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("image", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_mgmtclass(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_mgmtclass(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a management class to Cobbler.
 
@@ -794,9 +777,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("mgmtclass", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_package(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_package(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a package to Cobbler.
 
@@ -805,9 +788,9 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("package", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
-    def add_file(self, ref, check_for_duplicate_names: bool = False, save: bool = True, logger=None):
+    def add_file(self, ref, check_for_duplicate_names: bool = False, save: bool = True):
         """
         Add a file to Cobbler.
 
@@ -816,7 +799,7 @@ class CobblerAPI:
         :param save: If the item should be persisted.
         :param logger: The logger to audit the removal with.
         """
-        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save, logger=logger)
+        self.add_item("file", ref, check_for_duplicate_names=check_for_duplicate_names, save=save)
 
     # ==========================================================================
 
@@ -1065,26 +1048,24 @@ class CobblerAPI:
         """
         return utils.SIGNATURE_CACHE
 
-    def signature_update(self, logger):
+    def signature_update(self):
         """
         Update all signatures from the URL specified in the settings.
-
-        :param logger: The logger to audit the removal with.
         """
         try:
             url = self.settings().signature_url
-            dlmgr = download_manager.DownloadManager(self._collection_mgr, self.logger)
+            dlmgr = download_manager.DownloadManager(self._collection_mgr)
             # write temp json file
             tmpfile = tempfile.NamedTemporaryFile()
             sigjson = dlmgr.urlread(url)
             tmpfile.write(sigjson.text.encode())
             tmpfile.flush()
-            logger.debug("Successfully got file from %s" % self.settings().signature_url)
+            self.logger.debug("Successfully got file from %s" % self.settings().signature_url)
             # test the import without caching it
             try:
                 utils.load_signatures(tmpfile.name, cache=False)
             except:
-                logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
+                self.logger.error("Downloaded signatures failed test load (tempfile = %s)", tmpfile.name)
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
@@ -1093,7 +1074,7 @@ class CobblerAPI:
 
             utils.load_signatures(self.settings().signature_path)
         except:
-            utils.log_exc(logger)
+            utils.log_exc()
 
     # ==========================================================================
 
@@ -1259,92 +1240,86 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def check(self, logger=None):
+    def check(self):
         """
         See if all preqs for network booting are valid. This returns a list of strings containing instructions on things
         to correct. An empty list means there is nothing to correct, but that still doesn't mean there are configuration
         errors. This is mainly useful for human admins, who may, for instance, forget to properly set up their TFTP
         servers for PXE, etc.
 
-        :param logger: The logger to audit the removal with.
         :return: None or a list of things to address.
         :rtype: None or list
         """
         self.log("check")
-        action_check = check.CobblerCheck(self._collection_mgr, logger=logger)
+        action_check = check.CobblerCheck(self._collection_mgr)
         return action_check.run()
 
     # ==========================================================================
 
-    def validate_autoinstall_files(self, logger=None):
+    def validate_autoinstall_files(self):
         """
         Validate if any of the autoinstallation files are invalid and if yes report this.
 
-        :param logger: The logger to audit the removal with.
         """
         self.log("validate_autoinstall_files")
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self._collection_mgr)
-        autoinstall_mgr.validate_autoinstall_files(logger)
+        autoinstall_mgr.validate_autoinstall_files()
 
     # ==========================================================================
 
-    def sync(self, verbose: bool = False, logger=None):
+    def sync(self, verbose: bool = False):
         """
         Take the values currently written to the configuration files in /etc, and /var, and build out the information
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
         synchronized with this command.
 
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
-        :param logger: The logger to audit the removal with.
         """
         self.log("sync")
-        sync = self.get_sync(verbose=verbose, logger=logger)
+        sync = self.get_sync(verbose=verbose)
         sync.run()
 
     # ==========================================================================
 
-    def sync_dhcp(self, verbose: bool = False, logger=None):
+    def sync_dhcp(self, verbose: bool = False):
         """
         Only build out the DHCP configuration
 
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
-        :param logger: The logger to audit the removal with.
         """
         self.log("sync_dhcp")
-        sync = self.get_sync(verbose=verbose, logger=logger)
+        sync = self.get_sync(verbose=verbose)
         sync.sync_dhcp()
     # ==========================================================================
 
-    def get_sync(self, verbose: bool = False, logger=None):
+    def get_sync(self, verbose: bool = False):
         """
         Get a Cobbler Sync object which may be executed through the call of ``obj.run()``.
 
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
-        :param logger: The logger to audit the removal with.
         :return: An instance of the CobblerSync class to execute the sync with.
         """
         self.dhcp = self.get_module_from_file(
             "dhcp",
             "module",
             "managers.isc"
-        ).get_manager(self._collection_mgr, logger)
+        ).get_manager(self._collection_mgr)
         self.dns = self.get_module_from_file(
             "dns",
             "module",
             "managers.bind"
-        ).get_manager(self._collection_mgr, logger)
+        ).get_manager(self._collection_mgr)
         self.tftpd = self.get_module_from_file(
             "tftpd",
             "module",
             "managers.in_tftpd",
-        ).get_manager(self._collection_mgr, logger)
+        ).get_manager(self._collection_mgr)
 
-        return sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose,
-                                logger=logger)
+        return sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose)
 
     # ==========================================================================
 
-    def reposync(self, name=None, tries: int = 1, nofail: bool = False, logger=None):
+    def reposync(self, name=None, tries: int = 1, nofail: bool = False):
         """
         Take the contents of ``/var/lib/cobbler/repos`` and update them -- or create the initial copy if no contents
         exist yet.
@@ -1356,12 +1331,12 @@ class CobblerAPI:
         :param logger: The logger to audit the removal with.
         """
         self.log("reposync", [name])
-        action_reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail, logger=logger)
+        action_reposync = reposync.RepoSync(self._collection_mgr, tries=tries, nofail=nofail)
         action_reposync.run(name)
 
     # ==========================================================================
 
-    def status(self, mode, logger=None):
+    def status(self, mode):
         """
         Get the status of the current Cobbler instance.
 
@@ -1369,13 +1344,13 @@ class CobblerAPI:
         :param logger: The logger to audit the removal with.
         :return: The current status of Cobbler.
         """
-        statusifier = status.CobblerStatusReport(self._collection_mgr, mode, logger=logger)
+        statusifier = status.CobblerStatusReport(self._collection_mgr, mode)
         return statusifier.run()
 
     # ==========================================================================
 
     def import_tree(self, mirror_url: str, mirror_name: str, network_root=None, autoinstall_file=None, rsync_flags=None,
-                    arch=None, breed=None, os_version=None, logger: Optional[clogger.Logger] = None) -> Optional[bool]:
+                    arch=None, breed=None, os_version=None) -> Optional[bool]:
         """
         Automatically import a directory tree full of distribution files.
 
@@ -1389,7 +1364,6 @@ class CobblerAPI:
         :param arch:
         :param breed:
         :param os_version:
-        :param logger: The logger to audit the removal with.
         """
         self.log("import_tree", [mirror_url, mirror_name, network_root, autoinstall_file, rsync_flags])
 
@@ -1443,7 +1417,7 @@ class CobblerAPI:
                 rsync_cmd += " --include-from=/etc/cobbler/import_rsync_whitelist"
 
             # kick off the rsync now
-            utils.run_this(rsync_cmd, (spacer, mirror_url, path), self.logger)
+            utils.run_this(rsync_cmd, (spacer, mirror_url, path))
 
         if network_root is not None:
             # In addition to mirroring, we're going to assume the path is available over http, ftp, and nfs, perhaps on
@@ -1472,12 +1446,12 @@ class CobblerAPI:
                     return False
 
         import_module = self.get_module_by_name("managers.import_signatures")\
-            .get_import_manager(self._collection_mgr, logger)
+            .get_import_manager(self._collection_mgr)
         import_module.run(path, mirror_name, network_root, autoinstall_file, arch, breed, os_version)
 
     # ==========================================================================
 
-    def acl_config(self, adduser=None, addgroup=None, removeuser=None, removegroup=None, logger=None):
+    def acl_config(self, adduser=None, addgroup=None, removeuser=None, removegroup=None):
         """
         Configures users/groups to run the Cobbler CLI as non-root.
         Pass in only one option at a time. Powers ``cobbler aclconfig``.
@@ -1488,7 +1462,7 @@ class CobblerAPI:
         :param removegroup:
         :param logger: The logger to audit the removal with.
         """
-        action_acl = acl.AclConfig(self._collection_mgr, logger)
+        action_acl = acl.AclConfig(self._collection_mgr)
         action_acl.run(
             adduser=adduser,
             addgroup=addgroup,
@@ -1592,7 +1566,7 @@ class CobblerAPI:
     # ==========================================================================
 
     def build_iso(self, iso=None, profiles=None, systems=None, buildisodir=None, distro=None, standalone=None,
-                  airgapped=None, source=None, exclude_dns=None, xorrisofs_opts=None, logger=None):
+                  airgapped=None, source=None, exclude_dns=None, xorrisofs_opts=None):
         """
         Build an iso image which may be network bootable or not.
 
@@ -1606,9 +1580,8 @@ class CobblerAPI:
         :param source:
         :param exclude_dns:
         :param xorrisofs_opts:
-        :param logger: The logger to audit the removal with.
         """
-        builder = buildiso.BuildIso(self._collection_mgr, logger=logger)
+        builder = buildiso.BuildIso(self._collection_mgr)
         builder.run(
             iso=iso, profiles=profiles, systems=systems, buildisodir=buildisodir, distro=distro, standalone=standalone,
             airgapped=airgapped, source=source, exclude_dns=exclude_dns, xorrisofs_opts=xorrisofs_opts
@@ -1616,14 +1589,13 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def hardlink(self, logger=None):
+    def hardlink(self):
         """
         Hardlink all files where this is possible to improve performance.
 
-        :param logger: The logger to audit the removal with.
         :return: The return code of the subprocess call which actually hardlinks the files.
         """
-        linker = hardlink.HardLinker(self._collection_mgr, logger=logger)
+        linker = hardlink.HardLinker()
         return linker.run()
 
     # ==========================================================================
@@ -1631,7 +1603,7 @@ class CobblerAPI:
     def replicate(self, cobbler_master: Optional[str] = None, port: str = "80", distro_patterns: str = "",
                   profile_patterns: str = "", system_patterns: str = "", repo_patterns: str = "",
                   image_patterns: str = "", mgmtclass_patterns=None, package_patterns=None, file_patterns: bool = False,
-                  prune: bool = False, omit_data=False, sync_all: bool = False, use_ssl: bool = False, logger=None):
+                  prune: bool = False, omit_data=False, sync_all: bool = False, use_ssl: bool = False):
         """
         Pull down data/configs from a remote Cobbler server that is a master to this server.
 
@@ -1657,9 +1629,8 @@ class CobblerAPI:
         :type sync_all: bool
         :param use_ssl: Whether SSL should be used (True) or not (False).
         :type use_ssl: bool
-        :param logger: The logger to audit the removal with.
         """
-        replicator = replicate.Replicate(self._collection_mgr, logger=logger)
+        replicator = replicate.Replicate(self._collection_mgr)
         return replicator.run(
             cobbler_master=cobbler_master, port=port, distro_patterns=distro_patterns,
             profile_patterns=profile_patterns, system_patterns=system_patterns, repo_patterns=repo_patterns,
@@ -1686,7 +1657,7 @@ class CobblerAPI:
     # ==========================================================================
 
     def power_system(self, system: str, power_operation: str, user: Optional[str] = None,
-                     password: Optional[str] = None, logger=None):
+                     password: Optional[str] = None):
         """
         Power on / power off / get power status /reboot a system.
 
@@ -1694,30 +1665,27 @@ class CobblerAPI:
         :param power_operation: power operation. Valid values: on, off, reboot, status
         :param user: power management user
         :param password: power management password
-        :param logger: The logger to audit the removal with.
-        :type logger: Logger
         :return: bool if operation was successful
         """
 
         if power_operation == "on":
-            self.power_mgr.power_on(system, user=user, password=password, logger=logger)
+            self.power_mgr.power_on(system, user=user, password=password)
         elif power_operation == "off":
-            self.power_mgr.power_off(system, user=user, password=password, logger=logger)
+            self.power_mgr.power_off(system, user=user, password=password)
         elif power_operation == "status":
-            return self.power_mgr.get_power_status(system, user=user, password=password, logger=logger)
+            return self.power_mgr.get_power_status(system, user=user, password=password)
         elif power_operation == "reboot":
-            self.power_mgr.reboot(system, user=user, password=password, logger=logger)
+            self.power_mgr.reboot(system, user=user, password=password)
         else:
-            utils.die(self.logger, "invalid power operation '%s', expected on/off/status/reboot" % power_operation)
+            utils.die("invalid power operation '%s', expected on/off/status/reboot" % power_operation)
         return None
 
     # ==========================================================================
 
-    def clear_logs(self, system, logger=None):
+    def clear_logs(self, system):
         """
         Clears console and anamon logs for system
 
         :param system: The system to clear logs of.
-        :param logger: The logger to audit the log clearing with.
         """
-        log.LogTool(self._collection_mgr, system, self, logger=logger).clear()
+        log.LogTool(self._collection_mgr, system, self).clear()

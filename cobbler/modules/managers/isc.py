@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-
+import logging
 import time
 import copy
 
@@ -47,14 +47,13 @@ class IscManager:
         """
         return "isc"
 
-    def __init__(self, collection_mgr, logger):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager to resolve all information with.
-        :param logger: The logger to audit all actions with.
         """
-        self.logger = logger
+        self.logger = logging.getLogger()
         self.collection_mgr = collection_mgr
         self.api = collection_mgr.api
         self.distros = collection_mgr.distros()
@@ -226,8 +225,7 @@ class IscManager:
             "dhcp_tags": dhcp_tags
         }
 
-        if self.logger is not None:
-            self.logger.info("generating %s" % self.settings_file)
+        self.logger.info("generating %s", self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file)
 
     def regen_ethers(self):
@@ -242,25 +240,24 @@ class IscManager:
         """
         service_name = utils.dhcp_service_name()
         if self.settings.restart_dhcp:
-            rc = utils.subprocess_call(self.logger, "dhcpd -t -q", shell=True)
+            rc = utils.subprocess_call("dhcpd -t -q", shell=True)
             if rc != 0:
                 error_msg = "dhcpd -t failed"
                 self.logger.error(error_msg)
                 raise CX(error_msg)
             service_restart = "service %s restart" % service_name
-            rc = utils.subprocess_call(self.logger, service_restart, shell=True)
+            rc = utils.subprocess_call(service_restart, shell=True)
             if rc != 0:
                 error_msg = "%s failed" % service_name
                 self.logger.error(error_msg)
                 raise CX(error_msg)
 
 
-def get_manager(collection_mgr, logger):
+def get_manager(collection_mgr):
     """
     Creates a manager object to manage an isc dhcp server.
 
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
-    :param logger: The logger to audit all actions with.
     :return: The object to manage the server with.
     """
-    return IscManager(collection_mgr, logger)
+    return IscManager(collection_mgr)

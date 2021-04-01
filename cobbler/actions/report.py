@@ -14,22 +14,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA.
 """
-
 import re
 from typing import Optional
 
-from cobbler import clogger
 from cobbler import utils
 
 
 class Report:
 
-    def __init__(self, collection_mgr, logger=None):
+    def __init__(self, collection_mgr):
         """
         Constructor
 
         :param collection_mgr: The collection manager to hold all information in Cobbler available.
-        :param logger: The logger to audit all action with.
         """
         self.collection_mgr = collection_mgr
         self.settings = collection_mgr.settings()
@@ -40,9 +37,6 @@ class Report:
         self.report_fields = None
         self.report_noheaders = None
         self.array_re = re.compile(r'([^[]+)\[([^]]+)\]')
-        if logger is None:
-            logger = clogger.Logger()
-        self.logger = logger
 
     def fielder(self, structure, fields_list):
         """
@@ -241,7 +235,7 @@ class Report:
 
         return opentable + outputheaders + outputbody + closetable
 
-    def print_formatted_data(self, data, order, report_type, noheaders: bool) -> str:
+    def print_formatted_data(self, data, order, report_type, noheaders: bool):
         """
         Used for picking the correct format to output data as
 
@@ -251,13 +245,13 @@ class Report:
         :param report_type: The type of report which should be used.
         """
         if report_type == "csv":
-            self.logger.flat(self.reporting_csv(data, order, noheaders))
+            print(self.reporting_csv(data, order, noheaders))
         if report_type == "mediawiki":
-            self.logger.flat(self.reporting_mediawiki(data, order, noheaders))
+            print(self.reporting_mediawiki(data, order, noheaders))
         if report_type == "trac":
-            self.logger.flat(self.reporting_trac(data, order, noheaders))
+            print(self.reporting_trac(data, order, noheaders))
         if report_type == "doku":
-            self.logger.flat(self.reporting_doku(data, order, noheaders))
+            print(self.reporting_doku(data, order, noheaders))
 
     def reporting_print_sorted(self, collection):
         """
@@ -268,7 +262,7 @@ class Report:
         collection = [x for x in collection]
         collection.sort(key=lambda x: x.name)
         for x in collection:
-            self.logger.flat(x.to_string())
+            print(x.to_string())
 
     def reporting_list_names2(self, collection, name):
         """
@@ -279,7 +273,7 @@ class Report:
         """
         obj = collection.get(name)
         if obj is not None:
-            self.logger.flat(obj.to_string())
+            print(obj.to_string())
 
     def reporting_print_all_fields(self, collection, report_name, report_type, report_noheaders: bool) -> str:
         """
@@ -297,7 +291,7 @@ class Report:
             if collection:
                 collection = [collection]
             else:
-                return
+                return ""
 
         collection = [x for x in collection]
         collection.sort(key=lambda x: x.name)
@@ -393,7 +387,7 @@ class Report:
                         self.reporting_print_sorted(self.api.get_items(collection_name))
 
         elif report_type == 'text' and report_fields != 'all':
-            utils.die(self.logger, "The 'text' type can only be used with field set to 'all'")
+            utils.die("The 'text' type can only be used with field set to 'all'")
 
         elif report_type != 'text' and report_fields == 'all':
             for collection_name in ["distro", "profile", "system", "repo", "network", "image", "mgmtclass", "package",

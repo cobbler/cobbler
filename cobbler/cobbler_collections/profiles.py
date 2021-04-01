@@ -48,7 +48,7 @@ class Profiles(collection.Collection):
         return new_profile
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False, logger=None):
+               recursive: bool = False):
         """
         Remove element named 'name' from the collection
         """
@@ -65,15 +65,15 @@ class Profiles(collection.Collection):
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
                         self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
-                                                               with_triggers=with_triggers, logger=logger)
+                                                               with_triggers=with_triggers)
                     else:
                         self.collection_mgr.api.remove_system(k.name, recursive=recursive, delete=with_delete,
-                                                              with_triggers=with_triggers, logger=logger)
+                                                              with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*",
-                                       [], logger)
+                                       [])
             self.lock.acquire()
             try:
                 del self.listing[name]
@@ -83,10 +83,10 @@ class Profiles(collection.Collection):
             if with_delete:
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*",
-                                       [], logger)
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                                       [])
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
                 if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
                     lite_sync.remove_single_profile(name)
             return
 

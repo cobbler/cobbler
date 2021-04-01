@@ -50,7 +50,7 @@ class Distros(collection.Collection):
         return new_distro
 
     def remove(self, name, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False, logger=None):
+               recursive: bool = False):
         """
         Remove element named 'name' from the collection
         """
@@ -69,13 +69,14 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete, with_triggers=with_triggers, logger=logger)
+                    self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
+                                                           with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [])
                 if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
                     lite_sync.remove_single_distro(name)
             self.lock.acquire()
             try:
@@ -87,8 +88,8 @@ class Distros(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [], logger)
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [], logger)
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [])
+                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd

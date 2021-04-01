@@ -328,7 +328,7 @@ class AutoInstallationGen:
 
         try:
             autoinstall_path = "%s/%s" % (self.settings.autoinstall_templates_dir, autoinstall_rel_path)
-            raw_data = utils.read_file_contents(autoinstall_path, self.api.logger)
+            raw_data = utils.read_file_contents(autoinstall_path)
 
             data = self.templar.render(raw_data, meta, None)
 

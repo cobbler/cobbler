@@ -70,7 +70,7 @@ class Collection:
         raise NotImplementedException()
 
     def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
-               recursive: bool = False, logger=None):
+               recursive: bool = False):
         """
         Remove an item from collection. This method must be overriden in any subclass.
 
@@ -79,7 +79,6 @@ class Collection:
         :param with_sync: sync to server file system
         :param with_triggers: run "on delete" triggers
         :param recursive: recursively delete children
-        :param logger: logger object
         :returns: NotImplementedException
         """
         raise NotImplementedException("Please implement this in a child class of this class.")
@@ -199,13 +198,12 @@ class Collection:
             item = self.factory_produce(self.collection_mgr, item_dict)
             self.add(item)
 
-    def copy(self, ref, newname, logger=None):
+    def copy(self, ref, newname):
         """
         Copy an object with a new name into the same collection.
 
         :param ref: The reference to the object which should be copied.
         :param newname: The new name for the copied object.
-        :param logger: This parameter is unused in this implementation.
         """
         ref = ref.make_clone()
         ref.uid = self.collection_mgr.generate_uid()
@@ -223,7 +221,7 @@ class Collection:
             ref, save=True, with_copy=True, with_triggers=True, with_sync=True,
             check_for_duplicate_names=True, check_for_duplicate_netinfo=False)
 
-    def rename(self, ref, newname, with_sync: bool = True, with_triggers: bool = True, logger=None):
+    def rename(self, ref, newname, with_sync: bool = True, with_triggers: bool = True):
         """
         Allows an object "ref" to be given a newname without affecting the rest of the object tree.
 
@@ -231,7 +229,6 @@ class Collection:
         :param newname: The new name for the object.
         :param with_sync: If a sync should be triggered when the object is renamed.
         :param with_triggers: If triggers should be run when the object is renamed.
-        :param logger: The logger to audit the action with.
         """
         # Nothing to do when it is the same name
         if newname == ref.name:
@@ -309,7 +306,7 @@ class Collection:
 
     def add(self, ref, save: bool = False, with_copy: bool = False, with_triggers: bool = True, with_sync: bool = True,
             quick_pxe_update: bool = False, check_for_duplicate_names: bool = False,
-            check_for_duplicate_netinfo: bool = False, logger=None):
+            check_for_duplicate_netinfo: bool = False):
         """
         Add an object to the collection
 
@@ -328,7 +325,6 @@ class Collection:
         :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
                                             systems.
         :type check_for_duplicate_netinfo: bool
-        :param logger: The logger to audit the action with.
         """
         item_base.Item.remove_from_cache(ref)
         if ref is None:
@@ -348,7 +344,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = litesync.CobblerLiteSync(self.collection_mgr, logger=logger)
+            self.lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
@@ -411,8 +407,8 @@ class Collection:
 
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [], logger)
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(), [], logger)
+                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [])
+                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(), [])
 
         # update children cache in parent object
         parent = ref.get_parent()
