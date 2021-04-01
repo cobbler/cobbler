@@ -102,7 +102,7 @@ def log_exc():
     Log an exception.
     """
     (t, v, tb) = sys.exc_info()
-    logger.info("Exception occurred: %s" % t)
+    logger.info("Exception occurred: %s", t)
     logger.info("Exception value: %s" % v)
     logger.info("Exception Info:\n%s" % "\n".join(traceback.format_list(traceback.extract_tb(tb))))
 
@@ -359,7 +359,7 @@ def remove_yum_olddata(path):
     for pathseg in directories_to_try:
         olddata = os.path.join(path, pathseg)
         if os.path.exists(olddata):
-            logger.info("removing: %s" % olddata)
+            logger.info("removing: %s", olddata)
             shutil.rmtree(olddata, ignore_errors=False, onerror=None)
 
 

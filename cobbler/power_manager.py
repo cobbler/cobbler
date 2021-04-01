@@ -129,8 +129,8 @@ class PowerManager:
             else:
                 ident_stat = stat.S_IMODE(ident_path.stat().st_mode)
                 if (ident_stat & stat.S_IRWXO) or (ident_stat & stat.S_IRWXG):
-                    self.logger.warning("identity-file %s must not be read/write/exec by group or others"
-                                        % system.power_identity_file)
+                    self.logger.warning("identity-file %s must not be read/write/exec by group or others",
+                                        system.power_identity_file)
         if not system.power_address:
             self.logger.warning("power-address is missing")
         if not (system.power_user or user):

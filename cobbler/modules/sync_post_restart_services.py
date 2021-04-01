@@ -1,5 +1,5 @@
 """
-Restarts the DHCP and/or DNS after a Cobbler Sync to apply changed to the configuration files.
+Restarts the DHCP and/or DNS after a Cobbler sync to apply changes to the configuration files.
 """
 
 import logging

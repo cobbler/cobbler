@@ -1065,7 +1065,7 @@ class CobblerAPI:
             try:
                 utils.load_signatures(tmpfile.name, cache=False)
             except:
-                self.logger.error("Downloaded signatures failed test load (tempfile = %s)" % tmpfile.name)
+                self.logger.error("Downloaded signatures failed test load (tempfile = %s)", tmpfile.name)
 
             # rewrite the real signature file and import it for real
             f = open(self.settings().signature_path, "w")
