@@ -1,4 +1,4 @@
-name: Building Cobbler Packages
+name: Building Cobbler packages
 
 on:
   push:
@@ -29,6 +29,22 @@ jobs:
         shell: 'script -q -e -c "bash {0}"'
         run: |
           ./docker/rpms/build-and-install-rpms.sh fc34 docker/rpms/Fedora_34/Fedora34.dockerfile
+  build-opensuse-leap-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a openSUSE Leap 15.3 Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/rpms/build-and-install-rpms.sh opensuse-leap docker/rpms/opensuse_leap/openSUSE_Leap153.dockerfile
+  build-opensuse-tumbleweed-rpms:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build a openSUSE Tumbleweed Package
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          ./docker/rpms/build-and-install-rpms.sh opensuse-tumbleweed docker/rpms/opensuse_tumbleweed/openSUSE_TW.dockerfile
   build-debian-debs:
     runs-on: ubuntu-20.04
     steps:
