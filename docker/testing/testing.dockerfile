@@ -50,5 +50,9 @@ RUN ["pip3", "install", ".[lint,test]"]
 RUN ["make", "install"]
 RUN ["cp", "/etc/cobbler/cobbler.conf", "/etc/apache2/vhosts.d/"]
 
+# Expose the Apache Webserver
+EXPOSE 80
+EXPOSE 443
+
 # Set this as an entrypoint
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
