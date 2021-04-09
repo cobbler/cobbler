@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os.path
 import glob
 
-from cobbler.actions import litesync
 from cobbler.cobbler_collections import collection
 from cobbler.items import distro as distro
 from cobbler import utils
@@ -76,7 +75,7 @@ class Distros(collection.Collection):
                 if with_triggers:
                     utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [])
                 if with_sync:
-                    lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
+                    lite_sync = self.collection_mgr.api.get_sync()
                     lite_sync.remove_single_distro(name)
             self.lock.acquire()
             try:

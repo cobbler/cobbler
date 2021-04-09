@@ -24,7 +24,6 @@ from threading import Lock
 from typing import Optional
 
 from cobbler import utils
-from cobbler.actions import litesync
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
 
 from cobbler.cexceptions import CX, NotImplementedException
@@ -344,7 +343,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = litesync.CobblerLiteSync(self.collection_mgr)
+            self.lite_sync = self.collection_mgr.api.get_sync()
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:
