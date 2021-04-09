@@ -720,7 +720,13 @@ class CobblerCLI:
                 print("No configuration problems found.  All systems go.")
 
         elif action_name == "sync":
-            self.parser.add_option("--verbose", dest="verbose", action="store_true", help="run sync with more output")
+            self.parser.add_option("--verbose", dest="verbose", action="store_true",
+                                   help="run sync with more output")
+            self.parser.add_option("--dhcp", dest="dhcp", action="store_true",
+                                   help="Write DHCP config files and restart service")
+            self.parser.add_option("--dns", dest="dns", action="store_true",
+                                   help="Write DNS config files and restart service")
+            # ToDo: Add tftp syncing when it's cleaned up
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("sync", options)
         elif action_name == "report":

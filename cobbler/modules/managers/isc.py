@@ -20,14 +20,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
+
 import time
 import copy
 
-from cobbler import templar
-from cobbler import utils
-
+import cobbler.utils as utils
+from cobbler.manager import ManagerModule
 from cobbler.cexceptions import CX
+
+MANAGER = None
 
 
 def register() -> str:
@@ -37,9 +38,10 @@ def register() -> str:
     return "manage"
 
 
-class IscManager:
+class _IscManager(ManagerModule):
 
-    def what(self) -> str:
+    @staticmethod
+    def what() -> str:
         """
         Static method to identify the manager.
 
@@ -48,23 +50,11 @@ class IscManager:
         return "isc"
 
     def __init__(self, collection_mgr):
-        """
-        Constructor
+        super().__init__(collection_mgr)
 
-        :param collection_mgr: The collection manager to resolve all information with.
-        """
-        self.logger = logging.getLogger()
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
         self.settings_file = utils.dhcpconf_location()
 
-    def write_dhcp_file(self):
+    def write_configs(self):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
         """
@@ -74,8 +64,10 @@ class IscManager:
 
         try:
             f2 = open(template_file, "r")
-        except:
+
+        except Exception:
             raise CX("error reading template: %s" % template_file)
+
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -228,29 +220,22 @@ class IscManager:
         self.logger.info("generating %s", self.settings_file)
         self.templar.render(template_data, metadata, self.settings_file)
 
-    def regen_ethers(self):
+    def restart_service(self):
         """
-        ISC/BIND doesn't use this. It is there for compability reasons with other managers.
-        """
-        pass
-
-    def sync_dhcp(self):
-        """
-        This syncs the dhcp server with it's new config files. Basically this restarts the service to apply the changes.
+        This syncs the dhcp server with it's new config files.
+        Basically this restarts the service to apply the changes.
         """
         service_name = utils.dhcp_service_name()
+        ret = 0
         if self.settings.restart_dhcp:
-            rc = utils.subprocess_call("dhcpd -t -q", shell=True)
-            if rc != 0:
-                error_msg = "dhcpd -t failed"
-                self.logger.error(error_msg)
-                raise CX(error_msg)
+            ret = utils.subprocess_call("dhcpd -t -q", shell=True)
+            if ret != 0:
+                self.logger.error("dhcpd -t failed")
             service_restart = "service %s restart" % service_name
-            rc = utils.subprocess_call(service_restart, shell=True)
-            if rc != 0:
-                error_msg = "%s failed" % service_name
-                self.logger.error(error_msg)
-                raise CX(error_msg)
+            ret = utils.subprocess_call(service_restart, shell=True)
+            if ret != 0:
+                self.logger.error("%s service failed", service_name)
+        return ret
 
 
 def get_manager(collection_mgr):
@@ -260,4 +245,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
-    return IscManager(collection_mgr)
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
+
+    if not MANAGER:
+        MANAGER = _IscManager(collection_mgr)
+    return MANAGER

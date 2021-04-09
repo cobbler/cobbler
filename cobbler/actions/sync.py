@@ -118,7 +118,7 @@ class CobblerSync:
         if self.settings.manage_dns:
             self.logger.info("rendering DNS files")
             self.dns.regen_hosts()
-            self.dns.write_dns_files()
+            self.dns.write_configs()
 
         if self.settings.manage_tftpd:
             # copy in boot_files
@@ -194,7 +194,7 @@ class CobblerSync:
         Write all files which are associated to DHCP.
         """
         self.logger.info("rendering DHCP files")
-        self.dhcp.write_dhcp_file()
+        self.dhcp.write_configs()
         self.dhcp.regen_ethers()
 
     def sync_dhcp(self):

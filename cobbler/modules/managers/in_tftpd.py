@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import glob
-import logging
 import os.path
 import shutil
 
@@ -27,6 +26,9 @@ from cobbler import utils
 from cobbler import tftpgen
 
 from cobbler.cexceptions import CX
+from cobbler.manager import ManagerModule
+
+MANAGER = None
 
 
 def register() -> str:
@@ -36,9 +38,10 @@ def register() -> str:
     return "manage"
 
 
-class InTftpdManager:
+class _InTftpdManager(ManagerModule):
 
-    def what(self) -> str:
+    @staticmethod
+    def what() -> str:
         """
         Static method to identify the manager.
 
@@ -47,30 +50,10 @@ class InTftpdManager:
         return "in_tftpd"
 
     def __init__(self, collection_mgr):
-        """
-        Constructor
+        super().__init__(collection_mgr)
 
-        :param collection_mgr: The collection manager to resolve all information with.
-        """
-        self.logger = logging.getLogger()
-
-        self.collection_mgr = collection_mgr
-        self.templar = templar.Templar(collection_mgr)
         self.tftpgen = tftpgen.TFTPGen(collection_mgr)
-        self.systems = collection_mgr.systems()
         self.bootloc = collection_mgr.settings().tftpboot_location
-
-    def regen_hosts(self):
-        """
-        Not used
-        """
-        pass
-
-    def write_dns_files(self):
-        """
-        Not used
-        """
-        pass
 
     def write_boot_files_distro(self, distro):
         # Collapse the object down to a rendered datastructure.
@@ -188,4 +171,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
-    return InTftpdManager(collection_mgr)
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
+
+    if not MANAGER:
+        MANAGER = _InTftpdManager(collection_mgr)
+    return MANAGER

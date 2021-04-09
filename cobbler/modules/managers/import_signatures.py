@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
+
 from typing import List, Callable, Any, Optional
 
 import glob
@@ -31,10 +31,10 @@ import stat
 
 import magic
 
-from cobbler import templar
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 from cobbler import utils
+from cobbler.manager import ManagerModule
 
 import cobbler.items.repo as item_repo
 
@@ -46,6 +46,8 @@ try:
     apt_available = True
 except:
     apt_available = False
+
+MANAGER = None
 
 
 def register() -> str:
@@ -86,32 +88,9 @@ def import_walker(top: str, func: Callable, arg: Any):
             import_walker(name, func, arg)
 
 
-class ImportSignatureManager:
-    """
-    This class contains most of the magic behind the ``cobbler import`` command. It uses the signatures as a data source
-    and then automatically adds the detected distro to Cobbler.
-    """
+class _ImportSignatureManager(ManagerModule):
 
-    def __init__(self, collection_mgr):
-        """
-        Main constructor for our class.
-
-        :param collection_mgr: This is the collection manager which has every information in Cobbler available.
-        """
-        self.logger = logging.getLogger()
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
-
-        self.signature = None
-        self.found_repos = {}
-
-    # required function for import modules
+    @staticmethod
     def what(self) -> str:
         """
         Identifies what service this manages.
@@ -119,6 +98,12 @@ class ImportSignatureManager:
         :return: Always will return ``import/signatures``.
         """
         return "import/signatures"
+
+    def __init__(self, collection_mgr):
+        super().__init__(collection_mgr)
+
+        self.signature = None
+        self.found_repos = {}
 
     def get_file_lines(self, filename: str):
         """
@@ -807,11 +792,16 @@ class ImportSignatureManager:
 # ==========================================================================
 
 
-def get_import_manager(config):
+def get_import_manager(collection_mgr):
     """
     Get an instance of the import manager which enables you to import various things.
 
     :param config: The configuration for the import manager.
     :return: The object to import data with.
     """
-    return ImportSignatureManager(config)
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
+
+    if not MANAGER:
+        MANAGER = _ImportSignatureManager(collection_mgr)
+    return MANAGER

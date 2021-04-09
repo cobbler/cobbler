@@ -20,13 +20,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
+
 import time
 
-import cobbler.templar as templar
 import cobbler.utils as utils
+from cobbler.manager import ManagerModule
 
 from cobbler.cexceptions import CX
+
+MANAGER = None
 
 
 def register() -> str:
@@ -38,28 +40,13 @@ def register() -> str:
     return "manage"
 
 
-class DnsmasqManager:
+class _DnsmasqManager(ManagerModule):
     """
     Handles conversion of internal state to the tftpboot tree layout.
     """
 
-    def __init__(self, collection_mgr):
-        """
-        Constructor
-
-        :param collection_mgr: The collection manager to resolve all information with.
-        """
-        self.logger = logging.getLogger()
-        self.collection_mgr = collection_mgr
-        self.api = collection_mgr.api
-        self.distros = collection_mgr.distros()
-        self.profiles = collection_mgr.profiles()
-        self.systems = collection_mgr.systems()
-        self.settings = collection_mgr.settings()
-        self.repos = collection_mgr.repos()
-        self.templar = templar.Templar(collection_mgr)
-
-    def what(self) -> str:
+    @staticmethod
+    def what() -> str:
         """
         This identifies the module.
 
@@ -67,27 +54,7 @@ class DnsmasqManager:
         """
         return "dnsmasq"
 
-    def write_dhcp_lease(self, port, host, ip, mac):
-        """
-        Not used
-
-        :param port: Unused in this module implementation.
-        :param host: Unused in this module implementation.
-        :param ip: Unused in this module implementation.
-        :param mac: Unused in this module implementation.
-        """
-        pass
-
-    def remove_dhcp_lease(self, port, host):
-        """
-        Not used
-
-        :param port: Unused in this module implementation.
-        :param host: Unused in this module implementation.
-        """
-        pass
-
-    def write_dhcp_file(self):
+    def write_configs(self):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
         """
@@ -214,14 +181,7 @@ class DnsmasqManager:
                     fh.write(ip + "\t" + host + "\n")
         fh.close()
 
-    def write_dns_files(self):
-        """
-        Not used
-        """
-        # already taken care of by the regen_hosts()
-        pass
-
-    def sync_dhcp(self):
+    def restart_service(self):
         """
         This restarts the dhcp server and thus applied the newly written config files.
         """
@@ -240,4 +200,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager to resolve all information with.
     :return: The object generated from the class.
     """
-    return DnsmasqManager(collection_mgr)
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
+
+    if not MANAGER:
+        MANAGER = _DnsmasqManager(collection_mgr)
+    return MANAGER
