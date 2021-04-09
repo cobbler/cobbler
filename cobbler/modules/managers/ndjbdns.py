@@ -39,7 +39,7 @@ def register() -> str:
 class _NDjbDnsManager(ManagerModule):
 
     @staticmethod
-    def what(self) -> str:
+    def what() -> str:
         """
         Static method to identify the manager.
 
@@ -48,7 +48,7 @@ class _NDjbDnsManager(ManagerModule):
         return "ndjbdns"
 
     def __init__(self, collection_mgr):
-        pass
+        super().__init__(collection_mgr)
 
     def write_configs(self):
         """

@@ -72,6 +72,24 @@ class TestCobblerCliTestDirect:
         lines = outputstd.split("\n")
         assert "*** TASK COMPLETE ***" == get_last_line(lines)
 
+    def test_cobbler_sync_dns(self, run_cmd, get_last_line):
+        """Runs 'cobbler sync --dns'"""
+        (outputstd, outputerr) = run_cmd(cmd=["sync", "--dns"])
+        lines = outputstd.split("\n")
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
+
+    def test_cobbler_sync_dhcp(self, run_cmd, get_last_line):
+        """Runs 'cobbler sync --dhcp'"""
+        (outputstd, outputerr) = run_cmd(cmd=["sync", "--dhcp"])
+        lines = outputstd.split("\n")
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
+
+    def test_cobbler_sync_dhcp_dns(self, run_cmd, get_last_line):
+        """Runs 'cobbler sync --dhcp --dns'"""
+        (outputstd, outputerr) = run_cmd(cmd=["sync", "--dhcp", "--dns"])
+        lines = outputstd.split("\n")
+        assert "*** TASK COMPLETE ***" == get_last_line(lines)
+
     def test_cobbler_signature_report(self, run_cmd, get_last_line):
         """Runs 'cobbler signature report'"""
         (outputstd, outputerr) = run_cmd(cmd=["signature", "report"])
