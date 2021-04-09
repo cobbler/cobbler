@@ -186,6 +186,8 @@ class CobblerAPI:
         :param msg: The message to log.
         :param args: Optional message which gets appended to the main msg with a ';'.
         :param debug: Weather the logged message is a debug message (true) or info (false).
+        .. deprecated:: 3.3.0
+           We should use the standard logger.
         """
         if debug:
             logger = self.logger.debug
@@ -1273,15 +1275,18 @@ class CobblerAPI:
         tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
         synchronized with this command.
 
+        :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         :param what:   List of strings what services to sync (e.g. dhcp and/or dns). Empty list for full sync.
-        :param logger: The logger to audit the removal with.
         """
         # Empty what: Full sync
         if not what:
             self.logger.info("syncing all")
-            sync = self.get_sync(verbose=verbose)
-            sync.run()
+            sync_obj = self.get_sync(verbose=verbose)
+            sync_obj.run()
             return
+        # Non empty what: Specific sync
+        if not isinstance(what, list):
+            raise TypeError("'what' needs to be of type list!")
         if 'dhcp' in what:
             self.sync_dhcp()
         if 'dns' in what:
@@ -1291,39 +1296,37 @@ class CobblerAPI:
 
     def sync_dns(self):
         """
-        Only build out the DNS configuration
-
-        :param verbose: If True be as much verbose as possible.
+        Only build out the DNS configuration.
         """
         if not self.settings().manage_dns:
             self.logger.error("manage_dns not set")
             return
-        self.log("sync_dns")
-        self.dns = self.get_module_from_file(
+        self.logger.info("sync_dns")
+        dns_module = self.get_module_from_file(
             "dns",
             "module",
             "managers.bind"
-        ).get_manager(self._collection_mgr)
-        self.dns.sync()
+        )
+        dns = dns_module.get_manager(self._collection_mgr)
+        dns.sync()
 
     # ==========================================================================
 
     def sync_dhcp(self):
         """
-        Only build out the DHCP configuration
-
-        :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
+        Only build out the DHCP configuration.
         """
         if not self.settings().manage_dhcp:
             self.logger.error("manage_dhcp not set")
             return
-        self.log("sync_dhcp")
-        self.dhcp = self.get_module_from_file(
+        self.logger.info("sync_dhcp")
+        dhcp_module = self.get_module_from_file(
             "dhcp",
             "module",
             "managers.isc"
-        ).get_manager(self._collection_mgr)
-        self.dhcp.sync()
+        )
+        dhcp = dhcp_module.get_manager(self._collection_mgr)
+        dhcp.sync()
 
     # ==========================================================================
 
@@ -1334,23 +1337,23 @@ class CobblerAPI:
         :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
         :return: An instance of the CobblerSync class to execute the sync with.
         """
-        self.dhcp = self.get_module_from_file(
+        dhcp = self.get_module_from_file(
             "dhcp",
             "module",
             "managers.isc"
         ).get_manager(self._collection_mgr)
-        self.dns = self.get_module_from_file(
+        dns = self.get_module_from_file(
             "dns",
             "module",
             "managers.bind"
         ).get_manager(self._collection_mgr)
-        self.tftpd = self.get_module_from_file(
+        tftpd = self.get_module_from_file(
             "tftpd",
             "module",
             "managers.in_tftpd",
         ).get_manager(self._collection_mgr)
 
-        return sync.CobblerSync(self._collection_mgr, dhcp=self.dhcp, dns=self.dns, tftpd=self.tftpd, verbose=verbose)
+        return sync.CobblerSync(self._collection_mgr, dhcp=dhcp, dns=dns, tftpd=tftpd, verbose=verbose)
 
     # ==========================================================================
 
