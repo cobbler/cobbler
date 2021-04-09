@@ -26,6 +26,8 @@ import subprocess
 
 from cobbler.manager import ManagerModule
 
+MANAGER = None
+
 
 def register() -> str:
     """
@@ -84,18 +86,16 @@ class _NDjbDnsManager(ManagerModule):
             raise Exception('Could not regenerate tinydns data file.')
 
 
-manager = None
-
 def get_manager(collection_mgr):
     """
     Creates a manager object to manage an isc dhcp server.
 
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
-    :param logger: The logger to audit all actions with.
     :return: The object to manage the server with.
     """
-    global manager
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
 
-    if not manager:
-        manager = _NDjbDnsManager(collection_mgr)
-    return manager
+    if not MANAGER:
+        MANAGER = _NDjbDnsManager(collection_mgr)
+    return MANAGER

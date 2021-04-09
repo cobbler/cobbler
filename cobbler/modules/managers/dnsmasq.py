@@ -20,14 +20,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
+
 import time
 
-import cobbler.templar as templar
 import cobbler.utils as utils
 from cobbler.manager import ManagerModule
 
 from cobbler.cexceptions import CX
+
+MANAGER = None
 
 
 def register() -> str:
@@ -192,8 +193,6 @@ class _DnsmasqManager(ManagerModule):
                 raise CX(error_msg)
 
 
-manager = None
-
 def get_manager(collection_mgr):
     """
     Creates a manager object to manage a dnsmasq server.
@@ -201,8 +200,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager to resolve all information with.
     :return: The object generated from the class.
     """
-    global manager
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
 
-    if not manager:
-        manager = _DnsmasqManager(collection_mgr)
-    return manager
+    if not MANAGER:
+        MANAGER = _DnsmasqManager(collection_mgr)
+    return MANAGER

@@ -21,13 +21,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import logging
 import time
 import copy
 
 import cobbler.utils as utils
 from cobbler.manager import ManagerModule
 from cobbler.cexceptions import CX
+
+MANAGER = None
 
 
 def register() -> str:
@@ -237,8 +238,6 @@ class _IscManager(ManagerModule):
         return ret
 
 
-manager = None
-
 def get_manager(collection_mgr):
     """
     Creates a manager object to manage an isc dhcp server.
@@ -246,8 +245,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager which holds all information in the current Cobbler instance.
     :return: The object to manage the server with.
     """
-    global manager
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
 
-    if not manager:
-        manager = _IscManager(collection_mgr)
-    return manager
+    if not MANAGER:
+        MANAGER = _IscManager(collection_mgr)
+    return MANAGER

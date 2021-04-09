@@ -20,15 +20,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
 import re
 import socket
 import time
 
-from cobbler import templar
 from cobbler import utils
 from cobbler.cexceptions import CX
 from cobbler.manager import ManagerModule
+
+MANAGER = None
 
 
 def register() -> str:
@@ -615,7 +615,6 @@ zone "%(arpa)s." {
             self.logger.error("%s service failed", named_service_name)
         return ret
 
-manager = None
 
 def get_manager(collection_mgr):
     """
@@ -624,8 +623,9 @@ def get_manager(collection_mgr):
     :param collection_mgr: The collection manager to resolve all information with.
     :return: The BindManger object to manage bind with.
     """
-    global manager
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
 
-    if not manager:
-        manager = _BindManager(collection_mgr)
-    return manager
+    if not MANAGER:
+        MANAGER = _BindManager(collection_mgr)
+    return MANAGER

@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
-import logging
+
 from typing import List, Callable, Any, Optional
 
 import glob
@@ -31,7 +31,6 @@ import stat
 
 import magic
 
-from cobbler import templar
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
 from cobbler import utils
@@ -47,6 +46,9 @@ try:
     apt_available = True
 except:
     apt_available = False
+
+MANAGER = None
+
 
 def register() -> str:
     """
@@ -790,8 +792,6 @@ class _ImportSignatureManager(ManagerModule):
 # ==========================================================================
 
 
-manager = None
-
 def get_import_manager(collection_mgr):
     """
     Get an instance of the import manager which enables you to import various things.
@@ -799,8 +799,9 @@ def get_import_manager(collection_mgr):
     :param config: The configuration for the import manager.
     :return: The object to import data with.
     """
-    global manager
+    # Singleton used, therefore ignoring 'global'
+    global MANAGER  # pylint: disable=global-statement
 
-    if not manager:
-        manager = _ImportSignatureManager(collection_mgr)
-    return manager
+    if not MANAGER:
+        MANAGER = _ImportSignatureManager(collection_mgr)
+    return MANAGER
