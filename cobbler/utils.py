@@ -1022,7 +1022,8 @@ def get_family():
     :rtype: str
     """
 
-    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo")
+    # TODO: Refactor that this is purely reliant on the distro module or obsolete it.
+    redhat_list = ("red hat", "redhat", "scientific linux", "fedora", "centos", "virtuozzo", "almalinux")
 
     distro_name = distro.name().lower()
     for item in redhat_list:
@@ -1048,6 +1049,8 @@ def os_release():
         if "fedora" in distro_name:
             make = "fedora"
         elif "centos" in distro_name:
+            make = "centos"
+        elif "almalinux" in distro_name:
             make = "centos"
         elif "virtuozzo" in distro_name:
             make = "virtuozzo"
