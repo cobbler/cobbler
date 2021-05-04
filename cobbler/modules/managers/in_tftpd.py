@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import glob
 import os.path
 import shutil
+from typing import List
 
 from cobbler import templar
 from cobbler import utils
@@ -130,6 +131,33 @@ class _InTftpdManager(ManagerModule):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
         self.write_boot_files_distro(distro)
 
+    def sync_systems(self, systems: List[str], verbose: bool = True):
+        """
+        Write out specified systems as separate files to /tftpdboot
+
+        :param systems: List of systems to write PXE configuration files for.
+        :param verbose: Whether the TFTP server should log this verbose or not.
+        """
+        self.tftpgen.verbose = verbose
+
+        system_objs = []
+        for system_name in systems:
+            # get the system object:
+            system_obj = self.systems.find(name=system_name)
+            if system_obj is None:
+                self.logger.info("did not find any system named %s", system_name)
+                continue
+            system_objs.append(system_obj)
+
+        # the actual pxelinux.cfg files, for each interface
+        self.logger.info("generating PXE configuration files")
+        menu_items = self.tftpgen.get_menu_items()['pxe']
+        for system in system_objs:
+            self.tftpgen.write_all_system_files(system, menu_items)
+
+        self.logger.info("generating PXE menu structure")
+        self.tftpgen.make_pxe_menu()
+
     def sync(self, verbose: bool = True):
         """
         Write out all files to /tftpdboot
@@ -146,7 +174,7 @@ class _InTftpdManager(ManagerModule):
         # directory that's no longer mounted)
         for d in self.collection_mgr.distros():
             try:
-                self.logger.info("copying files for distro: %s" % d.name)
+                self.logger.info("copying files for distro: %s", d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
             except CX as e:
                 self.logger.error(e.value)

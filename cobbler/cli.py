@@ -299,6 +299,28 @@ def add_options_from_fields(object_type, parser, fields, network_interface_field
     #    parser.add_option("--no-sync",     action="store_true", dest="nosync", help="suppress sync for speed")
 
 
+def get_comma_separated_args(option: optparse.Option, opt_str, value: str, parser: optparse.OptionParser):
+    """
+    Simple callback function to achieve option split with comma.
+
+    Reference for the method signature can be found at:
+      https://docs.python.org/3/library/optparse.html#defining-a-callback-option
+
+    :param option: The option the callback is executed for
+    :param opt_str: Unused for this callback function. Would be the extended option if the user used the short version.
+    :param value: The value which should be split by comma.
+    :param parser: The optparse instance which the callback should be added to.
+    """
+    # TODO: Migrate to argparse
+    if not isinstance(option, optparse.Option):
+        raise optparse.OptionValueError("Option is not an optparse.Option object!")
+    if not isinstance(value, str):
+        raise optparse.OptionValueError("Value is not a string!")
+    if not isinstance(parser, optparse.OptionParser):
+        raise optparse.OptionValueError("Parser is not an optparse.OptionParser object!")
+    setattr(parser.values, option.dest, value.split(','))
+
+
 class CobblerCLI:
     """
     Main CLI Class which contains the logic to communicate with the Cobbler Server.
@@ -322,7 +344,8 @@ class CobblerCLI:
         r"""
         Start an asynchronous task in the background.
 
-        :param name: "background\_" % name function must exist in remote.py. This function will be called in a subthread.
+        :param name: "background\_" % name function must exist in remote.py. This function will be called in a
+                      subthread.
         :param options: Dictionary of options passed to the newly started thread
         :return: Id of the newly started task
         """
@@ -704,7 +727,8 @@ class CobblerCLI:
         elif action_name == "reposync":
             self.parser.add_option("--only", dest="only", help="update only this repository name")
             self.parser.add_option("--tries", dest="tries", help="try each repo this many times", default=1)
-            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs", action="store_true")
+            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs",
+                                   action="store_true")
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("reposync", options)
         elif action_name == "check":
@@ -723,12 +747,18 @@ class CobblerCLI:
             self.parser.add_option("--verbose", dest="verbose", action="store_true",
                                    help="run sync with more output")
             self.parser.add_option("--dhcp", dest="dhcp", action="store_true",
-                                   help="Write DHCP config files and restart service")
+                                   help="write DHCP config files and restart service")
             self.parser.add_option("--dns", dest="dns", action="store_true",
-                                   help="Write DNS config files and restart service")
+                                   help="write DNS config files and restart service")
+            self.parser.add_option("--systems", dest="systems", type='string', action="callback",
+                                   callback=get_comma_separated_args,
+                                   help="run a sync only on specified systems")
             # ToDo: Add tftp syncing when it's cleaned up
             (options, args) = self.parser.parse_args(self.args)
-            task_id = self.start_task("sync", options)
+            if options.systems is not None:
+                task_id = self.start_task("syncsystems", options)
+            else:
+                task_id = self.start_task("sync", options)
         elif action_name == "report":
             (options, args) = self.parser.parse_args(self.args)
             print("distros:\n==========")

@@ -89,7 +89,8 @@ class CobblerThread(Thread):
         """
         time.sleep(1)
         try:
-            if utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name, self.options):
+            if utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/pre/*" % self.task_name,
+                                  self.options):
                 self.remote._set_task_state(self, self.event_id, EVENT_FAILED)
                 return False
             rc = self._run(self)
@@ -98,7 +99,8 @@ class CobblerThread(Thread):
             else:
                 self.remote._set_task_state(self, self.event_id, EVENT_COMPLETE)
                 self.on_done()
-                utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name, self.options)
+                utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/task/%s/post/*" % self.task_name,
+                                   self.options)
             return rc
         except:
             utils.log_exc()
@@ -212,6 +214,18 @@ class CobblerXMLRPCInterface:
             self.remote.api.sync(self.options.get("verbose", False), what=what)
         return self.__start_task(runner, token, "sync", "Sync", options)
 
+    def background_syncsystems(self, options, token) -> str:
+        """
+        Run a lite Cobbler sync in the background with only systems specified.
+
+        :param options: Unknown what this parameter does.
+        :param token: The API-token obtained via the login() method.
+        :return: The id of the task that was started.
+        """
+        def runner(self):
+            self.remote.api.sync_systems(self.options.get("systems", []), self.options.get("verbose", False))
+        return self.__start_task(runner, token, "syncsystems", "Syncsystems", options)
+
     def background_hardlink(self, options, token) -> str:
         """
         Hardlink all files as a background task.
@@ -234,7 +248,8 @@ class CobblerXMLRPCInterface:
         """
         def runner(self):
             return self.remote.api.validate_autoinstall_files()
-        return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation", options)
+        return self.__start_task(runner, token, "validate_autoinstall_files", "Automated installation files validation",
+                                 options)
 
     def background_replicate(self, options, token) -> str:
         """
@@ -2360,7 +2375,8 @@ class CobblerXMLRPCInterface:
         :param rest: This is dropped in this method since it is not needed here.
         :return: True if everything succeeded.
         """
-        self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token, name=sys_name)
+        self._log("upload_log_data (file: '%s', size: %s, offset: %s)" % (file, size, offset), token=token,
+                  name=sys_name)
 
         # Check if enabled in self.api.settings()
         if not self.api.settings().anamon_enabled:
@@ -2372,7 +2388,8 @@ class CobblerXMLRPCInterface:
         obj = systems.find(name=sys_name)
         if obj is None:
             # system not found!
-            self._log("upload_log_data - WARNING - system '%s' not found in Cobbler" % sys_name, token=token, name=sys_name)
+            self._log("upload_log_data - WARNING - system '%s' not found in Cobbler" % sys_name, token=token,
+                      name=sys_name)
 
         return self.__upload_file(sys_name, file, size, offset, data)
 
