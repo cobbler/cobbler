@@ -212,6 +212,18 @@ class CobblerXMLRPCInterface:
             self.remote.api.sync(self.options.get("verbose", False), what=what)
         return self.__start_task(runner, token, "sync", "Sync", options)
 
+    def background_syncsystems(self, options, token) -> str:
+        """
+        Run a lite Cobbler sync in the background with only systems specified.
+
+        :param options: Unknown what this parameter does.
+        :param token: The API-token obtained via the login() method.
+        :return: The id of the task that was started.
+        """
+        def runner(self):
+            self.remote.api.sync_systems(self.options.get("systems", []), self.options.get("verbose", False))
+        return self.__start_task(runner, token, "syncsystems", "Syncsystems", options)
+
     def background_hardlink(self, options, token) -> str:
         """
         Hardlink all files as a background task.

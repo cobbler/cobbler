@@ -100,3 +100,25 @@ def test_get_sync(mocker):
     # has to be called 3 times by the method
     assert stub.call_count == 3
     assert isinstance(result, cobbler.actions.sync.CobblerSync)
+
+
+@pytest.mark.parametrize("input_verbose,input_systems,expected_exception", [
+    (None, ["t1.systems.de"], does_not_raise()),
+    (True, ["t1.systems.de"], does_not_raise()),
+    (False, ["t1.systems.de"], does_not_raise()),
+    (False, [42], pytest.raises(TypeError)),
+    (False, "t1.systems.de", pytest.raises(TypeError))
+])
+def test_sync_systems(input_systems, input_verbose, expected_exception, mocker):
+    # Arrange
+    stub = create_autospec(spec=cobbler.actions.sync.CobblerSync)
+    mocker.patch.object(CobblerAPI, "get_sync", return_value=stub)
+    test_api = CobblerAPI()
+
+    # Act
+    with expected_exception:
+        test_api.sync_systems(input_systems, input_verbose)
+
+        # Assert
+        stub.run_sync_systems.assert_called_once()
+        stub.run_sync_systems.assert_called_with(input_systems)

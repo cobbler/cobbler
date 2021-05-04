@@ -25,7 +25,7 @@ import glob
 import logging
 import os
 import time
-from typing import Optional
+from typing import Optional, List
 
 from cobbler.cexceptions import CX
 from cobbler import templar
@@ -75,6 +75,46 @@ class CobblerSync:
         # FIXME: See https://github.com/cobbler/cobbler/issues/2453
         # Move __create_tftpboot_dirs() outside of sync.py.
         self.__create_tftpboot_dirs()
+
+    def run_sync_systems(self, systems: List[str]):
+        """
+        Syncs the specific systems with the config tree.
+        """
+        if not os.path.exists(self.bootloc):
+            utils.die("cannot find directory: %s" % self.bootloc)
+
+        self.logger.info("running pre-sync triggers")
+
+        # run pre-triggers...
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/pre/*")
+
+        self.distros = self.collection_mgr.distros()
+        self.profiles = self.collection_mgr.profiles()
+        self.systems = self.collection_mgr.systems()
+        self.settings = self.collection_mgr.settings()
+        self.repos = self.collection_mgr.repos()
+
+        # Have the tftpd module handle copying bootloaders, distros, images, and all_system_files
+        self.tftpd.sync_systems(systems)
+
+        if self.settings.manage_dhcp:
+            self.write_dhcp()
+        if self.settings.manage_dns:
+            self.logger.info("rendering DNS files")
+            self.dns.regen_hosts()
+            self.dns.write_dns_files()
+
+        self.logger.info("cleaning link caches")
+        self.clean_link_cache()
+
+        if self.settings.manage_rsync:
+            self.logger.info("rendering rsync files")
+            self.rsync_gen()
+
+        # run post-triggers
+        self.logger.info("running post-sync triggers")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/sync/post/*")
+        utils.run_triggers(self.api, None, "/var/lib/cobbler/triggers/change/*")
 
     def run(self):
         """

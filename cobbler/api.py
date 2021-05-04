@@ -24,7 +24,7 @@ import os
 import random
 import tempfile
 import threading
-from typing import Optional
+from typing import Optional, List
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
@@ -1266,6 +1266,23 @@ class CobblerAPI:
         self.log("validate_autoinstall_files")
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self._collection_mgr)
         autoinstall_mgr.validate_autoinstall_files()
+
+    # ==========================================================================
+
+    def sync_systems(self, systems: List[str], verbose: bool = False):
+        """
+        Take the values currently written to the configuration files in /etc, and /var, and build out the information
+        tree found in /tftpboot. Any operations done in the API that have not been saved with serialize() will NOT be
+        synchronized with this command.
+
+        :param systems: List of specified systems that needs to be synced
+        :param verbose: If the action should be just logged as needed or (if True) as much verbose as possible.
+        """
+        self.log("sync_systems")
+        if not (systems and isinstance(systems, list) and all(isinstance(sys_name, str) for sys_name in systems)):
+            raise TypeError('Systems must be a list of one or more strings.')
+        sync_obj = self.get_sync(verbose=verbose)
+        sync_obj.run_sync_systems(systems)
 
     # ==========================================================================
 
