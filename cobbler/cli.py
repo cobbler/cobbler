@@ -344,7 +344,8 @@ class CobblerCLI:
         r"""
         Start an asynchronous task in the background.
 
-        :param name: "background\_" % name function must exist in remote.py. This function will be called in a subthread.
+        :param name: "background\_" % name function must exist in remote.py. This function will be called in a
+                      subthread.
         :param options: Dictionary of options passed to the newly started thread
         :return: Id of the newly started task
         """
@@ -726,7 +727,8 @@ class CobblerCLI:
         elif action_name == "reposync":
             self.parser.add_option("--only", dest="only", help="update only this repository name")
             self.parser.add_option("--tries", dest="tries", help="try each repo this many times", default=1)
-            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs", action="store_true")
+            self.parser.add_option("--no-fail", dest="nofail", help="don't stop reposyncing if a failure occurs",
+                                   action="store_true")
             (options, args) = self.parser.parse_args(self.args)
             task_id = self.start_task("reposync", options)
         elif action_name == "check":
