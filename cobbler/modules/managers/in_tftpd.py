@@ -174,7 +174,7 @@ class _InTftpdManager(ManagerModule):
         # directory that's no longer mounted)
         for d in self.collection_mgr.distros():
             try:
-                self.logger.info("copying files for distro: %s" % d.name)
+                self.logger.info("copying files for distro: %s", d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
             except CX as e:
                 self.logger.error(e.value)
