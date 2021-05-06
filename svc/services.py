@@ -115,9 +115,11 @@ def application(environ, start_response):
         status = "500 SERVER ERROR"
         content = err.faultString
 
+    content = content.encode('utf-8')
+
     # req.content_type = "text/plain;charset=utf-8"
     response_headers = [('Content-type', 'text/plain;charset=utf-8'),
                         ('Content-Length', str(len(content)))]
     start_response(status, response_headers)
 
-    return [content.encode('utf-8')]
+    return [content]
