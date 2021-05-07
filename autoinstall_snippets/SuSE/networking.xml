@@ -24,7 +24,7 @@
       <resolv_conf_policy></resolv_conf_policy>
       <hostname>$my_hostname</hostname>
       <domain>$my_domainname</domain>
-      #if $getVar("name_servers_search","") != ""
+      #if $getVar("name_servers_search",[]) != []
       <searchlist config:type="list">
       #for $sd in $name_servers_search
         <search>$sd</search>
