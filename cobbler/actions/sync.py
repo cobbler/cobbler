@@ -71,6 +71,7 @@ class CobblerSync:
         self.images_dir = os.path.join(self.bootloc, "images")
         self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
         self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
+        self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
         # FIXME: See https://github.com/cobbler/cobbler/issues/2453
         # Move __create_tftpboot_dirs() outside of sync.py.
@@ -197,6 +198,8 @@ class CobblerSync:
             utils.mkdir(self.yaboot_bin_dir)
         if not os.path.exists(self.yaboot_cfg_dir):
             utils.mkdir(self.yaboot_cfg_dir)
+        if not os.path.exists(self.ipxe_dir):
+            utils.mkdir(self.ipxe_dir)
 
     def clean_trees(self):
         """
@@ -228,6 +231,7 @@ class CobblerSync:
         utils.rmtree_contents(self.images_dir)
         utils.rmtree_contents(self.yaboot_bin_dir)
         utils.rmtree_contents(self.yaboot_cfg_dir)
+        utils.rmtree_contents(self.ipxe_dir)
         utils.rmtree_contents(self.rendered_dir)
 
     def write_dhcp(self):
@@ -448,3 +452,14 @@ class CobblerSync:
             filename = system_record.get_config_filename(interface=name)
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
+
+    def remove_single_menu(self, rebuild_menu=True):
+        """
+        Sync removing a single menu.
+        :param name: The name of the profile.
+        :type name: str
+        :param rebuild_menu: Whether to rebuild the grub/... menu or not.
+        :type rebuild_menu: bool
+        """
+        if rebuild_menu:
+            self.tftpgen.make_pxe_menu()

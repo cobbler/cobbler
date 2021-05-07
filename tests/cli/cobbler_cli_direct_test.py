@@ -158,6 +158,7 @@ class TestCobblerCliTestDirect:
         i = assert_list_section(lines, i, "mgmtclasses")
         i = assert_list_section(lines, i, "packages")
         i = assert_list_section(lines, i, "files")
+        i = assert_list_section(lines, i, "menus")
 
     def test_cobbler_report(self, run_cmd, assert_report_section):
         (outputstd, outputerr) = run_cmd(cmd=["report"])
@@ -171,6 +172,7 @@ class TestCobblerCliTestDirect:
         i = assert_report_section(lines, i, "mgmtclasses")
         i = assert_report_section(lines, i, "packages")
         i = assert_report_section(lines, i, "files")
+        i = assert_report_section(lines, i, "menus")
 
     def test_cobbler_hardlink(self, run_cmd, get_last_line):
         (outputstd, outputerr) = run_cmd(cmd=["hardlink"])

@@ -200,3 +200,23 @@ def remove_repo(remote, token):
     def _remove_repo(name):
         remote.remove_repo(name, token)
     return _remove_repo
+
+
+@pytest.fixture()
+def create_menu(remote, token):
+    def _create_menu(name, display_name):
+        menu_id = remote.new_menu(token)
+
+        remote.modify_menu(menu_id, "name", name, token)
+        remote.modify_menu(menu_id, "display_name", display_name, token)
+
+        remote.save_menu(menu_id, token)
+        return menu_id
+    return _create_menu
+
+
+@pytest.fixture()
+def remove_menu(remote, token):
+    def _remove_menu(name):
+        remote.remove_menu(name, token)
+    return _remove_menu

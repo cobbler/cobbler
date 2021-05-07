@@ -24,7 +24,7 @@ from threading import Lock
 from typing import Optional
 
 from cobbler import utils
-from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file
+from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
 
 from cobbler.cexceptions import CX, NotImplementedException
 
@@ -157,6 +157,8 @@ class Collection:
         'virt-group': 'virt_group',
         'dhcp-tag': 'dhcp_tag',
         'netboot-enabled': 'netboot_enabled',
+        'enable_gpxe': 'enable_ipxe',
+        'boot_loader': 'boot_loaders',
     }
 
     def __rekey(self, _dict: dict) -> dict:
@@ -250,6 +252,14 @@ class Collection:
                             item.mgmt_classes[i] = newname
                     self.api.add_item(what, item, save=True)
 
+        # for menus, update all objects that use it
+        if ref.COLLECTION_TYPE == "menu":
+            for what in ["profile", "image"]:
+                items = self.api.find_items(what, {"menu": oldname})
+                for item in items:
+                    item.menu = newname
+                    self.api.add_item(what, item, save=True)
+
         # for a repo, rename the mirror directory
         if ref.COLLECTION_TYPE == "repo":
             path = "/var/www/cobbler/repo_mirror/%s" % ref.name
@@ -291,6 +301,9 @@ class Collection:
                 else:
                     k.set_distro(newname)
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
+            elif k.COLLECTION_TYPE == "menu":
+                k.set_parent(newname)
+                self.api.menus().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
             elif k.COLLECTION_TYPE == "system":
                 k.set_profile(newname)
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
@@ -398,6 +411,8 @@ class Collection:
                     pass
                 elif isinstance(ref, file.File):
                     pass
+                elif isinstance(ref, menu.Menu):
+                    pass
                 else:
                     print("Internal error. Object type not recognized: %s" % type(ref))
             if not with_sync and quick_pxe_update:
@@ -445,6 +460,8 @@ class Collection:
                 match = self.api.find_package(ref.name)
             elif isinstance(ref, file.File):
                 match = self.api.find_file(ref.name)
+            elif isinstance(ref, menu.Menu):
+                match = self.api.find_menu(ref.name)
             else:
                 raise CX("internal error, unknown object type")
 

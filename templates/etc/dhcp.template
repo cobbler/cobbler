@@ -118,11 +118,11 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
                 option routers $iface.gateway;
             #end if
             #if "filename" in $iface.keys() and $iface.filename:
-                #if $iface.enable_gpxe:
-                    if exists user-class and option user-class = "gPXE" {
-                        filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+                #if $iface.enable_ipxe:
+                    if exists user-class and option user-class = "iPXE" {
+                        filename "http://$cobbler_server/cblr/svc/op/ipxe/system/$iface.owner";
                     } else if exists user-class and option user-class = "iPXE" {
-                        filename "http://$cobbler_server/cblr/svc/op/gpxe/system/$iface.owner";
+                        filename "http://$cobbler_server/cblr/svc/op/ipxe/system/$iface.owner";
                     } else {
                         filename "undionly.kpxe";
                     }

@@ -1,0 +1,13 @@
+#if $varExists('system_name')
+set system="$system_name"
+set timeout=1
+#if not $netboot_enabled
+set default='local'
+#end if
+#end if
+menuentry '$menu_name' --class gnu-linux --class gnu --class os {
+  echo 'Loading kernel ...'
+  clinux $kernel_path $kernel_options
+  echo 'Loading initial ramdisk ...'
+  cinitrd $initrd_path
+}

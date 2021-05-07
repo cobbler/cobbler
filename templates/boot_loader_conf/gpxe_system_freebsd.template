@@ -1,5 +1,0 @@
-#!gpxe
-kernel http://$server/cobbler/distro_mirror/$distro/boot/memdisk
-imgargs memdisk raw iso
-initrd http://$server/cobbler/distro_mirror/$distro/boot/bootonly.iso.zip
-boot

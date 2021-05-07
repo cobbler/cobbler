@@ -36,6 +36,7 @@ def distro_fields(fk_initrd, fk_kernel):
         ["mgmt_classes", ["one two three", ], []],
         ["os_version", ["generic26", ], ["bados", ]],
         ["owners", ["user1 user2 user3", ], []],
+        ["boot_loaders", ["pxe ipxe grub yaboot", ], ["badloader"]],
     ]
 
 
@@ -54,7 +55,7 @@ def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["comment", ["test comment"], []],
         ["dhcp_tag", ["", "foo"], []],
         ["distro", ["testdistro0"], ["baddistro", ]],
-        ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
+        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
         ["enable_menu", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
@@ -69,6 +70,7 @@ def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["owners", ["user1 user2 user3"], []],
         ["proxy", ["testproxy"], []],
         ["server", ["1.1.1.1"], []],
+        ["menu", ["testmenu0"], ["badmenu", ]],
         ["virt_auto_boot", ["1", "0"], ["yes", "no"]],
         ["virt_bridge", ["<<inherit>>", "br0", "virbr0", "xenbr0"], []],
         ["virt_cpus", ["<<inherit>>", "1", "2"], ["a"]],
@@ -77,6 +79,7 @@ def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["virt_path", ["<<inherit>>", "/path/to/test", ], []],
         ["virt_ram", ["<<inherit>>", "256", "1024"], ["a", ]],
         ["virt_type", ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], ["bad", ]],
+        ["boot_loaders", ["pxe ipxe grub", ], ["badloader"]],
     ]
 
 
@@ -93,7 +96,7 @@ def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
     # TODO: include fields with dependencies: fetchable files, boot files, template files, images
     return [
         ["comment", ["test comment"], []],
-        ["enable_gpxe", ["yes", "YES", "1", "0", "no"], []],
+        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
         ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
         ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],
@@ -109,6 +112,7 @@ def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
         ["status", ["development", "testing", "acceptance", "production"], []],
         ["proxy", ["testproxy"], []],
         ["server", ["1.1.1.1"], []],
+        ["boot_loaders", ["pxe ipxe grub", ], ["badloader"]],
         ["virt_auto_boot", ["1", "0"], ["yes", "no"]],
         ["virt_cpus", ["<<inherit>>", "1", "2"], ["a"]],
         ["virt_file_size", ["<<inherit>>", "5", "10"], ["a"]],
@@ -341,6 +345,7 @@ def create_profile(remote, token):
     remote.modify_profile(profile, "name", "testprofile0", token)
     remote.modify_profile(profile, "distro", "testdistro0", token)
     remote.modify_profile(profile, "kernel_options", "a=1 b=2 c=3 c=4 c=5 d e", token)
+    remote.modify_profile(profile, "menu", "testmenu0", token)
     remote.save_profile(profile, token)
 
 
@@ -539,6 +544,54 @@ def remove_mgmtclass(remote, token):
     remote.remove_mgmtclass("mgmtclass0", token, False)
 
 
+@pytest.fixture()
+def create_testmenu(remote, token):
+    """
+    Create a menu with the name "testmenu0"
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+
+    menu = remote.new_menu(token)
+    remote.modify_menu(menu, "name", "testmenu0", token)
+    remote.save_menu(menu, token)
+    remote.background_sync([], token)
+
+
+@pytest.fixture()
+def remove_testmenu(remote, token):
+    """
+    Remove a menu "testmenu0".
+    :param remote: See the corresponding fixture.
+    :param token: See the corresponding fixture.
+    """
+    yield
+    remote.remove_menu("testmenu0", token, False)
+
+
+@pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
+def test_create_submenu(remote, token):
+    """
+    Test: create/edit a submenu object
+    """
+
+    # Arrange
+    menus = remote.get_menus(token)
+
+    # Act
+    submenu = remote.new_menu(token)
+
+    # Assert
+    assert remote.modify_menu(submenu, "name", "testsubmenu0", token)
+    assert remote.modify_menu(submenu, "parent", "testmenu0", token)
+
+    assert remote.save_menu(submenu, token)
+
+    new_menus = remote.get_menus(token)
+    assert len(new_menus) == len(menus) + 1
+    remote.remove_menu("testsubmenu0", token, False)
+
+
 @pytest.mark.usefixtures("cobbler_xmlrpc_base", "remove_fakefiles")
 class TestDistroProfileSystem:
     """
@@ -655,7 +708,7 @@ class TestDistroProfileSystem:
         #             fvalue = "testing_" + fname
         #        self.assertTrue(remote.modify_profile(subprofile,fname,fvalue,token))
 
-    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "remove_testdistro", "remove_testmenu", "remove_testprofile")
     def test_create_profile_positive(self, remote, token, profile_fields):
         """
         Test: create/edit a profile object
@@ -679,7 +732,7 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == 1
 
-    @pytest.mark.usefixtures("create_testdistro", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "remove_testdistro", "remove_testmenu", "remove_testprofile")
     def test_create_profile_negative(self, remote, token, profile_fields):
         """
         Test: create/edit a profile object
@@ -699,6 +752,7 @@ class TestDistroProfileSystem:
                     pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
 
         remote.modify_profile(profile, "distro", "testdistro0", token)
+        remote.modify_profile(profile, "menu", "testmenu0", token)
         remote.modify_profile(profile, "name", "testprofile0", token)
         assert remote.save_profile(profile, token)
 
@@ -706,7 +760,8 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == 1
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_create_subprofile(self, remote, token):
         """
         Test: create/edit a subprofile object
@@ -727,8 +782,8 @@ class TestDistroProfileSystem:
         new_profiles = remote.get_profiles(token)
         assert len(new_profiles) == len(profiles) + 1
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile",
-                             "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_create_system_positive(self, system_fields, remote, token):
         """
         Test: create/edit a system object
@@ -756,8 +811,8 @@ class TestDistroProfileSystem:
         new_systems = remote.get_systems(token)
         assert len(new_systems) == len(systems) + 1
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile",
-                             "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_create_system_negative(self, system_fields, remote, token):
         """
         Test: create/edit a system object
@@ -803,7 +858,8 @@ class TestDistroProfileSystem:
         assert distro.get("initrd") == fk_initrd
         assert distro.get("kernel") == fk_kernel
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_get_profile(self, remote):
         """
         Test: get a profile object
@@ -817,6 +873,7 @@ class TestDistroProfileSystem:
         # Assert
         assert profile.get("name") == "testprofile0"
         assert profile.get("distro") == "testdistro0"
+        assert profile.get("menu") == "testmenu0"
         assert profile.get("kernel_options") == {'a': '1', 'b': '2', 'c': ['3', '4', '5'], 'd': '~', 'e': '~'}
 
     def test_get_system(self, remote):
@@ -832,8 +889,8 @@ class TestDistroProfileSystem:
         # Assert
         assert system is "~"
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
-                             "remove_testprofile", "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_get_systems_koan(self, remote):
         # Arrange
 
@@ -849,9 +906,9 @@ class TestDistroProfileSystem:
             if "autoinstall" in system:
                 assert "kickstart" in system
                 assert system.get("kickstart") == system.get("autoinstall")
-                
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
-                             "remove_testprofile", "remove_testsystem")
+
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "create_testsystem",
+                             "remove_testdistro", "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_get_system_for_koan(self, remote):
         # Arrange
 
@@ -862,7 +919,8 @@ class TestDistroProfileSystem:
         assert "ks_meta" in system
         assert "kickstart" in system
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_get_profile_for_koan(self, remote):
         # Arrange
 
@@ -939,6 +997,17 @@ class TestDistroProfileSystem:
         assert "ks_meta" not in file
         assert "kickstart" not in file
 
+    @pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
+    def test_get_menu_for_koan(self, remote):
+        # Arrange
+
+        # Act
+        menu = remote.get_menu_for_koan("testmenu0")
+
+        # Assert
+        assert "ks_meta" not in menu
+        assert "kickstart" not in menu
+
     def test_find_distro(self, remote, token):
         """
         Test: find a distro object
@@ -952,7 +1021,8 @@ class TestDistroProfileSystem:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_find_profile(self, remote, token):
         """
         Test: find a profile object
@@ -998,7 +1068,8 @@ class TestDistroProfileSystem:
         # Cleanup --> Plus fixture
         remote.remove_distro("testdistrocopy", token)
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_copy_profile(self, remote, token):
         """
         Test: copy a profile object
@@ -1016,8 +1087,8 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofilecopy", token)
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
-                             "remove_testprofile", "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_copy_system(self, remote, token):
         """
         Test: copy a system object
@@ -1053,7 +1124,8 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_distro("testdistro1", token)
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testprofile", "remove_testdistro")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testprofile",
+                             "remove_testmenu", "remove_testdistro")
     def test_rename_profile(self, remote, token):
         """
         Test: rename a profile object
@@ -1071,8 +1143,8 @@ class TestDistroProfileSystem:
         # Cleanup
         remote.remove_profile("testprofile1", token)
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "create_testsystem", "remove_testdistro",
-                             "remove_testprofile", "remove_testsystem")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "create_testsystem", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile", "remove_testsystem")
     def test_rename_system(self, remote, token):
         """
         Test: rename a system object
@@ -1161,7 +1233,8 @@ class TestDistroProfileSystem:
         # Assert --> Let the test pass if the call is okay.
         assert True
 
-    @pytest.mark.usefixtures("create_testdistro", "create_profile", "remove_testdistro", "remove_testprofile")
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
     def test_render_vars(self, remote, token):
         """
         Test: string replacements for @@xyz@@

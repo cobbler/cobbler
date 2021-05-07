@@ -1,6 +1,0 @@
-menuentry '$profile_name' --class gnu-linux --class gnu --class os {
-  echo 'Loading kernel ...'
-  clinux $kernel_path \$k_console $kernel_options
-  echo 'Loading initial ramdisk ...'
-  cinitrd $initrd_path
-}

@@ -1,0 +1,23 @@
+#set $system_local=False
+#if $varExists('system_name')
+#!ipxe
+#if not $netboot_enabled
+#set $system_local=True
+#end if
+#if $breed == "vmware"
+#set $kernel_options="-c http://" + $server + ":" + $http_port + "/cblr/svc/op/bootcfg/system/" + $system_name + "BOOTIF=" + $mac_address_eth0
+#end if
+#else
+:$menu_name
+#end if
+#if $system_local
+iseq \${smbios/manufacturer} HP && exit ||
+sanboot --no-describe --drive 0x80
+#else
+kernel $kernel_path $kernel_options
+#for $init in $initrd
+initrd $init
+#end for
+boot
+#end if
+

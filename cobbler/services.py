@@ -103,11 +103,12 @@ class CobblerSvc:
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
         return "%s" % data
 
-    def gpxe(self, profile=None, system=None, mac=None, **rest):
+    def ipxe(self, profile=None, image=None, system=None, mac=None, **rest):
         """
-        Generate a gPXE config
+        Generate a iPXE config
 
         :param profile:
+        :param image
         :param system:
         :param mac:
         :param rest: This parameter is unused.
@@ -118,11 +119,13 @@ class CobblerSvc:
             query = {"mac_address": mac}
             if profile:
                 query["profile"] = profile
+            elif image:
+                query["image"] = image
             found = self.remote.find_system(query)
             if found:
                 system = found[0]
 
-        data = self.remote.generate_gpxe(profile, system)
+        data = self.remote.generate_ipxe(profile, image, system)
         return "%s" % data
 
     def bootcfg(self, profile=None, system=None, **rest):
@@ -258,7 +261,8 @@ class CobblerSvc:
         """
         Return a list of objects of a desired category. Defaults to "systems".
 
-        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages" or "files"
+        :param what: May be "systems", "profiles", "distros", "images", "repos", "mgmtclasses", "packages",
+                            "files" or "menus"
         :param rest: This parameter is unused.
         :return: The list of object names.
         """
@@ -280,6 +284,8 @@ class CobblerSvc:
             listing = self.remote.get_packages()
         elif what == "files":
             listing = self.remote.get_files()
+        elif what == "menus":
+            listing = self.remote.get_menus()
         else:
             return "?"
         for x in listing:

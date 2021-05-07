@@ -74,7 +74,7 @@ DEFAULTS = {
     "default_virt_file_size": [5, "int"],
     "default_virt_ram": [512, "int"],
     "default_virt_type": ["auto", "str"],
-    "enable_gpxe": [False, "bool"],
+    "enable_ipxe": [False, "bool"],
     "enable_menu": [True, "bool"],
     "http_port": [80, "int"],
     "include": [["/etc/cobbler/settings.d/*.settings"], "list"],
@@ -141,12 +141,15 @@ DEFAULTS = {
     "tftpboot_location": ["/var/lib/tftpboot", "str"],
     "virt_auto_boot": [False, "bool"],
     "webdir": ["/var/www/cobbler", "str"],
-    "webdir_whitelist": [".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered",
-                         "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"],
+    "webdir_whitelist": [[".link_cache", "misc", "distro_mirror", "images", "links", "localmirror", "pub", "rendered",
+                         "repo_mirror", "repo_profile", "repo_system", "svc", "web", "webui"], "list"],
     "xmlrpc_port": [25151, "int"],
     "yum_distro_priority": [1, "int"],
     "yum_post_install_mirror": [True, "bool"],
     "yumdownloader_flags": ["--resolve", "str"],
+    "windows_enabled": [False, "bool"],
+    "windows_template_dir": ["/etc/cobbler/windows", "str"],
+    "samba_distro_share": ["DISTRO", "str"],
 }
 
 FIELDS = [
@@ -361,7 +364,7 @@ def validate_settings(settings_content: dict) -> dict:
         "default_virt_file_size": int,
         "default_virt_ram": int,
         "default_virt_type": str,
-        "enable_gpxe": bool,
+        "enable_ipxe": bool,
         "enable_menu": bool,
         "http_port": int,
         "include": [str],
@@ -434,6 +437,9 @@ def validate_settings(settings_content: dict) -> dict:
         "yum_distro_priority": int,
         "yum_post_install_mirror": bool,
         "yumdownloader_flags": str,
+        Optional("windows_enabled", default=False): bool,
+        Optional("windows_template_dir", default="/etc/cobbler/windows"): str,
+        Optional("samba_distro_share", default="DISTRO"): str,
     }, ignore_extra_keys=False)
     return schema.validate(settings_content)
 
@@ -493,6 +499,18 @@ def __migrate_settingsfile_name(filename="/etc/cobbler/settings") -> str:
     return filename
 
 
+def __migrate_settingsfile_gpxe_ipxe(settings_dict: dict) -> dict:
+    """
+    Replaces the old ``enable_gpxe`` key nmae with the new ``enable_ipxe`` one.
+
+    :param settings_dict: A dictionary with the settings.
+    :return A dictionary with the changed settings.
+    """
+    if "enable_gpxe" in settings_dict:
+        settings_dict["enable_ipxe"] = settings_dict.pop("enable_gpxe")
+    return settings_dict
+
+
 def __migrate_settingsfile_int_bools(settings_dict: dict) -> dict:
     for key in settings_dict:
         if DEFAULTS[key][1] == "bool":
@@ -531,6 +549,7 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
     except yaml.YAMLError as error:
         traceback.print_exc()
         raise yaml.YAMLError("\"%s\" is not a valid YAML file" % filepath) from error
+    filecontent = __migrate_settingsfile_gpxe_ipxe(filecontent)
     filecontent = __migrate_settingsfile_int_bools(filecontent)
     try:
         validate_settings(filecontent)

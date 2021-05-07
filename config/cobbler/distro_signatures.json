@@ -2752,42 +2752,50 @@
     "unix": {
     },
     "windows": {
-     "2003": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub"]}
-     },
-     "2008": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "2012": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "2016": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "2019": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "XP": {
-      "supported_arches":["i386","x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub"]}
-     },
-     "7": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "8": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     },
-     "10": {
-      "supported_arches":["x86_64"],
-      "boot_loaders":{"x86_64":["pxelinux","grub","ipxe"]}
-     }
+      "2003": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "boot_files": [
+          "i386/*.*",
+          "amd64/*.*"
+        ]
+      },
+      "2008": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "2012": {
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "2016": {
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "2019": {
+        "supported_arches":["x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "XP": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]},
+        "boot_files": [
+          "i386/*.*",
+          "amd64/*.*"
+        ]
+      },
+      "7": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "8": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      },
+      "10": {
+        "supported_arches":["i386","x86_64"],
+        "boot_loaders":{"x86_64":["pxe","ipxe"]}
+      }
     },
     "powerkvm": {
       "2.1": {
@@ -2815,7 +2823,7 @@
         "boot_files": [],
         "boot_loaders": {
           "ppc64": [
-            "pxelinux"
+            "pxe"
           ]
         }
       }

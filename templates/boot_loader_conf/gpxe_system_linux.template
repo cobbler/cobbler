@@ -1,5 +1,0 @@
-#!gpxe
-kernel http://$server:$http_port/cobbler/images/$distro/$kernel_name
-imgargs $kernel_name $append_line
-initrd http://$server:$http_port/cobbler/images/$distro/$initrd_name
-boot

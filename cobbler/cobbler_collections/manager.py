@@ -36,6 +36,7 @@ from cobbler.cobbler_collections.packages import Packages
 from cobbler.cobbler_collections.profiles import Profiles
 from cobbler.cobbler_collections.repos import Repos
 from cobbler.cobbler_collections.systems import Systems
+from cobbler.cobbler_collections.menus import Menus
 from cobbler.settings import Settings
 
 
@@ -75,6 +76,7 @@ class CollectionManager:
         self._mgmtclasses = Mgmtclasses(weakref.proxy(self))
         self._packages = Packages(weakref.proxy(self))
         self._files = Files(weakref.proxy(self))
+        self._menus = Menus(weakref.proxy(self))
         # Not a true collection
         self._settings = settings.Settings()
 
@@ -141,6 +143,12 @@ class CollectionManager:
         """
         return self._files
 
+    def menus(self):
+        """
+        Return the definitive copy of the Menus collection
+        """
+        return self._menus
+
     def serialize(self):
         """
         Save all cobbler_collections to disk
@@ -154,6 +162,7 @@ class CollectionManager:
         serializer.serialize(self._mgmtclasses)
         serializer.serialize(self._packages)
         serializer.serialize(self._files)
+        serializer.serialize(self._menus)
 
     # pylint: disable=R0201
     def serialize_item(self, collection, item):
@@ -194,6 +203,7 @@ class CollectionManager:
             self._mgmtclasses,
             self._packages,
             self._files,
+            self._menus,
         ):
             try:
                 serializer.deserialize(collection)
@@ -230,6 +240,8 @@ class CollectionManager:
             result = self._packages
         elif collection_type == "file":
             result = self._files
+        elif collection_type == "menu":
+            result = self._menus
         elif collection_type == "settings":
             result = self._settings
         else:

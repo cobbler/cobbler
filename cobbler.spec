@@ -373,35 +373,17 @@ fi
 %dir %{_sysconfdir}/cobbler
 %config(noreplace) %{_sysconfdir}/cobbler/auth.conf
 %dir %{_sysconfdir}/cobbler/boot_loader_conf
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi5.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi51.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi55.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi60.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi65.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi67.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg_esxi70.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi5.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi6.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_esxi7.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_freebsd.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_linux.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_local.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/gpxe_system_windows.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grublocal.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubprofile.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grubsystem.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxedefault.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxelocal_ia64.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_arm.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxeprofile_esxi.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_arm.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_esxi.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ia64.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxesystem_ppc.template
-%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot_ppc.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/bootcfg.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_menu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/grub_submenu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_menu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/ipxe_submenu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_menu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/pxe_submenu.template
+%config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot.template
 %config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
 %config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
 %config(noreplace) %{_sysconfdir}/cobbler/dnsmasq.template
@@ -424,6 +406,7 @@ fi
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/bind_manage_ipmi.settings
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/manage_genders.settings
 %config(noreplace) %{_sysconfdir}/cobbler/settings.d/nsupdate.settings
+%config(noreplace) %{_sysconfdir}/cobbler/settings.d/windows.settings
 %config(noreplace) %{_sysconfdir}/cobbler/users.conf
 %config(noreplace) %{_sysconfdir}/cobbler/users.digest
 %config(noreplace) %{_sysconfdir}/cobbler/version
@@ -432,6 +415,10 @@ fi
 %config(noreplace) %{_sysconfdir}/cobbler/zone_templates/foo.example.com
 %config(noreplace) %{_sysconfdir}/logrotate.d/cobblerd
 %config(noreplace) %{apache_webconfigdir}/cobbler.conf
+%dir %{_sysconfdir}/cobbler/windows
+%config(noreplace) %{_sysconfdir}/cobbler/windows/answerfile.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/post_inst_cmd.template
+%config(noreplace) %{_sysconfdir}/cobbler/windows/startnet.template
 %{_bindir}/cobbler
 %{_bindir}/cobbler-ext-nodes
 %{_bindir}/cobblerd

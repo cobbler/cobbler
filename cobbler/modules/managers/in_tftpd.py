@@ -55,6 +55,7 @@ class _InTftpdManager(ManagerModule):
 
         self.tftpgen = tftpgen.TFTPGen(collection_mgr)
         self.bootloc = collection_mgr.settings().tftpboot_location
+        self.webdir = collection_mgr.settings().webdir
 
     def write_boot_files_distro(self, distro):
         # Collapse the object down to a rendered datastructure.
@@ -65,28 +66,33 @@ class _InTftpdManager(ManagerModule):
         # Right now, just using local_img_path, but adding more Cobbler variables here would probably be good.
         metadata = {}
         metadata["local_img_path"] = os.path.join(self.bootloc, "images", distro.name)
+        metadata["web_img_path"] = os.path.join(self.webdir, "distro_mirror", distro.name)
         # Create the templar instance.  Used to template the target directory
         templater = templar.Templar(self.collection_mgr)
 
         # Loop through the dict of boot files, executing a cp for each one
         self.logger.info("processing boot_files for distro: %s" % distro.name)
-        for file in list(target["boot_files"].keys()):
-            rendered_file = templater.render(file, metadata, None)
+        for boot_file in list(target["boot_files"].keys()):
+            rendered_target_file = templater.render(boot_file, metadata, None)
+            rendered_source_file = templater.render(target["boot_files"][boot_file], metadata, None)
             try:
-                for f in glob.glob(target["boot_files"][file]):
-                    if f == target["boot_files"][file]:
+                for file in glob.glob(rendered_source_file):
+                    if file == rendered_source_file:
                         # this wasn't really a glob, so just copy it as is
-                        filedst = rendered_file
+                        filedst = rendered_target_file
                     else:
                         # this was a glob, so figure out what the destination file path/name should be
-                        tgt_path, tgt_file = os.path.split(f)
-                        rnd_path, rnd_file = os.path.split(rendered_file)
+                        tgt_path, tgt_file = os.path.split(file)
+                        rnd_path, rnd_file = os.path.split(rendered_target_file)
                         filedst = os.path.join(rnd_path, tgt_file)
+
+                        if not os.path.isdir(rnd_path):
+                            utils.mkdir(rnd_path)
                     if not os.path.isfile(filedst):
-                        shutil.copyfile(f, filedst)
-                    self.collection_mgr.api.log("copied file %s to %s for %s" % (f, filedst, distro.name))
+                        shutil.copyfile(file, filedst)
+                    self.collection_mgr.api.log("copied file %s to %s for %s" % (file, filedst, distro.name))
             except:
-                self.logger.error("failed to copy file %s to %s for %s" % (f, filedst, distro.name))
+                self.logger.error("failed to copy file %s to %s for %s", file, filedst, distro.name)
 
         return 0
 
@@ -110,10 +116,12 @@ class _InTftpdManager(ManagerModule):
         system = self.systems.find(name=name)
         if system is None:
             utils.die("error in system lookup for %s" % name)
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        self.tftpgen.write_all_system_files(system, menu_items)
-        # generate any templates listed in the system
-        self.tftpgen.write_templates(system)
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
+            self.tftpgen.write_all_system_files(system, menu_items)
+            # generate any templates listed in the system
+            self.tftpgen.write_templates(system)
 
     def add_single_system(self, system):
         """
@@ -122,10 +130,12 @@ class _InTftpdManager(ManagerModule):
         :param system: The system to be added.
         """
         # write the PXE files for the system
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        self.tftpgen.write_all_system_files(system, menu_items)
-        # generate any templates listed in the distro
-        self.tftpgen.write_templates(system)
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
+            self.tftpgen.write_all_system_files(system, menu_items)
+            # generate any templates listed in the distro
+            self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
@@ -151,9 +161,11 @@ class _InTftpdManager(ManagerModule):
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        for system in system_objs:
-            self.tftpgen.write_all_system_files(system, menu_items)
+        menu_items = self.tftpgen.get_menu_items()
+        if 'pxe' in menu_items:
+            menu_items = menu_items['pxe']
+            for system in system_objs:
+                self.tftpgen.write_all_system_files(system, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
@@ -184,9 +196,11 @@ class _InTftpdManager(ManagerModule):
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        menu_items = self.tftpgen.get_menu_items()['pxe']
-        for x in self.systems:
-            self.tftpgen.write_all_system_files(x, menu_items)
+        all_menus = self.tftpgen.get_menu_items()
+        if 'pxe' in all_menus:
+            menu_items = all_menus['pxe']
+            for x in self.systems:
+                self.tftpgen.write_all_system_files(x, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
