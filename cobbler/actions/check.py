@@ -232,11 +232,11 @@ class CobblerCheck:
         :param status: The status list with possible problems.
         """
         if self.settings.server == "127.0.0.1":
-            status.append("The 'server' field in /etc/cobbler/settings must be set to something other than localhost, "
+            status.append("The 'server' field in /etc/cobbler/settings.yaml must be set to something other than localhost, "
                           "or automatic installation features will not work.  This should be a resolvable hostname or "
                           "IP for the boot server as reachable by all machines that will use it.")
         if self.settings.next_server == "127.0.0.1":
-            status.append("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to "
+            status.append("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings.yaml must be set to "
                           "something other than 127.0.0.1, and should match the IP of the boot server on the PXE "
                           "network.")
 
@@ -265,7 +265,7 @@ class CobblerCheck:
         default_pass = self.settings.default_password_crypted
         if default_pass == "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac.":
             status.append("The default password used by the sample templates for newly installed machines ("
-                          "default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be "
+                          "default_password_crypted in /etc/cobbler/settings.yaml) is still set to 'cobbler' and should be "
                           "changed, try: \"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'\" to "
                           "generate new one")
 
