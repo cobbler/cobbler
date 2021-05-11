@@ -27,7 +27,7 @@ import traceback
 from typing import Union, Dict, Hashable, Any
 
 import yaml
-from schema import Schema, Optional, SchemaError, SchemaMissingKeyError
+from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
 from cobbler import utils
 
@@ -95,8 +95,8 @@ DEFAULTS = {
     "ldap_tls_keyfile": ["", "str"],
     "bind_manage_ipmi": [False, "bool"],
     "manage_dhcp": [False, "bool"],
-    "enable_dhcpv6": [True, "bool"],
-    "enable_dhcpv4": [True, "bool"],
+    "manage_dhcpv6": [False, "bool"],
+    "manage_dhcpv4": [False, "bool"],
     "manage_dns": [False, "bool"],
     "manage_forward_zones": [[], "list"],
     "manage_reverse_zones": [[], "list"],
@@ -106,6 +106,7 @@ DEFAULTS = {
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
     "next_server": ["127.0.0.1", "str"],
+    "next_serverv6": ["::1", "str"],
     "nsupdate_enabled": [False, "bool"],
     "nsupdate_log": ["/var/log/cobbler/nsupdate.log", "str"],
     "nsupdate_tsig_algorithm": ["hmac-sha512", "str"],
@@ -338,6 +339,7 @@ def validate_settings(settings_content: dict) -> dict:
         "autoinstall_snippets_dir": str,
         "autoinstall_templates_dir": str,
         "bind_chroot_path": str,
+        "bind_zonefile_path": str,
         "bind_master": str,
         "boot_loader_conf_template_dir": str,
         Optional("bootloaders_dir", default="/var/lib/cobbler/loaders"): str,
@@ -386,8 +388,9 @@ def validate_settings(settings_content: dict) -> dict:
         "ldap_tls_certfile": str,
         "ldap_tls_keyfile": str,
         Optional("bind_manage_ipmi", default=False): bool,
-        "manage_dhcp_v4": bool,
-        "manage_dhcp_v6": bool,
+        "manage_dhcp": bool,
+        "manage_dhcpv4": bool,
+        "manage_dhcpv6": bool,
         "manage_dns": bool,
         "manage_forward_zones": [str],
         "manage_reverse_zones": [str],
@@ -398,6 +401,7 @@ def validate_settings(settings_content: dict) -> dict:
         # TODO: Validate Subdict
         "mgmt_parameters": dict,
         "next_server": str,
+        "next_serverv6": str,
         Optional("nsupdate_enabled", False): bool,
         Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,
         Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
@@ -559,6 +563,10 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
         validate_settings(filecontent)
     except SchemaMissingKeyError:
         logging.exception("Settings file was not returned due to missing keys.")
+        logging.debug("The settings to read were: \"%s\"", filecontent)
+        return {}
+    except SchemaWrongKeyError:
+        logging.exception("Settings file was returned due to an error in the schema.")
         logging.debug("The settings to read were: \"%s\"", filecontent)
         return {}
     except SchemaError:

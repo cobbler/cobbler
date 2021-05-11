@@ -395,8 +395,8 @@ class _IscManager(ManagerModule):
         return rc
 
     def write_configs(self):
-        dhcpv4 = str(self.settings.enable_dhcpv4).lower()
-        dhcpv6 = str(self.settings.enable_dhcpv6).lower()
+        dhcpv4 = str(self.settings.manage_dhcpv4).lower()
+        dhcpv6 = str(self.settings.manage_dhcpv6).lower()
 
         if dhcpv4 != "0":
             self.write_v4_config()
@@ -410,8 +410,8 @@ class _IscManager(ManagerModule):
 
         service_v4 = utils.dhcp_service_name()
 
-        dhcpv4 = str(self.settings.enable_dhcpv4).lower()
-        dhcpv6 = str(self.settings.enable_dhcpv6).lower()
+        dhcpv4 = str(self.settings.manage_dhcpv4).lower()
+        dhcpv6 = str(self.settings.manage_dhcpv6).lower()
 
         # Even if one fails, try both and return an error
         ret = 0
