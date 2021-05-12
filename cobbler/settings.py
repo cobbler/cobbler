@@ -31,7 +31,7 @@ from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaW
 
 from cobbler import utils
 
-# TODO: Convert this into properties for 3.3.0
+# TODO: Convert this into properties for 3.3.0 and remove manage_dhcp key
 # defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
     "allow_duplicate_hostnames": [False, "bool"],
@@ -307,6 +307,8 @@ class Settings:
                 (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
+            elif name == "manage_dhcp":
+                return self.manage_dhcpv4
             return self.__dict__[name]
         except Exception as error:
             if name in DEFAULTS:
@@ -317,6 +319,7 @@ class Settings:
                 raise AttributeError(f"no settings attribute named '{name}' found") from error
 
 
+# TODO: Remove manage_dhcp key
 def validate_settings(settings_content: dict) -> dict:
     """
     This function performs logical validation of our loaded YAML files.
