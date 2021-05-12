@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import time
 import copy
 
-import cobbler.utils as utils
+from cobbler import utils
 from cobbler.manager import ManagerModule
 from cobbler.cexceptions import CX
 
@@ -52,12 +52,12 @@ class _IscManager(ManagerModule):
     def __init__(self, collection_mgr):
         super().__init__(collection_mgr)
 
-        self.settings_file = utils.dhcpconf_location()
-        self.settings_file_v6 = '/etc/dhcpd6.conf'
+        self.settings_file = utils.dhcpconf_location(utils.DHCP.V4)
+        self.settings_file_v6 = utils.dhcpconf_location(utils.DHCP.V6)
 
     def write_v4_config(self):
         """
-        DHCP files are written when ``manage_dhcp`` is set in our settings.
+        DHCP files are written when ``manage_dhcpv4`` is set in our settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -223,7 +223,7 @@ class _IscManager(ManagerModule):
 
     def write_v6_config(self):
         """
-        DHCP IPv6 files are written when ``manage_dhcp6`` is set in ``/etc/cobbler/settings``.
+        DHCP IPv6 files are written when ``manage_dhcpv6`` is set in ``/etc/cobbler/settings``.
         """
 
         template_file = "/etc/cobbler/dhcp6.template"
@@ -232,7 +232,7 @@ class _IscManager(ManagerModule):
         try:
             f2 = open(template_file, "r")
         except Exception:
-            raise CX(_("error reading template: %s") % template_file)
+            raise CX("error reading template: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -290,8 +290,9 @@ class _IscManager(ManagerModule):
 
                     if ip_v6 is None or ip_v6 == "":
                         for (nam2, int2) in list(system.interfaces.items()):
-                            if (nam2.startswith(interface["interface_master"] + ".") and
-                                int2["ipv6_address"] is not None and int2["ipv6_address"] != ""):
+                            if nam2.startswith(interface["interface_master"] + ".") \
+                                    and int2["ipv6_address"] is not None \
+                                    and int2["ipv6_address"] != "":
                                 ip_v6 = int2["ipv6_address"]
                                 break
 
@@ -371,7 +372,7 @@ class _IscManager(ManagerModule):
         # we are now done with the looping through each interface of each system
         metadata = {
             "date": time.asctime(time.gmtime()),
-            "next_server_v6": self.settings.next_server,
+            "next_server_v6": self.settings.next_serverv6,
             "dhcp_tags": dhcp_tags
         }
 

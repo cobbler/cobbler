@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import copy
+import enum
 import errno
 import glob
 import logging
@@ -73,6 +74,12 @@ _re_kernel = re.compile(r'(vmlinu[xz]|kernel.img)')
 _re_initrd = re.compile(r'(initrd(.*).img|ramdisk.image.gz)')
 _re_is_mac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 6) + '$')
 _re_is_ibmac = re.compile(':'.join(('[0-9A-Fa-f][0-9A-Fa-f]',) * 20) + '$')
+
+
+class DHCP(enum.Enum):
+    V4 = 4,
+    V6 = 6
+
 
 # all logging from utils.die goes to the main log even if there
 # is another log.
@@ -2320,25 +2327,27 @@ def lod_sort_by_key(list_to_sort: list, indexkey) -> list:
     return sorted(list_to_sort, key=lambda k: k[indexkey])
 
 
-def dhcpconf_location() -> str:
+def dhcpconf_location(protocol: DHCP, filename: str = "dhcpd.conf") -> str:
     """
     This method returns the location of the dhcpd.conf file.
 
+    :param protocol: The DHCP protocol version (v4/v6) that is used.
+    :param filename: The filename of the DHCP configuration file.
+    :raises AttributeError: If the protocol is not v4/v6.
     :return: The path possibly used for the dhcpd.conf file.
     """
+    if protocol not in DHCP:
+        logger.info("DHCP configuration location could not be determined due to unknown protocol version.")
+        raise AttributeError("DHCP must be version 4 or 6!")
+    if protocol == DHCP.V6 and filename == "dhcpd.conf":
+        filename = "dhcpd6.conf"
     (dist, version) = os_release()
-    if dist in ("redhat", "centos") and version < 6:
-        return "/etc/dhcpd.conf"
-    elif dist == "fedora" and version < 11:
-        return "/etc/dhcpd.conf"
-    elif dist == "suse":
-        return "/etc/dhcpd.conf"
-    elif dist == "debian" and int(version) < 6:
-        return "/etc/dhcp3/dhcpd.conf"
-    elif dist == "ubuntu" and version < 11.10:
-        return "/etc/dhcp3/dhcpd.conf"
+    if (dist in ("redhat", "centos") and version < 6) or (dist == "fedora" and version < 11) or (dist == "suse"):
+        return os.path.join("/etc", filename)
+    elif (dist == "debian" and int(version) < 6) or (dist == "ubuntu" and version < 11.10):
+        return os.path.join("/etc/dhcp3", filename)
     else:
-        return "/etc/dhcp/dhcpd.conf"
+        return os.path.join("/etc/dhcp/", filename)
 
 
 def namedconf_location() -> str:
