@@ -60,14 +60,6 @@ cobbler.modules.managers.ndjbdns module
     :undoc-members:
     :show-inheritance:
 
-cobbler.modules.managers.tftpd\_py module
------------------------------------------
-
-.. automodule:: cobbler.modules.managers.tftpd_py
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

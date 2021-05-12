@@ -36,14 +36,6 @@ cobbler.actions.hardlink module
     :undoc-members:
     :show-inheritance:
 
-cobbler.actions.litesync module
--------------------------------
-
-.. automodule:: cobbler.actions.litesync
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 cobbler.actions.log module
 --------------------------
 
