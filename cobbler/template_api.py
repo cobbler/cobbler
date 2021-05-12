@@ -21,6 +21,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import logging
 import os.path
 import re
 from typing import Match, Optional, TextIO, Tuple, Union
@@ -34,6 +35,8 @@ from cobbler.cexceptions import FileNotFoundException
 # This class is defined using the Cheetah language. Using the 'compile' function we can compile the source directly into
 # a Python class. This class will allow us to define the cheetah builtins.
 
+logger = logging.getLogger()
+
 
 def read_macro_file(location='/etc/cobbler/cheetah_macros'):
     if not os.path.exists(location):
@@ -43,10 +46,15 @@ def read_macro_file(location='/etc/cobbler/cheetah_macros'):
 
 
 def generate_cheetah_macros():
-    return Template.compile(
-        source=read_macro_file(),
-        moduleName="cobbler.template_api",
-        className="CheetahMacros")
+    try:
+        macro_file = read_macro_file()
+        return Template.compile(
+            source=macro_file,
+            moduleName="cobbler.template_api",
+            className="CheetahMacros")
+    except FileNotFoundException:
+        logger.warning("Cheetah Macros file note found. Using empty template.")
+        return Template.compile(source="")
 
 
 class CobblerTemplate(generate_cheetah_macros()):

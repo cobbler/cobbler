@@ -29,8 +29,7 @@ import time
 from cobbler import remote, utils
 from cobbler.api import CobblerAPI
 
-# FIXME: Fix the absolute path and logging dependency on it.
-if os.geteuid() == 0:
+if os.geteuid() == 0 and os.path.exists('/etc/cobbler/logging_config.conf'):
     logging.config.fileConfig('/etc/cobbler/logging_config.conf')
 
 
