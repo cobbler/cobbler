@@ -57,7 +57,7 @@ FIELDS = [
     ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
     ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
     ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
-    ["next_server", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_serverv4", "<<inherit>>", 0, "Next Server Override", True, "See manpage or leave blank", 0, "str"],
     ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "<<inherit>>", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
@@ -269,12 +269,13 @@ class System(Item):
             server = "<<inherit>>"
         self.server = server
 
+    # TODO: Adjust for DHCPv6
     def set_next_server(self, server):
         if server is None or server == "" or server == "<<inherit>>":
-            self.next_server = "<<inherit>>"
+            self.next_serverv4 = "<<inherit>>"
         else:
             server = server.strip()
-            self.next_server = validate.ipv4_address(server)
+            self.next_serverv4 = validate.ipv4_address(server)
 
     def set_filename(self, filename):
         if not filename:

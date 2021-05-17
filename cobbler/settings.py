@@ -105,7 +105,7 @@ DEFAULTS = {
     "manage_tftpd": [True, "bool"],
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
-    "next_server": ["127.0.0.1", "str"],
+    "next_serverv4": ["127.0.0.1", "str"],
     "next_serverv6": ["::1", "str"],
     "nsupdate_enabled": [False, "bool"],
     "nsupdate_log": ["/var/log/cobbler/nsupdate.log", "str"],
@@ -403,7 +403,7 @@ def validate_settings(settings_content: dict) -> dict:
         "mgmt_classes": [str],
         # TODO: Validate Subdict
         "mgmt_parameters": dict,
-        "next_server": str,
+        "next_serverv4": str,
         "next_serverv6": str,
         Optional("nsupdate_enabled", False): bool,
         Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,

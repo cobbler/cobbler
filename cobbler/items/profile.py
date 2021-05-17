@@ -52,7 +52,7 @@ FIELDS = [
     ["name", "", None, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
     ["name_servers", "SETTINGS:default_name_servers", [], "Name Servers", True, "space delimited", 0, "list"],
     ["name_servers_search", "SETTINGS:default_name_servers_search", [], "Name Servers Search Path", True, "space delimited", 0, "list"],
-    ["next_server", "<<inherit>>", '<<inherit>>', "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_serverv4", "<<inherit>>", '<<inherit>>', "Next Server Override", True, "See manpage or leave blank", 0, "str"],
     ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["parent", '', '', "Parent Profile", True, "", [], "str"],
@@ -258,6 +258,7 @@ class Profile(item.Item):
             server = "<<inherit>>"
         self.server = server
 
+    # TODO: Adjust for DHCPv6
     def set_next_server(self, server):
         """
         Setter for the next server value.
@@ -265,13 +266,13 @@ class Profile(item.Item):
         :param server: If this is None or an emtpy string this will be reset to be inherited from the parent object.
         """
         if server in [None, ""]:
-            self.next_server = "<<inherit>>"
+            self.next_serverv4 = "<<inherit>>"
         else:
             server = server.strip()
             if server != "<<inherit>>":
-                self.next_server = validate.ipv4_address(server)
+                self.next_serverv4 = validate.ipv4_address(server)
             else:
-                self.next_server = server
+                self.next_serverv4 = server
 
     def set_filename(self, filename):
         if not filename:

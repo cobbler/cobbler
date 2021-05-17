@@ -127,7 +127,7 @@ class _DnsmasqManager(ManagerModule):
             "insert_cobbler_system_definitions": system_definitions.get("default", ""),
             "date": time.asctime(time.gmtime()),
             "cobbler_server": self.settings.server,
-            "next_server": self.settings.next_server,
+            "next_serverv4": self.settings.next_serverv4,
         }
 
         # now add in other DHCP expansions that are not tagged with "default"

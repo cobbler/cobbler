@@ -168,7 +168,7 @@ class _IscManager(ManagerModule):
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
-                interface["next_server"] = blended_system["next_server"]
+                interface["next_serverv4"] = blended_system["next_serverv4"]
                 interface["filename"] = blended_system.get("filename")
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
@@ -213,7 +213,7 @@ class _IscManager(ManagerModule):
         metadata = {
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
-            "next_server": self.settings.next_server,
+            "next_serverv4": self.settings.next_serverv4,
             "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }
@@ -372,7 +372,7 @@ class _IscManager(ManagerModule):
         # we are now done with the looping through each interface of each system
         metadata = {
             "date": time.asctime(time.gmtime()),
-            "next_server_v6": self.settings.next_serverv6,
+            "next_serverv6": self.settings.next_serverv6,
             "dhcp_tags": dhcp_tags
         }
 
