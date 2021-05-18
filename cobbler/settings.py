@@ -31,7 +31,7 @@ from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaW
 
 from cobbler import utils
 
-# TODO: Convert this into properties for 3.3.0 and remove manage_dhcp key
+# TODO: Convert this into properties for 3.3.0
 # defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
     "allow_duplicate_hostnames": [False, "bool"],
@@ -95,8 +95,8 @@ DEFAULTS = {
     "ldap_tls_keyfile": ["", "str"],
     "bind_manage_ipmi": [False, "bool"],
     "manage_dhcp": [False, "bool"],
-    "manage_dhcpv6": [False, "bool"],
-    "manage_dhcpv4": [False, "bool"],
+    "manage_dhcp_v6": [False, "bool"],
+    "manage_dhcp_v4": [False, "bool"],
     "manage_dns": [False, "bool"],
     "manage_forward_zones": [[], "list"],
     "manage_reverse_zones": [[], "list"],
@@ -105,8 +105,8 @@ DEFAULTS = {
     "manage_tftpd": [True, "bool"],
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
-    "next_serverv4": ["127.0.0.1", "str"],
-    "next_serverv6": ["::1", "str"],
+    "next_server_v4": ["127.0.0.1", "str"],
+    "next_server_v6": ["::1", "str"],
     "nsupdate_enabled": [False, "bool"],
     "nsupdate_log": ["/var/log/cobbler/nsupdate.log", "str"],
     "nsupdate_tsig_algorithm": ["hmac-sha512", "str"],
@@ -308,7 +308,7 @@ class Settings:
                 self.__dict__[name] = result
                 return result
             elif name == "manage_dhcp":
-                return self.manage_dhcpv4
+                return self.manage_dhcp_v4
             return self.__dict__[name]
         except Exception as error:
             if name in DEFAULTS:
@@ -319,7 +319,6 @@ class Settings:
                 raise AttributeError(f"no settings attribute named '{name}' found") from error
 
 
-# TODO: Remove manage_dhcp key
 def validate_settings(settings_content: dict) -> dict:
     """
     This function performs logical validation of our loaded YAML files.
@@ -391,9 +390,10 @@ def validate_settings(settings_content: dict) -> dict:
         "ldap_tls_certfile": str,
         "ldap_tls_keyfile": str,
         Optional("bind_manage_ipmi", default=False): bool,
+        # TODO: Remove following line
         "manage_dhcp": bool,
-        "manage_dhcpv4": bool,
-        "manage_dhcpv6": bool,
+        "manage_dhcp_v4": bool,
+        "manage_dhcp_v6": bool,
         "manage_dns": bool,
         "manage_forward_zones": [str],
         "manage_reverse_zones": [str],
@@ -403,8 +403,8 @@ def validate_settings(settings_content: dict) -> dict:
         "mgmt_classes": [str],
         # TODO: Validate Subdict
         "mgmt_parameters": dict,
-        "next_serverv4": str,
-        "next_serverv6": str,
+        "next_server_v4": str,
+        "next_server_v6": str,
         Optional("nsupdate_enabled", False): bool,
         Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,
         Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,

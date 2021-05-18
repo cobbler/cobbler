@@ -130,8 +130,8 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
                     filename "$iface.filename";
                 #end if
             #end if
-            #if $iface.next_server:
-                next-server $iface.next_server;
+            #if $iface.next_server_v4:
+                next-server $iface.next_server_v4;
             #end if
             #if $iface.filename:
                 filename $filename

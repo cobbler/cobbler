@@ -57,8 +57,8 @@ FIELDS = [
     ["name_servers", [], 0, "Name Servers", True, "space delimited", 0, "list"],
     ["name_servers_search", [], 0, "Name Servers Search Path", True, "space delimited", 0, "list"],
     ["netboot_enabled", True, 0, "Netboot Enabled", True, "PXE (re)install this machine at next boot?", 0, "bool"],
-    ["next_serverv4", "<<inherit>>", 0, "Next Server (IPv4) Override", True, "See manpage or leave blank", 0, "str"],
-    ["next_serverv6", "<<inherit>>", 0, "Next Server (IPv6) Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_server_v4", "<<inherit>>", 0, "Next Server (IPv4) Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_server_v6", "<<inherit>>", 0, "Next Server (IPv6) Override", True, "See manpage or leave blank", 0, "str"],
     ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "<<inherit>>", 0, "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["power_address", "", 0, "Power Management Address", True, "Ex: power-device.example.org", 0, "str"],
@@ -280,9 +280,9 @@ class System(Item):
         if not isinstance(server, str):
             raise TypeError("Server must be a string.")
         if server == Item.VALUE_INHERITED:
-            self.next_serverv4 = Item.VALUE_INHERITED
+            self.next_server_v4 = Item.VALUE_INHERITED
         else:
-            self.next_serverv4 = validate.ipv4_address(server)
+            self.next_server_v4 = validate.ipv4_address(server)
 
     def set_next_server_v6(self, server: str = ""):
         """
@@ -294,9 +294,9 @@ class System(Item):
         if not isinstance(server, str):
             raise TypeError("Server must be a string.")
         if server == Item.VALUE_INHERITED:
-            self.next_serverv6 = Item.VALUE_INHERITED
+            self.next_server_v6 = Item.VALUE_INHERITED
         else:
-            self.next_serverv6 = validate.ipv6_address(server)
+            self.next_server_v6 = validate.ipv6_address(server)
 
     def set_filename(self, filename):
         if not filename:

@@ -57,7 +57,7 @@ class _IscManager(ManagerModule):
 
     def write_v4_config(self):
         """
-        DHCP files are written when ``manage_dhcpv4`` is set in our settings.
+        DHCP files are written when ``manage_dhcp_v4`` is set in our settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -168,7 +168,7 @@ class _IscManager(ManagerModule):
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
-                interface["next_serverv4"] = blended_system["next_serverv4"]
+                interface["next_server_v4"] = blended_system["next_server_v4"]
                 interface["filename"] = blended_system.get("filename")
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
@@ -213,7 +213,7 @@ class _IscManager(ManagerModule):
         metadata = {
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
-            "next_serverv4": self.settings.next_serverv4,
+            "next_server_v4": self.settings.next_server_v4,
             "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }
@@ -223,7 +223,7 @@ class _IscManager(ManagerModule):
 
     def write_v6_config(self):
         """
-        DHCP IPv6 files are written when ``manage_dhcpv6`` is set in ``/etc/cobbler/settings``.
+        DHCP IPv6 files are written when ``manage_dhcp_v6`` is set in ``/etc/cobbler/settings``.
         """
 
         template_file = "/etc/cobbler/dhcp6.template"
@@ -328,7 +328,7 @@ class _IscManager(ManagerModule):
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
-                interface["next_serverv6"] = blended_system["next_serverv6"]
+                interface["next_server_v6"] = blended_system["next_server_v6"]
                 interface["filename"] = blended_system.get("filename")
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]
@@ -373,7 +373,7 @@ class _IscManager(ManagerModule):
         # we are now done with the looping through each interface of each system
         metadata = {
             "date": time.asctime(time.gmtime()),
-            "next_serverv6": self.settings.next_serverv6,
+            "next_server_v6": self.settings.next_server_v6,
             "dhcp_tags": dhcp_tags
         }
 
@@ -397,8 +397,8 @@ class _IscManager(ManagerModule):
         return rc
 
     def write_configs(self):
-        dhcpv4 = str(self.settings.manage_dhcpv4).lower()
-        dhcpv6 = str(self.settings.manage_dhcpv6).lower()
+        dhcpv4 = str(self.settings.manage_dhcp_v4).lower()
+        dhcpv6 = str(self.settings.manage_dhcp_v6).lower()
 
         if dhcpv4 != "0":
             self.write_v4_config()
@@ -412,8 +412,8 @@ class _IscManager(ManagerModule):
 
         service_v4 = utils.dhcp_service_name()
 
-        dhcpv4 = str(self.settings.manage_dhcpv4).lower()
-        dhcpv6 = str(self.settings.manage_dhcpv6).lower()
+        dhcpv4 = str(self.settings.manage_dhcp_v4).lower()
+        dhcpv6 = str(self.settings.manage_dhcp_v6).lower()
 
         # Even if one fails, try both and return an error
         ret = 0
