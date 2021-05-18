@@ -27,6 +27,8 @@ from cobbler.cexceptions import CX
 
 
 # this data structure is described in item.py
+from cobbler.items.item import Item
+
 FIELDS = [
     # non-editable in UI (internal)
     ["ctime", 0, 0, "", False, "", 0, "int"],
@@ -52,7 +54,8 @@ FIELDS = [
     ["name", "", None, "Name", True, "Ex: F10-i386-webserver", 0, "str"],
     ["name_servers", "SETTINGS:default_name_servers", [], "Name Servers", True, "space delimited", 0, "list"],
     ["name_servers_search", "SETTINGS:default_name_servers_search", [], "Name Servers Search Path", True, "space delimited", 0, "list"],
-    ["next_serverv4", "<<inherit>>", '<<inherit>>', "Next Server Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_serverv4", "<<inherit>>", '<<inherit>>', "Next Server (IPv4) Override", True, "See manpage or leave blank", 0, "str"],
+    ["next_serverv6", "<<inherit>>", '<<inherit>>', "Next Server (IPv6) Override", True, "See manpage or leave blank", 0, "str"],
     ["filename", "<<inherit>>", '<<inherit>>', "DHCP Filename Override", True, "Use to boot non-default bootloaders", 0, "str"],
     ["owners", "SETTINGS:default_ownership", "SETTINGS:default_ownership", "Owners", True, "Owners list for authz_ownership (space delimited)", 0, "list"],
     ["parent", '', '', "Parent Profile", True, "", [], "str"],
@@ -258,21 +261,33 @@ class Profile(item.Item):
             server = "<<inherit>>"
         self.server = server
 
-    # TODO: Adjust for DHCPv6
-    def set_next_server(self, server):
+    def set_next_server_v4(self, server: str = ""):
         """
         Setter for the next server value.
 
-        :param server: If this is None or an emtpy string this will be reset to be inherited from the parent object.
+        :param server: The address of the IPv4 next server. Must be a string or ``Item.VALUE_INHERITED``.
+        :raises TypeError: In case server is no string.
         """
-        if server in [None, ""]:
-            self.next_serverv4 = "<<inherit>>"
+        if not isinstance(server, str):
+            raise TypeError("Server must be a string.")
+        if server == Item.VALUE_INHERITED:
+            self.next_serverv4 = Item.VALUE_INHERITED
         else:
-            server = server.strip()
-            if server != "<<inherit>>":
-                self.next_serverv4 = validate.ipv4_address(server)
-            else:
-                self.next_serverv4 = server
+            self.next_serverv4 = validate.ipv4_address(server)
+
+    def set_next_server_v6(self, server: str = ""):
+        """
+        Setter for the next server value.
+
+        :param server: The address of the IPv6 next server. Must be a string or ``Item.VALUE_INHERITED``.
+        :raises TypeError: In case server is no string.
+        """
+        if not isinstance(server, str):
+            raise TypeError("Server must be a string.")
+        if server == Item.VALUE_INHERITED:
+            self.next_serverv6 = Item.VALUE_INHERITED
+        else:
+            self.next_serverv6 = validate.ipv6_address(server)
 
     def set_filename(self, filename):
         if not filename:

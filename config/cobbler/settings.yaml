@@ -266,7 +266,7 @@ manage_reverse_zones: []
 # if using Cobbler with manage_dhcp, put the IP address
 # of the Cobbler server here so that PXE booting guests can find it
 # if you do not set this correctly, this will be manifested in TFTP open timeouts.
-next_server: 127.0.0.1
+next_serverv4: 127.0.0.1
 
 # And the same if you set "manage_dhcpv6: 1".
 # Set the cobbler IPv6 address here so that PXE booting guests can find it

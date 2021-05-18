@@ -86,6 +86,9 @@ class Item:
     """
     An Item is a serializable thing that can appear in a Collection
     """
+    # Constants
+    VALUE_INHERITED = "<<inherit>>"
+    # Class instance variables
     converted_cache = {}
 
     @classmethod
