@@ -328,6 +328,7 @@ class _IscManager(ManagerModule):
                     blended_system = utils.blender(self.api, False, system)
                     blender_cache[system.name] = blended_system
 
+                interface["next_serverv6"] = blended_system["next_serverv6"]
                 interface["filename"] = blended_system.get("filename")
                 interface["netboot_enabled"] = blended_system["netboot_enabled"]
                 interface["hostname"] = blended_system["hostname"]

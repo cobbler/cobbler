@@ -128,6 +128,7 @@ class _DnsmasqManager(ManagerModule):
             "date": time.asctime(time.gmtime()),
             "cobbler_server": self.settings.server,
             "next_serverv4": self.settings.next_serverv4,
+            "next_serverv6": self.settings.next_serverv6,
         }
 
         # now add in other DHCP expansions that are not tagged with "default"

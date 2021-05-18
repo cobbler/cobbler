@@ -233,6 +233,9 @@ class CobblerCheck:
             status.append("For PXE to be functional, the 'next_serverv4' field in /etc/cobbler/settings.yaml must be set to "
                           "something other than 127.0.0.1, and should match the IP of the boot server on the PXE "
                           "network.")
+        if self.settings.next_serverv6 == "::1":
+            status.append("For PXE to be functional, the 'next_serverv6' field in /etc/cobbler/settings.yaml must be set to "
+                          "something other than ::1, and should match the IP of the boot server on the PXE network.")
 
     def check_selinux(self, status):
         """
