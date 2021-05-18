@@ -25,7 +25,6 @@ import os
 import os.path
 import re
 import socket
-from time import sleep
 from typing import Optional, List
 
 from cobbler import templar
@@ -286,6 +285,8 @@ class TFTPGen:
                         link_path = os.path.join(self.bootloc, "grub", "system_link", system.name)
                         if os.path.exists(link_path):
                             utils.rmfile(link_path)
+                        if not os.path.exists(os.path.dirname(link_path)):
+                            utils.mkdir(os.path.dirname(link_path))
                         os.symlink(os.path.join("..", "system", grub_name), link_path)
                 else:
                     self.write_pxe_file(pxe_path, system, None, None, working_arch, image=profile,
@@ -711,17 +712,11 @@ class TFTPGen:
 
         if filename is not None:
             self.logger.info("generating: %s" % filename)
-            # This try-except is a work-around for the cases where 'open' throws
-            # the FileNotFoundError for not apparent reason.
-            try:
-                with open(filename, "w") as fd:
-                    fd.write(buffer)
-            except FileNotFoundError as e:
-                self.logger.error("Got \"{}\" while trying to write {}".format(e, filename))
-                self.logger.error("Trying to write {} again after some delay.".format(filename))
-                sleep(1)
-                with open(filename, "w") as fd:
-                    fd.write(buffer)
+            # Ensure destination path exists to avoid race condition
+            if not os.path.exists(os.path.dirname(filename)):
+                utils.mkdir(os.path.dirname(filename))
+            with open(filename, "w") as fd:
+                fd.write(buffer)
         return buffer
 
     def build_kernel(self, metadata, system, profile, distro, image=None, boot_loader: str = "pxe"):
