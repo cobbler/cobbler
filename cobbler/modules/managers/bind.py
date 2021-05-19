@@ -20,6 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+
 import re
 import socket
 import time
@@ -52,7 +53,7 @@ class _BindManager(ManagerModule):
         super().__init__(collection_mgr)
 
         self.settings_file = utils.namedconf_location()
-        self.zonefile_base = utils.zonefile_base()
+        self.zonefile_base = self.settings.bind_zonefile_path + "/"
 
     def regen_hosts(self):
         """

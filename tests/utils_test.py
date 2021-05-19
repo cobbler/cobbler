@@ -405,13 +405,13 @@ def test_run_triggers():
 
 def test_get_family():
     # Arrange
-    # TODO: Make this nicer so it doesn't need to run on suse specific distros to succeed.
+    distros = ("suse", "redhat", "debian")
 
     # Act
     result = utils.get_family()
 
     # Assert
-    assert result == "suse"
+    assert result in distros
 
 
 def test_os_release():
@@ -422,7 +422,7 @@ def test_os_release():
     result = utils.os_release()
 
     # Assert
-    assert ("suse", 15.2) == result
+    assert ("suse", 15.2) or ("suse", 15.3) == result
 
 
 @pytest.mark.parametrize("test_src,test_dst,expected_result", [
@@ -1131,14 +1131,26 @@ def test_lod_sort_by_key():
     assert expected_result == result
 
 
-def test_dhcpconf_location():
+def test_dhcpv4conf_location():
+    # TODO: Parameterize and check for wrong argument
     # Arrange
 
     # Act
-    result = utils.dhcpconf_location()
+    result = utils.dhcpconf_location(utils.DHCP.V4)
 
     # Assert
     assert result == "/etc/dhcpd.conf"
+
+
+def test_dhcpv6conf_location():
+    # TODO: Parameterize and check for wrong argument
+    # Arrange
+
+    # Act
+    result = utils.dhcpconf_location(utils.DHCP.V6)
+
+    # Assert
+    assert result == "/etc/dhcpd6.conf"
 
 
 def test_namedconf_location():
@@ -1149,16 +1161,6 @@ def test_namedconf_location():
 
     # Assert
     assert result == "/etc/named.conf"
-
-
-def test_zonefile_base():
-    # Arrange
-
-    # Act
-    result = utils.zonefile_base()
-
-    # Assert
-    assert result == "/var/lib/named/"
 
 
 def test_dhcp_service_name():

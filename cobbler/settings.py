@@ -27,9 +27,11 @@ import traceback
 from typing import Union, Dict, Hashable, Any
 
 import yaml
-from schema import Schema, Optional, SchemaError, SchemaMissingKeyError
+from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaWrongKeyError
 
 from cobbler import utils
+
+# TODO: Only log settings dict on error and not always!
 
 # TODO: Convert this into properties for 3.3.0
 # defaults is to be used if the config file doesn't contain the value we need
@@ -45,6 +47,7 @@ DEFAULTS = {
     "autoinstall_snippets_dir": ["/var/lib/cobbler/snippets", "str"],
     "autoinstall_templates_dir": ["/var/lib/cobbler/templates", "str"],
     "bind_chroot_path": ["", "str"],
+    "bind_zonefile_path": ["/var/lib/named", "str"],
     "bind_master": ["127.0.0.1", "str"],
     "boot_loader_conf_template_dir": ["/etc/cobbler/boot_loader_conf", "str"],
     "bootloaders_dir": ["/var/lib/cobbler/loaders", "str"],
@@ -93,7 +96,10 @@ DEFAULTS = {
     "ldap_tls_certfile": ["", "str"],
     "ldap_tls_keyfile": ["", "str"],
     "bind_manage_ipmi": [False, "bool"],
+    # TODO: Remove following line
     "manage_dhcp": [False, "bool"],
+    "manage_dhcp_v6": [False, "bool"],
+    "manage_dhcp_v4": [False, "bool"],
     "manage_dns": [False, "bool"],
     "manage_forward_zones": [[], "list"],
     "manage_reverse_zones": [[], "list"],
@@ -102,7 +108,8 @@ DEFAULTS = {
     "manage_tftpd": [True, "bool"],
     "mgmt_classes": [[], "list"],
     "mgmt_parameters": [{}, "dict"],
-    "next_server": ["127.0.0.1", "str"],
+    "next_server_v4": ["127.0.0.1", "str"],
+    "next_server_v6": ["::1", "str"],
     "nsupdate_enabled": [False, "bool"],
     "nsupdate_log": ["/var/log/cobbler/nsupdate.log", "str"],
     "nsupdate_tsig_algorithm": ["hmac-sha512", "str"],
@@ -303,6 +310,9 @@ class Settings:
                 (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
+            # TODO: This needs to be explicitly tested
+            elif name == "manage_dhcp":
+                return self.manage_dhcp_v4
             return self.__dict__[name]
         except Exception as error:
             if name in DEFAULTS:
@@ -335,6 +345,7 @@ def validate_settings(settings_content: dict) -> dict:
         "autoinstall_snippets_dir": str,
         "autoinstall_templates_dir": str,
         "bind_chroot_path": str,
+        "bind_zonefile_path": str,
         "bind_master": str,
         "boot_loader_conf_template_dir": str,
         Optional("bootloaders_dir", default="/var/lib/cobbler/loaders"): str,
@@ -383,7 +394,10 @@ def validate_settings(settings_content: dict) -> dict:
         "ldap_tls_certfile": str,
         "ldap_tls_keyfile": str,
         Optional("bind_manage_ipmi", default=False): bool,
+        # TODO: Remove following line
         "manage_dhcp": bool,
+        "manage_dhcp_v4": bool,
+        "manage_dhcp_v6": bool,
         "manage_dns": bool,
         "manage_forward_zones": [str],
         "manage_reverse_zones": [str],
@@ -393,7 +407,8 @@ def validate_settings(settings_content: dict) -> dict:
         "mgmt_classes": [str],
         # TODO: Validate Subdict
         "mgmt_parameters": dict,
-        "next_server": str,
+        "next_server_v4": str,
+        "next_server_v6": str,
         Optional("nsupdate_enabled", False): bool,
         Optional("nsupdate_log", default="/var/log/cobbler/nsupdate.log"): str,
         Optional("nsupdate_tsig_algorithm", default="hmac-sha512"): str,
@@ -555,6 +570,10 @@ def read_settings_file(filepath="/etc/cobbler/settings.yaml") -> Union[Dict[Hash
         validate_settings(filecontent)
     except SchemaMissingKeyError:
         logging.exception("Settings file was not returned due to missing keys.")
+        logging.debug("The settings to read were: \"%s\"", filecontent)
+        return {}
+    except SchemaWrongKeyError:
+        logging.exception("Settings file was returned due to an error in the schema.")
         logging.debug("The settings to read were: \"%s\"", filecontent)
         return {}
     except SchemaError:

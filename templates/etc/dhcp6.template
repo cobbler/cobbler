@@ -1,0 +1,95 @@
+# ******************************************************************
+# Cobbler managed dhcpd6.conf file
+#
+# generated from cobbler dhcp6.conf template ($date)
+# Do NOT make changes to /etc/dhcpd6.conf. Instead, make your changes
+# in /etc/cobbler/dhcp6.template, as /etc/dhcpd.conf will be
+# overwritten.
+#
+# ******************************************************************
+
+log-facility local0;
+
+default-lease-time 14400; # 4 hours
+max-lease-time 172800; # 48 hours
+allow leasequery;
+
+# Server side command to enable rapid-commit (2 packet exchange)
+#option dhcp6.rapid-commit;
+
+# The delay before information-request refresh
+#  (minimum is 10 minutes, maximum one day, default is to not refresh)
+#  (set to 6 hours)
+option dhcp6.info-refresh-time 21600;
+
+# Set preference to 255 (maximum) in order to avoid waiting for
+# additional servers when there is only one
+option dhcp6.preference 255;
+
+# Global definitions for name server address(es) and domain search list
+#option dhcp6.name-servers fc00:501:ffff:100:200:ff:fe00:3f3e;
+#option dhcp6.domain-search "test.example.com","example.com";
+
+option dhcp6.bootfile-url code 59 = string ;
+
+class "pxeclients" {
+    match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
+    if substring (option vendor-class-identifier, 15, 5) = "00007" {
+        option dhcp6.bootfile-url "tftp://[$next_server_v6]/grub/grubx86.efi";
+    }
+    else if substring (option vendor-class-identifier, 15, 5) = "00000" {
+        option dhcp6.bootfile-url "tftp://[$next_server_v6]/grub/grub.0";
+    }
+}
+
+subnet6 2001:db8:0:1::/64 {
+    range6 2001:db8:0:1::129 2001:db8:0:1::254;
+    option dhcp6.name-servers fec0:0:0:1::1;
+    option dhcp6.domain-search "domain.example";
+}
+
+
+#for dhcp_tag in $dhcp_tags.keys():
+    ## group could be subnet if your dhcp tags line up with your subnets
+    ## or really any valid dhcpd.conf construct ... if you only use the
+    ## default dhcp tag in cobbler, the group block can be deleted for a
+    ## flat configuration
+    ## group for Cobbler DHCP tag: $dhcp_tag
+group {
+    #for mac in $dhcp_tags[$dhcp_tag].keys():
+        #set iface = $dhcp_tags[$dhcp_tag][$mac]
+    host $iface.name {
+        ##
+        ## dhcp-client-identifier
+        #if $iface.interface_type == "infiniband":
+        option dhcp-client-identifier = $mac;
+        #else
+        hardware ethernet $mac;
+        #end if
+        ##
+        ## fixed-address6
+        #if $iface.dns_name:
+        fixed-address6 $iface.dns_name;
+        #else if $iface.ipv6_address:
+        fixed-address6 $iface.ipv6_address;
+        #end if
+        ##
+        ## host-name
+        #if $iface.hostname:
+        option host-name "$iface.hostname";
+        #else if $iface.dns_name:
+        option host-name "$iface.dns_name";
+        #end if
+        ##
+        ## dhcp6.bootfile-url
+        ## Do we have a host specific next_server or filename
+        ## In DHCPv6 that means: Do we point to a host specific boot loader
+        #set host_filename = $iface.get("filename", None)
+        #set host_next_server_v6 = $iface.get("next_server_v6", $next_server_v6)
+        #if $host_next_server_v6 != $next_server_v6 or $host_filename:
+        option dhcp6.bootfile-url "tftp://[$host_next_server_v6]/$host_filename";
+        #end if
+    }
+    #end for
+}
+#end for

@@ -386,6 +386,7 @@ fi
 %config(noreplace) %{_sysconfdir}/cobbler/boot_loader_conf/yaboot.template
 %config(noreplace) %{_sysconfdir}/cobbler/cheetah_macros
 %config(noreplace) %{_sysconfdir}/cobbler/dhcp.template
+%config(noreplace) %{_sysconfdir}/cobbler/dhcp6.template
 %config(noreplace) %{_sysconfdir}/cobbler/dnsmasq.template
 %config(noreplace) %{_sysconfdir}/cobbler/genders.template
 %config(noreplace) %{_sysconfdir}/cobbler/import_rsync_whitelist

@@ -229,10 +229,13 @@ class CobblerCheck:
             status.append("The 'server' field in /etc/cobbler/settings.yaml must be set to something other than localhost, "
                           "or automatic installation features will not work.  This should be a resolvable hostname or "
                           "IP for the boot server as reachable by all machines that will use it.")
-        if self.settings.next_server == "127.0.0.1":
-            status.append("For PXE to be functional, the 'next_server' field in /etc/cobbler/settings.yaml must be set to "
+        if self.settings.next_server_v4 == "127.0.0.1":
+            status.append("For PXE to be functional, the 'next_server_v4' field in /etc/cobbler/settings.yaml must be set to "
                           "something other than 127.0.0.1, and should match the IP of the boot server on the PXE "
                           "network.")
+        if self.settings.next_server_v6 == "::1":
+            status.append("For PXE to be functional, the 'next_server_v6' field in /etc/cobbler/settings.yaml must be set to "
+                          "something other than ::1, and should match the IP of the boot server on the PXE network.")
 
     def check_selinux(self, status):
         """
