@@ -52,7 +52,7 @@ class _IscManager(ManagerModule):
     def __init__(self, collection_mgr):
         super().__init__(collection_mgr)
 
-        self.settings_file = utils.dhcpconf_location(utils.DHCP.V4)
+        self.settings_file_v4 = utils.dhcpconf_location(utils.DHCP.V4)
         self.settings_file_v6 = utils.dhcpconf_location(utils.DHCP.V6)
 
     def write_v4_config(self):
@@ -63,9 +63,9 @@ class _IscManager(ManagerModule):
         template_file = "/etc/cobbler/dhcp.template"
         blender_cache = {}
 
+        # TODO: Has to be refactored.
         try:
             f2 = open(template_file, "r")
-
         except Exception:
             raise CX("error reading template: %s" % template_file)
 
@@ -127,6 +127,7 @@ class _IscManager(ManagerModule):
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if ip is None or ip == "":
+                        # TODO: Clarify variable names
                         for (nam2, int2) in list(system.interfaces.items()):
                             if nam2.startswith(interface["interface_master"] + ".") \
                                     and int2["ip_address"] is not None \
@@ -218,8 +219,8 @@ class _IscManager(ManagerModule):
             "dhcp_tags": dhcp_tags
         }
 
-        self.logger.info("generating %s", self.settings_file)
-        self.templar.render(template_data, metadata, self.settings_file)
+        self.logger.info("generating %s", self.settings_file_v4)
+        self.templar.render(template_data, metadata, self.settings_file_v4)
 
     def write_v6_config(self):
         """
@@ -229,6 +230,7 @@ class _IscManager(ManagerModule):
         template_file = "/etc/cobbler/dhcp6.template"
         blender_cache = {}
 
+        # TODO: Has to be refactored.
         try:
             f2 = open(template_file, "r")
         except Exception:
@@ -289,6 +291,7 @@ class _IscManager(ManagerModule):
                     host = system.interfaces[interface["interface_master"]]["dns_name"]
 
                     if ip_v6 is None or ip_v6 == "":
+                        # TODO: Clarify variable names
                         for (nam2, int2) in list(system.interfaces.items()):
                             if nam2.startswith(interface["interface_master"] + ".") \
                                     and int2["ipv6_address"] is not None \
@@ -385,16 +388,18 @@ class _IscManager(ManagerModule):
         """
         This syncs the dhcp server with it's new config files.
         Basically this restarts the service to apply the changes.
+
+        :param service_name: TODO
         """
-        rc = 0
-        rc = utils.subprocess_call("{} -t -q".format(service_name), shell=True)
-        if rc != 0:
+        return_code_service_restart = 0
+        return_code_service_restart = utils.subprocess_call("{} -t -q".format(service_name), shell=True)
+        if return_code_service_restart != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
         service_restart = "service {} restart".format(service_name)
-        rc = utils.subprocess_call(service_restart, shell=True)
-        if rc != 0:
+        return_code_service_restart = utils.subprocess_call(service_restart, shell=True)
+        if return_code_service_restart != 0:
             self.logger.error("{} service failed".format(service_name))
-        return rc
+        return return_code_service_restart
 
     def write_configs(self):
         if self.settings.manage_dhcp_v4 != "0":

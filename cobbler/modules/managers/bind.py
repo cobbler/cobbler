@@ -382,7 +382,6 @@ zone "%(arpa)s." {
         Sorts IP addresses (or partial addresses) in a numerical fashion per-octet or quartet
 
         :param ips: A list of all IP addresses (v6 and v4 mixed possible) which shall be sorted.
-        :type ips: list
         :return: The list with sorted IP addresses.
         """
         quartets = []
@@ -598,7 +597,7 @@ zone "%(arpa)s." {
 
     def write_configs(self):
         """
-        BIND files are written when manage_dns is set in ``/var/lib/cobbler/settings``.
+        BIND files are written when ``manage_dns`` is set in our settings.
         """
 
         self.__write_named_conf()

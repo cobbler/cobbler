@@ -31,6 +31,8 @@ from schema import Schema, Optional, SchemaError, SchemaMissingKeyError, SchemaW
 
 from cobbler import utils
 
+# TODO: Only log settings dict on error and not always!
+
 # TODO: Convert this into properties for 3.3.0
 # defaults is to be used if the config file doesn't contain the value we need
 DEFAULTS = {
@@ -94,6 +96,7 @@ DEFAULTS = {
     "ldap_tls_certfile": ["", "str"],
     "ldap_tls_keyfile": ["", "str"],
     "bind_manage_ipmi": [False, "bool"],
+    # TODO: Remove following line
     "manage_dhcp": [False, "bool"],
     "manage_dhcp_v6": [False, "bool"],
     "manage_dhcp_v4": [False, "bool"],
@@ -307,6 +310,7 @@ class Settings:
                 (success, result) = utils.input_string_or_dict(self.__dict__[name], allow_multiples=False)
                 self.__dict__[name] = result
                 return result
+            # TODO: This needs to be explicitly tested
             elif name == "manage_dhcp":
                 return self.manage_dhcp_v4
             return self.__dict__[name]

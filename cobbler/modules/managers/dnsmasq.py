@@ -186,8 +186,7 @@ class _DnsmasqManager(ManagerModule):
         """
         This restarts the dhcp server and thus applied the newly written config files.
         """
-        restart_dhcp = str(self.settings.restart_dhcp).lower()
-        if restart_dhcp != "0":
+        if self.settings.restart_dhcp:
             rc = utils.subprocess_call("service dnsmasq restart")
             if rc != 0:
                 error_msg = "service dnsmasq restart failed"
