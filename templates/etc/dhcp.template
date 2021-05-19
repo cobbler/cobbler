@@ -27,7 +27,7 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
      range dynamic-bootp        192.168.1.100 192.168.1.254;
      default-lease-time         21600;
      max-lease-time             43200;
-     next-server                $next_server;
+     next-server                $next_server_v4;
      class "pxeclients" {
           match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
 

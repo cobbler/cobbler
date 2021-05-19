@@ -57,7 +57,7 @@ class _IscManager(ManagerModule):
 
     def write_v4_config(self):
         """
-        DHCP files are written when ``manage_dhcp_v4`` is set in our settings.
+        DHCPv4 files are written when ``manage_dhcp_v4`` is set in our settings.
         """
 
         template_file = "/etc/cobbler/dhcp.template"
@@ -223,7 +223,7 @@ class _IscManager(ManagerModule):
 
     def write_v6_config(self):
         """
-        DHCP IPv6 files are written when ``manage_dhcp_v6`` is set in ``/etc/cobbler/settings``.
+        DHCPv6 files are written when ``manage_dhcp_v6`` is set in our settings.
         """
 
         template_file = "/etc/cobbler/dhcp6.template"
@@ -379,7 +379,7 @@ class _IscManager(ManagerModule):
 
         if self.logger is not None:
             self.logger.info("generating %s" % self.settings_file_v6)
-        self.templar.render(template_data, metadata, self.settings_file_v6, None)
+        self.templar.render(template_data, metadata, self.settings_file_v6)
 
     def restart_dhcp(self, service_name):
         """
@@ -387,39 +387,32 @@ class _IscManager(ManagerModule):
         Basically this restarts the service to apply the changes.
         """
         rc = 0
-        rc = utils.subprocess_call(self.logger, "{} -t -q".format(service_name), shell=True)
+        rc = utils.subprocess_call("{} -t -q".format(service_name), shell=True)
         if rc != 0:
             self.logger.error("Testing config - {} -t failed".format(service_name))
         service_restart = "service {} restart".format(service_name)
-        rc = utils.subprocess_call(self.logger, service_restart, shell=True)
+        rc = utils.subprocess_call(service_restart, shell=True)
         if rc != 0:
             self.logger.error("{} service failed".format(service_name))
         return rc
 
     def write_configs(self):
-        dhcpv4 = str(self.settings.manage_dhcp_v4).lower()
-        dhcpv6 = str(self.settings.manage_dhcp_v6).lower()
-
-        if dhcpv4 != "0":
+        if self.settings.manage_dhcp_v4 != "0":
             self.write_v4_config()
-        if dhcpv6 != "0":
+        if self.settings.manage_dhcp_v6 != "0":
             self.write_v6_config()
 
     def restart_service(self):
-        restart_dhcp = str(self.settings.restart_dhcp).lower()
-        if restart_dhcp == "0":
+        if self.settings.restart_dhcp == "0":
             return 0
-
         service_v4 = utils.dhcp_service_name()
-
-        dhcpv4 = str(self.settings.manage_dhcp_v4).lower()
-        dhcpv6 = str(self.settings.manage_dhcp_v6).lower()
 
         # Even if one fails, try both and return an error
         ret = 0
-        if dhcpv4 != "0":
+        if self.settings.manage_dhcp_v4 != "0":
             ret |= self.restart_dhcp(service_v4)
-        if dhcpv6 != "0":
+        if self.settings.manage_dhcp_v6 != "0":
+            # TODO: Fix hard coded string
             ret |= self.restart_dhcp("dhcpd6")
         return ret
 

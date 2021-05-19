@@ -101,10 +101,10 @@ For most uses, you'll only need to modify this block:
         filename                   "/pxelinux.0";
         default-lease-time         21600;
         max-lease-time             43200;
-        next-server                $next_server;
+        next-server                $next_server_v4;
     }
 
-No matter what, make sure you do not modify the ``next-server $next_server;`` line, as that is how the next_server
+No matter what, make sure you do not modify the ``next-server $next_server_v4;`` line, as that is how the next server
 setting is pulled into the configuration. This file is a cheetah template, so be sure not to modify anything starting
 after this line:
 
