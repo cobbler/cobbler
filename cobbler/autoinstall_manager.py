@@ -8,7 +8,6 @@ import os
 
 from cobbler import autoinstallgen
 from cobbler import utils
-from cobbler.cexceptions import CX
 
 TEMPLATING_ERROR = 1
 KICKSTART_ERROR = 2
@@ -41,10 +40,11 @@ class AutoInstallationManager:
         :param for_item: enable/disable special handling for Item objects
         :param new_autoinstall: when set to true new filenames are allowed
         :returns: automatic installation template relative file path
+        :raises ImportError, OSError or ValueError
         """
 
         if not isinstance(autoinstall, str):
-            raise CX("Invalid input, autoinstall must be a string")
+            raise TypeError("Invalid input, autoinstall must be a string")
         else:
             autoinstall = autoinstall.strip()
 
@@ -59,11 +59,12 @@ class AutoInstallationManager:
                 return autoinstall
 
         if autoinstall.find("..") != -1:
-            raise CX("Invalid automatic installation template file location %s, it must not contain .." % autoinstall)
+            raise ValueError("Invalid automatic installation template file location %s, it must not contain .."
+                             % autoinstall)
 
         autoinstall_path = "%s/%s" % (self.templates_base_dir, autoinstall)
         if not os.path.isfile(autoinstall_path) and not new_autoinstall:
-            raise CX("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
+            raise OSError("Invalid automatic installation template file location %s, file not found" % autoinstall_path)
 
         return autoinstall
 
@@ -149,20 +150,21 @@ class AutoInstallationManager:
         :param snippet: automatic installation snippet relative file path
         :param new_snippet: when set to true new filenames are allowed
         :returns: Snippet if successful otherwise raises an exception.
-        :raises CX: Raised when the arguments are invalid or the action performed raised an internal error.
+        :raises TypeError, ValueError or OSError
         """
 
         if not isinstance(snippet, str):
-            raise CX("Invalid input, snippet must be a string")
+            raise TypeError("Invalid input, snippet must be a string")
         else:
             snippet = snippet.strip()
 
         if snippet.find("..") != -1:
-            raise CX("Invalid automated installation snippet file location %s, it must not contain .." % snippet)
+            raise ValueError("Invalid automated installation snippet file location %s, it must not contain .."
+                             % snippet)
 
         snippet_path = "%s/%s" % (self.snippets_base_dir, snippet)
         if not os.path.isfile(snippet_path) and not new_snippet:
-            raise CX("Invalid automated installation snippet file location %s, file not found" % snippet_path)
+            raise OSError("Invalid automated installation snippet file location %s, file not found" % snippet_path)
 
         return snippet
 

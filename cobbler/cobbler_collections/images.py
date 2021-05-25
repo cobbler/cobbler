@@ -43,6 +43,8 @@ class Images(collection.Collection):
                recursive: bool = True):
         """
         Remove element named 'name' from the collection
+
+        :raises CX
         """
 
         # NOTE: with_delete isn't currently meaningful for repos

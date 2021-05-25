@@ -32,7 +32,6 @@ from cobbler import field_info
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import settings
 from cobbler import utils
-from cobbler.cexceptions import NotImplementedException
 
 
 OBJECT_ACTIONS_MAP = {
@@ -517,6 +516,7 @@ class CobblerCLI:
         :param object_type: The object type to execute an action for.
         :param object_action: The action to execute.
         :return: Depending on the object and action.
+        :raises NotImplementedError or RuntimeError
         """
         # if assigned, we must tail the logfile
         task_id = -1
@@ -622,9 +622,9 @@ class CobblerCLI:
                 else:
                     print("Signatures were successfully loaded")
             else:
-                raise NotImplementedException()
+                raise NotImplementedError()
         else:
-            raise NotImplementedException()
+            raise NotImplementedError()
 
         # FIXME: add tail/polling code here
         if task_id != -1:

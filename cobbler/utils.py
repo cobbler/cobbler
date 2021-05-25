@@ -46,7 +46,7 @@ import json
 from cobbler import settings
 from cobbler import field_info
 from cobbler import validate
-from cobbler.cexceptions import FileNotFoundException, CX
+from cobbler.cexceptions import CX
 
 CHEETAH_ERROR_DISCLAIMER = """
 # *** ERROR ***
@@ -92,6 +92,7 @@ def die(msg: str):
     this is not a background op.
 
     :param msg: The message to send for raising the exception
+    :raises CX
     """
 
     # log the exception once in the per-task log or the main log if this is not a background op.
@@ -243,6 +244,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     :param api_handle: The main Cobbler api instance.
     :param virt_type: The virtualization provider. Currently possible is 'vmware', 'xen', 'qemu', 'kvm'.
     :returns: MAC address string
+    :raises CX
     """
     if virt_type.startswith("vmware"):
         mac = [
@@ -406,7 +408,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
     :param fetch_if_remote: If True a remote file will be tried to read, otherwise remote files are skipped and None is
                             returned.
     :return: Returns None if file is remote and templating of remote files is disabled.
-    :raises FileNotFoundException: if the file does not exist at the specified location.
+    :raises FileNotFoundError: if the file does not exist at the specified location.
     """
 
     # Local files:
@@ -414,7 +416,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
         if not os.path.exists(file_location):
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
 
         try:
             with open(file_location) as f:
@@ -437,7 +439,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
         except urllib.error.HTTPError:
             # File likely doesn't exist
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
 
 
 def remote_file_exists(file_url) -> bool:
@@ -478,6 +480,7 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
     :param options: The object to split into a list.
     :return: str when this functions get's passed <<inherit>>. if option is delete then an empty list is returned.
              Otherwise this function tries to return the arg option or tries to split it into a list.
+             :raises TypeError
     """
     if options == "<<inherit>>":
         return "<<inherit>>"
@@ -489,7 +492,7 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
         tokens = shlex.split(options)
         return tokens
     else:
-        raise CX("invalid input type")
+        raise TypeError("invalid input type")
 
 
 def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
@@ -501,6 +504,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     :param options: The str or dict to convert.
     :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
     :return: A tuple of True and a dict.
+    :raises TypeError
     """
 
     if options == "<<inherit>>":
@@ -509,7 +513,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     if options is None or options == "delete":
         return True, {}
     elif isinstance(options, list):
-        raise CX("No idea what to do with list: %s" % options)
+        raise TypeError("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
@@ -542,7 +546,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
         options.pop('', None)
         return True, options
     else:
-        raise CX("invalid input type")
+        raise TypeError("invalid input type")
 
 
 def input_boolean(value: str) -> bool:
@@ -891,6 +895,7 @@ def run_triggers(api, ref, globber, additional: list = []):
                 will be called with no argumenets.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
+    :raises CX
     """
 
     logger.debug("running python triggers from %s", globber)
@@ -1099,6 +1104,7 @@ def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, a
     :param cache: If it is okay to use a cached file instead of the real one.
     :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
                 not present.
+    :raises CX
     """
 
     if api is None:
@@ -1155,6 +1161,7 @@ def copyfile(src: str, dst: str):
 
     :param src: The source file. This may also be a folder.
     :param dst: The destination for the file or folder.
+    :raises OSError
     """
     try:
         logger.info("copying: %s -> %s", src, dst)
@@ -1164,7 +1171,7 @@ def copyfile(src: str, dst: str):
             shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
-            raise CX("Cannot read: %s" % src)
+            raise OSError("Cannot read: %s" % src)
         if os.path.samefile(src, dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
@@ -1180,6 +1187,7 @@ def copyremotefile(src: str, dst1: str, api=None):
     :param src: The remote file URI.
     :param dst1: The copy destination on the local filesystem.
     :param api: This parameter is not used currently.
+    :raises OSError
     """
     try:
         logger.info("copying: %s -> %s", src, dst1)
@@ -1187,7 +1195,7 @@ def copyremotefile(src: str, dst1: str, api=None):
         with open(dst1, 'wb') as output:
             output.write(srcfile.read())
     except Exception as e:
-        raise CX("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
+        raise OSError("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
 
 
 def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool = False, cache: bool = True, api=None):
@@ -1200,6 +1208,7 @@ def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool 
     :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
     :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
     :param api:
+    :raises CX
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
@@ -1215,7 +1224,7 @@ def rmfile(path: str) -> bool:
 
     :param path: The file to delete.
     :return: True if the action succeeded.
-    :rtype: bool
+    :raises CX
     """
     try:
         logger.info("removing: %s", path)
@@ -1246,6 +1255,7 @@ def rmtree(path: str) -> Optional[bool]:
 
     :param path: The directory or folder to delete.
     :return: May possibly return true on success or may return None on success.
+    :raises CX
     """
     try:
         if os.path.isfile(path):
@@ -1266,6 +1276,7 @@ def mkdir(path, mode=0o755):
 
     :param path: The path to create the directory at.
     :param mode: The mode to create the directory with.
+    :raises CX
     """
     try:
         logger.info("mkdir: %s", path)
@@ -1302,6 +1313,7 @@ def set_arch(self, arch: str, repo: bool = False):
     :param self: The object where the arch will be set.
     :param arch: The desired architecture to set for the object.
     :param repo: If the object where the arch will be set is a repo or not.
+    :raises CX
     """
     if not arch or arch == "standard" or arch == "x86":
         arch = "i386"
@@ -1325,6 +1337,7 @@ def set_os_version(self, os_version):
 
     :param self: The object to set the os-version for.
     :param os_version: The version which shall be set.
+    :raises CX
     """
     if not os_version:
         self.os_version = ""
@@ -1347,14 +1360,15 @@ def set_breed(self, breed):
 
     :param self: The object to set the os-breed for.
     :param breed: The os-breed which shall be set.
+    :raises ValueError
     """
     valid_breeds = get_valid_breeds()
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
-             % (breed, nicer))
+    raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
+                     % (breed, nicer))
 
 
 def set_mirror_type(self, mirror_type: str):
@@ -1363,6 +1377,7 @@ def set_mirror_type(self, mirror_type: str):
 
     :param self: The object where the arch will be set.
     :param mirror_type: The desired mirror type to set for the repo.
+    :raises CX
     """
     if not mirror_type:
         mirror_type = "baseurl"
@@ -1382,6 +1397,7 @@ def set_repo_os_version(self, os_version):
 
     :param self: The repo to set the os-version for.
     :param os_version: The os-version which should be set.
+    :raises CX
     """
     if not os_version:
         self.os_version = ""

@@ -50,6 +50,8 @@ class Systems(collection.Collection):
                recursive: bool = False):
         """
         Remove element named 'name' from the collection
+
+        :raises CX
         """
         name = name.lower()
         obj = self.find(name=name)

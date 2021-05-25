@@ -140,6 +140,7 @@ class _ImportSignatureManager(ManagerModule):
         :param arch: user-specified architecture
         :param breed: user-specified breed
         :param os_version: user-specified OS version
+        :raises CX
         """
         self.name = name
         self.network_root = network_root

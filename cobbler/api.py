@@ -1151,12 +1151,14 @@ class CobblerAPI:
         """
         Import any repos this server knows about and mirror them. Run ``cobbler reposync`` to apply the changes.
         Credit: Seth Vidal.
+
+        :raises ImportError
         """
         self.log("auto_add_repos")
         try:
             import dnf
         except:
-            raise CX("dnf is not installed")
+            raise ImportError("dnf is not installed")
 
         base = dnf.Base()
         base.read_all_repos()

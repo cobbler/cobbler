@@ -27,7 +27,7 @@ import xml.dom.minidom
 from cobbler import templar
 from cobbler import utils
 from cobbler import validate
-from cobbler.cexceptions import FileNotFoundException, CX
+from cobbler.cexceptions import CX
 
 
 class AutoInstallationGen:
@@ -331,7 +331,7 @@ class AutoInstallationGen:
             data = self.templar.render(raw_data, meta, None)
 
             return data
-        except FileNotFoundException:
+        except FileNotFoundError:
             error_msg = "automatic installation file %s not found at %s" \
                         % (meta["autoinstall"], self.settings.autoinstall_templates_dir)
             self.api.logger.warning(error_msg)
@@ -343,6 +343,7 @@ class AutoInstallationGen:
 
         :param g: The Profile to generate the script/config for.
         :return: The generated output or an error message with a human readable description.
+        :raises CX
         """
         g = self.api.find_profile(name=g)
         if g is None:

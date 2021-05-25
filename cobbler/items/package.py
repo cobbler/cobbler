@@ -72,6 +72,8 @@ class Package(resource.Resource):
     def check_if_valid(self):
         """
         Checks if the object is in a valid state. This only checks currently if the name is present.
+
+        :raises CX
         """
         if not self.name:
             raise CX("name is required")

@@ -52,6 +52,8 @@ class Repos(collection.Collection):
                recursive: bool = False):
         """
         Remove element named 'name' from the collection
+
+        :raises CX
         """
         # NOTE: with_delete isn't currently meaningful for repos
         # but is left in for consistancy in the API.  Unused.

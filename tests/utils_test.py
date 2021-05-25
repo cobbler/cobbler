@@ -236,10 +236,10 @@ def test_input_string_or_list(test_input, expected_result):
 
 @pytest.mark.parametrize("testinput,expected_result,possible_exception", [
     ("<<inherit>>", (True, {}), does_not_raise()),
-    ([""], None, pytest.raises(CX)),
+    ([""], None, pytest.raises(TypeError)),
     ("a b=10 c=abc", (True, {"a": None, "b": '10', "c": "abc"}), does_not_raise()),
     ({"ab": 0}, (True, {"ab": 0}), does_not_raise()),
-    (0, None, pytest.raises(CX))
+    (0, None, pytest.raises(TypeError))
 ])
 def test_input_string_or_dict(testinput, expected_result, possible_exception):
     # Arrange

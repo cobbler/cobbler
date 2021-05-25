@@ -263,13 +263,15 @@ class CobblerSync:
     def rsync_gen(self):
         """
         Generate rsync modules of all repositories and distributions
+
+        :raises OSError:
         """
         template_file = "/etc/cobbler/rsync.template"
 
         try:
             template = open(template_file, "r")
         except:
-            raise CX("error reading template %s" % template_file)
+            raise OSError("error reading template %s" % template_file)
 
         template_data = ""
         template_data = template.read()

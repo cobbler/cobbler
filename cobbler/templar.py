@@ -71,6 +71,7 @@ class Templar:
         whitelist the imports that we allow.
 
         :param data: The Cheetah code to check.
+        :raises CX
         """
         lines = data.split("\n")
         for line in lines:
@@ -165,6 +166,7 @@ class Templar:
         :param raw_data: Is the template code which is not rendered into the result.
         :param search_table: is a dict of metadata keys and values (though results are always returned)
         :return: The rendered Cheetah Template.
+        :raises SyntaxError or CX
         """
 
         self.check_for_invalid_imports(raw_data)
@@ -182,7 +184,8 @@ class Templar:
                     try:
                         (server, directory) = rest.split(":", 2)
                     except Exception as e:
-                        raise CX("Invalid syntax for NFS path given during import: %s" % search_table["tree"]) from e
+                        raise SyntaxError("Invalid syntax for NFS path given during import: %s" % search_table["tree"])\
+                            from e
                     line = "nfs --server %s --dir %s" % (server, directory)
                     # But put the URL part back in so koan can still see what the original value was
                     line += "\n" + "#url --url=%s" % search_table["tree"]

@@ -26,7 +26,7 @@ from typing import Optional
 from cobbler import utils
 from cobbler.items import package, system, item as item_base, image, profile, repo, mgmtclass, distro, file, menu
 
-from cobbler.cexceptions import CX, NotImplementedException
+from cobbler.cexceptions import CX
 
 
 class Collection:
@@ -66,21 +66,21 @@ class Collection:
         :param collection_mgr: The collection manager to resolve all information with.
         :param seed_data: Unused Parameter in the base collection.
         """
-        raise NotImplementedException()
+        raise NotImplementedError()
 
     def remove(self, name: str, with_delete: bool = True, with_sync: bool = True, with_triggers: bool = True,
                recursive: bool = False):
         """
-        Remove an item from collection. This method must be overriden in any subclass.
+        Remove an item from collection. This method must be overridden in any subclass.
 
         :param name: Item Name
         :param with_delete: sync and run triggers
         :param with_sync: sync to server file system
         :param with_triggers: run "on delete" triggers
         :param recursive: recursively delete children
-        :returns: NotImplementedException
+        :returns: NotImplementedError
         """
-        raise NotImplementedException("Please implement this in a child class of this class.")
+        raise NotImplementedError("Please implement this in a child class of this class.")
 
     def get(self, name):
         """
@@ -93,7 +93,7 @@ class Collection:
 
     def find(self, name: Optional[str] = None, return_list: bool = False, no_errors=False, **kargs: dict):
         """
-        Return first object in the collection that maches all item='value' pairs passed, else return None if no objects
+        Return first object in the collection that matches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
         that case.
 
@@ -103,6 +103,7 @@ class Collection:
         :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
                       ``name``. You may specify more keys to finetune the search.
         :return: The first item or a list with all matches.
+        :raises ValueError
         """
         matches = []
 
@@ -114,7 +115,7 @@ class Collection:
 
         # no arguments is an error, so we don't return a false match
         if len(kargs) == 0:
-            raise CX("calling find with no arguments")
+            raise ValueError("calling find with no arguments")
 
         # performance: if the only key is name we can skip the whole loop
         if len(kargs) == 1 and "name" in kargs and not return_list:
@@ -223,7 +224,7 @@ class Collection:
 
     def rename(self, ref, newname, with_sync: bool = True, with_triggers: bool = True):
         """
-        Allows an object "ref" to be given a newname without affecting the rest of the object tree.
+        Allows an object "ref" to be given a new name without affecting the rest of the object tree.
 
         :param ref: The reference to the object which should be renamed.
         :param newname: The new name for the object.
@@ -322,7 +323,7 @@ class Collection:
         Add an object to the collection
 
         :param ref: The reference to the object.
-        :param save: If this is true then the objet is persited on the disk.
+        :param save: If this is true then the objet is persisted on the disk.
         :param with_copy: Is a bit of a misnomer, but lots of internal add operations can run with "with_copy" as False.
                           True means a real final commit, as if entered from the command line (or basically, by a user).
                           With with_copy as False, the particular add call might just be being run during
@@ -338,9 +339,9 @@ class Collection:
         """
         item_base.Item.remove_from_cache(ref)
         if ref is None:
-            raise CX("Unable to add a None object")
+            raise TypeError("Unable to add a None object")
         if ref.name is None:
-            raise CX("Unable to add an object without a name")
+            raise ValueError("Unable to add an object without a name")
 
         ref.check_if_valid()
 
@@ -369,7 +370,7 @@ class Collection:
         self.__duplication_checks(ref, check_for_duplicate_names, check_for_duplicate_netinfo)
 
         if ref.COLLECTION_TYPE != self.collection_type():
-            raise CX("API error: storing wrong data type in collection")
+            raise TypeError("API error: storing wrong data type in collection")
 
         # failure of a pre trigger will prevent the object from being added
         if save and with_triggers:
@@ -464,7 +465,7 @@ class Collection:
                 raise CX("internal error, unknown object type")
 
             if match:
-                raise CX("An object already exists with that name.  Try 'edit'?")
+                raise CX("An object already exists with that name. Try 'edit'?")
 
         # the duplicate mac/ip checks can be disabled.
         if not check_for_duplicate_netinfo:
@@ -519,11 +520,11 @@ class Collection:
         """
         Returns the string key for the name of the collection (used by serializer etc)
         """
-        raise NotImplementedException("Please implement the method \"collection_type\" in your Collection!")
+        raise NotImplementedError("Please implement the method \"collection_type\" in your Collection!")
 
     @staticmethod
     def collection_types() -> str:
         """
         Returns the string key for the plural name of the collection (used by serializer)
         """
-        raise NotImplementedException("Please implement the method \"collection_types\" in your Collection!")
+        raise NotImplementedError("Please implement the method \"collection_types\" in your Collection!")
