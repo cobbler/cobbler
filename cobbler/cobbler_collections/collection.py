@@ -91,7 +91,7 @@ class Collection:
         """
         return self.listing.get(name.lower(), None)
 
-    def find(self, name: Optional[str] = None, return_list: bool = False, no_errors=False, **kargs):
+    def find(self, name: Optional[str] = None, return_list: bool = False, no_errors=False, **kargs: dict):
         """
         Return first object in the collection that maches all item='value' pairs passed, else return None if no objects
         can be found. When return_list is set, can also return a list.  Empty list would be returned instead of None in
@@ -102,7 +102,6 @@ class Collection:
         :param no_errors: If errors which are possibly thrown while searching should be ignored or not.
         :param kargs: If name is present, this is optional, otherwise this dict needs to have at least a key with
                       ``name``. You may specify more keys to finetune the search.
-        :type kargs: dict
         :return: The first item or a list with all matches.
         """
         matches = []
@@ -333,10 +332,9 @@ class Collection:
         :param with_triggers: If triggers should be run when the object is renamed.
         :param quick_pxe_update: This decides if there should be run a quick or full update after the add was done.
         :param check_for_duplicate_names: If the name of an object should be unique or not.
-        :type check_for_duplicate_names: bool
         :param check_for_duplicate_netinfo: This checks for duplicate network information. This only has an effect on
                                             systems.
-        :type check_for_duplicate_netinfo: bool
+        :raises TypError or ValueError
         """
         item_base.Item.remove_from_cache(ref)
         if ref is None:
@@ -505,7 +503,6 @@ class Collection:
         Actually scripts would be better off reading the JSON in the cobbler_collections files directly.
 
         :return: The object as a string representation.
-        :rtype: str
         """
         values = list(self.listing.values())[:]   # copy the values
         values.sort()                       # sort the copy (2.3 fix)

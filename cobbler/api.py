@@ -25,7 +25,7 @@ import os
 import random
 import tempfile
 import threading
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
 from cobbler import autoinstall_manager
@@ -723,13 +723,12 @@ class CobblerAPI:
         self.log("new_file", [is_subobject])
         return file.File(self._collection_mgr, is_subobject=is_subobject)
 
-    def new_menu(self, is_subobject=False):
+    def new_menu(self, is_subobject: bool = False):
         """
         Returns a new empty menu object. This file is not automatically persisted. Persistence is achieved via
         ``save()``.
 
         :param is_subobject: If the object created is a subobject or not.
-        :type is_subobject: bool
         :return: An empty File object.
         """
         self.log("new_menu", [is_subobject])
@@ -1008,7 +1007,7 @@ class CobblerAPI:
         """
         return self.__since(mtime, self.distros, collapse=collapse)
 
-    def get_profiles_since(self, mtime, collapse: bool = False):
+    def get_profiles_since(self, mtime, collapse: bool = False) -> list:
         """
         Returns profiles modified since a certain time (in seconds since Epoch)
 
@@ -1016,11 +1015,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of profiles which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.profiles, collapse=collapse)
 
-    def get_systems_since(self, mtime, collapse: bool = False):
+    def get_systems_since(self, mtime, collapse: bool = False) -> list:
         """
         Return systems modified since a certain time (in seconds since Epoch)
 
@@ -1028,11 +1026,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of systems which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.systems, collapse=collapse)
 
-    def get_repos_since(self, mtime, collapse: bool = False):
+    def get_repos_since(self, mtime, collapse: bool = False) -> list:
         """
         Return repositories modified since a certain time (in seconds since Epoch)
 
@@ -1040,11 +1037,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of repositories which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.repos, collapse=collapse)
 
-    def get_images_since(self, mtime, collapse: bool = False):
+    def get_images_since(self, mtime, collapse: bool = False) -> list:
         """
         Return images modified since a certain time (in seconds since Epoch)
 
@@ -1052,11 +1048,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of images which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.images, collapse=collapse)
 
-    def get_mgmtclasses_since(self, mtime, collapse: bool = False):
+    def get_mgmtclasses_since(self, mtime, collapse: bool = False) -> list:
         """
         Return management classes modified since a certain time (in seconds since Epoch)
 
@@ -1064,11 +1059,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of management classes which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.mgmtclasses, collapse=collapse)
 
-    def get_packages_since(self, mtime, collapse: bool = False):
+    def get_packages_since(self, mtime, collapse: bool = False) -> list:
         """
         Return packages modified since a certain time (in seconds since Epoch)
 
@@ -1076,11 +1070,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of packages which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.packages, collapse=collapse)
 
-    def get_files_since(self, mtime, collapse: bool = False):
+    def get_files_since(self, mtime, collapse: bool = False) -> list:
         """
         Return files modified since a certain time (in seconds since Epoch)
 
@@ -1088,11 +1081,10 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of files which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.files, collapse=collapse)
 
-    def get_menus_since(self, mtime, collapse=False):
+    def get_menus_since(self, mtime, collapse=False) -> list:
         """
         Return files modified since a certain time (in seconds since Epoch)
 
@@ -1100,7 +1092,6 @@ class CobblerAPI:
         :param collapse: If True then this specifies that a list of dicts should be returned instead of a list of
                          objects.
         :return: The list of files which are newer then the given timestamp.
-        :rtype: list
         """
         return self.__since(mtime, self.menus, collapse=collapse)
 
@@ -1315,7 +1306,7 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def check(self):
+    def check(self) -> Union[None, list]:
         """
         See if all preqs for network booting are valid. This returns a list of strings containing instructions on things
         to correct. An empty list means there is nothing to correct, but that still doesn't mean there are configuration
@@ -1323,7 +1314,6 @@ class CobblerAPI:
         servers for PXE, etc.
 
         :return: None or a list of things to address.
-        :rtype: None or list
         """
         self.log("check")
         action_check = check.CobblerCheck(self._collection_mgr)
@@ -1731,14 +1721,12 @@ class CobblerAPI:
     def replicate(self, cobbler_master: Optional[str] = None, port: str = "80", distro_patterns: str = "",
                   profile_patterns: str = "", system_patterns: str = "", repo_patterns: str = "",
                   image_patterns: str = "", mgmtclass_patterns=None, package_patterns=None, file_patterns: bool = False,
-                  prune: bool = False, omit_data=False, sync_all: bool = False, use_ssl: bool = False):
+                  prune: bool = False, omit_data: bool = False, sync_all: bool = False, use_ssl: bool = False):
         """
         Pull down data/configs from a remote Cobbler server that is a master to this server.
 
         :param cobbler_master: The hostname/URL of the other Cobbler server
-        :type cobbler_master: str
         :param port: The port to use for the replication task.
-        :type port: str
         :param distro_patterns: The pattern of distros which should be synced.
         :param profile_patterns: The pattern of profiles which should be synced.
         :param system_patterns: The pattern of systems which should be synced.
@@ -1748,15 +1736,11 @@ class CobblerAPI:
         :param package_patterns: The pattern of packages which should be synced.
         :param file_patterns: The pattern of files which should be synced.
         :param prune: Whether the object not on the master should be removed or not.
-        :type prune: bool
         :param omit_data: If the data downloaded by the current Cobbler server should be rsynced to the destination
                           server.
-        :type omit_data: bool
         :param sync_all: This parameter behaves similarly to a dry run argument. If True then everything will executed,
                          if False then only some things are synced.
-        :type sync_all: bool
         :param use_ssl: Whether SSL should be used (True) or not (False).
-        :type use_ssl: bool
         """
         replicator = replicate.Replicate(self._collection_mgr)
         return replicator.run(

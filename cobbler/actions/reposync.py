@@ -26,6 +26,7 @@ import os.path
 import pipes
 import stat
 import shutil
+from typing import Union
 
 from cobbler import utils
 from cobbler import download_manager
@@ -460,13 +461,12 @@ class RepoSync:
 
     # ====================================================================================
 
-    def gen_urlgrab_ssl_opts(self, yumopts):
+    def gen_urlgrab_ssl_opts(self, yumopts) -> Union[str, bool]:
         """
         This function translates yum repository options into the appropriate options for python-requests
 
         :param yumopts: The options to convert.
         :return: A tuple with the cert and a boolean if it should be verified or not.
-        :rtype: (str, bool)
         """
         # use SSL options if specified in yum opts
         cert = None

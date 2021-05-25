@@ -406,7 +406,7 @@ zone "%(arpa)s." {
         #
         return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
-    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN'):
+    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN') -> str:
         """
         Format host records by order and with consistent indentation
 
@@ -414,7 +414,6 @@ zone "%(arpa)s." {
         :param rectype: The record type.
         :param rclass: The record class.
         :return: A string with all pretty printed hosts.
-        :rtype: str
         """
 
         # Warns on hosts without dns_name, need to iterate over system to name the

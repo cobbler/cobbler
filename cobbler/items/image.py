@@ -119,7 +119,7 @@ class Image(item.Item):
         """
         return utils.set_arch(self, arch)
 
-    def set_autoinstall(self, autoinstall):
+    def set_autoinstall(self, autoinstall: str):
         """
         Set the automatic installation file path, this must be a local file.
 
@@ -130,7 +130,6 @@ class Image(item.Item):
         file (SIF) etc.
 
         :param autoinstall: local automatic installation template file path
-        :type autoinstall: str
         """
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)

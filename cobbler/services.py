@@ -62,7 +62,6 @@ class CobblerSvc:
 
         :param args: This parameter is unused.
         :return: "no mode specified"
-        :rtype: str
         """
         return "no mode specified"
 
@@ -141,7 +140,7 @@ class CobblerSvc:
         data = self.remote.generate_bootcfg(profile, system)
         return "%s" % data
 
-    def script(self, profile=None, system=None, **rest):
+    def script(self, profile=None, system=None, **rest) -> str:
         """
         Generate a script based on snippets. Useful for post or late-action scripts where it's difficult to embed the
         script in the response file.
@@ -151,7 +150,6 @@ class CobblerSvc:
         :param rest: This may contain a parameter with the key "query_string" which has a key "script" which may be an
                      array. The element from position zero is taken.
         :return: The generated script.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
@@ -225,18 +223,16 @@ class CobblerSvc:
             data = "# must specify profile or system name"
         return data
 
-    def trig(self, mode="?", profile=None, system=None, REMOTE_ADDR=None, **rest):
+    def trig(self, mode: str = "?", profile=None, system=None, REMOTE_ADDR=None, **rest) -> str:
         """
         Hook to call install triggers. Only valid for a profile OR a system.
 
         :param mode: Can be "pre", "post" or "firstboot". Everything else is invalid.
-        :type mode: str
         :param profile: The profile object to run triggers for.
         :param system: The system object to run triggers for.
         :param REMOTE_ADDR: The ip if the remote system/profile.
         :param rest: This parameter is unused.
         :return: The return code of the action.
-        :rtype: str
         """
         self.__xmlrpc_setup()
         ip = REMOTE_ADDR

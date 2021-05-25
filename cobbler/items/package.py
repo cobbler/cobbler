@@ -80,21 +80,19 @@ class Package(resource.Resource):
     # specific methods for item.Package
     #
 
-    def set_installer(self, installer):
+    def set_installer(self, installer: str):
         """
         Setter for the installer parameter.
 
         :param installer: This parameter will be lowercased regardless of what string you give it.
-        :type installer: str
         """
         self.installer = installer.lower()
 
-    def set_version(self, version):
+    def set_version(self, version: str):
         """
         Setter for the package version.
 
         :param version: They may be anything which is suitable for describing the version of a package. Internally this
                         is a string.
-        :type version: str
         """
         self.version = version

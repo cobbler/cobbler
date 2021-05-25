@@ -341,12 +341,11 @@ class Item:
             parent = parent.get_parent()
         return None
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         """
         Set the objects name.
 
         :param name: object name string
-        :type name: str
         :return: True or CX
         """
         self.name = validate.object_name(name, self.parent)

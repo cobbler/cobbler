@@ -31,7 +31,6 @@ def register() -> str:
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type
     :return: Always: ``/var/lib/cobbler/triggers/change/*``
-    :rtype: str
     """
 
     return "/var/lib/cobbler/triggers/change/*"

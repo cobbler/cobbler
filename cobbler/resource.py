@@ -22,14 +22,14 @@ class Resource(item.Item):
     Base Class for management resources.
     """
 
-    def set_action(self, action):
+    def set_action(self, action: str):
         """
         All management resources have an action. Action determine weather a most resources should be created or removed,
         and if packages should be installed or uninstalled.
 
         :param action: The action which should be executed for the management resource. Must be on of "create" or
                        "remove". Parameter is case-insensitive.
-        :type action: str
+        :raises CX
         """
         action = action.lower()
         valid_actions = ['create', 'remove']

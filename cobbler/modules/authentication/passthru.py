@@ -22,12 +22,11 @@ def register() -> str:
     The mandatory Cobbler module registration hook.
 
     :return: Always "authn"
-    :rtype: str
     """
     return "authn"
 
 
-def authenticate(api_handle, username, password):
+def authenticate(api_handle, username, password) -> bool:
     """
     Validate a username/password combo. Uses cobbler_auth_helper
 
@@ -35,6 +34,5 @@ def authenticate(api_handle, username, password):
     :param username: This parameter is not used currently.
     :param password: This should be the internal Cobbler secret.
     :return: True if the password is the secret, otherwise false.
-    :rtype: bool
     """
     return password == utils.get_shared_secret()

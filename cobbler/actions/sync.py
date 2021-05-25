@@ -401,9 +401,7 @@ class CobblerSync:
         Sync removing a single profile.
 
         :param name: The name of the profile.
-        :type name: str
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
-        :type rebuild_menu: bool
         """
         # delete profiles/$name file in webdir
         utils.rmfile(os.path.join(self.settings.webdir, "profiles", name))
@@ -453,13 +451,10 @@ class CobblerSync:
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", filename))
             utils.rmfile(os.path.join(bootloc, "grub", filename.upper()))
 
-    def remove_single_menu(self, rebuild_menu=True):
+    def remove_single_menu(self, rebuild_menu: bool = True):
         """
         Sync removing a single menu.
-        :param name: The name of the profile.
-        :type name: str
         :param rebuild_menu: Whether to rebuild the grub/... menu or not.
-        :type rebuild_menu: bool
         """
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()

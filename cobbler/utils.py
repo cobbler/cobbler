@@ -142,7 +142,6 @@ def cheetah_exc(exc) -> str:
 
     :param exc: The exception to convert.
     :return: The string representation of the Cheetah3 exception.
-    :rtype: str
     """
     lines = get_exc(exc).split("\n")
     buf = ""
@@ -151,14 +150,13 @@ def cheetah_exc(exc) -> str:
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def pretty_hex(ip, length=8):
+def pretty_hex(ip, length=8) -> str:
     """
     Pads an IP object with leading zeroes so that the result is _length_ hex digits.  Also do an upper().
 
     :param ip: The IP address to pretty print.
     :param length: The length of the resulting hexstring. If the number is smaller than the resulting hex-string
                    then no front-padding is done.
-    :rtype: str
     """
     hexval = "%x" % ip.value
     if len(hexval) < length:
@@ -166,14 +164,13 @@ def pretty_hex(ip, length=8):
     return hexval.upper()
 
 
-def get_host_ip(ip, shorten=True):
+def get_host_ip(ip, shorten=True) -> str:
     """
     Return the IP encoding needed for the TFTP boot tree.
 
     :param ip: The IP address to pretty print.
     :param shorten: Whether the IP-Address should be shortened or not.
     :return: The IP encoded as a hexadecimal value.
-    :rtype: str
     """
 
     ip = netaddr.ip.IPAddress(ip)
@@ -1091,7 +1088,7 @@ def cachefile(src: str, dst: str):
     os.link(cachefile, dst)
 
 
-def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None):
+def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, api=None):
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
@@ -1099,9 +1096,7 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None):
     :param src: The source file.
     :param dst: The destination for the link.
     :param symlink_ok: If it is okay to just use a symbolic link.
-    :type symlink_ok: bool
     :param cache: If it is okay to use a cached file instead of the real one.
-    :type cache: bool
     :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
                 not present.
     """
@@ -1195,18 +1190,15 @@ def copyremotefile(src: str, dst1: str, api=None):
         raise CX("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
 
 
-def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None):
+def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool = False, cache: bool = True, api=None):
     """
     Copy 1 or more files with a pattern into a destination.
 
     :param pattern: The pattern for finding the required files.
     :param dst: The destination for the file(s) found.
     :param require_match: If the glob pattern does not find files should an error message be thrown or not.
-    :type require_match: bool
     :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
-    :type symlink_ok: bool
     :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
-    :type cache: bool
     :param api:
     """
     files = glob.glob(pattern)
@@ -1217,7 +1209,7 @@ def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=T
         linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api)
 
 
-def rmfile(path: str):
+def rmfile(path: str) -> bool:
     """
     Delete a single file.
 
@@ -1419,14 +1411,13 @@ def set_repo_breed(self, breed: str):
              % (breed, nicer))
 
 
-def set_repos(self, repos, bypass_check=False):
+def set_repos(self, repos, bypass_check: bool = False):
     """
     This is a setter for the repository.
 
     :param self: The object to set the repositories of.
     :param repos: The repositories to set for the object.
     :param bypass_check: If the newly set repos should be checked for existence.
-    :type bypass_check: bool
     """
     # allow the magic inherit string to persist
     if repos == "<<inherit>>":
@@ -1500,14 +1491,13 @@ def set_virt_disk_driver(self, driver: str):
         raise CX("invalid virt disk driver type (%s)" % driver)
 
 
-def set_virt_auto_boot(self, num):
+def set_virt_auto_boot(self, num: int):
     """
     For Virt only.
     Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
 
     :param self: The object where the virt auto boot should be set for.
     :param num: May be "0" (disabled) or "1" (enabled)
-    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1528,14 +1518,13 @@ def set_virt_auto_boot(self, num):
         raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
 
 
-def set_virt_pxe_boot(self, num):
+def set_virt_pxe_boot(self, num: int):
     """
     For Virt only.
     Specifies whether the VM should use PXE for booting 0 tells Koan not to PXE boot virtuals
 
     :param self: The object where the virt pxe boot should be set for.
     :param num: May be "0" (disabled) or "1" (enabled)
-    :type num: int
     """
 
     # num is a non-negative integer (0 means default)
@@ -1556,7 +1545,6 @@ def set_virt_ram(self, num: Union[int, float]):
 
     :param self: The object where the virtual RAM should be set for.
     :param num: 0 tells Koan to just choose a reasonable default.
-    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1663,7 +1651,6 @@ def is_selinux_enabled() -> bool:
     This check is achieved via a subprocess call to ``selinuxenabled``. Default return is false.
 
     :return: Whether selinux is enabled or not.
-    :rtype: bool
     """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
@@ -1687,26 +1674,24 @@ class MntEntObj:
     mnt_freq = 0        # dump frequency in days
     mnt_passno = 0      # pass number on parallel fsck
 
-    def __init__(self, input=None):
+    def __init__(self, input: str = None):
         """
         This is an object which contains information about a mounted filesystem.
 
         :param input: This is a string which is separated internally by whitespace. If present it represents the
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
-        :type input: str
         """
         if input and isinstance(input, str):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
-    def __dict__(self):
+    def __dict__(self) -> dict:
         """
         This maps all variables available in this class to a dictionary. The name of the keys is identical to the names
         of the variables.
 
         :return: The dictionary representation of an instance of this class.
-        :rtype: dict
         """
         return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, "mnt_type": self.mnt_type,
                 "mnt_opts": self.mnt_opts, "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
@@ -1757,7 +1742,6 @@ def set_serial_device(self, device_number: int) -> bool:
     :param self: The object to set the device number for.
     :param device_number: The number of the serial device.
     :return: True if the action succeeded.
-    :rtype: bool
     """
     if device_number == "" or device_number is None:
         device_number = None
@@ -1913,13 +1897,12 @@ def subprocess_call(cmd, shell: bool = True, input=None):
     return rc
 
 
-def subprocess_get(cmd, shell=True, input=None):
+def subprocess_get(cmd, shell: bool = True, input=None):
     """
     A simple subprocess call with no return code capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the commmand.
-    :type shell: bool
     :param input: If there is any input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
@@ -2441,14 +2424,13 @@ def find_distro_path(settings, distro):
     return os.path.dirname(distro.kernel)
 
 
-def compare_versions_gt(ver1, ver2):
+def compare_versions_gt(ver1, ver2) -> bool:
     """
     Compares versions like "0.9.3" with each other and decides if ver1 is greater than ver2.
 
     :param ver1: The first version.
     :param ver2: The second version.
     :return: True if ver1 is greater, otherwise False.
-    :rtype: bool
     """
 
     def versiontuple(v):
