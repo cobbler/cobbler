@@ -81,6 +81,8 @@ class File(resource.Resource):
         """
         Insure name, path, owner, group, and mode are set.
         Templates are only required for files, is_dir = False
+
+        :raises CX
         """
         if not self.name:
             raise CX("name is required")

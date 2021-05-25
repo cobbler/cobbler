@@ -112,7 +112,7 @@ def serialize_delete(collection, item):
     __release_lock(with_changes=True)
 
 
-def deserialize(collection, topological=True):
+def deserialize(collection, topological: bool = True):
     """
     Load a collection from disk.
 
@@ -122,7 +122,6 @@ def deserialize(collection, topological=True):
                         properly ordered object loading from disk with
                         objects having parent/child relationships, i.e.
                         profiles/subprofiles.  See cobbler/items/item.py
-    :type topological: bool
     """
     __grab_lock()
     storage_module = __get_storage_module(collection.collection_type())

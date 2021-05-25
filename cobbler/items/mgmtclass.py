@@ -74,12 +74,15 @@ class Mgmtclass(item.Item):
         Return all fields which this class has with it's current values.
 
         :return: This is a list with lists.
+        raises CX
         """
         return FIELDS
 
     def check_if_valid(self):
         """
         Check if this object is in a valid state. This currently checks only if the name is present.
+
+        :raises CX
         """
         if not self.name:
             raise CX("name is required")
@@ -109,10 +112,11 @@ class Mgmtclass(item.Item):
         Setter for the params of the managementclass.
 
         :param params: The new params for the object.
+        :raises TypeError
         """
         (success, value) = utils.input_string_or_dict(params, allow_multiples=True)
         if not success:
-            raise CX("invalid parameters")
+            raise TypeError("invalid parameters")
         else:
             self.params = value
 
@@ -129,10 +133,11 @@ class Mgmtclass(item.Item):
         Setter for the name of the managementclass.
 
         :param name: The new name of the class. This must not contain "_", "-", ".", ":" or "+".
+        :raises TypeError or ValueError
         """
         if not isinstance(name, str):
-            raise CX("class name must be a string")
+            raise TypeError("class name must be a string")
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:
-                raise CX("invalid characters in class name: '%s'" % name)
+                raise ValueError("invalid characters in class name: '%s'" % name)
         self.class_name = name

@@ -43,6 +43,7 @@ def run(api, args) -> int:
     :param api: The api to resolve metadata with.
     :param args: This should be a list as described above.
     :return: "0" on success.
+    :raises CX
     """
 
     # FIXME: use the logger

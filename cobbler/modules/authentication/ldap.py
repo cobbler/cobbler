@@ -30,7 +30,6 @@ def register() -> str:
     The mandatory Cobbler module registration hook.
 
     :return: Always "authn"
-    :rtype: str
     """
 
     return "authn"
@@ -44,6 +43,7 @@ def authenticate(api_handle, username, password) -> bool:
     :param username: The username to authenticate.
     :param password: The password to authenticate.
     :return: True if the ldap server authentication was a success, otherwise false.
+    :raises CX
     """
 
     if not password:

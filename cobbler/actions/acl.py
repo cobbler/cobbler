@@ -47,6 +47,7 @@ class AclConfig:
         :param addgroup: Add a group to be able to manage Cobbler.
         :param removeuser: Remove a user to be able to manage Cobbler.
         :param removegroup: Remove a group to be able to manage Cobbler.
+        :raises CX
         """
 
         ok = False

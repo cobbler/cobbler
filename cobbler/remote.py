@@ -25,7 +25,7 @@ import logging
 import os
 import random
 import xmlrpc.server
-from typing import Optional
+from typing import Optional, Union
 from xmlrpc.server import SimpleXMLRPCRequestHandler
 from socketserver import ThreadingMixIn
 import stat
@@ -134,7 +134,7 @@ class CobblerXMLRPCInterface:
         self.tftpgen = tftpgen.TFTPGen(api._collection_mgr)
         self.autoinstall_mgr = autoinstall_manager.AutoInstallationManager(api._collection_mgr)
 
-    def check(self, token):
+    def check(self, token) -> Union[None, list]:
         """
         Returns a list of all the messages/warnings that are things that admin may want to correct about the
         configuration of the Cobbler server. This has nothing to do with "check_access" which is an auth/authz function
@@ -142,19 +142,17 @@ class CobblerXMLRPCInterface:
 
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: None or a list of things to address.
-        :rtype: None or list
         """
         self.check_access(token, "check")
         return self.api.check()
 
-    def background_buildiso(self, options, token):
+    def background_buildiso(self, options, token) -> str:
         """
         Generates an ISO in /var/www/cobbler/pub that can be used to install profiles without using PXE.
 
         :param options: Not known what this parameter does.
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: The id of the task which was started.
-        :rtype: str
         """
         # FIXME: better use webdir from the settings?
         webdir = "/var/www/cobbler/"
@@ -498,23 +496,21 @@ class CobblerXMLRPCInterface:
         else:
             raise CX("no event with that id")
 
-    def last_modified_time(self, token=None):
+    def last_modified_time(self, token=None) -> float:
         """
         Return the time of the last modification to any object. Used to verify from a calling application that no
         Cobbler objects have changed since last check. This method is implemented in the module api under the same name.
 
         :param token: The API-token obtained via the login() method. The API-token obtained via the login() method.
         :return: 0 if there is no file where the information required for this method is saved.
-        :rtype: float
         """
         return self.api.last_modified_time()
 
-    def ping(self):
+    def ping(self) -> bool:
         """
         Deprecated method. Now does nothing.
 
         :return: Always True
-        :rtype: bool
         """
         return True
 
@@ -925,7 +921,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_items("menu")
 
-    def find_items(self, what, criteria=None, sort_field=None, expand=True):
+    def find_items(self, what, criteria=None, sort_field=None, expand: bool = True) -> list:
         """Works like get_items but also accepts criteria as a dict to search on.
 
         Example: ``{ "name" : "*.example.org" }``
@@ -936,9 +932,7 @@ class CobblerXMLRPCInterface:
         :param criteria: The criteria an item needs to match.
         :param sort_field: The field to sort the results after.
         :param expand: Not only get the names but also the complete object in form of a dict.
-        :type expand: bool
         :returns: A list of dicts.
-        :rtype: list
         """
         self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
         items = self.api.find_items(what, criteria=criteria)
@@ -1308,14 +1302,13 @@ class CobblerXMLRPCInterface:
         """
         return self.remove_item("file", name, token, recursive)
 
-    def remove_menu(self, name, token, recursive=True):
+    def remove_menu(self, name, token, recursive: bool = True):
         """
         Deletes a menu from Cobbler.
 
         :param name: The name of the item to remove.
         :param token: The API-token obtained via the login() method.
         :param recursive: If items which are depending on this one should be erased too.
-        :type recursive: bool
         :return: True if the action was successful.
         """
         return self.remove_item("menu", name, token, recursive)
@@ -2848,14 +2841,12 @@ class CobblerXMLRPCInterface:
         else:
             return self.get_system_as_rendered(system.name)
 
-    def get_distro_as_rendered(self, name, token=None, **rest):
+    def get_distro_as_rendered(self, name: str, token: str = None, **rest):
         """
         Get distribution after passing through Cobbler's inheritance engine.
 
         :param name: distro name
-        :type name: str
         :param token: authentication token
-        :type token: str
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a distribution.
         """
@@ -2866,14 +2857,12 @@ class CobblerXMLRPCInterface:
             return self.xmlrpc_hacks(utils.blender(self.api, True, obj))
         return self.xmlrpc_hacks({})
 
-    def get_profile_as_rendered(self, name, token=None, **rest):
+    def get_profile_as_rendered(self, name: str, token: str = None, **rest):
         """
         Get profile after passing through Cobbler's inheritance engine.
 
         :param name: profile name
-        :type name: str
         :param token: authentication token
-        :type token: str
         :param rest: This is dropped in this method since it is not needed here.
         :return: Get a template rendered as a profile.
         """

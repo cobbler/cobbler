@@ -16,7 +16,6 @@ def register() -> str:
     indicates the trigger type
 
     :return: Always ``/var/lib/cobbler/triggers/sync/post/*``
-    :rtype: str
     """
 
     return "/var/lib/cobbler/triggers/sync/post/*"

@@ -214,7 +214,7 @@ class _BindManager(ManagerModule):
                 if not system.is_management_supported(cidr_ok=False):
                     continue
                 if not host or ((not ip) and (not ipv6)):
-                    # gotsta have some dns_name and ip or else!
+                    # gotta have some dns_name and ip or else!
                     continue
 
                 if ip:
@@ -259,6 +259,8 @@ class _BindManager(ManagerModule):
     def __write_named_conf(self):
         """
         Write out the named.conf main config file from the template.
+
+        :raises OSError
         """
         settings_file = self.settings.bind_chroot_path + self.settings_file
         template_file = "/etc/cobbler/named.template"
@@ -305,7 +307,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise CX("error reading template from file: %s" % template_file)
+            raise OSError("error reading template from file: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -369,7 +371,7 @@ zone "%(arpa)s." {
         try:
             f2 = open(template_file, "r")
         except:
-            raise CX("error reading template from file: %s" % template_file)
+            raise OSError("error reading template from file: %s" % template_file)
         template_data = ""
         template_data = f2.read()
         f2.close()
@@ -406,7 +408,7 @@ zone "%(arpa)s." {
         #
         return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
-    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN'):
+    def __pretty_print_host_records(self, hosts, rectype: str = 'A', rclass: str = 'IN') -> str:
         """
         Format host records by order and with consistent indentation
 
@@ -414,7 +416,6 @@ zone "%(arpa)s." {
         :param rectype: The record type.
         :param rclass: The record class.
         :return: A string with all pretty printed hosts.
-        :rtype: str
         """
 
         # Warns on hosts without dns_name, need to iterate over system to name the

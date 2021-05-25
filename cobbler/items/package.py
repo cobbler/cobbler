@@ -72,6 +72,8 @@ class Package(resource.Resource):
     def check_if_valid(self):
         """
         Checks if the object is in a valid state. This only checks currently if the name is present.
+
+        :raises CX
         """
         if not self.name:
             raise CX("name is required")
@@ -80,21 +82,19 @@ class Package(resource.Resource):
     # specific methods for item.Package
     #
 
-    def set_installer(self, installer):
+    def set_installer(self, installer: str):
         """
         Setter for the installer parameter.
 
         :param installer: This parameter will be lowercased regardless of what string you give it.
-        :type installer: str
         """
         self.installer = installer.lower()
 
-    def set_version(self, version):
+    def set_version(self, version: str):
         """
         Setter for the package version.
 
         :param version: They may be anything which is suitable for describing the version of a package. Internally this
                         is a string.
-        :type version: str
         """
         self.version = version

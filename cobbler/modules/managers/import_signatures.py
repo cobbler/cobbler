@@ -140,6 +140,7 @@ class _ImportSignatureManager(ManagerModule):
         :param arch: user-specified architecture
         :param breed: user-specified breed
         :param os_version: user-specified OS version
+        :raises CX
         """
         self.name = name
         self.network_root = network_root
@@ -419,7 +420,6 @@ class _ImportSignatureManager(ManagerModule):
         is important for producing predictable distro names (and profile names) from differing import sources.
 
         :return: The guessed architecture from a distribution dvd.
-        :rtype: list
         """
 
         result = {}
@@ -481,7 +481,6 @@ class _ImportSignatureManager(ManagerModule):
         :param dirname: The directory where the distribution is living in.
         :param kernel: The kernel of that distro.
         :return: The name which is recommended.
-        :rtype: str
         """
 
         if self.network_root is not None:

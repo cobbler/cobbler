@@ -26,7 +26,6 @@ def register() -> str:
     The mandatory Cobbler module registration hook.
 
     :return: Always "authz"
-    :rtype: str
     """
     return "authz"
 
@@ -42,6 +41,5 @@ def authorize(api_handle, user, resource, arg1=None, arg2=None) -> bool:
     :param arg1: This parameter is not used currently.
     :param arg2: This parameter is not used currently.
     :return: Always True
-    :rtype: bool
     """
     return True

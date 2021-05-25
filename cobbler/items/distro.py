@@ -337,12 +337,11 @@ class Distro(item.Item):
             self.redhat_management_key = ""
         self.redhat_management_key = management_key
 
-    def get_redhat_management_key(self):
+    def get_redhat_management_key(self) -> str:
         """
         Get the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
         running.
 
         :return: The key as a string.
-        :rtype: str
         """
         return self.redhat_management_key

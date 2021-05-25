@@ -97,6 +97,7 @@ class ConfigGen:
         Generate configuration data for repos, files and packages.
 
         :return: A dict which has all config data in it.
+        :raises CX
         """
         config_data = {
             'repo_data': self.handle.get_repo_config_for_system(self.system),

@@ -16,14 +16,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+
+import re
+import shlex
+from ipaddress import AddressValueError, NetmaskValueError
 from typing import Union
 
 import netaddr
-import re
-import shlex
 
 from cobbler.cexceptions import CX
-
 
 RE_OBJECT_NAME = re.compile(r'[a-zA-Z0-9_\-.:]*$')
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
@@ -41,12 +42,13 @@ def object_name(name: str, parent: str) -> str:
     """
     Validate the object name.
 
-    :param name: object name
+    :param name: Object name
     :param parent: Parent object name
-    :returns: name or CX
+    :returns: Object name
+    :raises TypeError
     """
     if not isinstance(name, str) or not isinstance(parent, str):
-        raise CX("Invalid input, name and parent must be strings")
+        raise TypeError("Invalid input, name and parent must be strings")
     else:
         name = name.strip()
         parent = parent.strip()
@@ -55,7 +57,7 @@ def object_name(name: str, parent: str) -> str:
         raise CX("Self parentage is not allowed")
 
     if not RE_OBJECT_NAME.match(name):
-        raise CX("Invalid characters in name: '%s'" % name)
+        raise ValueError("Invalid characters in name: '%s'" % name)
 
     return name
 
@@ -65,11 +67,11 @@ def hostname(dnsname: str) -> str:
     Validate the DNS name.
 
     :param dnsname: Hostname or FQDN
-    :returns: dnsname
-    :raises CX: If the Hostname/FQDN is not a string or in an invalid format.
+    :returns: Hostname or FQDN
+    :raises TypeError: If the Hostname/FQDN is not a string or in an invalid format.
     """
     if not isinstance(dnsname, str):
-        raise CX("Invalid input, dnsname must be a string")
+        raise TypeError("Invalid input, dnsname must be a string")
     else:
         dnsname = dnsname.strip()
 
@@ -78,21 +80,22 @@ def hostname(dnsname: str) -> str:
         return dnsname
 
     if not RE_HOSTNAME.match(dnsname):
-        raise CX("Invalid hostname format (%s)" % dnsname)
+        raise ValueError("Invalid hostname format (%s)" % dnsname)
 
     return dnsname
 
 
 def mac_address(mac: str, for_item=True) -> str:
     """
-    Validate as an Eternet MAC address.
+    Validate as an Ethernet MAC address.
 
     :param mac: MAC address
     :param for_item: If the check should be performed for an item or not.
-    :returns: str mac or CX
+    :returns: MAC address
+    :raises ValueError
     """
     if not isinstance(mac, str):
-        raise CX("Invalid input, mac must be a string")
+        raise TypeError("Invalid input, mac must be a string")
     else:
         mac = mac.lower().strip()
 
@@ -102,12 +105,12 @@ def mac_address(mac: str, for_item=True) -> str:
             return mac
 
         # copying system collection will set mac to ""
-        # netaddr will fail to validate this mac and throw an exception
+        # netaddr will fail to validate this mac and throws an exception
         if mac == "":
             return mac
 
     if not netaddr.valid_mac(mac):
-        raise CX("Invalid mac address format (%s)" % mac)
+        raise ValueError("Invalid mac address format (%s)" % mac)
 
     return mac
 
@@ -117,10 +120,11 @@ def ipv4_address(addr: str) -> str:
     Validate an IPv4 address.
 
     :param addr: IPv4 address
-    :returns: str addr or CX
+    :returns: IPv4 address
+    :raises TypeError, AddressValueError or NetmaskValueError
     """
     if not isinstance(addr, str):
-        raise CX("Invalid input, addr must be a string")
+        raise TypeError("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
 
@@ -128,10 +132,10 @@ def ipv4_address(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv4(addr):
-        raise CX("Invalid IPv4 address format (%s)" % addr)
+        raise AddressValueError("Invalid IPv4 address format (%s)" % addr)
 
     if netaddr.IPAddress(addr).is_netmask():
-        raise CX("Invalid IPv4 host address (%s)" % addr)
+        raise NetmaskValueError("Invalid IPv4 host address (%s)" % addr)
 
     return addr
 
@@ -141,10 +145,11 @@ def ipv4_netmask(addr: str) -> str:
     Validate an IPv4 netmask.
 
     :param addr: IPv4 netmask
-    :returns: str addr or CX
+    :returns: IPv4 netmask
+    :raises TypeError, AddressValueError or NetmaskValueError
     """
     if not isinstance(addr, str):
-        raise CX("Invalid input, addr must be a string")
+        raise TypeError("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
 
@@ -152,10 +157,10 @@ def ipv4_netmask(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv4(addr):
-        raise CX("Invalid IPv4 address format (%s)" % addr)
+        raise AddressValueError("Invalid IPv4 address format (%s)" % addr)
 
     if not netaddr.IPAddress(addr).is_netmask():
-        raise CX("Invalid IPv4 netmask (%s)" % addr)
+        raise NetmaskValueError("Invalid IPv4 netmask (%s)" % addr)
 
     return addr
 
@@ -166,9 +171,10 @@ def ipv6_address(addr: str) -> str:
 
     :param addr: IPv6 address
     :returns: The IPv6 address.
+    :raises TypeError or AddressValueError
     """
     if not isinstance(addr, str):
-        raise CX("Invalid input, addr must be a string")
+        raise TypeError("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
 
@@ -176,7 +182,7 @@ def ipv6_address(addr: str) -> str:
         return addr
 
     if not netaddr.valid_ipv6(addr):
-        raise CX("Invalid IPv6 address format (%s)" % addr)
+        raise AddressValueError("Invalid IPv6 address format (%s)" % addr)
 
     return addr
 
@@ -188,6 +194,7 @@ def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[
     :param nameservers: string or list of nameserver addresses
     :param for_item: enable/disable special handling for Item objects
     :return: The list of valid nameservers.
+    :raises TypeError or AddressValueError
     """
     if isinstance(nameservers, str):
         nameservers = nameservers.strip()
@@ -208,9 +215,9 @@ def name_servers(nameservers: Union[str, list], for_item: bool = True) -> Union[
             elif ip_version == 6:
                 ipv6_address(ns)
             else:
-                raise CX("Invalid IP address format")
+                raise AddressValueError("Invalid IP address format")
     else:
-        raise CX("Invalid input type %s, expected str or list" % type(nameservers))
+        raise TypeError("Invalid input type %s, expected str or list" % type(nameservers))
 
     return nameservers
 
@@ -222,6 +229,7 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
     :param search: One or more search domains to validate.
     :param for_item: (enable/disable special handling for Item objects)
     :return: The list of valid nameservers.
+    :raises TypeError
     """
     if isinstance(search, str):
         search = search.strip()
@@ -238,8 +246,6 @@ def name_servers_search(search: Union[str, list], for_item: bool = True) -> Unio
         for sl in search:
             hostname(sl)
     else:
-        raise CX("Invalid input type %s, expected str or list" % type(search))
+        raise TypeError("Invalid input type %s, expected str or list" % type(search))
 
     return search
-
-# EOF

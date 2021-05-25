@@ -93,14 +93,13 @@ class TFTPGen:
         :param  distro_dir: directory (typically in {www,tftp}/images) where to copy the file
         :param  symlink_ok: whethere it is ok to symlink the file. Typically false in case the file is used by daemons
                             run in chroot environments (tftpd,..)
-        :raises CX:         Cobbler Exception is raised in case file IO errors or of the remote file could not be
-                            retrieved
+        :raises FileNotFoundError
         :return:            None
         """
         full_path = utils.find_kernel(d_file)
 
-        if full_path is None:
-            raise CX("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
+        if not full_path:
+            raise FileNotFoundError("File not found: %s, tried to copy to: %s" % (full_path, distro_dir))
 
         # Koan manages remote kernel/initrd itself, but for consistent PXE
         # configurations the synchronization is still necessary

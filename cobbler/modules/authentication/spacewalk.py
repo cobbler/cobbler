@@ -100,9 +100,10 @@ def authenticate(api_handle, username: str, password: str) -> bool:
     See also: https://github.com/uyuni-project/uyuni/blob/master/java/code/src/com/redhat/rhn/frontend/xmlrpc/auth/AuthHandler.java#L133
 
     :param api_handle: The api instance to retrieve settings of.
-    :param username: The username to authenticate agains spacewalk/uyuni/SUSE Manager
-    :param password: The password to authenticate agains spacewalk/uyuni/SUSE Manager
+    :param username: The username to authenticate against spacewalk/uyuni/SUSE Manager
+    :param password: The password to authenticate against spacewalk/uyuni/SUSE Manager
     :return: True if it succeeded, False otherwise.
+    :raises CX
     """
 
     if api_handle is None:

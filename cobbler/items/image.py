@@ -119,7 +119,7 @@ class Image(item.Item):
         """
         return utils.set_arch(self, arch)
 
-    def set_autoinstall(self, autoinstall):
+    def set_autoinstall(self, autoinstall: str):
         """
         Set the automatic installation file path, this must be a local file.
 
@@ -130,7 +130,6 @@ class Image(item.Item):
         file (SIF) etc.
 
         :param autoinstall: local automatic installation template file path
-        :type autoinstall: str
         """
 
         autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
@@ -147,12 +146,13 @@ class Image(item.Item):
         * /path/to/the/filename.ext
 
         :param filename: The location where the image is stored.
+        :raises SyntaxError
         """
         uri = ""
         auth = hostname = path = ""
         # validate file location format
         if filename.find("://") != -1:
-            raise CX("Invalid image file path location, it should not contain a protocol")
+            raise SyntaxError("Invalid image file path location, it should not contain a protocol")
         uri = filename
 
         if filename.find("@") != -1:
@@ -163,17 +163,17 @@ class Image(item.Item):
         if filename.find(":") != -1:
             hostname, filename = filename.split(":")
         elif filename[0] != '/':
-            raise CX("invalid file: %s" % filename)
+            raise SyntaxError("invalid file: %s" % filename)
         # raise an exception if we don't have a valid path
         if len(filename) > 0 and filename[0] != '/':
-            raise CX("file contains an invalid path: %s" % filename)
+            raise SyntaxError("file contains an invalid path: %s" % filename)
         if filename.find("/") != -1:
             path, filename = filename.rsplit("/", 1)
 
         if len(filename) == 0:
-            raise CX("missing filename")
+            raise SyntaxError("missing filename")
         if len(auth) > 0 and len(hostname) == 0:
-            raise CX("a hostname must be specified with authentication details")
+            raise SyntaxError("a hostname must be specified with authentication details")
 
         self.file = uri
 
@@ -190,6 +190,7 @@ class Image(item.Item):
         Set the operating system breed with this setter.
 
         :param breed: The breed of the operating system which is available in the image.
+        :raises CX
         """
         return utils.set_breed(self, breed)
 
@@ -220,6 +221,7 @@ class Image(item.Item):
         Setter for the number of networks.
 
         :param num: If None or emtpy will be set to one. Otherwise will be cast to int and then set.
+        :raises CX
         """
         if num is None or num == "":
             num = 1
@@ -296,6 +298,8 @@ class Image(item.Item):
     def set_menu(self, menu):
         """
         :param menu: The menu for the image.
+        :raises CX
+
         """
 
         if menu and menu != "":
@@ -323,6 +327,7 @@ class Image(item.Item):
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the image.
+        :raises CX
         """
         # allow the magic inherit string to persist
         if boot_loaders == "<<inherit>>":

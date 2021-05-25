@@ -17,7 +17,7 @@ from typing import Optional
 
 from cobbler import utils
 from cobbler import validate
-from cobbler.cexceptions import CX, NotImplementedException
+from cobbler.cexceptions import CX
 
 # the fields has controls what data elements are part of each object.  To add a new field, just add a new
 # entry to the list following some conventions to be described later.  You must also add a method called
@@ -130,6 +130,7 @@ class Item:
         :param from_search: Tries to parse this str in the format as a search result string.
         :param from_obj: Tries to parse this str in the format of an obj str.
         :return: True if the comparison succeeded, False otherwise.
+        :raises CX
         """
         if isinstance(from_obj, str):
             # FIXME: fnmatch is only used for string to string comparisions which should cover most major usage, if
@@ -219,7 +220,7 @@ class Item:
         Get serializable fields
         Must be defined in any subclass
         """
-        raise NotImplementedException("Must be implemented in a specific Item")
+        raise NotImplementedError("Must be implemented in a specific Item")
 
     def clear(self, is_subobject=False):
         """
@@ -233,7 +234,7 @@ class Item:
         """
         Must be defined in any subclass
         """
-        raise NotImplementedException("Must be implemented in a specific Item")
+        raise NotImplementedError("Must be implemented in a specific Item")
 
     def from_dict(self, _dict):
         """
@@ -341,12 +342,11 @@ class Item:
             parent = parent.get_parent()
         return None
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         """
         Set the objects name.
 
         :param name: object name string
-        :type name: str
         :return: True or CX
         """
         self.name = validate.object_name(name, self.parent)
@@ -375,6 +375,7 @@ class Item:
         Kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
         :param options: The new kernel options as a space delimited list.
+        :raises CX
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -387,6 +388,7 @@ class Item:
         Post kernel options are a space delimited list, like 'a=b c=d e=f g h i=j' or a dict.
 
         :param options: The new kernel options as a space delimited list.
+        :raises CX
         """
         (success, value) = utils.input_string_or_dict(options, allow_multiples=True)
         if not success:
@@ -423,6 +425,7 @@ class Item:
         A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
 
         :param mgmt_parameters: The management parameters for an item.
+        :raises TypeError
         """
         if mgmt_parameters == "<<inherit>>":
             self.mgmt_parameters = mgmt_parameters
@@ -430,7 +433,7 @@ class Item:
             import yaml
             data = yaml.safe_load(mgmt_parameters)
             if type(data) is not dict:
-                raise CX("Input YAML in Puppet Parameter field must evaluate to a dictionary.")
+                raise TypeError("Input YAML in Puppet Parameter field must evaluate to a dictionary.")
             self.mgmt_parameters = data
 
     def set_template_files(self, template_files):
@@ -592,6 +595,8 @@ class Item:
     def check_if_valid(self):
         """
         Raise exceptions if the object state is inconsistent
+
+        :raises CX
         """
         if not self.name:
             raise CX("Name is required")

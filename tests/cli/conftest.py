@@ -27,12 +27,11 @@ def list_objects(run_cmd):
 
     :return: Inner function which returns a list of objects.
     """
-    def _list_objects(object_type):
+    def _list_objects(object_type: str) -> list:
         """
         This is the actual function which is then executed by the outer one.
 
         :param object_type: object type
-        :type object_type: str
         :return: list objects
         """
         objects = []

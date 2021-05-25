@@ -33,7 +33,6 @@ def register() -> Optional[str]:
     This pure python trigger acts as if it were a legacy shell-trigger, but is much faster. The return of this method
     indicates the trigger type
     :return: Always ``/var/lib/cobbler/triggers/sync/post/*``
-    :rtype: str
     """
     if not HAS_HIVEX:
         logging.info("python3-hivex not found. If you need Automatic Windows Installation support, please install.")

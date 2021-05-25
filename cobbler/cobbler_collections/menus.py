@@ -59,6 +59,7 @@ class Menus(collection.Collection):
         :param with_sync: TODO
         :param with_triggers: TODO
         :param recursive: TODO
+        :raises CX
         """
         name = name.lower()
         for profile in self.collection_mgr.profiles():

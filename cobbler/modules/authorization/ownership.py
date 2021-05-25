@@ -45,11 +45,12 @@ def __parse_config() -> Dict[str, dict]:
     """
     Parse the "users.conf" of Cobbler and return all data in a dictionary.
 
-    :return: The data seperated by sections. Each section has a subdictionary with the key-value pairs.
+    :return: The data separated by sections. Each section has a subdictionary with the key-value pairs.
+    :raises FileNotFoundError
     """
     etcfile = '/etc/cobbler/users.conf'
     if not os.path.exists(etcfile):
-        raise CX("/etc/cobbler/users.conf does not exist")
+        raise FileNotFoundError("/etc/cobbler/users.conf does not exist")
     # Make users case sensitive to handle kerberos
     config = ConfigParser()
     config.optionxform = str

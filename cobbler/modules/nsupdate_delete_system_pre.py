@@ -36,7 +36,6 @@ def register() -> str:
     This method is the obligatory Cobbler registration hook.
 
     :return: The trigger name or an empty string.
-    :rtype: str
     """
     if __name__ == "cobbler.modules.nsupdate_add_system_post":
         return "/var/lib/cobbler/triggers/add/system/post/*"

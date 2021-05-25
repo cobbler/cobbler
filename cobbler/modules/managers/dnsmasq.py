@@ -57,6 +57,8 @@ class _DnsmasqManager(ManagerModule):
     def write_configs(self):
         """
         DHCP files are written when ``manage_dhcp`` is set in our settings.
+
+        :raises OSError
         """
 
         settings_file = "/etc/dnsmasq.conf"
@@ -65,7 +67,7 @@ class _DnsmasqManager(ManagerModule):
         try:
             f2 = open(template_file, "r")
         except Exception:
-            raise CX("error writing template to file: %s" % template_file)
+            raise OSError("error writing template to file: %s" % template_file)
         template_data = f2.read()
         f2.close()
 
@@ -185,6 +187,8 @@ class _DnsmasqManager(ManagerModule):
     def restart_service(self):
         """
         This restarts the dhcp server and thus applied the newly written config files.
+
+        :raises CX
         """
         if self.settings.restart_dhcp:
             rc = utils.subprocess_call("service dnsmasq restart")

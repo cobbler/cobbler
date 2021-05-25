@@ -25,6 +25,7 @@ from cobbler import power_manager
 from cobbler import utils
 from cobbler import validate
 from cobbler.cexceptions import CX
+from ipaddress import AddressValueError, NetmaskValueError
 
 
 # this data structure is described in item.py
@@ -161,6 +162,8 @@ class System(Item):
     def get_parent(self):
         """
         Return object next highest up the tree.
+
+        :raises CX
         """
         if (self.parent is None or self.parent == '') and self.profile:
             return self.collection_mgr.profiles().find(name=self.profile)
@@ -170,6 +173,9 @@ class System(Item):
             return self.collection_mgr.systems().find(name=self.parent)
 
     def check_if_valid(self):
+        """
+        :raises CX
+        """
         if self.name is None or self.name == "":
             raise CX("name is required")
         if self.profile is None or self.profile == "":
@@ -198,6 +204,8 @@ class System(Item):
     def delete_interface(self, name):
         """
         Used to remove an interface.
+
+        :raises CX
         """
         if name in self.interfaces and len(self.interfaces) > 1:
             del self.interfaces[name]
@@ -211,6 +219,8 @@ class System(Item):
     def rename_interface(self, names):
         """
         Used to rename an interface.
+
+        :raises CX
         """
         (name, newname) = names
         if name not in self.interfaces:
@@ -226,6 +236,7 @@ class System(Item):
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the system.
+        :raises CX
         """
         if boot_loaders == "<<inherit>>":
             self.boot_loaders = "<<inherit>>"
@@ -390,7 +401,7 @@ class System(Item):
 
         :param dns_name: DNS name
         :param interface: interface name
-        :returns: True or CX
+        :raises CX
         """
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and self.collection_mgr.settings().allow_duplicate_hostnames is False:
@@ -417,7 +428,7 @@ class System(Item):
 
         :param address: IP address
         :param interface: interface name
-        :returns: True or CX
+        :raises CX
         """
         address = validate.ipv4_address(address)
         if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
@@ -435,7 +446,7 @@ class System(Item):
 
         :param address: MAC address
         :param interface: interface name
-        :returns: True or CX
+        :raises CX
         """
         address = validate.mac_address(address)
         if address == "random":
@@ -482,7 +493,7 @@ class System(Item):
 
         :param netmask: netmask
         :param interface: interface name
-        :returns: True or CX
+        :raises ValueError
         """
         intf = self.__get_interface(interface)
         intf["netmask"] = validate.ipv4_netmask(netmask)
@@ -510,7 +521,7 @@ class System(Item):
         interface_types = ["bridge", "bridge_slave", "bond", "bond_slave", "bonded_bridge_slave", "bmc", "na",
                            "infiniband", ""]
         if type not in interface_types:
-            raise CX("interface type value must be one of: %s or blank" % ",".join(interface_types))
+            raise ValueError("interface type value must be one of: %s or blank" % ",".join(interface_types))
         if type == "na":
             type = ""
         intf = self.__get_interface(interface)
@@ -542,7 +553,7 @@ class System(Item):
 
         :param address: IP address
         :param interface: interface name
-        :returns: True or CX
+        :raises CX
         """
         address = validate.ipv6_address(address)
         if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
@@ -569,7 +580,7 @@ class System(Item):
             if address == "" or utils.is_ip(address):
                 secondaries.append(address)
             else:
-                raise CX("invalid format for IPv6 IP address (%s)" % address)
+                raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
 
         intf["ipv6_secondaries"] = secondaries
 
@@ -578,7 +589,7 @@ class System(Item):
         if address == "" or utils.is_ip(address):
             intf["ipv6_default_gateway"] = address.strip()
             return
-        raise CX("invalid format for IPv6 IP address (%s)" % address)
+        raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
 
     def set_ipv6_static_routes(self, routes, interface):
         intf = self.__get_interface(interface)
@@ -607,6 +618,8 @@ class System(Item):
         """
         Set the system to use a certain named profile. The profile must have already been loaded into the profiles
         collection.
+
+        :raises CX
         """
         old_parent = self.get_parent()
         if profile_name in ["delete", "None", "~", ""] or profile_name is None:
@@ -631,8 +644,10 @@ class System(Item):
 
     def set_image(self, image_name):
         """
-        Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time. It's
-        one or the other.
+        Set the system to use a certain named image. Works like ``set_profile()`` but cannot be used at the same time.
+        It's one or the other.
+
+        :raises CX
         """
         old_parent = self.get_parent()
         if image_name in ["delete", "None", "~", ""] or image_name is None:

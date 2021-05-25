@@ -138,6 +138,8 @@ class Profile(item.Item):
     def check_if_valid(self):
         """
         Check if the profile is valid. This checks for an existing name and a distro as a conceptual parent.
+
+        :raises CX
         """
         # name validation
         if not self.name:
@@ -161,6 +163,7 @@ class Profile(item.Item):
         likely NOT work. So, API users -- make sure you pass ``is_subobject=True`` into the constructor when using this.
 
         :param parent_name: The name of the parent object.
+        :raises CX
         """
         old_parent = self.get_parent()
         if isinstance(old_parent, item.Item):
@@ -412,6 +415,7 @@ class Profile(item.Item):
         Setter of the boot loaders.
 
         :param boot_loaders: The boot loaders for the profile.
+        :raises CX
         """
         if boot_loaders == "<<inherit>>":
             self.boot_loaders = "<<inherit>>"
@@ -447,6 +451,7 @@ class Profile(item.Item):
     def set_menu(self, menu):
         """
         :param menu: The menu for the profile.
+        :raises CX
         """
 
         if menu and menu != "":

@@ -630,9 +630,7 @@ class BuildIso:
         :param systems: Don't use that when building standalone isos.
         :param distro: (For standalone only)
         :param standalone: This means that no network connection is needed to install the generated iso.
-        :type standalone: bool
         :param airgapped: This option implies standalone=True.
-        :type airgapped: bool
         :param source: If the iso should be offline available this is the path to the sources of the image.
         :param exclude_dns: Whether the repositories have to be locally available or the internet is reachable.
         :param xorrisofs_opts: xorrisofs options to include additionally.

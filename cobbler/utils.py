@@ -46,7 +46,7 @@ import json
 from cobbler import settings
 from cobbler import field_info
 from cobbler import validate
-from cobbler.cexceptions import FileNotFoundException, CX
+from cobbler.cexceptions import CX
 
 CHEETAH_ERROR_DISCLAIMER = """
 # *** ERROR ***
@@ -92,6 +92,7 @@ def die(msg: str):
     this is not a background op.
 
     :param msg: The message to send for raising the exception
+    :raises CX
     """
 
     # log the exception once in the per-task log or the main log if this is not a background op.
@@ -142,7 +143,6 @@ def cheetah_exc(exc) -> str:
 
     :param exc: The exception to convert.
     :return: The string representation of the Cheetah3 exception.
-    :rtype: str
     """
     lines = get_exc(exc).split("\n")
     buf = ""
@@ -151,14 +151,13 @@ def cheetah_exc(exc) -> str:
     return CHEETAH_ERROR_DISCLAIMER + buf
 
 
-def pretty_hex(ip, length=8):
+def pretty_hex(ip, length=8) -> str:
     """
     Pads an IP object with leading zeroes so that the result is _length_ hex digits.  Also do an upper().
 
     :param ip: The IP address to pretty print.
     :param length: The length of the resulting hexstring. If the number is smaller than the resulting hex-string
                    then no front-padding is done.
-    :rtype: str
     """
     hexval = "%x" % ip.value
     if len(hexval) < length:
@@ -166,14 +165,13 @@ def pretty_hex(ip, length=8):
     return hexval.upper()
 
 
-def get_host_ip(ip, shorten=True):
+def get_host_ip(ip, shorten=True) -> str:
     """
     Return the IP encoding needed for the TFTP boot tree.
 
     :param ip: The IP address to pretty print.
     :param shorten: Whether the IP-Address should be shortened or not.
     :return: The IP encoded as a hexadecimal value.
-    :rtype: str
     """
 
     ip = netaddr.ip.IPAddress(ip)
@@ -246,6 +244,7 @@ def get_random_mac(api_handle, virt_type="xenpv") -> str:
     :param api_handle: The main Cobbler api instance.
     :param virt_type: The virtualization provider. Currently possible is 'vmware', 'xen', 'qemu', 'kvm'.
     :returns: MAC address string
+    :raises CX
     """
     if virt_type.startswith("vmware"):
         mac = [
@@ -409,7 +408,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
     :param fetch_if_remote: If True a remote file will be tried to read, otherwise remote files are skipped and None is
                             returned.
     :return: Returns None if file is remote and templating of remote files is disabled.
-    :raises FileNotFoundException: if the file does not exist at the specified location.
+    :raises FileNotFoundError: if the file does not exist at the specified location.
     """
 
     # Local files:
@@ -417,7 +416,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
 
         if not os.path.exists(file_location):
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
 
         try:
             with open(file_location) as f:
@@ -440,7 +439,7 @@ def read_file_contents(file_location, fetch_if_remote=False) -> Optional[str]:
         except urllib.error.HTTPError:
             # File likely doesn't exist
             logger.warning("File does not exist: %s", file_location)
-            raise FileNotFoundException("%s: %s" % ("File not found", file_location))
+            raise FileNotFoundError("%s: %s" % ("File not found", file_location))
 
 
 def remote_file_exists(file_url) -> bool:
@@ -481,6 +480,7 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
     :param options: The object to split into a list.
     :return: str when this functions get's passed <<inherit>>. if option is delete then an empty list is returned.
              Otherwise this function tries to return the arg option or tries to split it into a list.
+             :raises TypeError
     """
     if options == "<<inherit>>":
         return "<<inherit>>"
@@ -492,7 +492,7 @@ def input_string_or_list(options: Union[str, list]) -> Union[list, str]:
         tokens = shlex.split(options)
         return tokens
     else:
-        raise CX("invalid input type")
+        raise TypeError("invalid input type")
 
 
 def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
@@ -504,6 +504,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     :param options: The str or dict to convert.
     :param allow_multiples: True (default) to allow multiple identical keys, otherwise set this false explicitly.
     :return: A tuple of True and a dict.
+    :raises TypeError
     """
 
     if options == "<<inherit>>":
@@ -512,7 +513,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
     if options is None or options == "delete":
         return True, {}
     elif isinstance(options, list):
-        raise CX("No idea what to do with list: %s" % options)
+        raise TypeError("No idea what to do with list: %s" % options)
     elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
@@ -545,7 +546,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
         options.pop('', None)
         return True, options
     else:
-        raise CX("invalid input type")
+        raise TypeError("invalid input type")
 
 
 def input_boolean(value: str) -> bool:
@@ -894,6 +895,7 @@ def run_triggers(api, ref, globber, additional: list = []):
                 will be called with no argumenets.
     :param globber: is a wildcard expression indicating which triggers to run.
     :param additional: Additional arguments to run the triggers with.
+    :raises CX
     """
 
     logger.debug("running python triggers from %s", globber)
@@ -1091,7 +1093,7 @@ def cachefile(src: str, dst: str):
     os.link(cachefile, dst)
 
 
-def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None):
+def linkfile(src: str, dst: str, symlink_ok: bool = False, cache: bool = True, api=None):
     """
     Attempt to create a link dst that points to src. Because file systems suck we attempt several different methods or
     bail to just copying the file.
@@ -1099,11 +1101,10 @@ def linkfile(src: str, dst: str, symlink_ok=False, cache=True, api=None):
     :param src: The source file.
     :param dst: The destination for the link.
     :param symlink_ok: If it is okay to just use a symbolic link.
-    :type symlink_ok: bool
     :param cache: If it is okay to use a cached file instead of the real one.
-    :type cache: bool
     :param api: This parameter is needed to check if a file can be hardlinked. This method fails if this parameter is
                 not present.
+    :raises CX
     """
 
     if api is None:
@@ -1160,6 +1161,7 @@ def copyfile(src: str, dst: str):
 
     :param src: The source file. This may also be a folder.
     :param dst: The destination for the file or folder.
+    :raises OSError
     """
     try:
         logger.info("copying: %s -> %s", src, dst)
@@ -1169,7 +1171,7 @@ def copyfile(src: str, dst: str):
             shutil.copyfile(src, dst)
     except:
         if not os.access(src, os.R_OK):
-            raise CX("Cannot read: %s" % src)
+            raise OSError("Cannot read: %s" % src)
         if os.path.samefile(src, dst):
             # accomodate for the possibility that we already copied
             # the file as a symlink/hardlink
@@ -1185,6 +1187,7 @@ def copyremotefile(src: str, dst1: str, api=None):
     :param src: The remote file URI.
     :param dst1: The copy destination on the local filesystem.
     :param api: This parameter is not used currently.
+    :raises OSError
     """
     try:
         logger.info("copying: %s -> %s", src, dst1)
@@ -1192,22 +1195,20 @@ def copyremotefile(src: str, dst1: str, api=None):
         with open(dst1, 'wb') as output:
             output.write(srcfile.read())
     except Exception as e:
-        raise CX("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
+        raise OSError("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e))
 
 
-def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=True, api=None):
+def copyfile_pattern(pattern, dst, require_match: bool = True, symlink_ok: bool = False, cache: bool = True, api=None):
     """
     Copy 1 or more files with a pattern into a destination.
 
     :param pattern: The pattern for finding the required files.
     :param dst: The destination for the file(s) found.
     :param require_match: If the glob pattern does not find files should an error message be thrown or not.
-    :type require_match: bool
     :param symlink_ok: If it is okay to just use a symlink to link the file to the destination.
-    :type symlink_ok: bool
     :param cache: If it is okay to use a file from the cache (which could be possibly newer) or not.
-    :type cache: bool
     :param api:
+    :raises CX
     """
     files = glob.glob(pattern)
     if require_match and not len(files) > 0:
@@ -1217,13 +1218,13 @@ def copyfile_pattern(pattern, dst, require_match=True, symlink_ok=False, cache=T
         linkfile(file, dst1, symlink_ok=symlink_ok, cache=cache, api=api)
 
 
-def rmfile(path: str):
+def rmfile(path: str) -> bool:
     """
     Delete a single file.
 
     :param path: The file to delete.
     :return: True if the action succeeded.
-    :rtype: bool
+    :raises CX
     """
     try:
         logger.info("removing: %s", path)
@@ -1254,6 +1255,7 @@ def rmtree(path: str) -> Optional[bool]:
 
     :param path: The directory or folder to delete.
     :return: May possibly return true on success or may return None on success.
+    :raises CX
     """
     try:
         if os.path.isfile(path):
@@ -1274,6 +1276,7 @@ def mkdir(path, mode=0o755):
 
     :param path: The path to create the directory at.
     :param mode: The mode to create the directory with.
+    :raises CX
     """
     try:
         logger.info("mkdir: %s", path)
@@ -1310,6 +1313,7 @@ def set_arch(self, arch: str, repo: bool = False):
     :param self: The object where the arch will be set.
     :param arch: The desired architecture to set for the object.
     :param repo: If the object where the arch will be set is a repo or not.
+    :raises CX
     """
     if not arch or arch == "standard" or arch == "x86":
         arch = "i386"
@@ -1333,6 +1337,7 @@ def set_os_version(self, os_version):
 
     :param self: The object to set the os-version for.
     :param os_version: The version which shall be set.
+    :raises CX
     """
     if not os_version:
         self.os_version = ""
@@ -1355,14 +1360,15 @@ def set_breed(self, breed):
 
     :param self: The object to set the os-breed for.
     :param breed: The os-breed which shall be set.
+    :raises ValueError
     """
     valid_breeds = get_valid_breeds()
     if breed is not None and breed.lower() in valid_breeds:
         self.breed = breed.lower()
         return
     nicer = ", ".join(valid_breeds)
-    raise CX("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
-             % (breed, nicer))
+    raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different levels of support"
+                     % (breed, nicer))
 
 
 def set_mirror_type(self, mirror_type: str):
@@ -1371,6 +1377,7 @@ def set_mirror_type(self, mirror_type: str):
 
     :param self: The object where the arch will be set.
     :param mirror_type: The desired mirror type to set for the repo.
+    :raises CX
     """
     if not mirror_type:
         mirror_type = "baseurl"
@@ -1390,6 +1397,7 @@ def set_repo_os_version(self, os_version):
 
     :param self: The repo to set the os-version for.
     :param os_version: The os-version which should be set.
+    :raises CX
     """
     if not os_version:
         self.os_version = ""
@@ -1419,14 +1427,13 @@ def set_repo_breed(self, breed: str):
              % (breed, nicer))
 
 
-def set_repos(self, repos, bypass_check=False):
+def set_repos(self, repos, bypass_check: bool = False):
     """
     This is a setter for the repository.
 
     :param self: The object to set the repositories of.
     :param repos: The repositories to set for the object.
     :param bypass_check: If the newly set repos should be checked for existence.
-    :type bypass_check: bool
     """
     # allow the magic inherit string to persist
     if repos == "<<inherit>>":
@@ -1500,14 +1507,13 @@ def set_virt_disk_driver(self, driver: str):
         raise CX("invalid virt disk driver type (%s)" % driver)
 
 
-def set_virt_auto_boot(self, num):
+def set_virt_auto_boot(self, num: int):
     """
     For Virt only.
     Specifies whether the VM should automatically boot upon host reboot 0 tells Koan not to auto_boot virtuals.
 
     :param self: The object where the virt auto boot should be set for.
     :param num: May be "0" (disabled) or "1" (enabled)
-    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1528,14 +1534,13 @@ def set_virt_auto_boot(self, num):
         raise CX("invalid virt_auto_boot value (%s): value must be either '0' (disabled) or '1' (enabled)" % num)
 
 
-def set_virt_pxe_boot(self, num):
+def set_virt_pxe_boot(self, num: int):
     """
     For Virt only.
     Specifies whether the VM should use PXE for booting 0 tells Koan not to PXE boot virtuals
 
     :param self: The object where the virt pxe boot should be set for.
     :param num: May be "0" (disabled) or "1" (enabled)
-    :type num: int
     """
 
     # num is a non-negative integer (0 means default)
@@ -1556,7 +1561,6 @@ def set_virt_ram(self, num: Union[int, float]):
 
     :param self: The object where the virtual RAM should be set for.
     :param num: 0 tells Koan to just choose a reasonable default.
-    :type num: int
     """
 
     if num == "<<inherit>>":
@@ -1663,7 +1667,6 @@ def is_selinux_enabled() -> bool:
     This check is achieved via a subprocess call to ``selinuxenabled``. Default return is false.
 
     :return: Whether selinux is enabled or not.
-    :rtype: bool
     """
     if not os.path.exists("/usr/sbin/selinuxenabled"):
         return False
@@ -1687,26 +1690,24 @@ class MntEntObj:
     mnt_freq = 0        # dump frequency in days
     mnt_passno = 0      # pass number on parallel fsck
 
-    def __init__(self, input=None):
+    def __init__(self, input: str = None):
         """
         This is an object which contains information about a mounted filesystem.
 
         :param input: This is a string which is separated internally by whitespace. If present it represents the
                       arguments: "mnt_fsname", "mnt_dir", "mnt_type", "mnt_opts", "mnt_freq" and "mnt_passno". The order
                       must be preserved, as well as the separation by whitespace.
-        :type input: str
         """
         if input and isinstance(input, str):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
-    def __dict__(self):
+    def __dict__(self) -> dict:
         """
         This maps all variables available in this class to a dictionary. The name of the keys is identical to the names
         of the variables.
 
         :return: The dictionary representation of an instance of this class.
-        :rtype: dict
         """
         return {"mnt_fsname": self.mnt_fsname, "mnt_dir": self.mnt_dir, "mnt_type": self.mnt_type,
                 "mnt_opts": self.mnt_opts, "mnt_freq": self.mnt_freq, "mnt_passno": self.mnt_passno}
@@ -1757,7 +1758,6 @@ def set_serial_device(self, device_number: int) -> bool:
     :param self: The object to set the device number for.
     :param device_number: The number of the serial device.
     :return: True if the action succeeded.
-    :rtype: bool
     """
     if device_number == "" or device_number is None:
         device_number = None
@@ -1913,13 +1913,12 @@ def subprocess_call(cmd, shell: bool = True, input=None):
     return rc
 
 
-def subprocess_get(cmd, shell=True, input=None):
+def subprocess_get(cmd, shell: bool = True, input=None):
     """
     A simple subprocess call with no return code capturing.
 
     :param cmd: The command to execute.
     :param shell: Whether to use a shell or not for the execution of the commmand.
-    :type shell: bool
     :param input: If there is any input needed for that command to stdin.
     :return: The data which the subprocess returns.
     """
@@ -2441,14 +2440,13 @@ def find_distro_path(settings, distro):
     return os.path.dirname(distro.kernel)
 
 
-def compare_versions_gt(ver1, ver2):
+def compare_versions_gt(ver1, ver2) -> bool:
     """
     Compares versions like "0.9.3" with each other and decides if ver1 is greater than ver2.
 
     :param ver1: The first version.
     :param ver2: The second version.
     :return: True if ver1 is greater, otherwise False.
-    :rtype: bool
     """
 
     def versiontuple(v):
