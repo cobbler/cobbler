@@ -13,17 +13,17 @@ class TestMiscellaneous:
     Class to test remote calls to cobbler which do not belong into a specific category.
     """
 
-    def test_clear_system_logs(self, remote, token, file_basedir, create_kernel_initrd, create_distro, create_profile,
-                               create_system, delete_kernel_initrd, remove_distro, remove_profile, remove_system):
+    def test_clear_system_logs(self, remote, token, create_kernel_initrd, create_distro, create_profile, create_system,
+                               remove_distro, remove_profile, remove_system):
         # Arrange
         fk_kernel = "vmlinuz1"
         fk_initrd = "initrd1.img"
         name_distro = "testdistro_clearsystemlog"
         name_profile = "testprofile_clearsystemlog"
         name_system = "testsystem_clearsystemlog"
-        path_kernel = os.path.join(file_basedir, fk_kernel)
-        path_initrd = os.path.join(file_basedir, fk_initrd)
-        create_kernel_initrd(fk_kernel, fk_initrd)
+        basepath = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(basepath, fk_kernel)
+        path_initrd = os.path.join(basepath, fk_initrd)
 
         distro = create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         profile = create_profile(name_profile, name_distro, "a=1 b=2 c=3 c=4 c=5 d e")
@@ -36,18 +36,23 @@ class TestMiscellaneous:
         remove_distro(name_distro)
         remove_profile(name_profile)
         remove_system(name_system)
-        delete_kernel_initrd(fk_kernel, fk_initrd)
 
         # Assert
         assert result
 
     def test_disable_netboot(self, remote, token, create_distro, remove_distro, create_profile, remove_profile,
-                             create_system, remove_system):
+                             create_system, remove_system, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
         name_distro = "test_distro_template_for_system"
         name_profile = "test_profile_template_for_system"
         name_system = "test_system_template_for_system"
-        create_distro(name_distro, "x86_64", "suse", "/var/log/cobbler/cobbler.log", "/var/log/cobbler/cobbler.log")
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(folder, fk_kernel)
+        path_initrd = os.path.join(folder, fk_initrd)
+
+        create_distro(name_distro, "x86_64", "suse", path_kernel, path_initrd)
         create_profile(name_profile, name_distro, "text")
         create_system(name_system, name_profile)
 
@@ -74,14 +79,17 @@ class TestMiscellaneous:
         assert type(result.get("version_tuple")) == list
         assert [3, 2, 1] == result.get("version_tuple")
 
-    def test_find_items_paged(self, remote, token, create_distro, remove_distro):
+    def test_find_items_paged(self, remote, token, create_distro, remove_distro, create_kernel_initrd):
         # Arrange
+        fk_kernel = "vmlinuz1"
+        fk_initrd = "initrd1.img"
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        path_kernel = os.path.join(folder, fk_kernel)
+        path_initrd = os.path.join(folder, fk_initrd)
         name_distro_1 = "distro_items_paged_1"
         name_distro_2 = "distro_items_paged_2"
-        create_distro(name_distro_1, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
-        create_distro(name_distro_2, "x86_64", "suse", "/var/log/cobbler/cobbler.log",
-                      "/var/log/cobbler/cobbler.log")
+        create_distro(name_distro_1, "x86_64", "suse", path_kernel, path_initrd)
+        create_distro(name_distro_2, "x86_64", "suse", path_kernel, path_initrd)
 
         # Act
         result = remote.find_items_paged("distro", None, "name", 1, 1)
@@ -491,3 +499,21 @@ class TestMiscellaneous:
 
         # Assert
         assert result
+
+    @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_profile", "remove_testdistro",
+                             "remove_testmenu", "remove_testprofile")
+    def test_render_vars(self, remote, token):
+        """
+        Test: string replacements for @@xyz@@
+        """
+
+        # Arrange --> There is nothing to be arranged
+        kernel_options = "tree=http://@@http_server@@/cblr/links/@@distro_name@@"
+
+        # Act
+        distro = remote.get_item_handle("distro", "testdistro0", token)
+        remote.modify_distro(distro, "kernel_options", kernel_options, token)
+        remote.save_distro(distro, token)
+
+        # Assert --> Let the test pass if the call is okay.
+        assert True
