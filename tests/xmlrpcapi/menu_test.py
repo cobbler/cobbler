@@ -15,6 +15,29 @@ def create_menu(remote, token):
     remote.save_menu(menu, token)
 
 
+@pytest.mark.usefixtures("create_testmenu", "remove_testmenu")
+def test_create_submenu(remote, token):
+    """
+    Test: create/edit a submenu object
+    """
+
+    # Arrange
+    menus = remote.get_menus(token)
+
+    # Act
+    submenu = remote.new_menu(token)
+
+    # Assert
+    assert remote.modify_menu(submenu, "name", "testsubmenu0", token)
+    assert remote.modify_menu(submenu, "parent", "testmenu0", token)
+
+    assert remote.save_menu(submenu, token)
+
+    new_menus = remote.get_menus(token)
+    assert len(new_menus) == len(menus) + 1
+    remote.remove_menu("testsubmenu0", token, False)
+
+
 @pytest.fixture
 def remove_menu(remote, token):
     """
