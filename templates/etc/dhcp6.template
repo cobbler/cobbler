@@ -68,11 +68,7 @@ group {
         #end if
         ##
         ## fixed-address6
-        #if $iface.dns_name:
-        fixed-address6 $iface.dns_name;
-        #else if $iface.ipv6_address:
         fixed-address6 $iface.ipv6_address;
-        #end if
         ##
         ## host-name
         #if $iface.hostname:
