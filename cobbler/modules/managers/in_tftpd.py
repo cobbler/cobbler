@@ -107,25 +107,9 @@ class _InTftpdManager(ManagerModule):
 
         return 0
 
-    def update_netboot(self, name):
+    def sync_single_system(self, system):
         """
-        Write out new ``pxelinux.cfg`` files to ``/tftpboot``
-
-        :param name: The name of the system to update.
-        """
-        system = self.systems.find(name=name)
-        if system is None:
-            utils.die("error in system lookup for %s" % name)
-        all_menus = self.tftpgen.get_menu_items()
-        if 'pxe' in all_menus:
-            menu_items = all_menus['pxe']
-            self.tftpgen.write_all_system_files(system, menu_items)
-            # generate any templates listed in the system
-            self.tftpgen.write_templates(system)
-
-    def add_single_system(self, system):
-        """
-        Write out new ``pxelinux.cfg`` files to ``/tftpboot``
+        Write out new ``pxelinux.cfg`` files to ``/tftpboot`` (or grub/system/<mac> in grub case)
 
         :param system: The system to be added.
         """
