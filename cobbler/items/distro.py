@@ -66,14 +66,14 @@ class Distro(item.Item):
 
     COLLECTION_TYPE = "distro"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, api, *args, **kwargs):
         """
         This creates a Distro object.
 
         :param args: Place for extra parameters in this distro object.
         :param kwargs: Place for extra parameters in this distro object.
         """
-        super(Distro, self).__init__(*args, **kwargs)
+        super().__init__(api, *args, **kwargs)
         self.kernel_options = {}
         self.kernel_options_post = {}
         self.autoinstall_meta = {}
@@ -100,7 +100,7 @@ class Distro(item.Item):
         :return: The cloned object. Not persisted on the disk or in a database.
         """
         _dict = self.to_dict()
-        cloned = Distro(self.collection_mgr)
+        cloned = Distro(self.api)
         cloned.from_dict(_dict)
         return cloned
 
@@ -123,9 +123,9 @@ class Distro(item.Item):
         if self.name is None:
             raise CX("name is required")
         if self.kernel is None:
-            raise CX("Error with distro %s - kernel is required" % (self.name))
+            raise CX("Error with distro %s - kernel is required" % self.name)
         if self.initrd is None:
-            raise CX("Error with distro %s - initrd is required" % (self.name))
+            raise CX("Error with distro %s - initrd is required" % self.name)
 
         # self.remote_grub_kernel has to be set in set_remote_boot_kernel and here
         # in case the distro is read from json file (setters are not called).

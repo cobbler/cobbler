@@ -40,11 +40,11 @@ class Repos(collection.Collection):
     def collection_types() -> str:
         return "repos"
 
-    def factory_produce(self, config, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a Distro forged from item_dict
         """
-        new_repo = repo.Repo(config)
+        new_repo = repo.Repo(api)
         new_repo.from_dict(item_dict)
         return new_repo
 
@@ -62,7 +62,7 @@ class Repos(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/pre/*", [])
 
             self.lock.acquire()
             try:
@@ -73,8 +73,8 @@ class Repos(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/repo/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
                 # FIXME: better use config.settings() webdir?
                 path = "/var/www/cobbler/repo_mirror/%s" % obj.name

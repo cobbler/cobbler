@@ -46,6 +46,16 @@ class Package(resource.Resource):
     TYPE_NAME = "package"
     COLLECTION_TYPE = "package"
 
+    def __init__(self, api, *args, **kwargs):
+        """
+        TODO
+
+        :param api:
+        :param args:
+        :param kwargs:
+        """
+        super().__init__(api, *args, **kwargs)
+
     #
     # override some base class methods first (item.Item)
     #
@@ -57,7 +67,7 @@ class Package(resource.Resource):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = Package(self.collection_mgr)
+        cloned = Package(self.api)
         cloned.from_dict(_dict)
         return cloned
 

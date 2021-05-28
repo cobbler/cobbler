@@ -49,8 +49,8 @@ class Mgmtclass(item.Item):
     TYPE_NAME = "mgmtclass"
     COLLECTION_TYPE = "mgmtclass"
 
-    def __init__(self, *args, **kwargs):
-        super(Mgmtclass, self).__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.params = {}
 
     #
@@ -65,7 +65,7 @@ class Mgmtclass(item.Item):
         """
 
         _dict = self.to_dict()
-        cloned = Mgmtclass(self.collection_mgr)
+        cloned = Mgmtclass(self.api)
         cloned.from_dict(_dict)
         return cloned
 

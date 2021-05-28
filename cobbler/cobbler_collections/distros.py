@@ -40,11 +40,11 @@ class Distros(collection.Collection):
     def collection_types() -> str:
         return "distros"
 
-    def factory_produce(self, collection_mgr, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a Distro forged from item_dict
         """
-        new_distro = distro.Distro(collection_mgr)
+        new_distro = distro.Distro(api)
         new_distro.from_dict(item_dict)
         return new_distro
 
@@ -59,7 +59,7 @@ class Distros(collection.Collection):
 
         # first see if any Groups use this distro
         if not recursive:
-            for v in self.collection_mgr.profiles():
+            for v in self.api.profiles():
                 if v.distro and v.distro.lower() == name:
                     raise CX("removal would orphan profile: %s" % v.name)
 
@@ -70,14 +70,14 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
+                    self.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
                                                            with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/distro/pre/*", [])
                 if with_sync:
-                    lite_sync = self.collection_mgr.api.get_sync()
+                    lite_sync = self.api.get_sync()
                     lite_sync.remove_single_distro(name)
             self.lock.acquire()
             try:
@@ -89,12 +89,12 @@ class Distros(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/distro/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             # look through all mirrored directories and find if any directory is holding
             # this particular distribution's kernel and initrd
-            settings = self.collection_mgr.settings()
+            settings = self.api.settings()
             possible_storage = glob.glob(settings.webdir + "/distro_mirror/*")
             path = None
             for storage in possible_storage:

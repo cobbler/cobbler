@@ -37,11 +37,15 @@ class Mgmtclasses(collection.Collection):
     def collection_types() -> str:
         return "mgmtclasses"
 
-    def factory_produce(self, config, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a mgmtclass forged from item_dict
+
+        :param api: TODO
+        :param item_dict: TODO
+        :returns: TODO
         """
-        new_mgmtclass = mgmtclass.Mgmtclass(config)
+        new_mgmtclass = mgmtclass.Mgmtclass(api)
         new_mgmtclass.from_dict(item_dict)
         return new_mgmtclass
 
@@ -58,7 +62,7 @@ class Mgmtclasses(collection.Collection):
         if obj is not None:
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/pre/*", [])
 
             self.lock.acquire()
             try:
@@ -69,8 +73,8 @@ class Mgmtclasses(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/mgmtclass/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             return
 

@@ -173,7 +173,7 @@ class Item:
 
     TYPE_NAME = "generic"
 
-    def __init__(self, collection_mgr, is_subobject: bool = False):
+    def __init__(self, api, is_subobject: bool = False):
         """
         Constructor.  Requires a back reference to the CollectionManager object.
 
@@ -196,12 +196,11 @@ class Item:
         use False for is_subobject and the parent object will (therefore) have a different type.
         """
 
-        self.collection_mgr = collection_mgr
-        self.settings = self.collection_mgr._settings
+        self.api = api
+        self.settings = self.api.settings()
         self.clear(is_subobject)        # reset behavior differs for inheritance cases
         self.parent = ''                # all objects by default are not subobjects
         self.children = {}              # caching for performance reasons, not serialized
-        self.log_func = self.collection_mgr.api.log
         self.ctime = 0                  # to be filled in by collection class
         self.mtime = 0                  # to be filled in by collection class
         self.uid = ""                   # to be filled in by collection class
@@ -554,7 +553,7 @@ class Item:
         :param format: Whether to format the output or not.
         :return: The raw or formatted data.
         """
-        raw = utils.blender(self.collection_mgr.api, False, self)
+        raw = utils.blender(self.api, False, self)
         if format:
             return pprint.pformat(raw)
         else:

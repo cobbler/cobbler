@@ -125,8 +125,8 @@ class System(Item):
 
     COLLECTION_TYPE = "system"
 
-    def __init__(self, *args, **kwargs):
-        super(System, self).__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.interfaces = {}
         self.kernel_options = {}
         self.kernel_options_post = {}
@@ -151,7 +151,7 @@ class System(Item):
 
     def make_clone(self):
         _dict = self.to_dict()
-        cloned = System(self.collection_mgr)
+        cloned = System(self.api)
         cloned.from_dict(_dict)
         return cloned
 
@@ -166,11 +166,11 @@ class System(Item):
         :raises CX
         """
         if (self.parent is None or self.parent == '') and self.profile:
-            return self.collection_mgr.profiles().find(name=self.profile)
+            return self.api.profiles().find(name=self.profile)
         elif (self.parent is None or self.parent == '') and self.image:
-            return self.collection_mgr.images().find(name=self.image)
+            return self.api.images().find(name=self.image)
         else:
-            return self.collection_mgr.systems().find(name=self.parent)
+            return self.api.systems().find(name=self.parent)
 
     def check_if_valid(self):
         """
@@ -246,10 +246,10 @@ class System(Item):
             boot_loaders_split = utils.input_string_or_list(boot_loaders)
 
             if self.profile and self.profile != "":
-                profile = self.collection_mgr.profiles().find(name=self.profile)
+                profile = self.api.profiles().find(name=self.profile)
                 parent_boot_loaders = profile.get_boot_loaders()
             elif self.image and self.image != "":
-                image = self.collection_mgr.images().find(name=self.image)
+                image = self.api.images().find(name=self.image)
                 parent_boot_loaders = image.get_boot_loaders()
             else:
                 parent_boot_loaders = []
@@ -267,10 +267,10 @@ class System(Item):
         boot_loaders = self.boot_loaders
         if boot_loaders == '<<inherit>>':
             if self.profile and self.profile != "":
-                profile = self.collection_mgr.profiles().find(name=self.profile)
+                profile = self.api.profiles().find(name=self.profile)
                 return profile.get_boot_loaders()
             if self.image and self.image != "":
-                image = self.collection_mgr.images().find(name=self.image)
+                image = self.api.images().find(name=self.image)
                 return image.get_boot_loaders()
         return boot_loaders
 
@@ -406,8 +406,8 @@ class System(Item):
         :raises CX
         """
         dns_name = validate.hostname(dns_name)
-        if dns_name != "" and self.collection_mgr.settings().allow_duplicate_hostnames is False:
-            matched = self.collection_mgr.api.find_items("system", {"dns_name": dns_name})
+        if dns_name != "" and self.api.settings().allow_duplicate_hostnames is False:
+            matched = self.api.find_items("system", {"dns_name": dns_name})
             for x in matched:
                 if x.name != self.name:
                     raise CX("DNS name duplicated: %s" % dns_name)
@@ -433,8 +433,8 @@ class System(Item):
         :raises CX
         """
         address = validate.ipv4_address(address)
-        if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
-            matched = self.collection_mgr.api.find_items("system", {"ip_address": address})
+        if address != "" and self.api.settings().allow_duplicate_ips is False:
+            matched = self.api.find_items("system", {"ip_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
@@ -452,9 +452,9 @@ class System(Item):
         """
         address = validate.mac_address(address)
         if address == "random":
-            address = utils.get_random_mac(self.collection_mgr.api)
-        if address != "" and self.collection_mgr.settings().allow_duplicate_macs is False:
-            matched = self.collection_mgr.api.find_items("system", {"mac_address": address})
+            address = utils.get_random_mac(self.api)
+        if address != "" and self.api.settings().allow_duplicate_macs is False:
+            matched = self.api.find_items("system", {"mac_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("MAC address duplicated: %s" % address)
@@ -558,8 +558,8 @@ class System(Item):
         :raises CX
         """
         address = validate.ipv6_address(address)
-        if address != "" and self.collection_mgr.settings().allow_duplicate_ips is False:
-            matched = self.collection_mgr.api.find_items("system", {"ipv6_address": address})
+        if address != "" and self.api.settings().allow_duplicate_ips is False:
+            matched = self.api.find_items("system", {"ipv6_address": address})
             for x in matched:
                 if x.name != self.name:
                     raise CX("IP address duplicated: %s" % address)
@@ -632,7 +632,7 @@ class System(Item):
 
         self.image = ""         # mutual exclusion rule
 
-        p = self.collection_mgr.profiles().find(name=profile_name)
+        p = self.api.profiles().find(name=profile_name)
         if p is not None:
             self.profile = profile_name
             self.depth = p.depth + 1            # subprofiles have varying depths.
@@ -660,7 +660,7 @@ class System(Item):
 
         self.profile = ""       # mutual exclusion rule
 
-        img = self.collection_mgr.images().find(name=image_name)
+        img = self.api.images().find(name=image_name)
 
         if img is not None:
             self.image = image_name
@@ -720,7 +720,7 @@ class System(Item):
         :param autoinstall: local automatic installation template file path
         """
 
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
         self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     def set_power_type(self, power_type):

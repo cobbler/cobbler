@@ -54,6 +54,16 @@ class File(resource.Resource):
     TYPE_NAME = "file"
     COLLECTION_TYPE = "file"
 
+    def __init__(self, api, *args, **kwargs):
+        """
+        TODO
+
+        :param api:
+        :param args:
+        :param kwargs:
+        """
+        super().__init__(api, *args, **kwargs)
+
     #
     # override some base class methods first (item.Item)
     #
@@ -65,7 +75,7 @@ class File(resource.Resource):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = File(self.collection_mgr)
+        cloned = File(self.api)
         cloned.from_dict(_dict)
         return cloned
 

@@ -22,6 +22,16 @@ class Resource(item.Item):
     Base Class for management resources.
     """
 
+    def __init__(self, api, *args, **kwargs):
+        """
+        TODO
+
+        :param api:
+        :param args:
+        :param kwargs:
+        """
+        super().__init__(api, *args, **kwargs)
+
     def set_action(self, action: str):
         """
         All management resources have an action. Action determine weather a most resources should be created or removed,

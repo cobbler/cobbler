@@ -84,8 +84,8 @@ class Profile(item.Item):
     TYPE_NAME = "profile"
     COLLECTION_TYPE = "profile"
 
-    def __init__(self, *args, **kwargs):
-        super(Profile, self).__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.kernel_options = {}
         self.kernel_options_post = {}
         self.autoinstall_meta = {}
@@ -111,7 +111,7 @@ class Profile(item.Item):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = Profile(self.collection_mgr)
+        cloned = Profile(self.api)
         cloned.from_dict(_dict)
         return cloned
 
@@ -130,9 +130,9 @@ class Profile(item.Item):
         if not self.parent:
             if self.distro is None:
                 return None
-            result = self.collection_mgr.distros().find(name=self.distro)
+            result = self.api.distros().find(name=self.distro)
         else:
-            result = self.collection_mgr.profiles().find(name=self.parent)
+            result = self.api.profiles().find(name=self.parent)
         return result
 
     def check_if_valid(self):
@@ -175,7 +175,7 @@ class Profile(item.Item):
             # check must be done in two places as set_parent could be called before/after
             # set_name...
             raise CX("self parentage is weird")
-        found = self.collection_mgr.profiles().find(name=parent_name)
+        found = self.api.profiles().find(name=parent_name)
         if found is None:
             raise CX("profile %s not found, inheritance not possible" % parent_name)
         self.parent = parent_name
@@ -188,7 +188,7 @@ class Profile(item.Item):
         """
         Sets the distro. This must be the name of an existing Distro object in the Distros collection.
         """
-        d = self.collection_mgr.distros().find(name=distro_name)
+        d = self.api.distros().find(name=distro_name)
         if d is not None:
             old_parent = self.get_parent()
             if isinstance(old_parent, item.Item):
@@ -305,7 +305,7 @@ class Profile(item.Item):
         :param autoinstall: local automatic installation template path
         """
 
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
         self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     def set_virt_auto_boot(self, num: int):
@@ -455,7 +455,7 @@ class Profile(item.Item):
         """
 
         if menu and menu != "":
-            menu_list = self.collection_mgr.menus()
+            menu_list = self.api.menus()
             if not menu_list.find(name=menu):
                 raise CX("menu %s not found" % menu)
 

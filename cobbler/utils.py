@@ -883,7 +883,7 @@ def run_this(cmd: str, args: str):
         die("Command failed")
 
 
-def run_triggers(api, ref, globber, additional: list = []):
+def run_triggers(api, ref, globber, additional: list = None):
     """Runs all the trigger scripts in a given directory.
     Example: ``/var/lib/cobbler/triggers/blah/*``
 
@@ -898,9 +898,10 @@ def run_triggers(api, ref, globber, additional: list = []):
     :param additional: Additional arguments to run the triggers with.
     :raises CX
     """
-
     logger.debug("running python triggers from %s", globber)
     modules = api.get_modules_in_category(globber)
+    if additional is None:
+        additional = []
     for m in modules:
         arglist = []
         if ref:
