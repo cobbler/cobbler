@@ -251,6 +251,8 @@ class System(Item):
             elif self.image and self.image != "":
                 image = self.collection_mgr.images().find(name=self.image)
                 parent_boot_loaders = image.get_boot_loaders()
+            else:
+                parent_boot_loaders = []
             if not set(boot_loaders_split).issubset(parent_boot_loaders):
                 raise CX("Error with system %s - not all boot_loaders %s are supported %s" %
                          (self.name, boot_loaders_split, parent_boot_loaders))

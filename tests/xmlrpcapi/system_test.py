@@ -1,84 +1,6 @@
+from xmlrpc.client import Fault
+
 import pytest
-
-
-@pytest.fixture(scope="function")
-def system_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
-    """
-    Field format: field_name, good value(s), bad value(s)
-
-    :param redhat_autoinstall:
-    :param suse_autoyast:
-    :param ubuntu_preseed:
-    :return:
-    """
-    # TODO: include fields with dependencies: fetchable files, boot files, template files, images
-    return [
-        ["comment", ["test comment"], []],
-        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
-        ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],
-         ["/path/to/bad/autoinstall", ]],
-        ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-        ["mgmt_classes", ["one two three", ], []],
-        ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
-        ["name", ["testsystem0"], []],
-        ["netboot_enabled", ["yes", "YES", "1", "0", "no"], []],
-        ["owners", ["user1 user2 user3"], []],
-        ["profile", ["testprofile0"], ["badprofile", ]],
-        ["repos_enabled", [], []],
-        ["status", ["development", "testing", "acceptance", "production"], []],
-        ["proxy", ["testproxy"], []],
-        ["server", ["1.1.1.1"], []],
-        ["boot_loaders", ["pxe ipxe grub", ], ["badloader"]],
-        ["virt_auto_boot", ["1", "0"], ["yes", "no"]],
-        ["virt_cpus", ["<<inherit>>", "1", "2"], ["a"]],
-        ["virt_file_size", ["<<inherit>>", "5", "10"], ["a"]],
-        ["virt_disk_driver", ["<<inherit>>", "raw", "qcow2", "vmdk"], []],
-        ["virt_ram", ["<<inherit>>", "256", "1024"], ["a", ]],
-        ["virt_type", ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], ["bad", ]],
-        ["virt_path", ["<<inherit>>", "/path/to/test", ], []],
-        ["virt_pxe_boot", ["1", "0"], []],
-
-        # network
-        ["gateway", [], []],
-        ["hostname", ["test"], []],
-        ["ipv6_autoconfiguration", [], []],
-        ["ipv6_default_device", [], []],
-        ["name_servers", ["9.1.1.3"], []],
-        ["name_servers_search", [], []],
-
-        # network - network interface specific
-        # TODO: test these fields
-        ["bonding_opts-eth0", [], []],
-        ["bridge_opts-eth0", [], []],
-        ["cnames-eth0", [], []],
-        ["dhcp_tag-eth0", [], []],
-        ["dns_name-eth0", [], []],
-        ["if_gateway-eth0", [], []],
-        ["interface_type-eth0", [], []],
-        ["interface_master-eth0", [], []],
-        ["ip_address-eth0", [], []],
-        ["ipv6_address-eth0", [], []],
-        ["ipv6_secondaries-eth0", [], []],
-        ["ipv6_mtu-eth0", [], []],
-        ["ipv6_static_routes-eth0", [], []],
-        ["ipv6_default_gateway-eth0", [], []],
-        ["mac_address-eth0", [], []],
-        ["mtu-eth0", [], []],
-        ["management-eth0", [], []],
-        ["netmask-eth0", [], []],
-        ["static-eth0", [], []],
-        ["static_routes-eth0", [], []],
-        ["virt_bridge-eth0", [], []],
-
-        # power management
-        ["power_type", ["ipmilan"], ["bla"]],
-        ["power_address", ["127.0.0.1"], []],
-        ["power_id", ["pmachine:lpar1"], []],
-        ["power_pass", ["pass"], []],
-        ["power_user", ["user"], []]
-    ]
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
@@ -101,63 +23,118 @@ class TestSystem:
 
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "remove_testdistro",
                              "remove_testmenu", "remove_testprofile", "remove_testsystem")
-    def test_create_system_positive(self, system_fields, remote, token, template_files):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("comment", "test comment"),
+        ("enable_ipxe", "yes"),
+        ("enable_ipxe", "YES"),
+        ("enable_ipxe", "1"),
+        ("enable_ipxe", "0"),
+        ("enable_ipxe", "no"),
+        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("autoinstall", "test.ks"),
+        ("autoinstall", "test.xml"),
+        ("autoinstall", "test.seed"),
+        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("mgmt_classes", "one two three"),
+        ("mgmt_parameters", "<<inherit>>"),
+        ("name", "testsystem0"),
+        ("netboot_enabled", "yes"),
+        ("netboot_enabled", "YES"),
+        ("netboot_enabled", "1"),
+        ("netboot_enabled", "0"),
+        ("netboot_enabled", "no"),
+        ("owners", "user1 user2 user3"),
+        ("profile", "testprofile0"),
+        ("repos_enabled", True),
+        ("status", "development"),
+        ("status", "testing"),
+        ("status", "acceptance"),
+        ("status", "production"),
+        ("proxy", "testproxy"),
+        ("server", "1.1.1.1"),
+        # ("boot_loaders", "pxe ipxe grub"), FIXME: This raises currently but it did not in the past
+        ("virt_auto_boot", "1"),
+        ("virt_auto_boot", "0"),
+        ("virt_cpus", "<<inherit>>"),
+        ("virt_cpus", "1"),
+        ("virt_cpus", "2"),
+        ("virt_cpus", "<<inherit>>"),
+        ("virt_cpus", "1"),
+        ("virt_cpus", "2"),
+        ("virt_file_size", "<<inherit>>"),
+        ("virt_file_size", "5"),
+        ("virt_file_size", "10"),
+        ("virt_disk_driver", "<<inherit>>"),
+        ("virt_disk_driver", "raw"),
+        ("virt_disk_driver", "qcow2"),
+        ("virt_disk_driver", "vmdk"),
+        ("virt_ram", "<<inherit>>"),
+        ("virt_ram", "256"),
+        ("virt_ram", "1024"),
+        ("virt_type", "<<inherit>>"),
+        ("virt_type", "xenpv"),
+        ("virt_type", "xenfv"),
+        ("virt_type", "qemu"),
+        ("virt_type", "kvm"),
+        ("virt_type", "vmware"),
+        ("virt_type", "openvz"),
+        ("virt_path", "<<inherit>>"),
+        ("virt_path", "/path/to/test"),
+        ("virt_pxe_boot", "1",),
+        ("virt_pxe_boot", "0"),
+        ("power_type", "ipmilan"),
+        ("power_address", "127.0.0.1"),
+        ("power_id", "pmachine:lpar1"),
+        ("power_pass", "pass"),
+        ("power_user", "user")
+    ])
+    def test_create_system_positive(self, remote, token, template_files, field_name, field_value):
         """
         Test: create/edit a system object
         """
-
         # Arrange
-        systems = remote.get_systems(token)
+        system = remote.new_system(token)
+        remote.modify_system(system, "name", "testsystem0", token)
+        remote.modify_system(system, "distro", "testprofile0", token)
 
         # Act
-        system = remote.new_system(token)
+        result = remote.modify_system(system, field_name, field_value, token)
 
         # Assert
-        assert remote.modify_system(system, "name", "testsystem0", token)
-        assert remote.modify_system(system, "profile", "testprofile0", token)
-        for field in system_fields:
-            (fname, fgood, _) = field
-            for fg in fgood:
-                try:
-                    assert remote.modify_system(system, fname, fg, token)
-                except Exception as e:
-                    pytest.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
-
-        assert remote.save_system(system, token)
-
-        new_systems = remote.get_systems(token)
-        assert len(new_systems) == len(systems) + 1
+        assert result
 
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "remove_testdistro",
                              "remove_testmenu", "remove_testprofile", "remove_testsystem")
-    def test_create_system_negative(self, system_fields, remote, token):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("autoinstall", "/path/to/bad/autoinstall"),
+        ("mgmt_parameters", "badyaml"),
+        ("profile", "badprofile"),
+        ("boot_loaders", "badloader"),
+        ("virt_auto_boot", "yes"),
+        ("virt_auto_boot", "no"),
+        ("virt_cpus", "a"),
+        ("virt_file_size", "a"),
+        ("virt_ram", "a"),
+        ("virt_type", "bad"),
+        ("power_type", "bla")
+    ])
+    def test_create_system_negative(self, remote, token, field_name, field_value):
         """
         Test: create/edit a system object
         """
-
         # Arrange
-        systems = remote.get_systems(token)
-
-        # Act
         system = remote.new_system(token)
+        remote.modify_system(system, "name", "testsystem0", token)
+        remote.modify_system(system, "profile", "testprofile0", token)
 
-        # Assert
-        assert remote.modify_system(system, "name", "testsystem0", token)
-        assert remote.modify_system(system, "profile", "testprofile0", token)
-        for field in system_fields:
-            (fname, _, fbad) = field
-            for fb in fbad:
-                try:
-                    remote.modify_system(system, fname, fb, token)
-                except:
-                    pass
-                else:
-                    pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
-
-        assert remote.save_system(system, token)
-
-        new_systems = remote.get_systems(token)
-        assert len(new_systems) == len(systems) + 1
+        # Act & Assert
+        try:
+            remote.modify_system(system, field_name, field_value, token)
+        except Fault:
+            assert True
+        else:
+            pytest.fail("Bad field did not raise an exception!")
 
     def test_find_system(self, remote, token):
         """

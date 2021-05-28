@@ -1,47 +1,6 @@
+from xmlrpc.client import Fault
+
 import pytest
-
-
-@pytest.fixture(scope="function")
-def profile_fields(redhat_autoinstall, suse_autoyast, ubuntu_preseed):
-    """
-    Field format: field_name, good value(s), bad value(s)
-
-    :param redhat_autoinstall:
-    :param suse_autoyast:
-    :param ubuntu_preseed:
-    :return:
-    """
-    # TODO: include fields with dependencies: fetchable files, boot files, template files, repos
-    return [
-        ["comment", ["test comment"], []],
-        ["dhcp_tag", ["", "foo"], []],
-        ["distro", ["testdistro0"], ["baddistro", ]],
-        ["enable_ipxe", ["yes", "YES", "1", "0", "no"], []],
-        ["enable_menu", ["yes", "YES", "1", "0", "no"], []],
-        ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e"], []],
-        ["autoinstall", [redhat_autoinstall, suse_autoyast, ubuntu_preseed],
-         ["/path/to/bad/autoinstall", ]],
-        ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-        ["mgmt_classes", ["one two three", ], []],
-        ["mgmt_parameters", ["<<inherit>>"], ["badyaml"]],  # needs more test cases that are valid yaml
-        ["name", ["testprofile0"], []],
-        ["name_servers", ["1.1.1.1 1.1.1.2 1.1.1.3"], []],
-        ["name_servers_search", ["example.com foo.bar.com"], []],
-        ["owners", ["user1 user2 user3"], []],
-        ["proxy", ["testproxy"], []],
-        ["server", ["1.1.1.1"], []],
-        ["menu", ["testmenu0"], ["badmenu", ]],
-        ["virt_auto_boot", ["1", "0"], ["yes", "no"]],
-        ["virt_bridge", ["<<inherit>>", "br0", "virbr0", "xenbr0"], []],
-        ["virt_cpus", ["<<inherit>>", "1", "2"], ["a"]],
-        ["virt_disk_driver", ["<<inherit>>", "raw", "qcow2", "vmdk"], []],
-        ["virt_file_size", ["<<inherit>>", "5", "10"], ["a"]],
-        ["virt_path", ["<<inherit>>", "/path/to/test", ], []],
-        ["virt_ram", ["<<inherit>>", "256", "1024"], ["a", ]],
-        ["virt_type", ["<<inherit>>", "xenpv", "xenfv", "qemu", "kvm", "vmware", "openvz"], ["bad", ]],
-        ["boot_loaders", ["pxe ipxe grub", ], ["badloader"]],
-    ]
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
@@ -64,57 +23,117 @@ class TestProfile:
 
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "remove_testdistro", "remove_testmenu",
                              "remove_testprofile")
-    def test_create_profile_positive(self, remote, token, profile_fields, template_files):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("comment", "test comment"),
+        ("dhcp_tag", ""),
+        ("dhcp_tag", "foo"),
+        ("distro", "testdistro0"),
+        ("enable_ipxe", True),
+        ("enable_ipxe", False),
+        ("enable_menu", True),
+        ("enable_menu", False),
+        ("enable_ipxe", "yes"),
+        ("enable_ipxe", "YES"),
+        ("enable_ipxe", "1"),
+        ("enable_ipxe", "0"),
+        ("enable_ipxe", "no"),
+        ("enable_menu", "yes"),
+        ("enable_menu", "YES"),
+        ("enable_menu", "1"),
+        ("enable_menu", "0"),
+        ("enable_menu", "no"),
+        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("autoinstall", "test.ks"),
+        ("autoinstall", "test.xml"),
+        ("autoinstall", "test.seed"),
+        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("mgmt_classes", "one two three"),
+        ("mgmt_parameters", "<<inherit>>"),
+        ("name", "testprofile0"),
+        ("name_servers", "1.1.1.1 1.1.1.2 1.1.1.3"),
+        ("name_servers_search", "example.com foo.bar.com"),
+        ("owners", "user1 user2 user3"),
+        ("proxy", "testproxy"),
+        ("server", "1.1.1.1"),
+        ("menu", "testmenu0"),
+        ("virt_auto_boot", True),
+        ("virt_auto_boot", False),
+        ("virt_auto_boot", "1"),
+        ("virt_auto_boot", "0"),
+        ("virt_bridge", "<<inherit>>"),
+        ("virt_bridge", "br0"),
+        ("virt_bridge", "virbr0"),
+        ("virt_bridge", "xenbr0"),
+        ("virt_cpus", "<<inherit>>"),
+        ("virt_cpus", "1"),
+        ("virt_cpus", "2"),
+        ("virt_disk_driver", "<<inherit>>"),
+        ("virt_disk_driver", "raw"),
+        ("virt_disk_driver", "qcow2"),
+        ("virt_disk_driver", "vmdk"),
+        ("virt_file_size", "<<inherit>>"),
+        ("virt_file_size", "5"),
+        ("virt_file_size", "10"),
+        ("virt_path", "<<inherit>>"),
+        ("virt_path", "/path/to/test"),
+        ("virt_ram", "<<inherit>>"),
+        ("virt_ram", "256"),
+        ("virt_ram", "1024"),
+        ("virt_type", "<<inherit>>"),
+        ("virt_type", "xenpv"),
+        ("virt_type", "xenfv"),
+        ("virt_type", "qemu"),
+        ("virt_type", "kvm"),
+        ("virt_type", "vmware"),
+        ("virt_type", "openvz"),
+        ("boot_loaders", "pxe ipxe grub")
+    ])
+    def test_create_profile_positive(self, remote, token, template_files, field_name, field_value):
         """
         Test: create/edit a profile object
         """
         # Arrange
         profile = remote.new_profile(token)
+        remote.modify_profile(profile, "name", "testprofile0", token)
+        remote.modify_profile(profile, "distro", "testdistro0", token)
 
         # Act
-        for field in profile_fields:
-            (fname, fgood, _) = field
-            for fg in fgood:
-                try:
-                    assert remote.modify_profile(profile, fname, fg, token)
-                except Exception as e:
-                    pytest.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
-
-        remote.modify_profile(profile, "name", "testprofile0", token)
-        assert remote.save_profile(profile, token)
+        result = remote.modify_profile(profile, field_name, field_value, token)
 
         # Assert
-        new_profiles = remote.get_profiles(token)
-        assert len(new_profiles) == 1
+        assert result
 
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "remove_testdistro", "remove_testmenu",
                              "remove_testprofile")
-    def test_create_profile_negative(self, remote, token, profile_fields):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("distro", "baddistro"),
+        ("autoinstall", "/path/to/bad/autoinstall"),
+        ("mgmt_parameters", "badyaml"),
+        ("menu", "badmenu"),
+        ("virt_auto_boot", "yes"),
+        ("virt_auto_boot", "no"),
+        ("virt_cpus", "a"),
+        ("virt_file_size", "a"),
+        ("virt_ram", "a"),
+        ("virt_type", "bad"),
+        ("boot_loaders", "badloader")
+    ])
+    def test_create_profile_negative(self, remote, token, field_name, field_value):
         """
         Test: create/edit a profile object
         """
         # Arrange
         profile = remote.new_profile(token)
-
-        # Act
-        for field in profile_fields:
-            (fname, _, fbad) = field
-            for fb in fbad:
-                try:
-                    remote.modify_profile(profile, fname, fb, token)
-                except:
-                    pass
-                else:
-                    pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
-
-        remote.modify_profile(profile, "distro", "testdistro0", token)
-        remote.modify_profile(profile, "menu", "testmenu0", token)
         remote.modify_profile(profile, "name", "testprofile0", token)
-        assert remote.save_profile(profile, token)
 
-        # Assert
-        new_profiles = remote.get_profiles(token)
-        assert len(new_profiles) == 1
+        # Act & Assert
+        try:
+            remote.modify_profile(profile, field_name, field_value, token)
+        except Fault:
+            assert True
+        else:
+            pytest.fail("Bad field did not raise an exception!")
 
     @pytest.mark.usefixtures("create_testdistro", "create_testmenu", "create_testprofile", "remove_testdistro",
                              "remove_testmenu", "remove_testprofile")

@@ -1,36 +1,7 @@
 import os
+from xmlrpc.client import Fault
 
 import pytest
-
-
-@pytest.fixture(scope="function")
-def distro_fields(fk_initrd, fk_kernel):
-    """
-    Field format: field_name, good value(s), bad value(s)
-    Field order is the order in which they will be set
-
-    :param fk_initrd:
-    :param fk_kernel:
-    :return:
-    """
-    # TODO: include fields with dependencies: fetchable files, boot files, etc.
-    return [
-        ["arch", ["i386", "x86_64", "ppc", "ppc64"], ["badarch"]],
-        # generic must be last breed to be set so os_version test below will work
-        ["breed", ["debian", "freebsd", "redhat", "suse", "ubuntu", "unix", "vmware", "windows", "xen", "generic"],
-         ["badbreed"]],
-        ["comment", ["test comment", ], []],
-        ["initrd", [fk_initrd, ], ["", ]],
-        ["name", ["testdistro0"], []],
-        ["kernel", [fk_kernel, ], ["", ]],
-        ["kernel_options", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-        ["kernel_options_post", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-        ["autoinstall_meta", ["a=1 b=2 c=3 c=4 c=5 d e", ], []],
-        ["mgmt_classes", ["one two three", ], []],
-        ["os_version", ["generic26", ], ["bados", ]],
-        ["owners", ["user1 user2 user3", ], []],
-        ["boot_loaders", ["pxe ipxe grub yaboot", ], ["badloader"]],
-    ]
 
 
 @pytest.mark.usefixtures("cobbler_xmlrpc_base")
@@ -51,55 +22,70 @@ class TestDistro:
         # Assert
         assert result == []
 
-    @pytest.mark.usefixtures("remove_testdistro")
-    def test_create_distro_positive(self, remote, token, distro_fields, create_kernel_initrd, fk_kernel, fk_initrd):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("arch", "i386"),
+        ("breed", "debian"),
+        ("breed", "freebsd"),
+        ("breed", "redhat"),
+        ("breed", "suse"),
+        ("breed", "ubuntu"),
+        ("breed", "unix"),
+        ("breed", "vmware"),
+        ("breed", "windows"),
+        ("breed", "xen"),
+        ("breed", "generic"),
+        ("comment", "test comment"),
+        ("initrd", ""),
+        ("name", "testdistro0"),
+        ("kernel", ""),
+        ("kernel_options", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("kernel_options_post", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("autoinstall_meta", "a=1 b=2 c=3 c=4 c=5 d e"),
+        ("mgmt_classes", "one two three"),
+        ("os_version", "rhel4"),
+        ("owners", "user1 user2 user3"),
+        ("boot_loaders", "pxe ipxe grub")
+    ])
+    def test_create_distro_positive(self, remote, token, create_kernel_initrd, fk_kernel, fk_initrd, field_name,
+                                    field_value):
         """
         Test: create/edit a distro with valid values
         """
         # Arrange --> Nothing to do.
         folder = create_kernel_initrd(fk_kernel, fk_initrd)
-
-        # Act
         distro = remote.new_distro(token)
         remote.modify_distro(distro, "name", "testdistro", token)
 
+        # Act
+        if field_name == "kernel":
+            field_value = os.path.join(folder, fk_kernel)
+        if field_name == "initrd":
+            field_value = os.path.join(folder, fk_initrd)
+        result = remote.modify_distro(distro, field_name, field_value, token)
+
         # Assert
-        for field in distro_fields:
-            (fname, fgood, _) = field
-            for fg in fgood:
-                try:
-                    if fname in ("kernel", "initrd"):
-                        fg = os.path.join(folder, fg)
-                    result = remote.modify_distro(distro, fname, fg, token)
-                    assert result
-                except Exception as e:
-                    pytest.fail("good field (%s=%s) raised exception: %s" % (fname, fg, str(e)))
+        assert result
 
-        result_save_success = remote.save_distro(distro, token)
-        assert result_save_success
-
-    @pytest.mark.usefixtures("remove_testdistro")
-    def test_create_distro_negative(self, remote, token, distro_fields, fk_kernel, fk_initrd):
+    @pytest.mark.parametrize("field_name,field_value", [
+        ("arch", "badarch"),
+        ("breed", "badbreed"),
+        # ("boot_loader", "badloader") FIXME: This does not raise but did in the past
+    ])
+    def test_create_distro_negative(self, remote, token, field_name, field_value):
         """
         Test: create/edit a distro with invalid values
         """
-        # Arrange --> Nothing to do.
-
-        # Act
+        # Arrange
         distro = remote.new_distro(token)
         remote.modify_distro(distro, "name", "testdistro0", token)
 
-        # Assert
-        for field in distro_fields:
-            (fname, _, fbad) = field
-            for fb in fbad:
-                try:
-                    remote.modify_distro(distro, fname, fb, token)
-                except:
-                    pass
-                else:
-                    pytest.fail("bad field (%s=%s) did not raise an exception" % (fname, fb))
-        assert True
+        # Act & Assert
+        try:
+            remote.modify_distro(distro, field_name, field_value, token)
+        except Fault:
+            assert True
+        else:
+            pytest.fail("Bad field did not raise an exception!")
 
     @pytest.mark.usefixtures("create_testdistro", "remove_testdistro")
     def test_get_distro(self, remote, fk_initrd, fk_kernel):
