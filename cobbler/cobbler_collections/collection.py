@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import time
 import os
+import uuid
 from threading import Lock
 from typing import Optional
 
@@ -207,7 +208,7 @@ class Collection:
         :param newname: The new name for the copied object.
         """
         ref = ref.make_clone()
-        ref.uid = self.collection_mgr.generate_uid()
+        ref.uid = uuid.uuid4().hex
         ref.ctime = 0
         ref.set_name(newname)
         if ref.COLLECTION_TYPE == "system":
@@ -346,7 +347,7 @@ class Collection:
         ref.check_if_valid()
 
         if ref.uid == '':
-            ref.uid = self.collection_mgr.generate_uid()
+            ref.uid = uuid.uuid4().hex
 
         if save is True:
             now = time.time()

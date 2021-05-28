@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import time
 import weakref
-import uuid
 from typing import Union, Dict, Any
 
 from cobbler.cexceptions import CX
@@ -79,15 +78,6 @@ class CollectionManager:
         self._menus = Menus(weakref.proxy(self))
         # Not a true collection
         self._settings = settings.Settings()
-
-    def generate_uid(self):
-        """
-        Cobbler itself does not use this GUID's though they are provided to allow for easier API linkage with other
-        applications. Cobbler uses unique names in each collection as the object id aka primary key.
-
-        :return: A version 4 UUID according to the python implementation of RFC 4122.
-        """
-        return uuid.uuid4().hex
 
     def distros(self):
         """
