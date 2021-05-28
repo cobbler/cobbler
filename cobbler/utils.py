@@ -2456,21 +2456,31 @@ def compare_versions_gt(ver1, ver2) -> bool:
     return versiontuple(ver1) > versiontuple(ver2)
 
 
-def kopts_overwrite(system, distro, kopts, settings):
+def kopts_overwrite(kopts: dict, cobbler_server_hostname: str = "", distro_breed: str = "", system_name: str = ""):
     """
     SUSE is not using 'text'. Instead 'textmode' is used as kernel option.
 
-    :param system: The system to overwrite the kopts for.
-    :param distro: The distro for the system to change to kopts for.
     :param kopts: The kopts of the system.
-    :param settings: The settings instance of Cobbler.
+    :param cobbler_server_hostname: The server setting from our Settings.
+    :param distro_breed: The distro for the system to change to kopts for.
+    :param system_name: The system to overwrite the kopts for.
     """
-    if distro and distro.breed == "suse":
+    # Type checks
+    if not isinstance(kopts, dict):
+        raise TypeError("kopts needs to be of type dict")
+    if not isinstance(cobbler_server_hostname, str):
+        raise TypeError("cobbler_server_hostname needs to be of type str")
+    if not isinstance(distro_breed, str):
+        raise TypeError("distro_breed needs to be of type str")
+    if not isinstance(system_name, str):
+        raise TypeError("system_name needs to be of type str")
+    # Function logic
+    if distro_breed == "suse":
         if 'textmode' in list(kopts.keys()):
             kopts.pop('text', None)
         elif 'text' in list(kopts.keys()):
             kopts.pop('text', None)
             kopts['textmode'] = ['1']
-        if system and settings:
+        if system_name and cobbler_server_hostname:
             # only works if pxe_just_once is enabled in global settings
-            kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (settings.server, system.name)
+            kopts['info'] = 'http://%s/cblr/svc/op/nopxe/system/%s' % (cobbler_server_hostname, system_name)

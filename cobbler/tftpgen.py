@@ -839,8 +839,12 @@ class TFTPGen:
         kopts = blended.get("kernel_options", dict())
         kopts = utils.revert_strip_none(kopts)
 
-        # SUSE and other distro specific kernel additions or modificatins
-        utils.kopts_overwrite(system, distro, kopts, self.settings)
+        # SUSE and other distro specific kernel additions or modifications
+        if distro is not None:
+            if system is None:
+                utils.kopts_overwrite(kopts, self.settings.server, distro.breed)
+            else:
+                utils.kopts_overwrite(kopts, self.settings.server, distro.breed, system.name)
 
         # since network needs to be configured again (it was already in netboot) when kernel boots
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of

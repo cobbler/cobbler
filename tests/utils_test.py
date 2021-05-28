@@ -1228,19 +1228,12 @@ def test_compare_version_gt(test_input_v1, test_input_v2, expected_output, error
 
 def test_kopts_overwrite():
     # Arrange
-    test_api = CobblerAPI()
-    test_manager = CollectionManager(test_api)
-    test_distro = Distro(test_manager)
-    test_distro.set_breed("suse")
-    test_distro.name = "kopts_test_distro"
-    test_profile = Profile(test_manager)
-    test_profile.distro = test_distro.name
-    test_system = System(test_manager)
-    test_system.name = "kopts_test_system"
+    distro_breed = "suse"
+    system_name = "kopts_test_system"
     kopts = {"textmode": False, "text": True}
 
     # Act
-    utils.kopts_overwrite(test_system, test_distro, kopts, test_api.settings())
+    utils.kopts_overwrite(kopts, "servername", distro_breed, system_name)
 
     # Assert
     assert "textmode" in kopts
