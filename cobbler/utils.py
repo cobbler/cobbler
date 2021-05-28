@@ -36,6 +36,7 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from functools import reduce
 from typing import List, Optional, Union
 
@@ -2014,7 +2015,7 @@ def from_dict_from_fields(item, item_dict: dict, fields):
             setattr(item, dst_k, item_dict[src_k])
 
     if item.uid == '':
-        item.uid = item.collection_mgr.generate_uid()
+        item.uid = uuid.uuid4().hex
 
     # special handling for interfaces
     if item.COLLECTION_TYPE == "system":
