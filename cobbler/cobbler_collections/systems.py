@@ -38,11 +38,15 @@ class Systems(collection.Collection):
     def collection_types() -> str:
         return "systems"
 
-    def factory_produce(self, collection_mgr, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a Distro forged from item_dict
+
+        :param api: TODO
+        :param item_dict: TODO
+        :returns: TODO
         """
-        new_system = system.System(collection_mgr)
+        new_system = system.System(api)
         new_system.from_dict(item_dict)
         return new_system
 
@@ -60,9 +64,9 @@ class Systems(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/system/pre/*", [])
                 if with_sync:
-                    lite_sync = self.collection_mgr.api.get_sync()
+                    lite_sync = self.api.get_sync()
                     lite_sync.remove_single_system(name)
             self.lock.acquire()
             try:
@@ -72,8 +76,8 @@ class Systems(collection.Collection):
             self.collection_mgr.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/system/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
 
             return
 

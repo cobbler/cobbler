@@ -26,8 +26,7 @@ from cobbler.cexceptions import CX
 
 class Profiles(collection.Collection):
     """
-    A profile represents a distro paired with an automatic OS installation
-    template file.
+    A profile represents a distro paired with an automatic OS installation template file.
     """
 
     @staticmethod
@@ -38,11 +37,11 @@ class Profiles(collection.Collection):
     def collection_types() -> str:
         return "profiles"
 
-    def factory_produce(self, collection_mgr, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a Distro forged from item_dict
         """
-        new_profile = profile.Profile(collection_mgr)
+        new_profile = profile.Profile(api)
         new_profile.from_dict(item_dict)
         return new_profile
 
@@ -55,7 +54,7 @@ class Profiles(collection.Collection):
         """
         name = name.lower()
         if not recursive:
-            for v in self.collection_mgr.systems():
+            for v in self.api.systems():
                 if v.profile is not None and v.profile.lower() == name:
                     raise CX("removal would orphan system: %s" % v.name)
 
@@ -65,16 +64,15 @@ class Profiles(collection.Collection):
                 kids = obj.get_children()
                 for k in kids:
                     if k.COLLECTION_TYPE == "profile":
-                        self.collection_mgr.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
+                        self.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
                                                                with_triggers=with_triggers)
                     else:
-                        self.collection_mgr.api.remove_system(k.name, recursive=recursive, delete=with_delete,
+                        self.api.remove_system(k.name, recursive=recursive, delete=with_delete,
                                                               with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*",
-                                       [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/profile/pre/*", [])
             self.lock.acquire()
             try:
                 del self.listing[name]
@@ -83,11 +81,10 @@ class Profiles(collection.Collection):
             self.collection_mgr.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*",
-                                       [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/profile/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
                 if with_sync:
-                    lite_sync = self.collection_mgr.api.get_sync()
+                    lite_sync = self.api.get_sync()
                     lite_sync.remove_single_profile(name)
             return
 

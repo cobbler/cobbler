@@ -1557,23 +1557,23 @@ class CobblerXMLRPCInterface:
         self._log("new_item(%s)" % what, token=token)
         self.check_access(token, "new_%s" % what)
         if what == "distro":
-            d = distro.Distro(self.api._collection_mgr, is_subobject=is_subobject)
+            d = distro.Distro(self.api, is_subobject=is_subobject)
         elif what == "profile":
-            d = profile.Profile(self.api._collection_mgr, is_subobject=is_subobject)
+            d = profile.Profile(self.api, is_subobject=is_subobject)
         elif what == "system":
-            d = system.System(self.api._collection_mgr, is_subobject=is_subobject)
+            d = system.System(self.api, is_subobject=is_subobject)
         elif what == "repo":
-            d = repo.Repo(self.api._collection_mgr, is_subobject=is_subobject)
+            d = repo.Repo(self.api, is_subobject=is_subobject)
         elif what == "image":
-            d = image.Image(self.api._collection_mgr, is_subobject=is_subobject)
+            d = image.Image(self.api, is_subobject=is_subobject)
         elif what == "mgmtclass":
-            d = mgmtclass.Mgmtclass(self.api._collection_mgr, is_subobject=is_subobject)
+            d = mgmtclass.Mgmtclass(self.api, is_subobject=is_subobject)
         elif what == "package":
-            d = package.Package(self.api._collection_mgr, is_subobject=is_subobject)
+            d = package.Package(self.api, is_subobject=is_subobject)
         elif what == "file":
-            d = file.File(self.api._collection_mgr, is_subobject=is_subobject)
+            d = file.File(self.api, is_subobject=is_subobject)
         elif what == "menu":
-            d = menu.Menu(self.api._collection_mgr, is_subobject=is_subobject)
+            d = menu.Menu(self.api, is_subobject=is_subobject)
         else:
             raise CX("internal error, collection name is %s" % what)
         key = "___NEW___%s::%s" % (what, self.__get_random(25))

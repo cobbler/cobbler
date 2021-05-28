@@ -60,11 +60,11 @@ class Collection:
         """
         return len(list(self.listing.values()))
 
-    def factory_produce(self, collection_mgr, seed_data):
+    def factory_produce(self, api, seed_data):
         """
         Must override in subclass. Factory_produce returns an Item object from dict.
 
-        :param collection_mgr: The collection manager to resolve all information with.
+        :param api: The collection manager to resolve all information with.
         :param seed_data: Unused Parameter in the base collection.
         """
         raise NotImplementedError()
@@ -197,7 +197,7 @@ class Collection:
         if _list is None:
             return
         for item_dict in _list:
-            item = self.factory_produce(self.collection_mgr, item_dict)
+            item = self.factory_produce(self.api, item_dict)
             self.add(item)
 
     def copy(self, ref, newname):
@@ -356,7 +356,7 @@ class Collection:
             ref.mtime = now
 
         if self.lite_sync is None:
-            self.lite_sync = self.collection_mgr.api.get_sync()
+            self.lite_sync = self.api.get_sync()
 
         # migration path for old API parameter that I've renamed.
         if with_copy and not save:

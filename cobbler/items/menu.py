@@ -45,8 +45,8 @@ class Menu(item.Item):
 
     COLLECTION_TYPE = "menu"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.display_name = ""
 
     #
@@ -60,7 +60,7 @@ class Menu(item.Item):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = Menu(self.collection_mgr)
+        cloned = Menu(self.api)
         cloned.from_dict(_dict)
         return cloned
 
@@ -79,7 +79,7 @@ class Menu(item.Item):
         if not self.parent or self.parent == '':
             return None
 
-        return self.collection_mgr.menus().find(name=self.parent)
+        return self.api.menus().find(name=self.parent)
 
     def check_if_valid(self):
         """
@@ -119,7 +119,7 @@ class Menu(item.Item):
             # check must be done in two places as set_parent could be called before/after
             # set_name...
             raise CX("self parentage is weird")
-        found = self.collection_mgr.menus().find(name=parent_name)
+        found = self.api.menus().find(name=parent_name)
         if found is None:
             raise CX("menu %s not found" % parent_name)
         self.parent = parent_name

@@ -64,8 +64,8 @@ class Repo(item.Item):
     TYPE_NAME = "repo"
     COLLECTION_TYPE = "repo"
 
-    def __init__(self, *args, **kwargs):
-        super(Repo, self).__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.breed = None
         self.arch = None
         self.environment = {}
@@ -84,7 +84,7 @@ class Repo(item.Item):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = Repo(self.collection_mgr)
+        cloned = Repo(self.api)
         cloned.from_dict(_dict)
         return cloned
 

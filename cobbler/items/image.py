@@ -67,8 +67,8 @@ class Image(item.Item):
     TYPE_NAME = "image"
     COLLECTION_TYPE = "image"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, api, *args, **kwargs):
+        super().__init__(api, *args, **kwargs)
         self.boot_loaders = []
         self.menu = ""
 
@@ -88,7 +88,7 @@ class Image(item.Item):
         :return: The cloned instance of this object.
         """
         _dict = self.to_dict()
-        cloned = Image(self.collection_mgr)
+        cloned = Image(self.api)
         cloned.from_dict(_dict)
         return cloned
 
@@ -132,7 +132,7 @@ class Image(item.Item):
         :param autoinstall: local automatic installation template file path
         """
 
-        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.collection_mgr)
+        autoinstall_mgr = autoinstall_manager.AutoInstallationManager(self.api._collection_mgr)
         self.autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     def set_file(self, filename):
@@ -303,7 +303,7 @@ class Image(item.Item):
         """
 
         if menu and menu != "":
-            menu_list = self.collection_mgr.menus()
+            menu_list = self.api.menus()
             if not menu_list.find(name=menu):
                 raise CX("menu %s not found" % menu)
 

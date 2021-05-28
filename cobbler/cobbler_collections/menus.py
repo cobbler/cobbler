@@ -37,15 +37,15 @@ class Menus(collection.Collection):
     def collection_types() -> str:
         return "menus"
 
-    def factory_produce(self, collection_mgr, item_dict):
+    def factory_produce(self, api, item_dict):
         """
         Return a Menu forged from item_dict
 
-        :param collection_mgr: TODO
+        :param api: TODO
         :param item_dict: TODO
         :return:
         """
-        new_menu = menu.Menu(collection_mgr)
+        new_menu = menu.Menu(api)
         new_menu.from_dict(item_dict)
         return new_menu
 
@@ -62,10 +62,10 @@ class Menus(collection.Collection):
         :raises CX
         """
         name = name.lower()
-        for profile in self.collection_mgr.profiles():
+        for profile in self.api.profiles():
             if profile.menu and profile.menu.lower() == name:
                 profile.set_menu(None)
-        for image in self.collection_mgr.images():
+        for image in self.api.images():
             if image.menu and image.menu.lower() == name:
                 image.set_menu(None)
 
@@ -78,7 +78,7 @@ class Menus(collection.Collection):
 
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/pre/*", [])
             self.lock.acquire()
             try:
                 del self.listing[name]
@@ -87,10 +87,10 @@ class Menus(collection.Collection):
             self.collection_mgr.serialize_delete(self, obj)
             if with_delete:
                 if with_triggers:
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", [])
-                    utils.run_triggers(self.collection_mgr.api, obj, "/var/lib/cobbler/triggers/change/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/delete/menu/post/*", [])
+                    utils.run_triggers(self.api, obj, "/var/lib/cobbler/triggers/change/*", [])
                 if with_sync:
-                    lite_sync = self.collection_mgr.api.get_sync()
+                    lite_sync = self.api.get_sync()
                     lite_sync.remove_single_menu()
             return
         raise CX("cannot delete an object that does not exist: %s" % name)
