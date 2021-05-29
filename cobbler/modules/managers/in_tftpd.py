@@ -107,19 +107,17 @@ class _InTftpdManager(ManagerModule):
 
         return 0
 
-    def sync_single_system(self, system):
+    def sync_single_system(self, system, menu_items=None):
         """
         Write out new ``pxelinux.cfg`` files to ``/tftpboot`` (or grub/system/<mac> in grub case)
 
         :param system: The system to be added.
         """
-        # write the PXE files for the system
-        all_menus = self.tftpgen.get_menu_items()
-        if 'pxe' in all_menus:
-            menu_items = all_menus['pxe']
-            self.tftpgen.write_all_system_files(system, menu_items)
-            # generate any templates listed in the distro
-            self.tftpgen.write_templates(system)
+        if not menu_items:
+            menu_items = self.tftpgen.get_menu_items()
+        self.tftpgen.write_all_system_files(system, menu_items)
+        # generate any templates listed in the distro
+        self.tftpgen.write_templates(system)
 
     def add_single_distro(self, distro):
         self.tftpgen.copy_single_distro_files(distro, self.bootloc, False)
@@ -143,13 +141,9 @@ class _InTftpdManager(ManagerModule):
                 continue
             system_objs.append(system_obj)
 
-        # the actual pxelinux.cfg files, for each interface
-        self.logger.info("generating PXE configuration files")
         menu_items = self.tftpgen.get_menu_items()
-        if 'pxe' in menu_items:
-            menu_items = menu_items['pxe']
-            for system in system_objs:
-                self.tftpgen.write_all_system_files(system, menu_items)
+        for system in system_objs:
+            self.sync_single_system(system, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
@@ -180,11 +174,9 @@ class _InTftpdManager(ManagerModule):
 
         # the actual pxelinux.cfg files, for each interface
         self.logger.info("generating PXE configuration files")
-        all_menus = self.tftpgen.get_menu_items()
-        if 'pxe' in all_menus:
-            menu_items = all_menus['pxe']
-            for x in self.systems:
-                self.tftpgen.write_all_system_files(x, menu_items)
+        menu_items = self.tftpgen.get_menu_items()
+        for system in self.systems:
+            self.tftpgen.write_all_system_files(system, menu_items)
 
         self.logger.info("generating PXE menu structure")
         self.tftpgen.make_pxe_menu()
