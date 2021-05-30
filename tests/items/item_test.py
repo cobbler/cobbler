@@ -69,26 +69,16 @@ def test_from_dict():
     assert False
 
 
-@pytest.mark.skip
-def test_to_string():
+def test_uid():
     # Arrange
-    titem = Item()
+    test_api = CobblerAPI()
+    titem = Item(test_api)
 
     # Act
-    titem.to_string()
+    titem.uid = "uid"
+
     # Assert
-    assert False
-
-
-@pytest.mark.skip
-def test_set_uid():
-    # Arrange
-    titem = Item()
-
-    # Act
-    titem.set_uid()
-    # Assert
-    assert False
+    assert titem.uid == "uid"
 
 
 def test_children():
@@ -122,18 +112,6 @@ def test_get_descendatns():
 
     # Act
     titem.get_descendants()
-    # Assert
-    assert False
-
-
-@pytest.mark.skip
-def test_parent():
-    # Arrange
-    titem = Item()
-
-    # Act
-    titem.parent
-
     # Assert
     assert False
 
@@ -377,5 +355,18 @@ def test_check_if_valid():
 
     # Act
     titem.check_if_valid()
+
     # Assert
     assert False
+
+
+def test_to_dict():
+    # Arrange
+    test_api = CobblerAPI()
+    titem = Item(test_api)
+
+    # Act
+    result = titem.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)

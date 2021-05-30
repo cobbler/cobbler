@@ -17,6 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
+import enum
 import logging
 import uuid
 from typing import Any, Dict, Optional, Union
@@ -25,7 +26,7 @@ from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
 
-from ipaddress import AddressValueError, NetmaskValueError
+from ipaddress import AddressValueError
 
 
 class NetworkInterface:
@@ -36,51 +37,28 @@ class NetworkInterface:
     def __init__(self, api):
         self.__logger = logging.getLogger()
         self.__api = api
-        # ["bonding_opts", "", 0, "Bonding Opts", True, "Should be used with --interface", 0, "str"],
         self._bonding_opts = ""
-        # ["bridge_opts", "", 0, "Bridge Opts", True, "Should be used with --interface", 0, "str"],
         self._bridge_opts = ""
-        # ["cnames", [], 0, "CNAMES", True, "Cannonical Name Records, should be used with --interface, In quotes, space delimited", 0, "list"],
         self._cnames = []
-        # ["connected_mode", False, 0, "InfiniBand Connected Mode", True, "Should be used with --interface", 0, "bool"],
         self._connected_mode = False
-        # ["dhcp_tag", "", 0 "DHCP Tag", True, "Should be used with --interface", 0, "str"],
         self._dhcp_tag = ""
-        # ["dns_name", "", 0, "DNS Name", True, "Should be used with --interface", 0, "str"],
         self._dns_name = ""
-        # ["if_gateway", "", 0, "Per-Interface Gateway", True, "Should be used with --interface", 0, "str"],
         self._if_gateway = ""
-        # ["interface_master", "", 0, "Master Interface", True, "Should be used with --interface", 0, "str"],
         self._interface_master = ""
-        # ["interface_type", "na", 0, "Interface Type", True, "Should be used with --interface", ["na", "bond", "bond_slave", "bridge", "bridge_slave", "bonded_bridge_slave", "bmc", "infiniband"], "str"],
-        self._interface_type = 0
-        # ["ip_address", "", 0, "IP Address", True, "Should be used with --interface", 0, "str"],
+        self._interface_type = enums.NetworkInterfaceType.NA
         self._ip_address = ""
-        # ["ipv6_address", "", 0, "IPv6 Address", True, "Should be used with --interface", 0, "str"],
         self._ipv6_address = ""
-        # ["ipv6_default_gateway", "", 0, "IPv6 Default Gateway", True, "Should be used with --interface", 0, "str"],
         self._ipv6_default_gateway = ""
-        # ["ipv6_mtu", "", 0, "IPv6 MTU", True, "Should be used with --interface", 0, "str"],
         self._ipv6_mtu = ""
-        # ["ipv6_prefix", "", 0, "IPv6 Prefix", True, "Should be used with --interface", 0, "str"],
         self._ipv6_prefix = ""
-        # ["ipv6_secondaries", [], 0, "IPv6 Secondaries", True, "Space delimited. Should be used with --interface", 0, "list"],
         self._ipv6_secondaries = []
-        # ["ipv6_static_routes", [], 0, "IPv6 Static Routes", True, "Should be used with --interface", 0, "list"],
         self._ipv6_static_routes = []
-        # ["mac_address", "", 0, "MAC Address", True, "(Place \"random\" in this field for a random MAC Address.)", 0, "str"],
         self._mac_address = ""
-        # ["management", False, 0, "Management Interface", True, "Is this the management interface? Should be used with --interface", 0, "bool"],
         self._management = False
-        # ["mtu", "", 0, "MTU", True, "", 0, "str"],
         self._mtu = ""
-        # ["netmask", "", 0, "Subnet Mask", True, "Should be used with --interface", 0, "str"],
         self._netmask = ""
-        # ["static", False, 0, "Static", True, "Is this interface static? Should be used with --interface", 0, "bool"],
         self._static = False
-        # ["static_routes", [], 0, "Static Routes", True, "Should be used with --interface", 0, "list"],
         self._static_routes = []
-        # ["virt_bridge", "", 0, "Virt Bridge", True, "Should be used with --interface", 0, "str"],
         self._virt_bridge = ""
 
     def from_dict(self, dictionary: dict):
@@ -106,10 +84,13 @@ class NetworkInterface:
         """
         result = {}
         for key in self.__dict__:
-            if key.startswith("__"):
-                pass
+            if "__" in key:
+                continue
             if key.startswith("_"):
-                result[key[1:]] = self.__dict__[key]
+                if isinstance(self.__dict__[key], enum.Enum):
+                    result[key[1:]] = self.__dict__[key].value
+                else:
+                    result[key[1:]] = self.__dict__[key]
         return result
 
     @property
@@ -331,7 +312,7 @@ class NetworkInterface:
         :param bridge:
         """
         if bridge == "":
-            bridge = self.__api.settings.default_virt_bridge
+            bridge = self.__api.settings().default_virt_bridge
         self._virt_bridge = bridge
 
     @property
@@ -344,13 +325,26 @@ class NetworkInterface:
         return self._interface_type
 
     @interface_type.setter
-    def interface_type(self, type: str):
-        if type not in enums.NetworkInterfaceType:
-            raise ValueError("interface type value must be one of: %s or blank" %
+    def interface_type(self, intf_type: Union[enums.NetworkInterfaceType, int, str]):
+        if not isinstance(intf_type, (enums.NetworkInterfaceType, int, str)):
+            raise TypeError("interface intf_type type must be of int, str or enums.NetworkInterfaceType")
+        if isinstance(intf_type, int):
+            try:
+                intf_type = enums.NetworkInterfaceType(intf_type)
+            except ValueError as value_error:
+                raise ValueError("intf_type with number \"%s\" was not a valid interface type!" % intf_type) \
+                    from value_error
+        elif isinstance(intf_type, str):
+            try:
+                intf_type = enums.NetworkInterfaceType[intf_type.upper()]
+            except KeyError as key_error:
+                raise ValueError("intf_type choices include: %s" % list(map(str, enums.NetworkInterfaceType))) \
+                    from key_error
+        # Now it must be of the enum Type
+        if intf_type not in enums.NetworkInterfaceType:
+            raise ValueError("interface intf_type value must be one of: %s or blank" %
                              ",".join(list(map(str, enums.NetworkInterfaceType))))
-        if type == "na":
-            type = ""
-        self._interface_type = type
+        self._interface_type = intf_type
 
     @property
     def interface_master(self):
@@ -415,6 +409,7 @@ class NetworkInterface:
         """
         address = validate.ipv6_address(address)
         if address != "" and self.__api.settings().allow_duplicate_ips is False:
+            # FIXME: The check for the system does not work yet.
             matched = self.__api.find_items("system", {"ipv6_address": address})
             for x in matched:
                 if x.name != self.name:
@@ -474,7 +469,7 @@ class NetworkInterface:
         raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
 
     @property
-    def ipv6_static_routes (self):
+    def ipv6_static_routes(self):
         """
         TODO
 
@@ -595,7 +590,7 @@ class System(Item):
 
     def __init__(self, api, *args, **kwargs):
         super().__init__(api, *args, **kwargs)
-        self._interfaces: Dict[str, NetworkInterface] = {}
+        self._interfaces: Dict[str, NetworkInterface] = {"default": NetworkInterface(api)}
         self._ipv6_autoconfiguration = False
         self._repos_enabled = False
         self._autoinstall = ""
@@ -665,8 +660,8 @@ class System(Item):
             if hasattr(self, "_" + lowered_key):
                 try:
                     setattr(self, lowered_key, dictionary[key])
-                except AttributeError as e:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
+                except AttributeError as attr_error:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from attr_error
                 to_pass.pop(key)
         super().from_dict(to_pass)
 
@@ -758,7 +753,7 @@ class System(Item):
                 network_iface.from_dict(value[key])
                 self._interfaces[key] = network_iface
             return
-        raise ValueError("The values of the interfaces must fully of type dict (one level with values) or "
+        raise ValueError("The values of the interfaces must be fully of type dict (one level with values) or "
                          "NetworkInterface objects")
 
     def delete_interface(self, name: str):
@@ -772,7 +767,7 @@ class System(Item):
         if not name:
             return
         if name in self.interfaces:
-            del self.interfaces[name]
+            self.interfaces.pop(name)
 
     def rename_interface(self, old_name: str, new_name: str):
         """
@@ -1006,8 +1001,8 @@ class System(Item):
 
         intf = self.__get_interface(interface)
 
-        if intf["mac_address"] != "":
-            return intf["mac_address"].strip()
+        if intf.mac_address != "":
+            return intf.mac_address.strip()
         else:
             return None
 
@@ -1044,15 +1039,19 @@ class System(Item):
 
         :param interface:
         """
-        self.interfaces[interface] = NetworkInterface()
+        self.interfaces[interface] = NetworkInterface(self.api)
 
-    def __get_interface(self, interface_name: str):
+    def __get_interface(self, interface_name: str = "default") -> NetworkInterface:
         """
         TODO
 
-        :param interface_name:
-        :return:
+        :param interface_name: The name of the interface. If ``None`` is given then ``default`` is used.
+        :return: The requested interface.
         """
+        if interface_name is None:
+            interface_name = "default"
+        if not isinstance(interface_name, str):
+            raise TypeError("The name of an interface must always be of type str!")
         if not interface_name:
             interface_name = "default"
         if interface_name not in self._interfaces:
@@ -1640,7 +1639,7 @@ class System(Item):
         :param interface: Name of the interface.
         :param loader: Bootloader type.
         """
-        boot_loaders = self.get_boot_loaders()
+        boot_loaders = self.boot_loaders
         if loader is None:
             if "grub" in boot_loaders or len(boot_loaders) < 1:
                 loader = "grub"

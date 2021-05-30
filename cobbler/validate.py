@@ -293,14 +293,13 @@ def validate_arch(arch: Union[str, enums.Archs]) -> enums.Archs:
     return arch
 
 
-def validate_repos(repos, api, bypass_check=False):
+def validate_repos(repos: list, api, bypass_check: bool = False):
     """
     This is a setter for the repository.
 
     :param repos: The repositories to set for the object.
     :param api: The api to find the repos.
     :param bypass_check: If the newly set repos should be checked for existence.
-    :type bypass_check: bool
     """
     # allow the magic inherit string to persist
     if repos == enums.VALUE_INHERITED:

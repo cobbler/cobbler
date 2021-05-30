@@ -56,8 +56,6 @@ def remove_object_via_cli(run_cmd):
     return _remove_object_via_cli
 
 
-# FIXME: CLI is fully broken right now!
-@pytest.mark.skip("Currently broken because CLI is broken!")
 @pytest.mark.usefixtures("setup", "teardown")
 class TestCobblerCliTestObject:
     """
@@ -125,14 +123,14 @@ menus:
 
     @pytest.mark.parametrize("object_type,attributes,to_change,attr_long_name", [
         ("distro",
-         {"name": "testdistroedit", "kernel": "/var/log/cobbler/cobbler.log",
-          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"},
+         {"name": "testdistroedit", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+          "arch": "x86_64"},
          ["comment", "Testcomment"], "Comment"),
         ("profile", {"name": "testprofileedit", "distro": "test_distro_edit_profile"},
          ["comment", "Testcomment"], "Comment"),
-        ("system", {"name": "testsystenedit", "profile": "test_profile_edit_system"}, ["comment", "Testcomment"],
+        ("system", {"name": "test_system_edit", "profile": "test_profile_edit_system"}, ["comment", "Testcomment"],
          "Comment"),
-        ("image", {"name": "testimageedit"}, ["comment", "Testcomment"], "Comment"),
+        ("image", {"name": "test_image_edit"}, ["comment", "Testcomment"], "Comment"),
         ("repo", {"name": "testrepoedit", "mirror": "http://localhost"}, ["comment", "Testcomment"], "Comment"),
         ("package", {"name": "testpackageedit"}, ["comment", "Testcomment"], "Comment"),
         ("mgmtclass", {"name": "testmgmtclassedit"}, ["comment", "Testcomment"], "Comment"),
@@ -140,18 +138,24 @@ menus:
                   "is-dir": "True"}, ["path", "/test_dir"], "Path"),
         ("menu", {"name": "testmenuedit"}, ["comment", "Testcomment"], "Comment"),
     ])
-    def test_edit(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes, to_change,
-                  attr_long_name):
+    def test_edit(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_kernel, fk_initrd,
+                  object_type, attributes, to_change, attr_long_name):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "test_distro_edit_profile"
         name_distro_system = "test_distro_edit_system"
         name_profile_system = "test_profile_edit_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
         add_object_via_cli(object_type, attributes)
 
@@ -180,8 +184,8 @@ menus:
         assert found
 
     @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrofind", "kernel": "/var/log/cobbler/cobbler.log",
-                    "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"}),
+        ("distro", {"name": "testdistrofind", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+                    "arch": "x86_64"}),
         ("profile", {"name": "testprofilefind", "distro": ""}),
         ("system", {"name": "testsystemfind", "profile": ""}),
         ("image", {"name": "testimagefind"}),
@@ -192,17 +196,26 @@ menus:
                   "is-dir": "True"}),
         ("menu", {"name": "testmenufind"}),
     ])
-    def test_find(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
+    def test_find(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd, fk_kernel,
+                  object_type, attributes):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "testdistro_find_profile"
         name_distro_system = "testdistro_find_system"
         name_profile_system = "testprofile_find_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            attributes["distro"] = name_distro_profile
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            attributes["profile"] = name_profile_system
+            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
         add_object_via_cli(object_type, attributes)
 
@@ -222,8 +235,8 @@ menus:
         assert len(lines) >= 1
 
     @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrocopy", "kernel": "/var/log/cobbler/cobbler.log",
-                    "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"}),
+        ("distro", {"name": "testdistrocopy", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+                    "arch": "x86_64"}),
         ("profile", {"name": "testprofilecopy", "distro": "testdistro_copy_profile"}),
         ("system", {"name": "testsystemcopy", "profile": "testprofile_copy_system"}),
         ("image", {"name": "testimagecopy"}),
@@ -234,17 +247,24 @@ menus:
                   "is-dir": "True"}),
         ("menu", {"name": "testmenucopy"}),
     ])
-    def test_copy(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
+    def test_copy(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd, fk_kernel,
+                  object_type, attributes):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "testdistro_copy_profile"
         name_distro_system = "testdistro_copy_system"
         name_profile_system = "testprofile_copy_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli("distro", {"name": name_distro_system,  "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
         add_object_via_cli(object_type, attributes)
         new_object_name = "%s-copy" % attributes["name"]
@@ -266,8 +286,8 @@ menus:
         assert not outputstd
 
     @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistrorename", "kernel": "/var/log/cobbler/cobbler.log",
-                    "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"}),
+        ("distro", {"name": "testdistrorename", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+                    "arch": "x86_64"}),
         ("profile", {"name": "testprofilerename", "distro": "testdistro_rename_profile"}),
         ("system", {"name": "testsystemrename", "profile": "testprofile_rename_system"}),
         ("image", {"name": "testimagerename"}),
@@ -278,17 +298,24 @@ menus:
                   "is-dir": "True"}),
         ("menu", {"name": "testmenurename"}),
     ])
-    def test_rename(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
+    def test_rename(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd,
+                    fk_kernel, object_type, attributes):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "testdistro_rename_profile"
         name_distro_system = "testdistro_rename_system"
         name_profile_system = "testprofile_rename_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
         add_object_via_cli(object_type, attributes)
         new_object_name = "%s-renamed" % attributes["name"]
@@ -309,8 +336,8 @@ menus:
         assert not outputstd
 
     @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistroadd", "kernel": "/var/log/cobbler/cobbler.log",
-                    "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"}),
+        ("distro", {"name": "testdistroadd", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+                    "arch": "x86_64"}),
         ("profile", {"name": "testprofileadd", "distro": "testdistroadd_profile"}),
         ("system", {"name": "testsystemadd", "profile": "testprofileadd_system"}),
         ("image", {"name": "testimageadd"}),
@@ -321,18 +348,24 @@ menus:
                   "is-dir": "True"}),
         ("menu", {"name": "testmenuadd"}),
     ])
-    def test_add(self, run_cmd, remove_object_via_cli, generate_run_cmd_array, object_type, attributes,
-                 add_object_via_cli):
+    def test_add(self, run_cmd, remove_object_via_cli, generate_run_cmd_array, create_kernel_initrd, fk_initrd,
+                 fk_kernel, add_object_via_cli, object_type, attributes):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "testdistroadd_profile"
         name_distro_system = "testdistroadd_system"
         name_profile_system = "testprofileadd_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
 
         cmd_list = [object_type, "add"]
@@ -354,8 +387,8 @@ menus:
         assert not outputstd
 
     @pytest.mark.parametrize("object_type,attributes", [
-        ("distro", {"name": "testdistroremove", "kernel": "/var/log/cobbler/cobbler.log",
-                    "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"}),
+        ("distro", {"name": "testdistroremove", "kernel": "Set in method", "initrd": "Set in method", "breed": "suse",
+                    "arch": "x86_64"}),
         ("profile", {"name": "testprofileremove", "distro": "testdistroremove_profile"}),
         ("system", {"name": "testsystemremove", "profile": "testprofileremove_system"}),
         ("image", {"name": "testimageremove"}),
@@ -366,17 +399,24 @@ menus:
                   "is-dir": "True"}),
         ("menu", {"name": "testmenuremove"}),
     ])
-    def test_remove(self, run_cmd, add_object_via_cli, remove_object_via_cli, object_type, attributes):
+    def test_remove(self, run_cmd, add_object_via_cli, remove_object_via_cli, create_kernel_initrd, fk_initrd,
+                    fk_kernel, object_type, attributes):
         # Arrange
+        folder = create_kernel_initrd(fk_kernel, fk_initrd)
+        kernel_path = os.path.join(folder, fk_kernel)
+        initrd_path = os.path.join(folder, fk_kernel)
         name_distro_profile = "testdistroremove_profile"
         name_distro_system = "testdistroremove_system"
         name_profile_system = "testprofileremove_system"
-        if object_type == "profile":
-            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+        if object_type == "distro":
+            attributes["kernel"] = kernel_path
+            attributes["initrd"] = initrd_path
+        elif object_type == "profile":
+            add_object_via_cli("distro", {"name": name_distro_profile, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
         elif object_type == "system":
-            add_object_via_cli("distro", {"name": name_distro_system, "kernel": "/var/log/cobbler/cobbler.log",
-                                          "initrd": "/var/log/cobbler/cobbler.log", "breed": "suse", "arch": "x86_64"})
+            add_object_via_cli("distro", {"name": name_distro_system, "kernel": kernel_path, "initrd": initrd_path,
+                                          "breed": "suse", "arch": "x86_64"})
             add_object_via_cli("profile", {"name": name_profile_system, "distro": name_distro_system})
         add_object_via_cli(object_type, attributes)
 

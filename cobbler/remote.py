@@ -657,7 +657,7 @@ class CobblerXMLRPCInterface:
             'items_per_page_list': [10, 20, 50, 100, 200, 500],
         })
 
-    def __get_object(self, object_id):
+    def __get_object(self, object_id: str):
         """
         Helper function. Given an object id, return the actual object.
 
@@ -669,7 +669,7 @@ class CobblerXMLRPCInterface:
         (otype, oname) = object_id.split("::", 1)
         return self.api.get_item(otype, oname)
 
-    def get_item(self, what, name, flatten=False):
+    def get_item(self, what: str, name: str, flatten=False):
         """
         Returns a dict describing a given object.
 
@@ -686,7 +686,7 @@ class CobblerXMLRPCInterface:
             item = utils.flatten(item)
         return self.xmlrpc_hacks(item)
 
-    def get_distro(self, name, flatten=False, token=None, **rest):
+    def get_distro(self, name: str, flatten=False, token=None, **rest):
         """
         Get a distribution.
 
@@ -698,7 +698,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("distro", name, flatten=flatten)
 
-    def get_profile(self, name, flatten=False, token=None, **rest):
+    def get_profile(self, name: str, flatten=False, token=None, **rest):
         """
         Get a profile.
 
@@ -710,7 +710,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("profile", name, flatten=flatten)
 
-    def get_system(self, name, flatten=False, token=None, **rest):
+    def get_system(self, name: str, flatten=False, token=None, **rest):
         """
         Get a system.
 
@@ -722,7 +722,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("system", name, flatten=flatten)
 
-    def get_repo(self, name, flatten=False, token=None, **rest):
+    def get_repo(self, name: str, flatten=False, token=None, **rest):
         """
         Get a repository.
 
@@ -734,7 +734,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("repo", name, flatten=flatten)
 
-    def get_image(self, name, flatten=False, token=None, **rest):
+    def get_image(self, name: str, flatten=False, token=None, **rest):
         """
         Get an image.
 
@@ -746,7 +746,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("image", name, flatten=flatten)
 
-    def get_mgmtclass(self, name, flatten=False, token=None, **rest):
+    def get_mgmtclass(self, name: str, flatten=False, token=None, **rest):
         """
         Get a management class.
 
@@ -758,7 +758,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("mgmtclass", name, flatten=flatten)
 
-    def get_package(self, name, flatten=False, token=None, **rest):
+    def get_package(self, name: str, flatten=False, token=None, **rest):
         """
         Get a package.
 
@@ -770,7 +770,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("package", name, flatten=flatten)
 
-    def get_file(self, name, flatten=False, token=None, **rest):
+    def get_file(self, name: str, flatten=False, token=None, **rest):
         """
         Get a file.
 
@@ -782,7 +782,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("file", name, flatten=flatten)
 
-    def get_menu(self, name, flatten: bool = False, token=None, **rest):
+    def get_menu(self, name: str, flatten: bool = False, token=None, **rest):
         """
         Get a menu.
 
@@ -794,7 +794,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_item("menu", name, flatten=flatten)
 
-    def get_items(self, what):
+    def get_items(self, what: str):
         """
         Individual list elements are the same for get_item.
 
@@ -804,7 +804,7 @@ class CobblerXMLRPCInterface:
         items = [x.to_dict() for x in self.api.get_items(what)]
         return self.xmlrpc_hacks(items)
 
-    def get_item_names(self, what):
+    def get_item_names(self, what: str):
         """
         This is just like get_items, but transmits less data.
 
@@ -1831,18 +1831,25 @@ class CobblerXMLRPCInterface:
         self.api.auto_add_repos()
         return True
 
-    def __is_interface_field(self, f) -> bool:
+    def __is_interface_field(self, field_name) -> bool:
         """
         Checks if the field in ``f`` is related to a network interface.
 
-        :param f: The fieldname to check.
+        :param field_name: The fieldname to check.
         :return: True if the fields is related to a network interface, otherwise False.
         """
-        if f in ("delete_interface", "rename_interface"):
+        # FIXME: This is not tested and I believe prone to errors. Needs explicit testing.
+        if field_name in ("delete_interface", "rename_interface"):
             return True
 
-        for x in system.NETWORK_INTERFACE_FIELDS:
-            if f == x[0]:
+        interface = system.NetworkInterface(self.api)
+        fields = []
+        for attribute in interface.__dict__.keys():
+            if attribute.startswith("_") and ("api" not in attribute or "logger" in attribute):
+                fields.append(attribute[1:])
+
+        for field in fields:
+            if field_name == field:
                 return True
         return False
 
@@ -1862,13 +1869,13 @@ class CobblerXMLRPCInterface:
         :param token: The API-token obtained via the login() method.
         :return: True if the action succeeded.
         """
+        self.check_access(token, "xedit_%s" % object_type, token)
+
         if object_name.strip() == "":
             raise ValueError("xapi_object_edit() called without an object name")
 
-        self.check_access(token, "xedit_%s" % object_type, token)
-
-        if edit_type == "add" or edit_type == "rename":
-            handle = 0
+        handle = ""
+        if edit_type in ("add", "rename"):
             if edit_type == "rename":
                 tmp_name = attributes["newname"]
             else:
@@ -1877,8 +1884,8 @@ class CobblerXMLRPCInterface:
                 handle = self.get_item_handle(object_type, tmp_name)
             except CX:
                 pass
-            if handle != 0:
-                raise CX("it seems unwise to overwrite the object %s, try 'edit'", tmp_name)
+            if handle:
+                raise CX("It seems unwise to overwrite the object %s, try 'edit'", tmp_name)
 
         if edit_type == "add":
             is_subobject = object_type == "profile" and "parent" in attributes
@@ -1921,8 +1928,7 @@ class CobblerXMLRPCInterface:
                     # in place modifications allow for adding a key/value pair while keeping other k/v pairs intact.
                     if key in ["autoinstall_meta", "kernel_options", "kernel_options_post", "template_files",
                                "boot_files", "fetchable_files", "params"] \
-                            and "in_place" in attributes \
-                            and attributes["in_place"]:
+                            and attributes.get("in_place"):
                         details = self.get_item(object_type, object_name)
                         v2 = details[key]
                         (ok, parsed_input) = utils.input_string_or_dict(value)
@@ -1940,13 +1946,36 @@ class CobblerXMLRPCInterface:
                     imods[modkey] = value
 
             if object_type == "system":
+                # FIXME: Don't call this tree if we are not doing any interface stuff.
                 if "delete_interface" not in attributes and "rename_interface" not in attributes:
-                    self.modify_system(handle, 'modify_interface', imods, token)
+                    # This if is taking care of interface logic. The interfaces are a dict, thus when we get the obj via
+                    # the api we get references to the original interfaces dict. Thus this trick saves us the pain of
+                    # writing the modified obj back to the collection. Always remember that dicts are mutable.
+                    system_to_edit = self.__get_object(handle)
+                    if system_to_edit is None:
+                        raise ValueError("No system found with the specified name (name given: \"%s\")!" % object_name)
+                    interface = system_to_edit.interfaces.get(attributes.get("interface"))
+                    if not interface:
+                        interface = system_to_edit.interfaces.get("default")
+                    if not interface:
+                        interface = system.NetworkInterface(self.api)
+                    for attribute_key in attributes:
+                        if self.__is_interface_field(attribute_key):
+                            if hasattr(interface, attribute_key):
+                                setattr(interface, attribute_key, attributes[attribute_key])
+                            else:
+                                self.logger.warning("Network interface field \"%s\" could not be set. Skipping it.",
+                                                    attribute_key)
+                        else:
+                            self.logger.debug("Field %s was not an interface field.", attribute_key)
+                    system_to_edit.interfaces.update({attributes.get("interface"): interface})
                 elif "delete_interface" in attributes:
-                    self.modify_system(handle, 'delete_interface', attributes.get("interface", ""), token)
+                    system_to_edit = self.__get_object(handle)
+                    system_to_edit.delete_interface(attributes.get("interface"))
                 elif "rename_interface" in attributes:
-                    ifargs = [attributes.get("interface", ""), attributes.get("rename_interface", "")]
-                    self.modify_system(handle, 'rename_interface', ifargs, token)
+                    system_to_edit = self.__get_object(handle)
+                    system_to_edit.rename_interface(attributes.get("interface", ""),
+                                                    attributes.get("rename_interface", ""))
         else:
             # remove item
             recursive = attributes.get("recursive", False)
@@ -2221,12 +2250,8 @@ class CobblerXMLRPCInterface:
                 raise CX("system not found: %s" % system)
         else:
             raise CX("internal error, no system or profile specified")
-        self.logger.info("type: %s", str(type(obj)))
         data = utils.blender(self.api, True, obj)
-        self.logger.info("data: %s", data)
-        data2 = self.xmlrpc_hacks(data)
-        self.logger.info("data2: %s", data2)
-        return data2
+        return self.xmlrpc_hacks(data)
 
     def get_settings(self, token=None, **rest):
         """

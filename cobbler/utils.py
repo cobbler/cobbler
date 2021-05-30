@@ -583,8 +583,9 @@ def blender(api_handle, remove_dicts: bool, root_obj):
 
     if root_obj.COLLECTION_TYPE == "system":
         for (name, interface) in list(root_obj.interfaces.items()):
-            for key in list(interface.keys()):
-                results["%s_%s" % (key, name)] = interface[key]
+            intf_dict = interface.to_dict()
+            for key in intf_dict:
+                results["%s_%s" % (key, name)] = intf_dict[key]
 
     # If the root object is a profile or system, add in all repo data for repos that belong to the object chain
     if root_obj.COLLECTION_TYPE in ("profile", "system"):

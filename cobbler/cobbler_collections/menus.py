@@ -73,8 +73,8 @@ class Menus(collection.Collection):
         if obj is not None:
             if recursive:
                 kids = obj.get_children()
-                for k in kids:
-                    self.remove(k, with_delete=with_delete, with_sync=False, recursive=recursive)
+                for kid in kids:
+                    self.remove(kid, with_delete=with_delete, with_sync=False, recursive=recursive)
 
             if with_delete:
                 if with_triggers:

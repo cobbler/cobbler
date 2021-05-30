@@ -2,7 +2,7 @@ import pytest
 
 from cobbler import enums
 from cobbler.api import CobblerAPI
-from cobbler.items.system import System
+from cobbler.items.system import NetworkInterface, System
 from tests.conftest import does_not_raise
 
 
@@ -528,3 +528,58 @@ def test_serial_baud_rate(value, expected_exception):
             assert system.serial_baud_rate.value == value
         else:
             assert system.serial_baud_rate == value
+
+
+def test_from_dict_with_network_interface():
+    # Arrange
+    test_api = CobblerAPI()
+    system = System(test_api)
+    sys_dict = system.to_dict()
+
+    # Act
+    system.from_dict(sys_dict)
+
+    # Assert
+    assert "default" in system.interfaces
+
+
+############################################################################################
+
+
+def test_network_interface_object_creation():
+    # Arrange
+    test_api = CobblerAPI()
+
+    # Act
+    interface = NetworkInterface(test_api)
+
+    # Assert
+    assert isinstance(interface, NetworkInterface)
+
+
+def test_network_interface_to_dict():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    result = interface.to_dict()
+
+    # Assert
+    assert isinstance(result, dict)
+    assert "logger" not in result
+    assert "api" not in result
+    assert len(result) == 23
+
+
+def test_network_interface_from_dict():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+    intf_dict = interface.to_dict()
+
+    # Act
+    interface.from_dict(intf_dict)
+
+    # Assert
+    assert True

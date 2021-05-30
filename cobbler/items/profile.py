@@ -593,13 +593,13 @@ class Profile(item.Item):
         return self._repos
 
     @repos.setter
-    def repos(self, repos):
+    def repos(self, repos: list):
         """
         Setter of the repositories for the profile.
 
         :param repos: The new repositories which will be set.
         """
-        self._repos = validate.validate_repos(repos, False)
+        self._repos = validate.validate_repos(repos, self.api, bypass_check=False)
 
     @property
     def redhat_management_key(self):

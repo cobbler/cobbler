@@ -742,16 +742,18 @@ class Item:
                     new_key = key[1:].lower()
                     if isinstance(self.__dict__[key], enum.Enum):
                         value[new_key] = self.__dict__[key].value
+                    elif new_key == "interfaces":
+                        # This is the special interfaces dict. Lets fix it before it gets to the normal process.
+                        serialized_interfaces = {}
+                        interfaces = self.__dict__[key]
+                        for interface_key in interfaces:
+                            serialized_interfaces[interface_key] = interfaces[interface_key].to_dict()
+                        value[new_key] = serialized_interfaces
                     elif isinstance(self.__dict__[key], (list, dict)):
                         value[new_key] = copy.deepcopy(self.__dict__[key])
                     else:
                         value[new_key] = self.__dict__[key]
         self.set_cache(self, value)
-        if "interfaces" in value:
-            interfaces = {}
-            for interface in value["interfaces"]:
-                interfaces[interface] = value["interfaces"][interface].to_dict()
-            value["interfaces"] = interfaces
         if "autoinstall" in value:
             value.update({"kickstart": value["autoinstall"]})
         if "autoinstall_meta" in value:

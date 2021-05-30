@@ -214,11 +214,11 @@ class Collection:
         ref.name = newname
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
-            for iname in list(ref.interfaces.keys()):
+            for interface in ref.interfaces:
                 # clear all these out to avoid DHCP/DNS conflicts
-                ref.set_dns_name("", iname, self.collection_mgr.settings().allow_duplicate_hostnames)
-                ref.set_mac_address("", iname)
-                ref.set_ip_address("", iname)
+                ref.interfaces[interface].dns_name = ""
+                ref.interfaces[interface].mac_address = ""
+                ref.interfaces[interface].ip_address = ""
 
         self.add(ref, save=True, with_copy=True, with_triggers=True, with_sync=True, check_for_duplicate_names=True,
                  check_for_duplicate_netinfo=False)

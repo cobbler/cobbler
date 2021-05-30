@@ -192,7 +192,7 @@ class CollectionManager:
                          % (collection.collection_type(), e)) from e
 
     def get_items(self, collection_type: str) -> Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages,
-                                                       Files, Settings, Menus]:
+                                                       Files, Menus]:
         """
         Get a full collection of a single type.
 
@@ -203,7 +203,7 @@ class CollectionManager:
         :return: The collection if ``collection_type`` is valid.
         :raises CX: If the ``collection_type`` is invalid.
         """
-        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Settings, Menus]
+        result: Union[Distros, Profiles, Systems, Repos, Images, Mgmtclasses, Packages, Files, Menus]
         if collection_type == "distro":
             result = self._distros
         elif collection_type == "profile":
