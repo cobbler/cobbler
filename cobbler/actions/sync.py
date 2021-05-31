@@ -418,7 +418,10 @@ class CobblerSync:
 
         :param name: The name of the system.
         """
-        self.tftpd.update_netboot(name)
+        system = self.systems.find(name=name)
+        if system is None:
+            return
+        self.tftpd.sync_single_system(system)
 
     def add_single_system(self, name: str):
         """
@@ -436,7 +439,7 @@ class CobblerSync:
         if self.settings.manage_dns:
             self.dns.regen_hosts()
         # write the PXE files for the system
-        self.tftpd.add_single_system(system)
+        self.tftpd.sync_single_system(system)
 
     def remove_single_system(self, name: str):
         """

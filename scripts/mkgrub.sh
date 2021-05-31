@@ -72,7 +72,8 @@ for TARGET in $TARGETS;do
     GRUB_MODULES="${CD_MODULES} ${FS_MODULES} ${PXE_MODULES} ${CRYPTO_MODULES} ${MISC_MODULES} ${TARGET_EXTRA_MODULES}"
     MODULE_DIR="${GRUB2_MOD_DIR}/${TARGET_MOD_DIR}"
     set -x
-    grub2-mkimage -O "${TARGET}" -o "${BOOTLOADERS_DIR}/grub/${BINARY}" --prefix= "${GRUB_MODULES}"
+    # shellcheck disable=SC2086
+    grub2-mkimage -O "${TARGET}" -o "${BOOTLOADERS_DIR}/grub/${BINARY}" --prefix= ${GRUB_MODULES}
     set +x
     echo "grub2/${BINARY}" >> "${BOOTLOADERS_DIR}/.cobbler_postun_cleanup"
     if [[ -e "$MODULE_DIR" ]] && [[ ! -e "${BOOTLOADERS_DIR}/grub/$TARGET_MOD_DIR" ]];then
