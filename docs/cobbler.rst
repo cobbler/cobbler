@@ -90,7 +90,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 
 .. code-block:: shell
 
-    $ cobbler distro add --name=string --kernel=path --initrd=path [--kernel-options=string] [--kernel-options-post=string] [--autoinstall-meta=string] [--arch=i386|x86_64|ppc|ppc64] [--breed=redhat|debian|suse] [--template-files=string]
+    $ cobbler distro add --name=string --kernel=path --initrd=path [--kernel-options=string] [--kernel-options-post=string] [--autoinstall-meta=string] [--arch=i386|x86_64|ppc|ppc64|ppc64le|arm64] [--breed=redhat|debian|suse] [--template-files=string]
 
 +-----------------+-----------------------------------------------------------------------------------------------------+
 | Name            | Description                                                                                         |
@@ -98,8 +98,7 @@ If you want to be explicit with distribution definition, however, here's how it 
 | arch            | Sets the architecture for the PXE bootloader and also controls how Koan's ``--replace-self`` option |
 |                 | will operate.                                                                                       |
 |                 |                                                                                                     |
-|                 | The default setting (``standard``) will use ``pxelinux``. Set to ``ppc`` and ``ppc64`` to use       |
-|                 | ``yaboot``.                                                                                         |
+|                 | The default setting (``standard``) will use ``pxelinux``. Set to ``ppc`` to use ``yaboot``.         |
 |                 |                                                                                                     |
 |                 | ``x86`` and ``x86_64`` effectively do the same thing as standard.                                   |
 |                 |                                                                                                     |
