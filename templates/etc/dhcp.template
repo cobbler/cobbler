@@ -68,14 +68,17 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
           # RiskV 32 bit
           else if option system-arch = 00:25 {
               #ToDo petitboot loader
+              # petitboot should support pxelinux config files
               filename "unsupported";
           }
           #RiskV 32 bit
           else if option system-arch = 00:27 {
               #ToDo petitboot loader
+              # petitboot should support pxelinux config files
               filename "unsupported";
           }
           else if option system-arch = 00:0e {
+              # FIXME add petitboot support for ppc64(le)
               filename "grub/grub.ppc64le";
           }
           else
