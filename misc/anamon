@@ -182,7 +182,6 @@ def anamon_loop():
     # Monitor for bootloader configuration changes
     bootloader_cfgs = list()
     bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/grub/grub.conf", "grub.conf"))
-    bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/etc/yaboot.conf", "yaboot.conf"))
     bootloader_cfgs.append(WatchedFile("/mnt/sysimage/boot/efi/efi/redhat/elilo.conf", "elilo.conf"))
     bootloader_cfgs.append(WatchedFile("/mnt/sysimage/etc/zipl.conf", "zipl.conf"))
 

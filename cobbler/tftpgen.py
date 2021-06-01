@@ -640,24 +640,6 @@ class TFTPGen:
         # just some random variables
         buffer = ""
 
-        if system and format in ['pxe', 'yaboot'] and not system.netboot_enabled and arch in [Archs.PPC, Archs.PPC64]:
-            # Disable yaboot network booting for all interfaces on the system
-            for (name, interface) in list(system.interfaces.items()):
-
-                filename = "%s" % system.get_config_filename(interface=name).lower()
-
-                # Remove symlink to the yaboot binary
-                f3 = os.path.join(self.bootloc, "ppc", filename)
-                if os.path.lexists(f3):
-                    utils.rmfile(f3)
-                f3 = os.path.join(self.bootloc, "etc", filename)
-                if os.path.lexists(f3):
-                    utils.rmfile(f3)
-
-            # Yaboot/OF doesn't support booting locally once you've booted off the network, so nothing left
-            # to do
-            return None
-
         template = os.path.join(self.settings.boot_loader_conf_template_dir, format + ".template")
         self.build_kernel(metadata, system, profile, distro, image, format)
 
@@ -838,22 +820,6 @@ class TFTPGen:
                 utils.kopts_overwrite(kopts, self.settings.server, distro.breed)
             else:
                 utils.kopts_overwrite(kopts, self.settings.server, distro.breed, system.name)
-
-        # since network needs to be configured again (it was already in netboot) when kernel boots
-        # and we choose to do it dinamically, we need to set 'ksdevice' to one of
-        # the interfaces' MAC addresses in ppc systems.
-        # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
-        # FIXME if it's to be done for yaboot do it for yaboot, it has nothing to do with arch
-        if system and arch in [Archs.PPC]:
-            for intf in list(system.interfaces.keys()):
-                # use first interface with defined IP and MAC, since these are required
-                # fields in a DHCP entry
-                mac_address = system.interfaces[intf]['mac_address']
-                ip_address = system.interfaces[intf]['ip_address']
-                if mac_address and ip_address:
-                    kopts['BOOTIF'] = '01-' + mac_address
-                    kopts['ksdevice'] = mac_address
-                    break
 
         # support additional initrd= entries in kernel options.
         if "initrd" in kopts:

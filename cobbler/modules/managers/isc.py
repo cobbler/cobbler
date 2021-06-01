@@ -79,7 +79,6 @@ class _IscManager(ManagerModule):
 
         # We used to just loop through each system, but now we must loop through each network interface of each system.
         dhcp_tags = {"default": {}}
-        yaboot = "/yaboot"
 
         # FIXME: ding should evolve into the new dhcp_tags dict
         ding = {}
@@ -182,9 +181,7 @@ class _IscManager(ManagerModule):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch in [Archs.PPC]:
-                        interface["filename"] = yaboot
-                    elif distro.arch in [Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
+                    if distro.arch in [Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
                         interface["filename"] = "grub/grub.ppc64le"
                     elif distro.arch == Archs.AARCH64:
                         interface["filename"] = "grub/grubaa64.efi"
@@ -216,7 +213,6 @@ class _IscManager(ManagerModule):
             "date": time.asctime(time.gmtime()),
             "cobbler_server": "%s:%s" % (self.settings.server, self.settings.http_port),
             "next_server_v4": self.settings.next_server_v4,
-            "yaboot": yaboot,
             "dhcp_tags": dhcp_tags
         }
 

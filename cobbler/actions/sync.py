@@ -69,8 +69,6 @@ class CobblerSync:
         self.pxelinux_dir = os.path.join(self.bootloc, "pxelinux.cfg")
         self.grub_dir = os.path.join(self.bootloc, "grub")
         self.images_dir = os.path.join(self.bootloc, "images")
-        self.yaboot_bin_dir = os.path.join(self.bootloc, "ppc")
-        self.yaboot_cfg_dir = os.path.join(self.bootloc, "etc")
         self.ipxe_dir = os.path.join(self.bootloc, "ipxe")
         self.rendered_dir = os.path.join(self.settings.webdir, "rendered")
         # FIXME: See https://github.com/cobbler/cobbler/issues/2453
@@ -194,10 +192,6 @@ class CobblerSync:
             utils.mkdir(self.images_dir)
         if not os.path.exists(self.rendered_dir):
             utils.mkdir(self.rendered_dir)
-        if not os.path.exists(self.yaboot_bin_dir):
-            utils.mkdir(self.yaboot_bin_dir)
-        if not os.path.exists(self.yaboot_cfg_dir):
-            utils.mkdir(self.yaboot_cfg_dir)
         if not os.path.exists(self.ipxe_dir):
             utils.mkdir(self.ipxe_dir)
 
@@ -229,8 +223,6 @@ class CobblerSync:
         utils.rmtree_contents(self.pxelinux_dir)
         utils.rmtree_contents(self.grub_dir)
         utils.rmtree_contents(self.images_dir)
-        utils.rmtree_contents(self.yaboot_bin_dir)
-        utils.rmtree_contents(self.yaboot_cfg_dir)
         utils.rmtree_contents(self.ipxe_dir)
         utils.rmtree_contents(self.rendered_dir)
 
@@ -457,7 +449,6 @@ class CobblerSync:
             utils.rmfile(os.path.join(bootloc, "pxelinux.cfg", pxe_filename))
             utils.rmfile(os.path.join(bootloc, "grub", "system", grub_filename))
             utils.rmfile(os.path.join(bootloc, "grub", "system_link", system_record.name))
-            # FIXME: No cleanup path for yaboot
 
     def remove_single_menu(self, rebuild_menu: bool = True):
         """

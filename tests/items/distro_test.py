@@ -402,4 +402,4 @@ def test_supported_boot_loaders():
 
     # Assert
     assert isinstance(distro.supported_boot_loaders, list)
-    assert distro.supported_boot_loaders == ["grub", "pxe", "yaboot", "ipxe"]
+    assert distro.supported_boot_loaders == ["grub", "pxe", "ipxe"]

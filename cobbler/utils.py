@@ -1555,7 +1555,7 @@ def get_supported_system_boot_loaders() -> List[str]:
 
     :return: The list of currently supported bootloaders.
     """
-    return ["grub", "pxe", "yaboot", "ipxe"]
+    return ["grub", "pxe", "ipxe"]
 
 
 def get_supported_distro_boot_loaders(distro, api_handle=None):
@@ -1577,7 +1577,8 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub", "pxe"],
+                return {"ppc": ["grub", "pxe"],
+                        "ppc64": ["grub", "pxe"],
                         "ppc64le": ["grub", "pxe"],
                         "ppc64el": ["grub", "pxe"],
                         "aarch64": ["grub"],

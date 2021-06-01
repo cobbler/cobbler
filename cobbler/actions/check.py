@@ -358,7 +358,6 @@ class CobblerCheck:
             "menu.c32": ["/usr/share/syslinux/menu.c32",
                          "/usr/lib/syslinux/menu.c32",
                          "/var/lib/cobbler/loaders/menu.c32"],
-            "yaboot": ["/var/lib/cobbler/loaders/yaboot*"],
             "pxelinux.0": ["/usr/share/syslinux/pxelinux.0",
                            "/usr/lib/syslinux/pxelinux.0",
                            "/var/lib/cobbler/loaders/pxelinux.0"],
@@ -386,8 +385,8 @@ class CobblerCheck:
             status.append("some network boot-loaders are missing from /var/lib/cobbler/loaders. If you only want to "
                           "handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version "
                           "of the syslinux package installed and can ignore this message entirely. Files in this "
-                          "directory, should you want to support all architectures, should include pxelinux.0, "
-                          "menu.c32, and yaboot.")
+                          "directory, should you want to support all architectures, should include pxelinux.0, and"
+                          "menu.c32.")
 
     def check_tftpd_dir(self, status):
         """
