@@ -3560,7 +3560,7 @@ class CobblerXMLRPCInterface:
         :return: The config data as a json for Koan.
         """
         self._log("get_config_data for %s" % hostname)
-        obj = configgen.ConfigGen(hostname)
+        obj = configgen.ConfigGen(self.api, hostname)
         return obj.gen_config_data_for_koan()
 
     def clear_system_logs(self, object_id, token=None):

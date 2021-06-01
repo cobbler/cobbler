@@ -574,6 +574,7 @@ def grab_tree(api_handle, item) -> list:
     """
     # TODO: Move into item.py
     results = [item]
+    # FIXME: The following line will throw an AttributeError for None because there is not get_parent() for None
     parent = item.get_parent()
     while parent is not None:
         results.append(parent)
