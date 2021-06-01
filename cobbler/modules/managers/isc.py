@@ -182,9 +182,9 @@ class _IscManager(ManagerModule):
                 # Explicitly declare filename for other (non x86) archs as in DHCP discover package mostly the
                 # architecture cannot be differed due to missing bits...
                 if distro is not None and not interface.get("filename"):
-                    if distro.arch in [Archs.PPC,  Archs.PPC64]:
+                    if distro.arch in [Archs.PPC]:
                         interface["filename"] = yaboot
-                    elif distro.arch == Archs.PPC64LE:
+                    elif distro.arch in [Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
                         interface["filename"] = "grub/grub.ppc64le"
                     elif distro.arch == Archs.AARCH64:
                         interface["filename"] = "grub/grubaa64.efi"
