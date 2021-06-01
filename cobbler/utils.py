@@ -1577,9 +1577,9 @@ def get_supported_distro_boot_loaders(distro, api_handle=None):
         except:
             try:
                 # Else use some well-known defaults
-                return {"ppc64": ["grub", "pxe", "ipxe", "yaboot"],
-                        "ppc64le": ["grub"],
-                        "ppc64el": ["grub"],
+                return {"ppc64": ["grub", "pxe"],
+                        "ppc64le": ["grub", "pxe"],
+                        "ppc64el": ["grub", "pxe"],
                         "aarch64": ["grub"],
                         "i386": ["grub", "pxe", "ipxe"],
                         "x86_64": ["grub", "pxe", "ipxe"]}[distro.arch]
