@@ -266,26 +266,9 @@ class TFTPGen:
 
             # for tftp only ...
             if working_arch in [Archs.I386, Archs.X86_64, Archs.ARM, Archs.AARCH64,
-                                Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
+                                Archs.PPC, Archs.PPC64, Archs.PPC64LE, Archs.PPC64EL]:
                 # ToDo: This is old, move this logic into item_system.get_config_filename()
                 pass
-
-            # FIXME why is this ppc-specific code needed at all?
-            # we can boot ppc64le which never executed this
-            elif working_arch in [Archs.PPC]:
-                # Determine filename for system-specific bootloader config
-                filename = "%s" % system.get_config_filename(interface=name).lower()
-                # to inherit the distro and system's boot_loader values correctly
-                blended_system = utils.blender(self.api, False, system)
-                if "pxe" in blended_system["boot_loaders"]:
-                    pass
-                else:
-                    pxe_path = os.path.join(self.bootloc, "etc", filename)
-                    # Link to the yaboot binary
-                    f3 = os.path.join(self.bootloc, "ppc", filename)
-                    if os.path.lexists(f3):
-                        utils.rmfile(f3)
-                    os.symlink("../yaboot", f3)
             else:
                 continue
 
@@ -685,15 +668,9 @@ class TFTPGen:
 
         if distro and distro.os_version.startswith("esxi") and filename is not None:
             append_line = "BOOTIF=%s" % (os.path.basename(filename))
-        elif "initrd_path" in metadata and arch not in [Archs.PPC, Archs.PPC64, Archs.ARM]:
-            append_line = "append initrd=%s" % (metadata["initrd_path"])
         else:
             append_line = "append "
         append_line = "%s%s" % (append_line, kernel_options)
-        if arch in [Archs.PPC, Archs.PPC64]:
-            # remove the prefix "append"
-            # TODO: this looks like it's removing more than append, really not sure what's up here...
-            append_line = append_line[7:]
         if distro and distro.os_version.startswith("xenserver620"):
             append_line = "%s" % (kernel_options)
         metadata["append_line"] = append_line
@@ -866,7 +843,8 @@ class TFTPGen:
         # and we choose to do it dinamically, we need to set 'ksdevice' to one of
         # the interfaces' MAC addresses in ppc systems.
         # ksdevice=bootif is not useful in yaboot, as the "ipappend" line is a pxe feature.
-        if system and arch and (arch == "ppc" or arch == "ppc64"):
+        # FIXME if it's to be done for yaboot do it for yaboot, it has nothing to do with arch
+        if system and arch in [Archs.PPC]:
             for intf in list(system.interfaces.keys()):
                 # use first interface with defined IP and MAC, since these are required
                 # fields in a DHCP entry
