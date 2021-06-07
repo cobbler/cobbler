@@ -417,9 +417,9 @@ class Item:
             self._template_files = value
 
     @property
-    def boot_files(self):
+    def boot_files(self) -> dict:
         """
-        TODO
+        Files copied into tftpboot beyond the kernel/initrd
 
         :return:
         """
@@ -431,10 +431,9 @@ class Item:
         A comma separated list of req_name=source_file_path that should be fetchable via tftp.
 
         :param boot_files: The new value for the boot files used by the item.
-        :return: False if this does not succeed.
         """
         if not isinstance(boot_files, dict):
-            raise TypeError("boot_files needs to be of type list")
+            raise TypeError("boot_files needs to be of type dict")
         self._boot_files = boot_files
 
     @property
@@ -698,8 +697,8 @@ class Item:
         """
         raise NotImplementedError("Must be implemented in a specific Item")
 
-    @staticmethod
-    def _remove_depreacted_dict_keys(dictionary: dict):
+    @classmethod
+    def _remove_depreacted_dict_keys(cls, dictionary: dict):
         """
         This method does remove keys which should not be deserialized and are only there for API compability in
         ``to_dict()``.
@@ -717,11 +716,16 @@ class Item:
 
         :param dictionary: This should contain all values which should be updated.
         """
-        result = dictionary.copy()
+        result = copy.deepcopy(dictionary)
         for key in dictionary:
             lowered_key = key.lower()
+            # The following also works for child classes because self is a child class at this point and not only an
+            # Item.
             if hasattr(self, "_" + lowered_key):
-                setattr(self, lowered_key, dictionary[key])
+                try:
+                    setattr(self, lowered_key, dictionary[key])
+                except AttributeError as e:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
                 result.pop(key)
         if len(result) > 0:
             raise KeyError("The following keys supplied could not be set: %s" % dictionary.keys())

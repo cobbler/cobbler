@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from typing import List, Callable, Any, Optional
+from typing import Dict, List, Callable, Any, Optional
 
 import glob
 import gzip
@@ -355,7 +355,7 @@ class _ImportSignatureManager(ManagerModule):
                 continue
             else:
                 self.logger.info("creating new distro: %s" % name)
-                new_distro = distro.Distro(self.collection_mgr)
+                new_distro = distro.Distro(self.api)
 
             if name.find("-autoboot") != -1:
                 # this is an artifact of some EL-3 imports
@@ -373,10 +373,10 @@ class _ImportSignatureManager(ManagerModule):
             supported_distro_boot_loaders = utils.get_supported_distro_boot_loaders(new_distro, self.api)
             new_distro.boot_loaders = supported_distro_boot_loaders[0]
 
-            boot_files = ''
+            boot_files: Dict[str, str] = {}
             for boot_file in self.signature["boot_files"]:
-                boot_files += '$local_img_path/%s=%s/%s ' % (boot_file, self.path, boot_file)
-            new_distro.boot_files = boot_files.strip()
+                boot_files['$local_img_path/%s' % boot_file] = '%s/%s' % (self.path, boot_file)
+            new_distro.boot_files = boot_files
 
             self.configure_tree_location(new_distro)
 
@@ -390,7 +390,7 @@ class _ImportSignatureManager(ManagerModule):
 
             if existing_profile is None:
                 self.logger.info("creating new profile: %s" % name)
-                new_profile = profile.Profile(self.collection_mgr)
+                new_profile = profile.Profile(self.api)
             else:
                 self.logger.info("skipping existing profile, name already exists: %s" % name)
                 continue

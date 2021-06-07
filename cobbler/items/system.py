@@ -653,17 +653,8 @@ class System(Item):
 
         :param dictionary: The dictionary with values.
         """
-        Item._remove_depreacted_dict_keys(dictionary)
-        to_pass = dictionary.copy()
-        for key in dictionary:
-            lowered_key = key.lower()
-            if hasattr(self, "_" + lowered_key):
-                try:
-                    setattr(self, lowered_key, dictionary[key])
-                except AttributeError as attr_error:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from attr_error
-                to_pass.pop(key)
-        super().from_dict(to_pass)
+        self._remove_depreacted_dict_keys(dictionary)
+        super().from_dict(dictionary)
 
     @property
     def parent(self) -> Optional[Item]:

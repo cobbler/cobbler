@@ -83,24 +83,26 @@ class Distro(item.Item):
         cloned.uid = uuid.uuid4().hex
         return cloned
 
+    @classmethod
+    def _remove_depreacted_dict_keys(cls, dictionary: dict):
+        """
+        TODO
+
+        :param dictionary:
+        :return:
+        """
+        if "parent" in dictionary:
+            dictionary.pop("parent")
+        super()._remove_depreacted_dict_keys(dictionary)
+
     def from_dict(self, dictionary: dict):
         """
         Initializes the object with attributes from the dictionary.
 
         :param dictionary: The dictionary with values.
         """
-        item.Item._remove_depreacted_dict_keys(dictionary)
-        dictionary.pop("parent")
-        to_pass = dictionary.copy()
-        for key in dictionary:
-            lowered_key = key.lower()
-            if hasattr(self, "_" + lowered_key):
-                try:
-                    setattr(self, lowered_key, dictionary[key])
-                except AttributeError as e:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
-                to_pass.pop(key)
-        super().from_dict(to_pass)
+        self._remove_depreacted_dict_keys(dictionary)
+        super().from_dict(dictionary)
 
     def check_if_valid(self):
         """

@@ -65,17 +65,8 @@ class File(resource.Resource):
 
         :param dictionary: The dictionary with values.
         """
-        item.Item._remove_depreacted_dict_keys(dictionary)
-        to_pass = dictionary.copy()
-        for key in dictionary:
-            lowered_key = key.lower()
-            if hasattr(self, "_" + lowered_key):
-                try:
-                    setattr(self, lowered_key, dictionary[key])
-                except AttributeError as e:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % key.lower()) from e
-                to_pass.pop(key)
-        super().from_dict(to_pass)
+        self._remove_depreacted_dict_keys(dictionary)
+        super().from_dict(dictionary)
 
     def check_if_valid(self):
         """
