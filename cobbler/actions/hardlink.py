@@ -57,8 +57,7 @@ class HardLinker:
         and intelligent over time.
         """
 
-        # FIXME: if these directories become configurable some
-        # changes will be required here.
+        # FIXME: if these directories become configurable some changes will be required here.
 
         self.logger.info("now hardlinking to save space, this may take some time.")
 

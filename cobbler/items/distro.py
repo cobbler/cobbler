@@ -419,13 +419,31 @@ class Distro(item.Item):
         return self._redhat_management_key
 
     @redhat_management_key.setter
-    def redhat_management_key(self, management_key):
+    def redhat_management_key(self, management_key: str):
         """
         Set the redhat management key. This is probably only needed if you have spacewalk, uyuni or SUSE Manager
         running.
 
         :param management_key: The redhat management key.
         """
-        if management_key is None:
-            self._redhat_management_key = ""
+        if not isinstance(management_key, str):
+            raise TypeError("Field redhat_management_key of object distro needs to be of type str!")
         self._redhat_management_key = management_key
+
+    @property
+    def children(self) -> dict:
+        """
+        TODO
+
+        :return:
+        """
+        return self._children
+
+    @children.setter
+    def children(self, value):
+        """
+        TODO
+
+        :param value:
+        """
+        self._children = value

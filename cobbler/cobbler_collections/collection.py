@@ -295,24 +295,23 @@ class Collection:
         # setter.
         kids = ref.get_children()
         for k in kids:
-            if k.COLLECTION_TYPE == "distro":
-                raise CX("internal error, not expected to have distro child objects")
-            elif k.COLLECTION_TYPE == "profile":
+            if self.api.find_profile(name=k) is not None:
+                k = self.api.find_profile(name=k)
                 if k.parent != "":
                     k.parent = newname
                 else:
                     k.distro = newname
                 self.api.profiles().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
-            elif k.COLLECTION_TYPE == "menu":
+            elif self.api.find_menu(name=k) is not None:
+                k = self.api.find_menu(name=k)
                 k.parent = newname
                 self.api.menus().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
-            elif k.COLLECTION_TYPE == "system":
+            elif self.api.find_system(name=k) is not None:
+                k = self.api.find_system(name=k)
                 k.profile = newname
                 self.api.systems().add(k, save=True, with_sync=with_sync, with_triggers=with_triggers)
-            elif k.COLLECTION_TYPE == "repo":
-                raise CX("internal error, not expected to have repo child objects")
             else:
-                raise CX("internal error, unknown child type (%s), cannot finish rename" % k.COLLECTION_TYPE)
+                raise CX("Internal error, unknown child type for child \"%s\"!" % k)
 
         # now delete the old version
         self.remove(oldname, with_delete=True, with_triggers=with_triggers)
@@ -423,11 +422,12 @@ class Collection:
             # save the tree, so if neccessary, scripts can examine it.
             if with_triggers:
                 utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/change/*", [])
-                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(), [])
+                utils.run_triggers(self.api, ref, "/var/lib/cobbler/triggers/add/%s/post/*" % self.collection_type(),
+                                   [])
 
         # update children cache in parent object
         if ref.parent:
-            ref.parent.children[ref.name] = ref
+            ref.parent.children.append(ref.name)
             self.logger.debug("Added child \"%s\" to parent \"%s\"", ref.name, ref.parent.name)
 
     def __duplication_checks(self, ref, check_for_duplicate_names: bool, check_for_duplicate_netinfo: bool):
@@ -492,13 +492,16 @@ class Collection:
 
                 for x in match_mac:
                     if x.name != ref.name:
-                        raise CX("Can't save system %s. The MAC address (%s) is already used by system %s (%s)" % (ref.name, intf["mac_address"], x.name, name))
+                        raise CX("Can't save system %s. The MAC address (%s) is already used by system %s (%s)"
+                                 % (ref.name, intf["mac_address"], x.name, name))
                 for x in match_ip:
                     if x.name != ref.name:
-                        raise CX("Can't save system %s. The IP address (%s) is already used by system %s (%s)" % (ref.name, intf["ip_address"], x.name, name))
+                        raise CX("Can't save system %s. The IP address (%s) is already used by system %s (%s)"
+                                 % (ref.name, intf["ip_address"], x.name, name))
                 for x in match_hosts:
                     if x.name != ref.name:
-                        raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)" % (ref.name, intf["dns_name"], x.name, name))
+                        raise CX("Can't save system %s.  The dns name (%s) is already used by system %s (%s)"
+                                 % (ref.name, intf["dns_name"], x.name, name))
 
     def to_string(self) -> str:
         """

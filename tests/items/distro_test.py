@@ -274,20 +274,21 @@ def test_owners(value):
     assert distro.owners == value
 
 
-@pytest.mark.parametrize("value", [
-    [""],
-    ["Test"]
+@pytest.mark.parametrize("value,expected_exception", [
+    ("", does_not_raise()),
+    (["Test"], pytest.raises(TypeError))
 ])
-def test_redhat_management_key(value):
+def test_redhat_management_key(value, expected_exception):
     # Arrange
     test_api = CobblerAPI()
     distro = Distro(test_api)
 
     # Act
-    distro.redhat_management_key = value
+    with expected_exception:
+        distro.redhat_management_key = value
 
-    # Assert
-    assert distro.redhat_management_key == value
+        # Assert
+        assert distro.redhat_management_key == value
 
 
 @pytest.mark.parametrize("value", [

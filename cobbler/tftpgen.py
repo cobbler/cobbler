@@ -371,7 +371,12 @@ class TFTPGen:
         :param arch: The processor architecture to generate the menu items for. (Optional)
         """
         if menu:
-            childs = menu.get_children(sort_list=True)
+            child_names = menu.get_children(sort_list=True)
+            childs = []
+            for child in child_names:
+                child = self.api.find_menu(name=child)
+                if child is not None:
+                    childs.append(child)
         else:
             childs = [child for child in self.menus if child.parent is None]
 

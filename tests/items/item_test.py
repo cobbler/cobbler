@@ -87,10 +87,10 @@ def test_children():
     titem = Item(test_api)
 
     # Act
-    titem.children = {}
+    titem.children = []
 
     # Assert
-    assert titem.children == {}
+    assert titem.children == []
 
 
 def test_get_children():

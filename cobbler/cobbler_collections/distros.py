@@ -71,8 +71,7 @@ class Distros(collection.Collection):
             if recursive:
                 kids = obj.get_children()
                 for k in kids:
-                    self.api.remove_profile(k.name, recursive=recursive, delete=with_delete,
-                                            with_triggers=with_triggers)
+                    self.api.remove_profile(k, recursive=recursive, delete=with_delete, with_triggers=with_triggers)
 
             if with_delete:
                 if with_triggers:

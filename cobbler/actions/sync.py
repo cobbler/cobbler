@@ -391,9 +391,9 @@ class CobblerSync:
         kids = profile.children
         for k in kids:
             if k.COLLECTION_TYPE == "profile":
-                self.add_single_profile(k.name, rebuild_menu=False)
+                self.add_single_profile(k, rebuild_menu=False)
             else:
-                self.add_single_system(k.name)
+                self.add_single_system(k)
         if rebuild_menu:
             self.tftpgen.make_pxe_menu()
         return True

@@ -142,7 +142,7 @@ class Profile(item.Item):
         """
         old_parent = self.parent
         if isinstance(old_parent, item.Item):
-            old_parent.children.pop(self.name, 'pass')
+            old_parent.children.remove(self.name)
         if not parent:
             self._parent = ''
             return
@@ -156,7 +156,7 @@ class Profile(item.Item):
         self.depth = found.depth + 1
         parent = self.parent
         if isinstance(parent, item.Item):
-            parent.children[self.name] = self
+            parent.children.append(self.name)
 
     @property
     def arch(self):
@@ -200,10 +200,10 @@ class Profile(item.Item):
             raise ValueError("distribution not found")
         old_parent = self.parent
         if isinstance(old_parent, item.Item):
-            old_parent.children.pop(self.name, 'pass')
+            old_parent.children.remove(self.name)
         self._distro = distro_name
         self.depth = distro.depth + 1    # reset depth if previously a subprofile and now top-level
-        distro.children[self.name] = self
+        distro.children.append(self.name)
 
     @property
     def name_servers(self):
@@ -672,3 +672,21 @@ class Profile(item.Item):
             if not menu_list.find(name=menu):
                 raise CX("menu %s not found" % menu)
         self._menu = menu
+
+    @property
+    def children(self) -> dict:
+        """
+        TODO
+
+        :return:
+        """
+        return self._children
+
+    @children.setter
+    def children(self, value):
+        """
+        TODO
+
+        :param value:
+        """
+        self._children = value

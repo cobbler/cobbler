@@ -17,7 +17,7 @@ import logging
 import pprint
 import re
 import uuid
-from typing import Union
+from typing import List, Union
 
 import yaml
 
@@ -144,7 +144,7 @@ class Item:
         """
         self._parent = ''
         self._depth = 0.0
-        self._children = {}
+        self._children = []
         self._ctime = 0
         self._mtime = 0.0
         self._uid = uuid.uuid4().hex
@@ -324,14 +324,14 @@ class Item:
     @property
     def autoinstall_meta(self) -> dict:
         """
-        TODO
+        Automatic Installation Template Metadata
 
-        :return:
+        :return: The metadata or an empty dict.
         """
         return self._autoinstall_meta
 
     @autoinstall_meta.setter
-    def autoinstall_meta(self, options):
+    def autoinstall_meta(self, options: dict):
         """
         A comma delimited list of key value pairs, like 'a=b,c=d,e=f' or a dict.
         The meta tags are used as input to the templating system to preprocess automatic installation template files.
@@ -346,31 +346,30 @@ class Item:
             self._autoinstall_meta = value
 
     @property
-    def mgmt_classes(self):
+    def mgmt_classes(self) -> list:
         """
-        TODO
+        For external config management
 
-        :return:
+        :return: An empty list or the list of mgmt_classes.
         """
         return self._mgmt_classes
 
     @mgmt_classes.setter
-    def mgmt_classes(self, mgmt_classes):
+    def mgmt_classes(self, mgmt_classes: list):
         """
         Assigns a list of configuration management classes that can be assigned to any object, such as those used by
         Puppet's external_nodes feature.
 
         :param mgmt_classes: The new options for the management classes of an item.
         """
-        mgmt_classes_split = utils.input_string_or_list(mgmt_classes)
-        self._mgmt_classes = utils.input_string_or_list(mgmt_classes_split)
+        self._mgmt_classes = utils.input_string_or_list(mgmt_classes)
 
     @property
     def mgmt_parameters(self):
         """
-        TODO
+        Parameters which will be handed to your management application (Must be a valid YAML dictionary)
 
-        :return:
+        :return: The mgmt_parameters or an empty dict.
         """
         return self._mgmt_parameters
 
@@ -396,7 +395,7 @@ class Item:
     @property
     def template_files(self) -> dict:
         """
-        TODO
+        File mappings for built-in configuration management
 
         :return:
         """
@@ -408,7 +407,7 @@ class Item:
         A comma seperated list of source=destination templates that should be generated during a sync.
 
         :param template_files: The new value for the template files which are used for the item.
-        :return: False if this does not succeed.
+        :raises ValueError: In case the conversion from non dict values was not successful.
         """
         (success, value) = utils.input_string_or_dict(template_files, allow_multiples=False)
         if not success:
@@ -437,18 +436,18 @@ class Item:
         self._boot_files = boot_files
 
     @property
-    def fetchable_files(self):
+    def fetchable_files(self) -> dict:
         """
-        TODO
+        A comma seperated list of ``virt_name=path_to_template`` that should be fetchable via tftp or a webserver
 
         :return:
         """
         return self._fetchable_files
 
     @fetchable_files.setter
-    def fetchable_files(self, fetchable_files):
+    def fetchable_files(self, fetchable_files: Union[str, dict]):
         """
-        A comma seperated list of virt_name=path_to_template that should be fetchable via tftp or a webserver
+        Setter for the fetchable files.
 
         :param fetchable_files: Files which will be made available to external users.
         """
@@ -481,9 +480,9 @@ class Item:
     @property
     def mtime(self) -> float:
         """
-        TODO
+        Represents the last modification time of the object via the API.
 
-        :return:
+        :return: The float which can be fed into a Python time object.
         """
         return self._mtime
 
@@ -514,41 +513,35 @@ class Item:
 
         :param parent: The new parent object. This needs to be a descendant in the logical inheritance chain.
         """
-        pass
 
     @property
-    def children(self) -> dict:
+    def children(self) -> list:
         """
         TODO
 
-        :return:
+        :return: An empty list.
         """
-        return self._children
+        return []
 
     @children.setter
-    def children(self, value: dict):
+    def children(self, value):
         """
-        TODO
+        This is an empty setter to not throw on setting it accidentally.
 
         :param value:
         """
-        if not isinstance(value, dict):
-            raise TypeError("children needs to be of type dict")
-        self._children = value
+        self.logger.warning("Tried to set the children property on object \"%s\" without logical children." % self.name)
 
-    def get_children(self, sort_list: bool = False) -> list:
+    def get_children(self, sort_list: bool = False) -> List[str]:
         """
         TODO
 
         :return:
         """
-        keys = list(self._children.keys())
+        result = copy.deepcopy(self.children)
         if sort_list:
-            keys.sort()
-        results = []
-        for k in keys:
-            results.append(self.children[k])
-        return results
+            result.sort()
+        return result
 
     @property
     def descendants(self) -> list:
@@ -560,6 +553,7 @@ class Item:
         results = []
         kids = self.children
         for kid in kids:
+            # FIXME: Get kid objects
             grandkids = kid.descendants
             results.extend(grandkids)
         return results
@@ -569,7 +563,7 @@ class Item:
         """
         TODO
 
-        :return:
+        :return: True in case the object is a subobject, False otherwise.
         """
         return self._is_subobject
 
@@ -578,8 +572,10 @@ class Item:
         """
         TODO
 
-        :param value:
+        :param value: The boolean value whether this is a subobject or not.
         """
+        if not isinstance(value, bool):
+            raise TypeError("Field is_subobject of object item needs to be of type bool!")
         self._is_subobject = value
 
     def get_conceptual_parent(self):

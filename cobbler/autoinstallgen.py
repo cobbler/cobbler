@@ -149,9 +149,8 @@ class AutoInstallationGen:
             cobblerElement.appendChild(cobblerElementSystem)
             cobblerElement.appendChild(cobblerElementProfile)
 
-            # FIXME: this is all broken and no longer works.
-            #        this entire if block should probably not be
-            #        hard-coded anyway
+            # FIXME: this is all broken and no longer works. This entire if block should probably not be hard-coded
+            #  anyway
             # self.api.log(document.childNodes[2].childNodes)
             # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[2].childNodes[1])
             # document.childNodes[1].insertBefore( cobblerElement, document.childNodes[1].childNodes[0])

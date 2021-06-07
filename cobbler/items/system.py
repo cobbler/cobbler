@@ -1240,7 +1240,7 @@ class System(Item):
         if profile_name in ["delete", "None", "~", ""]:
             self._profile = ""
             if isinstance(old_parent, Item):
-                old_parent.children.pop(self.name, 'pass')
+                old_parent.children.remove(self.name)
             return
 
         self.image = ""  # mutual exclusion rule
@@ -1251,10 +1251,11 @@ class System(Item):
         self._profile = profile_name
         self.depth = p.depth + 1  # subprofiles have varying depths.
         if isinstance(old_parent, Item):
-            old_parent.children.pop(self.name, 'pass')
+            if self.name in old_parent.children:
+                old_parent.children.remove(self.name)
         new_parent = self.parent
         if isinstance(new_parent, Item):
-            new_parent.children[self.name] = self
+            new_parent.children.append(self.name)
 
     @property
     def image(self):
@@ -1280,7 +1281,7 @@ class System(Item):
         if image_name in ["delete", "None", "~", ""]:
             self._image = ""
             if isinstance(old_parent, Item):
-                old_parent.children.pop(self.name, 'pass')
+                old_parent.children.remove(self.name)
             return
 
         self.profile = ""  # mutual exclusion rule
@@ -1291,10 +1292,10 @@ class System(Item):
             self._image = image_name
             self.depth = img.depth + 1
             if isinstance(old_parent, Item):
-                old_parent.children.pop(self.name, 'pass')
+                old_parent.children.remove(self.name)
             new_parent = self.parent
             if isinstance(new_parent, Item):
-                new_parent.children[self.name] = self
+                new_parent.children.append(self.name)
             return
         raise CX("invalid image name (%s)" % image_name)
 
@@ -1672,6 +1673,24 @@ class System(Item):
         :param baud_rate:
         """
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
+
+    @property
+    def children(self) -> dict:
+        """
+        TODO
+
+        :return:
+        """
+        return self._children
+
+    @children.setter
+    def children(self, value):
+        """
+        TODO
+
+        :param value:
+        """
+        self._children = value
 
     def get_config_filename(self, interface: str, loader: Optional[str] = None):
         """

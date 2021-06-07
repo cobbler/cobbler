@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import uuid
+from typing import List, Optional, Union
 
 from cobbler.items import item
 from cobbler.cexceptions import CX
@@ -68,11 +69,11 @@ class Menu(item.Item):
         super().from_dict(dictionary)
 
     @property
-    def parent(self):
+    def parent(self) -> Optional['Menu']:
         """
-        TODO
+        Parent Menu of a menu instance.
 
-        :return:
+        :return: The menu object or None
         """
         if not self._parent:
             return None
@@ -81,13 +82,13 @@ class Menu(item.Item):
     @parent.setter
     def parent(self, value: str):
         """
-        TODO
+        Setter for the parent menu of a menu.
 
-        :param value:
+        :param value: The name of the parent to set.
         """
         old_parent = self._parent
         if isinstance(old_parent, item.Item):
-            old_parent.children.pop(self.name, 'pass')
+            old_parent.children.remove(self.name)
         if not value:
             self._parent = ''
             return
@@ -101,7 +102,36 @@ class Menu(item.Item):
         self.depth = found.depth + 1
         parent = self._parent
         if isinstance(parent, item.Item):
-            parent.children[self.name] = self
+            parent.children.append(self.name)
+
+    @property
+    def children(self) -> list:
+        """
+        TODO
+
+        :return:
+        """
+        return self._children
+
+    @children.setter
+    def children(self, value: List[str]):
+        """
+        TODO
+
+        :param value:
+        """
+        if not isinstance(value, list):
+            raise TypeError("Field children of object menu must be of type list.")
+        if isinstance(value, list):
+            if not all(isinstance(x, str) for x in value):
+                raise TypeError("Field children of object menu must be of type list and all items need to be menu "
+                                "names (str).")
+            for name in value:
+                menu = self.api.find_menu(name=name)
+                if menu is not None:
+                    self._children.update({name: menu})
+                else:
+                    self.logger.warning("Menu with the name \"%s\" did not exist. Skipping setting as a child!" % name)
 
     #
     # specific methods for item.Menu
