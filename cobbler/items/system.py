@@ -94,7 +94,7 @@ class NetworkInterface:
         return result
 
     @property
-    def dhcp_tag(self):
+    def dhcp_tag(self) -> str:
         """
         TODO
 
@@ -103,7 +103,7 @@ class NetworkInterface:
         return self._dhcp_tag
 
     @dhcp_tag.setter
-    def dhcp_tag(self, dhcp_tag):
+    def dhcp_tag(self, dhcp_tag: str):
         """
         TODO
 
@@ -112,7 +112,7 @@ class NetworkInterface:
         self._dhcp_tag = dhcp_tag
 
     @property
-    def cnames(self):
+    def cnames(self) -> list:
         """
         TODO
 
@@ -121,7 +121,7 @@ class NetworkInterface:
         return self._cnames
 
     @cnames.setter
-    def cnames(self, cnames):
+    def cnames(self, cnames: list):
         """
         TODO
 
@@ -130,7 +130,7 @@ class NetworkInterface:
         self._cnames = utils.input_string_or_list(cnames)
 
     @property
-    def static_routes(self):
+    def static_routes(self) -> list:
         """
         TODO
 
@@ -139,7 +139,7 @@ class NetworkInterface:
         return self._static_routes
 
     @static_routes.setter
-    def static_routes(self, routes):
+    def static_routes(self, routes: list):
         """
         TODO
 
@@ -148,7 +148,7 @@ class NetworkInterface:
         self._static_routes = utils.input_string_or_list(routes)
 
     @property
-    def static(self):
+    def static(self) -> bool:
         """
         TODO
 
@@ -157,11 +157,18 @@ class NetworkInterface:
         return self._static
 
     @static.setter
-    def static(self, truthiness):
-        self._static = utils.input_boolean(truthiness)
+    def static(self, truthiness: bool):
+        """
+        TODO
+
+        :param truthiness:
+        """
+        if not isinstance(truthiness, bool):
+            raise TypeError("Field static of NetworkInterface needs to be of Type bool!")
+        self._static = truthiness
 
     @property
-    def management(self):
+    def management(self) -> bool:
         """
         TODO
 
@@ -170,16 +177,18 @@ class NetworkInterface:
         return self._management
 
     @management.setter
-    def management(self, truthiness):
+    def management(self, truthiness: bool):
         """
         TODO
 
         :param truthiness:
         """
-        self._management = utils.input_boolean(truthiness)
+        if not isinstance(truthiness, bool):
+            raise TypeError("Field management of object NetworkInterface needs to be of type bool!")
+        self._management = truthiness
 
     @property
-    def dns_name(self):
+    def dns_name(self) -> str:
         """
         TODO
 
@@ -205,7 +214,7 @@ class NetworkInterface:
         self._dns_name = dns_name
 
     @property
-    def ip_address(self):
+    def ip_address(self) -> str:
         """
         TODO
 
@@ -231,7 +240,7 @@ class NetworkInterface:
         self._ip_address = address
 
     @property
-    def mac_address(self):
+    def mac_address(self) -> str:
         """
         TODO
 
@@ -240,7 +249,7 @@ class NetworkInterface:
         return self._mac_address
 
     @mac_address.setter
-    def mac_address(self, address):
+    def mac_address(self, address: str):
         """
         Set MAC address on interface.
 
@@ -259,7 +268,7 @@ class NetworkInterface:
         self._mac_address = address
 
     @property
-    def netmask(self):
+    def netmask(self) -> str:
         """
         TODO
 
@@ -277,7 +286,7 @@ class NetworkInterface:
         self._netmask = validate.ipv4_netmask(netmask)
 
     @property
-    def if_gateway(self):
+    def if_gateway(self) -> str:
         """
         TODO
 
@@ -296,7 +305,7 @@ class NetworkInterface:
         self._if_gateway = validate.ipv4_address(gateway)
 
     @property
-    def virt_bridge(self):
+    def virt_bridge(self) -> str:
         """
         TODO
 
@@ -311,12 +320,14 @@ class NetworkInterface:
 
         :param bridge:
         """
+        if not isinstance(bridge, str):
+            raise TypeError("Field virt_bridge of object NetworkInterface should be of type str!")
         if bridge == "":
             bridge = self.__api.settings().default_virt_bridge
         self._virt_bridge = bridge
 
     @property
-    def interface_type(self):
+    def interface_type(self) -> enums.NetworkInterfaceType:
         """
         TODO
 
@@ -326,6 +337,11 @@ class NetworkInterface:
 
     @interface_type.setter
     def interface_type(self, intf_type: Union[enums.NetworkInterfaceType, int, str]):
+        """
+        TODO
+
+        :param intf_type:
+        """
         if not isinstance(intf_type, (enums.NetworkInterfaceType, int, str)):
             raise TypeError("interface intf_type type must be of int, str or enums.NetworkInterfaceType")
         if isinstance(intf_type, int):
@@ -347,7 +363,7 @@ class NetworkInterface:
         self._interface_type = intf_type
 
     @property
-    def interface_master(self):
+    def interface_master(self) -> str:
         """
         TODO
 
@@ -356,7 +372,7 @@ class NetworkInterface:
         return self._interface_master
 
     @interface_master.setter
-    def interface_master(self, interface_master):
+    def interface_master(self, interface_master: str):
         """
         TODO
 
@@ -365,7 +381,7 @@ class NetworkInterface:
         self._interface_master = interface_master
 
     @property
-    def bonding_opts(self):
+    def bonding_opts(self) -> str:
         """
         TODO
 
@@ -374,11 +390,16 @@ class NetworkInterface:
         return self._bonding_opts
 
     @bonding_opts.setter
-    def bonding_opts(self, bonding_opts):
+    def bonding_opts(self, bonding_opts: str):
+        """
+        TODO
+
+        :param bonding_opts:
+        """
         self._bonding_opts = bonding_opts
 
     @property
-    def bridge_opts(self):
+    def bridge_opts(self) -> str:
         """
         TODO
 
@@ -387,11 +408,16 @@ class NetworkInterface:
         return self._bridge_opts
 
     @bridge_opts.setter
-    def bridge_opts(self, bridge_opts):
+    def bridge_opts(self, bridge_opts: str):
+        """
+        TODO
+
+        :param bridge_opts:
+        """
         self._bridge_opts = bridge_opts
 
     @property
-    def ipv6_address(self):
+    def ipv6_address(self) -> str:
         """
         TODO
 
@@ -417,7 +443,7 @@ class NetworkInterface:
         self._ipv6_address = address
 
     @property
-    def ipv6_prefix(self):
+    def ipv6_prefix(self) -> str:
         """
         TODO
 
@@ -426,14 +452,14 @@ class NetworkInterface:
         return self._ipv6_address
 
     @ipv6_prefix.setter
-    def ipv6_prefix(self, prefix):
+    def ipv6_prefix(self, prefix: str):
         """
         Assign a IPv6 prefix
         """
         self._ipv6_prefix = prefix.strip()
 
     @property
-    def ipv6_secondaries(self):
+    def ipv6_secondaries(self) -> list:
         """
         TODO
 
@@ -442,7 +468,12 @@ class NetworkInterface:
         return self._ipv6_secondaries
 
     @ipv6_secondaries.setter
-    def ipv6_secondaries(self, addresses):
+    def ipv6_secondaries(self, addresses: list):
+        """
+        TODO
+
+        :param addresses:
+        """
         data = utils.input_string_or_list(addresses)
         secondaries = []
         for address in data:
@@ -463,13 +494,18 @@ class NetworkInterface:
 
     @ipv6_default_gateway.setter
     def ipv6_default_gateway(self, address):
+        """
+        TODO
+
+        :param address:
+        """
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
         raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
 
     @property
-    def ipv6_static_routes(self):
+    def ipv6_static_routes(self) -> list:
         """
         TODO
 
@@ -478,7 +514,7 @@ class NetworkInterface:
         return self._ipv6_static_routes
 
     @ipv6_static_routes.setter
-    def ipv6_static_routes(self, routes):
+    def ipv6_static_routes(self, routes: list):
         """
         TODO
 
@@ -497,10 +533,15 @@ class NetworkInterface:
 
     @ipv6_mtu.setter
     def ipv6_mtu(self, mtu):
+        """
+        TODO
+
+        :param mtu:
+        """
         self._ipv6_mtu = mtu
 
     @property
-    def mtu(self):
+    def mtu(self) -> str:
         """
         TODO
 
@@ -509,11 +550,16 @@ class NetworkInterface:
         return self._mtu
 
     @mtu.setter
-    def mtu(self, mtu):
+    def mtu(self, mtu: str):
+        """
+        TODO
+
+        :param mtu:
+        """
         self._mtu = mtu
 
     @property
-    def connected_mode(self):
+    def connected_mode(self) -> bool:
         """
         TODO
 
@@ -522,8 +568,15 @@ class NetworkInterface:
         return self._connected_mode
 
     @connected_mode.setter
-    def connected_mode(self, truthiness):
-        self._connected_mode = utils.input_boolean(truthiness)
+    def connected_mode(self, truthiness: bool):
+        """
+        TODO
+
+        :param truthiness:
+        """
+        if not isinstance(truthiness, bool):
+            raise TypeError("Field connected_mode of object NetworkInterface needs to be of type bool!")
+        self._connected_mode = truthiness
 
     def modify_interface(self, _dict: dict):
         """

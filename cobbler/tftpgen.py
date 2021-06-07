@@ -27,7 +27,7 @@ import re
 import socket
 from typing import Optional, List
 
-from cobbler import templar
+from cobbler import enums, templar
 from cobbler import utils
 from cobbler.cexceptions import CX
 
@@ -174,7 +174,7 @@ class TFTPGen:
         pxe_metadata = {'menu_items': menu_items}
 
         # hack: s390 generates files per system not per interface
-        if not image_based and distro.arch.startswith("s390"):
+        if not image_based and distro.arch in (enums.Archs.S390, enums.Archs.S390X):
             short_name = system.name.split('.')[0]
             s390_name = 'linux' + short_name[7:10]
             self.logger.info("Writing s390x pxe config for %s" % short_name)
@@ -611,7 +611,7 @@ class TFTPGen:
             raise CX("missing arch")
 
         if image and not os.path.exists(image.file):
-            return None     # nfs:// URLs or something, can't use for TFTP
+            return None  # nfs:// URLs or something, can't use for TFTP
 
         if metadata is None:
             metadata = {}
@@ -920,10 +920,10 @@ class TFTPGen:
                     append_line = append_line.replace('ksdevice=bootif', 'ksdevice=${net0/mac}')
             elif distro.breed == "suse":
                 append_line = "%s autoyast=%s" % (append_line, autoinstall_path)
-                if management_mac and not distro.arch.startswith("s390"):
+                if management_mac and distro.arch not in (enums.Archs.S390, enums.Archs.S390X):
                     append_line += " netdevice=%s" % management_mac
             elif distro.breed == "debian" or distro.breed == "ubuntu":
-                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s"\
+                append_line = "%s auto-install/enable=true priority=critical netcfg/choose_interface=auto url=%s" \
                               % (append_line, autoinstall_path)
                 if management_interface:
                     append_line += " netcfg/choose_interface=%s" % management_interface
@@ -946,15 +946,15 @@ class TFTPGen:
                     append_line = append_line.replace("kssendmac", "")
                 else:
                     append_line = "%s vmkopts=debugLogToSerial:1 mem=512M ks=%s" % \
-                        (append_line, autoinstall_path)
+                                  (append_line, autoinstall_path)
                 # interface=bootif causes a failure
                 append_line = append_line.replace("ksdevice=bootif", "")
             elif distro.breed == "xen":
                 if distro.os_version.find("xenserver620") != -1:
                     img_path = os.path.join("/images", distro.name)
                     append_line = "append %s/xen.gz dom0_max_vcpus=2 dom0_mem=752M com1=115200,8n1 console=com1," \
-                                  "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s --- "\
-                                  "%s/install.img" % (img_path, img_path, autoinstall_path, img_path)
+                                  "vga --- %s/vmlinuz xencons=hvc console=hvc0 console=tty0 install answerfile=%s ---" \
+                                  " %s/install.img" % (img_path, img_path, autoinstall_path, img_path)
                     return append_line
             elif distro.breed == "powerkvm":
                 append_line += " kssendmac"
@@ -1058,14 +1058,14 @@ class TFTPGen:
             del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(autoinstall_meta)          # make available at top level
+        blended.update(autoinstall_meta)  # make available at top level
 
         templates = blended.get("template_files", {})
         try:
             del blended["template_files"]
         except:
             pass
-        blended.update(templates)       # make available at top level
+        blended.update(templates)  # make available at top level
 
         (success, templates) = utils.input_string_or_dict(templates)
 
@@ -1210,7 +1210,7 @@ class TFTPGen:
             del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(autoinstall_meta)          # make available at top level
+        blended.update(autoinstall_meta)  # make available at top level
 
         blended['distro'] = distro_mirror_name
 
@@ -1260,7 +1260,7 @@ class TFTPGen:
             del blended["autoinstall_meta"]
         except:
             pass
-        blended.update(autoinstall_meta)      # make available at top level
+        blended.update(autoinstall_meta)  # make available at top level
 
         # FIXME: img_path should probably be moved up into the blender function to ensure they're consistently
         #        available to templates across the board

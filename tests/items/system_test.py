@@ -583,3 +583,289 @@ def test_network_interface_from_dict():
 
     # Assert
     assert True
+
+
+def test_dhcp_tag():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.dhcp_tag = ""
+
+    # Assert
+    assert isinstance(interface.dhcp_tag, str)
+    assert interface.dhcp_tag == ""
+
+
+def test_cnames():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.cnames = []
+
+    # Assert
+    assert isinstance(interface.cnames, list)
+    assert interface.cnames == []
+
+
+def test_static_routes():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.static_routes = []
+
+    # Assert
+    assert isinstance(interface.static_routes, list)
+    assert interface.static_routes == []
+
+
+def test_static():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.static = True
+
+    # Assert
+    assert isinstance(interface.static, bool)
+    assert interface.static is True
+
+
+def test_management():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.management = True
+
+    # Assert
+    assert isinstance(interface.management, bool)
+    assert interface.management is True
+
+
+def test_dns_name():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.dns_name = ""
+
+    # Assert
+    assert isinstance(interface.dns_name, str)
+    assert interface.dns_name == ""
+
+
+def test_mac_address():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.mac_address = ""
+
+    # Assert
+    assert isinstance(interface.mac_address, str)
+    assert interface.mac_address == ""
+
+
+def test_netmask():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.netmask = ""
+
+    # Assert
+    assert isinstance(interface.netmask, str)
+    assert interface.netmask == ""
+
+
+def test_if_gateway():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.if_gateway = ""
+
+    # Assert
+    assert isinstance(interface.if_gateway, str)
+    assert interface.if_gateway == ""
+
+
+def test_virt_bridge():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.virt_bridge = ""
+
+    # Assert
+    assert isinstance(interface.virt_bridge, str)
+    assert interface.virt_bridge == "xenbr0"
+
+
+def test_interface_type():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.interface_type = enums.NetworkInterfaceType.NA
+
+    # Assert
+    assert isinstance(interface.interface_type, enums.NetworkInterfaceType)
+    assert interface.interface_type == enums.NetworkInterfaceType.NA
+
+
+def test_interface_master():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.interface_master = ""
+
+    # Assert
+    assert isinstance(interface.interface_master, str)
+    assert interface.interface_master == ""
+
+
+def test_bonding_opts():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.bonding_opts = ""
+
+    # Assert
+    assert isinstance(interface.bonding_opts, str)
+    assert interface.bonding_opts == ""
+
+
+def test_bridge_opts():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.bridge_opts = ""
+
+    # Assert
+    assert isinstance(interface.bridge_opts, str)
+    assert interface.bridge_opts == ""
+
+
+def test_ipv6_address():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_address = ""
+
+    # Assert
+    assert isinstance(interface.ipv6_address, str)
+    assert interface.ipv6_address == ""
+
+
+def test_ipv6_prefix():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_prefix = ""
+
+    # Assert
+    assert isinstance(interface.ipv6_prefix, str)
+    assert interface.ipv6_prefix == ""
+
+
+def test_ipv6_secondaries():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_secondaries = []
+
+    # Assert
+    assert isinstance(interface.ipv6_secondaries, list)
+    assert interface.ipv6_secondaries == []
+
+
+def test_ipv6_default_gateway():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_default_gateway = ""
+
+    # Assert
+    assert isinstance(interface.ipv6_default_gateway, str)
+    assert interface.ipv6_default_gateway == ""
+
+
+def test_ipv6_static_routes():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_static_routes = []
+
+    # Assert
+    assert isinstance(interface.ipv6_static_routes, list)
+    assert interface.ipv6_static_routes == []
+
+
+def test_ipv6_mtu():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.ipv6_mtu = ""
+
+    # Assert
+    assert isinstance(interface.ipv6_mtu, str)
+    assert interface.ipv6_mtu == ""
+
+
+def test_mtu():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.mtu = ""
+
+    # Assert
+    assert isinstance(interface.mtu, str)
+    assert interface.mtu == ""
+
+
+def test_connected_mode():
+    # Arrange
+    test_api = CobblerAPI()
+    interface = NetworkInterface(test_api)
+
+    # Act
+    interface.connected_mode = True
+
+    # Assert
+    assert isinstance(interface.connected_mode, bool)
+    assert interface.connected_mode is True
