@@ -91,7 +91,7 @@ class Image(item.Item):
     #
 
     @property
-    def arch(self):
+    def arch(self) -> enums.Archs:
         """
         TODO
 
@@ -100,7 +100,7 @@ class Image(item.Item):
         return self._arch
 
     @arch.setter
-    def arch(self, arch):
+    def arch(self, arch: Union[str, enums.Archs]):
         """
         The field is mainly relevant to PXE provisioning.
         See comments for arch property in distro.py, this works the same.
@@ -110,7 +110,7 @@ class Image(item.Item):
         self._arch = validate.validate_arch(arch)
 
     @property
-    def autoinstall(self):
+    def autoinstall(self) -> str:
         """
         TODO
 
@@ -135,7 +135,7 @@ class Image(item.Item):
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     @property
-    def file(self):
+    def file(self) -> str:
         """
         TODO
 
@@ -193,7 +193,7 @@ class Image(item.Item):
             raise SyntaxError("a hostname must be specified with authentication details")
 
     @property
-    def os_version(self):
+    def os_version(self) -> str:
         """
         TODO
 
@@ -211,7 +211,7 @@ class Image(item.Item):
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
     @property
-    def breed(self):
+    def breed(self) -> str:
         """
         TODO
 
@@ -220,7 +220,7 @@ class Image(item.Item):
         return self._breed
 
     @breed.setter
-    def breed(self, breed):
+    def breed(self, breed: str):
         """
         Set the operating system breed with this setter.
 
@@ -230,7 +230,7 @@ class Image(item.Item):
         self._breed = validate.validate_breed(breed)
 
     @property
-    def image_type(self):
+    def image_type(self) -> enums.ImageTypes:
         """
         TODO
 
@@ -267,7 +267,7 @@ class Image(item.Item):
         self._image_type = image_type
 
     @property
-    def virt_cpus(self):
+    def virt_cpus(self) -> int:
         """
         TODO
 
@@ -285,7 +285,7 @@ class Image(item.Item):
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @property
-    def network_count(self):
+    def network_count(self) -> int:
         """
         TODO
 
@@ -346,7 +346,7 @@ class Image(item.Item):
         self._virt_file_size = validate.validate_virt_file_size(num)
 
     @property
-    def virt_disk_driver(self):
+    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         TODO
 
@@ -364,7 +364,7 @@ class Image(item.Item):
         self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
 
     @property
-    def virt_ram(self):
+    def virt_ram(self) -> int:
         """
         TODO
 
@@ -382,7 +382,7 @@ class Image(item.Item):
         self._virt_ram = validate.validate_virt_ram(num)
 
     @property
-    def virt_type(self):
+    def virt_type(self) -> enums.VirtType:
         """
         TODO
 
@@ -400,7 +400,7 @@ class Image(item.Item):
         self._virt_type = validate.validate_virt_type(vtype)
 
     @property
-    def virt_bridge(self):
+    def virt_bridge(self) -> str:
         """
         TODO
 
@@ -409,7 +409,7 @@ class Image(item.Item):
         return self._virt_bridge
 
     @virt_bridge.setter
-    def virt_bridge(self, vbridge):
+    def virt_bridge(self, vbridge: str):
         """
         Setter for the virtual bridge which is used.
 
@@ -418,7 +418,7 @@ class Image(item.Item):
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
     @property
-    def virt_path(self):
+    def virt_path(self) -> str:
         """
         TODO
 
@@ -427,7 +427,7 @@ class Image(item.Item):
         return self._virt_path
 
     @virt_path.setter
-    def virt_path(self, path):
+    def virt_path(self, path: str):
         """
         Setter for the virtual path which is used.
 
@@ -436,7 +436,7 @@ class Image(item.Item):
         self._virt_path = validate.validate_virt_path(path)
 
     @property
-    def menu(self):
+    def menu(self) -> str:
         """
         TODO
 
@@ -445,7 +445,7 @@ class Image(item.Item):
         return self._menu
 
     @menu.setter
-    def menu(self, menu):
+    def menu(self, menu: str):
         """
         TODO
 
@@ -465,8 +465,7 @@ class Image(item.Item):
         :return: The bootloaders which are available for being set.
         """
         try:
-            # If we have already loaded the supported boot loaders from
-            # the signature, use that data
+            # If we have already loaded the supported boot loaders from the signature, use that data
             return self._supported_boot_loaders
         except:
             # otherwise, refresh from the signatures / defaults
@@ -474,7 +473,7 @@ class Image(item.Item):
             return self._supported_boot_loaders
 
     @property
-    def boot_loaders(self):
+    def boot_loaders(self) -> list:
         """
         :return: The bootloaders.
         """

@@ -100,6 +100,8 @@ class Package(resource.Resource):
 
         :param installer: This parameter will be lowercased regardless of what string you give it.
         """
+        if not isinstance(installer, str):
+            raise TypeError("Field installer of package object needs to be of type str!")
         self._installer = installer.lower()
 
     @property
@@ -119,4 +121,6 @@ class Package(resource.Resource):
         :param version: They may be anything which is suitable for describing the version of a package. Internally this
                         is a string.
         """
+        if not isinstance(version, str):
+            raise TypeError("Field version of package object needs to be of type str!")
         self._version = version

@@ -528,7 +528,7 @@ def input_string_or_dict(options: Union[str, list, dict], allow_multiples=True):
         raise TypeError("invalid input type")
 
 
-def input_boolean(value: str) -> bool:
+def input_boolean(value: Union[str, bool, int]) -> bool:
     """
     Convert a str to a boolean. If this is not possible or the value is false return false.
 
@@ -536,7 +536,7 @@ def input_boolean(value: str) -> bool:
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     """
     value = str(value)
-    if value.lower() in ["true", "1", "on", "yes", "y"]:
+    if value.lower() in ["True", "true", "1", "on", "yes", "y"]:
         return True
     else:
         return False

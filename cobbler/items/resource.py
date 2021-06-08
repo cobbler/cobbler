@@ -66,7 +66,7 @@ class Resource(item.Item):
     #
 
     @property
-    def action(self):
+    def action(self) -> enums.ResourceAction:
         """
         TODO
 
@@ -95,7 +95,7 @@ class Resource(item.Item):
         self._action = action
 
     @property
-    def group(self):
+    def group(self) -> str:
         """
         TODO
 
@@ -104,16 +104,18 @@ class Resource(item.Item):
         return self._group
 
     @group.setter
-    def group(self, group):
+    def group(self, group: str):
         """
         Unix group ownership of a file or directory.
 
         :param group: The group which the resource will belong to.
         """
+        if not isinstance(group, str):
+            raise TypeError("Field group of object resource needs to be of type str!")
         self._group = group
 
     @property
-    def mode(self):
+    def mode(self) -> str:
         """
         TODO
 
@@ -122,16 +124,18 @@ class Resource(item.Item):
         return self._mode
 
     @mode.setter
-    def mode(self, mode):
+    def mode(self, mode: str):
         """
         Unix file permission mode ie: '0644' assigned to file and directory resources.
 
         :param mode: The mode which the resource will have.
         """
+        if not isinstance(mode, str):
+            raise TypeError("Field mode in object resource needs to be of type str!")
         self._mode = mode
 
     @property
-    def owner(self):
+    def owner(self) -> str:
         """
         TODO
 
@@ -140,16 +144,18 @@ class Resource(item.Item):
         return self._owner
 
     @owner.setter
-    def owner(self, owner):
+    def owner(self, owner: str):
         """
         Unix owner of a file or directory.
 
         :param owner: The owner which the resource will belong to.
         """
+        if not isinstance(owner, str):
+            raise TypeError("Field owner in object resource needs to be of type str!")
         self._owner = owner
 
     @property
-    def path(self):
+    def path(self) -> str:
         """
         TODO
 
@@ -158,16 +164,18 @@ class Resource(item.Item):
         return self._path
 
     @path.setter
-    def path(self, path):
+    def path(self, path: str):
         """
         File path used by file and directory resources.
 
         :param path: Normally a absolute path of the file or directory to create or manage.
         """
+        if not isinstance(path, str):
+            raise TypeError("Field path in object resource needs to be of type str!")
         self._path = path
 
     @property
-    def template(self):
+    def template(self) -> str:
         """
         TODO
 
@@ -176,11 +184,13 @@ class Resource(item.Item):
         return self._template
 
     @template.setter
-    def template(self, template):
+    def template(self, template: str):
         """
         Path to cheetah template on Cobbler's local file system. Used to generate file data shipped to koan via json.
         All templates have access to flatten autoinstall_meta data.
 
         :param template: The template to use for the resource.
         """
+        if not isinstance(template, str):
+            raise TypeError("Field template in object resource needs to be of type str!")
         self._template = template

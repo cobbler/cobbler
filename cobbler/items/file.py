@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 import uuid
 
+from cobbler import utils
 from cobbler.items import item, resource
 
 from cobbler.cexceptions import CX
@@ -108,4 +109,7 @@ class File(resource.Resource):
 
         :param is_dir: This is the path to check if it is a directory.
         """
+        is_dir = utils.input_boolean(is_dir)
+        if not isinstance(is_dir, bool):
+            raise TypeError("Field is_dir in object file needs to be of type bool!")
         self._is_dir = is_dir

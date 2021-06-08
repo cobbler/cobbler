@@ -138,7 +138,7 @@ class Distro(item.Item):
         pass
 
     @property
-    def kernel(self):
+    def kernel(self) -> str:
         """
         TODO
 
@@ -164,7 +164,7 @@ class Distro(item.Item):
         self._kernel = kernel
 
     @property
-    def remote_boot_kernel(self):
+    def remote_boot_kernel(self) -> str:
         """
         TODO
 
@@ -173,12 +173,14 @@ class Distro(item.Item):
         return self._remote_boot_kernel
 
     @remote_boot_kernel.setter
-    def remote_boot_kernel(self, remote_boot_kernel):
+    def remote_boot_kernel(self, remote_boot_kernel: str):
         """
         URL to a remote kernel. If the bootloader supports this feature, it directly tries to retrieve the kernel and
         boot it. (grub supports tftp and http protocol and server must be an IP).
         TODO: Obsolete it and merge with kernel property
         """
+        if not isinstance(remote_boot_kernel, str):
+            raise TypeError("Field remote_boot_kernel of distro needs to be of type str!")
         if remote_boot_kernel:
             parsed_url = grub.parse_grub_remote_file(remote_boot_kernel)
             if parsed_url is None:
@@ -190,7 +192,7 @@ class Distro(item.Item):
         self._remote_boot_kernel = remote_boot_kernel
 
     @property
-    def tree_build_time(self):
+    def tree_build_time(self) -> float:
         """
         TODO
 
@@ -213,7 +215,7 @@ class Distro(item.Item):
         self._tree_build_time = datestamp
 
     @property
-    def breed(self):
+    def breed(self) -> str:
         """
         TODO
 
@@ -231,7 +233,7 @@ class Distro(item.Item):
         self._breed = validate.validate_breed(breed)
 
     @property
-    def os_version(self):
+    def os_version(self) -> str:
         """
         TODO
 
@@ -240,7 +242,7 @@ class Distro(item.Item):
         return self._os_version
 
     @os_version.setter
-    def os_version(self, os_version):
+    def os_version(self, os_version: str):
         """
         Set the Operating System Version.
 
@@ -249,7 +251,7 @@ class Distro(item.Item):
         self._os_version = validate.validate_os_version(os_version, self.breed)
 
     @property
-    def initrd(self):
+    def initrd(self) -> str:
         """
         TODO
 
@@ -274,7 +276,7 @@ class Distro(item.Item):
         raise ValueError("initrd not found")
 
     @property
-    def remote_grub_initrd(self):
+    def remote_grub_initrd(self) -> str:
         """
         TODO
 
@@ -300,7 +302,7 @@ class Distro(item.Item):
         self._remote_grub_initrd = parsed_url
 
     @property
-    def remote_boot_initrd(self):
+    def remote_boot_initrd(self) -> str:
         """
         TODO
 
@@ -320,7 +322,7 @@ class Distro(item.Item):
         self._remote_boot_initrd = remote_boot_initrd
 
     @property
-    def source_repos(self):
+    def source_repos(self) -> list:
         """
         TODO
 
@@ -329,13 +331,15 @@ class Distro(item.Item):
         return self._source_repos
 
     @source_repos.setter
-    def source_repos(self, repos):
+    def source_repos(self, repos: list):
         """
         A list of http:// URLs on the Cobbler server that point to yum configuration files that can be used to
         install core packages. Use by ``cobbler import`` only.
 
         :param repos: The list of URLs.
         """
+        if not isinstance(repos, list):
+            raise TypeError("Field source_repos in object distro needs to be of type list.")
         self._source_repos = repos
 
     @property

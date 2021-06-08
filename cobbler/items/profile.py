@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import uuid
-from typing import Union
+from typing import Optional, Union
 
 from cobbler import autoinstall_manager
 from cobbler.items import item
@@ -206,7 +206,7 @@ class Profile(item.Item):
         distro.children.append(self.name)
 
     @property
-    def name_servers(self):
+    def name_servers(self) -> list:
         """
         TODO
 
@@ -215,7 +215,7 @@ class Profile(item.Item):
         return self._name_servers
 
     @name_servers.setter
-    def name_servers(self, data):
+    def name_servers(self, data: list):
         """
         Set the DNS servers.
 
@@ -226,7 +226,7 @@ class Profile(item.Item):
         self._name_servers = validate.name_servers(data)
 
     @property
-    def name_servers_search(self):
+    def name_servers_search(self) -> list:
         """
         TODO
 
@@ -235,7 +235,7 @@ class Profile(item.Item):
         return self._name_servers_search
 
     @name_servers_search.setter
-    def name_servers_search(self, data):
+    def name_servers_search(self, data: list):
         """
         Set the DNS search paths.
 
@@ -261,6 +261,8 @@ class Profile(item.Item):
 
         :param proxy: The new proxy for the profile.
         """
+        if not isinstance(proxy, str):
+            raise TypeError("Field proxy of object profile needs to be of type str!")
         self._proxy = proxy
 
     @property
@@ -284,7 +286,7 @@ class Profile(item.Item):
         self._enable_ipxe = enable_ipxe
 
     @property
-    def enable_menu(self):
+    def enable_menu(self) -> bool:
         """
         TODO
 
@@ -305,7 +307,7 @@ class Profile(item.Item):
         self._enable_menu = enable_menu
 
     @property
-    def dhcp_tag(self):
+    def dhcp_tag(self) -> str:
         """
         TODO
 
@@ -314,14 +316,14 @@ class Profile(item.Item):
         return self._dhcp_tag
 
     @dhcp_tag.setter
-    def dhcp_tag(self, dhcp_tag):
+    def dhcp_tag(self, dhcp_tag: str):
         """
         Setter for the dhcp tag property.
 
         :param dhcp_tag:
         """
-        if dhcp_tag is None:
-            dhcp_tag = ""
+        if not isinstance(dhcp_tag, str):
+            raise TypeError("Field dhcp_tag of object profile needs to be of type str!")
         self._dhcp_tag = dhcp_tag
 
     @property
@@ -340,12 +342,14 @@ class Profile(item.Item):
 
         :param server: If this is None or an emtpy string this will be reset to be inherited from the parent object.
         """
-        if server in [None, ""]:
+        if not isinstance(server, str):
+            raise TypeError("Field server of object profile needs to be of type str!")
+        if server == "":
             server = enums.VALUE_INHERITED
         self._server = server
 
     @property
-    def next_server_v4(self):
+    def next_server_v4(self) -> str:
         """
         TODO
 
@@ -393,7 +397,7 @@ class Profile(item.Item):
             self._next_server_v6 = validate.ipv6_address(server)
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         """
         TODO
 
@@ -402,14 +406,21 @@ class Profile(item.Item):
         return self._filename
 
     @filename.setter
-    def filename(self, filename):
+    def filename(self, filename: str):
+        """
+        TODO
+
+        :param filename:
+        """
+        if not isinstance(filename, str):
+            raise TypeError("Field filename of object profile needs to be of type str!")
         if not filename:
             self._filename = enums.VALUE_INHERITED
         else:
             self._filename = filename.strip()
 
     @property
-    def autoinstall(self):
+    def autoinstall(self) -> str:
         """
         TODO
 
@@ -428,7 +439,7 @@ class Profile(item.Item):
         self._autoinstall = autoinstall_mgr.validate_autoinstall_template_file_path(autoinstall)
 
     @property
-    def virt_auto_boot(self):
+    def virt_auto_boot(self) -> bool:
         """
         TODO
 
@@ -446,7 +457,7 @@ class Profile(item.Item):
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
     @property
-    def virt_cpus(self):
+    def virt_cpus(self) -> int:
         """
         TODO
 
@@ -464,7 +475,7 @@ class Profile(item.Item):
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @property
-    def virt_file_size(self):
+    def virt_file_size(self) -> int:
         """
         TODO
 
@@ -482,7 +493,7 @@ class Profile(item.Item):
         self._virt_file_size = validate.validate_virt_file_size(num)
 
     @property
-    def virt_disk_driver(self):
+    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         TODO
 
@@ -518,7 +529,7 @@ class Profile(item.Item):
         self._virt_ram = validate.validate_virt_ram(num)
 
     @property
-    def virt_type(self):
+    def virt_type(self) -> enums.VirtType:
         """
         TODO
 
@@ -556,7 +567,7 @@ class Profile(item.Item):
         self._virt_bridge = validate.validate_virt_bridge(vbridge)
 
     @property
-    def virt_path(self):
+    def virt_path(self) -> str:
         """
         TODO
 
@@ -574,7 +585,7 @@ class Profile(item.Item):
         self._virt_path = validate.validate_virt_path(path)
 
     @property
-    def repos(self):
+    def repos(self) -> list:
         """
         TODO
 
@@ -592,7 +603,7 @@ class Profile(item.Item):
         self._repos = validate.validate_repos(repos, self.api, bypass_check=False)
 
     @property
-    def redhat_management_key(self):
+    def redhat_management_key(self) -> str:
         """
         Getter of the redhat management key of the profile or it's parent.
 
@@ -607,12 +618,14 @@ class Profile(item.Item):
 
         :param management_key: The value may be reset by setting it to None.
         """
+        if not isinstance(management_key, str):
+            raise TypeError("Field management_key of object profile is of type str!")
         if not management_key:
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
 
     @property
-    def boot_loaders(self):
+    def boot_loaders(self) -> Optional[list]:
         """
         :return: The bootloaders.
         """
@@ -624,7 +637,7 @@ class Profile(item.Item):
         return self._boot_loaders
 
     @boot_loaders.setter
-    def boot_loaders(self, boot_loaders):
+    def boot_loaders(self, boot_loaders: list):
         """
         Setter of the boot loaders.
 
@@ -651,7 +664,7 @@ class Profile(item.Item):
             self._boot_loaders = []
 
     @property
-    def menu(self):
+    def menu(self) -> str:
         """
         TODO
 
@@ -660,13 +673,15 @@ class Profile(item.Item):
         return self._menu
 
     @menu.setter
-    def menu(self, menu):
+    def menu(self, menu: str):
         """
         TODO
 
         :param menu: The menu for the profile.
         :raises CX
         """
+        if not isinstance(menu, str):
+            raise TypeError("Field menu of object profile needs to be of type str!")
         if menu and menu != "":
             menu_list = self.api.menus()
             if not menu_list.find(name=menu):
@@ -674,7 +689,7 @@ class Profile(item.Item):
         self._menu = menu
 
     @property
-    def children(self) -> dict:
+    def children(self) -> list:
         """
         TODO
 
@@ -683,7 +698,7 @@ class Profile(item.Item):
         return self._children
 
     @children.setter
-    def children(self, value):
+    def children(self, value: list):
         """
         TODO
 

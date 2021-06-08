@@ -470,8 +470,8 @@ def validate_virt_path(path: str, for_system: bool = False):
     :param path: The path to the storage.
     :param for_system: If this is set to True then the value is inherited from a profile.
     """
-    if path is None:
-        path = ""
+    if not isinstance(path, str):
+        raise TypeError("Field virt_path needs to be of type str!")
     if for_system:
         if path == "":
             path = enums.VALUE_INHERITED

@@ -108,7 +108,7 @@ class Repo(item.Item):
                 self.breed = "rsync"
 
     @property
-    def mirror(self):
+    def mirror(self) -> str:
         """
         TODO
 
@@ -117,23 +117,25 @@ class Repo(item.Item):
         return self._mirror
 
     @mirror.setter
-    def mirror(self, mirror):
+    def mirror(self, mirror: str):
         """
         A repo is (initially, as in right now) is something that can be rsynced.
         reposync/repotrack integration over HTTP might come later.
 
         :param mirror: The mirror URI.
         """
+        if not isinstance(mirror, str):
+            raise TypeError("Field mirror of object repo needs to be of type str!")
         self._mirror = mirror
         if not self.arch:
             if mirror.find("x86_64") != -1:
-                self.arch = "x86_64"
+                self.arch = enums.RepoArchs.X86_64
             elif mirror.find("x86") != -1 or mirror.find("i386") != -1:
-                self.arch = "i386"
+                self.arch = enums.RepoArchs.I386
         self._guess_breed()
 
     @property
-    def mirror_type(self):
+    def mirror_type(self) -> enums.MirrorType:
         """
         TODO
 
@@ -160,7 +162,7 @@ class Repo(item.Item):
         self._mirror_type = mirror_type
 
     @property
-    def keep_updated(self):
+    def keep_updated(self) -> bool:
         """
         TODO
 
@@ -175,10 +177,12 @@ class Repo(item.Item):
 
         :param keep_updated: This may be a bool-like value if the repository shall be keept up to date or not.
         """
+        if not isinstance(keep_updated, bool):
+            raise TypeError("Field keep_updated of object repo needs to be of type bool!")
         self._keep_updated = keep_updated
 
     @property
-    def yumopts(self):
+    def yumopts(self) -> dict:
         """
         TODO
 
@@ -201,7 +205,7 @@ class Repo(item.Item):
             self._yumopts = value
 
     @property
-    def rsyncopts(self):
+    def rsyncopts(self) -> dict:
         """
         TODO
 
@@ -224,7 +228,7 @@ class Repo(item.Item):
             self._rsyncopts = value
 
     @property
-    def environment(self):
+    def environment(self) -> dict:
         """
         TODO
 
@@ -247,7 +251,7 @@ class Repo(item.Item):
             self._environment = value
 
     @property
-    def priority(self):
+    def priority(self) -> int:
         """
         TODO
 
@@ -270,7 +274,7 @@ class Repo(item.Item):
         self._priority = priority
 
     @property
-    def rpm_list(self):
+    def rpm_list(self) -> list:
         """
         TODO
 
@@ -290,7 +294,7 @@ class Repo(item.Item):
         self._rpm_list = utils.input_string_or_list(rpms)
 
     @property
-    def createrepo_flags(self):
+    def createrepo_flags(self) -> dict:
         """
         TODO
 
@@ -299,19 +303,19 @@ class Repo(item.Item):
         return self._createrepo_flags
 
     @createrepo_flags.setter
-    def createrepo_flags(self, createrepo_flags):
+    def createrepo_flags(self, createrepo_flags: dict):
         """
         Flags passed to createrepo when it is called. Common flags to use would be ``-c cache`` or ``-g comps.xml`` to
         generate group information.
 
         :param createrepo_flags: The createrepo flags which are passed additionally to the default ones.
         """
-        if createrepo_flags is None:
-            createrepo_flags = ""
+        if not isinstance(createrepo_flags, dict):
+            raise TypeError("Field createrepo_flags of object repo needs to be of type dict!")
         self._createrepo_flags = createrepo_flags
 
     @property
-    def breed(self):
+    def breed(self) -> enums.RepoBreeds:
         """
         TODO
 
@@ -339,7 +343,7 @@ class Repo(item.Item):
         self._breed = breed
 
     @property
-    def os_version(self):
+    def os_version(self) -> str:
         """
         TODO
 
@@ -348,7 +352,7 @@ class Repo(item.Item):
         return self._os_version
 
     @os_version.setter
-    def os_version(self, os_version):
+    def os_version(self, os_version: str):
         """
         Setter for the operating system version.
 
@@ -367,7 +371,7 @@ class Repo(item.Item):
         return
 
     @property
-    def arch(self):
+    def arch(self) -> enums.RepoArchs:
         """
         TODO
 
@@ -394,7 +398,7 @@ class Repo(item.Item):
         self._arch = arch
 
     @property
-    def mirror_locally(self):
+    def mirror_locally(self) -> bool:
         """
         TODO
 
@@ -414,7 +418,7 @@ class Repo(item.Item):
         self._mirror_locally = value
 
     @property
-    def apt_components(self):
+    def apt_components(self) -> list:
         """
         TODO
 
@@ -432,7 +436,7 @@ class Repo(item.Item):
         self._apt_components = utils.input_string_or_list(value)
 
     @property
-    def apt_dists(self):
+    def apt_dists(self) -> list:
         """
         TODO
 
@@ -450,7 +454,7 @@ class Repo(item.Item):
         self._apt_dists = utils.input_string_or_list(value)
 
     @property
-    def proxy(self):
+    def proxy(self) -> str:
         """
         TODO
 
@@ -459,10 +463,12 @@ class Repo(item.Item):
         return self._proxy
 
     @proxy.setter
-    def proxy(self, value):
+    def proxy(self, value: str):
         """
         Setter for the proxy setting of the repository.
 
         :param value: The new proxy which will be used for the repository.
         """
+        if not isinstance(value, str):
+            raise TypeError("Field proxy in object repo needs to be of type str!")
         self._proxy = value

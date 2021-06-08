@@ -82,7 +82,7 @@ class Mgmtclass(item.Item):
     #
 
     @property
-    def packages(self):
+    def packages(self) -> list:
         """
         TODO
 
@@ -91,7 +91,7 @@ class Mgmtclass(item.Item):
         return self._packages
 
     @packages.setter
-    def packages(self, packages):
+    def packages(self, packages: list):
         """
         Setter for the packages of the managementclass.
 
@@ -100,7 +100,7 @@ class Mgmtclass(item.Item):
         self._packages = utils.input_string_or_list(packages)
 
     @property
-    def files(self):
+    def files(self) -> list:
         """
         TODO
 
@@ -118,7 +118,7 @@ class Mgmtclass(item.Item):
         self._files = utils.input_string_or_list(files)
 
     @property
-    def params(self):
+    def params(self) -> dict:
         """
         TODO
 
@@ -127,7 +127,7 @@ class Mgmtclass(item.Item):
         return self._params
 
     @params.setter
-    def params(self, params):
+    def params(self, params: dict):
         """
         Setter for the params of the managementclass.
 
@@ -141,7 +141,7 @@ class Mgmtclass(item.Item):
             self._params = value
 
     @property
-    def is_definition(self):
+    def is_definition(self) -> bool:
         """
         TODO
 
@@ -156,6 +156,8 @@ class Mgmtclass(item.Item):
 
         :param isdef: The new value for the property.
         """
+        if not isinstance(isdef, bool):
+            raise TypeError("Field is_defintion from mgmtclass must be of type bool.")
         self._is_definition = isdef
 
     @property

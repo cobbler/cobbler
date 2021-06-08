@@ -109,6 +109,8 @@ class NetworkInterface:
 
         :param dhcp_tag:
         """
+        if not isinstance(dhcp_tag, str):
+            raise TypeError("Field dhcp_tag of object NetworkInterface needs to be of type str!")
         self._dhcp_tag = dhcp_tag
 
     @property
@@ -378,6 +380,8 @@ class NetworkInterface:
 
         :param interface_master:
         """
+        if not isinstance(interface_master, str):
+            raise TypeError("Field interface_master of object NetworkInterface needs to be of type str!")
         self._interface_master = interface_master
 
     @property
@@ -396,6 +400,8 @@ class NetworkInterface:
 
         :param bonding_opts:
         """
+        if not isinstance(bonding_opts, str):
+            raise TypeError("Field bonding_opts of object NetworkInterface needs to be of type str!")
         self._bonding_opts = bonding_opts
 
     @property
@@ -414,6 +420,8 @@ class NetworkInterface:
 
         :param bridge_opts:
         """
+        if not isinstance(bridge_opts, str):
+            raise TypeError("Field bridge_opts of object NetworkInterface needs to be of type str!")
         self._bridge_opts = bridge_opts
 
     @property
@@ -455,7 +463,11 @@ class NetworkInterface:
     def ipv6_prefix(self, prefix: str):
         """
         Assign a IPv6 prefix
+
+        :param prefix:
         """
+        if not isinstance(prefix, str):
+            raise TypeError("Field ipv6_prefix of object NetworkInterface needs to be of type str!")
         self._ipv6_prefix = prefix.strip()
 
     @property
@@ -484,7 +496,7 @@ class NetworkInterface:
         self._ipv6_secondaries = secondaries
 
     @property
-    def ipv6_default_gateway(self):
+    def ipv6_default_gateway(self) -> str:
         """
         TODO
 
@@ -493,12 +505,14 @@ class NetworkInterface:
         return self._ipv6_default_gateway
 
     @ipv6_default_gateway.setter
-    def ipv6_default_gateway(self, address):
+    def ipv6_default_gateway(self, address: str):
         """
         TODO
 
         :param address:
         """
+        if not isinstance(address, str):
+            raise TypeError("Field address of object NetworkInterface needs to be of type str!")
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
@@ -523,7 +537,7 @@ class NetworkInterface:
         self._ipv6_static_routes = utils.input_string_or_list(routes)
 
     @property
-    def ipv6_mtu(self):
+    def ipv6_mtu(self) -> str:
         """
         TODO
 
@@ -532,12 +546,14 @@ class NetworkInterface:
         return self._ipv6_mtu
 
     @ipv6_mtu.setter
-    def ipv6_mtu(self, mtu):
+    def ipv6_mtu(self, mtu: str):
         """
         TODO
 
         :param mtu:
         """
+        if not isinstance(mtu, str):
+            raise TypeError("Field ipv6_mtu of object NetworkInterface needs to be of type str!")
         self._ipv6_mtu = mtu
 
     @property
@@ -556,6 +572,8 @@ class NetworkInterface:
 
         :param mtu:
         """
+        if not isinstance(mtu, str):
+            raise TypeError("Field mtu of object NetworkInterface needs to be type str!")
         self._mtu = mtu
 
     @property
@@ -574,6 +592,7 @@ class NetworkInterface:
 
         :param truthiness:
         """
+        truthiness = utils.input_boolean(truthiness)
         if not isinstance(truthiness, bool):
             raise TypeError("Field connected_mode of object NetworkInterface needs to be of type bool!")
         self._connected_mode = truthiness
@@ -770,7 +789,7 @@ class System(Item):
     #
 
     @property
-    def interfaces(self):
+    def interfaces(self) -> Dict[str, NetworkInterface]:
         """
         TODO
 
@@ -831,7 +850,7 @@ class System(Item):
         del self.interfaces[old_name]
 
     @property
-    def hostname(self):
+    def hostname(self) -> str:
         """
         TODO
 
@@ -840,16 +859,18 @@ class System(Item):
         return self._hostname
 
     @hostname.setter
-    def hostname(self, value):
+    def hostname(self, value: str):
         """
         TODO
 
         :param value:
         """
+        if not isinstance(value, str):
+            raise TypeError("Field hostname of object system needs to be of type str!")
         self._hostname = value
 
     @property
-    def status(self):
+    def status(self) -> str:
         """
         TODO
 
@@ -858,22 +879,24 @@ class System(Item):
         return self._status
 
     @status.setter
-    def status(self, status):
+    def status(self, status: str):
         """
         TODO
 
         :param status:
         """
+        if not isinstance(status, str):
+            raise TypeError("Field status of object system needs to be of type str!")
         self._status = status
 
     @property
-    def boot_loaders(self):
+    def boot_loaders(self) -> list:
         """
         TODO
 
         :return:
         """
-        if self._boot_loaders == '<<inherit>>':
+        if self._boot_loaders == enums.VALUE_INHERITED:
             if self.profile and self.profile != "":
                 profile = self.api.profiles().find(name=self.profile)
                 return profile.boot_loaders
@@ -913,7 +936,7 @@ class System(Item):
             self._boot_loaders = []
 
     @property
-    def server(self):
+    def server(self) -> str:
         """
         TODO
 
@@ -922,17 +945,19 @@ class System(Item):
         return self._server
 
     @server.setter
-    def server(self, server):
+    def server(self, server: str):
         """
         If a system can't reach the boot server at the value configured in settings
         because it doesn't have the same name on it's subnet this is there for an override.
         """
+        if not isinstance(server, str):
+            raise TypeError("Field server of object system needs to be of type str!")
         if server is None or server == "":
             server = enums.VALUE_INHERITED
         self._server = server
 
     @property
-    def next_server_v4(self):
+    def next_server_v4(self) -> str:
         """
         TODO
 
@@ -956,7 +981,7 @@ class System(Item):
             self._next_server_v4 = validate.ipv4_address(server)
 
     @property
-    def next_server_v6(self):
+    def next_server_v6(self) -> str:
         """
         TODO
 
@@ -980,7 +1005,7 @@ class System(Item):
             self._next_server_v6 = validate.ipv6_address(server)
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         """
         TODO
 
@@ -989,20 +1014,22 @@ class System(Item):
         return self._filename
 
     @filename.setter
-    def filename(self, filename):
+    def filename(self, filename: str):
         """
         TODO
 
         :param filename:
         :return:
         """
+        if not isinstance(filename, str):
+            raise TypeError("Field filename of object system needs to be of type str!")
         if not filename:
             self._filename = enums.VALUE_INHERITED
         else:
             self._filename = filename.strip()
 
     @property
-    def proxy(self):
+    def proxy(self) -> str:
         """
         TODO
 
@@ -1011,19 +1038,21 @@ class System(Item):
         return self._proxy
 
     @proxy.setter
-    def proxy(self, proxy):
+    def proxy(self, proxy: str):
         """
         TODO
 
         :param proxy:
         :return:
         """
+        if not isinstance(proxy, str):
+            raise TypeError("Field proxy of object system needs to be of type str!")
         if proxy is None or proxy == "":
             proxy = enums.VALUE_INHERITED
         self._proxy = proxy
 
     @property
-    def redhat_management_key(self):
+    def redhat_management_key(self) -> str:
         """
         TODO
 
@@ -1032,15 +1061,24 @@ class System(Item):
         return self._redhat_management_key
 
     @redhat_management_key.setter
-    def redhat_management_key(self, management_key):
+    def redhat_management_key(self, management_key: str):
+        """
+        TODO
+
+        :param management_key:
+        """
+        if not isinstance(management_key, str):
+            raise TypeError("Field redhat_management_key of object system needs to be of type str!")
         if management_key is None or management_key == "":
             self._redhat_management_key = enums.VALUE_INHERITED
         self._redhat_management_key = management_key
 
-    def get_mac_address(self, interface):
+    def get_mac_address(self, interface: str):
         """
         Get the mac address, which may be implicit in the object name or explicit with --mac-address.
         Use the explicit location first.
+
+        :param interface:
         """
 
         intf = self.__get_interface(interface)
@@ -1050,9 +1088,11 @@ class System(Item):
         else:
             return None
 
-    def get_ip_address(self, interface):
+    def get_ip_address(self, interface: str):
         """
         Get the IP address for the given interface.
+
+        :param interface:
         """
         intf = self.__get_interface(interface)
         if intf.ip_address:
@@ -1063,6 +1103,8 @@ class System(Item):
     def is_management_supported(self, cidr_ok: bool = True) -> bool:
         """
         Can only add system PXE records if a MAC or IP address is available, else it's a koan only record.
+
+        :param cidr_ok:
         """
         if self.name == "default":
             return True
@@ -1077,7 +1119,7 @@ class System(Item):
                 return True
         return False
 
-    def __create_interface(self, interface):
+    def __create_interface(self, interface: str):
         """
         TODO
 
@@ -1122,7 +1164,7 @@ class System(Item):
         self._gateway = validate.ipv4_address(gateway)
 
     @property
-    def name_servers(self):
+    def name_servers(self) -> list:
         """
         TODO
 
@@ -1141,7 +1183,7 @@ class System(Item):
         self._name_servers = validate.name_servers(data)
 
     @property
-    def name_servers_search(self):
+    def name_servers_search(self) -> list:
         """
         TODO
 
@@ -1160,7 +1202,7 @@ class System(Item):
         self._name_servers_search = validate.name_servers_search(data)
 
     @property
-    def ipv6_autoconfiguration(self):
+    def ipv6_autoconfiguration(self) -> bool:
         """
         TODO
 
@@ -1180,7 +1222,7 @@ class System(Item):
         self._ipv6_autoconfiguration = value
 
     @property
-    def ipv6_default_device(self):
+    def ipv6_default_device(self) -> str:
         """
         TODO
 
@@ -1189,18 +1231,20 @@ class System(Item):
         return self._ipv6_default_device
 
     @ipv6_default_device.setter
-    def ipv6_default_device(self, interface_name):
+    def ipv6_default_device(self, interface_name: str):
         """
         TODO
 
         :param interface_name:
         """
+        if not isinstance(interface_name, str):
+            raise TypeError("Field interface_name of object system needs to be of type str!")
         if interface_name is None:
             interface_name = ""
         self._ipv6_default_device = interface_name
 
     @property
-    def enable_ipxe(self):
+    def enable_ipxe(self) -> bool:
         """
         TODO
 
@@ -1218,7 +1262,7 @@ class System(Item):
         self._enable_ipxe = enable_ipxe
 
     @property
-    def profile(self):
+    def profile(self) -> str:
         """
         TODO
 
@@ -1258,7 +1302,7 @@ class System(Item):
             new_parent.children.append(self.name)
 
     @property
-    def image(self):
+    def image(self) -> str:
         """
         TODO
 
@@ -1300,7 +1344,7 @@ class System(Item):
         raise CX("invalid image name (%s)" % image_name)
 
     @property
-    def virt_cpus(self):
+    def virt_cpus(self) -> int:
         """
         TODO
 
@@ -1309,7 +1353,7 @@ class System(Item):
         return self._virt_cpus
 
     @virt_cpus.setter
-    def virt_cpus(self, num):
+    def virt_cpus(self, num: int):
         """
         TODO
 
@@ -1318,7 +1362,7 @@ class System(Item):
         self._virt_cpus = validate.validate_virt_cpus(num)
 
     @property
-    def virt_file_size(self):
+    def virt_file_size(self) -> float:
         """
         TODO
 
@@ -1327,7 +1371,7 @@ class System(Item):
         return self._virt_file_size
 
     @virt_file_size.setter
-    def virt_file_size(self, num):
+    def virt_file_size(self, num: float):
         """
         TODO
 
@@ -1336,7 +1380,7 @@ class System(Item):
         self._virt_file_size = validate.validate_virt_file_size(num)
 
     @property
-    def virt_disk_driver(self):
+    def virt_disk_driver(self) -> enums.VirtDiskDrivers:
         """
         TODO
 
@@ -1345,7 +1389,7 @@ class System(Item):
         return self._virt_disk_driver
 
     @virt_disk_driver.setter
-    def virt_disk_driver(self, driver):
+    def virt_disk_driver(self, driver: Union[str, enums.VirtDiskDrivers]):
         """
         TODO
 
@@ -1354,7 +1398,7 @@ class System(Item):
         self._virt_disk_driver = validate.validate_virt_disk_driver(driver)
 
     @property
-    def virt_auto_boot(self):
+    def virt_auto_boot(self) -> bool:
         """
         TODO
 
@@ -1363,7 +1407,7 @@ class System(Item):
         return self._virt_auto_boot
 
     @virt_auto_boot.setter
-    def virt_auto_boot(self, num):
+    def virt_auto_boot(self, num: bool):
         """
         TODO
 
@@ -1372,7 +1416,7 @@ class System(Item):
         self._virt_auto_boot = validate.validate_virt_auto_boot(num)
 
     @property
-    def virt_pxe_boot(self):
+    def virt_pxe_boot(self) -> bool:
         """
         TODO
 
@@ -1381,7 +1425,7 @@ class System(Item):
         return self._virt_pxe_boot
 
     @virt_pxe_boot.setter
-    def virt_pxe_boot(self, num):
+    def virt_pxe_boot(self, num: bool):
         """
         TODO
 
@@ -1390,7 +1434,7 @@ class System(Item):
         self._virt_pxe_boot = validate.validate_virt_pxe_boot(num)
 
     @property
-    def virt_ram(self):
+    def virt_ram(self) -> int:
         """
         TODO
 
@@ -1399,11 +1443,16 @@ class System(Item):
         return self._virt_ram
 
     @virt_ram.setter
-    def virt_ram(self, num):
+    def virt_ram(self, num: Union[int, float]):
+        """
+        TODO
+
+        :param num:
+        """
         self._virt_ram = validate.validate_virt_ram(num)
 
     @property
-    def virt_type(self):
+    def virt_type(self) -> enums.VirtType:
         """
         TODO
 
@@ -1412,7 +1461,7 @@ class System(Item):
         return self._virt_type
 
     @virt_type.setter
-    def virt_type(self, vtype):
+    def virt_type(self, vtype: [enums.VirtType, str]):
         """
         TODO
 
@@ -1421,7 +1470,7 @@ class System(Item):
         self._virt_type = validate.validate_virt_type(vtype)
 
     @property
-    def virt_path(self):
+    def virt_path(self) -> str:
         """
         TODO
 
@@ -1430,7 +1479,7 @@ class System(Item):
         return self._virt_path
 
     @virt_path.setter
-    def virt_path(self, path):
+    def virt_path(self, path: str):
         """
         TODO
 
@@ -1439,7 +1488,7 @@ class System(Item):
         self._virt_path = validate.validate_virt_path(path, for_system=True)
 
     @property
-    def netboot_enabled(self):
+    def netboot_enabled(self) -> bool:
         """
         TODO
 
@@ -1450,24 +1499,23 @@ class System(Item):
     @netboot_enabled.setter
     def netboot_enabled(self, netboot_enabled: bool):
         """
-        If true, allows per-system PXE files to be generated on sync (or add).  If false,
-        these files are not generated, thus eliminating the potential for an infinite install
-        loop when systems are set to PXE boot first in the boot order.  In general, users
-        who are PXE booting first in the boot order won't create system definitions, so this
-        feature primarily comes into play for programmatic users of the API, who want to
-        initially create a system with netboot enabled and then disable it after the system installs,
-        as triggered by some action in automatic installation file's  %post section.
-        For this reason, this option is not urfaced in the CLI, output, or documentation (yet).
+        If true, allows per-system PXE files to be generated on sync (or add). If false, these files are not generated,
+        thus eliminating the potential for an infinite install loop when systems are set to PXE boot first in the boot
+        order. In general, users who are PXE booting first in the boot order won't create system definitions, so this
+        feature primarily comes into play for programmatic users of the API, who want to initially create a system with
+        netboot enabled and then disable it after the system installs, as triggered by some action in automatic
+        installation file's %post section. For this reason, this option is not urfaced in the CLI, output, or
+        documentation (yet).
 
-        Use of this option does not affect the ability to use PXE menus.  If an admin has machines
-        set up to PXE only after local boot fails, this option isn't even relevant.
+        Use of this option does not affect the ability to use PXE menus. If an admin has machines set up to PXE only
+        after local boot fails, this option isn't even relevant.
         """
         if not isinstance(netboot_enabled, bool):
             raise TypeError("netboot_enabled needs to be a bool")
         self._netboot_enabled = netboot_enabled
 
     @property
-    def autoinstall(self):
+    def autoinstall(self) -> str:
         """
         TODO
 
@@ -1510,7 +1558,7 @@ class System(Item):
         self._power_type = power_type
 
     @property
-    def power_identity_file(self):
+    def power_identity_file(self) -> str:
         """
         TODO
 
@@ -1519,19 +1567,19 @@ class System(Item):
         return self._power_identity_file
 
     @power_identity_file.setter
-    def power_identity_file(self, power_identity_file):
+    def power_identity_file(self, power_identity_file: str):
         """
         TODO
 
         :param power_identity_file:
         """
-        if power_identity_file is None:
-            power_identity_file = ""
+        if not isinstance(power_identity_file, str):
+            raise TypeError("Field power_identity_file of object system needs to be of type str!")
         utils.safe_filter(power_identity_file)
         self._power_identity_file = power_identity_file
 
     @property
-    def power_options(self):
+    def power_options(self) -> str:
         """
         TODO
 
@@ -1540,14 +1588,19 @@ class System(Item):
         return self._power_options
 
     @power_options.setter
-    def power_options(self, power_options):
-        if power_options is None:
-            power_options = ""
+    def power_options(self, power_options: str):
+        """
+        TODO
+
+        :param power_options:
+        """
+        if not isinstance(power_options, str):
+            raise TypeError("Field power_options of object system needs to be of type str!")
         utils.safe_filter(power_options)
         self._power_options = power_options
 
     @property
-    def power_user(self):
+    def power_user(self) -> str:
         """
         TODO
 
@@ -1556,14 +1609,19 @@ class System(Item):
         return self._power_user
 
     @power_user.setter
-    def power_user(self, power_user):
-        if power_user is None:
-            power_user = ""
+    def power_user(self, power_user: str):
+        """
+        TODO
+
+        :param power_user:
+        """
+        if not isinstance(power_user, str):
+            raise TypeError("Field power_user of object system needs to be of type str!")
         utils.safe_filter(power_user)
         self._power_user = power_user
 
     @property
-    def power_pass(self):
+    def power_pass(self) -> str:
         """
         TODO
 
@@ -1572,19 +1630,19 @@ class System(Item):
         return self._power_pass
 
     @power_pass.setter
-    def power_pass(self, power_pass):
+    def power_pass(self, power_pass: str):
         """
         TODO
 
         :param power_pass:
         """
-        if power_pass is None:
-            power_pass = ""
+        if not isinstance(power_pass, str):
+            raise TypeError("Field power_pass of object system needs to be of type str!")
         utils.safe_filter(power_pass)
         self._power_pass = power_pass
 
     @property
-    def power_address(self):
+    def power_address(self) -> str:
         """
         TODO
 
@@ -1593,14 +1651,19 @@ class System(Item):
         return self._power_address
 
     @power_address.setter
-    def power_address(self, power_address):
-        if power_address is None:
-            power_address = ""
+    def power_address(self, power_address: str):
+        """
+        TODO
+
+        :param power_address:
+        """
+        if not isinstance(power_address, str):
+            raise TypeError("Field power_address of object system needs to be of type str!")
         utils.safe_filter(power_address)
         self._power_address = power_address
 
     @property
-    def power_id(self):
+    def power_id(self) -> str:
         """
         TODO
 
@@ -1609,14 +1672,14 @@ class System(Item):
         return self._power_id
 
     @power_id.setter
-    def power_id(self, power_id):
+    def power_id(self, power_id: str):
         """
         TODO
 
         :param power_id:
         """
-        if power_id is None:
-            power_id = ""
+        if not isinstance(power_id, str):
+            raise TypeError("Field power_id of object system needs to be of type str!")
         utils.safe_filter(power_id)
         self._power_id = power_id
 
@@ -1636,10 +1699,12 @@ class System(Item):
 
         :param repos_enabled:
         """
+        if not isinstance(repos_enabled, bool):
+            raise TypeError("Field repos_enabled of object system needs to be of type bool!")
         self._repos_enabled = repos_enabled
 
     @property
-    def serial_device(self):
+    def serial_device(self) -> int:
         """
         TODO
 
@@ -1657,7 +1722,7 @@ class System(Item):
         self._serial_device = validate.validate_serial_device(device_number)
 
     @property
-    def serial_baud_rate(self):
+    def serial_baud_rate(self) -> enums.BaudRates:
         """
         TODO
 

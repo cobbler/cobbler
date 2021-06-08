@@ -638,10 +638,8 @@ class Item:
         # special case for systems
         key_found_already = False
         if "interfaces" in data:
-            if key in ["mac_address", "ip_address", "netmask", "virt_bridge",
-                       "dhcp_tag", "dns_name", "static_routes", "interface_type",
-                       "interface_master", "bonding_opts", "bridge_opts",
-                       "interface"]:
+            if key in ["mac_address", "ip_address", "netmask", "virt_bridge", "dhcp_tag", "dns_name", "static_routes",
+                       "interface_type", "interface_master", "bonding_opts", "bridge_opts", "interface"]:
                 key_found_already = True
                 for (name, interface) in list(data["interfaces"].items()):
                     if value == name:
