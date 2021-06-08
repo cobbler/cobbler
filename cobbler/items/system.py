@@ -209,10 +209,8 @@ class NetworkInterface:
         dns_name = validate.hostname(dns_name)
         if dns_name != "" and not self.__api.settings().allow_duplicate_hostname:
             matched = self.__api.find_items("system", {"dns_name": dns_name})
-            for x in matched:
-                # FIXME: The check for the system does not work yet.
-                if x.name != self.name:
-                    raise ValueError("DNS name duplicated: %s" % dns_name)
+            if len(matched) > 0:
+                raise ValueError("DNS name duplicated: %s" % dns_name)
         self._dns_name = dns_name
 
     @property
@@ -235,10 +233,8 @@ class NetworkInterface:
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
             matched = self.__api.find_items("system", {"ip_address": address})
-            for x in matched:
-                # FIXME: The check for the system does not work yet.
-                if x.name != self.name:
-                    raise ValueError("IP address duplicated: %s" % address)
+            if len(matched) > 0:
+                raise ValueError("IP address duplicated: %s" % address)
         self._ip_address = address
 
     @property
@@ -263,10 +259,8 @@ class NetworkInterface:
             address = utils.get_random_mac(self.__api)
         if address != "" and not self.__api.settings().allow_duplicate_macs:
             matched = self.__api.find_items("system", {"mac_address": address})
-            for x in matched:
-                # FIXME: The check for the system does not work yet.
-                if x.name != self.name:
-                    raise CX("MAC address duplicated: %s" % address)
+            if len(matched) > 0:
+                raise ValueError("MAC address duplicated: %s" % address)
         self._mac_address = address
 
     @property
@@ -443,11 +437,9 @@ class NetworkInterface:
         """
         address = validate.ipv6_address(address)
         if address != "" and self.__api.settings().allow_duplicate_ips is False:
-            # FIXME: The check for the system does not work yet.
             matched = self.__api.find_items("system", {"ipv6_address": address})
-            for x in matched:
-                if x.name != self.name:
-                    raise CX("IP address duplicated: %s" % address)
+            if len(matched) > 0:
+                raise CX("IP address duplicated: %s" % address)
         self._ipv6_address = address
 
     @property
