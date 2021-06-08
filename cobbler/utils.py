@@ -609,8 +609,10 @@ def blender(api_handle, remove_dicts: bool, root_obj):
     results["mgmt_parameters"] = mgmt_parameters
 
     if "children" in results:
-        for key in results["children"]:
-            results["children"][key] = results["children"][key].to_dict()
+        child_names = results["children"]
+        results["children"] = {}
+        for key in child_names:
+            results["children"][key] = api_handle.find_items("", {"name": key})[0].to_dict()
 
     # sanitize output for koan and kernel option lines, etc
     if remove_dicts:

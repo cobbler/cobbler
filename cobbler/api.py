@@ -881,6 +881,22 @@ class CobblerAPI:
                 return match
         return None
 
+    def __find_by_name(self, name: str) -> list:
+        """
+        This is a magic method which just searches all collections for the specified name directly,
+
+        :param name: The name of the item(s).
+        :return: The found items or an empty list.
+        """
+        if not isinstance(name, str):
+            raise TypeError("name of an object must be of type str!")
+        collections = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]
+        for collection_name in collections:
+            matches = self.find_items(collection_name, {"name": name})
+            if len(matches) > 0:
+                return matches
+        return []
+
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         """
         Find a distribution via a name or keys specified in the ``**kargs``.
