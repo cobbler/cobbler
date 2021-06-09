@@ -99,7 +99,7 @@ class Item:
         :param ref: The object which is in the cache.
         :return: The object if present or an empty dict.
         """
-        return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.name)
+        return cls.converted_cache.get(ref.COLLECTION_TYPE, {}).get(ref.uid)
 
     @classmethod
     def set_cache(cls, ref, value):
@@ -111,7 +111,7 @@ class Item:
         """
         if ref.COLLECTION_TYPE not in cls.converted_cache:
             cls.converted_cache[ref.COLLECTION_TYPE] = {}
-        cls.converted_cache[ref.COLLECTION_TYPE][ref.name] = value
+        cls.converted_cache[ref.COLLECTION_TYPE][ref.uid] = value
 
     @classmethod
     def remove_from_cache(cls, ref):
@@ -120,7 +120,7 @@ class Item:
 
         :param ref: The object reference id to identify the object.
         """
-        cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.name, None)
+        cls.converted_cache.get(ref.COLLECTION_TYPE, {}).pop(ref.uid, None)
 
     @classmethod
     def __find_compare(cls, from_search, from_obj):
