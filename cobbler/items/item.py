@@ -145,7 +145,7 @@ class Item:
         self._parent = ''
         self._depth = 0.0
         self._children = []
-        self._ctime = 0
+        self._ctime = 0.0
         self._mtime = 0.0
         self._uid = uuid.uuid4().hex
         self._name = ""
@@ -198,7 +198,7 @@ class Item:
         self._uid = uid
 
     @property
-    def ctime(self):
+    def ctime(self) -> float:
         """
         TODO
 
@@ -207,14 +207,16 @@ class Item:
         return self._ctime
 
     @ctime.setter
-    def ctime(self, value):
+    def ctime(self, ctime: float):
         """
         TODO
 
-        :param value:
+        :param ctime:
         :return:
         """
-        self._ctime = value
+        if not isinstance(ctime, float):
+            raise TypeError("ctime needs to be of type float")
+        self._ctime = ctime
 
     @property
     def name(self):
@@ -379,7 +381,7 @@ class Item:
         A YAML string which can be assigned to any object, this is used by Puppet's external_nodes feature.
 
         :param mgmt_parameters: The management parameters for an item.
-        :raises TypeError: In case the parsed yaml isn't of type dict afterwards.
+        :raises TypeError: In case the parsed YAML isn't of type dict afterwards.
         """
         if not isinstance(mgmt_parameters, (str, dict)):
             raise TypeError("mgmt_parameters must be of type str or dict")
@@ -530,7 +532,7 @@ class Item:
 
         :param value:
         """
-        self.logger.warning("Tried to set the children property on object \"%s\" without logical children." % self.name)
+        self.logger.warning("Tried to set the children property on object \"%s\" without logical children.", self.name)
 
     def get_children(self, sort_list: bool = False) -> List[str]:
         """
@@ -663,15 +665,15 @@ class Item:
         else:
             return self.__find_compare(value, data[key])
 
-    def dump_vars(self, format: bool = True):
+    def dump_vars(self, formatted_output: bool = True):
         """
         Dump all variables.
 
-        :param format: Whether to format the output or not.
+        :param formatted_output: Whether to format the output or not.
         :return: The raw or formatted data.
         """
         raw = utils.blender(self.api, False, self)
-        if format:
+        if formatted_output:
             return pprint.pformat(raw)
         else:
             return raw
@@ -718,8 +720,8 @@ class Item:
             if hasattr(self, "_" + lowered_key):
                 try:
                     setattr(self, lowered_key, dictionary[key])
-                except AttributeError as e:
-                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from e
+                except AttributeError as error:
+                    raise AttributeError("Attribute \"%s\" could not be set!" % lowered_key) from error
                 result.pop(key)
         if len(result) > 0:
             raise KeyError("The following keys supplied could not be set: %s" % dictionary.keys())

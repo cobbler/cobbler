@@ -23,7 +23,6 @@ from typing import Union
 from cobbler import autoinstall_manager, enums, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items import item
-from cobbler.items.item import Item
 
 
 class Image(item.Item):
@@ -257,13 +256,13 @@ class Image(item.Item):
                 self._image_type = enums.ImageTypes.DIRECT
             try:
                 image_type = enums.ImageTypes[image_type.upper()]
-            except KeyError as e:
-                raise ValueError("image_type choices include: %s" % list(map(str, enums.ImageTypes))) from e
-        # str was converted now it must be an enum.ImageType
+            except KeyError as error:
+                raise ValueError("image_type choices include: %s" % list(map(str, enums.ImageTypes))) from error
+        # str was converted now it must be an enum.ImageTypes
         if not isinstance(image_type, enums.ImageTypes):
             raise TypeError("image_type needs to be of type enums.ImageTypes")
         if image_type not in enums.ImageTypes:
-            raise ValueError("image type must be on of the following: %s" % ", ".join(list(map(str, enums.ImageTypes))))
+            raise ValueError("image type must be one of the following: %s" % ", ".join(list(map(str, enums.ImageTypes))))
         self._image_type = image_type
 
     @property
@@ -294,19 +293,18 @@ class Image(item.Item):
         return self._network_count
 
     @network_count.setter
-    def network_count(self, num: int):
+    def network_count(self, network_count: int):
         """
         Setter for the number of networks.
 
-        :param num: If None or emtpy will be set to one. Otherwise will be cast to int and then set.
-        :raises CX
+        :param network_count: If None or emtpy will be set to ``1``, otherwise the given integer value will be set.
+        :raises TypeError: In case the network_count was not of type int.
         """
-        if num is None or num == "":
-            num = 1
-        try:
-            self._network_count = int(num)
-        except:
-            raise ValueError("invalid network count (%s)" % num)
+        if network_count is None or network_count == "":
+            network_count = 1
+        if not isinstance(network_count, int):
+            raise TypeError("Field network_count of object image needs to be of type int.")
+        self._network_count = network_count
 
     @property
     def virt_auto_boot(self) -> bool:

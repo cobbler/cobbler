@@ -80,7 +80,6 @@ class CobblerThread(Thread):
         """
         This stub is needed to satisfy the Python inheritance chain.
         """
-        pass
 
     def run(self):
         """
@@ -1848,10 +1847,7 @@ class CobblerXMLRPCInterface:
             if attribute.startswith("_") and ("api" not in attribute or "logger" in attribute):
                 fields.append(attribute[1:])
 
-        for field in fields:
-            if field_name == field:
-                return True
-        return False
+        return field_name in fields
 
     def xapi_object_edit(self, object_type: str, object_name: str, edit_type: str, attributes: dict, token: str):
         """Extended API: New style object manipulations, 2.0 and later.

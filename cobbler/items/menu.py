@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 import uuid
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from cobbler.items import item
 from cobbler.cexceptions import CX
@@ -90,7 +90,7 @@ class Menu(item.Item):
         if isinstance(old_parent, item.Item):
             old_parent.children.remove(self.name)
         if not value:
-            self._parent = ''
+            self._parent = ""
             return
         if value == self.name:
             # check must be done in two places as the parent setter could be called before/after setting the name...
@@ -129,9 +129,9 @@ class Menu(item.Item):
             for name in value:
                 menu = self.api.find_menu(name=name)
                 if menu is not None:
-                    self._children.update({name: menu})
+                    self._children.append(name)
                 else:
-                    self.logger.warning("Menu with the name \"%s\" did not exist. Skipping setting as a child!" % name)
+                    self.logger.warning("Menu with the name \"%s\" did not exist. Skipping setting as a child!", name)
 
     #
     # specific methods for item.Menu

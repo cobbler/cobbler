@@ -28,12 +28,11 @@ import threading
 from typing import Optional, List, Union
 
 from cobbler.actions import status, hardlink, sync, buildiso, replicate, report, log, acl, check, reposync
-from cobbler import autoinstall_manager, settings
+from cobbler import autoinstall_manager, enums, settings
 from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import module_loader
 from cobbler import power_manager
-from cobbler import settings
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
@@ -881,22 +880,6 @@ class CobblerAPI:
                 return match
         return None
 
-    def __find_by_name(self, name: str) -> list:
-        """
-        This is a magic method which just searches all collections for the specified name directly,
-
-        :param name: The name of the item(s).
-        :return: The found items or an empty list.
-        """
-        if not isinstance(name, str):
-            raise TypeError("name of an object must be of type str!")
-        collections = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]
-        for collection_name in collections:
-            matches = self.find_items(collection_name, {"name": name})
-            if len(matches) > 0:
-                return matches
-        return []
-
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         """
         Find a distribution via a name or keys specified in the ``**kargs``.
@@ -1165,15 +1148,15 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    def dump_vars(self, obj, format: bool = False):
+    def dump_vars(self, obj, formatted_output: bool = False):
         """
         Dump all known variables related to that object.
 
         :param obj: The object for which the variables should be dumped.
-        :param format: If True the values will align in one column and be pretty printed for cli example.
+        :param formatted_output: If True the values will align in one column and be pretty printed for cli example.
         :return: A dictionary with all the information which could be collected.
         """
-        return obj.dump_vars(format)
+        return obj.dump_vars(formatted_output)
 
     # ==========================================================================
 
@@ -1200,7 +1183,7 @@ class CobblerAPI:
             if self.find_repo(auto_name) is None:
                 cobbler_repo = self.new_repo()
                 cobbler_repo.name = auto_name
-                cobbler_repo.breed = "yum"
+                cobbler_repo.breed = enums.RepoBreeds.YUM
                 cobbler_repo.arch = basearch
                 cobbler_repo.comment = repository.name
                 baseurl = repository.baseurl
@@ -1209,13 +1192,16 @@ class CobblerAPI:
 
                 if metalink is not None:
                     mirror = metalink
-                    mirror_type = "metalink"
+                    mirror_type = enums.MirrorType.METALINK
                 elif mirrorlist is not None:
                     mirror = mirrorlist
-                    mirror_type = "mirrorlist"
+                    mirror_type = enums.MirrorType.MIRRORLIST
                 elif len(baseurl) > 0:
                     mirror = baseurl[0]
-                    mirror_type = "baseurl"
+                    mirror_type = enums.MirrorType.BASEURL
+                else:
+                    mirror = ""
+                    mirror_type = enums.MirrorType.NONE
 
                 cobbler_repo.mirror = mirror
                 cobbler_repo.mirror_type = mirror_type

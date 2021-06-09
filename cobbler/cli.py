@@ -215,7 +215,7 @@ IMAGE_FIELDS = [
 
 MENU_FIELDS = [
     # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "int"],
+    ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 1, 1, "", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "int"],
     ["uid", "", "", "", False, "", 0, "str"],
@@ -229,7 +229,7 @@ MENU_FIELDS = [
 
 MGMTCLASS_FIELDS = [
     # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "int"],
+    ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 2, 0, "", False, "", 0, "float"],
     ["is_definition", False, 0, "Is Definition?", True, "Treat this class as a definition (puppet only)", 0, "bool"],
     ["mtime", 0, 0, "", False, "", 0, "int"],
@@ -265,7 +265,7 @@ PACKAGE_FIELDS = [
 
 PROFILE_FIELDS = [
     # non-editable in UI (internal)
-    ["ctime", 0, 0, "", False, "", 0, "int"],
+    ["ctime", 0, 0, "", False, "", 0, "float"],
     ["depth", 1, 1, "", False, "", 0, "int"],
     ["mtime", 0, 0, "", False, "", 0, "int"],
     ["uid", "", "", "", False, "", 0, "str"],

@@ -233,18 +233,22 @@ class TFTPGen:
             return
 
         # generate one record for each described NIC ..
-        for (name, interface) in list(system.interfaces.items()):
+        for (name, _) in list(system.interfaces.items()):
 
             pxe_name = system.get_config_filename(interface=name)
             grub_name = system.get_config_filename(interface=name, loader="grub")
 
             if pxe_name is not None:
                 pxe_path = os.path.join(self.bootloc, "pxelinux.cfg", pxe_name)
+            else:
+                pxe_path = ""
 
             if grub_name is not None:
                 grub_path = os.path.join(self.bootloc, "grub", "system", grub_name)
+            else:
+                grub_path = ""
 
-            if grub_path is None and pxe_path is None:
+            if grub_path == "" and pxe_path == "":
                 self.logger.warning("invalid interface recorded for system (%s,%s)" % (system.name, name))
                 continue
 

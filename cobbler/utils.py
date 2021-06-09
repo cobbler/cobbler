@@ -42,7 +42,7 @@ from typing import List, Optional, Pattern, Union
 import distro
 import netaddr
 
-from cobbler import enums, settings, validate
+from cobbler import enums, settings
 from cobbler.cexceptions import CX
 
 CHEETAH_ERROR_DISCLAIMER = """
@@ -535,11 +535,8 @@ def input_boolean(value: Union[str, bool, int]) -> bool:
     :param value: The value to convert to boolean.
     :return: True if the value is in the following list, otherwise false: "true", "1", "on", "yes", "y" .
     """
-    value = str(value)
-    if value.lower() in ["True", "true", "1", "on", "yes", "y"]:
-        return True
-    else:
-        return False
+    value = str(value).lower()
+    return value in ["true", "1", "on", "yes", "y"]
 
 
 def grab_tree(api_handle, item) -> list:

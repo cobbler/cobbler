@@ -154,9 +154,9 @@ class Repo(item.Item):
         if isinstance(mirror_type, str):
             try:
                 mirror_type = enums.MirrorType[mirror_type.upper()]
-            except KeyError as e:
-                raise ValueError("mirror_type choices include: %s" % list(map(str, enums.MirrorType))) from e
-        # Now the mirror_type MUST be from the type for the enum.
+            except KeyError as error:
+                raise ValueError("mirror_type choices include: %s" % list(map(str, enums.MirrorType))) from error
+        # Now the mirror_type MUST be of the type of enums.
         if not isinstance(mirror_type, enums.MirrorType):
             raise TypeError("mirror_type needs to be of type enums.MirrorType")
         self._mirror_type = mirror_type
@@ -334,12 +334,12 @@ class Repo(item.Item):
         if isinstance(breed, str):
             try:
                 breed = enums.RepoBreeds[breed.upper()]
-            except KeyError as e:
+            except KeyError as error:
                 raise ValueError("invalid value for --breed (%s), must be one of %s, different breeds have different "
-                                 "levels of support " % (breed, list(map(str, enums.RepoBreeds)))) from e
-        # Now the arch MUST be from the type for the enum.
+                                 "levels of support " % (breed, list(map(str, enums.RepoBreeds)))) from error
+        # Now the arch MUST be of the type of enums.
         if not isinstance(breed, enums.RepoBreeds):
-            raise TypeError("arch needs to be of type enums.Archs")
+            raise TypeError("breed needs to be of type enums.RepoBreeds")
         self._breed = breed
 
     @property
@@ -390,11 +390,11 @@ class Repo(item.Item):
         if isinstance(arch, str):
             try:
                 arch = enums.RepoArchs[arch.upper()]
-            except KeyError as e:
-                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from e
-        # Now the arch MUST be from the type for the enum.
+            except KeyError as error:
+                raise ValueError("arch choices include: %s" % list(map(str, enums.RepoArchs))) from error
+        # Now the arch MUST be of the type of enums.
         if not isinstance(arch, enums.RepoArchs):
-            raise TypeError("arch needs to be of type enums.Archs")
+            raise TypeError("arch needs to be of type enums.RepoArchs")
         self._arch = arch
 
     @property

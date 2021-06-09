@@ -25,7 +25,7 @@ from typing import Union
 import netaddr
 
 from cobbler import enums, utils
-from cobbler.utils import get_valid_breeds, input_string_or_list
+
 RE_HOSTNAME = re.compile(r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$')
 
 # blacklist invalid values to the repo statement in autoinsts
@@ -235,7 +235,7 @@ def validate_breed(breed: str) -> str:
     if not breed:
         return ""
     # FIXME: The following line will fail if load_signatures() from utils.py was not called!
-    valid_breeds = get_valid_breeds()
+    valid_breeds = utils.get_valid_breeds()
     breed = breed.lower()
     if breed and breed in valid_breeds:
         return breed
@@ -285,8 +285,8 @@ def validate_arch(arch: Union[str, enums.Archs]) -> enums.Archs:
     if isinstance(arch, str):
         try:
             arch = enums.Archs[arch.upper()]
-        except KeyError as e:
-            raise ValueError("arch choices include: %s" % list(map(str, enums.Archs))) from e
+        except KeyError as error:
+            raise ValueError("arch choices include: %s" % list(map(str, enums.Archs))) from error
     # Now the arch MUST be from the type for the enum.
     if not isinstance(arch, enums.Archs):
         raise TypeError("arch needs to be of type enums.Archs")
@@ -310,7 +310,7 @@ def validate_repos(repos: list, api, bypass_check: bool = False):
         repos = []
     else:
         # TODO: Don't store the names. Store the internal references.
-        repos = input_string_or_list(repos)
+        repos = utils.input_string_or_list(repos)
     if not bypass_check:
         for r in repos:
             # FIXME: First check this and then set the repos if the bypass check is used.
@@ -336,9 +336,9 @@ def validate_virt_file_size(num: Union[str, int, float]):
 
     if isinstance(num, str) and num.find(",") != -1:
         tokens = num.split(",")
-        for t in tokens:
+        for token in tokens:
             # hack to run validation on each
-            validate_virt_file_size(t)
+            validate_virt_file_size(token)
         # if no exceptions raised, good enough
         return num
 
@@ -367,8 +367,8 @@ def validate_virt_disk_driver(driver: Union[enums.VirtDiskDrivers, str]):
             return enums.VirtDiskDrivers.INHERTIED
         try:
             driver = enums.VirtDiskDrivers[driver.upper()]
-        except KeyError as e:
-            raise ValueError("driver choices include: %s" % list(map(str, enums.VirtDiskDrivers))) from e
+        except KeyError as error:
+            raise ValueError("driver choices include: %s" % list(map(str, enums.VirtDiskDrivers))) from error
     # Now the arch MUST be from the type for the enum.
     if driver not in enums.VirtDiskDrivers:
         raise ValueError("invalid virt disk driver type (%s)" % driver)
@@ -409,7 +409,7 @@ def validate_virt_ram(value: Union[int, float]) -> Union[str, int]:
     :returns: An integer in all cases, except when ``value`` is the magic inherit string.
     """
     if not isinstance(value, (str, int, float)):
-        raise TypeError("virt_ram must be of type int, float or the str '<<inherti>>'!")
+        raise TypeError("virt_ram must be of type int, float or the str '<<inherit>>'!")
 
     if isinstance(value, str):
         if value != enums.VALUE_INHERITED:
@@ -422,7 +422,8 @@ def validate_virt_ram(value: Union[int, float]) -> Union[str, int]:
         raise ValueError("The virt_ram needs to be an integer. The float conversion changed its value and is thus "
                          "invalid. Value was: \"%s\"" % value)
     if interger_number < 0:
-        raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default raM" % value)
+        raise ValueError("The virt_ram needs to have a value greater or equal to zero. Zero means default RAM."
+                         % str(value))
     return interger_number
 
 
@@ -440,8 +441,8 @@ def validate_virt_type(vtype: Union[enums.VirtType, str]):
             return enums.VALUE_INHERITED
         try:
             vtype = enums.VirtType[vtype.upper()]
-        except KeyError as e:
-            raise ValueError("vtype choices include: %s" % list(map(str, enums.VirtType))) from e
+        except KeyError as error:
+            raise ValueError("vtype choices include: %s" % list(map(str, enums.VirtType))) from error
     # Now it must be of the enum Type
     if vtype not in enums.VirtType:
         raise ValueError("invalid virt type (%s)" % vtype)

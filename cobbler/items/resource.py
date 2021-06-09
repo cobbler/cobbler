@@ -77,19 +77,19 @@ class Resource(item.Item):
     @action.setter
     def action(self, action: Union[str, enums.ResourceAction]):
         """
-        All management resources have an action. Action determine weather a most resources should be created or removed,
+        All management resources have an action. Actions determine weather most resources should be created or removed,
         and if packages should be installed or uninstalled.
 
-        :param action: The action which should be executed for the management resource. Must be on of "create" or
+        :param action: The action which should be executed for the management resource. Must be of "create" or
                        "remove". Parameter is case-insensitive.
         """
-        # Convert an arch which came in as a string
+        # Convert an action which came in as a string
         if isinstance(action, str):
             try:
                 action = enums.ResourceAction[action.upper()]
-            except KeyError as e:
-                raise ValueError("action choices include: %s" % list(map(str, enums.ResourceAction))) from e
-        # Now the arch MUST be from the type for the enum.
+            except KeyError as error:
+                raise ValueError("action choices include: %s" % list(map(str, enums.ResourceAction))) from error
+        # Now the action MUST be of the type of enums.
         if not isinstance(action, enums.ResourceAction):
             raise TypeError("action needs to be of type enums.ResourceAction")
         self._action = action
@@ -148,7 +148,7 @@ class Resource(item.Item):
         """
         Unix owner of a file or directory.
 
-        :param owner: The owner which the resource will belong to.
+        :param owner: The owner whom the resource will belong to.
         """
         if not isinstance(owner, str):
             raise TypeError("Field owner in object resource needs to be of type str!")
@@ -168,7 +168,7 @@ class Resource(item.Item):
         """
         File path used by file and directory resources.
 
-        :param path: Normally a absolute path of the file or directory to create or manage.
+        :param path: Normally an absolute path of the file or directory to create or manage.
         """
         if not isinstance(path, str):
             raise TypeError("Field path in object resource needs to be of type str!")

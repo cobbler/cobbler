@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import enum
 import logging
 import uuid
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+
+from ipaddress import AddressValueError
 
 from cobbler import autoinstall_manager, enums, power_manager, utils, validate
 from cobbler.cexceptions import CX
 from cobbler.items.item import Item
-
-from ipaddress import AddressValueError
 
 
 class NetworkInterface:
@@ -228,7 +228,7 @@ class NetworkInterface:
         Set IPv4 address on interface.
 
         :param address: IP address
-        :raises ValueError: In case the ip address is already existing inside Cobbler.
+        :raises ValueError: In case the IP address is already existing inside Cobbler.
         """
         address = validate.ipv4_address(address)
         if address != "" and not self.__api.settings().allow_duplicate_ips:
@@ -352,7 +352,7 @@ class NetworkInterface:
             except KeyError as key_error:
                 raise ValueError("intf_type choices include: %s" % list(map(str, enums.NetworkInterfaceType))) \
                     from key_error
-        # Now it must be of the enum Type
+        # Now it must be of the enum type
         if intf_type not in enums.NetworkInterfaceType:
             raise ValueError("interface intf_type value must be one of: %s or blank" %
                              ",".join(list(map(str, enums.NetworkInterfaceType))))
@@ -504,11 +504,11 @@ class NetworkInterface:
         :param address:
         """
         if not isinstance(address, str):
-            raise TypeError("Field address of object NetworkInterface needs to be of type str!")
+            raise TypeError("Field ipv6_default_gateway of object NetworkInterface needs to be of type str!")
         if address == "" or utils.is_ip(address):
             self._ipv6_default_gateway = address.strip()
             return
-        raise AddressValueError("invalid format for IPv6 IP address (%s)" % address)
+        raise AddressValueError("invalid format of IPv6 IP address (%s)" % address)
 
     @property
     def ipv6_static_routes(self) -> list:
@@ -591,10 +591,10 @@ class NetworkInterface:
 
     def modify_interface(self, _dict: dict):
         """
-        Used by the WUI to modify an interface more-efficiently
+        TODO
         """
         for (key, value) in list(_dict.items()):
-            (field, interface) = key.split("-", 1)
+            (field, _) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 
             if field == "bondingopts":
@@ -797,7 +797,7 @@ class System(Item):
         :param value:
         """
         if not isinstance(value, dict):
-            raise TypeError("interfaces must of of type dict")
+            raise TypeError("interfaces must be of type dict")
         dict_values = list(value.values())
         if all(isinstance(x, NetworkInterface) for x in dict_values):
             self._interfaces = value
@@ -889,10 +889,10 @@ class System(Item):
         :return:
         """
         if self._boot_loaders == enums.VALUE_INHERITED:
-            if self.profile and self.profile != "":
+            if self.profile:
                 profile = self.api.profiles().find(name=self.profile)
                 return profile.boot_loaders
-            if self.image and self.image != "":
+            if self.image:
                 image = self.api.images().find(name=self.image)
                 return image.boot_loaders
         return self._boot_loaders
@@ -966,7 +966,7 @@ class System(Item):
         :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
-            raise TypeError("Server must be a string.")
+            raise TypeError("next_server_v4 must be a string.")
         if server == enums.VALUE_INHERITED:
             self._next_server_v4 = enums.VALUE_INHERITED
         else:
@@ -990,7 +990,7 @@ class System(Item):
         :raises TypeError: In case server is no string.
         """
         if not isinstance(server, str):
-            raise TypeError("Server must be a string.")
+            raise TypeError("next_server_v6 must be a string.")
         if server == enums.VALUE_INHERITED:
             self._next_server_v6 = enums.VALUE_INHERITED
         else:
@@ -1100,9 +1100,10 @@ class System(Item):
         """
         if self.name == "default":
             return True
-        for (name, x) in list(self.interfaces.items()):
-            mac = x.get("mac_address", None)
-            ip = x.get("ip_address", None)
+        for (_, interface) in list(self.interfaces.items()):
+            mac = interface.mac_address
+            # FIXME: Differentiate between IPv4/6
+            ip = interface.ip_address
             if ip is not None and not cidr_ok and ip.find("/") != -1:
                 # ip is in CIDR notation
                 return False
@@ -1159,6 +1160,7 @@ class System(Item):
     def name_servers(self) -> list:
         """
         TODO
+        FIXME: Differentiate between IPv4/6
 
         :return:
         """
@@ -1168,6 +1170,7 @@ class System(Item):
     def name_servers(self, data: Union[str, list]):
         """
         Set the DNS servers.
+        FIXME: Differentiate between IPv4/6
 
         :param data: string or list of nameservers
         :returns: True or CX
@@ -1230,7 +1233,7 @@ class System(Item):
         :param interface_name:
         """
         if not isinstance(interface_name, str):
-            raise TypeError("Field interface_name of object system needs to be of type str!")
+            raise TypeError("Field ipv6_default_device of object system needs to be of type str!")
         if interface_name is None:
             interface_name = ""
         self._ipv6_default_device = interface_name
@@ -1281,11 +1284,11 @@ class System(Item):
 
         self.image = ""  # mutual exclusion rule
 
-        p = self.api.profiles().find(name=profile_name)
-        if p is None:
+        profile = self.api.profiles().find(name=profile_name)
+        if profile is None:
             raise ValueError("Profile with the name \"%s\" is not existing" % profile_name)
         self._profile = profile_name
-        self.depth = p.depth + 1  # subprofiles have varying depths.
+        self.depth = profile.depth + 1  # subprofiles have varying depths.
         if isinstance(old_parent, Item):
             if self.name in old_parent.children:
                 old_parent.children.remove(self.name)
@@ -1453,7 +1456,7 @@ class System(Item):
         return self._virt_type
 
     @virt_type.setter
-    def virt_type(self, vtype: [enums.VirtType, str]):
+    def virt_type(self, vtype: Union[enums.VirtType, str]):
         """
         TODO
 
@@ -1732,7 +1735,7 @@ class System(Item):
         self._serial_baud_rate = validate.validate_serial_baud_rate(baud_rate)
 
     @property
-    def children(self) -> dict:
+    def children(self) -> List[str]:
         """
         TODO
 
@@ -1741,7 +1744,7 @@ class System(Item):
         return self._children
 
     @children.setter
-    def children(self, value):
+    def children(self, value: List[str]):
         """
         TODO
 
@@ -1751,8 +1754,9 @@ class System(Item):
 
     def get_config_filename(self, interface: str, loader: Optional[str] = None):
         """
-        The configuration file for each system pxe uses is either a form of the MAC address of the hex version of the
-        IP. If none of that is available, just use the given name, though the name given will be unsuitable for PXE
+        The configuration file for each system pxe uses is either a form of the MAC address or the hex version or the
+        IP address. If none of that is available, just use the given name, though the name given will be unsuitable for
+        PXE
         configuration (For this, check system.is_management_supported()). This same file is used to store system config
         information in the Apache tree, so it's still relevant.
 

@@ -63,7 +63,7 @@ class RepoArchs(enum.Enum):
 
 class Archs(enum.Enum):
     """
-    This enum describes all system architectures which Cobbler is able provision.
+    This enum describes all system architectures which Cobbler is able to provision.
     """
     I386 = "i386"
     X86_64 = "x86_64"

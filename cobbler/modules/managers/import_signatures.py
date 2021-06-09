@@ -33,7 +33,7 @@ import magic
 
 from cobbler.items import profile, distro
 from cobbler.cexceptions import CX
-from cobbler import utils
+from cobbler import enums, utils
 from cobbler.manager import ManagerModule
 
 import cobbler.items.repo as item_repo
@@ -402,11 +402,11 @@ class _ImportSignatureManager(ManagerModule):
             # depending on the name of the profile we can
             # define a good virt-type for usage with koan
             if name.find("-xen") != -1:
-                new_profile.virt_type = "xenpv"
+                new_profile.virt_type = enums.VirtType.XENPV
             elif name.find("vmware") != -1:
-                new_profile.virt_type = "vmware"
+                new_profile.virt_type = enums.VirtType.VMWARE
             else:
-                new_profile.virt_type = "kvm"
+                new_profile.virt_type = enums.VirtType.KVM
 
             self.profiles.add(new_profile, save=True)
 
@@ -726,7 +726,7 @@ class _ImportSignatureManager(ManagerModule):
             mirror = "http://archive.ubuntu.com/ubuntu"
 
         repo = item_repo.Repo(self.collection_mgr)
-        repo.breed = "apt"
+        repo.breed = enums.RepoBreeds.APT
         repo.arch = distribution.arch
         repo.keep_updated = True
         repo.apt_components = "main universe"  # TODO: make a setting?

@@ -210,7 +210,7 @@ class Collection:
         """
         ref = ref.make_clone()
         ref.uid = uuid.uuid4().hex
-        ref.ctime = 0
+        ref.ctime = time.time()
         ref.name = newname
         if ref.COLLECTION_TYPE == "system":
             # this should only happen for systems
@@ -350,10 +350,10 @@ class Collection:
             ref.uid = uuid.uuid4().hex
 
         if save:
-            now = time.time()
-            if ref.ctime == 0:
+            now = float(time.time())
+            if ref.ctime == 0.0:
                 ref.ctime = now
-            ref.mtime = float(now)
+            ref.mtime = now
 
         if self.lite_sync is None:
             self.lite_sync = self.api.get_sync()
@@ -478,9 +478,9 @@ class Collection:
                 match_ip = []
                 match_mac = []
                 match_hosts = []
-                input_mac = intf["mac_address"]
-                input_ip = intf["ip_address"]
-                input_dns = intf["dns_name"]
+                input_mac = intf.mac_address
+                input_ip = intf.ip_address
+                input_dns = intf.dns_name
                 if not self.api.settings().allow_duplicate_macs and input_mac is not None and input_mac != "":
                     match_mac = self.api.find_system(mac_address=input_mac, return_list=True)
                 if not self.api.settings().allow_duplicate_ips and input_ip is not None and input_ip != "":

@@ -135,7 +135,6 @@ class Distro(item.Item):
         :return:
         """
         self.logger.warning("Setting the parent of a distribution is not supported. Ignoring action!")
-        pass
 
     @property
     def kernel(self) -> str:

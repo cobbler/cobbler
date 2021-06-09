@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import uuid
 
 from cobbler import utils
-from cobbler.items import item, resource
+from cobbler.items import resource
 
 from cobbler.cexceptions import CX
 
