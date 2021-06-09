@@ -33,6 +33,7 @@ from cobbler.cobbler_collections import manager
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import module_loader
 from cobbler import power_manager
+from cobbler import settings
 from cobbler import tftpgen
 from cobbler import utils
 from cobbler import yumgen
@@ -63,11 +64,12 @@ class CobblerAPI:
     __shared_state = {}
     __has_loaded = False
 
-    def __init__(self, is_cobblerd: bool = False):
+    def __init__(self, is_cobblerd: bool = False, settingsfile_location: str = "/etc/cobbler/settings.yaml"):
         """
         Constructor
 
         :param is_cobblerd: Wether this API is run as a deamon or not.
+        :param settingsfile_location: The location of the settings file on the disk.
         """
 
         # FIXME: this should be switchable through some simple system
@@ -92,18 +94,18 @@ class CobblerAPI:
                 # perms_ok is False
                 return
 
-            # FIXME: conslidate into 1 server instance
+            # FIXME: consolidate into 1 server instance
 
             self.selinux_enabled = utils.is_selinux_enabled()
             self.dist, self.os_version = utils.os_release()
+            self._settings = settings.Settings()
+            # FIXME: Take argument from the constructor and make this as a cli switch into the Server CLI.
+            self._settings.from_dict(settings.read_settings_file(settingsfile_location))
 
             CobblerAPI.__has_loaded = True
 
             # load the modules first, or nothing else works...
             module_loader.load_modules()
-
-            self._collection_mgr = manager.CollectionManager(self)
-            self.deserialize()
 
             # import signatures
             try:
@@ -112,9 +114,11 @@ class CobblerAPI:
                 self.log("Failed to load signatures from %s: %s" % (self.settings().signature_path, e))
                 return
 
-            self.log("%d breeds and %d OS versions read from the signature file" % (
-                len(utils.get_valid_breeds()), len(utils.get_valid_os_versions()))
-            )
+            self._collection_mgr = manager.CollectionManager(self)
+            self.deserialize()
+
+            self.log("%d breeds and %d OS versions read from the signature file"
+                     % (len(utils.get_valid_breeds()), len(utils.get_valid_os_versions())))
 
             self.authn = self.get_module_from_file(
                 "authentication",
@@ -296,7 +300,7 @@ class CobblerAPI:
         """
         Return the application configuration
         """
-        return self._collection_mgr.settings()
+        return self._settings
 
     def mgmtclasses(self):
         """

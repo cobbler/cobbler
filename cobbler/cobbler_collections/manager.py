@@ -101,7 +101,7 @@ class CollectionManager:
         """
         Return the definitive copy of the application settings
         """
-        return self._settings
+        return self.api.settings()
 
     def repos(self) -> Repos:
         """
@@ -184,7 +184,6 @@ class CollectionManager:
         """
 
         for collection in (
-            self._settings,
             self._distros,
             self._repos,
             self._profiles,
@@ -233,7 +232,7 @@ class CollectionManager:
         elif collection_type == "menu":
             result = self._menus
         elif collection_type == "settings":
-            result = self._settings
+            result = self.api.settings()
         else:
             raise CX("internal error, collection name %s not supported" % collection_type)
         return result
