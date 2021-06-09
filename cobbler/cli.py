@@ -28,7 +28,6 @@ import traceback
 import xmlrpc.client
 from typing import Optional
 
-from cobbler import field_info
 from cobbler.items import package, system, image, profile, repo, mgmtclass, distro, file, menu
 from cobbler import settings
 from cobbler import utils
@@ -240,22 +239,12 @@ def _add_parser_option_from_field(parser, field, settings):
     # generate option string
     option_string = "--%s" % name.replace("_", "-")
 
-    # generate option aliases
-    aliases = []
-    for deprecated_field in list(field_info.DEPRECATED_FIELDS.keys()):
-        if field_info.DEPRECATED_FIELDS[deprecated_field] == name:
-            aliases.append("--%s" % deprecated_field)
-
     # add option to parser
     if isinstance(choices, list) and len(choices) != 0:
         description += " (valid options: %s)" % ",".join(choices)
         parser.add_option(option_string, dest=name, help=description, choices=choices)
-        for alias in aliases:
-            parser.add_option(alias, dest=name, help=description, choices=choices)
     else:
         parser.add_option(option_string, dest=name, help=description)
-        for alias in aliases:
-            parser.add_option(alias, dest=name, help=description)
 
 
 def add_options_from_fields(object_type, parser, fields, network_interface_fields, settings, object_action):

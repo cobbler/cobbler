@@ -45,7 +45,6 @@ import netaddr
 import json
 
 from cobbler import settings
-from cobbler import field_info
 from cobbler import validate
 from cobbler.cexceptions import CX
 
@@ -2010,9 +2009,6 @@ def from_dict_from_fields(item, item_dict: dict, fields):
                 int_fields.append(elems)
             continue
         src_k = dst_k = elems[0]
-        # deprecated field switcheroo
-        if src_k in field_info.DEPRECATED_FIELDS:
-            dst_k = field_info.DEPRECATED_FIELDS[src_k]
         if src_k in item_dict:
             setattr(item, dst_k, item_dict[src_k])
 
@@ -2022,13 +2018,7 @@ def from_dict_from_fields(item, item_dict: dict, fields):
     # special handling for interfaces
     if item.COLLECTION_TYPE == "system":
         item.interfaces = copy.deepcopy(item_dict["interfaces"])
-        # deprecated field switcheroo for interfaces
         for interface in list(item.interfaces.keys()):
-            for k in list(item.interfaces[interface].keys()):
-                if k in field_info.DEPRECATED_FIELDS:
-                    if not field_info.DEPRECATED_FIELDS[k] in item.interfaces[interface] or \
-                            item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] == "":
-                        item.interfaces[interface][field_info.DEPRECATED_FIELDS[k]] = item.interfaces[interface][k]
             # populate fields that might be missing
             for int_field in int_fields:
                 if not int_field[0][1:] in item.interfaces[interface]:

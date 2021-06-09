@@ -79,14 +79,6 @@ cobbler.download\_manager module
     :undoc-members:
     :show-inheritance:
 
-cobbler.field\_info module
---------------------------
-
-.. automodule:: cobbler.field_info
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 cobbler.module\_loader module
 -----------------------------
 
