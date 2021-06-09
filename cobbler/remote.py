@@ -572,7 +572,7 @@ class CobblerXMLRPCInterface:
         else:
             self.logger.info(msg)
 
-    def __sort(self, data, sort_field=None):
+    def __sort(self, data, sort_field: Optional[str] = None):
         """
         Helper function used by the various find/search functions to return object representations in order.
 
@@ -921,7 +921,7 @@ class CobblerXMLRPCInterface:
         """
         return self.get_items("menu")
 
-    def find_items(self, what, criteria=None, sort_field=None, expand: bool = True) -> list:
+    def find_items(self, what, criteria: dict = None, sort_field=None, expand: bool = True) -> list:
         """Works like get_items but also accepts criteria as a dict to search on.
 
         Example: ``{ "name" : "*.example.org" }``
@@ -935,7 +935,11 @@ class CobblerXMLRPCInterface:
         :returns: A list of dicts.
         """
         self._log("find_items(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field))
-        items = self.api.find_items(what, criteria=criteria)
+        if "name" in criteria:
+            name = criteria.pop("name")
+            items = self.api.find_items(what, criteria=criteria, name=name)
+        else:
+            items = self.api.find_items(what, criteria=criteria)
         items = self.__sort(items, sort_field)
         if not expand:
             items = [x.name for x in items]
@@ -1065,7 +1069,10 @@ class CobblerXMLRPCInterface:
         :return: The found items.
         """
         self._log("find_items_paged(%s); criteria(%s); sort(%s)" % (what, criteria, sort_field), token=token)
-        items = self.api.find_items(what, criteria=criteria)
+        if criteria is None:
+            items = self.api.get_items(what)
+        else:
+            items = self.api.find_items(what, criteria=criteria)
         items = self.__sort(items, sort_field)
         (items, pageinfo) = self.__paginate(items, page, items_per_page)
         items = [x.to_dict() for x in items]
@@ -1575,7 +1582,7 @@ class CobblerXMLRPCInterface:
         elif what == "menu":
             d = menu.Menu(self.api, is_subobject=is_subobject)
         else:
-            raise CX("internal error, collection name is %s" % what)
+            raise CX("internal error, collection name is \"%s\"" % what)
         key = "___NEW___%s::%s" % (what, self.__get_random(25))
         self.object_cache[key] = (time.time(), d)
         return key

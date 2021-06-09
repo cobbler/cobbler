@@ -844,28 +844,47 @@ class CobblerAPI:
 
     # ==========================================================================
 
-    # FIXME: find_items should take all the arguments the other find methods do.
-
-    def find_items(self, what, criteria=None):
+    def find_items(self, what: str, criteria: dict = None, name: Optional[str] = None, return_list: bool = True,
+                   no_errors: bool = False):
         """
         This is the abstract base method for finding object int the api. It should not be used by external resources.
         Please reefer to the specific implementations of this method called ``find_<object type>``.
 
         :param what: The object type of the item to search for.
         :param criteria: The dictionary with the key-value pairs to find objects with.
+        :param name: The name of the object.
+        :param return_list: If only the first result or all results should be returned.
+        :param no_errors: Silence some errors which would raise if this turned to False.
         :return: The list of items witch match the search criteria.
         """
         self.log("find_items", [what])
-        # defaults
+
         if criteria is None:
             criteria = {}
+
+        if what == "" and ("name" in criteria or name is not None):
+            return self.__find_by_name(criteria.get("name", name))
+
+        if what not in ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]:
+            raise ValueError("what needs to be a valid collection!")
+
         items = self._collection_mgr.get_items(what)
-        # empty criteria returns everything
-        if criteria == {}:
-            res = items
-        else:
-            res = items.find(return_list=True, no_errors=False, **criteria)
-        return res
+        return items.find(name=name, return_list=return_list, no_errors=no_errors, **criteria)
+
+    def __find_by_name(self, name: str):
+        """
+        This is a magic method which just searches all collections for the specified name directly,
+        :param name: The name of the item(s).
+        :return: The found item or None.
+        """
+        if not isinstance(name, str):
+            raise TypeError("name of an object must be of type str!")
+        collections = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file", "menu"]
+        for collection_name in collections:
+            match = self.find_items(collection_name, name=name, return_list=False)
+            if match is not None:
+                return match
+        return None
 
     def find_distro(self, name=None, return_list=False, no_errors=False, **kargs):
         """

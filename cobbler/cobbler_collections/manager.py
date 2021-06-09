@@ -235,5 +235,5 @@ class CollectionManager:
         elif collection_type == "settings":
             result = self._settings
         else:
-            raise CX("internal error, collection name %s not supported" % collection_type)
+            raise CX("internal error, collection name \"%s\" not supported" % collection_type)
         return result
